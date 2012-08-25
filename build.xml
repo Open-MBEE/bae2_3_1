@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CS" default="makejar" basedir=".">
+	<!-- Customize properties below for your installation. -->
+	<property name="junitJarFile" value="c:\Program Files\eclipse\plugins\org.junit_4.8.2.v4_8_2_v20110321-1705\junit.jar"/>
+  <property name="xmlFile" value="src/xml/exampleScenario.xml"/>
+  <!-- Customize properties above for your installation. -->
+  <target name ="makejar" description="Create a jar for the Analysis Engine">
+    <jar destfile="AE.jar">
+    	<fileset includes="**/*.class"  excludes="generated**/*" dir="bin"/>
+    	<zipfileset includes="**/*.class" src="${junitJarFile}"/>
+    	<manifest>
+        <attribute name="Main-Class"
+              value="tests/TestEventXmlToJava"/>
+      </manifest>
+    </jar>	
+  </target>
+  <target name="xml2java" depends="makejar">
+    <java jar="AE.jar" fork="true">
+    	<arg line="${xmlFile}"/>
+    </java>
+  </target>
+	<target name="compile-generated" depends="xml2java">
+		<javac srcdir="src/generated" destdir="bin"/>
+    <echo>Finished running </echo>
+	</target>
+  <target name="run-generated" depends="compile-generated">
+    <echo>Started running generated.Main</echo>
+    <java classpath="AE.jar;bin" classname="generated.Main" fork="true"/>
+  	<echo>Finished running generated.Main</echo>
+  </target>
+</project>

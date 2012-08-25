@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema_v6.xsd">
+  <events>
+    <event>
+      <class>
+        <name>A</name>
+        <members><parameter><name>i</name><type>Integer</type><value>0</value></parameter></members>
+        <dependencies></dependencies>
+      </class>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <eventType>A</eventType>
+            <arguments>
+              <parameter><name>i</name><value>i-1</value></parameter>
+              <parameter><name>startTime</name><value>endTime</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression> i &gt;= 0 </expression></condition>
+        </elaboration>
+      </elaborations>
+      </event>
+  </events>
+  <classes></classes>
+</scenario>
+

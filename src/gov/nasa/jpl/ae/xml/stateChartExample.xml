@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+  <epoch>2012-08-05T23:30:00-07:00</epoch>
+  <timeUnits>seconds</timeUnits>
+  <!-- This corresponds to Figure 10.10 on p. 256 of A Practical Guide to SysML-->  
+  <eventToBeExecuted>
+    <eventType>
+      Operating
+    </eventType>
+    <arguments>
+      <parameter><name>initialSignal</name><type>String</type><value>"login"</value></parameter>
+    </arguments>
+  </eventToBeExecuted>
+  <events>
+    <event>
+      <class>
+        <name>
+          Operating
+        </name>
+        <members>
+              <parameter><name>operatingState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;()</value></parameter>
+              <parameter><name>routineMaintenanceState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;()</value></parameter>
+              <parameter><name>alertManagementState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;()</value></parameter>
+              <parameter><name>initialSignal</name><type>String</type><value>null</value></parameter>
+              <parameter><name>loggedIn</name><type>Integer</type><value>0</value></parameter>
+        </members>
+        <constraints></constraints>
+        <dependencies></dependencies>
+      </class>
+      <effects>
+        <effect>operatingState.setValue(startTime, "logged off")</effect>
+        <effect>routineMaintenanceState.setValue(startTime, "routine maintenance inactive")</effect>
+        <effect>alertManagementState.setValue(startTime, "alert management inactive")</effect>
+      </effects>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <eventType>SignalEvent</eventType>
+            <eventName>start</eventName>
+            <arguments>
+              <parameter><name>startTime</name><value>startTime + 1</value></parameter>
+              <parameter><name>signal</name><value>initialSignal</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>initialSignal != null</expression></condition>
+        </elaboration>
+      </elaborations>
+    </event>
+    <event>
+      <class>
+        <name>
+          SignalEvent
+        </name>
+        <members>
+          <parameter><name>signal</name><type>String</type><value>null</value></parameter>
+          <parameter><name>regionToStates</name><type><![CDATA[Map< String, Set< String > >]]></type><value>null</value></parameter>
+          <parameter><name>transitionMap</name><type><![CDATA[Map< String, Map< String, Set< String > > >]]></type><value>null</value></parameter>
+          <parameter><name>currentOperatingState</name><type>String</type><value>null</value></parameter>
+          <parameter><name>currentRoutineMaintenanceState</name><type>String</type><value>null</value></parameter>
+          <parameter><name>currentAlertManagementState</name><type>String</type><value>null</value></parameter>
+          <parameter><name>currentStates</name><type>String[]</type><value>null</value></parameter>
+          <parameter><name>nextOperatingState</name><type>String</type><value>null</value></parameter>
+          <parameter><name>nextRoutineMaintenanceState</name><type>String</type><value>null</value></parameter>
+          <parameter><name>nextAlertManagementState</name><type>String</type><value>null</value></parameter>
+      </members>
+        <constraints></constraints>
+        <methods>
+          <function>
+            <![CDATA[
+            SignalEvent() {
+              super();
+              initializeTransitionMap();
+              initializeRegionToStates();
+            }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  void add( String state, String[] signals, String[] nextStates ) {
+    Set< String > nextSet = new HashSet< String >();
+    for ( String nextState : nextStates ) nextSet.add( nextState );
+    Map< String, Set< String > > stateTransitions = transitionMap.get( state );
+    if ( stateTransitions == null ) {
+      stateTransitions = 
+          new HashMap< String, Set< String > >();
+      transitionMap.put( state, stateTransitions );
+    }
+    for ( String signal : signals ) {
+      stateTransitions.put( signal, nextSet );
+    }
+  }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  void add( String state, String signal, String[] nextStates ) {
+    add( state, new String[]{ signal }, nextStates );
+  }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  void add( String state, String[] signals, String nextState ) {
+    add( state, signals, new String[]{ nextState } );
+  }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  void add( String state, String signal, String nextState ) {
+    add( state, signal, new String[]{ nextState } );
+  }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  void initializeTransitionMap() {
+    transitionMap =
+        new HashMap< String, Map< String, Set< String > > >();
+
+    // region operating
+    // state logged off
+    add( "logged off", "login", new String[]{ "logged on", "idle", "normal" } );
+    // state join_1 
+    add( "routine maintenance join_1 operating", "alert management join_1 operating", 
+         new String[]{ "logged off",
+                       "routine maintenance inactive",
+                       "alert management inactive" } );
+    add( "alert management join_1 operating", "routine maintenance join_1 operating", 
+         new String[]{ "logged off",
+                       "routine maintenance inactive",
+                       "alert management inactive" } );
+   
+    // region routine maintenance
+    // state idle
+    add( "idle", "edit routes", "maintaining" );
+    add( "idle", "routine maintenance ready to logout", "routine maintenance join_1 operating" );
+    // state maintaining
+    add( "maintaining", "store routes", "idle" );
+    
+    // region alert management
+    // state normal
+    add( "normal", "alert", "alerted" );
+    add( "normal", "alert management ready to logout", "alert management join_1 operating" );
+    // state maintaining
+    add( "alerted", "stand down", "normal" );
+  }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  void initializeRegionToStates() {
+    Set< String > states = new HashSet< String >();
+    regionToStates.put("operating", states );
+    states.add( "logged off" );
+    states.add( "logged on" );
+    states.add( "operating join_1" );
+    states = new HashSet< String >();
+    
+    regionToStates.put("route maintenance", states );
+    states.add( "idle" );
+    states.add( "maintaining" );
+    states.add( "routine maintenance join_1 operating" );
+
+    regionToStates.put("alert management", states );
+    states.add( "normal" );
+    states.add( "alerted" );
+    states.add( "routine maintenance join_1 operating" );
+  }
+            ]]>
+          </function>
+          <function>
+            <![CDATA[
+  String getNextState( String region, Collection< String > currentStates,
+                       String signal ) {
+    for( String curState : currentStates ) {
+      Map< String, Set< String > > signals = transitionMap.get( curState );
+      if ( signals != null ) {
+        for ( String nextState : signals.get( signal ) ) {
+          if ( regionToStates.get( region ).contains( nextState ) ) {
+            return nextState;
+          }
+        }
+      }
+    }
+    return null;
+  }
+            ]]>
+          </function>
+        </methods>
+        <dependencies>
+          <dependency><name>currentOperatingState</name><value>operatingState.getValue(startTime)</value></dependency>
+          <dependency><name>currentRoutineMaintenanceState</name><value>routineMaintenanceState.getValue(startTime)</value></dependency>
+          <dependency><name>currentAlertManagementState</name><value>alertManagementState.getValue(startTime)</value></dependency>
+          <dependency><name>currentStates</name><value>new String[]{ currentOperatingState, currentRoutineMaintenanceState, currentAlertManagementState }</value></dependency>
+          <dependency><name>nextOperatingState</name><value>getNextState("operating", currentStates, signal )</value></dependency>
+          <dependency><name>nextRoutineMaintenanceState</name><value>getNextState("routine maintenance", currentStates, signal )</value></dependency>
+          <dependency><name>nextAlertManagementState</name><value>getNextState("alert management", currentStates, signal )</value></dependency>
+        </dependencies>
+      </class>
+      <effects></effects>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <eventType>TransitionEvent</eventType>
+            <eventName>operatingTransition</eventName>
+            <arguments>
+              <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
+              <parameter><name>stateVar</name><type>TimeVarying&lt; String &gt;</type><value>operatingState</value></parameter>
+              <parameter><name>value</name><type>String</type><value>nextOperatingState</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>nextOperatingState != null</expression></condition>
+        </elaboration>
+        <elaboration>
+          <eventInvocation>
+            <eventType>TransitionEvent</eventType>
+            <eventName>routineMaintenanceTransition</eventName>
+            <arguments>
+              <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
+              <parameter><name>stateVar</name><type>TimeVarying&lt; String &gt;</type><value>routineMaintenanceState</value></parameter>
+              <parameter><name>value</name><type>String</type><value>nextRoutineMaintenanceState</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>nextRoutineMaintenanceState != null</expression></condition>
+        </elaboration>
+        <elaboration>
+          <eventInvocation>
+            <eventType>TransitionEvent</eventType>
+            <eventName>alertManagementTransition</eventName>
+            <arguments>
+              <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
+              <parameter><name>stateVar</name><type>TimeVarying&lt; String &gt;</type><value>alertManagementState</value></parameter>
+              <parameter><name>value</name><type>String</type><value>nextAlertManagementState</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>nextAlertManagementState != null</expression></condition>
+        </elaboration>
+      </elaborations>
+    </event>
+    <event>
+      <class>
+        <name>
+          TransitionEvent
+        </name>
+        <members>
+          <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
+          <parameter><name>state</name><type>TimeVarying&lt; String &gt;</type><value>null</value></parameter>
+          <parameter><name>value</name><type>String</type><value>null</value></parameter>
+        </members>
+        <constraints></constraints>
+        <methods></methods>
+        <dependencies></dependencies>
+      </class>
+      <effects>
+        <effect>state.setValue(startTime, value)</effect>
+      </effects>
+      <elaborations>
+        
+      </elaborations>
+    </event>
+  </events>
+  <classes></classes>
+</scenario>
+
