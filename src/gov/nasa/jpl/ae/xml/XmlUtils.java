@@ -305,6 +305,17 @@ public class XmlUtils {
     return stringList;
   }
   
+  public static Node getEnclosingNodeWithName( Node node, String name ) {
+    while ( node != null ) {
+      if ( node.getLocalName() != null && node.getLocalName().equals( name ) ) {
+        return node;
+      }
+      node = node.getParentNode(); 
+    }
+    return null;
+  }
+
+  
   // XML file/path helpers
   
 //protected static String getDefaultXsdFileName() {

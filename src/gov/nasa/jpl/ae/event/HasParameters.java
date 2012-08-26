@@ -105,7 +105,7 @@ public interface HasParameters extends LazyUpdate {
       return false;
     }
     
-    // WARNING! Do not call from o.isFreeParamter() -- infinite loop
+    // WARNING! Do not call from o.isFreeParameter() -- infinite loop
     public static boolean substitute( Object o,
                                       Parameter< ? > p1,
                                       Parameter< ? > p2,
@@ -261,6 +261,69 @@ public interface HasParameters extends LazyUpdate {
       if ( p1 == p2 ) return true;
       boolean subbed = false;
       for ( T t : c ) {
+        if ( substitute( t, p1, p2, deep ) ) {
+          subbed = true;
+        }
+      }      
+      return subbed;
+    }
+   
+    // static implementations on array
+    
+    public static boolean isStale( Object[] c, boolean deep ) {
+      for ( Object t : c ) {
+        if ( isStale( t, deep ) ) return true;
+      }
+      return false;
+    }
+    
+//    // Warning! It should be unusual to set all the keys and values stale!
+//    public static < K, V > void setStale( Map< K, V > map, boolean staleness ) {
+//      for ( Map.Entry< K, V > me : map.entrySet() ) {
+//        setStale( me.getKey(), staleness );
+//        setStale( me.getValue(), staleness );
+//      }
+//    }
+    
+    public static boolean hasParameter( Object[] c,
+                                        Parameter< ? > parameter,
+                                        boolean deep ) {
+      for ( Object t : c ) {
+        if ( hasParameter( t, parameter, deep ) ) {
+          return true;
+        }
+      }      
+      return false;
+    }
+    
+    public static Set< Parameter< ? > > getParameters( Object[] c,
+                                                       boolean deep ) {
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      for ( Object t : c ) {
+        set.addAll( HasParameters.Helper.getParameters( t, deep ) );
+      }
+      return set;
+    }
+    
+    // getFreeParameters( Object ) suffices for Map
+
+    public static boolean isFreeParameter( Object[] c,
+                                           Parameter< ? > parameter,
+                                           boolean deep ) {
+      for ( Object t : c ) {
+        if ( isFreeParameter( t, parameter, deep ) ) {
+          return true;
+        }
+      }      
+      return false;
+    }    
+    
+    public static boolean substitute( Object[] c, Parameter< ? > p1,
+                                      Parameter< ? > p2, boolean deep ) {
+      if ( p1 == null ) return false;
+      if ( p1 == p2 ) return true;
+      boolean subbed = false;
+      for ( Object t : c ) {
         if ( substitute( t, p1, p2, deep ) ) {
           subbed = true;
         }

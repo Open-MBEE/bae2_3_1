@@ -10,6 +10,7 @@ import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -578,21 +579,42 @@ public class DurativeEvent implements Event, Cloneable,
                           Class< T > eventClass,
                           String eventName,
                           Expression<?>[] arguments ) {
-    Vector<EventInvocation> invocation = new Vector<EventInvocation>();
-    Class< ? > constructorParamTypes[] = new Class< ? >[arguments.length];
-    for (int i=0; i<arguments.length; ++i ) {
-      Class<?> c = arguments[i].getClass();
-      if (arguments[i] instanceof Expression) {
+    // If elaborating a non-static inner class, need to add parent object as
+    // the first argument to the constructor.
+    boolean nonStaticInnerClass =
+        !Modifier.isStatic( eventClass.getModifiers() )
+            && eventClass.getEnclosingClass() != null;
+    Object newArgs[] = arguments;
+    if ( nonStaticInnerClass ) {
+      newArgs = new Object[arguments.length + 1];
+      // Warning!  Assuming that this is the parent object for the inner class.
+      assert eventClass.getEnclosingClass().isAssignableFrom( this.getClass() );
+      newArgs[0] = this;
+      for ( int i = 0; i < arguments.length; ++i ) {
+        newArgs[ i + 1 ] = arguments[ i ];
+      }
+    }
+
+    // Collect argument types to search for the constructor.
+    int length = newArgs.length;
+    Class< ? > constructorParamTypes[] = new Class< ? >[ length ];
+    for ( int i = 0; i < length; ++i ) {
+      Class< ? > c = newArgs[ i ].getClass();
+      if ( newArgs[ i ] instanceof Expression ) {
         c = Expression.class;
       }
       constructorParamTypes[i] = c;
     }
-    EventInvocation i = null;
+    
+    // Now create the EventInvocation from the constructor and arguments. 
+    Vector<EventInvocation> invocation = new Vector<EventInvocation>();
+    EventInvocation newInvocation = null;
     try {
-      i = new EventInvocation( eventClass, eventName,
+      newInvocation =
+          new EventInvocation( eventClass, eventName,
                                eventClass.getDeclaredConstructor( constructorParamTypes ),
-                               arguments, (Map< String, Object >)null );
-      invocation.add(i);
+                               newArgs, (Map< String, Object >)null );
+      invocation.add(newInvocation);
     } catch (NoSuchMethodException e1) {
         e1.printStackTrace();
         // TODO

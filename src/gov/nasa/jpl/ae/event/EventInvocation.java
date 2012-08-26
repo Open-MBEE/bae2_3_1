@@ -22,14 +22,14 @@ import junit.framework.Assert;
 public class EventInvocation implements HasParameters {
   protected Class< ? extends Event > eventClass = null;
   protected String eventName = null;
-  protected Expression< ? >[] arguments = null;
+  protected Object[] arguments = null;
   protected Map< String, Object > memberAssignments = null; // TODO -- REVIEW --
                                                             // not using; remove? 
   protected Constructor< ? extends Event > constructor = null;
 
   public EventInvocation( Class< ? extends Event > eventClass,
                           String eventName,
-                          Expression< ? >[] arguments ) {
+                          Object[] arguments ) {
     this.eventClass = eventClass;
     this.eventName = eventName;
     this.arguments = arguments;
@@ -38,7 +38,7 @@ public class EventInvocation implements HasParameters {
   public <T extends Event> EventInvocation( Class< T > eventClass,
                                             String eventName,
                                             Constructor< T > constructor,
-                                            Expression< ? >[] arguments,
+                                            Object[] arguments,
                                             Map< String, Object > memberAssignments ) {
     this.eventClass = eventClass;
     this.eventName = eventName;
@@ -134,7 +134,7 @@ public class EventInvocation implements HasParameters {
   /**
    * @return the arguments
    */
-  public Expression< ? >[] getArguments() {
+  public Object[] getArguments() {
     return arguments;
   }
 
@@ -142,7 +142,7 @@ public class EventInvocation implements HasParameters {
    * @param arguments
    *          the arguments to set
    */
-  public void setArguments( Expression< ? >[] arguments ) {
+  public void setArguments( Object[] arguments ) {
     this.arguments = arguments;
   }
 
@@ -179,18 +179,15 @@ public class EventInvocation implements HasParameters {
 
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep ) {
-    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
-    for ( Expression< ? > a : getArguments() ) {
-      s.addAll( a.getParameters( deep ) );
-    }
-    return s;
+    return HasParameters.Helper.getParameters( getArguments(), deep );
   }
 
   @Override
   public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
     Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
-    for ( Expression< ? > a : getArguments() ) {
-      s.addAll( a.getFreeParameters( deep ) );
+    for ( Object a : getArguments() ) {
+      if ( a instanceof HasParameters )
+      s.addAll( ((HasParameters)a).getFreeParameters( deep ) );
     }
     return s;
   }
@@ -202,21 +199,12 @@ public class EventInvocation implements HasParameters {
   
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
-    boolean subbed = false;
-    for ( Expression< ? > a : getArguments() ) {
-      if ( a.substitute( p1, p2, deep ) ) {
-        subbed = true;
-      }
-    }
-    return subbed;
+    return HasParameters.Helper.substitute( getArguments(), p1, p2, deep );
   }
 
   @Override
   public boolean isStale() {
-    for ( Parameter< ? > p : getParameters( false ) ) {
-      if ( p.isStale() ) return true;
-    }
-    return false;
+    return HasParameters.Helper.isStale( getArguments(), false );
   }
 
   @Override
@@ -232,9 +220,10 @@ public class EventInvocation implements HasParameters {
 
   @Override
   public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
-    // REVIEW -- Is this just done by Events? Maybe throw
-    // assertion that this method id not supported for ElaborationRule.
-    return false;
+    return getFreeParameters( deep ).contains( p );
+//    // REVIEW -- Is this just done by Events? Maybe throw
+//    // assertion that this method id not supported for ElaborationRule.
+//    return false;
   }
   
 }

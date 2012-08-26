@@ -227,30 +227,89 @@
           <!-- Again, hardcoding uncontrollable/uncertain value. -->
           <!--<dependency><name>loadReductionActual</name><type>Double</type><value>1000.0</value></dependency>-->
           <!-- TODO: optionally elaborate into IncreaseGeneration. -->
-          <dependency><name>increasedGeneration</name><type>Double</type><value>0.0</value></dependency>
+          <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &lt;= 500.0</value></dependency>-->
+          <dependency><name>increasedGeneration</name><value>0.0</value></dependency>
+          <dependency><name>amountToIncrease</name><value>1000.0</value></dependency>
         </dependencies>
+        <events>
+          <event>
+            <!-- An inner class! -->
+            <class>
+              <name>
+                IncreaseGeneration
+              </name>
+              <members>
+                <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
+              </members>
+              <constraints>
+                <!-- '<' = #x003C from http://en.wikipedia.org/wiki/UTF-8#Codepage_layout -->
+                <constraint><expression>amountToIncrease &lt; 2000.0</expression></constraint>
+                <constraint><expression>amountToIncrease &gt;= 500.0</expression></constraint>
+              </constraints>
+              <dependencies>
+              </dependencies>
+            </class>
+          </event>
+        </events>
       </class>
       <!-- TODO: optionally elaborate into IncreaseGeneration. -->
-      <elaborations></elaborations>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <eventType>IncreaseGeneration</eventType>
+            <arguments>
+              <parameter><name>startTime</name><value>startTime+1800</value></parameter>
+              <parameter><name>endTime</name><value>endTime</value></parameter>
+              <parameter><name>amountToIncrease</name><value>amountToIncrease</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition>
+          	<expression>increaseGeneration</expression>
+          </condition>
+        </elaboration>
+      </elaborations>
     </event>
-    <event>
+    <!--<event>
       <class>
-        <name>
-          IncreaseGeneration
-        </name>
-        <members>
-          <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
-        </members>
-        <constraints>
-          <!-- '<' = #x003C from http://en.wikipedia.org/wiki/UTF-8#Codepage_layout -->
-          <constraint><expression>amountToIncrease &lt; 2000.0</expression></constraint>
-          <constraint><expression>amountToIncrease &gt;= 500.0</expression></constraint>
-        </constraints>
-        <dependencies></dependencies>
+        <name></name>
       </class>
-    </event>
+    </event>-->
   </events>
   <classes>
+    <class>
+      <name>Generator</name>
+      <members>
+        <parameter><name>online</name><type>TimeVaryingMap&lt; Boolean &gt;</type><value>new TimeVaryingMap&lt; Boolean &gt;("online",false)</value></parameter>
+        <parameter><name>power</name><type>Double</type></parameter>
+      </members>
+      <dependencies>
+        <dependency><name>power</name><value>1000.0</value></dependency>
+      </dependencies>
+      <events>
+        <event>
+          <class>
+            <name>turnOn</name>
+            <dependencies>
+              <dependency><name>duration</name><value>1</value></dependency>
+            </dependencies>
+          </class>
+          <effects>
+            <effect>online.setValue(startTime, true)</effect>
+          </effects>
+        </event>
+        <event>
+          <class>
+            <name>turnOff</name>
+            <dependencies>
+              <dependency><name>duration</name><value>1</value></dependency>
+            </dependencies>
+          </class>
+          <effects>
+            <effect>online.setValue(startTime, false)</effect>
+          </effects>
+        </event>
+      </events>
+    </class>
     <!--<class>
       <name>EnumState</name>
       <inheritsFrom>gov.nasa.jpl.ae.event.TimeVaryingMap&lt; String &gt;</inheritsFrom>
