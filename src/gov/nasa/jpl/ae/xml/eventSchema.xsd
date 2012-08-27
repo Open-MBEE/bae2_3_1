@@ -105,6 +105,7 @@
         </xs:annotation>
       </xs:element>
     </xs:sequence>
+    <xs:attribute name="static" type="xs:boolean" default="false"/>
   </xs:complexType>
   <xs:complexType name="parametersType">
     <xs:annotation>
@@ -308,6 +309,7 @@
     <xs:choice>
       <xs:element name="dateTime" type="xs:dateTime"></xs:element>
       <xs:element name="milliseconds" type="xs:long"></xs:element>
+      <xs:element name="expression" type="xs:string"></xs:element>
     </xs:choice>
   </xs:complexType>
 </xs:schema>
