@@ -21,7 +21,7 @@ import junit.framework.Assert;
  *         TODO -- Consider using Ptolemy's expression parser.
  * 
  */
-public class Expression< ResultType extends Comparable<? super ResultType> >
+public class Expression< ResultType >
                                     implements HasParameters, Groundable,
                                                LazyUpdate {//, Comparable< Expression< ? > > {
 	public Object expression = null;

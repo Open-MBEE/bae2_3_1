@@ -81,14 +81,14 @@ public class AssessDRCommitmentEvent extends DurativeEvent {
       Expression< ? >[] arguments = new Expression< ? >[2];
       arguments[0] = new Expression< Integer >( endTime );
       arguments[1] = new Expression< Double >( projectedLoadReductionBasedOnResponse );
-      Class< ? > parameterTypes[] = { Expression.class, Expression.class };
+      //Class< ? > parameterTypes[] = { Expression.class, Expression.class };
       try {
         invocation.add( new EventInvocation( MonitorLoadReductionEvent.class,
                                              null,
-                                             MonitorLoadReductionEvent.class.getConstructor( parameterTypes ),
+                                             null, //MonitorLoadReductionEvent.class.getConstructor( parameterTypes ),
                                              arguments,
                                              (Map< String, Object >)null ) );
-      } catch ( NoSuchMethodException | SecurityException e ) {
+      } catch ( Exception e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }

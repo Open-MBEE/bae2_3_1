@@ -80,7 +80,7 @@ public class PlanAndControlLoadReductionEvent extends DurativeEvent {
 		  arguments[0] = new Expression< Integer >( startTime );
 //      Class< ? > parameterTypes[] = { arguments[0].getClass() };
       addElaborationRule( new Expression< Boolean >( new Boolean( true ) ),
-                          AssessDRCommitmentEvent.class, null, arguments );
+                          null, AssessDRCommitmentEvent.class, null, arguments );
 //      try {
 //        EventInvocation i =
 //            new EventInvocation( AssessDRCommitmentEvent.class,

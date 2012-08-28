@@ -279,6 +279,11 @@
       <xs:documentation>an invocation of a function or constructor (such as for an event) name and with arguments</xs:documentation>
     </xs:annotation>
     <xs:sequence>
+      <xs:element name="enclosingInstance" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>An inner class is constructed from an instance of the enclosing class; for example, Car.Engine engine1 = car1.new Engine().</xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element name="eventType" type="xs:string">
         <xs:annotation>
           <xs:documentation>the name of the event class to be instantiated</xs:documentation>

@@ -18,60 +18,33 @@ import japa.parser.ast.body.VariableDeclarator;
 import japa.parser.ast.body.VariableDeclaratorId;
 import japa.parser.ast.expr.AssignExpr;
 import japa.parser.ast.expr.BinaryExpr;
-import japa.parser.ast.expr.BinaryExpr.Operator;
 import japa.parser.ast.expr.ConditionalExpr;
 import japa.parser.ast.expr.EnclosedExpr;
 import japa.parser.ast.expr.Expression;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.NameExpr;
-import japa.parser.ast.expr.NullLiteralExpr;
-import japa.parser.ast.expr.ObjectCreationExpr;
 import japa.parser.ast.expr.UnaryExpr;
-import japa.parser.ast.expr.VariableDeclarationExpr;
 import japa.parser.ast.stmt.BlockStmt;
-import japa.parser.ast.stmt.CatchClause;
 import japa.parser.ast.stmt.ExplicitConstructorInvocationStmt;
-import japa.parser.ast.stmt.ExpressionStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.type.VoidType;
 
-import javax.xml.XMLConstants;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-// import javax.xml.stream.XMLStreamException;
-// import javax.xml.stream.events.XMLEvent;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.TypeVariable;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -80,31 +53,26 @@ import junit.framework.Assert;
 // import javax.xml.xpath.XPathExpression;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
 import gov.nasa.jpl.ae.event.DurativeEvent;
-import gov.nasa.jpl.ae.event.ElaborationRule;
-import gov.nasa.jpl.ae.event.Event;
-import gov.nasa.jpl.ae.event.EventInvocation;
 import gov.nasa.jpl.ae.event.Pair;
-import gov.nasa.jpl.ae.event.Parameter;
-import gov.nasa.jpl.ae.event.TimeVarying;
-import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.FileUtils;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 
-@SuppressWarnings( "unused" )
+/*
+ * Translates XML to executable Java classes for Analysis Engine behavior (based
+ * on events such as those of the Timeline Ontology).
+ */
 public class EventXmlToJava {
   
-  public static class Param {
+  // A struct for packaging name, types, and values, which are used for many
+  // purposes in the XML: parameters, args, dependencies, . . .
+  public class Param {
     public String name;
     public String type;
     public String value;
@@ -116,9 +84,9 @@ public class EventXmlToJava {
     }
 
     public Param( Node n ) {
-      name = XmlUtils.getChildElementText( n, "name" );
-      type = XmlUtils.getChildElementText( n, "type" );
-      value = XmlUtils.getChildElementText( n, "value" );
+      name = fixName( XmlUtils.getChildElementText( n, "name" ) );
+      type = fixName( XmlUtils.getChildElementText( n, "type" ) );
+      value = fixValue( XmlUtils.getChildElementText( n, "value" ) );
     }
 
     public String toString() {
@@ -126,24 +94,38 @@ public class EventXmlToJava {
     }
   }
 
-  protected static int counter = 0; // for naming
+  // Used for generating unique variable names where unspecified.
+  protected static int counter = 0;
 
+  // The source XML document.
   protected Document xmlDocDOM = null;
 
+  // The long name of the class currently being processed.
   protected String currentClass = null;
-  protected CompilationUnit currentCompilationUnit = null;
 
+  // The javaparser.CompilationUnit for the class currently being processed.
+  protected CompilationUnit currentCompilationUnit = null;
+  
+  // Map: simpleName -> javaparser.CompilationUnit
   protected Map< String, CompilationUnit > classes =
       new TreeMap< String, CompilationUnit >();
 
+  // Map: longName -> parameter name -> Param
   protected Map< String, Map< String, Param > > paramTable =
       new TreeMap< String, Map< String, Param > >();
 
+  // Map: longName -> method name -> set of javaparser.MethodDeclarations
   protected Map< String, Map< String, Set< MethodDeclaration > > > methodTable =
       new TreeMap< String, Map< String, Set< MethodDeclaration > > >();
   
+  // The package for generated Java files. This is where Java files will be
+  // written in {PROJECT}/src.
   protected String packageName = "generated";
+  
+  // This is for handling class names outside Java syntax.
+  protected NameTranslator nameTranslator = new NameTranslator();
 
+  // These are for removing default dependencies that are overridden.
   private boolean gotStartTimeDependency;
   private boolean gotEndTimeDependency;
   private boolean gotDurationDependency;
@@ -163,7 +145,7 @@ public class EventXmlToJava {
     xmlDocDOM = builder.parse( xmlFileName );
 
     if ( !XmlUtils.validateXML( xmlFileName, xmlDocDOM ) ) {
-      System.err.println( "Warning! XML file "
+      Debug.outln( "Warning! XML file "
                           + xmlFileName
                           + " does not validate against its schema definition.  "
                           + "Continuing anyway." );
@@ -221,7 +203,6 @@ public class EventXmlToJava {
     // Add constructors for invocations.
     addConstructors();
 
-    // cleanup any missing references, constructors, imports?
   }
 
 //  public void processClasses( Node scenarioNode, boolean asEvent, boolean isInner ) {
@@ -237,15 +218,103 @@ public class EventXmlToJava {
 //    }
 //  }
 
+  protected String fixName( String name ) {
+    return name;
+/*    if ( name == null ) return null;
+    String javaName = nameTranslator.translate( name, "xml", "java" );
+    // TODO -- REVIEW -- Do we need to sweep though and get names first before values?
+//    for ( Map.Entry e : classes.entrySet() ) {
+//    }
+    return javaName;
+*/  }
+  protected String fixValue( String value ) {
+    return value;
+/*    if ( value == null ) return null;
+    String javaValue = nameTranslator.substitute( value, "xml", "java" );
+    return javaValue;
+*/  }
+  
+  // Get the name of the class from the DOM node. If it is an inner class,
+  // prepend the names of the enclosing classes for proper scope (but leaving
+  // off the package name).
+  public String getClassName( Node classNode ) {
+    String name = "";
+    while ( classNode != null ) {
+      name =
+          fixName( XmlUtils.getChildElementText( classNode, "name" ) ) + "."
+                   + name;
+      classNode =
+          XmlUtils.getEnclosingNodeWithName( classNode.getParentNode(),
+                                             "class" );
+    }
+    // remove '.' at end of string for first pass through loop above.
+    name = name.substring( 0, name.length() - 1 );
+    return name;
+  }
+
+  // Try to figure out the scope of the class name if an inner class, and return
+  // the scoped class name.
+  public String getClassNameWithScope( String className ) {
+    if ( Utils.isNullOrEmpty( className ) ) return null;
+    // Return input class name if in table.
+    if ( paramTable.keySet().contains( className ) ) {
+      // Note: this.paramTable is used because it is populated at the beginning.
+      // this.methodTable could also be used.  this.classes cannot be used since
+      // it only contains classes processed so far.
+      return className;
+    }
+    // See if the class is an inner class of the current class
+    String classNameWithScope = this.currentClass + "." + className;
+    if ( paramTable.keySet().contains( classNameWithScope ) ) {
+      return classNameWithScope;
+    }
+    // Loop through existing class names and find those that end with the input
+    // name. Pick the one that seems to be "best" and print a warning if not
+    // sure.
+    String otherClassName = null;
+    for ( String n : paramTable.keySet() ) {
+      if ( n.endsWith( className ) ) { 
+        if ( otherClassName != null && otherClassName.endsWith( className ) ) {
+          if ( n.endsWith( classNameWithScope ) ) {
+            if ( otherClassName.endsWith( classNameWithScope ) ) {
+              if ( n.contains( classNameWithScope ) ) {
+                if ( otherClassName.contains( classNameWithScope ) ) {
+                  System.err.println( "Warning! Got more than one candidate class for "
+                                      + className + ": " + otherClassName + ", "
+                                      + n );
+                  if ( n.length() < otherClassName.length() ) {
+                    otherClassName = n;
+                  }
+                } else {
+                  otherClassName = n;
+                }
+              }
+            } else {
+              otherClassName = n;
+            }
+          }
+        } else {
+          otherClassName = n;
+        }
+      }
+    }
+    return otherClassName;
+  }
+
   protected Param lookupMemberByName( String className, String paramName ) {
+    if ( className == null ) return null;
     Map< String, Param > params = paramTable.get( className );
+    if ( params == null ) {
+      String classNameWithScope = getClassNameWithScope( className );
+      params = paramTable.get( classNameWithScope );
+    }
     if ( params == null ) return null;
     return params.get( paramName );
   }
 
   // For each class definition, gather all locally defined and inherited
   // parameters and store them in a table indexed by the class name.
-  protected static void
+  protected void
       buildParamTable( Document doc,
                        Map< String, Map< String, Param > > paramTable ) {
     List< Node > nList = XmlUtils.findNodes( doc, "class" );
@@ -261,9 +330,12 @@ public class EventXmlToJava {
       while ( i.hasNext() ) {
         // for ( int i = 0; i < nList.size(); i++ ) {
         Node classNode = i.next(); // nList.get( i );
-        String className = XmlUtils.getChildElementText( classNode, "name" );
-        String superClass = XmlUtils.getChildElementText( classNode, "inheritsFrom" );
+        String className = getClassName( classNode );
+        String superClass = fixName( XmlUtils.getChildElementText( classNode, "inheritsFrom" ) );
+        Node parentNode = classNode.getParentNode();
+        boolean isEvent = parentNode.getLocalName().equals( "event" );
         Map< String, Param > superParams = null;
+
         // If super class has not been processed, try again on the next pass.
         if ( superClass != null && !superClass.isEmpty() ) {
           superParams = paramTable.get( superClass );
@@ -278,7 +350,7 @@ public class EventXmlToJava {
           paramTable.put( className, params );
         }
         // Get the default DurativeEvent params if not available from superClass
-        if ( superParams == null || superParams.isEmpty() ) {
+        if ( isEvent && ( superParams == null || superParams.isEmpty() ) ) {
           DurativeEvent de = new DurativeEvent();
           for ( gov.nasa.jpl.ae.event.Parameter< ? > p : de.getParameters() ) {
             if ( !params.containsKey( p.getName() ) ) {
@@ -295,7 +367,9 @@ public class EventXmlToJava {
           }
         } else {
           // Get inherited params.
-          params.putAll( superParams );
+          if ( superParams != null && params != null ) {
+            params.putAll( superParams );
+          }
         }
         // Now add params defined locally
         Node membersNode = XmlUtils.getChildNode( classNode, "members" );
@@ -323,7 +397,9 @@ public class EventXmlToJava {
         createConstructors( this.xmlDocDOM );
     for ( ConstructorDeclaration c : constructors ) {
       TypeDeclaration type = getTypeDeclaration( c.getName() );
-      ASTHelper.addMember( type, c );
+      if ( type != null && c != null ) {
+        ASTHelper.addMember( type, c );
+      }
     }
   }
 
@@ -331,12 +407,13 @@ public class EventXmlToJava {
   // Recursively look for a type declaration with the given name.
   protected TypeDeclaration getTypeDeclarationFrom( String name,
                                                     TypeDeclaration typeDecl ) {
-    if ( typeDecl.getName().equals( name ) ) {
+    String simpleName = simpleName( name );
+    if ( typeDecl.getName().equals( simpleName ) ) {
       return typeDecl;
     }
     for ( BodyDeclaration bd : typeDecl.getMembers() ) {
       if ( bd instanceof TypeDeclaration ) {
-        TypeDeclaration td = getTypeDeclarationFrom( name, (TypeDeclaration)bd );
+        TypeDeclaration td = getTypeDeclarationFrom( simpleName, (TypeDeclaration)bd );
         if ( td != null ) return td;
       }
     }
@@ -347,18 +424,19 @@ public class EventXmlToJava {
   // Look in the compilation units in the map, classes, to find the class
   // declaration of name.
   protected TypeDeclaration getTypeDeclaration( String name ) {
-    CompilationUnit cu = this.classes.get( name );
-    ClassOrInterfaceDeclaration classDecl = null;
+    String simpleName = simpleName( name );
+    if ( name == null ) return null;
+    CompilationUnit cu = this.classes.get( simpleName );
     if ( cu != null ) {
       for ( TypeDeclaration type : cu.getTypes() ) {
-        if ( type.getName().equals( name ) ) {
+        if ( type.getName().equals( simpleName ) ) {
           return type;
         }
       }
     } else {
       for ( CompilationUnit c : this.classes.values() ) {
         for ( TypeDeclaration t : c.getTypes() ) {
-          TypeDeclaration td = getTypeDeclarationFrom( name, t );
+          TypeDeclaration td = getTypeDeclarationFrom( simpleName, t );
           if ( td != null ) {
             return td;
           }
@@ -426,8 +504,8 @@ public class EventXmlToJava {
     
     // Get the name/class of the event to execute
     //List< Expression > args = new ArrayList< Expression >();
-    String className = XmlUtils.getChildElementText( invocationNode, "eventType" );
-    String instanceName = XmlUtils.getChildElementText( invocationNode, "eventName" );
+    String className = fixName( XmlUtils.getChildElementText( invocationNode, "eventType" ) );
+    String instanceName = fixName( XmlUtils.getChildElementText( invocationNode, "eventName" ) );
     if ( instanceName == null || instanceName.isEmpty() ) {
       instanceName = className + (counter++);
     }
@@ -541,19 +619,20 @@ public class EventXmlToJava {
     for ( Node invocationNode : invocations ) {
       //String name = XmlUtils.getChildElementText( invocationNode, "eventName" );
       if ( invocationNode != null ) {
-        String eventType = XmlUtils.getChildElementText( invocationNode, "eventType" );
+        String eventType = fixName( XmlUtils.getChildElementText( invocationNode,
+                                                                  "eventType" ) );
         ConstructorDeclaration ctor =
-            new ConstructorDeclaration( ModifierSet.PUBLIC, eventType );
+            new ConstructorDeclaration( ModifierSet.PUBLIC, simpleName(eventType) );
+        Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< Param > arguments = new ArrayList< Param >();
         if ( argumentsNode != null ) {
-          List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode, "parameter" );
+          List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode,
+                                                             "parameter" );
           for ( int j = 0; j < argNodeList.size(); j++ ) {
             Node argNode = argNodeList.get( j );
             arguments.add( new Param( argNode ) );
           }
-          List< TypeParameter > typeParameters =
-              new ArrayList< TypeParameter >();
           List< japa.parser.ast.body.Parameter > parameters =
               new ArrayList< japa.parser.ast.body.Parameter >();
           for ( Param p : arguments ) {
@@ -632,12 +711,14 @@ public class EventXmlToJava {
       stmtList.append( "addDependency( this." + p.name + ", " + p.name
                        + " );\n" );
     }
+    stmtList.append( "init" + ctor.getName() + "Elaborations();\n" );
+    Debug.outln( "adding statements to block: " + stmtList.toString() );
     addStatements( block, stmtList.toString() );
     ctor.setBlock( block );
     // ctor.setBlock( createBlock( stmtList.toString() ) );
   }
 
-  protected MethodDeclaration createInitMembersMethod( String methodName ) {
+  protected MethodDeclaration createPublicVoidMethod( String methodName ) {
     MethodDeclaration initMembers =
         new MethodDeclaration( ModifierSet.PUBLIC, new VoidType(),
                                methodName );
@@ -698,17 +779,6 @@ public class EventXmlToJava {
           createEffectStmtsFromFieldCollection( "effects.put( ", effects, " );\n" );
     }
     addStmts( block, stmtList );
-    // // TODO -- not correct for elaborations
-    // stmtList =
-    // createStmtsFromFieldCollection( "elaborations.add( ", elaborations,
-    // " );\n" );
-    // if ( stmtList != null ) {
-    // addStmts( block, stmtList );
-    // }
-    // stmtList = createElaborationInitStmts( elaborations );
-    // if ( stmtList != null ) {
-    // addStmts( block, stmtList );
-    // }
 
     initCollections.setBody( block );
     return initCollections;
@@ -804,12 +874,12 @@ public class EventXmlToJava {
     gotDurationDependency = false;
 
     // Get class name.
-    String name = XmlUtils.getChildElementText( clsNode, "name" );
+    String name = getClassName( clsNode );
     if ( !isInnerClass ) { 
       currentCompilationUnit = initClassCompilationUnit( name );
     }
     ClassOrInterfaceDeclaration newClassDecl =
-        new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, name );
+        new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, simpleName(name) );
 
     // Get class inheritances as Java extends list.
     // TODO -- REVIEW -- Do we need to deal with (allow for) Java interfaces?
@@ -833,18 +903,22 @@ public class EventXmlToJava {
 //      }
     }
 
-    if ( newClassDecl.getExtends() == null ) {
-      newClassDecl.setExtends( new ArrayList< ClassOrInterfaceType >() );
-    }
-    if ( newClassDecl.getExtends().isEmpty() ) {
-      newClassDecl.getExtends()
-                  .add( new ClassOrInterfaceType( "DurativeEvent" ) );
+    if ( newClassDecl.getExtends() == null
+         || newClassDecl.getExtends().isEmpty() ) {
+      if ( newClassDecl.getExtends() == null ) {
+        newClassDecl.setExtends( new ArrayList< ClassOrInterfaceType >() );
+      }
+      String superClass = ( eventNode != null ?
+                            "DurativeEvent" : "ParameterListenerImpl" ); 
+      newClassDecl.getExtends().add( new ClassOrInterfaceType( superClass ) );
     }
 
     // Need a method for initializing members and populating Event collections
     // (parameters, effects, etc.).
     MethodDeclaration initMembers =
-        createInitMembersMethod( "init" + newClassDecl.getName() + "Members" );
+        createPublicVoidMethod( "init" + newClassDecl.getName() + "Members" );
+    MethodDeclaration initElaborations =
+        createPublicVoidMethod( "init" + newClassDecl.getName() + "Elaborations" );
 
     // Get fields (parameters, constraints, & dependencies).
     // ArrayList< Parameter< ? > > members =
@@ -867,7 +941,7 @@ public class EventXmlToJava {
     if ( eventNode != null ) {
       elaborations =
           getElaborations( XmlUtils.getChildNode( eventNode, "elaborations" ),
-                           initMembers );
+                           initElaborations );
     }
     
     members.addAll( parameters );
@@ -896,6 +970,7 @@ public class EventXmlToJava {
     }
     ASTHelper.addMember( newClassDecl, initMembers );
     ASTHelper.addMember( newClassDecl, initCollections );
+    ASTHelper.addMember( newClassDecl, initElaborations );
 
     // create a default constructor that takes no arguments
     ConstructorDeclaration ctor =
@@ -913,6 +988,10 @@ public class EventXmlToJava {
                                                  + newClassDecl.getName()
                                                  + "Collections" ) );
 
+    ASTHelper.addStmt( block,
+                       new MethodCallExpr( null, "init"
+                                                 + newClassDecl.getName()
+                                                 + "Elaborations" ) );
     // inner classes
     processClassDeclarations( clsNode, newClassDecl, "events", true );
     processClassDeclarations( clsNode, newClassDecl, "classes", true );
@@ -955,12 +1034,18 @@ public class EventXmlToJava {
   private CompilationUnit initCompilationUnit( String name ) {
     currentClass = name;
     currentCompilationUnit = new CompilationUnit();
-    classes.put( name, currentCompilationUnit );
+    classes.put( simpleName(name), currentCompilationUnit );
     setPackage();
     return currentCompilationUnit;
   }
+  
+  public static String simpleName( String longName ) {
+    int pos = longName.lastIndexOf( '.' );
+    return longName.substring( pos+1 ); // pos is -1 if no '.'
+  }
+
   private CompilationUnit initClassCompilationUnit( String name ) {
-    currentCompilationUnit = initCompilationUnit( name );
+    currentCompilationUnit = initCompilationUnit( simpleName(name) );
     // REVIEW -- How can we access eclipse's ability to auto-remove unused
     // imports?
     addImport( "gov.nasa.jpl.ae.event.Parameter" );
@@ -977,6 +1062,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.Dependency" );
     addImport( "gov.nasa.jpl.ae.event.ElaborationRule" );
     addImport( "gov.nasa.jpl.ae.event.EventInvocation" );
+    addImport( "gov.nasa.jpl.ae.event.ParameterListenerImpl" );
     addImport( "gov.nasa.jpl.ae.event.Event" );
     addImport( "gov.nasa.jpl.ae.event.DurativeEvent" );
     addImport( "gov.nasa.jpl.ae.event.TimeVarying" );
@@ -995,21 +1081,23 @@ public class EventXmlToJava {
     currentCompilationUnit.getImports().add( d );
   }
 
-  public static List< ClassOrInterfaceType > getInheritsFrom( Node cls ) {
+  public List< ClassOrInterfaceType > getInheritsFrom( Node cls ) {
     List< String > extendsStringList =
         XmlUtils.getChildrenElementText( cls, "inheritsFrom" );
     List< ClassOrInterfaceType > extendsList =
         new ArrayList< ClassOrInterfaceType >();
     for ( String e : extendsStringList ) {
-      ClassOrInterfaceType c = new ClassOrInterfaceType( e );
+      ClassOrInterfaceType c = new ClassOrInterfaceType( fixName( e ) );
       extendsList.add( c );
     }
     return extendsList;
   }
   
-  public static String getEnclosingClassName( Node node ) {
+  // Returns input DOM node if it has a localName "class," the closest parent
+  // "class" node, or null.
+  public String getEnclosingClassName( Node node ) {
     Node classNode = XmlUtils.getEnclosingNodeWithName( node, "class" );
-    return XmlUtils.getChildElementText( classNode, "name" );
+    return getClassName( classNode );
   }
 
   // TODO -- Do we need to add the "owner" event as currently required for the
@@ -1092,7 +1180,6 @@ public class EventXmlToJava {
     }
     String type = "Parameter";
     String parameterTypes = p.type;
-    String domain = null;
     String args = "\"" + p.name + "\", null, " + p.value + ", this";
     if ( p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase( "null" ) ) {
       System.err.println( "Error! creating a field " + p + " of unknown type!" );
@@ -1155,16 +1242,6 @@ public class EventXmlToJava {
     ASTHelper.addMember( typeDecl, f );
   }
 
-  private static Integer toInteger( String s ) {
-    Integer i = null;
-    try {
-      i = Integer.parseInt( s );
-    } catch ( NumberFormatException e ) {
-      // leave i = null
-    }
-    return i;
-  }
-
   private String operatorResultType( BinaryExpr.Operator o, String argType1,
                                      String argType2 ) {
     switch ( o ) {
@@ -1194,6 +1271,8 @@ public class EventXmlToJava {
   }
 
   private static String dominantType( String argType1, String argType2 ) {
+    if ( argType1 == null ) return argType2;
+    if ( argType2 == null ) return argType1;
     if ( argType1.equals( "String" ) ) return argType1;
     if ( argType2.equals( "String" ) ) return argType2;
     if ( argType1.toLowerCase().equals( "double" ) ) return argType1;
@@ -1569,7 +1648,7 @@ public class EventXmlToJava {
     ClassOrInterfaceType fieldType =
         new ClassOrInterfaceType( "Effect" );
     FieldDeclaration f = null;
-    String effectText = effectNode.getTextContent();
+    String effectText = fixValue( effectNode.getTextContent() );
 
     // parse the effect text as a MethodCallExpr
     Debug.outln( "trying to parse effect as Java expression\"" + effectText
@@ -1674,7 +1753,8 @@ public class EventXmlToJava {
   }
 
   public FieldDeclaration
-      createElaborationField( String name, String eventType,
+      createElaborationField( String name, String enclosingInstance,
+                              String eventType,
                               String eventName, List< Param > arguments,
                               String conditionExpression,
                               String applicableStartTime,
@@ -1688,7 +1768,6 @@ public class EventXmlToJava {
       name = new String( "elaborationRule" + myNum );
     }
 
-    String invocationName = "invocation" + myNum;
     String conditionName = "condition" + myNum;
     String argumentsName = "arguments" + myNum;
 
@@ -1700,16 +1779,6 @@ public class EventXmlToJava {
     // references or wait for javac to fail?
     for ( int i = 0; i < arguments.size(); ++i ) {
       Param p = arguments.get( i );
-      // TODO -- Look up parameter types from class definition. Already doing
-      // multi-pass parse for constructors, so make another pass to create a
-      // class->fieldName->type map.
-      /*
-       * DO NOT ERASE THIS String params = "<" + p.type + ">"; if ( p.type ==
-       * null || p.type.trim().equals( "null" ) ) { params = ""; } else { if (
-       * !p.type.equals( "String" ) && p.value.startsWith( "\"" ) ) { p.value +=
-       * ", \"Java\""; } } stmtsString.append( argumentsName + "[" + i +
-       * "] = new Expression" + params + "( " + p.value + " );\n" );
-       */
 
       String type = p.type;
       if ( Utils.isNullOrEmpty( type ) ) {
@@ -1729,10 +1798,6 @@ public class EventXmlToJava {
       }
     }
 
-    // TODO -- need to parse Expression from String
-    // stmtsString.append( "Expression< Boolean > " + conditionName +
-    // " = new Expression< Boolean >( \"" + conditionExpression +
-    // "\", \"Java\" );\n" );
     stmtsString.append( "Expression< Boolean > "
                         + conditionName
                         + " = "
@@ -1740,16 +1805,39 @@ public class EventXmlToJava {
                                                  true )
                         + ";\n" );
 
+    boolean needToMakeAParameter = false;
+//    if ( !enclosingInstance.equals( "this" ) ) {
+//      Param p = lookupMemberByName( currentClass, enclosingInstance );
+//      if ( p == null ) {
+//        System.err.println( "Couldn't find member " + enclosingInstance + " in "
+//                            + currentClass );
+//      } else {
+//        enclosingInstance += ".getValue()";
+//      }
+//    }
+    if ( enclosingInstance.equals( "this" ) ) {
+      needToMakeAParameter = true;
+    } else {
+      Param p = lookupCurrentClassMember( enclosingInstance );
+      if ( p == null ) {
+        needToMakeAParameter = true;
+      }
+    }
+    if ( needToMakeAParameter ) {
+      enclosingInstance =
+          "new Parameter<" + currentClass + ">( \"" + currentClass
+              + "\", null, " + enclosingInstance + ", null )";
+    }
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "
-                        + eventType + ".class, " + eventName + ", "
-                        + argumentsName + " );\n" );
+                        + enclosingInstance + ", "
+                        + getClassNameWithScope( eventType ) + ".class, "
+                        + ( Utils.isNullOrEmpty( eventName ) ? "null" : "\"" 
+                            + eventName + "\"" )
+                        + ", " + argumentsName + " );\n" );
 
     addStatements( initMembers.getBody(), stmtsString.toString() );
 
-    // stmtsString.append( "public ElaborationRule " + name
-    // + " = null;\n" );
     VariableDeclaratorId id = new VariableDeclaratorId( name );
-    // Expression init = new NameExpr( "new ElaborationRule()" );
     Expression init = new NameExpr( "null" );
     VariableDeclarator variable = new VariableDeclarator( id, init );
     f =
@@ -1758,23 +1846,8 @@ public class EventXmlToJava {
     return f;
   }
 
-  // public static void addElaborationField( TypeDeclaration typeDecl,
-  // String name, String eventName,
-  // List< Param > arguments,
-  // String conditionExpression,
-  // String applicableStartTime,
-  // String applicableEndTime ) {
-  // FieldDeclaration f =
-  // createElaborationField( name, eventName, arguments,
-  // conditionExpression, applicableStartTime,
-  // applicableEndTime );
-  // ASTHelper.addMember( typeDecl, f );
-  // }
-
   // REVIEW -- Do we really need to create fields for these? Just need
   // to load parameters from constructor; and not redefine loadPrameters().
-  // private ArrayList< Parameter< ? > > getParameters( Node node ) {
-  // ArrayList< Parameter< ? > > parameters = new ArrayList< Parameter< ? > >();
   public ArrayList< FieldDeclaration >
       getParameters( Node node, MethodDeclaration initMembers ) {
     ArrayList< FieldDeclaration > parameters =
@@ -1802,8 +1875,8 @@ public class EventXmlToJava {
     List< Node > nodeList = XmlUtils.getChildNodes( node, "constraint" );
     for ( int i = 0; i < nodeList.size(); i++ ) {
       Node childNode = nodeList.get( i );
-      String name = XmlUtils.getChildElementText( childNode, "name" );
-      String expression = XmlUtils.getChildElementText( childNode, "expression" );
+      String name = fixName( XmlUtils.getChildElementText( childNode, "name" ) );
+      String expression = fixValue( XmlUtils.getChildElementText( childNode, "expression" ) );
       Node timePeriodNode = XmlUtils.getChildNode( childNode, "timePeriod" );
       String applicableStartTime =
           XmlUtils.getChildElementText( timePeriodNode, "start" );
@@ -1825,7 +1898,10 @@ public class EventXmlToJava {
     List< Node > nodeList = XmlUtils.getChildNodes( node, "dependency" );
     for ( int i = 0; i < nodeList.size(); i++ ) {
       Node childNode = nodeList.get( i );
+      if ( childNode == null ) continue;
       Param depParam = new Param( childNode );
+      if ( Utils.isNullOrEmpty( depParam.name ) ) continue;
+      if ( Utils.isNullOrEmpty( depParam.value ) ) continue;
       if ( depParam.name.equals( "startTime" ) ) {
         gotStartTimeDependency = true;
       } else  if ( depParam.name.equals( "endTime" ) ) {
@@ -1869,8 +1945,10 @@ public class EventXmlToJava {
       Node invocationNode = XmlUtils.getChildNode( elaborationNode, "eventInvocation" );
       Node conditionNode = XmlUtils.getChildNode( elaborationNode, "condition" );
       if ( invocationNode != null ) {
-        String eventType = XmlUtils.getChildElementText( invocationNode, "eventType" );
-        String eventName = XmlUtils.getChildElementText( invocationNode, "eventName" );
+        String enclosingInstance = fixName( XmlUtils.getChildElementText( invocationNode, "enclosingInstance" ) );
+        if ( enclosingInstance == null ) enclosingInstance = "null";
+        String eventType = fixName( XmlUtils.getChildElementText( invocationNode, "eventType" ) );
+        String eventName = fixName( XmlUtils.getChildElementText( invocationNode, "eventName" ) );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< Param > arguments = new ArrayList< Param >();
         if ( argumentsNode != null ) {
@@ -1884,7 +1962,7 @@ public class EventXmlToJava {
         String applicableStartTime = "-1"; // default
         String applicableEndTime = "-1"; // default
         if ( conditionNode != null ) {
-          expression = XmlUtils.getChildElementText( conditionNode, "expression" );
+          expression = fixValue( XmlUtils.getChildElementText( conditionNode, "expression" ) );
           Node timePeriodNode = XmlUtils.getChildNode( conditionNode, "timePeriod" );
           if ( timePeriodNode != null ) {
             applicableStartTime = XmlUtils.getChildElementText( timePeriodNode, "start" );
@@ -1892,7 +1970,8 @@ public class EventXmlToJava {
           }
         }
         FieldDeclaration f =
-            createElaborationField( null, eventType, eventName, arguments,
+            createElaborationField( null, enclosingInstance, eventType,
+                                    eventName, arguments,
                                     expression, applicableStartTime,
                                     applicableEndTime, initMembers );
         if ( f != null ) {
@@ -1903,14 +1982,12 @@ public class EventXmlToJava {
     return elaborations;
   }
 
-  protected static void
-  buildMethodTable( Document doc,
-                    Map< String, 
-                         Map< String, 
-                              Set< MethodDeclaration > > > methodTable ) {
+  protected void
+    buildMethodTable( Document doc,
+                      Map< String, Map< String, Set< MethodDeclaration > > > methodTable ) {
     List< Node > classNodes = XmlUtils.findNodes( doc, "class" );
     for ( Node classNode : classNodes ) {
-      String className = XmlUtils.getChildElementText( classNode, "name" );
+      String className = getClassName( classNode );
       
       Map< String, Set< MethodDeclaration > > classMethods = 
           methodTable.get( className );
@@ -1980,17 +2057,18 @@ public class EventXmlToJava {
   // TODO -- If non-static and members are referenced inside, we will need to go
   // in and call param.get/setValue(). Need to do this inside expressions
   // elsewhere (javaToEventExpression()) , too.
-  public static Collection< MethodDeclaration > getMethods( Node node ) {
+  public Collection< MethodDeclaration > getMethods( Node node ) {
     ArrayList< MethodDeclaration > methodDeclarations =
         new ArrayList< MethodDeclaration >();
     Node methodsNode = XmlUtils.getChildNode( node, "methods" );
     List< Node > mNodeList = XmlUtils.getChildNodes( methodsNode, "function" );
     for ( Node mNode : mNodeList ) {
-      String methodString = mNode.getTextContent();
+      String methodString = fixValue( mNode.getTextContent() );
       MethodDeclaration methodDecl = parseMethodDeclaration( methodString );
       if ( methodDecl != null ) {
         if ( !ModifierSet.isPrivate( methodDecl.getModifiers() )
              && !ModifierSet.isProtected( methodDecl.getModifiers() ) ) {
+          // TODO -- Let mods be specified in XML through attributes!
           methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
                                                             ModifierSet.PUBLIC ) );
           methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),

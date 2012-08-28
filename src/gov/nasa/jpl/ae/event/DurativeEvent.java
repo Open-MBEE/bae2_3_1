@@ -8,7 +8,9 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -42,7 +44,8 @@ import junit.framework.Assert;
  */
 public class DurativeEvent implements Event, Cloneable,
                            HasEvents, Groundable, Satisfiable,
-                           Comparable< Event >, ParameterListener {
+                           Comparable< Event >, ParameterListener,
+                           HasTimeVaryingObjects {
 
   // Constants
   
@@ -79,30 +82,10 @@ public class DurativeEvent implements Event, Cloneable,
   protected SortedSet< ? extends TimeVarying< ? > > timeVaryingObjects =
       new TreeSet< TimeVarying< ? > >();
 
-  protected Constraint elaborationsConstraint = new AbstractParameterConstraint() {
-    // freeParameters if not null specifies which parameters can be reassigned
-    // values for satisfy().
-    //protected Set< Parameter< ? > > elabFreeParameters = null;
+  // TODO -- consider breaking elaborations up into separate constraints
+  protected Constraint elaborationsConstraint = 
+      new AbstractParameterConstraint() {
 
-//    @Override
-//    public void setStale( boolean staleness ) {
-//      // nothing to do
-//    }
-    
-//    @Override
-//    public boolean isStale() {
-//      for ( ElaborationRule r : elaborations.keySet() ) {
-//        if ( r.getCondition().isStale() ) return true;
-//      }
-//      return false;
-//    }
-    
-//    @Override
-//    public int compareTo( Constraint o ) {
-//      return ParameterConstraint.Helper.compareTo( this, o );
-//      //return this.toString().compareTo( o.toString() );
-//    }
-    
     @Override
     public boolean satisfy() {
       boolean satisfied = true;
@@ -128,41 +111,6 @@ public class DurativeEvent implements Event, Cloneable,
       return true;
     }
     
-//    @Override
-//    public void setFreeVariables( Set< Variable< ? >> freeVariables ) {
-//      if ( elabFreeParameters == null ) {
-//        elabFreeParameters = new HashSet< Parameter< ? > >();
-//      }
-//      for ( Variable< ? > v : freeVariables ) {
-//        if ( v instanceof Parameter< ? > ) {
-//          elabFreeParameters.add( (Parameter< ? >)v );
-//        }
-//      }
-//    }
-    
-//    @Override
-//    public < T > void restrictDomain( Variable< T > v ) {
-//      // TODO Auto-generated method stub
-//    }
-//    
-//    @Override
-//    public < T > void pickValue( Variable< T > v ) {
-//      // TODO Auto-generated method stub
-//    }
-    
-//    @Override
-//    public < T > boolean isFree( Variable< T > v ) {
-//      if ( v instanceof Parameter<?> ) {
-//        return elabFreeParameters.contains( v );
-//      }
-//      return true; // REVIEW -- Is true ok for "don't know" case?
-//    }
-    
-//    @Override
-//    public < T > boolean isDependent( Variable< T > v ) {
-//      return false;
-//    }
-    
     @Override
     public Set< Parameter< ? > > getParameters( boolean deep ) {
       Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
@@ -171,51 +119,18 @@ public class DurativeEvent implements Event, Cloneable,
       }
       return s;
     }
-//    @Override
-//    public Set< Variable< ? >> getVariables() {
-//      Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-//      for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
-//        s.addAll( er.getKey().getCondition().getParameters( false ) );
-//      }
-//      return s;
-//    }
-    
-//    @Override
-//    public Set< Variable< ? >> getFreeVariables() {
-//      Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-//      s.addAll( elabFreeParameters );
-//      return s;
-//    }
 
+    @Override
+    public String toString() {
+      // TODO -- should make this look evaluable, ex: condition -> eventExists
+      return getName() + ".elaborationsConstraint";
+    }
+    
   };  // end of elaborationsConstraint
   
+  // TODO -- consider breaking effects into separate constraints
   protected Constraint effectsConstraint = new AbstractParameterConstraint() {
-//    // freeParameters if not null specifies which parameters can be reassigned
-//    // values for satisfy().
-//    protected Set< Parameter< ? > > effectFreeParameters = null;
 
-//    @Override
-//    public void setStale( boolean staleness ) {
-//      // nothing to do
-//    }
-    
-//    @Override
-//    public boolean isStale() {
-//      for ( Set< Effect > set : getEffects().values() ) {
-//        for ( Effect e : set ) {
-//          if ( e instanceof LazyUpdate ) {
-//            if ( ( (LazyUpdate)e ).isStale() ) return true;
-//          }
-//        }
-//      }
-//      return false;
-//    }
-    
-//    @Override
-//    public int compareTo( Constraint o ) {
-//      return this.toString().compareTo( o.toString() );
-//    }
-    
     protected boolean
       areEffectsOnTimeVaryingSatisfied( Parameter< ? extends TimeVarying< ? > > variable,
                                         Set< Effect > effects ) {
@@ -279,60 +194,6 @@ public class DurativeEvent implements Event, Cloneable,
       }
       return true;
     }
-    
-//    @Override
-//    public void setFreeVariables( Set< Variable< ? >> freeVariables ) {
-//      if ( effectFreeParameters == null ) {
-//        effectFreeParameters = new HashSet< Parameter< ? > >();
-//      }
-//      for ( Variable< ? > v : freeVariables ) {
-//        if ( v instanceof Parameter< ? > ) {
-//          effectFreeParameters.add( (Parameter< ? >)v );
-//        }
-//      }
-//    }
-//    
-//    @Override
-//    public < T > void restrictDomain( Variable< T > v ) {
-//      // TODO Auto-generated method stub
-//    }
-//    
-//    @Override
-//    public < T > void pickValue( Variable< T > v ) {
-//      // TODO Auto-generated method stub
-//    }
-//    
-//    @Override
-//    public < T > boolean isFree( Variable< T > v ) {
-//      if ( v instanceof Parameter<?> ) {
-//        return effectFreeParameters.contains( v );
-//      }
-//      return true; // REVIEW -- Is true ok for "don't know" case?
-//    }
-//    
-//    @Override
-//    public < T > boolean isDependent( Variable< T > v ) {
-//      return false;  // TODO -- REVIEW
-//    }
-//    
-//    @Override
-//    public Set< Variable< ? > > getVariables() {
-//      Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-//      for ( Set< Effect > set : getEffects().values() ) {
-//        for ( Effect e : set ) {
-//          if ( e instanceof HasParameters)
-//          s.addAll( ((HasParameters)e).getParameters( false ) );
-//        }
-//      }
-//      return s;
-//    }
-//    
-//    @Override
-//    public Set< Variable< ? > > getFreeVariables() {
-//      Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-//      s.addAll( effectFreeParameters );
-//      return s;
-//    }
 
     @Override
     public Set< Parameter< ? >> getParameters( boolean deep ) {
@@ -345,6 +206,12 @@ public class DurativeEvent implements Event, Cloneable,
         }
       }
       return s;
+    }
+
+    @Override
+    public String toString() {
+      // TODO -- maybe make this look evaluable, ex: v.getValue(t) == fCall.arg0
+      return getName() + ".effectsConstraint";
     }
   };  // end of effectsConstraint
   
@@ -562,7 +429,7 @@ public class DurativeEvent implements Event, Cloneable,
   public void simulate(long tickInMilliseconds, java.io.OutputStream os ) {
     EventSimulation sim = new EventSimulation( getEvents( true ) );
     sim.add( this );
-    for ( TimeVarying< ? > tv : getTimeVaryingObjects() ) {
+    for ( TimeVarying< ? > tv : getTimeVaryingObjects( true ) ) {
       if ( tv instanceof TimeVaryingMap ) {
         sim.add( (TimeVaryingMap< ? >)tv );
       }
@@ -576,70 +443,74 @@ public class DurativeEvent implements Event, Cloneable,
   // types of the arguments.
   public < T extends Event > ElaborationRule
       addElaborationRule( Expression< Boolean > condition,
+                          Parameter< ? > enclosingInstance,
                           Class< T > eventClass,
                           String eventName,
                           Expression<?>[] arguments ) {
+/* Doing this in EventInvocation
     // If elaborating a non-static inner class, need to add parent object as
     // the first argument to the constructor.
-    boolean nonStaticInnerClass =
-        !Modifier.isStatic( eventClass.getModifiers() )
-            && eventClass.getEnclosingClass() != null;
+    boolean nonStaticInnerClass = Utils.isInnerClass( eventClass );
     Object newArgs[] = arguments;
     if ( nonStaticInnerClass ) {
       newArgs = new Object[arguments.length + 1];
       // Warning!  Assuming that this is the parent object for the inner class.
       assert eventClass.getEnclosingClass().isAssignableFrom( this.getClass() );
-      newArgs[0] = this;
+      assert enclosingInstance != null;
+      newArgs[0] = enclosingInstance;
       for ( int i = 0; i < arguments.length; ++i ) {
         newArgs[ i + 1 ] = arguments[ i ];
       }
     }
-
     // Collect argument types to search for the constructor.
     int length = newArgs.length;
     Class< ? > constructorParamTypes[] = new Class< ? >[ length ];
     for ( int i = 0; i < length; ++i ) {
+      if ( newArgs[i] == null ) {
+        // TODO -- This is an assumption.  We need a better way to find the constructor.
+        constructorParamTypes[i] = Expression.class;
+        continue;
+      }
       Class< ? > c = newArgs[ i ].getClass();
       if ( newArgs[ i ] instanceof Expression ) {
         c = Expression.class;
       }
       constructorParamTypes[i] = c;
     }
+*/
     
     // Now create the EventInvocation from the constructor and arguments. 
     Vector<EventInvocation> invocation = new Vector<EventInvocation>();
     EventInvocation newInvocation = null;
-    try {
-      newInvocation =
-          new EventInvocation( eventClass, eventName,
-                               eventClass.getDeclaredConstructor( constructorParamTypes ),
-                               newArgs, (Map< String, Object >)null );
-      invocation.add(newInvocation);
-    } catch (NoSuchMethodException e1) {
-        e1.printStackTrace();
-        // TODO
-    } catch (SecurityException e2) {
-        e2.printStackTrace();
-        // TODO
-    }
+/*  Doing this in EventInvocation
+    Constructor< ? > ctor = Utils.getConstructorForArgs( eventClass, newArgs );
+*/
+    newInvocation =
+        new EventInvocation( eventClass, eventName,
+                             //ctor.getParameterTypes(),
+                             //eventClass.getConstructor( constructorParamTypes ),
+                             enclosingInstance,
+                             arguments,//newArgs,
+                             (Map< String, Object >)null );
+    invocation.add(newInvocation);
     Vector<Event> eventVector = new Vector<Event>();
     ElaborationRule elaborationRule = new ElaborationRule(condition, invocation);
     elaborations.put(elaborationRule, eventVector);
     return elaborationRule;
   }
 
+  // TODO -- separate this method and removeDependency from Event to
+  // HasDependencies?
   /* (non-Javadoc)
    * @see event.Event#addDependency(event.Parameter, event.Expression)
    */
   @Override
-  public < T extends Comparable< ? super T > > void addDependency( Parameter< T > p,
-                                                                   Expression< T > e ) {
+  public < T > void addDependency( Parameter< T > p, Expression< T > e ) {
     Dependency< T > d = new Dependency< T >( p, e );
     dependencies.add( d );
   }
 
-  public < T extends Comparable< T > > void addDependency( Parameter< T > p,
-                                                          Parameter< T > source ) {
+  public < T > void addDependency( Parameter< T > p, Parameter< T > source ) {
     addDependency( p, new Expression< T >( source ) );
   }
 
@@ -647,7 +518,7 @@ public class DurativeEvent implements Event, Cloneable,
    * @see event.Event#removeDependency(event.Parameter)
    */
   @Override
-  public < T extends Comparable< ? super T > > boolean
+  public < T > boolean
       removeDependency( Parameter< T > p ) {
     boolean removed = false;
     Iterator< Dependency< ? > > i = dependencies.iterator();
@@ -768,6 +639,11 @@ public class DurativeEvent implements Event, Cloneable,
     TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.addAll( getParameters() );
     if ( deep ) {
+      for ( Event e : getEvents( deep ) ) {
+        if ( e instanceof HasParameters ) {
+          set.addAll( ((HasParameters)e).getParameters( deep ) );
+        }
+      }
       // TODO -- getDeclaredFields won't allow access to protected members
       // for ( Field f : this.getClass().getDeclaredFields() ) {
       // try {
@@ -912,10 +788,19 @@ public class DurativeEvent implements Event, Cloneable,
     }
   }
 
+  /**
+   * @param entry
+   * @return
+   */
   protected boolean isElaborated( Entry< ElaborationRule, Vector< Event > > entry ) {
     return !( entry.getValue() == null || entry.getValue().isEmpty() );
   }
   
+  /**
+   * @param entry
+   * @param force
+   * @return
+   */
   public boolean elaborate( Entry< ElaborationRule, Vector< Event > > entry,
                             boolean force ) {
     boolean elaborated = true;
@@ -925,6 +810,7 @@ public class DurativeEvent implements Event, Cloneable,
     }
     return elaborated;
   }
+  
   /* (non-Javadoc)
    * @see event.Event#executionToString()
    */
@@ -937,20 +823,29 @@ public class DurativeEvent implements Event, Cloneable,
     for ( Event e : events ) {
       sb.append( e.toString() + "\n" );
     }
-    for ( TimeVarying<?> tv : getTimeVaryingObjects() ) {
+    for ( TimeVarying<?> tv : getTimeVaryingObjects( true ) ) {
       sb.append( tv.toString() + "\n" );
     }
     return sb.toString();
   }
 
-  public Set< TimeVarying< ? > > getTimeVaryingObjects() {
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
+   */
+  @Override
+  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep ) {
     Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
     // Rebuilding the set in case parameter values change. 
-    for ( Parameter< ? > p : getParameters( false ) ) {
+    for ( Parameter< ? > p : getParameters( deep ) ) {
       Object value = p.getValue();
-      if ( value != null && ( value instanceof TimeVarying ) ) {
-        s.add( (TimeVarying< ? >)value );
+      if ( value != null ) {
+        if ( value instanceof TimeVarying ) {
+          s.add( (TimeVarying< ? >)value );
+        }
+        if ( deep && value instanceof HasTimeVaryingObjects ) {
+          s.addAll( ( (HasTimeVaryingObjects)value ).getTimeVaryingObjects( deep ) );
+        }
       }
     }
     return s;
@@ -1101,24 +996,6 @@ public class DurativeEvent implements Event, Cloneable,
     this.elaborations = elaborations;
   }
 
-  static < T extends Comparable< T >> int compareSets( SortedSet< T > s1,
-                                                       SortedSet< T > s2 ) {
-    Iterator< T > i1 = s1.iterator();
-    Iterator< T > i2 = s2.iterator();
-    int compare = 0;
-    while ( i1.hasNext() && i2.hasNext() ) {
-      T t1 = i1.next();
-      T t2 = i2.next();
-      compare = t1.compareTo( t2 );
-      if ( compare != 0 ) {
-        return compare;
-      }
-    }
-    if ( i1.hasNext() ) return 1;
-    if ( i2.hasNext() ) return -1;
-    return 0;
-  }
-
   @Override
   public int compareTo( Event o ) {
     int compare = getClass().getName().compareTo( o.getClass().getName() );
@@ -1127,14 +1004,12 @@ public class DurativeEvent implements Event, Cloneable,
     if ( compare != 0 ) return compare;
     compare = endTime.compareTo( o.getEndTime() );
     if ( compare != 0 ) return compare;
-    compare = compareSets( parameters, o.getParameters() );
+    compare = Utils.compareSets( parameters, o.getParameters() );
     return compare;
-    // if ( compare != 0 ) return compare;
-    // return 0;
   }
 
   // An event owns all of its parameters because it is required to contain any
-  // dependency that sets one of its parameters, and has some connection through
+  // dependency that sets one of its parameters and has some connection through
   // its other members to any reference or constraint on it. Thus, an event must
   // know about the parent event from which it is elaborated if the parent
   // references the parameter.
@@ -1206,7 +1081,7 @@ public class DurativeEvent implements Event, Cloneable,
           hasParameter =
               ( (HasParameters)effect ).hasParameter( parameter, false );
         }
-        if ( hasParameter ) {
+        if ( hasParameter && timeline != null ) {
           // TODO -- REVIEW -- is this right?
           effect.unApplyTo( timeline ); // , startTime, duration );
           effect.applyTo( timeline, true ); // , startTime, duration );

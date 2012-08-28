@@ -12,9 +12,8 @@ import java.util.Vector;
 
 public interface Event extends HasConstraints, Comparable< Event > {
 
-  public < T extends Comparable< ? super T > > void addDependency( Parameter< T > p,
-                                                          Expression< T > e );
-  public < T extends Comparable< ? super T > > boolean removeDependency( Parameter< T > p );
+  public < T > void addDependency( Parameter< T > p, Expression< T > e );
+  public < T > boolean removeDependency( Parameter< T > p );
 
   public void execute();
 

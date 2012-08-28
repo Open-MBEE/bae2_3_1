@@ -236,30 +236,10 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
     return false;
   }
 
-//  @Override
-//  public void handleValueChangeEvent( Parameter< ? > parameter ) {
-////    boolean conditionSatisfied = true;
-////    if ( condition != null ) {
-////      conditionSatisfied
-////    }
-////    if ( getParameters( true ).contains( parameter ) ) {
-////      // TODO Auto-generated method stub
-////    }
-////    for ( EventInvocation inv : eventInvocations ) {
-////    }
-//    
-//  }
-//
-//  @Override
-//  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
-//    // TODO Auto-generated method stub
-//    
-//  }
-//
-//  @Override
-//  public String getName() {
-//    // TODO Auto-generated method stub
-//    return null;
-//  }
+  @Override
+  public String toString() {
+    return "ElaborationRule: " + this.getEventInvocations() + " if "
+           + getCondition();
+  }
   
 }

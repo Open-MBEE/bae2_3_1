@@ -16,7 +16,7 @@ import gov.nasa.jpl.ae.util.Debug;
  * @author bclement
  * 
  */
-public class Parameter< T extends Comparable< ? super T > > implements Cloneable,
+public class Parameter< T > implements Cloneable,
                                                    Groundable,
                                                    Comparable< Parameter< ? > >,
                                                    Satisfiable,
@@ -73,7 +73,8 @@ public class Parameter< T extends Comparable< ? super T > > implements Cloneable
     return new Parameter< T >( this );
   }
 
-  public boolean equals( T val ) {
+  @Override
+  public boolean equals( Object val ) {
     return value.equals( val );
   }
   
@@ -117,8 +118,13 @@ public class Parameter< T extends Comparable< ? super T > > implements Cloneable
   public T getValue() {
     Debug.outln( "Parameter.getValue() start: " + this );
     if ( isStale() ) {
-      owner.refresh( this );
-      Debug.outln( "Parameter.getValue() refreshed: " + this );
+      if ( owner != null ) { 
+        owner.refresh( this );
+        Debug.outln( "Parameter.getValue() refreshed: " + this );
+      } else {
+        setStale( false );
+        Debug.outln( "Parameter.getValue() no owner for " + this );        
+      }
     }
     Debug.outln( "Parameter.getValue() finish: " + this );
     return value;
@@ -202,8 +208,12 @@ public class Parameter< T extends Comparable< ? super T > > implements Cloneable
     if ( value == null && o.value != null ) return -1;
     if ( o.value == null && value != null ) return 1;
     if ( value != null && value.getClass().isAssignableFrom( o.value.getClass() ) ) {
-      T oValue = (T)o.value;
-      compare = value.compareTo( oValue );
+      if ( value instanceof Comparable ) {
+        T oValue = (T)o.value;
+        compare = ((Comparable<T>)value).compareTo( oValue );
+      } else {
+        compare = value.toString().compareTo( o.value.toString() );
+      }
       if ( compare != 0 ) return compare;
     }
     if ( name != o.name ) {

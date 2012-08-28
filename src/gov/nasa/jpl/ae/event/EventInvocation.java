@@ -3,6 +3,9 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -26,6 +29,8 @@ public class EventInvocation implements HasParameters {
   protected Map< String, Object > memberAssignments = null; // TODO -- REVIEW --
                                                             // not using; remove? 
   protected Constructor< ? extends Event > constructor = null;
+  //protected Class< ? >[] constructorParameterTypes = null;
+  protected Parameter< ? > enclosingInstance = null;
 
   public EventInvocation( Class< ? extends Event > eventClass,
                           String eventName,
@@ -37,14 +42,18 @@ public class EventInvocation implements HasParameters {
 
   public <T extends Event> EventInvocation( Class< T > eventClass,
                                             String eventName,
-                                            Constructor< T > constructor,
+                                            //Class<?>[] constructorParameterTypes,
+                                            //Constructor< T > constructor,
+                                            Parameter< ? > enclosingInstance,
                                             Object[] arguments,
                                             Map< String, Object > memberAssignments ) {
     this.eventClass = eventClass;
     this.eventName = eventName;
+    this.enclosingInstance  = enclosingInstance;
     this.arguments = arguments;
     this.memberAssignments = memberAssignments;
-    this.constructor = constructor;
+    //this.constructorParameterTypes  = constructorParameterTypes;
+    //this.constructor = constructor;
   }
 
   public Event invoke() {
@@ -60,7 +69,11 @@ public class EventInvocation implements HasParameters {
 
   private Event constructEvent() {
     Event event = null;
-    if ( constructor == null ) {
+    Pair< Constructor< ? >, Object[] > ctorAndArgs = //makeConstructor();
+        Utils.getConstructorForArgs( eventClass, arguments, 
+                                     enclosingInstance.getValue() );
+    constructor = (Constructor< ? extends Event >)ctorAndArgs.first;
+    if ( ctorAndArgs == null || constructor == null ) {
         try {
           event = eventClass.newInstance();
         } catch ( InstantiationException | IllegalAccessException e ) {
@@ -70,14 +83,67 @@ public class EventInvocation implements HasParameters {
         return event;
     }
 
+    Debug.outln("About to call newInstance on constructor=" + constructor + " with arguments=" + Utils.toString(arguments) );
     try {
-      return constructor.newInstance( (Object[])arguments );
+      return constructor.newInstance( (Object[])ctorAndArgs.second );
     } catch ( InstantiationException | IllegalAccessException
               | IllegalArgumentException | InvocationTargetException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
     return null;
+  }
+
+  protected Constructor< ? extends Event > makeConstructor() {
+/*
+    boolean nonStaticInnerClass = Utils.isInnerClass( eventClass );
+    Object newArgs[] = arguments;
+    if ( nonStaticInnerClass ) {
+      newArgs = new Object[arguments.length + 1];
+      // Warning!  Assuming that this is the parent object for the inner class.
+      assert eventClass.getEnclosingClass().isAssignableFrom( this.getClass() );
+      assert enclosingInstance != null;
+      newArgs[0] = enclosingInstance;
+      for ( int i = 0; i < arguments.length; ++i ) {
+        newArgs[ i + 1 ] = arguments[ i ];
+      }
+    }
+*/    
+/*    
+    // Collect argument types to search for the constructor.
+    int length = newArgs.length;
+    constructorParameterTypes = new Class< ? >[ length ];
+    for ( int i = 0; i < length; ++i ) {
+      if ( newArgs[i] == null ) {
+        // TODO -- This is an assumption.  We need a better way to find the constructor.
+        constructorParameterTypes[i] = Expression.class;
+        continue;
+      }
+      Class< ? > c = newArgs[ i ].getClass();
+      if ( newArgs[ i ] instanceof Expression ) {
+        c = Expression.class;
+      }
+      constructorParameterTypes[i] = c;
+    }
+*/    
+    /*
+    if ( nonStaticInnerClass && Utils.isNullOrEmpty( arguments ) ) {
+      Class<?> enclosingClass = eventClass.getEnclosingClass();
+      if ( arguments[0] instanceof Parameter
+           && enclosingClass.isAssignableFrom( arguments[0].getClass() ) ) {
+        newArgs = new Object[arguments.length];
+        newArgs[0] = ((Parameter<?>)arguments[0]).getValue();
+        for ( int i = 1; i < arguments.length; ++i ) {
+          newArgs[ i ] = arguments[ i ];
+        }
+      }
+    }
+    */
+    constructor =
+        (Constructor< ? extends Event >)(Utils.getConstructorForArgs( eventClass,
+                                                                     arguments,
+                                                                     enclosingInstance.getValue() )).first;
+    return constructor;
   }
 
   private void assignMembers( Event event ) {
@@ -91,6 +157,11 @@ public class EventInvocation implements HasParameters {
           e1.printStackTrace();
         }
     }
+  }
+
+  @Override
+  public String toString() {
+    return "EventInvocation:" + eventName + Utils.toString(arguments); // + memberAssignments;
   }
 
   // This is done by the event's constructor.
@@ -129,6 +200,21 @@ public class EventInvocation implements HasParameters {
    */
   public void setEventClass( Class< ? extends Event > eventClass ) {
     this.eventClass = eventClass;
+  }
+
+  /**
+   * @return the eventName
+   */
+  public String getEventName() {
+    return eventName;
+  }
+
+  /**
+   * @param eventName
+   *          the eventName to set
+   */
+  public void setEventName( String eventName ) {
+    this.eventName = eventName;
   }
 
   /**

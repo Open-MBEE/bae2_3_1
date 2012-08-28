@@ -83,7 +83,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   public boolean add( Event e ) {
     
     if ( e != null ){
-      //Debug.outln( "Adding event to simulation: " + e.getName() );
+      Debug.outln( "Adding event to simulation: " + e.getName() );
     } else {
       Assert.fail("Trying to add null event to simulation.");
       return false;
@@ -119,6 +119,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
       Assert.fail("Trying to add null event to simulation.");
       return false;
     }
+    Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
     boolean existingEntry = false;
     for ( Map.Entry< Timepoint, V > e : tv.entrySet() ) {
       if ( !put( e.getKey().getValue(), tv, e.getValue() ) ) {

@@ -55,6 +55,7 @@ src/gov/nasa/jpl/ae/event/Functions.java -text
 src/gov/nasa/jpl/ae/event/Groundable.java -text
 src/gov/nasa/jpl/ae/event/HasEvents.java -text
 src/gov/nasa/jpl/ae/event/HasParameters.java -text
+src/gov/nasa/jpl/ae/event/HasTimeVaryingObjects.java -text
 src/gov/nasa/jpl/ae/event/IntegerParameter.java -text
 src/gov/nasa/jpl/ae/event/LazyUpdate.java -text
 src/gov/nasa/jpl/ae/event/Node.java -text
@@ -62,6 +63,7 @@ src/gov/nasa/jpl/ae/event/Pair.java -text
 src/gov/nasa/jpl/ae/event/Parameter.java -text
 src/gov/nasa/jpl/ae/event/ParameterConstraint.java -text
 src/gov/nasa/jpl/ae/event/ParameterListener.java -text
+src/gov/nasa/jpl/ae/event/ParameterListenerImpl.java -text
 src/gov/nasa/jpl/ae/event/Simulator.java -text
 src/gov/nasa/jpl/ae/event/StringParameter.java -text
 src/gov/nasa/jpl/ae/event/TimeDependentConstraintExpression.java -text
@@ -99,6 +101,7 @@ src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
 src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
 src/gov/nasa/jpl/ae/xml/LADWP-XML-1.xml -text
 src/gov/nasa/jpl/ae/xml/LADWP-XML.xml -text
+src/gov/nasa/jpl/ae/xml/NameTranslator.java -text
 src/gov/nasa/jpl/ae/xml/XmlToJson.java -text
 src/gov/nasa/jpl/ae/xml/XmlUtils.java -text
 src/gov/nasa/jpl/ae/xml/anotherStateChartExample.xml -text

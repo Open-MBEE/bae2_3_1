@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.xml;
 
+import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.Expression;
@@ -55,9 +56,9 @@ public class JavaForFunctionCall {
     }
     
     if ( className != null && !className.isEmpty() ) {
-      Class<?> classForName = getClassForSimpleName( className );
+      Class<?> classForName = Utils.getClassForSimpleName( className );
       if ( classForName == null && !pkg.isEmpty() ) {
-        classForName = getClassForSimpleName( pkg + className );
+        classForName = Utils.getClassForSimpleName( pkg + className );
       }
       if ( classForName != null ) {
         className = classForName.getName();
@@ -74,33 +75,36 @@ public class JavaForFunctionCall {
         this.eventXmlToJava.getClassMethodsWithName( callName, className );
     // Find the right MethodDeclaration if it exists.
     if ( classMethods.isEmpty() ) {
-      try {
-        Class<?> classForName = getClassForSimpleName( className );
-        if ( classForName != null ) {
-        Method[] methods = classForName.getMethods();
+//      try {
+//        Class<?> classForName = Utils.getClassForSimpleName( className );
+//        if ( classForName != null ) {
+//        Method[] methods = classForName.getMethods();
         Method matchingMethod = null;
-        for ( Method m : methods ) {
-          if ( m.getName().equals( callName ) ) {
-            if ( matchingMethod == null ||
-                 m.getParameterTypes().length == mce.getArgs().size() ) {
-              matchingMethod = m;
-              if ( m.getParameterTypes().length == mce.getArgs().size() ) break;
-            }
-          }
-        }
+//        for ( Method m : methods ) {
+//          if ( m.getName().equals( callName ) ) {
+//            if ( matchingMethod == null ||
+//                 m.getParameterTypes().length == mce.getArgs().size() ) {
+//              matchingMethod = m;
+//              if ( m.getParameterTypes().length == mce.getArgs().size() ) break;
+//            }
+//          }
+//        }
+      // Try using reflection to find the method, but class may not exist.
+      matchingMethod =
+          Utils.getMethodForArgs( className, callName, mce.getArgs().toArray() );
         if ( matchingMethod != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
             methodJavaSb.append( ", " );
             methodJavaSb.append( type.getName() + ".class" ); 
           }
         }
-        }
-        //Set< MethodDeclaration > methodSet = new HashSet< MethodDeclaration >();
-        // FIXME -- HERE!!! -- TODO
-        //methodSet.addAll(new ArrayList());
-      } catch ( Exception e ) {
-        System.err.println( "class not found: " + e.getLocalizedMessage() );//e.printStackTrace();
-      }
+//        }
+//        //Set< MethodDeclaration > methodSet = new HashSet< MethodDeclaration >();
+//        // FIXME -- HERE!!! -- TODO
+//        //methodSet.addAll(new ArrayList());
+//      } catch ( Exception e ) {
+//        System.err.println( "class not found: " + e.getLocalizedMessage() );//e.printStackTrace();
+//      }
     } else { // if ( !classMethods.isEmpty() ) {
       // Warning just grabs the first method of this name!
       if ( classMethods.size() > 1 ) {
@@ -141,61 +145,7 @@ public class JavaForFunctionCall {
     argumentArrayJava = argumentArraySb.toString();
   }
 
-  public static Class< ? > tryClassForName( String className ) {
-    Class< ? > classForName = null;
-    try {
-      classForName = Class.forName( className );
-    } catch ( Exception e ) {
-      // ignore
-    }
-    return classForName;
-  }
-  public static Class< ? > getClassForSimpleName( String className ) {
-    Class< ? > classForName = tryClassForName( className );
-    if ( classForName != null ) return classForName;
-    int pos = className.indexOf( '<' );
-    String strippedClassName = null;
-    if ( pos >= 0 ){
-      strippedClassName = className.substring( 0, pos );
-      classForName = tryClassForName( strippedClassName );
-      if ( classForName != null ) return classForName;
-    }
-    List<String> FQNs = getFQNs( className );
-    if ( FQNs.isEmpty() && pos >= 0 ) {
-      FQNs = getFQNs( strippedClassName );
-    }
-    if ( !FQNs.isEmpty() ) {
-      for ( String fqn : FQNs ) {
-        classForName = tryClassForName( fqn );
-        if ( classForName != null ) return classForName;
-      }
-    }
-    return classForName;
-  }
-  
-  public static Collection<String> getPackages() {
-    Set<String> packages = new HashSet<String>();
-    for (Package aPackage : Package.getPackages()) {
-        packages.add(aPackage.getName());
-    }
-    return packages;
-}
-  public static List<String> getFQNs(String simpleName) {
-    Collection<String> packages = null;
-    packages = getPackages();
-
-    List<String> fqns = new ArrayList<String>();
-    for (String aPackage : packages) {
-        try {
-            String fqn = aPackage + "." + simpleName;
-            Class.forName(fqn);
-            fqns.add(fqn);
-        } catch (Exception e) {
-            // Ignore
-        }
-    }
-    return fqns;
-}  /**
+  /**
    * @return the convertArgumentsToExpressions
    */
   public boolean isConvertArgumentsToExpressions() {

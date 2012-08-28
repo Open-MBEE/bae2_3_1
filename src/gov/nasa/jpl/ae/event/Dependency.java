@@ -36,13 +36,14 @@ import gov.nasa.jpl.ae.util.Debug;
 
 // TODO -- REVIEW -- Should dependencies be applicable to a time period, like
 // constraints (& effects)?
-public class Dependency< T extends Comparable< ? super T > > 
+public class Dependency< T > 
              implements HasParameters, ParameterListener, Constraint,
                         LazyUpdate {
 
   protected Parameter< T > parameter;
   protected Expression< T > expression;
   private ConstraintExpression constraint = null;
+  protected boolean refreshing = false; // to prevent propagation cycles
 
   public Dependency( Parameter< T > p, Expression< T > e ) {
     parameter = p;
@@ -271,8 +272,12 @@ public class Dependency< T extends Comparable< ? super T > >
   @Override
   public boolean refresh( Parameter< ? > parameter ) {
     if ( this.parameter == parameter ) {
-      apply();
-      return true;
+      if ( !refreshing ) {
+        refreshing = true;
+        apply();
+        refreshing = false;
+        return true;
+      }
     }
     return false;
   }

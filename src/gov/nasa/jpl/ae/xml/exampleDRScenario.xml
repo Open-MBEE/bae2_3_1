@@ -19,6 +19,7 @@
       <parameter><name>assessEventStartTime</name><type>Integer</type><value>150</value></parameter>
       <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
       <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;("DRState", "")</value></parameter>
+      <parameter><name>generator</name><type>Generator</type><value>new Generator()</value></parameter>
     </arguments>
   </eventToBeExecuted>
   <events>
@@ -33,7 +34,8 @@
           <parameter><name>DREventEndTime</name><type>Integer</type></parameter>
           <parameter><name>DRArea</name><type>String</type></parameter>
           <parameter><name>LoadReductionNeeded</name><type>Double</type></parameter>
-          <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;("")</value></parameter>
+          <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>null</value></parameter>
+          <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints></constraints>
         <dependencies></dependencies>
@@ -111,9 +113,8 @@
         </elaboration>
         <elaboration>
           <eventInvocation>
-            <eventType>
-              ControlRealTimeLoadReductionEvent
-            </eventType>
+            <eventType>ControlRealTimeLoadReductionEvent</eventType>
+            <eventName>monitorAndControl</eventName>
             <arguments>
               <parameter><name>startTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
               <parameter><name>endTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
@@ -124,6 +125,7 @@
               <parameter><name>loadReductionActual</name><type>Double</type><value>loadReductionActual</value></parameter>
               <parameter><name>projectedLoadReduction</name><type>Double</type><value>loadReductionProjectedBasedOnResponses</value></parameter>
               <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
+              <parameter><name>generator</name><type>Generator</type><value>generator</value></parameter>
             </arguments>
           </eventInvocation>
           <condition><expression>true</expression></condition>
@@ -138,7 +140,7 @@
         <inheritsFrom>DREvent</inheritsFrom>
         <members></members>
         <constraints>
-          <constraint><expression>DREventStartTime >= endTime</expression></constraint>
+          <constraint><expression>DREventStartTime &gt;= endTime</expression></constraint>
         </constraints>
         <methods></methods>
         <dependencies>
@@ -161,7 +163,7 @@
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
         </members>
         <constraints>
-          <constraint><expression>DREventStartTime >= endTime</expression></constraint>
+          <constraint><expression>DREventStartTime &gt;= endTime</expression></constraint>
         </constraints>
         <methods></methods>
         <dependencies>
@@ -171,7 +173,7 @@
           </dependency>
           <dependency>
             <name>loadReductionSufficient</name><type>Boolean</type>
-            <value>LoadReductionNeeded - loadReductionProjectedBasedOnResponses > 500.0</value>
+            <value>LoadReductionNeeded - loadReductionProjectedBasedOnResponses &gt; 500.0</value>
           </dependency>
         </dependencies>
       </class>
@@ -227,7 +229,7 @@
           <!-- Again, hardcoding uncontrollable/uncertain value. -->
           <!--<dependency><name>loadReductionActual</name><type>Double</type><value>1000.0</value></dependency>-->
           <!-- TODO: optionally elaborate into IncreaseGeneration. -->
-          <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &lt;= 500.0</value></dependency>-->
+          <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &gt;= 500.0</value></dependency>-->
           <dependency><name>increasedGeneration</name><value>0.0</value></dependency>
           <dependency><name>amountToIncrease</name><value>1000.0</value></dependency>
         </dependencies>
@@ -240,6 +242,7 @@
               </name>
               <members>
                 <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
+                <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
               </members>
               <constraints>
                 <!-- '<' = #x003C from http://en.wikipedia.org/wiki/UTF-8#Codepage_layout -->
@@ -249,18 +252,39 @@
               <dependencies>
               </dependencies>
             </class>
+            <elaborations>
+              <elaboration>
+                <eventInvocation>
+                  <enclosingInstance>generator</enclosingInstance>
+                  <eventType>turnOn</eventType><eventName>generate</eventName>
+                  <arguments>
+                    <parameter><name>startTime</name><value>startTime</value></parameter>
+                  </arguments>
+                </eventInvocation>
+              </elaboration>
+              <elaboration>
+                <eventInvocation>
+                  <enclosingInstance>generator</enclosingInstance>
+                  <eventType>turnOff</eventType><eventName>stopGenerating</eventName>
+                  <arguments>
+                    <parameter><name>startTime</name><value>endTime</value></parameter>
+                  </arguments>
+                </eventInvocation>
+              </elaboration>
+            </elaborations>
           </event>
         </events>
       </class>
-      <!-- TODO: optionally elaborate into IncreaseGeneration. -->
       <elaborations>
         <elaboration>
           <eventInvocation>
+            <enclosingInstance>this</enclosingInstance>
             <eventType>IncreaseGeneration</eventType>
             <arguments>
               <parameter><name>startTime</name><value>startTime+1800</value></parameter>
               <parameter><name>endTime</name><value>endTime</value></parameter>
               <parameter><name>amountToIncrease</name><value>amountToIncrease</value></parameter>
+              <parameter><name>generator</name><value>generator</value></parameter>
             </arguments>
           </eventInvocation>
           <condition>

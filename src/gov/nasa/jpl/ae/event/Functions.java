@@ -19,8 +19,7 @@ public class Functions {
 
   // Abstract n-ary functions
 
-  public static class Binary< T extends Comparable< ? super T >,
-                              R extends Comparable< ? super R > >
+  public static class Binary< T , R >
                   extends Expression< R > {
     public Binary( Expression< T > o1, Expression< T > o2,
                    String functionMethod ) {
@@ -46,7 +45,7 @@ public class Functions {
     }
   }
 
-  public static class Unary< T extends Comparable< ? super T >, R extends Comparable< ? super R > >
+  public static class Unary< T , R >
      extends Expression< R > {
     public Unary( Expression< T > o, String functionMethod ) {
       super( new FunctionCall( (Object)null,
@@ -71,41 +70,38 @@ public class Functions {
 
   // Simple math functions
 
-  public static class Sum< T extends Comparable< ? super T >,
-                           R extends Comparable< ? super R > > extends Binary< T, R > {
+  public static class Sum< T , R > extends Binary< T, R > {
     public Sum( Expression< T > o1, Expression< T > o2 ) {
         super( o1, o2, "add" );
     }
   }
-  public static class Add< T extends Comparable< ? super T >,
-                           R extends Comparable< ? super R > > extends Sum< T, R > {
+  public static class Add< T , R > extends Sum< T, R > {
     public Add( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
   }
 
-  public static class Plus< T extends Comparable< ? super T >,
-                            R extends Comparable< ? super R > > extends Sum< T, R > {
+  public static class Plus< T , R > extends Sum< T, R > {
     public Plus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
   }
 
   public static class Sub< T extends Comparable< ? super T >,
-                           R extends Comparable< ? super R > > extends Binary< T, R > {
+                           R > extends Binary< T, R > {
     public Sub( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "subtract" );
     }
   }
-  public static class Minus< T extends Comparable< ? super T >,
-                             R extends Comparable< ? super R > > extends Sub< T, R > {
+  public static class Minus< T  extends Comparable< ? super T >,
+                             R  extends Comparable< ? super R > > extends Sub< T, R > {
     public Minus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
   }
   
-  public static < T extends Comparable< ? super T > > java.lang.Number add( Expression< T > o1,
-                                                                    Expression< T > o2 ) {
+  public static < T > java.lang.Number add( Expression< T > o1,
+                                            Expression< T > o2 ) {
     T r1 = o1.evaluate( false );
     T r2 = o2.evaluate( false );
     Number result = null;
@@ -142,8 +138,8 @@ public class Functions {
     return result;
   }
   
-  public static < T extends Comparable< ? super T > > java.lang.Number subtract( Expression< T > o1,
-                                                                                 Expression< T > o2 ) {
+  public static < T > java.lang.Number subtract( Expression< T > o1, 
+                                                 Expression< T > o2 ) {
     T r1 = o1.evaluate(false);
     T r2 = o2.evaluate(false);
     Number result = null;
@@ -182,49 +178,49 @@ public class Functions {
 
   // Inequality functions
 
-  public static class EQ< T extends Comparable< ? super T > >
+  public static class EQ< T >
                         extends Binary< T, Boolean > {
     public EQ( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "equals" );
     }
   }
-  public static class Equals< T extends Comparable< ? super T > > extends EQ< T > {
+  public static class Equals< T > extends EQ< T > {
     public Equals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
   }
 
-  public static class NEQ< T extends Comparable< ? super T > > 
+  public static class NEQ< T > 
                         extends Binary< T, Boolean > {
     public NEQ( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "notEquals" );
     }
   }
-  public static class NotEquals< T extends Comparable< ? super T > > extends NEQ< T > {
+  public static class NotEquals< T > extends NEQ< T > {
     public NotEquals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
   }
 
-  public static class LT< T extends Comparable< ? super T > >
+  public static class LT< T >
                         extends Binary< T, Boolean > {
     public LT( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThan" );
     }
   }
-  public static class Less< T extends Comparable< ? super T > > extends LT< T > {
+  public static class Less< T > extends LT< T > {
     public Less( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
   }
 
-  public static class LTE< T extends Comparable< ? super T > >
+  public static class LTE< T >
                         extends Binary< T, Boolean > {
     public LTE( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThanOrEqual" );
     }
   }
-  public static class LessEquals< T extends Comparable< ? super T > > extends LTE< T > {
+  public static class LessEquals< T > extends LTE< T > {
     public LessEquals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
