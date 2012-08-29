@@ -90,8 +90,12 @@ public class JavaForFunctionCall {
 //          }
 //        }
       // Try using reflection to find the method, but class may not exist.
+      Object[] argArr = null;
+      if ( mce != null && mce.getArgs() != null ) {
+        argArr = mce.getArgs().toArray();
+      }
       matchingMethod =
-          Utils.getMethodForArgs( className, callName, mce.getArgs().toArray() );
+          Utils.getMethodForArgs( className, callName, argArr );
         if ( matchingMethod != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
             methodJavaSb.append( ", " );
@@ -129,16 +133,20 @@ public class JavaForFunctionCall {
     StringBuffer argumentArraySb = new StringBuffer();
     argumentArraySb.append( "new Object[]{ " );
     boolean first = true;
-    for ( Expression a : mce.getArgs() ) {
-      if ( first ) {
-        first = false;
-      } else {
-        argumentArraySb.append( ", " );
-      }
-      if ( convertArgumentsToExpressions ) {
-        argumentArraySb.append( this.eventXmlToJava.javaparserToAeExpression( a, convertArgumentsToExpressions ) );
-      } else {
-        argumentArraySb.append( a );
+    if ( mce.getArgs() != null ) {
+      for ( Expression a : mce.getArgs() ) {
+        if ( first ) {
+          first = false;
+        } else {
+          argumentArraySb.append( ", " );
+        }
+        if ( convertArgumentsToExpressions ) {
+          String e = 
+              eventXmlToJava.javaparserToAeExpression( a, convertArgumentsToExpressions );
+          argumentArraySb.append( e );
+        } else {
+          argumentArraySb.append( a );
+        }
       }
     }
     argumentArraySb.append( " } " );

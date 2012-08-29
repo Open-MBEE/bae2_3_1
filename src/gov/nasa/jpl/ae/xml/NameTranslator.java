@@ -51,6 +51,7 @@ public class NameTranslator {
   // Map: id -> domain -> name 
   protected Map< Long, Map< String, String > > domainsForId =
       new TreeMap< Long, Map< String, String > >();
+  // Map: domain1 -> domain2 -> name1 -> name2
   protected Map< String, Map< String, Map< String, String > > > domainTranslations =
       new TreeMap< String, Map< String, Map< String, String > > >();
   // Map: domain1 -> domain2 -> Translates
@@ -100,7 +101,7 @@ public class NameTranslator {
   }
 
   public String getTranslation( String name, String fromDomain, String toDomain ) {
-    return Utils.get( domainTranslations, name, fromDomain, toDomain );
+    return Utils.get( domainTranslations, fromDomain, toDomain, name );
   }
   
   public Translates getTranslates( String fromDomain, String toDomain ) {

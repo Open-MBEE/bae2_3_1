@@ -45,6 +45,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -69,6 +72,9 @@ import gov.nasa.jpl.ae.util.Utils;
  * on events such as those of the Timeline Ontology).
  */
 public class EventXmlToJava {
+  
+  // not using this yet
+  public static final String charactersAssumedNotInIdentifiers = "<>+*/.";
   
   // A struct for packaging name, types, and values, which are used for many
   // purposes in the XML: parameters, args, dependencies, . . .
@@ -218,21 +224,89 @@ public class EventXmlToJava {
 //    }
 //  }
 
+/*
+*/
+  /**
+   * Fix all words in the string, name, so that it can be used as a Java
+   * identifier or type name. The assumption is that a name may have the form
+   * foo<bar>.barfoo, in which case each of the following are passed to
+   * fixSimpleName(): "foo", "bar", and "barfoo". If the string begins with a
+   * number, it does not translate it into a new name but returns it unchanged,
+   * assuming that it is a number.
+   * 
+   * @param name
+   *          The string to be fixed.
+   * @return A translation of name into a valid Java identifier or type name.
+   */
   protected String fixName( String name ) {
-    return name;
-/*    if ( name == null ) return null;
+    if ( name == null ) return null;
+    StringBuffer sb = new StringBuffer();
+    Pattern pattern = Pattern.compile( "\\b" ); // \b = word boundary
+    Matcher matcher = pattern.matcher( name );
+    int pos = 0;
+    boolean nextIsWord = false;
+    //String lastText = "";
+    while ( matcher.find() ) {
+      String text = name.substring( pos, matcher.start() );
+      //Debug.outln( "text = name.substring( " + pos + ", "
+      //                    + matcher.start() + " ) = \"" + text + "\"" );
+      pos = matcher.start();
+//boolean textNotAllWhitespace = false;
+      if ( nextIsWord && Utils.toDouble( text ) == null ) {
+        text = fixSimpleName( text );
+      }
+//      if ( !nextIsWord && Utils.toDouble( lastText ) == null && textNotAllWhitespace  ) {
+//        text = fixSimpleName( text );
+//      }
+      sb.append( text );
+      nextIsWord = !nextIsWord;
+//      lastText = text;
+    }
+    // Get any trailing non-words
+    sb.append( name.substring( pos ) );
+    Debug.outln("fixName(\"" + name + "\") = \"" + sb.toString() + "\"" );
+    return sb.toString();
+  }
+  
+  /**
+   * Fix the string identifier, name so that it can be used as a Java identifier
+   * or type name.
+   * 
+   * @param name
+   *          The string to be fixed.
+   * @return A translation of name into a valid Java identifier or type name.
+   */
+  protected String fixSimpleName( String name ) {
+    //return name;
+    if ( name == null ) return null;
+    //String paramPart = Utils.parameterPartOfName( name );
+    //String noParamName = Utils.noParameterName( name );
+    //assert name.trim().equals( ( noParamName + paramPart ).trim() );
     String javaName = nameTranslator.translate( name, "xml", "java" );
     // TODO -- REVIEW -- Do we need to sweep though and get names first before values?
 //    for ( Map.Entry e : classes.entrySet() ) {
 //    }
+    //Debug.outln("fixSimpleName(\"" + name + "\") = \"" + javaName + "\"" );
     return javaName;
-*/  }
+  }
+
+  /**
+   * Fix all names in the string so that they can be used as Java identifiers
+   * or type names.  This currently just calls fixName( value ) since fixName()
+   * does not change number tokens in the string.
+   * 
+   * @param value
+   *          The string to be fixed.
+   * @return A translation of name into a valid Java identifier or type name.
+   */
   protected String fixValue( String value ) {
-    return value;
-/*    if ( value == null ) return null;
-    String javaValue = nameTranslator.substitute( value, "xml", "java" );
+    //return value;
+    if ( value == null ) return null;
+    //String javaValue = nameTranslator.substitute( value, "xml", "java" );
+    String javaValue = fixName( value );
+    //Debug.outln("fixName(\"" + value + "\") = \"" + javaValue + "\"" );
     return javaValue;
-*/  }
+  }
   
   // Get the name of the class from the DOM node. If it is an inner class,
   // prepend the names of the enclosing classes for proper scope (but leaving
@@ -303,10 +377,16 @@ public class EventXmlToJava {
 
   protected Param lookupMemberByName( String className, String paramName ) {
     if ( className == null ) return null;
+    if ( paramName == null ) return null;
     Map< String, Param > params = paramTable.get( className );
     if ( params == null ) {
       String classNameWithScope = getClassNameWithScope( className );
-      params = paramTable.get( classNameWithScope );
+      if ( !Utils.errorOnNull( "Error! Could not find a class definition for " 
+                               + className
+                               + " when looking for memeber " + paramName + ".",
+                               classNameWithScope ) ) {
+        params = paramTable.get( classNameWithScope );
+      }
     }
     if ( params == null ) return null;
     return params.get( paramName );
@@ -395,6 +475,7 @@ public class EventXmlToJava {
   private void addConstructors() {
     Collection< ConstructorDeclaration > constructors =
         createConstructors( this.xmlDocDOM );
+    constructors.addAll( getConstructorDeclarations( this.xmlDocDOM ) );
     for ( ConstructorDeclaration c : constructors ) {
       TypeDeclaration type = getTypeDeclaration( c.getName() );
       if ( type != null && c != null ) {
@@ -407,7 +488,7 @@ public class EventXmlToJava {
   // Recursively look for a type declaration with the given name.
   protected TypeDeclaration getTypeDeclarationFrom( String name,
                                                     TypeDeclaration typeDecl ) {
-    String simpleName = simpleName( name );
+    String simpleName = Utils.simpleName( name );
     if ( typeDecl.getName().equals( simpleName ) ) {
       return typeDecl;
     }
@@ -424,7 +505,7 @@ public class EventXmlToJava {
   // Look in the compilation units in the map, classes, to find the class
   // declaration of name.
   protected TypeDeclaration getTypeDeclaration( String name ) {
-    String simpleName = simpleName( name );
+    String simpleName = Utils.simpleName( name );
     if ( name == null ) return null;
     CompilationUnit cu = this.classes.get( simpleName );
     if ( cu != null ) {
@@ -609,6 +690,31 @@ public class EventXmlToJava {
     initMembers.setBody( newBody );
   }
 
+  protected Collection< ConstructorDeclaration > getConstructorDeclarations( Node top ) {
+    Collection< ConstructorDeclaration > ctors =
+        new ArrayList< ConstructorDeclaration >();
+    List< Node > constructorsNodes = XmlUtils.findNodes( top, "constructors" );
+    for ( Node constructorsNode : constructorsNodes ) {
+      List< Node > mNodeList = XmlUtils.getChildNodes( constructorsNode, "function" );
+      for ( Node mNode : mNodeList ) {
+        String constructorString = fixValue( mNode.getTextContent() );
+        ConstructorDeclaration constructorDecl = parseConstructorDeclaration( constructorString );
+        if ( constructorDecl != null ) {
+          if ( !ModifierSet.isPrivate( constructorDecl.getModifiers() )
+               && !ModifierSet.isProtected( constructorDecl.getModifiers() ) ) {
+            // TODO -- Let mods be specified in XML through attributes!
+            constructorDecl.setModifiers( ModifierSet.addModifier( constructorDecl.getModifiers(),
+                                                              ModifierSet.PUBLIC ) );
+            constructorDecl.setModifiers( ModifierSet.addModifier( constructorDecl.getModifiers(),
+                                                              ModifierSet.STATIC ) );
+          }
+          ctors.add( constructorDecl );
+        }
+      }
+    }
+    return ctors;
+  }
+  
   // Create constructors for event invocations.
   protected Collection< ConstructorDeclaration > createConstructors( Node top ) {
     Collection< ConstructorDeclaration > ctors =
@@ -622,7 +728,8 @@ public class EventXmlToJava {
         String eventType = fixName( XmlUtils.getChildElementText( invocationNode,
                                                                   "eventType" ) );
         ConstructorDeclaration ctor =
-            new ConstructorDeclaration( ModifierSet.PUBLIC, simpleName(eventType) );
+            new ConstructorDeclaration( ModifierSet.PUBLIC,
+                                        Utils.simpleName(eventType) );
         Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< Param > arguments = new ArrayList< Param >();
@@ -638,11 +745,11 @@ public class EventXmlToJava {
           for ( Param p : arguments ) {
             if ( p.type == null ) {
               Param memberDecl = lookupMemberByName( eventType, p.name );
-              if ( memberDecl != null ) {
+              if ( !Utils.errorOnNull( "Error! Can't find member " + p.name
+                                           + " for event class " + eventType
+                                           + "!",
+                                       memberDecl ) ) {
                 p.type = memberDecl.type;
-              } else {
-                System.err.println( "Error! Can't find member " + p.name
-                                    + " for event class " + eventType + "!" );
               }
             }
             japa.parser.ast.body.Parameter param =
@@ -879,7 +986,8 @@ public class EventXmlToJava {
       currentCompilationUnit = initClassCompilationUnit( name );
     }
     ClassOrInterfaceDeclaration newClassDecl =
-        new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, simpleName(name) );
+        new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, 
+                                         Utils.simpleName(name) );
 
     // Get class inheritances as Java extends list.
     // TODO -- REVIEW -- Do we need to deal with (allow for) Java interfaces?
@@ -889,6 +997,8 @@ public class EventXmlToJava {
       newClassDecl.setExtends( extendsList );
     }
 
+    getImports( clsNode );
+    
     // Get methods/functions.  
     // TODO -- If asEvent, then don't we need to convert argument types to Expressions?
     //  [Maybe no: can make into a Function expression and only pass evaluated values.]
@@ -1002,6 +1112,14 @@ public class EventXmlToJava {
     return newClassDecl;
   }
 
+  protected void getImports( Node clsNode ) {
+    List< String > imports = XmlUtils.getChildrenElementText( clsNode,
+                                                              "import" );
+    for ( String imp : imports ) {
+      addImport( imp );
+    }
+  }
+
   private void
       processClassDeclarations( Node node,
                                 ClassOrInterfaceDeclaration newClassDecl,
@@ -1034,18 +1152,13 @@ public class EventXmlToJava {
   private CompilationUnit initCompilationUnit( String name ) {
     currentClass = name;
     currentCompilationUnit = new CompilationUnit();
-    classes.put( simpleName(name), currentCompilationUnit );
+    classes.put( Utils.simpleName(name), currentCompilationUnit );
     setPackage();
     return currentCompilationUnit;
   }
   
-  public static String simpleName( String longName ) {
-    int pos = longName.lastIndexOf( '.' );
-    return longName.substring( pos+1 ); // pos is -1 if no '.'
-  }
-
   private CompilationUnit initClassCompilationUnit( String name ) {
-    currentCompilationUnit = initCompilationUnit( simpleName(name) );
+    currentCompilationUnit = initCompilationUnit( Utils.simpleName(name) );
     // REVIEW -- How can we access eclipse's ability to auto-remove unused
     // imports?
     addImport( "gov.nasa.jpl.ae.event.Parameter" );
@@ -1181,7 +1294,7 @@ public class EventXmlToJava {
     String type = "Parameter";
     String parameterTypes = p.type;
     String args = "\"" + p.name + "\", null, " + p.value + ", this";
-    if ( p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase( "null" ) ) {
+    if ( Utils.isNullOrEmpty( p.type ) ) {
       System.err.println( "Error! creating a field " + p + " of unknown type!" );
     } else if ( p.type.toLowerCase().startsWith( "int" )
                 || p.type.toLowerCase().startsWith( "long" ) // TODO -- Need a
@@ -2047,7 +2160,20 @@ public class EventXmlToJava {
     try {
       BodyDeclaration md = parser.ClassOrInterfaceBodyDeclaration( false );
       return (MethodDeclaration)md;
-    } catch ( ParseException e ) {
+    } catch ( ParseException | ClassCastException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  public static ConstructorDeclaration parseConstructorDeclaration( String ctorText ) {
+    Debug.outln( "About to parse \"" + ctorText + "\"");
+    ASTParser parser = new ASTParser( new StringReader( ctorText ) );
+    try {
+      BodyDeclaration cd = parser.ClassOrInterfaceBodyDeclaration( false );
+      return (ConstructorDeclaration)cd;
+    } catch ( ParseException | ClassCastException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }

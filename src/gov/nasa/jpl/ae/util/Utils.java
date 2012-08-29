@@ -41,11 +41,22 @@ public class Utils {
     return sb.toString();
   }
   
-  // Translate a string to integer.  Return null if not an integer. 
+  // Translate a string to an integer.  Return null if not an integer. 
   public static Integer toInteger( String s ) {
     Integer i = null;
     try {
       i = Integer.parseInt( s );
+    } catch ( NumberFormatException e ) {
+      // leave i = null
+    }
+    return i;
+  }
+
+  // Translate a string to a double.  Return null if not a double/integer. 
+  public static Double toDouble( String s ) {
+    Double i = null;
+    try {
+      i = Double.parseDouble( s );
     } catch ( NumberFormatException e ) {
       // leave i = null
     }
@@ -174,15 +185,14 @@ public class Utils {
   public static Class< ? > getClassForSimpleName( String className ) {
     Class< ? > classForName = tryClassForName( className );
     if ( classForName != null ) return classForName;
-    int pos = className.indexOf( '<' );
-    String strippedClassName = null;
-    if ( pos >= 0 ){
-      strippedClassName = className.substring( 0, pos );
+    String strippedClassName = noParameterName( className );
+    boolean strippedSame = strippedClassName.equals( className ); 
+    if ( !strippedSame ) {
       classForName = tryClassForName( strippedClassName );
       if ( classForName != null ) return classForName;
     }
     List<String> FQNs = getFullyQualifiedNames( className );
-    if ( FQNs.isEmpty() && pos >= 0 ) {
+    if ( FQNs.isEmpty() && !strippedSame ) {
       FQNs = getFullyQualifiedNames( strippedClassName );
     }
     if ( !FQNs.isEmpty() ) {
@@ -202,6 +212,32 @@ public class Utils {
     return packages;
   }
   
+  public static String simpleName( String longName ) {
+    int pos = longName.lastIndexOf( '.' );
+    return longName.substring( pos+1 ); // pos is -1 if no '.'
+  }
+
+  public static String noParameterName( String longName ) {
+    int pos = longName.indexOf( '<' );
+    if ( pos == -1 ) {
+      return longName;
+    }
+    String noParamName = longName.substring( 0, pos );
+    return noParamName;
+  }
+
+  public static String parameterPartOfName( String longName ) {
+    int pos1 = longName.indexOf( '<' );
+    if ( pos1 == -1 ) {
+      return null;
+    }
+    int pos2 = longName.lastIndexOf( '>' );
+    assert( pos2 >= 0 );
+    if ( pos2 == -1 ) return null;
+    String paramPart = longName.substring( pos1, pos2+1 );
+    return paramPart;
+  }
+
   public static List<String> getFullyQualifiedNames(String simpleClassOrInterfaceName) {
     Collection<String> packages = null;
     packages = getPackages();
@@ -299,9 +335,9 @@ public class Utils {
   public static Method getMethodForArgs( String className, String callName,
                                          Object... args ) {
     Class< ? > classForName = getClassForSimpleName( className );
-    if ( classForName == null ) {
-      System.err.println( "Couldn't find the class " + className
-                          + " for method " + callName + toString( args ) );
+    if ( errorOnNull( "Couldn't find the class " + className + " for method "
+                      + callName + ( args == null ? "" : toString( args ) ),
+                      classForName ) ) {
       return null;
     }
     return getMethodForArgs( classForName, callName, args );

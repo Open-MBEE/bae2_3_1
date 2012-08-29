@@ -156,11 +156,14 @@
           AssessDRCommitmentEvent
         </name>
         <inheritsFrom>DREvent</inheritsFrom>
+        <import>java.util.Queue</import>
+        <import>java.util.LinkedList</import>
         <members>
           <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type></parameter>
           <parameter><name>loadReductionSufficient</name><type>Boolean</type></parameter>
           <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>2400</value></parameter>-->
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
+          <parameter><name>queue</name><type>Queue</type><value>new LinkedList&lt; String &gt;()</value></parameter>
         </members>
         <constraints>
           <constraint><expression>DREventStartTime &gt;= endTime</expression></constraint>
