@@ -2160,10 +2160,13 @@ public class EventXmlToJava {
     try {
       BodyDeclaration md = parser.ClassOrInterfaceBodyDeclaration( false );
       return (MethodDeclaration)md;
-    } catch ( ParseException | ClassCastException e ) {
+    } catch ( ClassCastException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }
+    } catch (ParseException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
     return null;
   }
   
@@ -2173,10 +2176,13 @@ public class EventXmlToJava {
     try {
       BodyDeclaration cd = parser.ClassOrInterfaceBodyDeclaration( false );
       return (ConstructorDeclaration)cd;
-    } catch ( ParseException | ClassCastException e ) {
+    } catch ( ClassCastException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }
+    } catch (ParseException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
     return null;
   }
   

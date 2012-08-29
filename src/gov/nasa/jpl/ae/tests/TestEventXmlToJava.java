@@ -58,7 +58,7 @@ public class TestEventXmlToJava {
     try {
       translator =
           new EventXmlToJava( xmlFileName, "" );
-    } catch ( ParserConfigurationException | SAXException | IOException e ) {
+    } catch ( Exception e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }

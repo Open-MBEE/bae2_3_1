@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="CS" default="makejar" basedir=".">
 	<!-- Customize properties below for your installation. -->
-	<property name="junitJarFile" value="c:\Program Files\eclipse\plugins\org.junit_4.8.2.v4_8_2_v20110321-1705\junit.jar"/>
+	<property name="junitJarFile" value="/Applications/eclipseHelios/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar"/>
   <property name="xmlFile" value="src/xml/exampleScenario.xml"/>
   <!-- Customize properties above for your installation. -->
   <target name ="makejar" description="Create a jar for the Analysis Engine">

@@ -4,8 +4,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="thirdParty/javaparser-1.0.8-src"/>
 	<classpathentry excluding="douglascrockford-JSON-java-d15e776/|javaparser-1.0.8-src/" kind="src" path="thirdParty"/>
-	<classpathentry kind="var" path="IMCE_TOOLKIT_LIB"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
