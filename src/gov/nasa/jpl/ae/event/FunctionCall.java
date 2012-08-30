@@ -127,14 +127,19 @@ public class FunctionCall implements HasParameters, Groundable {
     }
     Object evaluatedArgs[] = evaluateArgs( propagate );
     Object result = null;
-      try {
-        Debug.outln("About to invoke method from FunctionCall: " + this );
-        result = method.invoke( object, evaluatedArgs );//arguments.toArray() );
-      } catch ( IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } 
+    try {
+      Debug.outln( "About to invoke method from FunctionCall: " + this );
+      result = method.invoke( object, evaluatedArgs );// arguments.toArray() );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( IllegalArgumentException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     return result;
   }
 

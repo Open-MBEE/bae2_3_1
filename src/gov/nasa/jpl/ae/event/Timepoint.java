@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.util.Debug;
 import java.lang.Character.UnicodeBlock;
 import java.lang.Character.UnicodeScript;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -210,10 +211,13 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
       try {
         Date d = df.parse( timestamp );
         return d;
-      } catch ( java.text.ParseException | IllegalArgumentException e1 ) {
+      } catch ( IllegalArgumentException e1 ) {
         if ( i == formatsToTry.length - 1 ) {
           e1.printStackTrace();
         }
+      } catch ( ParseException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     }
     return null;

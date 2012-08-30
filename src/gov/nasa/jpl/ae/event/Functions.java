@@ -37,7 +37,10 @@ public class Functions {
         m = Functions.class.getMethod( functionMethod, 
                                        Expression.class,
                                        Expression.class );
-      } catch ( NoSuchMethodException | SecurityException e ) {
+      } catch ( SecurityException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
@@ -60,7 +63,10 @@ public class Functions {
       try {
         m = Functions.class.getMethod( functionMethod, 
                                        Expression.class );
-      } catch ( NoSuchMethodException | SecurityException e ) {
+      } catch ( SecurityException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }

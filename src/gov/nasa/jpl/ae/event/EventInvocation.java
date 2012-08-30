@@ -76,7 +76,10 @@ public class EventInvocation implements HasParameters {
     if ( ctorAndArgs == null || constructor == null ) {
         try {
           event = eventClass.newInstance();
-        } catch ( InstantiationException | IllegalAccessException e ) {
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InstantiationException e ) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
@@ -86,8 +89,16 @@ public class EventInvocation implements HasParameters {
     Debug.outln("About to call newInstance on constructor=" + constructor + " with arguments=" + Utils.toString(arguments) );
     try {
       return constructor.newInstance( (Object[])ctorAndArgs.second );
-    } catch ( InstantiationException | IllegalAccessException
-              | IllegalArgumentException | InvocationTargetException e ) {
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( IllegalArgumentException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -148,13 +159,21 @@ public class EventInvocation implements HasParameters {
 
   private void assignMembers( Event event ) {
     if ( memberAssignments == null ) return;
-    for ( Entry< String, Object > e : memberAssignments.entrySet() ) {
+    for ( Entry< String, Object > entry : memberAssignments.entrySet() ) {
         try {
-          eventClass.getField( e.getKey() ).set( event, e.getValue() );
-        } catch ( IllegalArgumentException | IllegalAccessException
-                  | NoSuchFieldException | SecurityException e1 ) {
+          eventClass.getField( entry.getKey() ).set( event, entry.getValue() );
+        } catch ( NoSuchFieldException e ) {
           // TODO Auto-generated catch block
-          e1.printStackTrace();
+          e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( IllegalArgumentException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( SecurityException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         }
     }
   }

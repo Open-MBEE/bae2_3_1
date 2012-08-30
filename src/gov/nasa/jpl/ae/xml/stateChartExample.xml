@@ -51,6 +51,7 @@
         <name>
           SignalEvent
         </name>
+        <import>java.util.Collection</import>
         <members>
           <parameter><name>signal</name><type>String</type><value>null</value></parameter>
           <parameter><name>regionToStates</name><type><![CDATA[Map< String, Set< String > >]]></type><value>null</value></parameter>
@@ -64,7 +65,7 @@
           <parameter><name>nextAlertManagementState</name><type>String</type><value>null</value></parameter>
       </members>
         <constraints></constraints>
-        <methods>
+        <constructors>
           <function>
             <![CDATA[
             SignalEvent() {
@@ -74,6 +75,8 @@
             }
             ]]>
           </function>
+        </constructors>
+        <methods>
           <function>
             <![CDATA[
   void add( String state, String[] signals, String[] nextStates ) {

@@ -240,7 +240,8 @@ public class EventXmlToJava {
    */
   protected String fixName( String name ) {
     if ( name == null ) return null;
-    StringBuffer sb = new StringBuffer();
+    return name;
+/*    StringBuffer sb = new StringBuffer();
     Pattern pattern = Pattern.compile( "\\b" ); // \b = word boundary
     Matcher matcher = pattern.matcher( name );
     int pos = 0;
@@ -266,7 +267,7 @@ public class EventXmlToJava {
     sb.append( name.substring( pos ) );
     Debug.outln("fixName(\"" + name + "\") = \"" + sb.toString() + "\"" );
     return sb.toString();
-  }
+*/  }
   
   /**
    * Fix the string identifier, name so that it can be used as a Java identifier
@@ -277,8 +278,8 @@ public class EventXmlToJava {
    * @return A translation of name into a valid Java identifier or type name.
    */
   protected String fixSimpleName( String name ) {
-    //return name;
-    if ( name == null ) return null;
+    return name;
+/*    if ( name == null ) return null;
     //String paramPart = Utils.parameterPartOfName( name );
     //String noParamName = Utils.noParameterName( name );
     //assert name.trim().equals( ( noParamName + paramPart ).trim() );
@@ -288,7 +289,7 @@ public class EventXmlToJava {
 //    }
     //Debug.outln("fixSimpleName(\"" + name + "\") = \"" + javaName + "\"" );
     return javaName;
-  }
+*/  }
 
   /**
    * Fix all names in the string so that they can be used as Java identifiers
@@ -300,13 +301,13 @@ public class EventXmlToJava {
    * @return A translation of name into a valid Java identifier or type name.
    */
   protected String fixValue( String value ) {
-    //return value;
-    if ( value == null ) return null;
+    return value;
+/*    if ( value == null ) return null;
     //String javaValue = nameTranslator.substitute( value, "xml", "java" );
     String javaValue = fixName( value );
     //Debug.outln("fixName(\"" + value + "\") = \"" + javaValue + "\"" );
     return javaValue;
-  }
+*/  }
   
   // Get the name of the class from the DOM node. If it is an inner class,
   // prepend the names of the enclosing classes for proper scope (but leaving
@@ -1220,7 +1221,7 @@ public class EventXmlToJava {
       createFieldOfGenericType( String name, String typeName,
                                 String parameterTypeName, String constructorArgs ) {
     String fieldTypeName = typeName;
-    if ( parameterTypeName != null ) {
+    if ( !Utils.isNullOrEmpty( parameterTypeName ) ) {
       fieldTypeName += "< " + parameterTypeName + " >";
     }
     ClassOrInterfaceType fieldType = new ClassOrInterfaceType( fieldTypeName );
@@ -1232,7 +1233,7 @@ public class EventXmlToJava {
       initValue = "null";
     } else {
       initValue = "new " + typeName;
-      if ( parameterTypeName != null ) {
+      if ( !Utils.isNullOrEmpty( parameterTypeName ) ) {
         initValue += "< " + parameterTypeName + " >";
       }
       initValue += "( " + constructorArgs + " )";
@@ -1255,7 +1256,7 @@ public class EventXmlToJava {
       stmtsString.append( "null;" );
     } else {
       stmtsString.append( "new " + typeName );
-      if ( parameterTypeName != null ) {
+      if ( !Utils.isNullOrEmpty( parameterTypeName ) ) {
         stmtsString.append( "< " + parameterTypeName + " >" );
       }
       stmtsString.append( "( " + constructorArgs + " );" );
@@ -1293,9 +1294,16 @@ public class EventXmlToJava {
     }
     String type = "Parameter";
     String parameterTypes = p.type;
+    if ( Utils.isNullOrEmpty( p.value ) ) {
+      p.value = "null";
+    }
     String args = "\"" + p.name + "\", null, " + p.value + ", this";
     if ( Utils.isNullOrEmpty( p.type ) ) {
       System.err.println( "Error! creating a field " + p + " of unknown type!" );
+    } else if ( p.type.toLowerCase().equals( "time" ) ) {
+      type = "Timepoint";
+      parameterTypes = null; // "Integer";
+      args = "\"" + p.name + "\", this";
     } else if ( p.type.toLowerCase().startsWith( "int" )
                 || p.type.toLowerCase().startsWith( "long" ) // TODO -- Need a
                                                              // LongParameter
@@ -1405,43 +1413,37 @@ public class EventXmlToJava {
     String result = null;
     String className = expr.getClass().getSimpleName();
     // Inefficient string compare.
-    switch ( className ) {
-      case "ConditionalExpr":
+    if ( className.equals( "ConditionalExpr" ) ) {
         ConditionalExpr ce = ( (ConditionalExpr)expr );
 
         result =
             dominantType( javaparserToAeExpressionType( ce.getThenExpr() ),
                           javaparserToAeExpressionType( ce.getElseExpr() ) );
-        break;
-      case "BinaryExpr":
+    } else if ( className.equals( "BinaryExpr" ) ) {
         BinaryExpr be = ( (BinaryExpr)expr );
         result =
             operatorResultType( be.getOperator(),
                                 javaparserToAeExpressionType( be.getLeft() ),
                                 javaparserToAeExpressionType( be.getRight() ) );
-        break;
-      case "UnaryExpr":
+    } else if ( className.equals( "UnaryExpr" ) ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         result =
             operatorResultType( ue.getOperator(),
                                 javaparserToAeExpressionType( ue.getExpr() ) );
-        break;
-      case "EnclosedExpr":
+    } else if ( className.equals( "EnclosedExpr" ) ) {
         result = javaparserToAeExpressionType( ( (EnclosedExpr)expr ).getInner() );
-        break;
-      case "NameExpr":
+    } else if ( className.equals( "NameExpr" ) ) {
         name = ( (NameExpr)expr ).getName();
-        break;
-      default:
+    } else {
         if ( className.endsWith( "LiteralExpr" ) ) {
+          // get the part before "LiteralExpr"
           String typeOfLiteral =
               className.substring( 0, className.length() - 11 );
           if ( typeOfLiteral.equals( "Null" ) ) {
-            result = "null"; // BAD!
+            result = "null"; // BAD!  REVIEW -- Do we want void or String?
           } else {
             result = typeOfLiteral;
           }
-          break;
         } else if ( className.contains( "Literal" ) ) {
           result = className.substring( 0, className.indexOf( "Literal" ) );
         }
@@ -1452,6 +1454,7 @@ public class EventXmlToJava {
       p = lookupCurrentClassMember( name );
       result = ( p == null ) ? null : p.type;
     }
+    Utils.errorOnNull( "Error! null type for expression " + expr + "!", result );
     Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result );
     return result;
   }
@@ -1468,16 +1471,16 @@ public class EventXmlToJava {
   
   public String javaparserToAeExpression( Expression expr, String type,
                                           boolean convertFcnCallArgsToExprs ) {
-    if ( type == null || type.isEmpty() || type.equals( "null" ) ) {
+    if ( Utils.isNullOrEmpty( type ) ) {
       type = javaparserToAeExpressionType( expr );
     }
     final String prefix =
-        "new Expression" + ( type == null ? "" : "<" + type + ">" ) + "( ";
+        "new Expression" + ( Utils.isNullOrEmpty( type ) ? "" : "<" + type + ">" ) + "( ";
     final String suffix = " )";
     String middle = null;
     // Inefficient string compare.
-    switch ( expr.getClass().getSimpleName() ) {
-      case "BinaryExpr":
+    String name = expr.getClass().getSimpleName(); 
+    if ( name.equals( "BinaryExpr" ) ) {
         BinaryExpr be = ( (BinaryExpr)expr );
         // middle =
         return "new Functions."
@@ -1486,24 +1489,22 @@ public class EventXmlToJava {
                                            convertFcnCallArgsToExprs ) + ", "
                + javaparserToAeExpression( be.getRight(), 
                                            convertFcnCallArgsToExprs ) + " )";
-        // break;
-      case "UnaryExpr":
+    }
+    if ( name.equals( "UnaryExpr" ) ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         // middle =
         return "new Functions."
                + javaUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
                + javaparserToAeExpression( ue.getExpr(), type,
                                            convertFcnCallArgsToExprs ) + " )";
-        // break; 
-      case "EnclosedExpr":
+    }
+    if ( name.equals( "EnclosedExpr" ) ) {
         middle =
             javaparserToAeExpression( ( (EnclosedExpr)expr ).getInner(), type,
                                       convertFcnCallArgsToExprs );
-        break;
-      case "NameExpr":
+    } else if ( name.equals( "NameExpr" ) ) {
         middle = ( (NameExpr)expr ).getName();
-        break;
-      case "AssignExpr":
+    } else if ( name.equals( "AssignExpr" ) ) {
         AssignExpr ae = (AssignExpr)expr;
         String result = null;
         if ( ae.getOperator() == AssignExpr.Operator.assign ) {
@@ -1527,14 +1528,13 @@ public class EventXmlToJava {
           return result;
         }
         middle = ae.toString();
-        break;
-      case "MethodCallExpr":
+    } else if ( name.equals( "MethodCallExpr" ) ) {
         MethodCallExpr mce = (MethodCallExpr)expr;
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, mce, convertFcnCallArgsToExprs );
         return javaForFunctionCall.toNewExpressionString();
-      case "ConditionalExpr": // TODO
-      default:
+    } else  { //if ( name.equals( "ConditionalCallExpr" ) ) {
+      //case "ConditionalExpr": // TODO
         middle = expr.toString();
     }
     if ( !convertFcnCallArgsToExprs ) {
