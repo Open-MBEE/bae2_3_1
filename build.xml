@@ -2,7 +2,7 @@
 <project name="CS" default="makejar" basedir=".">
 	<!-- Customize properties below for your installation. -->
 	<property name="junitJarFile" value="/Applications/eclipseHelios/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar"/>
-  <property name="xmlFile" value="src/xml/exampleScenario.xml"/>
+  <property name="xmlFile" value="src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml"/>
   <!-- Customize properties above for your installation. -->
   <target name ="makejar" description="Create a jar for the Analysis Engine">
     <jar destfile="AE.jar">
