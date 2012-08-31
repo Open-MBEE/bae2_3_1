@@ -216,8 +216,9 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
           e1.printStackTrace();
         }
       } catch ( ParseException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        if ( i == formatsToTry.length - 1 ) {
+          e.printStackTrace();
+        }
       }
     }
     return null;

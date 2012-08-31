@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import java.util.Collection;
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
@@ -25,6 +27,7 @@ public class TestEventXmlToJava {
    * @param args
    */
   public static void main( String[] args ) {
+    System.out.println("Started TestEventXmlToJava");
     // Try to find the XML file to read in.
     String xmlFileName = "exampleDRScenario.xml";
     
@@ -49,8 +52,8 @@ public class TestEventXmlToJava {
     //xmlFileName = f.getAbsolutePath();
     xmlFileName = xmlUrl.getFile();
     String directory = "src";//FileUtils.existingFolder( xmlUrl.getPath() );
-    System.err.println( "file \"" + xmlFileName + "\"" );
-    System.err.println( "directory \"" + directory + "\"" );
+    System.out.println( "file \"" + xmlFileName + "\"" );
+    System.out.println( "directory \"" + directory + "\"" );
     
     
     // Now translate the XML file into Java Event class files.
@@ -70,6 +73,7 @@ public class TestEventXmlToJava {
         e.printStackTrace();
       }
     }
+    System.out.println("Completed TestEventXmlToJava");
   }
 
 }

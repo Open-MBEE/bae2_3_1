@@ -336,6 +336,11 @@
           </effects>
         </event>
       </events>
+      <classes>
+        <class static="true">
+          <name>MyStaticClass</name>
+        </class>
+      </classes>
     </class>
     <!--<class>
       <name>EnumState</name>

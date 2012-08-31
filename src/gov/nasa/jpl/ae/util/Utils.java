@@ -27,6 +27,7 @@ import java.util.TreeMap;
 public class Utils {
 
   public static String toString( Object[] arr ) {
+    if (arr == null) return "null";
     StringBuffer sb = new StringBuffer();
     sb.append( "[" );
     for ( int i = 0; i < arr.length; ++i ) {//Object o : arr ) {
@@ -140,6 +141,10 @@ public class Utils {
 
   // Throws and catches an exception if any of the input objects are null.
   public static boolean errorOnNull( String msg, Object... a ) {
+    return errorOnNull( true, msg, a );
+  }
+  public static boolean errorOnNull( boolean stackTrace, String msg,
+                                     Object... a ) {
     try {
       for ( Object o : a ) {
         if ( o == null ) {
@@ -148,7 +153,9 @@ public class Utils {
       }
     } catch ( Exception e ) {
       System.err.println( msg );
-      e.printStackTrace();
+      if ( stackTrace ) {
+        e.printStackTrace();
+      }
       return true;
     }
     return false;
@@ -172,32 +179,39 @@ public class Utils {
     return 0;
   }
 
-  public static Class< ? > tryClassForName( String className ) {
+  public static Class< ? > tryClassForName( String className, 
+                                            boolean initialize ) {
     Class< ? > classForName = null;
     try {
-      classForName = Class.forName( className );
+      classForName = Class.forName( className );//, initialize, Utils.class.getClassLoader() );
     } catch ( Exception e ) {
       // ignore
     }
+    Debug.outln( "tryClassForName( " + className + " ) = " + classForName );
     return classForName;
   }
 
-  public static Class< ? > getClassForSimpleName( String className ) {
-    Class< ? > classForName = tryClassForName( className );
+  public static Class< ? > getClassForName( String className,
+                                            boolean initialize ) {
+    if ( Utils.isNullOrEmpty( className ) ) return null;
+    Class< ? > classForName = tryClassForName( className, initialize );
     if ( classForName != null ) return classForName;
     String strippedClassName = noParameterName( className );
-    boolean strippedSame = strippedClassName.equals( className ); 
-    if ( !strippedSame ) {
-      classForName = tryClassForName( strippedClassName );
-      if ( classForName != null ) return classForName;
+    boolean strippedWorthTrying = false;
+    if ( !Utils.isNullOrEmpty( strippedClassName ) ) {
+      strippedWorthTrying = !strippedClassName.equals( className ); 
+      if ( strippedWorthTrying ) {
+        classForName = tryClassForName( strippedClassName, initialize );
+        if ( classForName != null ) return classForName;
+      }
     }
     List<String> FQNs = getFullyQualifiedNames( className );
-    if ( FQNs.isEmpty() && !strippedSame ) {
+    if ( FQNs.isEmpty() && strippedWorthTrying ) {
       FQNs = getFullyQualifiedNames( strippedClassName );
     }
     if ( !FQNs.isEmpty() ) {
       for ( String fqn : FQNs ) {
-        classForName = tryClassForName( fqn );
+        classForName = tryClassForName( fqn, initialize );
         if ( classForName != null ) return classForName;
       }
     }
@@ -218,6 +232,7 @@ public class Utils {
   }
 
   public static String noParameterName( String longName ) {
+    if ( longName == null ) return null;
     int pos = longName.indexOf( '<' );
     if ( pos == -1 ) {
       return longName;
@@ -257,7 +272,7 @@ public class Utils {
   
   public static Constructor< ? > getConstructorForArgs( String className,
                                                         Object[] args ) {
-    Class< ? > classForName = getClassForSimpleName( className );
+    Class< ? > classForName = getClassForName( className, false );
     if ( classForName == null ) {
       System.err.println( "Couldn't find the class " + className
                           + " to get constructor with args=" + toString( args ) );
@@ -334,7 +349,7 @@ public class Utils {
 
   public static Method getMethodForArgs( String className, String callName,
                                          Object... args ) {
-    Class< ? > classForName = getClassForSimpleName( className );
+    Class< ? > classForName = getClassForName( className, false );
     if ( errorOnNull( "Couldn't find the class " + className + " for method "
                       + callName + ( args == null ? "" : toString( args ) ),
                       classForName ) ) {
@@ -345,25 +360,70 @@ public class Utils {
 
   public static Method getMethodForArgs( Class< ? > cls, String callName,
                                          Object... args ) {
+    Class< ? > argTypes[] = new Class< ? >[ args.length ];
+    for ( int i = 0; i < args.length; ++i ) {
+      if ( args[ i ] == null ) {
+        argTypes[ i ] = null;
+      } else {
+        argTypes[ i ] = args[ i ].getClass();
+      }
+    }
+    return getMethodForArgTypes( cls, callName, argTypes );
+  }
+
+  public static Method getMethodForArgTypes( String className, String callName,
+                                             Class<?>... argTypes ) {
+    Class< ? > classForName = getClassForName( className, false );
+    if ( errorOnNull( "Couldn't find the class " + className + " for method "
+                          + callName
+                          + ( argTypes == null ? "" : toString( argTypes ) ),
+                      classForName ) ) {
+      return null;
+    }
+    return getMethodForArgTypes( classForName, callName, argTypes );
+  }
+  public static Method getMethodForArgTypes( Class< ? > cls, String callName,
+                                             Class<?>... argTypes ) {
     Method matchingMethod = null;
     boolean gotOkNumArgs = false;
     int mostMatchingArgs = 0;
     boolean allArgsMatched = false;
-    Method[] methods = cls.getMethods();
+    Method[] methods = null;
+    Debug.outln( "calling getMethods() on class " + cls.getName() );
+    try {
+      methods = cls.getMethods();
+    } catch ( Exception e ) {
+      System.err.println( "Got exception calling " + cls.getName()
+                          + ".getMethod(): " + e.getMessage() );
+    }
+    Debug.outln( "--> got methods: " + methods );
+    if ( methods != null ) {
     for ( Method m : methods ) {
       if ( m.getName().equals( callName ) ) {
         int numMatching = 0;
         boolean okNumArgs =
-            ( m.getParameterTypes().length == args.length )
+            ( m.getParameterTypes().length == argTypes.length )
               || ( m.isVarArgs()
-                   && ( m.getParameterTypes().length < args.length 
+                   && ( m.getParameterTypes().length < argTypes.length 
                         || m.getParameterTypes().length == 1 ) );
+        Debug.outln( "okNumArgs = " + okNumArgs );
         if ( !okNumArgs ) continue;
         for ( int i = 0; i < Math.min( m.getParameterTypes().length,
-                                       args.length ); ++i ) {
-          if ( args[ i ] == null ) continue;
-          if ( m.getParameterTypes()[ i ].isAssignableFrom( args[ i ].getClass() ) ) {
+                                       argTypes.length ); ++i ) {
+          if ( argTypes[ i ] == null ) {
+            Debug.outln( "null arg[ " + i + " ]" );
+            continue;
+          }
+          if ( m.getParameterTypes()[ i ].isAssignableFrom( argTypes[ i ] ) ) {
+              Debug.outln( "m.getParameterTypes()[ " + i + " ]="
+                           + m.getParameterTypes()[ i ] + " matches args[ " + i
+                           + " ].getClass()=" + argTypes[ i ] );
             ++numMatching;
+          } else {
+              Debug.outln( "m.getParameterTypes()[ " + i + " ]="
+                           + m.getParameterTypes()[ i ]
+                           + " does not match args[ " + i + " ].getClass()="
+                           + argTypes[ i ] );
           }
         }
         if ( ( matchingMethod == null ) || !gotOkNumArgs
@@ -372,14 +432,21 @@ public class Utils {
           gotOkNumArgs = okNumArgs;
           mostMatchingArgs = numMatching;
           allArgsMatched = ( numMatching >= m.getParameterTypes().length );
+            Debug.outln( "new match " + m + ", mostMatchingArgs="
+                         + mostMatchingArgs + ",  allArgsMatched="
+                         + allArgsMatched + " = numMatching(" + numMatching
+                         + ") >= m.getParameterTypes().length("
+                         + m.getParameterTypes().length + ")" );
         }
       }
     }
+    }
     if ( matchingMethod != null && !allArgsMatched ) {
       System.err.println( "method returned (" + matchingMethod
-                          + ") does not match all args: " + toString( args ) );
+                          + ") only matches " + mostMatchingArgs
+                          + " args: " + toString( argTypes ) );
     } else if ( matchingMethod == null ) {
-      System.err.println( "method " + callName + toString( args )
+      System.err.println( "method " + callName + toString( argTypes )
                           + " not found for " + cls.getSimpleName() );
     }
     return matchingMethod;

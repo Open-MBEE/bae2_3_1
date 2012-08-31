@@ -2,6 +2,8 @@ package gov.nasa.jpl.ae.xml;
 
 import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
+import gov.nasa.jpl.ae.event.TimeVarying; // don't remove!!
+import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove!!
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.Expression;
 import japa.parser.ast.expr.MethodCallExpr;
@@ -18,7 +20,7 @@ public class JavaForFunctionCall {
   /**
    * 
    */
-  private final EventXmlToJava eventXmlToJava;
+  private final EventXmlToJava xmlToJava;
   public String objectName;
   public String className;
   public String callName;
@@ -28,37 +30,43 @@ public class JavaForFunctionCall {
   public Vector<String> args;
   private boolean convertingArgumentsToExpressions;
   
-  public JavaForFunctionCall( EventXmlToJava eventXmlToJava, MethodCallExpr mce,
+  public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
+                              MethodCallExpr mce,
                               boolean convertArgumentsToExpressions ) {
-    this.eventXmlToJava = eventXmlToJava;
+    this.xmlToJava = eventXmlToJava;
     // REVIEW -- How do we know when we want to convert args to Expressions?
     // Constructors of events (and probably classes) convert args to
     // Expressions.  For now, do not convert args for any other calls.
     this.convertingArgumentsToExpressions = convertArgumentsToExpressions;
     callName = mce.getName();
-    className = this.eventXmlToJava.currentClass;
+    className = this.xmlToJava.currentClass;
     
     // Get object from scope
     Expression scope = mce.getScope();
-    objectName = this.eventXmlToJava.getObjectFromScope( scope );
-    pkg = this.eventXmlToJava.packageName + ".";
+    objectName = this.xmlToJava.getObjectFromScope( scope );
+    pkg = this.xmlToJava.packageName + ".";
     if ( pkg.length() == 1 ) {
       pkg = "";
     }
     
-    // Get the class name from the declaration of the object.
-    Param objectParam = this.eventXmlToJava.lookupMemberByName( className, objectName );
-    if ( objectParam != null ) {
-      className = objectParam.type;
+    if ( Utils.isNullOrEmpty( objectName ) ) {
+      objectName = "this";
     } else {
-      // TODO -- In what other scope is this defined? See todo in
-      // lookupMemberByName.
+      // Get the class name from the declaration of the object.
+      Param objectParam =
+          this.xmlToJava.lookupMemberByName( className, objectName );
+      if ( objectParam != null ) {
+        className = objectParam.type;
+      } else {
+        // TODO -- In what other scope is this defined? See todo in
+        // lookupMemberByName.
+      }
     }
     
     if ( className != null && !className.isEmpty() ) {
-      Class<?> classForName = Utils.getClassForSimpleName( className );
+      Class<?> classForName = Utils.getClassForName( className, true );
       if ( classForName == null && !pkg.isEmpty() ) {
-        classForName = Utils.getClassForSimpleName( pkg + className );
+        classForName = Utils.getClassForName( pkg + className, true );
       }
       if ( classForName != null ) {
         className = classForName.getName();
@@ -68,13 +76,19 @@ public class JavaForFunctionCall {
     // Assemble Java text for finding the java.reflect.Method for callName
     // uses Class<?>.getMethod( String callName, arg1Class, arg2Class, ...) 
     StringBuffer methodJavaSb = new StringBuffer();
-    methodJavaSb.append( "Class.forName(\"" + className
-                       + "\").getMethod(\"" + callName + "\"" );
+//    methodJavaSb.append( "Utils.getMethodForArgs(\"" + className
+//                         + "\", " + toString(mce.getArgs().toArray()) );
+//    methodJavaSb.append( "Utils.getClassForSimpleName(\"" + className
+//                       + "\", true).getMethod(\"" + callName + "\"" );
+    methodJavaSb.append( "Utils.getMethodForArgTypes(\"" + className + "\", "
+                         + "\"" + callName + "\"" );
+//    methodJavaSb.append( "Class.forName(\"" + className
+//                         + "\").getMethod(\"" + callName + "\"" );
     // Get the list of methods with the same name (callName).
     Set< MethodDeclaration > classMethods =
-        this.eventXmlToJava.getClassMethodsWithName( callName, className );
+        this.xmlToJava.getClassMethodsWithName( callName, className );
     // Find the right MethodDeclaration if it exists.
-    if ( classMethods.isEmpty() ) {
+    if ( Utils.isNullOrEmpty( classMethods ) ) {
 //      try {
 //        Class<?> classForName = Utils.getClassForSimpleName( className );
 //        if ( classForName != null ) {
@@ -90,12 +104,20 @@ public class JavaForFunctionCall {
 //          }
 //        }
       // Try using reflection to find the method, but class may not exist.
-      Object[] argArr = null;
+      Class< ? >[] argArr = null;
       if ( mce != null && mce.getArgs() != null ) {
-        argArr = mce.getArgs().toArray();
+        argArr = new Class< ? >[ mce.getArgs().size() ];
+        for ( int i = 0; i < mce.getArgs().size(); ++i ) {
+          argArr[ i ] =
+              Utils.getClassForName( xmlToJava.astToAeExprType( mce.getArgs()
+                                                                   .get( i ) ),
+                                     false );
+        }
+        // argArr = mce.getArgs().toArray();
+        // mce.getArgs().get( 0 ).
       }
       matchingMethod =
-          Utils.getMethodForArgs( className, callName, argArr );
+          Utils.getMethodForArgTypes( className, callName, argArr );
         if ( matchingMethod != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
             methodJavaSb.append( ", " );
@@ -142,7 +164,7 @@ public class JavaForFunctionCall {
         }
         if ( convertArgumentsToExpressions ) {
           String e = 
-              eventXmlToJava.javaparserToAeExpression( a, convertArgumentsToExpressions );
+              xmlToJava.astToAeExpr( a, convertArgumentsToExpressions );
           argumentArraySb.append( e );
         } else {
           argumentArraySb.append( a );

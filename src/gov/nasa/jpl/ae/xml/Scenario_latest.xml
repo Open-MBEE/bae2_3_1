@@ -867,7 +867,12 @@
 			<import>java.util.Queue</import>
 			<import>java.util.LinkedList</import>
 			<members>
-				<parameter>
+        <parameter>
+          <name>customerParticipatingInDr</name>
+          <type>Boolean</type>
+          <value>true</value>
+        </parameter>
+        <parameter>
 					<!--Classifier Behavior for Customer is CustomerCB-->
 					<name>classifierBehavior</name>
 					<type>_17_0_5_edc0357_1346104706708_917454_14957</type>
@@ -2793,12 +2798,12 @@
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114163_833189_14352_exists</name>
 											<type>Boolean</type>
-											<value>Customer: Not Participating in DR? and sig_17_0_5_edc0357_1345510114168_746941_14366.hasStuff(this.endTime)</value>
+											<value>customerParticipatingInDr &amp;&amp; sig_17_0_5_edc0357_1345510114168_746941_14366.hasStuff(this.endTime)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114160_29879_14347_exists</name>
 											<type>Boolean</type>
-											<value>Customer: Participate in Demand Response? and sig_17_0_5_edc0357_1345510114167_732692_14364.hasStuff(this.endTime) and sig_17_0_5_edc0357_1345510114167_567578_14359.hasStuff(this.endTime)</value>
+											<value>customerParticipatingInDr &amp;&amp; sig_17_0_5_edc0357_1345510114167_732692_14364.hasStuff(this.endTime) and sig_17_0_5_edc0357_1345510114167_567578_14359.hasStuff(this.endTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -3563,8 +3568,8 @@ sleep(20)]</effect>
 										<parameter>
 											<!--Duration for Timer-->
 											<name>duration</name>
-											<type>Seconds</type>
-											<value>TimeExpression?</value>
+											<type>Duration</type>
+											<value>20</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -11492,8 +11497,8 @@ sleep(15)]</effect>
 										<parameter>
 											<!--value specification VALUE-->
 											<name>_17_0_5_edc0357_1345510114992_72825_15441</name>
-											<type>Object</type>
-											<value>OpaqueExpression?</value>
+											<type>Boolean</type>
+											<value>true</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -11639,8 +11644,8 @@ sleep(15)]</effect>
 										<parameter>
 											<!--value specification VALUE-->
 											<name>_17_0_5_edc0357_1345510114994_761954_15445</name>
-											<type>Object</type>
-											<value>OpaqueExpression?</value>
+											<type>Boolean</type>
+											<value>true</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existance of  (ForkNode) as false-->
@@ -14778,8 +14783,8 @@ sleep(45)]</effect>
 										<parameter>
 											<!--Duration for Timer-->
 											<name>duration</name>
-											<type>Seconds</type>
-											<value>TimeExpression?</value>
+											<type>Duration</type>
+											<value>20</value>
 										</parameter>
 										<parameter>
 											<!--previous event end time:  (ForkNode)-->
