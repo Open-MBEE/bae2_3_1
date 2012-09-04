@@ -2,14 +2,9 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
-import gov.nasa.jpl.ae.util.Debug;
-
-import java.lang.Character.UnicodeBlock;
-import java.lang.Character.UnicodeScript;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 

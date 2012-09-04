@@ -233,7 +233,11 @@ public class Parameter< T > implements Cloneable,
     // keep reservations separate for different Timepoints that occur at the
     // same time. Correct thing to do would be to have unique names (maybe using
     // scope).
-    return Integer.compare( owner.hashCode(), o.owner.hashCode() );
+    if ( owner.hashCode() < o.owner.hashCode() ) return -1;
+    if ( owner.hashCode() > o.owner.hashCode() ) return 1;
+    return 0;
+    // Integer.compare() not supported for Java 1.6?? 
+    //return Integer.compare( owner.hashCode(), o.owner.hashCode() );
   }
 
   @Override
