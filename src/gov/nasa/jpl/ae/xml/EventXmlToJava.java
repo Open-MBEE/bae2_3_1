@@ -183,13 +183,14 @@ public class EventXmlToJava {
     } else {
       Timepoint.setEpoch( epochString );
     }
+    System.out.println( "epoch = " + Timepoint.getEpoch() );
+    // get units
     String timeUnits = XmlUtils.getChildElementText( scenarioNode, "timeUnits" );
     if ( timeUnits == null || timeUnits.isEmpty() ) {
       Debug.outln( "no units specified; using default" );
     } else {
       Timepoint.setUnits( timeUnits );
     }
-    System.out.println( "epoch = " + Timepoint.getEpoch() );
     System.out.println( "units = " + Timepoint.getUnits() );
     
     // build tables
@@ -473,20 +474,21 @@ public class EventXmlToJava {
     return p; 
   }
 
-  public boolean isStatic( String className ) {
-    Boolean s = isStaticMap.get( className );
-    if ( s == null ) {
-      String scopedName = getClassNameWithScope( className );
-      if ( !Utils.isNullOrEmpty( scopedName ) ) {
-        s = isStaticMap.get( className );
-      }
-    }
+  public boolean isStatic( String name ) {
+    if ( Utils.isNullOrEmpty( name ) ) return false;
+    Boolean s = isStaticMap.get( name );
     return s != null && s;
+  }
+  
+  public boolean isClassStatic( String className ) {
+    if ( isStatic( className ) ) return true;
+    String scopedName = getClassNameWithScope( className );
+    return isStatic( scopedName );
   }
   
   public boolean isInnerClass( String className ) {
     // TODO -- should have a ClassDeclaration stub class to collect this info.
-    boolean is = !isStatic( className ) && isNested( className );
+    boolean is = !isClassStatic( className ) && isNested( className );
     Debug.outln( "isInnerClass( " + className + ") = " + is );
     return is;
   }
@@ -498,7 +500,30 @@ public class EventXmlToJava {
                  + ( is ? ecn : "" ) );
     return is;
   }
-
+  
+  // TODO -- is generated Java for member getting the static tag?  
+  public boolean isMemberStatic( String className, String memberName ) {
+    String memberShortName = memberName;
+    int pos = memberName.lastIndexOf( '.' ); 
+    if ( pos >= 1 ) {
+      className = memberName.substring( 0, pos );
+      memberShortName = memberName.substring( pos+1 );
+    }
+    String tryName = className + "." + memberShortName;
+    if ( isStatic( tryName ) ) return true;
+    String scopedName = getClassNameWithScope( className );
+    if ( !Utils.isNullOrEmpty( scopedName ) ) {
+      tryName = scopedName + "." + memberShortName;
+      if ( isStatic( tryName ) ) return true;
+    }
+    return false;
+  }
+  
+  public boolean isMemberStatic( String memberName ) {
+    String className = currentClass;
+    return isMemberStatic( className, memberName );
+  }
+  
   
   // For each class definition, gather all locally defined and inherited
   // parameters and store them in a table indexed by the class name.
@@ -519,7 +544,7 @@ public class EventXmlToJava {
         // for ( int i = 0; i < nList.size(); i++ ) {
         Node classNode = i.next(); // nList.get( i );
         String className = getClassName( classNode );
-        boolean classIsStatic = isClassStatic( classNode );
+        boolean classIsStatic = isNodeOfDeclarationStatic( classNode );
         Debug.outln( className + " is " + ( classIsStatic ? "" : "not" )
                      + " static" );
         isStaticMap.put( className, classIsStatic );
@@ -572,6 +597,9 @@ public class EventXmlToJava {
         for ( int j = 0; j < pNodes.size(); j++ ) {
           Node pNode = pNodes.get( j );
           Param p = new Param( pNode );
+          if ( isNodeOfDeclarationStatic( pNode ) ) {
+            this.isStaticMap.put( className + "." + p.name, true );
+          }
           Param ep = params.get( p.name );
           if ( ep == null ) {
             params.put( p.name, p );
@@ -609,13 +637,9 @@ public class EventXmlToJava {
 //    }
   }
 
-  public boolean isClassStatic( Node classNode ) {
-    boolean classIsStatic = false;
-    Node staticNode = classNode.getAttributes().getNamedItem( "static" );
-    if ( staticNode != null && staticNode.getNodeValue() != null ) {
-      classIsStatic = staticNode.getNodeValue().toLowerCase().equals( "true" );
-    }
-    return classIsStatic;
+  public boolean isNodeOfDeclarationStatic( Node classNode ) {
+    String staticValue = XmlUtils.getAttributeValue( classNode, "static" );
+    return ( staticValue != null && staticValue.toLowerCase().equals( "true" ) );
   }
 
   // Add constructors for invocations.
@@ -851,9 +875,7 @@ public class EventXmlToJava {
                && !ModifierSet.isProtected( constructorDecl.getModifiers() ) ) {
             // TODO -- Let mods be specified in XML through attributes!
             constructorDecl.setModifiers( ModifierSet.addModifier( constructorDecl.getModifiers(),
-                                                              ModifierSet.PUBLIC ) );
-//            constructorDecl.setModifiers( ModifierSet.addModifier( constructorDecl.getModifiers(),
-//                                                              ModifierSet.STATIC ) );
+                                                                   ModifierSet.PUBLIC ) );
           }
           ctors.add( constructorDecl );
         }
@@ -1120,6 +1142,56 @@ public class EventXmlToJava {
 //    return newClassDecl;
 //  }
 
+  public static void addModifier( TypeDeclaration typeDecl, int modifier ) {
+    typeDecl.setModifiers( ModifierSet.addModifier( typeDecl.getModifiers(),
+                                                    modifier) );
+  }
+  public static void addModifier( MethodDeclaration methodDecl, int modifier ) {
+    methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
+                                                      modifier) );
+  }
+  public static void addModifier( FieldDeclaration fieldDecl, int modifier ) {
+    fieldDecl.setModifiers( ModifierSet.addModifier( fieldDecl.getModifiers(),
+                                                     modifier) );
+  }
+  public static void removeModifier( TypeDeclaration typeDecl, int modifier ) {
+    typeDecl.setModifiers( ModifierSet.removeModifier( typeDecl.getModifiers(),
+                                                       modifier) );
+  }
+  public static void removeModifier( MethodDeclaration methodDecl, int modifier ) {
+    methodDecl.setModifiers( ModifierSet.removeModifier( methodDecl.getModifiers(),
+                                                         modifier) );
+  }
+  public static void removeModifier( FieldDeclaration fieldDecl, int modifier ) {
+    fieldDecl.setModifiers( ModifierSet.removeModifier( fieldDecl.getModifiers(),
+                                                         modifier) );
+  }
+  public static void makeStatic( FieldDeclaration fieldDecl ) {
+    addModifier( fieldDecl, ModifierSet.STATIC );
+  }
+  public static void makeStatic( TypeDeclaration typeDecl ) {
+    addModifier( typeDecl, ModifierSet.STATIC );
+  }
+  public static void makeStatic( MethodDeclaration methodDecl ) {
+    methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
+                                                      ModifierSet.STATIC ) );
+  }
+  public static void makePublic( TypeDeclaration typeDecl ) {
+    removeModifier( typeDecl, ModifierSet.PRIVATE );
+    removeModifier( typeDecl, ModifierSet.PROTECTED );
+    addModifier( typeDecl, ModifierSet.PUBLIC );
+  }
+  public static void makePublic( MethodDeclaration methodDecl ) {
+    removeModifier( methodDecl, ModifierSet.PRIVATE );
+    removeModifier( methodDecl, ModifierSet.PROTECTED );
+    addModifier( methodDecl, ModifierSet.PUBLIC );
+  }
+  public static void makePublic( FieldDeclaration fieldDecl ) {
+    removeModifier( fieldDecl, ModifierSet.PRIVATE );
+    removeModifier( fieldDecl, ModifierSet.PROTECTED );
+    addModifier( fieldDecl, ModifierSet.PUBLIC );
+  }
+  
   public ClassOrInterfaceDeclaration processClassDeclaration( Node clsNode,
                                                               Node eventNode,
                                                               boolean isNested ) {
@@ -1136,6 +1208,10 @@ public class EventXmlToJava {
     ClassOrInterfaceDeclaration newClassDecl =
         new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, 
                                          Utils.simpleName( currentClass ) );
+
+    if ( isClassStatic( currentClass ) ) {
+      makeStatic( newClassDecl );
+    }
 
     // Get class inheritances as Java extends list.
     // TODO -- REVIEW -- Do we need to deal with (allow for) Java interfaces?
@@ -1519,7 +1595,12 @@ public class EventXmlToJava {
     Statement s =
         createAssignmentOfGenericType( p.name, args[ 0 ], args[ 1 ], args[ 2 ] );
     ASTHelper.addStmt( initMembers.getBody(), s );
-    return createFieldOfGenericType( p.name, args[ 0 ], args[ 1 ], null );
+    FieldDeclaration f =
+        createFieldOfGenericType( p.name, args[ 0 ], args[ 1 ], null );
+    if ( isMemberStatic( p.name ) ) {
+      makeStatic( f );
+    }
+    return f;
   }
 
   public void addParameterField( TypeDeclaration typeDecl, Param p ) {
@@ -2389,10 +2470,10 @@ public class EventXmlToJava {
       if ( methodDecl != null ) {
         if ( !ModifierSet.isPrivate( methodDecl.getModifiers() )
              && !ModifierSet.isProtected( methodDecl.getModifiers() ) ) {
-          // REVIEW -- Should be specified in XML through attributes!
           methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
                                                             ModifierSet.PUBLIC ) );
-          if ( isStatic( getClassName( classNode ) ) ) {
+          if ( isClassStatic( getClassName( classNode ) ) ) {
+            makeStatic(methodDecl);
             methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
                                                               ModifierSet.STATIC ) );
           }

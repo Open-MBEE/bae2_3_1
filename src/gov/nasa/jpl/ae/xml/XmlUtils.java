@@ -41,6 +41,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import junit.framework.Assert;
 // import javax.xml.xpath.XPathExpression;
 
+import org.hamcrest.core.IsNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -57,6 +58,7 @@ import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.FileUtils;
+import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 
 @SuppressWarnings( "unused" )
@@ -199,6 +201,45 @@ public class XmlUtils {
 
   // Utility XML DOM helpers
 
+  /**
+   * Gets the value of the named attribute for the node.
+   * 
+   * @param node
+   *          the node with the attribute
+   * @param attributeName
+   *          the name of the attribute whose node is to be returned
+   * @return the node of the named attribute of the input node or null if the
+   *         attribute does not exist for the node or if the node or
+   *         attributeName are null.
+   */
+  public static Node getAttributeNode( Node node, String attributeName ) {
+    if ( node == null ) return null;
+    if ( Utils.isNullOrEmpty( attributeName ) ) return null;
+    Node attributeNode = node.getAttributes().getNamedItem( attributeName );
+    return attributeNode;
+  }
+  
+  /**
+   * Gets the value of the named attribute for the node.
+   * 
+   * @param node
+   *          the node with the attribute
+   * @param attributeName
+   *          the name of the attribute whose value is to be returned
+   * @return the value of the named attribute for the input node or null if the
+   *         attribute does not exist for the node or if the node or
+   *         attributeName are null.
+   */
+  public static String getAttributeValue( Node node, String attributeName ) {
+    if ( node == null ) return null;
+    if ( Utils.isNullOrEmpty( attributeName ) ) return null;
+    Node attributeNode = getAttributeNode( node, attributeName );
+    if ( attributeNode != null ) {
+      attributeNode.getNodeValue();
+    }
+    return null;
+  }
+  
   // Return the first child of node that has the name of childTag.
   protected static Node getChildNode( Node node, String childTag ) {
     if ( node == null ) return null;

@@ -220,7 +220,7 @@
             <eventName>operatingTransition</eventName>
             <arguments>
               <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
-              <parameter><name>stateVar</name><type>TimeVarying&lt; String &gt;</type><value>operatingState</value></parameter>
+              <parameter><name>stateVar</name><type>TimeVaryingMap&lt; String &gt;</type><value>operatingState</value></parameter>
               <parameter><name>value</name><type>String</type><value>nextOperatingState</value></parameter>
             </arguments>
           </eventInvocation>
@@ -232,7 +232,7 @@
             <eventName>routineMaintenanceTransition</eventName>
             <arguments>
               <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
-              <parameter><name>stateVar</name><type>TimeVarying&lt; String &gt;</type><value>routineMaintenanceState</value></parameter>
+              <parameter><name>stateVar</name><type>TimeVaryingMap&lt; String &gt;</type><value>routineMaintenanceState</value></parameter>
               <parameter><name>value</name><type>String</type><value>nextRoutineMaintenanceState</value></parameter>
             </arguments>
           </eventInvocation>
@@ -244,7 +244,7 @@
             <eventName>alertManagementTransition</eventName>
             <arguments>
               <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
-              <parameter><name>stateVar</name><type>TimeVarying&lt; String &gt;</type><value>alertManagementState</value></parameter>
+              <parameter><name>stateVar</name><type>TimeVaryingMap&lt; String &gt;</type><value>alertManagementState</value></parameter>
               <parameter><name>value</name><type>String</type><value>nextAlertManagementState</value></parameter>
             </arguments>
           </eventInvocation>
@@ -259,7 +259,7 @@
         </name>
         <members>
           <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
-          <parameter><name>state</name><type>TimeVarying&lt; String &gt;</type><value>null</value></parameter>
+          <parameter><name>state</name><type>TimeVaryingMap&lt; String &gt;</type><value>null</value></parameter>
           <parameter><name>value</name><type>String</type><value>null</value></parameter>
         </members>
         <constraints></constraints>
