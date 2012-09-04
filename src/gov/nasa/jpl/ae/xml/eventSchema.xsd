@@ -74,6 +74,16 @@
           <xs:documentation>name of class or interface from which this class inherits</xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element name="extends" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>same as inheritsFrom</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="implements" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>for Java "implements"</xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded">
         <xs:annotation>
           <xs:documentation>package/library that needs to be imported to define some types used in this class; for example, java.util.Queue</xs:documentation>
