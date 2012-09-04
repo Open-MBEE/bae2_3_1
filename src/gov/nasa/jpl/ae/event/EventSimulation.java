@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -40,7 +41,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     public int compare( Object o1, Object o2 ) {
       int compare = o1.toString().compareTo( o2.toString() );
       if ( compare != 0 ) return compare;
-      return Integer.compare( o1.hashCode(), o2.hashCode() );
+      return Utils.intCompare( o1.hashCode(), o2.hashCode() );
     }
     
   }

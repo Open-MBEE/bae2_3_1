@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.StringDomain;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -319,7 +320,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public int compareTo( TimeVarying< T > o ) {
-    return Integer.compare( this.hashCode(), o.hashCode() );
+    return Utils.intCompare( this.hashCode(), o.hashCode() );
     // TODO -- REVIEW -- Need this for DurativeEvents.effects map. Hash code
     // could cause a problem with small probability.
   }
