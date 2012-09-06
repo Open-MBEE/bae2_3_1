@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -89,14 +90,18 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   }
 
-  // For the convenience of referring to the effect method.
+  /**
+   * For the convenience of referring to the effect method.
+   */
   protected static Method setValueMethod = getSetValueMethod();
 
-  // Floating effects are those whose time or duration is changing. They must be
-  // removed from TimeVaryingMap's map before they change; else, they will
-  // corrupt the map. Before changing, they are placed in this floatingEffects
-  // list, and after changing they are removed from this list and added back to
-  // the map.
+  /**
+   * Floating effects are those whose time or duration is changing. They must be
+   * removed from TimeVaryingMap's map before they change; else, they will
+   * corrupt the map. Before changing, they are placed in this floatingEffects
+   * list, and after changing they are removed from this list and added back to
+   * the map.
+   */
   protected List< TimeValue > floatingEffects = new ArrayList< TimeValue >();
 
   protected String name;
@@ -112,9 +117,42 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public TimeVaryingMap( String name, T defaultValue ) {
     super();
     this.name = name;
-    put( new Timepoint(StringDomain.typeMinValue, 0, this), defaultValue );
+    Timepoint t = new Timepoint(StringDomain.typeMinValue, 0, this);
+    System.out.println(name + "put(" + t + ", " + defaultValue + ")" );
+    put( t, defaultValue );
   }
 
+  @SuppressWarnings( "unchecked" )
+  public TimeVaryingMap( String name, Method initialValueFunction,
+                         Object o, int samplePeriod, int horizonDuration ) {
+    super();
+    this.name = name;
+    samplePeriod = correctSamplePeriod( samplePeriod, horizonDuration );
+    try {
+      for ( int t = 0; t < horizonDuration; t += samplePeriod ) {
+        setValue( new Timepoint( "", t, this ),
+                  (T)initialValueFunction.invoke( o, t ) );
+      }
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( IllegalArgumentException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
+  protected static int correctSamplePeriod( int samplePeriod,
+                                            int horizonDuration ) {
+    if ( samplePeriod == 0 ) {
+      samplePeriod = Math.max( 1, horizonDuration / 10 );
+    }
+    return samplePeriod;
+  }
+  
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
     for ( TimeValue e : floatingEffects ) {
@@ -246,8 +284,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public T getValue( Timepoint t ) {
-    // TODO -- need to interpolate!
-    return get( t ); //.first;
+    T v = get( t ); //.first;
+    if ( v != null ) return v;
+    return getValue( t.getValue() );
   }
 
   @Override
@@ -350,7 +389,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
         try {
           value = (T)o;
         } catch( Exception e ) {
-          e.printStackTrace();
+          //e.printStackTrace();
         }
         if ( value != null ) {
           return value.equals( getValue( t ) );

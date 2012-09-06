@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
-  <epoch>2012-08-05T23:30:00-07:00</epoch>
+  <epoch>2012-08-05T11:00:00-07:00</epoch>
   <timeUnits>seconds</timeUnits>
   <eventToBeExecuted>
     <eventType>
@@ -58,6 +58,7 @@
           <parameter><name>assessEventStartTime</name><type>Integer</type><value>100</value></parameter>
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
           <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
+          <parameter><name>theGrid</name><type>Grid</type><value>new Grid()</value></parameter>
         </members>
         <constraints>
           <!-- TODO: Add a constraint that AssessDRCommitmentEvent.startTime >= GenerateDRRequest.startTime -->
@@ -356,6 +357,18 @@
         </function>--><!--
       </methods>
     </class>-->
+    <class>
+      <name>Grid</name>
+      <import>demandResponse.Customer</import>
+      <members>
+        <parameter>
+          <name>customer</name><type>Customer</type><value>new Customer()</value>
+        </parameter>
+        <parameter>
+          <name>customerLoad</name><type>TimeVaryingMap&lt; Double &gt;</type><value>customer.load</value>
+        </parameter>
+      </members>
+    </class>
   </classes>
 </scenario>
 

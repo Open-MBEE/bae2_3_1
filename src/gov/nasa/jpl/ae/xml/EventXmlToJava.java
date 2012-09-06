@@ -22,6 +22,7 @@ import japa.parser.ast.expr.BinaryExpr;
 import japa.parser.ast.expr.ConditionalExpr;
 import japa.parser.ast.expr.EnclosedExpr;
 import japa.parser.ast.expr.Expression;
+import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.expr.UnaryExpr;
@@ -439,7 +440,9 @@ public class EventXmlToJava {
     //if ( paramName == null ) return null;
       return null;
     }
-    
+    if ( className.equals( "this" ) ) {
+      className = currentClass;
+    }
     // Check if the className is known.
     Map< String, Param > params = paramTable.get( className );
     // If the name is not in the table, make sure it's the scoped name.
@@ -638,8 +641,7 @@ public class EventXmlToJava {
   }
 
   public boolean isNodeOfDeclarationStatic( Node classNode ) {
-    String staticValue = XmlUtils.getAttributeValue( classNode, "static" );
-    return ( staticValue != null && staticValue.toLowerCase().equals( "true" ) );
+    return XmlUtils.isAttributeTrue( classNode, "static" );
   }
 
   // Add constructors for invocations.
@@ -1659,36 +1661,43 @@ public class EventXmlToJava {
     String className = expr.getClass().getSimpleName();
     // Inefficient string compare.
     Debug.outln( "starting astToAeExprType(" + className + ":" + expr + ")" );
-    if ( className.equals( "ConditionalExpr" ) ) {
+    if ( expr.getClass() == ConditionalExpr.class ) {
         ConditionalExpr ce = ( (ConditionalExpr)expr );
 
         result =
             dominantType( astToAeExprType( ce.getThenExpr() ),
                           astToAeExprType( ce.getElseExpr() ) );
-    } else if ( className.equals( "ArrayCreationExpr" ) ) {
+    } else if ( expr.getClass() == ArrayCreationExpr.class ) {
       ArrayCreationExpr be = ( (ArrayCreationExpr)expr );
       result = be.getType().toString();
-    } else if ( className.equals( "BinaryExpr" ) ) {
+    } else if ( expr.getClass() == BinaryExpr.class ) {
         BinaryExpr be = ( (BinaryExpr)expr );
         result =
             operatorResultType( be.getOperator(),
                                 astToAeExprType( be.getLeft() ),
                                 astToAeExprType( be.getRight() ) );
-    } else if ( className.equals( "UnaryExpr" ) ) {
+    } else if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         result =
             operatorResultType( ue.getOperator(),
                                 astToAeExprType( ue.getExpr() ) );
-    } else if ( className.equals( "EnclosedExpr" ) ) {
+    } else if ( expr.getClass() == EnclosedExpr.class ) {
         result = astToAeExprType( ( (EnclosedExpr)expr ).getInner() );
-    } else if ( className.equals( "MethodCallExpr" ) ) {
+    } else if ( expr.getClass() == MethodCallExpr.class ) {
       // don't worry about it--special purpose code is called later for this
       result = "null";
       Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result
                    + "; ok for MethodCallExpr!" );
       return result;  // to avoid the error message
-    } else if ( className.equals( "NameExpr" ) ) {
+    } else if ( expr.getClass() == NameExpr.class ) {
         name = ( (NameExpr)expr ).getName();
+    } else if ( expr.getClass() == FieldAccessExpr.class ) {
+      FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
+      p = lookupMemberByName( fieldAccessExpr.getScope().toString(), fieldAccessExpr.getField() );
+      if ( p != null ) {
+        result = p.type;
+      }
+      name = expr.toString();
     } else {
         if ( className.endsWith( "LiteralExpr" ) ) {
           // get the part before "LiteralExpr"
@@ -1736,7 +1745,7 @@ public class EventXmlToJava {
     String middle = null;
     // Inefficient string compare.
     String name = expr.getClass().getSimpleName(); 
-    if ( name.equals( "BinaryExpr" ) ) {
+    if ( expr.getClass() == BinaryExpr.class ) {
         BinaryExpr be = ( (BinaryExpr)expr );
         // middle =
         return "new Functions."
@@ -1746,7 +1755,7 @@ public class EventXmlToJava {
                + astToAeExpr( be.getRight(), 
                                            convertFcnCallArgsToExprs ) + " )";
     }
-    if ( name.equals( "UnaryExpr" ) ) {
+    if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         // middle =
         return "new Functions."
@@ -1754,13 +1763,13 @@ public class EventXmlToJava {
                + astToAeExpr( ue.getExpr(), type,
                               convertFcnCallArgsToExprs ) + " )";
     }
-    if ( name.equals( "EnclosedExpr" ) ) {
+    if ( expr.getClass() == EnclosedExpr.class ) {
         middle =
             astToAeExpr( ( (EnclosedExpr)expr ).getInner(), type,
                          convertFcnCallArgsToExprs );
-    } else if ( name.equals( "NameExpr" ) ) {
+    } else if ( expr.getClass() == NameExpr.class ) {
         middle = ( (NameExpr)expr ).getName();
-    } else if ( name.equals( "AssignExpr" ) ) {
+    } else if ( expr.getClass() == AssignExpr.class ) {
         AssignExpr ae = (AssignExpr)expr;
         String result = null;
         if ( ae.getOperator() == AssignExpr.Operator.assign ) {
@@ -1784,12 +1793,12 @@ public class EventXmlToJava {
           return result;
         }
         middle = ae.toString();
-    } else if ( name.equals( "MethodCallExpr" ) ) {
+    } else if ( expr.getClass() == MethodCallExpr.class ) {
         MethodCallExpr mce = (MethodCallExpr)expr;
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, mce, convertFcnCallArgsToExprs );
         return javaForFunctionCall.toNewExpressionString();
-    } else  { //if ( name.equals( "ConditionalCallExpr" ) ) {
+    } else  { //if ( expr.getClass() == ConditionalCallExpr.class ) {
       //case "ConditionalExpr": // TODO
         middle = expr.toString();
     }

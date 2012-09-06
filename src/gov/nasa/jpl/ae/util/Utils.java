@@ -49,6 +49,14 @@ public class Utils {
   }
   
   // Translate a string to an integer.  Return null if not an integer. 
+  /**
+   * Translate a string s to an Integer.
+   * 
+   * @param s
+   *          is the string to parse as an Integer
+   * @return the integer translation of string s, or return null if s is not an
+   *         integer.
+   */
   public static Integer toInteger( String s ) {
     Integer i = null;
     try {
@@ -59,7 +67,14 @@ public class Utils {
     return i;
   }
 
-  // Translate a string to a double.  Return null if not a double/integer. 
+  /**
+   * Translate a string s to a Double.
+   * 
+   * @param s
+   *          is the string to parse as a Double
+   * @return the double translation of string s, or return null if s is not a
+   *         double/integer.
+   */
   public static Double toDouble( String s ) {
     Double i = null;
     try {
@@ -70,6 +85,28 @@ public class Utils {
     return i;
   }
 
+  /**
+   * Generate a string that repeats/replicates a string a specified number of
+   * times.
+   * 
+   * @param s
+   *          is the string to repeat.
+   * @param times
+   *          is the number of times to repeat the string.
+   * @return a concatenation of times instances of s.
+   */
+  public static String repeat( String s, int times ) {
+    StringBuilder sb = new StringBuilder();
+    for ( int i=0; i<times; ++i ) {
+      sb.append(s);
+    }
+    return sb.toString();
+  }
+
+  public static String spaces( int n ) {
+    return repeat( " ", n );
+  }
+  
   // Check if string has really got something.
   public static boolean isNullOrEmpty( String s ) {
     return ( s == null || s.isEmpty() ||

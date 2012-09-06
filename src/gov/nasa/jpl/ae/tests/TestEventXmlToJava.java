@@ -23,6 +23,7 @@ import org.xml.sax.SAXException;
  */
 public class TestEventXmlToJava {
 
+  public static int onePlusone() { return 2; }
   /**
    * @param args
    */
@@ -51,7 +52,9 @@ public class TestEventXmlToJava {
     }
     //xmlFileName = f.getAbsolutePath();
     xmlFileName = xmlUrl.getFile();
-    String directory = "src";//FileUtils.existingFolder( xmlUrl.getPath() );
+    //String directory = "src";
+    String directory = FileUtils.existingFolder( xmlUrl.getPath() );
+    directory = directory.substring( 0, directory.indexOf("CS")+3 ) + "src";
     System.out.println( "file \"" + xmlFileName + "\"" );
     System.out.println( "directory \"" + directory + "\"" );
     

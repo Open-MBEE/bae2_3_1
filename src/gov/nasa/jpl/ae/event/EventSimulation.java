@@ -8,12 +8,8 @@ import gov.nasa.jpl.ae.util.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Formatter;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -133,6 +129,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   public void simulate( long tickInMilliseconds, java.io.OutputStream os ) {
     PrintWriter w = new PrintWriter( os, true );
     long startClock = -1;
+    int lastT = -1;
     w.println("--- simulation start ---");
     for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
       for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
@@ -151,24 +148,29 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         }
         int t = e1.getKey().intValue();
         Object variable = e2.getKey();
-        Event event = null;
-        Object value = null;
+        Object value = e2.getValue();
         String name;
         if ( variable instanceof ParameterListener ) {
           name = ((ParameterListener)variable).getName();
         } else {
           name = variable.getClass().getSimpleName();
         }
-        if ( variable instanceof Event ) {
-          event = (Event)variable;
-        } else if ( variable instanceof TimeVarying ) {
-          value = ((TimeVarying<?>)variable).getValue( t );
+        if ( value instanceof Double ) {
+          value = String.format( "%.2f", value );
         }
-        w.printf( "%14s : %7s %s %s\n",
-                  ( new Duration( t, null ) ).toStringWithUnits( false, false ),
-                  //t, Timepoint.getUnits().toShortString(),
-                  Timepoint.toTimestamp( t ),
-                  name, e2.getValue() );//, ( (value==null) ? "" : ( " " + value ) ) );
+        String formatString = null;
+        if ( t == lastT ) {
+          String padding = Utils.spaces( 47 );
+          formatString = "%s%s -> %s\n";
+          w.printf( formatString, padding, name, value.toString() );
+        } else {
+          formatString = "%14s : %28s  %s -> %s\n";          
+          w.printf( formatString,
+                    ( new Duration( t, null ) ).toStringWithUnits( false, false ),
+                    Timepoint.toTimestamp( t ),
+                    name, value.toString() );
+        }
+        lastT = t;
       }
     }
     w.println("--- simulation end ---");

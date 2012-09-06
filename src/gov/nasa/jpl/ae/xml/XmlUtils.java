@@ -356,6 +356,11 @@ public class XmlUtils {
     return null;
   }
 
+  public static boolean isAttributeTrue( Node node, String attributeName ) {
+    String staticValue = XmlUtils.getAttributeValue( node, attributeName );
+    return ( staticValue != null && ( staticValue.toLowerCase().equals( "true" )
+                                      || staticValue.equals( "1" ) ) );
+  }
   
   // XML file/path helpers
   
