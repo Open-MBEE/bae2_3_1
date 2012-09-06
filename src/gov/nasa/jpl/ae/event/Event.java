@@ -17,10 +17,10 @@ public interface Event extends HasConstraints, Comparable< Event > {
 
   public void execute();
 
-  public void addEffect( Parameter< ? extends TimeVarying< ? > > sv, Object obj,
+  public void addEffect( Parameter< ? > sv, Object obj,
                          Method effectFunction, Vector< Object > arguments );
 
-  public void addEffect( Parameter< ? extends TimeVarying< ? > > sv, Object obj,
+  public void addEffect( Parameter< ? > sv, Object obj,
                          Method method, Object arg );
 
   public Set< Parameter< ? > > getDependentParameters( boolean deep );
@@ -80,13 +80,13 @@ public interface Event extends HasConstraints, Comparable< Event > {
   /**
    * @return the effects
    */
-  public Map< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > getEffects();
+  public Map< Parameter< ? >, Set< Effect > > getEffects();
 
   /**
    * @param effects
    *          the effects to set
    */
-  public void setEffects( SortedMap< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > effects );
+  public void setEffects( SortedMap< Parameter< ? >, Set< Effect > > effects );
 
   /**
    * @return the constraints

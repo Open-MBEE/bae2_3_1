@@ -51,7 +51,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       new Vector< Dependency< ? > >();
   protected Solver solver = new ConstraintLoopSolver( timeoutSeconds );
 
-  protected SortedSet< ? extends TimeVarying< ? > > timeVaryingObjects =
+  protected SortedSet< TimeVarying< ? > > timeVaryingObjects =
       new TreeSet< TimeVarying< ? > >();
 
   // TODO -- Need to keep a collection of ParameterListeners (just as

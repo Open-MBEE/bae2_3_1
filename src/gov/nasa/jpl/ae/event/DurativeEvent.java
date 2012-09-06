@@ -68,8 +68,8 @@ public class DurativeEvent implements Event, Cloneable,
       new TreeSet< Parameter< ? > >();
   // TODO -- REVIEW -- create TimeVariableParameter and EffectMap classes for
   // effects?
-  protected Map< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > effects =
-      new TreeMap< Parameter< ? extends TimeVarying< ? > >, Set< Effect > >();
+  protected Map< Parameter< ? >, Set< Effect > > effects =
+      new TreeMap< Parameter< ? >, Set< Effect > >();
   protected Vector< ConstraintExpression > constraintExpressions = new Vector< ConstraintExpression >();
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected Vector< Dependency< ? > > dependencies =
@@ -79,7 +79,7 @@ public class DurativeEvent implements Event, Cloneable,
 
   protected Solver solver = new ConstraintLoopSolver( timeoutSeconds );
 
-  protected SortedSet< ? extends TimeVarying< ? > > timeVaryingObjects =
+  protected SortedSet< TimeVarying< ? > > timeVaryingObjects =
       new TreeSet< TimeVarying< ? > >();
 
   // TODO -- consider breaking elaborations up into separate constraints
@@ -132,7 +132,7 @@ public class DurativeEvent implements Event, Cloneable,
   protected Constraint effectsConstraint = new AbstractParameterConstraint() {
 
     protected boolean
-      areEffectsOnTimeVaryingSatisfied( Parameter< ? extends TimeVarying< ? > > variable,
+      areEffectsOnTimeVaryingSatisfied( Parameter< ? > variable,
                                         Set< Effect > effects ) {
       if ( !variable.isGrounded() ) {
         return false;
@@ -148,7 +148,7 @@ public class DurativeEvent implements Event, Cloneable,
     }
 
     protected boolean
-        satisfyEffectsOnTimeVarying( Parameter< ? extends TimeVarying< ? > > variable,
+        satisfyEffectsOnTimeVarying( Parameter< ? > variable,
                                      Set< Effect > effects ) {
       boolean satisfied = true;
       if ( !variable.isGrounded() ) {
@@ -158,11 +158,11 @@ public class DurativeEvent implements Event, Cloneable,
         variable.satisfy();
       }
       for ( Effect e : effects ) {
-        if ( !e.isApplied( variable ) ) {
+        if ( !e.isApplied( (Parameter< ? >)variable ) ) {
           if ( !variable.isGrounded() ) {
             satisfied = false;
           } else {
-            TimeVarying<?> value = variable.getValue();
+            TimeVarying<?> value = (TimeVarying< ? >)variable.getValue();
             e.applyTo( value, true );
           }
         }
@@ -173,9 +173,9 @@ public class DurativeEvent implements Event, Cloneable,
     @Override
     public boolean satisfy() {
       boolean satisfied = true;
-      for ( Entry< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > entry : getEffects().entrySet() ) {
+      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
         Set< Effect > set = entry.getValue();
-        Parameter< ? extends TimeVarying< ? > > variable = entry.getKey();
+        Parameter< ? > variable = entry.getKey();
         if ( !satisfyEffectsOnTimeVarying( variable, set ) ) {
           satisfied = false;
         }
@@ -185,9 +185,9 @@ public class DurativeEvent implements Event, Cloneable,
     
     @Override
     public boolean isSatisfied() {
-      for ( Entry< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > entry : getEffects().entrySet() ) {
+      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
         Set< Effect > set = entry.getValue();
-        Parameter< ? extends TimeVarying< ? > > variable = entry.getKey();
+        Parameter< ? > variable = entry.getKey();
         if ( !areEffectsOnTimeVaryingSatisfied( variable, set ) ) {
           return false;
         }
@@ -260,7 +260,7 @@ public class DurativeEvent implements Event, Cloneable,
       ConstraintExpression nc = new ConstraintExpression( c );
       constraintExpressions.add( nc );
     }
-    for ( Map.Entry< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > e : 
+    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
           durativeEvent.effects.entrySet() ) {
       Set< Effect > ns = new HashSet< Effect >();
       try {
@@ -272,7 +272,7 @@ public class DurativeEvent implements Event, Cloneable,
         // TODO Auto-generated catch block
         e1.printStackTrace();
       }
-      effects.put( (Parameter< ? extends TimeVarying< ? > >)e.getKey().clone(),
+      effects.put( (Parameter< ? >)e.getKey().clone(),
                    ns );
     }
     for ( Dependency< ? > d : durativeEvent.dependencies ) {
@@ -298,7 +298,7 @@ public class DurativeEvent implements Event, Cloneable,
       subbed = subbed || s;
     }
     HasParameters.Helper.substitute( effects, p1, p2, deep );
-    for ( Entry< Parameter< ? extends TimeVarying< ? >>, Set< Effect >> e : effects.entrySet() ) {
+    for ( Entry< Parameter< ?>, Set< Effect >> e : effects.entrySet() ) {
       if ( e.getValue() instanceof HasParameters ) {
         ( (HasParameters)e.getValue() ).substitute( p1, p2, deep );
       }
@@ -407,9 +407,9 @@ public class DurativeEvent implements Event, Cloneable,
     }
     
     // TODO -- REVIEW -- ???
-    for ( Map.Entry< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > e : 
+    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
           effects.entrySet() ) {
-      TimeVarying< ? > tv = e.getKey().getValue();
+      TimeVarying< ? > tv = (TimeVarying< ? >)e.getKey().getValue();
       for ( Effect eff : e.getValue() ) {
         eff.applyTo( tv, false ); //, startTime, duration );
       }
@@ -536,7 +536,7 @@ public class DurativeEvent implements Event, Cloneable,
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
   @Override
-  public void addEffect( Parameter< ? extends TimeVarying< ? > > sv,
+  public void addEffect( Parameter< ? > sv,
                          Object obj, Method effectFunction,
                          Vector< Object > arguments ) {
     Effect e = new EffectFunction( obj, effectFunction, arguments );
@@ -555,7 +555,7 @@ public class DurativeEvent implements Event, Cloneable,
    * @see event.Event#addEffect(event.TimeVarying, java.lang.Object, java.lang.reflect.Method, java.lang.Object)
    */
   @Override
-  public void addEffect( Parameter< ? extends TimeVarying< ? > > sv,
+  public void addEffect( Parameter< ? > sv,
                          Object obj, Method method, Object arg ) {
     Vector< Object > v = new Vector< Object >();
     v.add( arg );
@@ -921,7 +921,7 @@ public class DurativeEvent implements Event, Cloneable,
    * @see event.Event#getEffects()
    */
   @Override
-  public Map< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > getEffects() {
+  public Map< Parameter< ? >, Set< Effect > > getEffects() {
     return effects;
   }
 
@@ -929,7 +929,7 @@ public class DurativeEvent implements Event, Cloneable,
    * @see event.Event#setEffects(java.util.SortedMap)
    */
   @Override
-  public void setEffects( SortedMap< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > effects ) {
+  public void setEffects( SortedMap< Parameter< ? >, Set< Effect > > effects ) {
     this.effects = effects;
   }
 
@@ -1054,18 +1054,18 @@ public class DurativeEvent implements Event, Cloneable,
       }
     }
 
-    Iterator< Entry< Parameter< ? extends TimeVarying< ? >>, Set< Effect >>> i =  
+    Iterator< Entry< Parameter< ? >, Set< Effect >>> i =  
         getEffects().entrySet().iterator();
-    Map< Parameter< ? extends TimeVarying< ? >>, Set< Effect >> removedForReinserting =
-        new TreeMap< Parameter< ? extends TimeVarying< ? >>, Set< Effect > >();
+    Map< Parameter< ? >, Set< Effect >> removedForReinserting =
+        new TreeMap< Parameter< ? >, Set< Effect > >();
     while ( i.hasNext() ) {
-      Entry< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > e = i.next();
+      Entry< Parameter< ? >, Set< Effect > > e = i.next();
       i.remove();
-    //for ( Entry< Parameter< ? extends TimeVarying< ? > >, Set< Effect > > e : getEffects().entrySet() ) {
+    //for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
       // Temporarily remove in case propagation in TimeVarying can corrupt entry keys.
       //getEffects().entrySet().remove( e );
-      Parameter< ? extends TimeVarying< ? > > tlParam = e.getKey();
-      TimeVarying< ? > timeline = tlParam.getValue();
+      Parameter< ? > tlParam = e.getKey();
+      TimeVarying< ? > timeline = (TimeVarying< ? >)tlParam.getValue();
       Set< Effect > effectSet = e.getValue();
       for (Effect effect : effectSet ) {
         boolean hasParameter = false;

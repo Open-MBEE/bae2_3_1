@@ -115,8 +115,8 @@ public class EffectFunction extends FunctionCall implements Effect {
   }
 
   @Override
-  public boolean isApplied( Parameter< ? extends TimeVarying< ? > > variable ) {
-    return variable.getValue() != null && variable.getValue().isApplied( this );
+  public boolean isApplied( Parameter< ? > variable ) {
+    return variable.getValue() != null && ((TimeVarying<?>)(variable.getValue())).isApplied( this );
   }
 
 }

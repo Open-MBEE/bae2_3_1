@@ -16,5 +16,5 @@ public interface Effect {
   public < T > TimeVarying< T > unApplyTo( TimeVarying< T > tv );//, Timepoint t, Duration d );
 	
 	public Effect clone() throws CloneNotSupportedException;
-  public boolean isApplied( Parameter< ? extends TimeVarying< ? >> variable );
+  public boolean isApplied( Parameter< ? > variable );
 }

@@ -25,6 +25,7 @@ import japa.parser.ast.expr.Expression;
 import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.NameExpr;
+import japa.parser.ast.expr.ThisExpr;
 import japa.parser.ast.expr.UnaryExpr;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.ExplicitConstructorInvocationStmt;
@@ -50,6 +51,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.activation.FileDataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -65,11 +67,13 @@ import org.xml.sax.SAXException;
 
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Pair;
+import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.TimeVarying; // don't remove
 import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 
 /*
  * Translates XML to executable Java classes for Analysis Engine behavior (based
@@ -95,7 +99,7 @@ public class EventXmlToJava {
 
     public Param( Node n ) {
       name = fixName( XmlUtils.getChildElementText( n, "name" ) );
-      type = fixName( XmlUtils.getChildElementText( n, "type" ) );
+      type = typeToClass( fixName( XmlUtils.getChildElementText( n, "type" ) ) );
       value = fixValue( XmlUtils.getChildElementText( n, "value" ) );
     }
 
@@ -1054,7 +1058,7 @@ public class EventXmlToJava {
     // TODO -- correct for effects?
     if ( effects != null ) {
       stmtList =  
-          createEffectStmtsFromFieldCollection( "effects.put( ", effects, " );\n" );
+          createEffectStmtsFromFieldCollection( "effects.put( (Parameter< ? extends TimeVarying< ? >>)", effects, " );\n" );
     }
     addStmts( block, stmtList );
 
@@ -1215,13 +1219,7 @@ public class EventXmlToJava {
       makeStatic( newClassDecl );
     }
 
-    // Get class inheritances as Java extends list.
-    // TODO -- REVIEW -- Do we need to deal with (allow for) Java interfaces?
-    // Can only extend one class!
-    List< ClassOrInterfaceType > extendsList = getInheritsFrom( clsNode );
-    if ( extendsList != null && !extendsList.isEmpty() ) {
-      newClassDecl.setExtends( extendsList );
-    }
+    getSuperClasses( clsNode, newClassDecl, eventNode != null );
 
     getImports( clsNode );
     
@@ -1237,16 +1235,6 @@ public class EventXmlToJava {
 //      } else {
         ASTHelper.addMember( newClassDecl, methodDecl );
 //      }
-    }
-
-    if ( newClassDecl.getExtends() == null
-         || newClassDecl.getExtends().isEmpty() ) {
-      if ( newClassDecl.getExtends() == null ) {
-        newClassDecl.setExtends( new ArrayList< ClassOrInterfaceType >() );
-      }
-      String superClass = ( eventNode != null ?
-                            "DurativeEvent" : "ParameterListenerImpl" ); 
-      newClassDecl.getExtends().add( new ClassOrInterfaceType( superClass ) );
     }
 
     // Need a method for initializing members and populating Event collections
@@ -1338,6 +1326,27 @@ public class EventXmlToJava {
     return newClassDecl;
   }
 
+  protected void getSuperClasses( Node clsNode,
+                                  ClassOrInterfaceDeclaration newClassDecl,
+                                  boolean isEvent ) {
+    List< ClassOrInterfaceType > extendsList = getInheritsFrom( clsNode );
+    if ( !Utils.isNullOrEmpty( extendsList ) ) {
+      newClassDecl.setExtends( extendsList );
+    }
+    if ( Utils.isNullOrEmpty( newClassDecl.getExtends() ) ) {
+      if ( newClassDecl.getExtends() == null ) {
+        newClassDecl.setExtends( new ArrayList< ClassOrInterfaceType >() );
+      }
+      String superClass =
+          ( isEvent ? "DurativeEvent" : "ParameterListenerImpl" );
+      newClassDecl.getExtends().add( new ClassOrInterfaceType( superClass ) );
+    }
+    List< ClassOrInterfaceType > implementsList = getImplementsFrom( clsNode );
+    if ( !Utils.isNullOrEmpty( implementsList ) ) {
+      newClassDecl.setImplements( implementsList );
+    }
+  }
+
   protected void getImports( Node clsNode ) {
     List< String > imports = XmlUtils.getChildrenElementText( clsNode,
                                                               "import" );
@@ -1403,11 +1412,13 @@ public class EventXmlToJava {
     currentCompilationUnit = initCompilationUnit( Utils.simpleName(name) );
     // REVIEW -- How can we access eclipse's ability to auto-remove unused
     // imports?
+    //addImport( "gov.nasa.jpl.ae.event.*" );
     addImport( "gov.nasa.jpl.ae.event.Parameter" );
     addImport( "gov.nasa.jpl.ae.event.IntegerParameter" );
     addImport( "gov.nasa.jpl.ae.event.DoubleParameter" );
     addImport( "gov.nasa.jpl.ae.event.StringParameter" );
     addImport( "gov.nasa.jpl.ae.event.BooleanParameter" );
+    addImport( "gov.nasa.jpl.ae.event.Timepoint" );
     addImport( "gov.nasa.jpl.ae.event.Expression" );
     addImport( "gov.nasa.jpl.ae.event.ConstraintExpression" );
     addImport( "gov.nasa.jpl.ae.event.Functions" );
@@ -1439,7 +1450,9 @@ public class EventXmlToJava {
 
   public List< ClassOrInterfaceType > getInheritsFrom( Node cls ) {
     List< String > extendsStringList =
-        XmlUtils.getChildrenElementText( cls, "inheritsFrom" );
+        XmlUtils.getChildrenElementText( cls, "extends" );
+    extendsStringList.addAll( 
+        XmlUtils.getChildrenElementText( cls, "inheritsFrom" ) );
     List< ClassOrInterfaceType > extendsList =
         new ArrayList< ClassOrInterfaceType >();
     for ( String e : extendsStringList ) {
@@ -1447,6 +1460,18 @@ public class EventXmlToJava {
       extendsList.add( c );
     }
     return extendsList;
+  }
+  
+  public List< ClassOrInterfaceType > getImplementsFrom( Node cls ) {
+    List< String > implementsStringList =
+        XmlUtils.getChildrenElementText( cls, "implements" );
+    List< ClassOrInterfaceType > implementsList =
+        new ArrayList< ClassOrInterfaceType >();
+    for ( String e : implementsStringList ) {
+      ClassOrInterfaceType c = new ClassOrInterfaceType( fixName( e ) );
+      implementsList.add( c );
+    }
+    return implementsList;
   }
   
   // Returns input DOM node if it has a localName "class," the closest parent
@@ -1539,12 +1564,14 @@ public class EventXmlToJava {
     if ( Utils.isNullOrEmpty( p.value ) ) {
       p.value = "null";
     }
+    // TODO -- REVIEW -- Why is p.value in args by default, but recognized types
+    // do not include p.value?
     String args = "\"" + p.name + "\", null, " + p.value + ", this";
     if ( Utils.isNullOrEmpty( p.type ) ) {
       System.err.println( "Error! creating a field " + p + " of unknown type!" );
     } else if ( p.type.toLowerCase().equals( "time" ) ) {
       type = "Timepoint";
-      parameterTypes = null; // "Integer";
+      parameterTypes = null;
       args = "\"" + p.name + "\", this";
     } else if ( p.type.toLowerCase().startsWith( "int" )
                 || p.type.toLowerCase().startsWith( "long" ) // TODO -- Need a
@@ -1553,7 +1580,6 @@ public class EventXmlToJava {
                          .equals( "Parameter<Integer>" ) ) {
       type = "IntegerParameter";
       parameterTypes = null; // "Integer";
-      // domain = "IntegerDomain";
       args = "\"" + p.name + "\", this";
     } else if ( p.type.toLowerCase().equals( "double" )
                 || p.type.trim().replaceAll( " ", "" )
@@ -1655,7 +1681,7 @@ public class EventXmlToJava {
   // TODO -- should probably import and do a switch on all classes in
   // japa.parser.ast.expr.*
   public String astToAeExprType( Expression expr ) {
-    Param p;
+    Param p = null;
     String name = null;
     String result = null;
     String className = expr.getClass().getSimpleName();
@@ -1690,14 +1716,32 @@ public class EventXmlToJava {
                    + "; ok for MethodCallExpr!" );
       return result;  // to avoid the error message
     } else if ( expr.getClass() == NameExpr.class ) {
-        name = ( (NameExpr)expr ).getName();
+      name = ( (NameExpr)expr ).getName();
+    } else if ( expr.getClass() == ThisExpr.class ) {
+      result = currentClass;
     } else if ( expr.getClass() == FieldAccessExpr.class ) {
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
-      p = lookupMemberByName( fieldAccessExpr.getScope().toString(), fieldAccessExpr.getField() );
+      // The member/field type is defined in its parent's class, and the parent class can be found by getting the type of the FiedAccessExpr's scope. 
+      if ( fieldAccessExpr.getScope() instanceof FieldAccessExpr ) {
+        String parentType = astToAeExprType( fieldAccessExpr.getScope() );
+        if ( !Utils.isNullOrEmpty( parentType ) ) {
+          p = lookupMemberByName( parentType,
+                                  fieldAccessExpr.getField() );
+        }
+      }
+      if ( p == null ) {
+        // If the member is static, then the scope is a class name, and we can
+        // try looking it up.  // TODO -- Check to see if it's static.
+        p = lookupMemberByName( fieldAccessExpr.getScope().toString(),
+                                fieldAccessExpr.getField() );
+      }
       if ( p != null ) {
         result = p.type;
+      } else {
+        // REVIEW -- This probably won't work!  What case is this?
+        Debug.err( "Can't determine type from FieldAccessExpr: " + expr );
+        name = expr.toString();
       }
-      name = expr.toString();
     } else {
         if ( className.endsWith( "LiteralExpr" ) ) {
           // get the part before "LiteralExpr"
@@ -1736,6 +1780,7 @@ public class EventXmlToJava {
   
   public String astToAeExpr( Expression expr, String type,
                              boolean convertFcnCallArgsToExprs ) {
+    type = typeToClass( type );
     if ( Utils.isNullOrEmpty( type ) ) {
       type = astToAeExprType( expr );
     }
@@ -1769,6 +1814,33 @@ public class EventXmlToJava {
                          convertFcnCallArgsToExprs );
     } else if ( expr.getClass() == NameExpr.class ) {
         middle = ( (NameExpr)expr ).getName();
+    } else if ( expr.getClass() == ThisExpr.class ) {
+      middle = expr.toString(); // just "this", right?
+    } else if ( expr.getClass() == FieldAccessExpr.class ) {
+      FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
+      Param p = null;
+      
+      if (!Utils.isNullOrEmpty( type ) ) {
+        p = lookupMemberByName( type,
+                                fieldAccessExpr.getField() );
+        if ( p != null ) {
+          // What were we going to do here??
+        }
+      }
+      // If the scope is also a member, then we should have a parameter for it,
+      // in which case we should call getValue().
+      if ( fieldAccessExpr.getScope() instanceof FieldAccessExpr ) {
+        String parentType = astToAeExprType( fieldAccessExpr.getScope() );
+        if ( !Utils.isNullOrEmpty( parentType ) ) {
+          p = lookupMemberByName( parentType,
+                                  fieldAccessExpr.getField() );
+          if ( p != null ) {
+            middle = astToAeExpr( fieldAccessExpr.getScope(), p.type, false ) + ".getValue()." + fieldAccessExpr.toString();
+          }
+        }
+      } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
+        middle = expr.toString();
+      }
     } else if ( expr.getClass() == AssignExpr.class ) {
         AssignExpr ae = (AssignExpr)expr;
         String result = null;
@@ -1881,6 +1953,28 @@ public class EventXmlToJava {
       javaBinaryOpToEventFunctionName( BinaryExpr.Operator operator ) {
     return "" + Character.toUpperCase( operator.toString().charAt( 0 ) )
            + operator.toString().substring( 1 );
+  }
+  
+  public static String typeToClass( String type ) {
+    /*
+    if ( Utils.isNullOrEmpty( type ) ) {
+      type = "null";
+    } else if ( type.toLowerCase().equals( "time" ) 
+                || type.toLowerCase().startsWith( "int" )
+                || type.toLowerCase().startsWith( "long" ) ) {
+      type = "Integer";
+    } else if ( type.toLowerCase().equals( "double" ) 
+                || type.toLowerCase().startsWith( "float" )
+                || type.toLowerCase().startsWith( "real" ) ) {
+      type = "Double";
+    } else if ( type.toLowerCase().equals( "boolean" )
+                || type.toLowerCase().equals( "bool" ) ) {
+      type = "Boolean";
+    } else if ( type.equals( "string" ) ) {
+      type = "String";
+    }
+    */
+    return type;
   }
 
   public String javaToAeExpr( String exprString, String type, 
@@ -2033,82 +2127,22 @@ public class EventXmlToJava {
       MethodCallExpr mcExpr = (MethodCallExpr)expr;
 
       JavaForFunctionCall jffc = new JavaForFunctionCall( this, mcExpr, false );
-      
-  /*    
-      
-      // Identify the object from which the method is called.
-      Expression scopeExpr = mcExpr.getScope();
-      // TODO -- REVIEW -- By calling getValue(), this assumes that the effect
-      // is on a variable packaged in a Parameter.
-      String object = (scopeExpr == null) ? "null"
-                      : scopeExpr.toString() + ".getValue()"; //getObjectFromScope( scopeExpr );
 
-      //  Get the Method from the Class of the object
-      String pkg = packageName + ".";
-      if ( pkg.length() == 1 ) {
-        pkg = "";
-      }
-      String callName = mcExpr.getName();
-      String className = currentClass;
-
-//      Parameter< TimeVarying< Integer >> p = new Parameter<TimeVarying<Integer>>("foo", null, null);
-//      TypeVariable< ? >[] foo = p.getClass().getTypeParameters();
-//      foo[0].getClass();
-      StringBuffer parameterTypes = new StringBuffer();
-      //Class<?> parameterTypes[] = null;
-      if ( mcExpr.getArgs() == null ) {
-        //parameterTypes = new Class<?>[0];
-      } else {
-        //parameterTypes = new Class<?>[mcExpr.getArgs().size()];
-        //for ( int i=0; i < mcExpr.getArgs().size(); ++i ) {
-        for ( Expression arg  : mcExpr.getArgs() ) {
-          //Expression arg = mcExpr.getArgs().get(i);
-          if ( arg == null ) {
-            // TODO -- We need to handle null case by looking
-            // up a method with parameters corresponding to
-            // args even if null!
-            //parameterTypes[i] = null;
-            parameterTypes.append(", null");
-          } else {
-            Object argDecl;
-            //parameterTypes[i] = arg.getClass();
-            //parameterTypes.append( ", " + argDecl.getClass().toString() );
-          }
-        }
-      }
-      String classOfMethod =  ( object.equals( "null" ) ?
-                                "Class.forName(\"" + pkg + className + "\")" :
-                                object + ".getClass()" );
-      String effectMethod =
-          classOfMethod
-              + ".getMethod(\"" + callName
-              + ( parameterTypes.toString().isEmpty() ? ""
-                  : ", " + parameterTypes.toString() ) + "\")";
-
-      Set< MethodDeclaration > classMethods =
-          getClassMethodsWithName( callName, className );
-*/
       int myNum = counter++;
       String effectName = "effect" + myNum;
 
       StringBuffer stmtString = new StringBuffer();
-      //stmtString.append( scopeExpr + ".setValue( new )" );      
       stmtString.append( effectName + " = new EffectFunction( " + jffc.toNewFunctionCallString()
                          + " );" );
-/*                         "" */
-/*                         + object + ", " + effectMethod + " );" ); */
-/*                         + jffc.objectName + ", " + jffc.methodJava + " );" ); */
       
       addStatements( initMembers.getBody(), stmtString.toString() );
 
       VariableDeclaratorId id = new VariableDeclaratorId( effectName );
-      // Expression init = new NameExpr( "new ElaborationRule()" );
       Expression init = new NameExpr( "null" );
       VariableDeclarator variable = new VariableDeclarator( id, init );
       f =
           ASTHelper.createFieldDeclaration( ModifierSet.PUBLIC, fieldType,
                                             variable );
-/*      return new Pair< String, FieldDeclaration >( scopeExpr.toString(), f ); */
       return new Pair< String, FieldDeclaration >( jffc.objectName, f );
     } else {
       assert false; // TODO -- REVIEW -- Can it be something else?
@@ -2144,7 +2178,8 @@ public class EventXmlToJava {
     for ( int i = 0; i < arguments.size(); ++i ) {
       Param p = arguments.get( i );
 
-      String type = p.type;
+      String parameterTypeAndArgs[] = convertToEventParameterTypeAndConstructorArgs( p );
+      String type = typeToClass( p.type );
       if ( Utils.isNullOrEmpty( type ) ) {
         Param param = lookupMemberByName( eventType, p.name );
         if ( param != null ) {
