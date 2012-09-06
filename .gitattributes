@@ -72,6 +72,7 @@ src/gov/nasa/jpl/ae/event/TimeVarying.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMapWithEffects.java -text
 src/gov/nasa/jpl/ae/event/Timepoint.java -text
+src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/AbstractRangeDomain.java -text
