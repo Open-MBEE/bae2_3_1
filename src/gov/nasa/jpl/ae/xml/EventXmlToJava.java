@@ -1058,7 +1058,7 @@ public class EventXmlToJava {
     // TODO -- correct for effects?
     if ( effects != null ) {
       stmtList =  
-          createEffectStmtsFromFieldCollection( "effects.put( (Parameter< ? extends TimeVarying< ? >>)", effects, " );\n" );
+          createEffectStmtsFromFieldCollection( "effects.put( (Parameter< ? >)", effects, " );\n" );
     }
     addStmts( block, stmtList );
 
