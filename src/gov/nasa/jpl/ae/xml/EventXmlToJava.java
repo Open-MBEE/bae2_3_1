@@ -1956,9 +1956,9 @@ public class EventXmlToJava {
   }
   
   public static String typeToClass( String type ) {
-    /*
+    
     if ( Utils.isNullOrEmpty( type ) ) {
-      type = "null";
+      //type = "null";
     } else if ( type.toLowerCase().equals( "time" ) 
                 || type.toLowerCase().startsWith( "int" )
                 || type.toLowerCase().startsWith( "long" ) ) {
@@ -1973,7 +1973,7 @@ public class EventXmlToJava {
     } else if ( type.equals( "string" ) ) {
       type = "String";
     }
-    */
+    
     return type;
   }
 
