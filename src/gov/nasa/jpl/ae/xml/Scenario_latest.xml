@@ -11,12 +11,37 @@
 			</parameter>
 		</arguments>
 	</eventToBeExecuted>
+	<events>
+		<event>
+			<class>
+				<name>BobCreator</name>
+				<members>
+					<parameter>
+						<name>Bob</name>
+						<type>Customer</type>
+						<value>new Customer()</value>
+					</parameter>
+				</members>
+			</class>
+			<elaborations>
+				<elaboration>
+					<eventInvocation>
+						<enclosingInstance>Bob</enclosingInstance>
+						<eventType>Bob._17_0_5_edc0357_1346893970375_935485_14291</eventType>
+						<eventName>Activity</eventName>
+						<arguments/>
+					</eventInvocation>
+				</elaboration>
+			</elaborations>
+		</event>
+	</events>
 	<classes>
 		<class>
 			<name>Customer</name>
 			<import>java.util.Queue</import>
 			<import>java.util.LinkedList</import>
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
+			<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 			<members>
 				<parameter>
 					<!--Classifier Behavior for Customer is CustomerCB-->
@@ -55,36 +80,36 @@
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1346893970409_180241_14367</name>
 								<type>ObjectFlow&lt;Customer&gt;</type>
-								<value>new ObjectFlow()</value>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893970409_180241_14367")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1346893970409_572427_14369</name>
 								<type>ObjectFlow&lt;Customer&gt;</type>
-								<value>new ObjectFlow()</value>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893970409_572427_14369")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1346893970409_833768_14365</name>
 								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow()</value>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893970409_833768_14365")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1346893970409_329073_14368</name>
 								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow()</value>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893970409_329073_14368")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow-->
 								<name>sig_17_0_5_edc0357_1346893970410_244405_14375</name>
 								<type>ObjectFlow&lt;Object&gt;</type>
-								<value>new ObjectFlow()</value>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893970410_244405_14375")</value>
 							</parameter>
 							<parameter>
 								<!--invoke time for whole activity-->
 								<name>invoke_time</name>
-								<type>time</type>
+								<type>Integer</type>
 								<value/>
 							</parameter>
 						</members>
@@ -193,7 +218,7 @@
 										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1346893970409_736287_14363_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -283,7 +308,7 @@
 										<parameter>
 											<!--previous event end time:  (JoinNode)-->
 											<name>_17_0_5_edc0357_1346893970409_82367_14364_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -306,7 +331,7 @@
 										<parameter>
 											<!--previous event end time:  (ReadSelfAction)-->
 											<name>_17_0_5_edc0357_1346893970408_417187_14355_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -349,7 +374,7 @@
 										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1346893970409_736287_14363_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -405,7 +430,7 @@
 										<parameter>
 											<!--previous event end time:  (InitialNode)-->
 											<name>_17_0_5_edc0357_1346893970408_473222_14358_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -476,7 +501,7 @@
 										<parameter>
 											<!--previous event end time:  (AddStructuralFeatureValueAction)-->
 											<name>_17_0_5_edc0357_1346893970408_237319_14357_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -543,7 +568,7 @@
 							<parameter>
 								<!--invoke time for whole activity-->
 								<name>invoke_time</name>
-								<type>time</type>
+								<type>Integer</type>
 								<value/>
 							</parameter>
 						</members>
@@ -601,7 +626,7 @@
 										<parameter>
 											<!--previous event end time:  (InitialNode)-->
 											<name>_17_0_5_edc0357_1346893970422_843838_14398_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -656,7 +681,7 @@
 										<parameter>
 											<!--previous event end time:  (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346893970422_682489_14399_endTime</name>
-											<type>Time</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -693,25 +718,4 @@
 			</classes>
 		</class>
 	</classes>
-	<events>
-		<event>
-			<class>
-				<name>BobCreator</name>
-				<members>
-					<parameter>
-						<name>Bob</name>
-						<type>Customer</type>
-						<value>new Customer()</value>
-					</parameter>
-				</members>
-			</class>
-			<elaborations>
-				<eventInvocation>
-					<enclosingInstance>Bob</enclosingInstance>
-					<eventType>Bob._17_0_5_edc0357_1346893970375_935485_14291</eventType>
-					<eventName>Activity</eventName>
-				</eventInvocation>
-			</elaborations>
-		</event>
-	</events>
 </scenario>
