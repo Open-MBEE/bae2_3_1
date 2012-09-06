@@ -20,22 +20,22 @@
 					<value>_17_0_5_edc0357_1346893970375_935485_14291</value>
 				</parameter>
 				<parameter>
-					<!--Queue for Customer-->
-					<name>_17_0_5_edc0357_1346893970372_525146_14285_queue</name>
-					<type>Queue</type>
-					<value>new LinkedList&lt;Object&gt;()</value>
-				</parameter>
-				<parameter>
 					<!--simple property (name cap)-->
-					<name>_17_0_5_edc0357_1346893970379_39414_14297</name>
+					<name>cap__17_0_5_edc0357_1346893970379_39414_14297</name>
 					<type>Integer</type>
 					<value/>
 				</parameter>
 				<parameter>
 					<!--simple property (name usage)-->
-					<name>_17_0_5_edc0357_1346893970376_26953_14292</name>
+					<name>usage__17_0_5_edc0357_1346893970376_26953_14292</name>
 					<type>Integer</type>
 					<value/>
+				</parameter>
+				<parameter>
+					<!--Queue for Customer-->
+					<name>_17_0_5_edc0357_1346893970372_525146_14285_queue</name>
+					<type>Queue</type>
+					<value>new LinkedList&lt;Object&gt;()</value>
 				</parameter>
 			</members>
 			<methods>
@@ -206,7 +206,7 @@
 								<effects>
 									<effect>_17_0_5_edc0357_1346893970434_139323_14433 = sig_17_0_5_edc0357_1346893970409_180241_14367.receive(this.startTime)</effect>
 									<effect>_17_0_5_edc0357_1346893970433_728699_14432 = sig_17_0_5_edc0357_1346893970409_833768_14365.receive(this.startTime)</effect>
-									<effect>usage.setValue(_17_0_5_edc0357_1346893970433_728699_14432,this.startTime)</effect>
+									<effect>usage__17_0_5_edc0357_1346893970376_26953_14292.setValue(_17_0_5_edc0357_1346893970433_728699_14432,this.startTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -358,7 +358,7 @@
 									<effect>_17_0_5_edc0357_1346893970435_464142_14435 = sig_17_0_5_edc0357_1346893970409_572427_14369.receive(this.startTime)</effect>
 									<effect>_17_0_5_edc0357_1346893970434_452273_14434 = sig_17_0_5_edc0357_1346893970409_329073_14368.receive(this.startTime)</effect>
 									<effect>sig_17_0_5_edc0357_1346893970410_244405_14375.send(true,this.startTime)</effect>
-									<effect>cap.setValue(_17_0_5_edc0357_1346893970434_452273_14434,this.startTime)</effect>
+									<effect>cap__17_0_5_edc0357_1346893970379_39414_14297.setValue(_17_0_5_edc0357_1346893970434_452273_14434,this.startTime)</effect>
 								</effects>
 								<elaborations>
 								</elaborations>
