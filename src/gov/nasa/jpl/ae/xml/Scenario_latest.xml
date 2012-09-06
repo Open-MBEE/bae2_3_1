@@ -101,7 +101,7 @@
 											<!--Initialize existence of  (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1346893970408_661931_14360_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -110,7 +110,7 @@
 										<dependency>
 											<name>_17_0_5_edc0357_1346893970408_661931_14360_exists</name>
 											<type>Boolean</type>
-											<value>True</value>
+											<value>true</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -183,7 +183,7 @@
 											<!--Initialize existence of  (JoinNode) as false-->
 											<name>_17_0_5_edc0357_1346893970409_82367_14364_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 										<parameter>
 											<!--previous event end time:  (ForkNode)-->
@@ -236,7 +236,7 @@
 											<!--Initialize existence of  (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1346893970409_736287_14363_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -245,7 +245,7 @@
 										<dependency>
 											<name>_17_0_5_edc0357_1346893970409_736287_14363_exists</name>
 											<type>Boolean</type>
-											<value>True</value>
+											<value>true</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -395,7 +395,7 @@
 											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
 											<name>_17_0_5_edc0357_1346893970409_537504_14361_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 										<parameter>
 											<!--previous event end time:  (InitialNode)-->
@@ -407,7 +407,7 @@
 											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
 											<name>_17_0_5_edc0357_1346893970408_237319_14357_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -478,7 +478,7 @@
 											<!--Initialize existence of  (ActivityFinalNode) as false-->
 											<name>_17_0_5_edc0357_1346893970408_584200_14359_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -488,7 +488,7 @@
 										<dependency>
 											<name>_17_0_5_edc0357_1346893970408_584200_14359_exists</name>
 											<type>Boolean</type>
-											<value>True</value>
+											<value>true</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -554,7 +554,7 @@
 											<!--Initialize existence of  (CallBehaviorAction) as false-->
 											<name>_17_0_5_edc0357_1346893970422_682489_14399_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -563,7 +563,7 @@
 										<dependency>
 											<name>_17_0_5_edc0357_1346893970422_682489_14399_exists</name>
 											<type>Boolean</type>
-											<value>True</value>
+											<value>true</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -603,7 +603,7 @@
 											<!--Initialize existence of  (ActivityFinalNode) as false-->
 											<name>_17_0_5_edc0357_1346893970422_438341_14403_exists</name>
 											<type>Boolean</type>
-											<value>False</value>
+											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -611,14 +611,14 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>this.endTime</name>
-											<type>TimePoint</type>
+											<name>endTime</name>
+											<type>Timepoint</type>
 											<value>_17_0_5_edc0357_1346893970375_45987_14290.endTime</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346893970422_438341_14403_exists</name>
 											<type>Boolean</type>
-											<value>True</value>
+											<value>true</value>
 										</dependency>
 									</dependencies>
 								</class>
