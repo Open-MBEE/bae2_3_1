@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/Users/mjackson/Documents/workspace-Helios/CS/bin/gov/nasa/jpl/ae/xml/eventSchema.xsd">
 	<epoch>2012-08-05T23:30:00-07:00</epoch>
 	<timeUnits>seconds</timeUnits>
 	<eventToBeExecuted>
-		<eventType>_17_0_5_edc0357_1346893970375_935485_14291</eventType>
-		<eventName>Activity</eventName>
-		<arguments/>
+		<eventType>BobCreator</eventType>
+		<arguments>
+			<parameter>
+				<name>startTime</name>
+				<value>0</value>
+			</parameter>
+		</arguments>
 	</eventToBeExecuted>
 	<classes>
 		<class>
 			<name>Customer</name>
 			<import>java.util.Queue</import>
 			<import>java.util.LinkedList</import>
+			<import>gov.nasa.jpl.ae.event.Timepoint</import>
 			<members>
 				<parameter>
 					<!--Classifier Behavior for Customer is CustomerCB-->
@@ -73,7 +78,7 @@
 							<parameter>
 								<!--member for object flow-->
 								<name>sig_17_0_5_edc0357_1346893970410_244405_14375</name>
-								<type>ObjectFlow&lt;Control&gt;</type>
+								<type>ObjectFlow&lt;Object&gt;</type>
 								<value>new ObjectFlow()</value>
 							</parameter>
 							<parameter>
@@ -204,8 +209,8 @@
 									</dependencies>
 								</class>
 								<effects>
-									<effect>_17_0_5_edc0357_1346893970434_139323_14433 = sig_17_0_5_edc0357_1346893970409_180241_14367.receive(this.startTime)</effect>
-									<effect>_17_0_5_edc0357_1346893970433_728699_14432 = sig_17_0_5_edc0357_1346893970409_833768_14365.receive(this.startTime)</effect>
+									<effect>_17_0_5_edc0357_1346893970434_139323_14433 = sig_17_0_5_edc0357_1346893970409_180241_14367.receive(startTime - 1)</effect>
+									<effect>_17_0_5_edc0357_1346893970433_728699_14432 = sig_17_0_5_edc0357_1346893970409_833768_14365.receive(startTime - 1)</effect>
 									<effect>usage__17_0_5_edc0357_1346893970376_26953_14292.setValue(_17_0_5_edc0357_1346893970433_728699_14432,this.startTime)</effect>
 								</effects>
 								<elaborations>
@@ -355,8 +360,8 @@
 									</dependencies>
 								</class>
 								<effects>
-									<effect>_17_0_5_edc0357_1346893970435_464142_14435 = sig_17_0_5_edc0357_1346893970409_572427_14369.receive(this.startTime)</effect>
-									<effect>_17_0_5_edc0357_1346893970434_452273_14434 = sig_17_0_5_edc0357_1346893970409_329073_14368.receive(this.startTime)</effect>
+									<effect>_17_0_5_edc0357_1346893970435_464142_14435 = sig_17_0_5_edc0357_1346893970409_572427_14369.receive(startTime - 1)</effect>
+									<effect>_17_0_5_edc0357_1346893970434_452273_14434 = sig_17_0_5_edc0357_1346893970409_329073_14368.receive(startTime - 1)</effect>
 									<effect>sig_17_0_5_edc0357_1346893970410_244405_14375.send(true,this.startTime)</effect>
 									<effect>cap__17_0_5_edc0357_1346893970379_39414_14297.setValue(_17_0_5_edc0357_1346893970434_452273_14434,this.startTime)</effect>
 								</effects>
@@ -688,4 +693,25 @@
 			</classes>
 		</class>
 	</classes>
+	<events>
+		<event>
+			<class>
+				<name>BobCreator</name>
+				<members>
+					<parameter>
+						<name>Bob</name>
+						<type>Customer</type>
+						<value>new Customer()</value>
+					</parameter>
+				</members>
+			</class>
+			<elaborations>
+				<eventInvocation>
+					<enclosingInstance>Bob</enclosingInstance>
+					<eventType>Bob._17_0_5_edc0357_1346893970375_935485_14291</eventType>
+					<eventName>Activity</eventName>
+				</eventInvocation>
+			</elaborations>
+		</event>
+	</events>
 </scenario>
