@@ -17,13 +17,9 @@ import gov.nasa.jpl.ae.util.Utils;
  * @author bclement
  * 
  */
-public class Parameter< T > implements Cloneable,
-                                                   Groundable,
-                                                   Comparable< Parameter< ? > >,
-                                                   Satisfiable,
-                                                   Node,
-                                                   Variable<T>,
-                                                   LazyUpdate {
+public class Parameter< T > implements Cloneable, Groundable,
+                            Comparable< Parameter< ? > >, Satisfiable, Node,
+                            Variable< T >, LazyUpdate {
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
 
