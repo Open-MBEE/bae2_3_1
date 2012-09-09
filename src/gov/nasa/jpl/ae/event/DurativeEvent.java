@@ -42,14 +42,15 @@ import junit.framework.Assert;
  * @author bclement
  * 
  */
-public class DurativeEvent implements Event, Cloneable,
+public class DurativeEvent extends ParameterListenerImpl implements Event, Cloneable,
                            HasEvents, Groundable, Satisfiable,
-                           Comparable< Event >, ParameterListener,
+                           //Comparable< Event >, 
+                           ParameterListener,
                            HasTimeVaryingObjects {
 
   // Constants
   
-  final double timeoutSeconds = 3.0;
+  final double timeoutSeconds = 30.0;
 
   // Static members
   
@@ -57,30 +58,15 @@ public class DurativeEvent implements Event, Cloneable,
 
   // Other Members
 
-  // TODO -- REVIEW -- can we avoid name members for Parameters and use
-  // reflection? Doing this for events as of 2012-06-22.
-  protected String name = null;
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
   public Timepoint endTime = new Timepoint( "endTime", this );
-  // TODO -- REVIEW -- Try to not construct members below until/unless necessary.
-  protected SortedSet< Parameter< ? > > parameters =
-      new TreeSet< Parameter< ? > >();
   // TODO -- REVIEW -- create TimeVariableParameter and EffectMap classes for
   // effects?
   protected Map< Parameter< ? >, Set< Effect > > effects =
       new TreeMap< Parameter< ? >, Set< Effect > >();
-  protected Vector< ConstraintExpression > constraintExpressions = new Vector< ConstraintExpression >();
-  // TODO -- REVIEW -- should dependencies these be folded in with effects?
-  protected Vector< Dependency< ? > > dependencies =
-      new Vector< Dependency< ? > >();
   protected Map< ElaborationRule, Vector< Event > > elaborations =
       new TreeMap< ElaborationRule, Vector< Event > >();
-
-  protected Solver solver = new ConstraintLoopSolver( timeoutSeconds );
-
-  protected SortedSet< TimeVarying< ? > > timeVaryingObjects =
-      new TreeSet< TimeVarying< ? > >();
 
   // TODO -- consider breaking elaborations up into separate constraints
   protected Constraint elaborationsConstraint = 
@@ -292,20 +278,12 @@ public class DurativeEvent implements Event, Cloneable,
 
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
-    boolean subbed = false;
-    for ( ConstraintExpression c : constraintExpressions ) {
-      boolean s = c.substitute( p1, p2, deep );
-      subbed = subbed || s;
-    }
+    boolean subbed = super.substitute( p1, p2, deep );
     HasParameters.Helper.substitute( effects, p1, p2, deep );
     for ( Entry< Parameter< ?>, Set< Effect >> e : effects.entrySet() ) {
       if ( e.getValue() instanceof HasParameters ) {
-        ( (HasParameters)e.getValue() ).substitute( p1, p2, deep );
-      }
-    }
-    for ( Dependency< ? > d : dependencies ) {
-      if ( d instanceof HasParameters ) {
-        ( (HasParameters)d ).substitute( p1, p2, deep );
+        boolean s = ( (HasParameters)e.getValue() ).substitute( p1, p2, deep );
+        subbed = subbed || s;
       }
     }
     return subbed;
@@ -330,22 +308,6 @@ public class DurativeEvent implements Event, Cloneable,
     startTime = new Timepoint( event.startTime );
     duration = new Duration( event.duration );
     endTime = new Timepoint( event.endTime );
-  }
-
-  // Build a list of pairs of parameters, each in this event paired with the
-  // corresponding ones in another event. Subclasses may need to override this
-  // to add their own parameters.
-  protected List< Pair< Parameter< ? >, Parameter< ? > > >
-      buildSubstitutionList( DurativeEvent durativeEvent ) {
-    ArrayList< Pair< Parameter< ? >, Parameter< ? > > > subList =
-        new ArrayList< Pair< Parameter< ? >, Parameter< ? > > >();
-    Iterator< Parameter< ? > > i1 = parameters.iterator();
-    Iterator< Parameter< ? > > i2 = durativeEvent.parameters.iterator();
-    while ( i1.hasNext() ) {
-      subList.add( new Pair< Parameter< ? >, Parameter< ? > >( i1.next(),
-                                                               i2.next() ) );
-    }
-    return subList;
   }
 
   /*
@@ -374,7 +336,7 @@ public class DurativeEvent implements Event, Cloneable,
     allParams.addAll( restParams );
     for ( Object p : allParams ) {
       if ( p instanceof Parameter ) {
-        sb.append( ", " + ((Parameter<?>)p).toString( false ) );
+        sb.append( ", " + ((Parameter<?>)p).toString( false, false ) );
       } else {
         sb.append( ", " + p.toString() );
       }
@@ -388,16 +350,22 @@ public class DurativeEvent implements Event, Cloneable,
   @Override
   public void execute() { // differentiate between execute for simulation and
     // execute in external environment?
+    Debug.outln( getName() + ".execute()" );
     boolean satisfied = satisfy();
+    Debug.outln( getName() + ".execute() called satisfy() --> " + satisfied );
     if ( !satisfied ) {
       satisfied = solver.solve( getConstraints( true ) );
+      Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
     }
-    if ( !satisfied ) {
+    if ( satisfied ) {
+      Debug.outln( "All constraints were satisfied!" );
+    } else {
       Collection< Constraint > unsatisfiedConstraints =
           ConstraintLoopSolver.getUnsatisfiedConstraints( getConstraints( true ) );
       if ( !unsatisfiedConstraints.isEmpty() ) {
 //      if ( !solver.getUnsatisfiedConstraints().isEmpty() ) {
-        System.err.println( "Could not resolve the following constraints for " + getName() + ":" );
+        System.err.println( "Could not resolve the following constraints for "
+                            + getName() + ":" );
         for ( Constraint c : unsatisfiedConstraints ) {
           System.err.println( c.toString() );
         }
@@ -997,13 +965,18 @@ public class DurativeEvent implements Event, Cloneable,
   }
 
   @Override
-  public int compareTo( Event o ) {
-    int compare = getClass().getName().compareTo( o.getClass().getName() );
+  public int compareTo( ParameterListenerImpl o ) {
+    int compare = 0;//super.compareTo( o );
     if ( compare != 0 ) return compare;
-    compare = startTime.compareTo( o.getStartTime() );
+    compare = getClass().getName().compareTo( o.getClass().getName() );
     if ( compare != 0 ) return compare;
-    compare = endTime.compareTo( o.getEndTime() );
-    if ( compare != 0 ) return compare;
+    if ( o instanceof DurativeEvent && this instanceof DurativeEvent) {
+      Event oe = (DurativeEvent)o;
+      compare = startTime.compareTo( oe.getStartTime() );
+      if ( compare != 0 ) return compare;
+      compare = endTime.compareTo( oe.getEndTime() );
+      if ( compare != 0 ) return compare;
+    }
     compare = Utils.compareSets( parameters, o.getParameters() );
     return compare;
   }

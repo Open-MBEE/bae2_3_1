@@ -10,7 +10,7 @@ import java.util.SortedSet;
 import java.util.Vector;
 
 
-public interface Event extends HasConstraints, Comparable< Event > {
+public interface Event extends HasConstraints {
 
   public < T > void addDependency( Parameter< T > p, Expression< T > e );
   public < T > boolean removeDependency( Parameter< T > p );

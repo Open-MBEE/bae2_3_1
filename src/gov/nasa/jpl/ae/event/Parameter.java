@@ -249,10 +249,10 @@ public class Parameter< T > implements Cloneable, Groundable,
   
   @Override
   public String toString() {
-    return toString( true );
+    return toString( true, false );
   }
   
-  public String toString( boolean withOwner ) {
+  public String toString( boolean withOwner, boolean withHash ) {
     StringBuffer sb  = new StringBuffer();
     if ( withOwner && getOwner() != null ) {
       sb.append( getOwner().getName() + ":");
@@ -261,6 +261,9 @@ public class Parameter< T > implements Cloneable, Groundable,
       sb.append( getName() + "=" + getValueNoPropagate() );
     } else {
       sb.append( getName() + "=" + getDomain() );
+    }
+    if ( withHash ) {
+      sb.append("(" + hashCode() + ")" );
     }
     return sb.toString();
   }

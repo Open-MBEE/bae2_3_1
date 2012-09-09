@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.ae.util.Debug;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -24,15 +26,20 @@ public class ConstraintLoopSolver implements Solver {
 
   @Override
   public boolean solve( Collection< Constraint > constraints ) {
+    Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
     double startTime = System.currentTimeMillis();
     
     unsatisfiedConstraints.clear();
     
     unsatisfiedConstraints.addAll( constraints );
+    Debug.outln( "ConstraintLoopSolver.solve(" + constraints
+                 + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
     while ( System.currentTimeMillis() - startTime > timeOutMilliseconds
             && !unsatisfiedConstraints.isEmpty() ) {
+      Debug.outln( "remaining constraints to satisfy: " + unsatisfiedConstraints );
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
+        Debug.outln( "checking constraint " + c );
         boolean thisSatisfied = c.isSatisfied();
         if ( !thisSatisfied ) {
           thisSatisfied = c.satisfy();
@@ -52,6 +59,7 @@ public class ConstraintLoopSolver implements Solver {
 
   public static boolean satisfy( Constraint constraint ) {
     Set<Variable<?>> vars = constraint.getVariables();
+    Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
     for ( Variable<?> v : vars ) {
       if ( change( v ) ) {
@@ -65,13 +73,15 @@ public class ConstraintLoopSolver implements Solver {
   }
 
   public static <T> boolean change( Variable< T > v ) {
+    Debug.outln( "begin change(" + v + ")" );
     T value = v.getValue();
     Domain<T> d = v.getDomain();
     boolean gotNewValue = false;
-    if ( d.size() != 1 ) {
+    if ( d != null && d.size() > 1 ) {
       T newValue = null;
       for ( int i=0; i < Math.max( d.size(), 10 ); ++i ) {
         newValue = d.pickRandomValue();
+        Debug.outln("Picked new value for " + v + ": " + newValue );
         if ( !newValue.equals( value ) ) {
           gotNewValue = true;
           break;
@@ -80,6 +90,10 @@ public class ConstraintLoopSolver implements Solver {
       if ( gotNewValue ) {
         v.setValue( newValue );
       }
+      Debug.outln( "end change(" + v + ") "
+                   + ( gotNewValue ? "got new value " + newValue : "" ) );
+    } else {
+      Debug.outln( "end change(" + v + ") restricted domain" );
     }
     return gotNewValue;
   }

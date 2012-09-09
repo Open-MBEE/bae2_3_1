@@ -49,7 +49,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected Vector< Dependency< ? > > dependencies =
       new Vector< Dependency< ? > >();
-  protected Solver solver = new ConstraintLoopSolver( timeoutSeconds );
+  protected Solver solver = new ConstraintLoopSolver( timeoutSeconds * 1000.0 );
 
   protected SortedSet< TimeVarying< ? > > timeVaryingObjects =
       new TreeSet< TimeVarying< ? > >();
@@ -144,7 +144,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     Set< Parameter< ? > > allParams = getParameters( false );
     for ( Object p : allParams ) {
       if ( p instanceof Parameter ) {
-        sb.append( ", " + ((Parameter<?>)p).toString( false ) );
+        sb.append( ", " + ((Parameter<?>)p).toString( false, false ) );
       } else {
         sb.append( ", " + p.toString() );
       }
