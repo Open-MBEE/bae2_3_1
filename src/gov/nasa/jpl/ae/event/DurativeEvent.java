@@ -429,7 +429,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return elaborationRule;
   }
 
-  /* (non-Javadoc)
+  public < T extends Event > ElaborationRule
+  addElaborationRule( Expression< Boolean > condition,
+                      Object enclosingInstance,
+                      Class< T > eventClass,
+                      String eventName,
+                      Expression<?>[] arguments ) {
+    return addElaborationRule( condition,
+                               new Parameter< Object >( "", null,
+                                                        enclosingInstance, null ),
+                               eventClass, eventName, arguments );
+  }
+    /* (non-Javadoc)
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
   @Override

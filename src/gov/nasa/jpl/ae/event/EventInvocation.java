@@ -69,9 +69,11 @@ public class EventInvocation implements HasParameters {
 
   private Event constructEvent() {
     Event event = null;
-    Pair< Constructor< ? >, Object[] > ctorAndArgs = //makeConstructor();
-        Utils.getConstructorForArgs( eventClass, arguments, 
-                                     enclosingInstance.getValue() );
+    Pair< Constructor< ? >, Object[] > ctorAndArgs =
+        // makeConstructor();
+        Utils.getConstructorForArgs( eventClass, arguments,
+                                     ( enclosingInstance == null ) ? null
+                                     : enclosingInstance.getValue() );
     constructor = (Constructor< ? extends Event >)ctorAndArgs.first;
     if ( ctorAndArgs == null || constructor == null ) {
         try {

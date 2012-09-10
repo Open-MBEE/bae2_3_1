@@ -2210,33 +2210,34 @@ public class EventXmlToJava {
                                                  true )
                         + ";\n" );
 
-    boolean needToMakeAParameter = false;
-//    if ( !enclosingInstance.equals( "this" ) ) {
-//      Param p = lookupMemberByName( currentClass, enclosingInstance );
+//    boolean needToMakeAParameter = false;
+////    if ( !enclosingInstance.equals( "this" ) ) {
+////      Param p = lookupMemberByName( currentClass, enclosingInstance );
+////      if ( p == null ) {
+////        System.err.println( "Couldn't find member " + enclosingInstance + " in "
+////                            + currentClass );
+////      } else {
+////        enclosingInstance += ".getValue()";
+////      }
+////    }
+
+//    if ( enclosingInstance.equals( "this" ) ) {
+//      needToMakeAParameter = true;
+//    } else {
+//      Param p = null;
+//      if ( !Utils.isNullOrEmpty( enclosingInstance ) ) { 
+//        lookupCurrentClassMember( enclosingInstance );
+//      }
 //      if ( p == null ) {
-//        System.err.println( "Couldn't find member " + enclosingInstance + " in "
-//                            + currentClass );
-//      } else {
-//        enclosingInstance += ".getValue()";
+//        needToMakeAParameter = true;
 //      }
 //    }
-    if ( enclosingInstance.equals( "this" ) ) {
-      needToMakeAParameter = true;
-    } else {
-      Param p = null;
-      if ( !Utils.isNullOrEmpty( enclosingInstance ) ) { 
-        lookupCurrentClassMember( enclosingInstance );
-      }
-      if ( p == null ) {
-        needToMakeAParameter = true;
-      }
-    }
-    if ( needToMakeAParameter ) {
-      enclosingInstance =
-          //"new Parameter<" + currentClass + ">( \"" + currentClass
-          "new Parameter( \"" + currentClass
-              + "\", null, " + enclosingInstance + ", null )";
-    }
+//    if ( needToMakeAParameter ) {
+//      enclosingInstance =
+//          //"new Parameter<" + currentClass + ">( \"" + currentClass
+//          "new Parameter( \"" + currentClass
+//              + "\", null, " + enclosingInstance + ", null )";
+//    }
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "
                         + enclosingInstance + ", "
                         + getClassNameWithScope( eventType ) + ".class, "
