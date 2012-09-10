@@ -289,6 +289,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   public boolean satisfy() {
     if ( isSatisfied() ) return true;
     ground();
+    getValue();
     if ( isSatisfied() ) return true;
     refresh();
     if ( isSatisfied() ) return true;

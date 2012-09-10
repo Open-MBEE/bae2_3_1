@@ -488,13 +488,18 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public boolean refresh( Parameter< ? > parameter ) {
     boolean didRefresh = false;
     
+    boolean triedRefreshing = false;
     // Alert affected dependencies.
     for ( Dependency<?> d : getDependencies() ) {
-      if ( d.refresh( parameter ) ) didRefresh = true;
+      if ( d.parameter == parameter ) {
+        triedRefreshing = true;
+        if ( d.refresh( parameter ) ) didRefresh = true;
+      }
     }
 
     // TODO -- Need to keep a collection of ParameterListeners (just as
     // DurativeEvent has getEvents())
+    parameter.setStale( triedRefreshing && !didRefresh );
     
     return didRefresh;
   }
