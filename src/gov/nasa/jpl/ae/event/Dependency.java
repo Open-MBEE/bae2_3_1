@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -9,9 +10,12 @@ import junit.framework.Assert;
 import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
 
 
@@ -38,7 +42,7 @@ import gov.nasa.jpl.ae.util.Debug;
 // constraints (& effects)?
 public class Dependency< T > 
              implements HasParameters, ParameterListener, Constraint,
-                        LazyUpdate {
+                        LazyUpdate, HasConstraints {
 
   protected Parameter< T > parameter;
   protected Expression< T > expression;
@@ -76,6 +80,10 @@ public class Dependency< T >
       sat = false;
     } else if ( !expression.isGrounded() ) {
       sat = false;
+    } else if ( !parameter.isSatisfied() ){
+      sat = false;
+    } else if ( !expression.isSatisfied() ) {
+      sat = false;
     } else {
       T value = expression.evaluate(false);
       sat = parameter.getValueNoPropagate().equals( value );
@@ -89,8 +97,10 @@ public class Dependency< T >
 
   @Override
   public boolean satisfy() {
+    if ( isSatisfied() ) return true;
     Debug.outln("Dependency.satisfy() calling ground: " + this );
     expression.ground();
+    expression.satisfy();
     if ( expression.isGrounded() ) {
       Debug.outln("Dependency.satisfy() grounded, evaluating expression: " + this );
       T value = expression.evaluate(true);
@@ -98,6 +108,8 @@ public class Dependency< T >
       parameter.setValue( value );
       Debug.outln("Dependency.satisfy() set value: " + this );
       return ( value != null );
+    } else {
+      parameter.satisfy();
     }
     return false;
   }
@@ -163,16 +175,62 @@ public class Dependency< T >
    * @see solver.Constraint#pickValue(solver.Variable)
    */
   @Override
-  public < T1 > void pickValue( Variable< T1 > v ) {
-    if ( v == parameter ) {
-      apply();
-    } else {
-      getConstraintExpression().pickValue( v );
+  public < T1 > boolean pickValue( Variable< T1 > variable ) {
+    Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
+    if ( variable == this.parameter ) {
+      Object value = variable.getValue();
+      if ( refresh( this.parameter ) ) {
+        if ( !variable.getValue().equals( value ) ) {
+          Debug.outln( "Dependency.pickValue(" + variable + ") returns true on refresh" );
+          return true;
+        }
+      }
+      Variable< ? > var = pickRandomFreeVariable();
+      Constraint c = getConstraintExpression();
+      boolean changedSomething = false;
+      if ( c != null ) {
+        if ( c.pickValue( var ) ) changedSomething = true;
+      } else {
+        if ( var.pickValue() ) changedSomething = true;
+      }
+      Debug.outln( "Dependency.pickValue(" + variable + ") returns "
+                   + changedSomething + " for target/sink param" );
+      return changedSomething;
     }
+    if ( variable instanceof Parameter
+         && !hasParameter( (Parameter< T1 >)variable, false ) ) {
+      return false;
+    }
+    Constraint c = getConstraintExpression();
+    if ( c != null ) {
+      if ( c.pickValue( variable ) ) return true;
+    }
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  protected Variable< ? > pickRandomVariable() {
+    Set< Variable< ? > > vars = getVariables();
+    if ( !Utils.isNullOrEmpty( vars ) ) {
+      int i = Random.global.nextInt( vars.size() );
+      Variable<?> v = (Variable<?>)(vars.toArray())[i];
+      return v;
+    }
+    return null;
+  }
+
+  protected Variable< ? > pickRandomFreeVariable() {
+    Set< Variable< ? > > vars = getFreeVariables();
+    if ( !Utils.isNullOrEmpty( vars ) ) {
+      int i = Random.global.nextInt( vars.size() );
+      Variable<?> v = (Variable<?>)(vars.toArray())[i];
+      return v;
+    }
+    return null;
   }
 
   @Override
-  public < T1 > void restrictDomain( Variable< T1 > v ) {
+  public < T1 > boolean restrictDomain( Variable< T1 > v ) {
     if ( v == parameter ) {
       T val = expression.evaluate(true);
       Domain<T1> d = v.getDomain().clone();
@@ -181,6 +239,7 @@ public class Dependency< T >
     } else {
       getConstraintExpression().restrictDomain( v );
     }
+    return v.getDomain() != null && v.getDomain().size() > 0; 
   }
 
   @Override
@@ -248,11 +307,9 @@ public class Dependency< T >
     if ( parameter == null ) {
       sb.append("null");
     } else {
-      if ( parameter.getOwner() != null ) {
-        sb.append( parameter.getOwner().getName() + ":");
-      }
-      sb.append( parameter.getName() + " <-- " + expression.toString() );
+      sb.append( parameter.toString( true, false ) );
     }
+    sb.append( " <-- " + expression );
     sb.append(")");
     return sb.toString();
   }
@@ -299,5 +356,20 @@ public class Dependency< T >
     if ( p == parameter ) return false;
     return expression.isFreeParameter( p, deep );
   }
+
+  @Override
+  public Collection< Constraint > getConstraints() {
+    
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+//  /* (non-Javadoc)
+//   * @see gov.nasa.jpl.ae.event.ParameterListener#pickValue(gov.nasa.jpl.ae.event.Parameter)
+//   */
+//  @Override
+//  public boolean pickValue( Parameter< ? > parameter ) {
+//    return pickValue((Variable< ? >) parameter);
+//  }
 
 }

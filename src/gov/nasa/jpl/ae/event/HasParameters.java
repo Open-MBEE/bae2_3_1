@@ -378,5 +378,26 @@ public interface HasParameters extends LazyUpdate {
       return subbed;
     }
     
+    public static boolean isSatisfied( Object o, boolean deep ) {
+      boolean sat = true;
+      for ( Parameter< ? > p : getParameters( o, deep ) ) {
+        if ( !p.isSatisfied() ) {
+          sat = false;
+          break;
+        }
+      }
+      return sat;
+    }
+
+    public static boolean satisfy( Object o, boolean deep ) {
+      boolean sat = true;
+      for ( Parameter< ? > p : getParameters( o, deep ) ) {
+        if ( !p.satisfy() ) {
+          sat = false;
+        }
+      }
+      return sat;
+    }
+
   }
 }

@@ -8,4 +8,9 @@ public interface Variable< T > {
   public T getValue();
 
   public void setValue( T value );
+  
+  public T pickRandomValue();
+  
+  public boolean pickValue();
+
 }

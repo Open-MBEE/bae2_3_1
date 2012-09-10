@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Variable;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -335,6 +337,12 @@ public class DurativeTimeVaryingMap< T >
   public T getValue( int t ) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public < T > boolean pickValue( Variable< T > variable ) {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

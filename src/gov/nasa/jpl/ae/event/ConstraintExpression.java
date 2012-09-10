@@ -68,7 +68,11 @@ public class ConstraintExpression extends Expression< Boolean >
    */
   @Override
   public boolean isSatisfied() {
-    boolean sat = evaluate(false);
+    Boolean sat = evaluate(false);
+    if ( sat == null ) sat = new Boolean( false );
+    if ( sat ) {
+      sat = HasParameters.Helper.isSatisfied( this, true );
+    }
     Debug.outln( "ConstraintExpression.isSatisfied() = " + sat + ": " + this );
     return sat;
   }
@@ -80,13 +84,16 @@ public class ConstraintExpression extends Expression< Boolean >
    */
   @Override
   public boolean satisfy() {
-//    Set< Parameter< ? > > params = getFreeParameters();
-//    if ( params == null || params.isEmpty() ) {
-//      params = getParameters( true );
-//    }
-    // TODO -- HERE!! -- uncomment above
-//    if ( )
-    return false;
+    Debug.outln( "ConstraintExpression.satisfy() for " + this );
+    if ( isSatisfied() ) return true;
+    HasParameters.Helper.satisfy( this, true );
+    if ( !isSatisfied() ) {
+      for ( Variable< ? > v : getVariables() ) {
+        pickValue( v );
+        if ( isSatisfied() ) break;
+      }
+    }
+    return isSatisfied();
   }
 
   /**
@@ -113,13 +120,24 @@ public class ConstraintExpression extends Expression< Boolean >
   }
 
   @Override
-  public < T > void pickValue( Variable< T > v ) {
-    ParameterConstraint.Helper.pickValue( this, v );
+  public < T > boolean pickValue( Variable< T > v ) {
+    if ( type.equals( Type.Function ) ) {
+      if ( expression instanceof Suggester ) {
+        T newValue = ((Suggester)expression).pickValue( v );
+        if ( newValue != null ) {
+          v.setValue( newValue );
+          return true;
+        }
+      }
+    }
+    // TODO
+//    Set< Variable< ? > > vars = getVariables();
+    return ParameterConstraint.Helper.pickValue( this, v );
   }
 
   @Override
-  public < T > void restrictDomain( Variable< T > v ) {
-    ParameterConstraint.Helper.restrictDomain( this, v );
+  public < T > boolean restrictDomain( Variable< T > v ) {
+    return ParameterConstraint.Helper.restrictDomain( this, v );
   }
 
   @Override

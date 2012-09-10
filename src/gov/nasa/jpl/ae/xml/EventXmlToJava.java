@@ -1611,7 +1611,9 @@ public class EventXmlToJava {
   public FieldDeclaration createParameterField( Param p ) {
     String args[] = convertToEventParameterTypeAndConstructorArgs( p );
     // return createFieldOfGenericType( p.name, type, p.type, args );
-    return createFieldOfGenericType( p.name, args[ 0 ], args[ 1 ], args[ 2 ] );
+    return createFieldOfGenericType( p.name, args[ 0 ],
+                                     null,//args[ 1 ],
+                                     args[ 2 ] );
   }
 
   public FieldDeclaration createParameterField( Param p,
@@ -1621,10 +1623,14 @@ public class EventXmlToJava {
     }
     String args[] = convertToEventParameterTypeAndConstructorArgs( p );
     Statement s =
-        createAssignmentOfGenericType( p.name, args[ 0 ], args[ 1 ], args[ 2 ] );
+        createAssignmentOfGenericType( p.name, args[ 0 ],
+                                       null,//args[ 1 ],
+                                       args[ 2 ] );
     ASTHelper.addStmt( initMembers.getBody(), s );
     FieldDeclaration f =
-        createFieldOfGenericType( p.name, args[ 0 ], args[ 1 ], null );
+        createFieldOfGenericType( p.name, args[ 0 ],
+                                  null,//args[ 1 ],
+                                  null );
     if ( isMemberStatic( p.name ) ) {
       makeStatic( f );
     }
@@ -2227,7 +2233,8 @@ public class EventXmlToJava {
     }
     if ( needToMakeAParameter ) {
       enclosingInstance =
-          "new Parameter<" + currentClass + ">( \"" + currentClass
+          //"new Parameter<" + currentClass + ">( \"" + currentClass
+          "new Parameter( \"" + currentClass
               + "\", null, " + enclosingInstance + ", null )";
     }
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "

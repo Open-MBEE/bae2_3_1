@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.event.TimeVaryingMapWithEffects.ValueAndEffects;
 import gov.nasa.jpl.ae.solver.StringDomain;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Method;
@@ -401,6 +402,12 @@ public class TimeVaryingMapWithEffects< T >
       return firstEntry().getValue().first;
     }
     return null;
+  }
+
+  @Override
+  public < T > boolean pickValue( Variable< T > variable ) {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

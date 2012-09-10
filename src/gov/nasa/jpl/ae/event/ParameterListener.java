@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Variable;
+
 /**
  * ParameterListener should be implemented by classes whose members or methods
  * depend on the volatility of Parameter value or domain changes.
@@ -48,6 +50,14 @@ public interface ParameterListener extends HasParameters {
    * @return whether or not the parameter was refreshed successfully
    */
   public boolean refresh( Parameter< ? > parameter ); 
+
+  /**
+   * Pick a new value for the parameter, possibly to help resolve constraints.
+   * 
+   * @param parameter
+   * @return
+   */
+  public <T> boolean pickValue( Variable< T > variable );
 
   /**
    * The initial motivation for {@code getName()} was for debug output.  As of 2012-08-05, 

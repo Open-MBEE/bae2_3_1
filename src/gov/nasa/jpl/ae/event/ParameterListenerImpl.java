@@ -17,10 +17,13 @@ import java.util.TreeSet;
 import java.util.Vector;
 import junit.framework.Assert;
 
+import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
+import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -155,8 +158,18 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T > void addDependency( Parameter< T > p, Expression< T > e ) {
+  public < T, CT extends Comparable< CT > > void addDependency( Parameter< T > p, Expression< T > e ) {
     Dependency< T > d = new Dependency< T >( p, e );
+    if ( e.type == Expression.Type.Parameter ) {
+      Parameter< T > ep = (Parameter< T >)e.expression;
+      if ( ep.getDomain() instanceof AbstractRangeDomain &&
+          p.getDomain() instanceof AbstractRangeDomain ) {
+        AbstractRangeDomain< CT > ard = (AbstractRangeDomain< CT >)p.getDomain();
+        AbstractRangeDomain< CT > eard = (AbstractRangeDomain< CT >)ep.getDomain();
+        eard.intersectRestrict( ard );
+        ard.intersectRestrict( eard );
+      }
+    }
     dependencies.add( d );
   }
 
@@ -294,6 +307,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   @Override
   public boolean satisfy() {
+    if ( isSatisfied() ) return true;
     double clockStart = System.currentTimeMillis();
     
     boolean satisfied = false;
@@ -331,6 +345,9 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   public Collection< Constraint > getConstraints( boolean deep ) {
     Set< Constraint > set = new TreeSet< Constraint >();
+    for ( Parameter< ? > p : getParameters( deep ) ) {
+      set.addAll( p.getConstraints() );
+    }
     set.addAll( constraintExpressions );
     set.addAll( dependencies );
     return set;
@@ -501,6 +518,22 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   @Override
   public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
     return !getDependentParameters( deep ).contains( p );
+  }
+
+  @Override
+  public <T> boolean pickValue( Variable< T > variable ) {
+    for ( Dependency<?> d : getDependencies() ) {
+      if ( d.pickValue( variable ) ) return true;
+    }
+    if ( variable instanceof Parameter && Random.global.nextBoolean() ) {
+      return ((Parameter<?>)variable).ownerPickValue();
+    }
+    T value = variable.pickRandomValue();
+    if ( value != null ) {
+      variable.setValue( value );
+      return true;
+    }
+    return false;
   }
 
 }

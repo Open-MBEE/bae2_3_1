@@ -14,7 +14,7 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 
   public static IntegerDomain domain = new IntegerDomain(); 
 	public static IntegerDomain positiveDomain =
-			new IntegerDomain(0,typeMaxValue);
+			new IntegerDomain(0, typeMaxValue);
   public static IntegerDomain defaultDomain = new IntegerDomain();
 
 //	protected int lowerBound = Integer.MIN_VALUE;
@@ -98,6 +98,8 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 
   @Override
   public boolean contains( Integer t ) {
+    if ( t == null && 
+         ( lowerBound != null  || upperBound != null ) ) return false;
     return lowerBound <= t && upperBound >= t;
   }
 

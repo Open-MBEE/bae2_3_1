@@ -3,8 +3,6 @@
  */
 package gov.nasa.jpl.ae.solver;
 
-import org.junit.Assert;
-
 /**
  * @author bclement
  *

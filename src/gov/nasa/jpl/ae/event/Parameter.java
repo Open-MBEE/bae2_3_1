@@ -1,9 +1,18 @@
 package gov.nasa.jpl.ae.event;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import gov.nasa.jpl.ae.event.Functions.NotEquals;
+import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
+import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
@@ -19,7 +28,7 @@ import gov.nasa.jpl.ae.util.Utils;
  */
 public class Parameter< T > implements Cloneable, Groundable,
                             Comparable< Parameter< ? > >, Satisfiable, Node,
-                            Variable< T >, LazyUpdate {
+                            Variable< T >, LazyUpdate, HasConstraints {
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
 
@@ -50,6 +59,10 @@ public class Parameter< T > implements Cloneable, Groundable,
     value = v;
     owner = o;
     stale = !isGrounded();
+  }
+
+  public Parameter( String n, Domain< T > d, Parameter<T> v, ParameterListener o ) {
+    this(n, d, (v == null) ? null : v.getValue(), o);
   }
 
   public Parameter( Parameter< T > parameter ) {
@@ -176,25 +189,54 @@ public class Parameter< T > implements Cloneable, Groundable,
 //    return null;
 //  }
   
-  @Override
-  public boolean ground() {
-    if ( isGrounded() ) return true;
+  public boolean refresh() {
     if ( owner != null ) {
       if ( owner.refresh( this ) ) {
         return true;
       }
     }
+    return false;
+  }
+  
+  @Override
+  public boolean pickValue() {
+    if ( Random.global.nextBoolean() ) {
+      return ownerPickValue();
+    }
+    T value = pickRandomValue();
+    if ( value != null ) {
+      setValue( value );
+      return true;
+    }
+    return false;
+  }
+  
+  @Override
+  public T pickRandomValue() {
     if ( domain == null ) {
-      //T t = getDefaultValue();
-      return false;
+      return null;
     }
     T newValue = domain.pickRandomValue();
     String ownerStr = (owner == null) ? "?" : owner.getName(); 
     Debug.outln( "Picking random value for " + ownerStr + "."
                         + this.name + " from " + this.domain + " --> "
                         + newValue );
-    setValue( newValue );
-    return true;
+    return newValue;
+  }
+  
+  @Override
+  public boolean ground() {
+    if ( isGrounded() ) return true;
+    if ( refresh() ) return true;
+    T newValue = pickRandomValue();
+    if ( newValue != null ) {
+      setValue( newValue );
+      return true;
+    }
+    if ( value instanceof Groundable ) {
+      ((Groundable)value).ground();
+    }
+    return isGrounded();
   }
 
   @Override
@@ -233,20 +275,43 @@ public class Parameter< T > implements Cloneable, Groundable,
     return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
   }
 
+  public boolean inDomain() {
+    return domain == null || domain.size() == 0
+           || ( value != null && domain.contains( value ) );
+  }
+  
   @Override
   public boolean isSatisfied() {
-    return isGrounded() && !isStale() && domain.contains( value );
+    return isGrounded() && !isStale() && inDomain();
   }
 
   @Override
   public boolean satisfy() {
-    if ( !isSatisfied() ) {
-      value = null;
-      return ground();
+    if ( isSatisfied() ) return true;
+    ground();
+    if ( isSatisfied() ) return true;
+    refresh();
+    if ( isSatisfied() ) return true;
+    T newValue = pickRandomValue();
+    if ( newValue != null ) {
+      setValue( newValue, true );
     }
-    return true;
+    if ( isSatisfied() ) return true;
+    ownerPickValue();
+    if ( isSatisfied() ) return true;
+    if ( value instanceof Satisfiable ) {
+      ((Satisfiable)value).satisfy();
+    }
+    return isSatisfied();
   }
   
+  protected boolean ownerPickValue() {
+    if ( owner != null ) {//&& owner instanceof ParameterListenerImpl ) {
+      if ( ((ParameterListener)owner).pickValue( this ) ) return true;
+    }
+    return false;
+  }
+
   @Override
   public String toString() {
     return toString( true, false );
@@ -259,8 +324,10 @@ public class Parameter< T > implements Cloneable, Groundable,
     }
     if ( isGrounded() ) {
       sb.append( getName() + "=" + getValueNoPropagate() );
-    } else {
+    } else if ( getDomain() != null ) {
       sb.append( getName() + "=" + getDomain() );
+    } else {
+      sb.append( getName() + "(ungrounded, null domain)" );
     }
     if ( withHash ) {
       sb.append("(" + hashCode() + ")" );
@@ -277,4 +344,33 @@ public class Parameter< T > implements Cloneable, Groundable,
   public void setStale( boolean staleness ) {
     stale = staleness;
   }
+
+  // TODO -- create constraint from domain
+  @Override
+  public Collection< Constraint > getConstraints() {
+    List< Constraint > cList= new ArrayList< Constraint >();
+    Method method;
+    if ( domain != null && domain instanceof AbstractRangeDomain
+         && value instanceof Comparable ) {
+      cList.addAll( ( (AbstractRangeDomain)domain ).getConstraints( (Comparable)value ) );
+    } else {
+      try {
+        method = getClass().getMethod( "inDomain", (Class< ? >[])null );
+        cList.add( new ConstraintExpression( new FunctionCall( this, method,
+                                                               (Object[])null ) ) );
+      } catch ( NoSuchMethodException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( SecurityException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+//    NotEquals< T > f =
+//        new Functions.NotEquals< T >( new Expression< T >( value ),
+//                                      new Expression< T >( (T)null ) );
+//    cList.add( new ConstraintExpression( f ) );
+    return cList;
+  }
+
 }

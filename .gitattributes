@@ -68,6 +68,7 @@ src/gov/nasa/jpl/ae/event/ParameterListener.java -text
 src/gov/nasa/jpl/ae/event/ParameterListenerImpl.java -text
 src/gov/nasa/jpl/ae/event/Simulator.java -text
 src/gov/nasa/jpl/ae/event/StringParameter.java -text
+src/gov/nasa/jpl/ae/event/Suggester.java -text
 src/gov/nasa/jpl/ae/event/TimeDependentConstraintExpression.java -text
 src/gov/nasa/jpl/ae/event/TimeVarying.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text

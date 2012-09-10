@@ -38,16 +38,16 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    * @see gov.nasa.jpl.ae.solver.Constraint#pickValue(gov.nasa.jpl.ae.solver.Variable)
    */
   @Override
-  public < T > void pickValue( Variable< T > v ) {
-    ParameterConstraint.Helper.pickValue( this, v );
+  public < T > boolean pickValue( Variable< T > v ) {
+    return ParameterConstraint.Helper.pickValue( this, v );
   }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Constraint#restrictDomain(gov.nasa.jpl.ae.solver.Variable)
    */
   @Override
-  public < T > void restrictDomain( Variable< T > v ) {
-    ParameterConstraint.Helper.restrictDomain( this, v );
+  public < T > boolean restrictDomain( Variable< T > v ) {
+    return ParameterConstraint.Helper.restrictDomain( this, v );
   }
 
   /* (non-Javadoc)

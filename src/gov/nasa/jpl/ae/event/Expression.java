@@ -1,4 +1,6 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.solver.Satisfiable;
+
 import java.util.Set;
 import java.util.TreeSet;
 import junit.framework.Assert;
@@ -23,7 +25,7 @@ import junit.framework.Assert;
  */
 public class Expression< ResultType >
                                     implements HasParameters, Groundable,
-                                               LazyUpdate {//, Comparable< Expression< ? > > {
+                                               LazyUpdate, Satisfiable {//, Comparable< Expression< ? > > {
 	public Object expression = null;
 	public Type type = Type.None;
 
@@ -118,6 +120,9 @@ public class Expression< ResultType >
   }
   
 	public ResultType evaluate( boolean propagate ) {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	  if ( type == null || ( type != Type.None && expression == null ) ) {
+	    return null;
+	  }
 		try {
 		switch (type) {
 		case None:
@@ -165,6 +170,7 @@ public class Expression< ResultType >
 		case Parameter:
 //		case Method:
 		case Function:
+		  if ( expression == null ) return "null";
 			return expression.toString();
 		default:
 			return null;
@@ -296,6 +302,16 @@ public class Expression< ResultType >
     // REVIEW -- Should Expressions know which are free? Should it just be the
     // owner's job, in which case the Parameter can determine it itself?
     return false;
+  }
+
+  @Override
+  public boolean isSatisfied() {
+    return HasParameters.Helper.isSatisfied( this, true );
+  }
+
+  @Override
+  public boolean satisfy() {
+    return HasParameters.Helper.satisfy( this, true );
   }
   
 }

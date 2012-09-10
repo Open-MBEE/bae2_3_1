@@ -59,14 +59,17 @@ public interface ParameterConstraint extends Constraint, HasParameters {
       return s;
     }
     
-    public static < T > void pickValue( Constraint c, Variable< T > v ) {
+    public static < T > boolean pickValue( Constraint c, Variable< T > v ) {
       // TODO Auto-generated method stub
-      assert false;
+      //assert false;
+      return v.pickValue();
+      //return false;
     }
 
-    public static < T > void restrictDomain( Constraint c, Variable< T > v ) {
+    public static < T > boolean restrictDomain( Constraint c, Variable< T > v ) {
       // TODO Auto-generated method stub
-      assert false;
+      //assert false;
+      return false;
     }
 
     public static < T > boolean isFree( HasParameters o, Variable< T > v ) {

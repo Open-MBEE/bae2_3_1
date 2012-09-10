@@ -61,8 +61,10 @@ public class FunctionCall implements HasParameters, Groundable {
     this.object = object;
     this.method = method;
     this.arguments = new Vector<Object>();
-    for ( Object o : argumentsA ) {
-      this.arguments.add( o );
+    if ( argumentsA != null ) {
+      for ( Object o : argumentsA ) {
+        this.arguments.add( o );
+      }
     }
     hasTypeErrors();
   }
@@ -266,7 +268,11 @@ public class FunctionCall implements HasParameters, Groundable {
         } else {
           sb.append(", ");
         }
-        sb.append( a.toString() );
+        if ( a == null ) {
+          sb.append( "null" );
+        } else {
+          sb.append( a.toString() );
+        }
       }
       sb.append( ")" );
     }

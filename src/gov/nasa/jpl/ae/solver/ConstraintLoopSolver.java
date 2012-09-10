@@ -34,8 +34,12 @@ public class ConstraintLoopSolver implements Solver {
     unsatisfiedConstraints.addAll( constraints );
     Debug.outln( "ConstraintLoopSolver.solve(" + constraints
                  + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
-    while ( System.currentTimeMillis() - startTime > timeOutMilliseconds
+    int numConstrs = unsatisfiedConstraints.size();
+    int lastSize = -1;
+    while ( //System.currentTimeMillis() - startTime > timeOutMilliseconds
+            numConstrs != lastSize
             && !unsatisfiedConstraints.isEmpty() ) {
+      lastSize = numConstrs;
       Debug.outln( "remaining constraints to satisfy: " + unsatisfiedConstraints );
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
@@ -53,6 +57,7 @@ public class ConstraintLoopSolver implements Solver {
           --i;
         }
       }
+      numConstrs = unsatisfiedConstraints.size();
     }
     return unsatisfiedConstraints.isEmpty();
   }

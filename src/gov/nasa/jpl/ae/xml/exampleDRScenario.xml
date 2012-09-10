@@ -35,7 +35,6 @@
           <parameter><name>DRArea</name><type>String</type></parameter>
           <parameter><name>LoadReductionNeeded</name><type>Double</type></parameter>
           <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>null</value></parameter>
-          <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints></constraints>
         <dependencies></dependencies>
@@ -59,6 +58,7 @@
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
           <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
           <parameter><name>theGrid</name><type>Grid</type><value>new Grid()</value></parameter>
+          <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints>
           <!-- TODO: Add a constraint that AssessDRCommitmentEvent.startTime >= GenerateDRRequest.startTime -->
@@ -225,6 +225,7 @@
           <parameter><name>increaseGeneration</name><type>Boolean</type><value>false</value></parameter>
           <parameter><name>increasedGeneration</name><type>Double</type><value>0.0</value></parameter>
           <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
+          <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints>
           <constraint><expression>LoadReductionNeeded - loadReductionActual &lt;= 500.0</expression></constraint>

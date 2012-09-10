@@ -3,7 +3,20 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.swing.text.AbstractDocument;
+
+import gov.nasa.jpl.ae.event.ConstraintExpression;
+import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.FunctionCall;
+import gov.nasa.jpl.ae.event.Functions;
+import gov.nasa.jpl.ae.event.Functions.NotEquals;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
 import org.junit.Assert;
 
@@ -102,6 +115,7 @@ public abstract class AbstractRangeDomain< T extends Comparable< T > >
 	
 	@Override
   public boolean contains( T t ) {
+	  if ( t == null ) return lowerBound == null && upperBound == null;
     return lessEquals( lowerBound, t ) && greaterEquals( upperBound, t );
   }
 
@@ -112,6 +126,16 @@ public abstract class AbstractRangeDomain< T extends Comparable< T > >
 //    return new MyRangeDomain( this );
 //  }
 
+  public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
+    if ( less(lowerBound, o.lowerBound) ) {
+      lowerBound = o.lowerBound;
+    }
+    if ( greater(upperBound, o.upperBound) ) {
+      upperBound = o.upperBound;
+    }
+    return this.size() != 0;
+  }
+  
   public abstract T getTypeMaxValue();
 //  {
 //    //Debug.outln("abstract max = " + typeMaxValue );
@@ -184,6 +208,20 @@ public abstract class AbstractRangeDomain< T extends Comparable< T > >
       return true;
     }
     return false;
+  }
+
+  public Collection< Constraint > getConstraints( T t ) {
+    List< Constraint > cList= new ArrayList< Constraint >();
+    Object args[] = new Object[] { lowerBound, t };
+    Method method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
+        //getClass().getMethod( "lessEquals", Class< ? >[]{} );
+    cList.add( new ConstraintExpression( new FunctionCall( this, method,
+                                                           args ) ) );
+    args = new Object[] { upperBound, t };
+    method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
+    cList.add( new ConstraintExpression( new FunctionCall( this, method,
+                                                           args ) ) );
+    return cList;
   }
 
 
