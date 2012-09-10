@@ -2217,7 +2217,10 @@ public class EventXmlToJava {
     if ( enclosingInstance.equals( "this" ) ) {
       needToMakeAParameter = true;
     } else {
-      Param p = lookupCurrentClassMember( enclosingInstance );
+      Param p = null;
+      if ( !Utils.isNullOrEmpty( enclosingInstance ) ) { 
+        lookupCurrentClassMember( enclosingInstance );
+      }
       if ( p == null ) {
         needToMakeAParameter = true;
       }

@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Formatter;
@@ -236,34 +237,33 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
 
   // Gather any parameter instances contained by this event.
-  // NOTE: Uses reflection to dig events out of members, but does not look in
-  // arrays or collections other than this.parameters, so this may need
-  // redefinition in subclasses.
   public Set< Parameter< ? > > getParameters( boolean deep ) {
     // TODO
     TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.addAll( getParameters() );
     if ( deep ) {
-      // TODO -- getDeclaredFields won't allow access to protected members
-      // for ( Field f : this.getClass().getDeclaredFields() ) {
-      // try {
-      // Object o = f.get(this);
-      // if ( o != null && o != this.parameters ) {
-      // if ( o instanceof Parameter<?> ) {
-      // set.add( (Parameter<?>) o );
-      // }
-      // if ( o instanceof HasParameter ) {
-      // set.addAll( ((HasParameter) o).getParameters( deep ) );
-      // }
-      // }
-      // } catch (IllegalArgumentException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // } catch (IllegalAccessException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // }
-      // }
+      // TODO -- Get parameters from members that implement HasPaameters?
+      /*
+      for ( Field f : this.getClass().getFields() ) {
+        try {
+          Object o = f.get( this );
+          if ( o != null && o != this.parameters ) {
+            if ( o instanceof Parameter< ? > ) {
+              set.add( (Parameter< ? >)o );
+            }
+            if ( o instanceof HasParameters ) {
+              set.addAll( ( (HasParameters)o ).getParameters( deep ) );
+            }
+          }
+        } catch ( IllegalArgumentException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+      */
     }
     return set;
   }
@@ -292,12 +292,6 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return true;
   }
 
-  // TODO -- How does this work with elaborations? Do we need a "deep"
-  // parameter?
-  // TODO -- REVIEW -- Given that dependencies may flow from parent event to
-  // child event and vice-versa, there needs to be something similar to PCN
-  // propagation--this will be useful for constraint satisfaction, elaboration, and effects, too. Events
-  // have Dependencies. Should Parameters instead link them (and constraints)?  Have an global PCN that links them?
   @Override
   public boolean satisfy() {
     double clockStart = System.currentTimeMillis();
@@ -310,25 +304,27 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     // into the problem)? Add all possible constraints as implied by conditions?
     // Treat each elaboration as a constraint?
     while (!satisfied && ( curTimeLeft > 0.0 ) ) {
-      Debug.outln( this.getClass().getName() + " satisfy loop with " + curTimeLeft );
-      ground();
-      Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
-      
-      Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
-      
-      Collection< Constraint > allConstraints = getConstraints( true );
-      satisfied = solver.solve( allConstraints );
-      
-      satisfied = isSatisfied();
-      Debug.outln( this.getClass().getName()
-                          + " satisfy loop called solve(): satisfied = "
-                          + satisfied );
+      Debug.outln( this.getClass().getName() + " satisfy loop with "
+          + curTimeLeft + "milliseconds left" );
+      satisfied = tryToSatisfy();
       curTimeLeft =
           ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
     }
     return satisfied;
   }
 
+  protected boolean tryToSatisfy() {
+    ground();
+    Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
+    
+    Collection< Constraint > allConstraints = getConstraints( true );
+    boolean satisfied = solver.solve( allConstraints );
+    
+    satisfied = isSatisfied();
+    Debug.outln( this.getClass().getName()
+                 + ".tryToSatisfy() called solve(): satisfied = " + satisfied );
+    return satisfied;
+  }
   public Collection< Constraint > getConstraints() {
     return getConstraints( true );
   }
@@ -486,23 +482,15 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return didRefresh;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
+   */
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
     // Alert affected dependencies.
     for ( Dependency<?> d : getDependencies() ) {
       d.setStaleAnyReferencesTo( changedParameter );
     }
-
-    // TODO -- Need to keep a collection of ParameterListeners (just as
-    // DurativeEvent has getEvents())
-    
-//    for ( Event e : getEvents( false ) ) {
-//      if ( e instanceof ParameterListener ) {
-//        ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter );
-//      }
-//    }
-
-    // TODO -- Anything else to do here?
   }
 
   @Override
@@ -514,4 +502,5 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
     return !getDependentParameters( deep ).contains( p );
   }
+
 }

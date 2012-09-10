@@ -362,15 +362,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     } else {
       Collection< Constraint > unsatisfiedConstraints =
           ConstraintLoopSolver.getUnsatisfiedConstraints( getConstraints( true ) );
-      if ( !unsatisfiedConstraints.isEmpty() ) {
-//      if ( !solver.getUnsatisfiedConstraints().isEmpty() ) {
+      if ( unsatisfiedConstraints.isEmpty() ) {
+        System.err.println( getName() + "'s constraints were not satisfied!" );
+      } else {
         System.err.println( "Could not resolve the following constraints for "
                             + getName() + ":" );
         for ( Constraint c : unsatisfiedConstraints ) {
           System.err.println( c.toString() );
         }
-      } else {
-        System.err.println( getName() + "'s constraints were not satisfied!" );
       }
     }
     
@@ -415,50 +414,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                           Class< T > eventClass,
                           String eventName,
                           Expression<?>[] arguments ) {
-/* Doing this in EventInvocation
-    // If elaborating a non-static inner class, need to add parent object as
-    // the first argument to the constructor.
-    boolean nonStaticInnerClass = Utils.isInnerClass( eventClass );
-    Object newArgs[] = arguments;
-    if ( nonStaticInnerClass ) {
-      newArgs = new Object[arguments.length + 1];
-      // Warning!  Assuming that this is the parent object for the inner class.
-      assert eventClass.getEnclosingClass().isAssignableFrom( this.getClass() );
-      assert enclosingInstance != null;
-      newArgs[0] = enclosingInstance;
-      for ( int i = 0; i < arguments.length; ++i ) {
-        newArgs[ i + 1 ] = arguments[ i ];
-      }
-    }
-    // Collect argument types to search for the constructor.
-    int length = newArgs.length;
-    Class< ? > constructorParamTypes[] = new Class< ? >[ length ];
-    for ( int i = 0; i < length; ++i ) {
-      if ( newArgs[i] == null ) {
-        // TODO -- This is an assumption.  We need a better way to find the constructor.
-        constructorParamTypes[i] = Expression.class;
-        continue;
-      }
-      Class< ? > c = newArgs[ i ].getClass();
-      if ( newArgs[ i ] instanceof Expression ) {
-        c = Expression.class;
-      }
-      constructorParamTypes[i] = c;
-    }
-*/
     
     // Now create the EventInvocation from the constructor and arguments. 
     Vector<EventInvocation> invocation = new Vector<EventInvocation>();
     EventInvocation newInvocation = null;
-/*  Doing this in EventInvocation
-    Constructor< ? > ctor = Utils.getConstructorForArgs( eventClass, newArgs );
-*/
     newInvocation =
         new EventInvocation( eventClass, eventName,
-                             //ctor.getParameterTypes(),
-                             //eventClass.getConstructor( constructorParamTypes ),
-                             enclosingInstance,
-                             arguments,//newArgs,
+                             enclosingInstance, arguments,
                              (Map< String, Object >)null );
     invocation.add(newInvocation);
     Vector<Event> eventVector = new Vector<Event>();
@@ -467,39 +429,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return elaborationRule;
   }
 
-  // TODO -- separate this method and removeDependency from Event to
-  // HasDependencies?
-  /* (non-Javadoc)
-   * @see event.Event#addDependency(event.Parameter, event.Expression)
-   */
-  @Override
-  public < T > void addDependency( Parameter< T > p, Expression< T > e ) {
-    Dependency< T > d = new Dependency< T >( p, e );
-    dependencies.add( d );
-  }
-
-  public < T > void addDependency( Parameter< T > p, Parameter< T > source ) {
-    addDependency( p, new Expression< T >( source ) );
-  }
-
-  /* (non-Javadoc)
-   * @see event.Event#removeDependency(event.Parameter)
-   */
-  @Override
-  public < T > boolean
-      removeDependency( Parameter< T > p ) {
-    boolean removed = false;
-    Iterator< Dependency< ? > > i = dependencies.iterator();
-    while ( i.hasNext() ) {
-      Dependency< ? > d = i.next();
-      if ( d.parameter == p ) {
-        i.remove();
-        removed = true;
-      }
-    }
-    return removed;
-  }
-  
   /* (non-Javadoc)
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
@@ -530,193 +459,38 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     addEffect( sv, obj, method, v );
   }
 
-  @Override
-  public boolean isGrounded() {
-    for ( Parameter< ? > p : parameters ) {
-      if ( !p.isGrounded() ) return false;
-    }
-    return true;
-  }
-
-  @Override
-  public boolean ground() {
-    final double timeoutMilliseconds = 50.0;
-    double startTime = System.currentTimeMillis();
-    double curTime = startTime;
-    
-    boolean satisfied = false;
-    boolean first = true;
-    while ( first
-            || ( !satisfied && ( ( curTime = System.currentTimeMillis() )
-                                 - startTime < timeoutMilliseconds ) ) ) {
-      satisfied = true;
-      first = false;
-      for ( Parameter< ? > p : getFreeParameters( false ) ) {
-        if ( !p.isGrounded() ) {
-          if ( !p.ground() ) {
-            satisfied = false;
-          }
-        }
-      }
-      for ( Dependency< ? > d : getDependencies() ) {
-        if ( !d.isSatisfied() ) {
-          if ( !d.satisfy() ) {
-            satisfied = false;
-          }
-        }
-      }
-    }
-    return satisfied;
-  }
-
-  public Vector< ConstraintExpression > getUnsatisfiedConstraints() {
-    Vector< ConstraintExpression > v = new Vector< ConstraintExpression >();
-    for ( ConstraintExpression c : constraintExpressions ) {
-      if ( !c.isSatisfied() ) {
-        v.add( c );
-      }
-    }
-    return v;
-  }
-
-  // @Override
-  // public Set<Parameter<?>> getAll() {
-  // return parameters;
-  // }
-
-  // TODO -- This is not finished. Need to get deep dependents.
-  /* (non-Javadoc)
-   * @see event.Event#getDependentParameters(boolean)
-   */
-  @Override
-  public Set< Parameter< ? > > getDependentParameters( boolean deep ) {
-    TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
-    for ( Dependency< ? > d : dependencies ) {
-      set.add( d.parameter );
-    }
-    return set;
-  }
-
   // Gather any parameter instances contained by this event.
-  // NOTE: Uses reflection to dig events out of members, but does not look in
-  // arrays or collections other than this.parameters, so this may need
-  // redefinition in subclasses.
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep ) {
-    // TODO
-    TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
-    set.addAll( getParameters() );
+    Set< Parameter< ? > > set = super.getParameters( deep );
     if ( deep ) {
       for ( Event e : getEvents( deep ) ) {
         if ( e instanceof HasParameters ) {
           set.addAll( ((HasParameters)e).getParameters( deep ) );
         }
       }
-      // TODO -- getDeclaredFields won't allow access to protected members
-      // for ( Field f : this.getClass().getDeclaredFields() ) {
-      // try {
-      // Object o = f.get(this);
-      // if ( o != null && o != this.parameters ) {
-      // if ( o instanceof Parameter<?> ) {
-      // set.add( (Parameter<?>) o );
-      // }
-      // if ( o instanceof HasParameter ) {
-      // set.addAll( ((HasParameter) o).getParameters( deep ) );
-      // }
-      // }
-      // } catch (IllegalArgumentException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // } catch (IllegalAccessException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // }
-      // }
     }
     return set;
   }
 
-  // TODO -- This is not finished. Need to get deep dependents.
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
-    Assert.assertFalse( "This method does not yet support deep=true!", deep );
-    Set< Parameter< ? > > set = getParameters( deep );
-    Set< Parameter< ? > > dependents = getDependentParameters( deep );
-    set.removeAll( dependents );
-    return set;
-  }
-  @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
-    Assert.assertTrue( "This method is not supported!", false );
-  }
-
-  @Override
-  public boolean isSatisfied() {
-    for ( Constraint c : getConstraints() ) {
-      if ( !c.isSatisfied() ) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // TODO -- How does this work with elaborations? Do we need a "deep"
-  // parameter?
-  // TODO -- REVIEW -- Given that dependencies may flow from parent event to
-  // child event and vice-versa, there needs to be something similar to PCN
-  // propagation--this will be useful for constraint satisfaction, elaboration, and effects, too. Events
-  // have Dependencies. Should Parameters instead link them (and constraints)?  Have an global PCN that links them?
-  @Override
-  public boolean satisfy() {
-    double clockStart = System.currentTimeMillis();
-    
-    boolean satisfied = false;
-    double curTimeLeft =
-        ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
-    
-    // TODO -- REVIEW -- How do we get elaborations (conditional constraints
-    // into the problem)? Add all possible constraints as implied by conditions?
-    // Treat each elaboration as a constraint?
-    while (!satisfied && ( curTimeLeft > 0.0 ) ) {
-      Debug.outln( this.getClass().getName() + " satisfy loop with " + curTimeLeft );
-      ground();
-      Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
-      
-      satisfyElaborations();
-      Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
-      
-      Collection< Constraint > allConstraints = getConstraints( true );
-      satisfied = solver.solve( allConstraints );
-      
-      satisfied = isSatisfied();
-      Debug.outln( this.getClass().getName()
-                          + " satisfy loop called solve(): satisfied = "
-                          + satisfied );
-      curTimeLeft =
-          ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
-    }
+  protected boolean tryToSatisfy() {
+    boolean satisfied = super.tryToSatisfy();
+    satisfyElaborations();
+    Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
     return satisfied;
   }
-
-  @Override
-  public Collection< Constraint > getConstraints() {
-    return getConstraints( true );
-  }
-
+  
   public Collection< Constraint > getConstraints( boolean deep ) {
-    Set< Constraint > set = new TreeSet< Constraint >();
-    set.addAll( constraintExpressions );
+    Collection< Constraint > set = super.getConstraints( deep );
     set.add( elaborationsConstraint );
     set.add( effectsConstraint );
-    set.addAll( dependencies );
     if ( deep ) {
-//      for ( Entry< ElaborationRule, Vector< Event > > e : elaborations.entrySet() ) {
-        for ( Event event : getEvents( deep ) ) {
-          if ( event instanceof HasConstraints ) {
-            set.addAll( ( (HasConstraints)event ).getConstraints() );
-          }
+      for ( Event event : getEvents( deep ) ) {
+        if ( event instanceof HasConstraints ) {
+          set.addAll( ( (HasConstraints)event ).getConstraints() );
         }
-//      }
+      }
     }
     return set;
   }
@@ -797,29 +571,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return sb.toString();
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
-   */
-  @Override
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep ) {
-    Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
-    s.addAll( timeVaryingObjects );
-    // Rebuilding the set in case parameter values change. 
-    for ( Parameter< ? > p : getParameters( deep ) ) {
-      Object value = p.getValue();
-      if ( value != null ) {
-        if ( value instanceof TimeVarying ) {
-          s.add( (TimeVarying< ? >)value );
-        }
-        if ( deep && value instanceof HasTimeVaryingObjects ) {
-          s.addAll( ( (HasTimeVaryingObjects)value ).getTimeVaryingObjects( deep ) );
-        }
-      }
-    }
-    return s;
-  }
-
-  // getters and setters
+ // getters and setters
 
   /* (non-Javadoc)
    * @see event.Event#getStartTime()
@@ -870,22 +622,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   /* (non-Javadoc)
-   * @see event.Event#getParameters()
-   */
-  @Override
-  public SortedSet< Parameter< ? >> getParameters() {
-    return parameters;
-  }
-
-  /* (non-Javadoc)
-   * @see event.Event#setParameters(java.util.SortedSet)
-   */
-  @Override
-  public void setParameters( SortedSet< Parameter< ? >> parameters ) {
-    this.parameters = parameters;
-  }
-
-  /* (non-Javadoc)
    * @see event.Event#getEffects()
    */
   @Override
@@ -899,52 +635,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public void setEffects( SortedMap< Parameter< ? >, Set< Effect > > effects ) {
     this.effects = effects;
-  }
-
-  /**
-   * @return the solver
-   */
-  public Solver getSolver() {
-    return solver;
-  }
-
-  /**
-   * @param solver the solver to set
-   */
-  public void setSolver( Solver solver ) {
-    this.solver = solver;
-  }
-
-  /* (non-Javadoc)
-   * @see event.Event#getConstraints()
-   */
-  @Override
-  public Vector< ConstraintExpression > getConstraintExpressions() {
-    return constraintExpressions;
-  }
-
-  /* (non-Javadoc)
-   * @see event.Event#setConstraints(java.util.Vector)
-   */
-  @Override
-  public void setConstraintExpressions( Vector< ConstraintExpression > constraints ) {
-    this.constraintExpressions = constraints;
-  }
-
-  /* (non-Javadoc)
-   * @see event.Event#getDependencies()
-   */
-  @Override
-  public Vector< Dependency< ? >> getDependencies() {
-    return dependencies;
-  }
-
-  /* (non-Javadoc)
-   * @see event.Event#setDependencies(java.util.Vector)
-   */
-  @Override
-  public void setDependencies( Vector< Dependency< ? >> dependencies ) {
-    this.dependencies = dependencies;
   }
 
   /* (non-Javadoc)
@@ -964,6 +654,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     this.elaborations = elaborations;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#compareTo(gov.nasa.jpl.ae.event.ParameterListenerImpl)
+   */
   @Override
   public int compareTo( ParameterListenerImpl o ) {
     int compare = 0;//super.compareTo( o );
@@ -981,22 +674,24 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return compare;
   }
 
-  // An event owns all of its parameters because it is required to contain any
-  // dependency that sets one of its parameters and has some connection through
-  // its other members to any reference or constraint on it. Thus, an event must
-  // know about the parent event from which it is elaborated if the parent
-  // references the parameter.
-  // handleValueChangeEvent( parameter, newValue ) updates dependencies,
-  // effects, and elaborations for the changed parameter.
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
+   * 
+   * An event owns all of its parameters because it is required to contain any
+   * dependency that sets one of its parameters and has some connection through
+   * its other members to any reference or constraint on it. Thus, an event must
+   * know about the parent event from which it is elaborated if the parent
+   * references the parameter.
+   * handleValueChangeEvent( parameter, newValue ) updates dependencies,
+   * effects, and elaborations for the changed parameter.
+   */
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
     // REVIEW -- Should we be passing in a set of parameters? Find review/todo
     // note on staleness table.
-    
-    // Alert affected dependencies.
-    for ( Dependency<?> d : getDependencies() ) {
-      d.handleValueChangeEvent( parameter );
-    }
+
+    // The super class updates the dependencies.
+    super.handleValueChangeEvent( parameter );
     
     // Update elaborations.
     for ( Entry< ElaborationRule, Vector< Event > > entry : 
@@ -1067,14 +762,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   }
 
-  @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
-                                       //Domain< ? > newDomain ) {
-    // TODO -- What are we supposed to do? call satisfy()??? Not caching
-    // constraint violations as of 2012-08-03.
-  }
-
-  //@Override
+  /**
+   * @return whether or not the constraints of the elaborations have been
+   *         satisfied.
+   */
   public boolean satisfyElaborations() {
     boolean satisfied = true;
     elaborate( true );
@@ -1092,55 +783,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return satisfied;
   }
 
-  @Override
-  public String getName() {
-    if ( name != null ) return name;
-    return getClass().getSimpleName();
-  }
-
-  @Override
-  public void setName( String newName ) {
-    if ( newName == null || newName.isEmpty() ) {
-      Formatter formatter = new Formatter(Locale.US);
-      newName = getClass().getSimpleName() + formatter.format( "%06d", (counter++) );
-    }
-    this.name = newName;
-  }
-  
-  // Try to remove others' references to this, possibly because it is being
-  // deleted.
-  @Override
-  public void detach() {
-    for ( Parameter< ? > p : getParameters( false ) ) {
-      if ( p.getOwner() == this ) {
-        p.setOwner( null );
-      }
-    }
-  }
-
-  @Override
-  public boolean isStale() {
-    for ( Parameter< ? > p : getParameters() ) {
-      if ( p.isStale() ) return true;
-    }
-    return false;
-  }
-
-  @Override
-  public void setStale( boolean staleness ) {
-    // TODO -- REVIEW -- Need anything here?
-    assert false;
-  }
-
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#refresh(gov.nasa.jpl.ae.event.Parameter)
+   */
   @Override
   public boolean refresh( Parameter< ? > parameter ) {
-    boolean didRefresh = false;
+    boolean didRefresh = super.refresh( parameter );
     
-    // Alert affected dependencies.
-    for ( Dependency<?> d : getDependencies() ) {
-      if ( d.refresh( parameter ) ) didRefresh = true;
-    }
-
     if ( !didRefresh ) {
       for ( Event e : getEvents( false ) ) {
         if ( e instanceof ParameterListener ) {
@@ -1151,36 +800,20 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return didRefresh;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
+   */
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    
     // Alert affected dependencies.
-    for ( Dependency<?> d : getDependencies() ) {
-      d.setStaleAnyReferencesTo( changedParameter );
-    }
+    super.setStaleAnyReferencesTo( changedParameter );
 
     for ( Event e : getEvents( false ) ) {
       if ( e instanceof ParameterListener ) {
         ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter );
       }
     }
-
-    // REVIEW -- DurativeEvent.handleValueChangeEvent() checks elaborations, so
-    // maybe nothing needs to be done here.
-//    for ( ElaborationRule rule : elaborations.keySet() ) {
-//    }
-
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
-  }
-
-  @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
-    return !getDependentParameters( deep ).contains( p );
   }
 
 }

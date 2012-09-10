@@ -12,9 +12,6 @@ import java.util.Vector;
 
 public interface Event extends HasConstraints {
 
-  public < T > void addDependency( Parameter< T > p, Expression< T > e );
-  public < T > boolean removeDependency( Parameter< T > p );
-
   public void execute();
 
   public void addEffect( Parameter< ? > sv, Object obj,
@@ -22,8 +19,6 @@ public interface Event extends HasConstraints {
 
   public void addEffect( Parameter< ? > sv, Object obj,
                          Method method, Object arg );
-
-  public Set< Parameter< ? > > getDependentParameters( boolean deep );
 
   // Conditionally create child event instances from this event instance.
   public void elaborate( boolean force );
