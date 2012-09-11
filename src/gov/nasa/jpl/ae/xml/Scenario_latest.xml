@@ -37,7 +37,7 @@
 	</events>
 	<classes>
 		<class>
-			<name>Customer</name>
+			<name>_17_0_5_edc0357_1346893158668_227375_13516</name>
 			<import>java.util.Queue</import>
 			<import>java.util.LinkedList</import>
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
@@ -94,7 +94,7 @@
 						<events>
 							<event>
 								<class>
-									<name>rscpu</name>
+									<name>_17_0_5_edc0357_1346893158785_906489_13606</name>
 									<!--<actionName>rscpu</actionName><actionType>Read Self Action</actionType>-->
 									<members>
 										<parameter>
@@ -124,7 +124,7 @@
 							</event>
 							<event>
 								<class>
-									<name>vs15</name>
+									<name>_17_0_5_edc0357_1346893158786_41089_13607</name>
 									<!--<actionName>vs15</actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
@@ -186,7 +186,7 @@
 							</event>
 							<event>
 								<class>
-									<name>addstructUsage</name>
+									<name>_17_0_5_edc0357_1346893158786_218637_13608</name>
 									<!--<actionName>addstructUsage</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
@@ -252,7 +252,7 @@
 							</event>
 							<event>
 								<class>
-									<name>initial</name>
+									<name>_17_0_5_edc0357_1346893158786_388211_13609</name>
 									<!--<actionName>initial</actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
@@ -297,7 +297,7 @@
 							</event>
 							<event>
 								<class>
-									<name>final</name>
+									<name>_17_0_5_edc0357_1346893158786_150429_13610</name>
 									<!--<actionName>final</actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
@@ -320,7 +320,7 @@
 							</event>
 							<event>
 								<class>
-									<name>fork2</name>
+									<name>_17_0_5_edc0357_1346893350205_452392_14267</name>
 									<!--<actionName>fork2</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
@@ -429,18 +429,6 @@
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893158845_974799_13672")</value>
 							</parameter>
 							<parameter>
-								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1346893158845_515810_13673</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893158845_515810_13673")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1346893158845_210350_13670</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893158845_210350_13670")</value>
-							</parameter>
-							<parameter>
 								<!--member for object flow-->
 								<name>sig_17_0_5_edc0357_1346893158846_964404_13680</name>
 								<type>ObjectFlow&lt;Object&gt;</type>
@@ -464,9 +452,15 @@
 						<events>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Read Self Action</actionType>-->
+									<name>_17_0_5_edc0357_1346893158843_68308_13660</name>
+									<!--<actionName>rsI</actionName><actionType>Read Self Action</actionType>-->
 									<members>
+										<parameter>
+											<!--previous event end time: f2 (ForkNode)-->
+											<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--Instance of whoever is operating this activity-->
 											<name>_17_0_5_edc0357_1346893158926_140857_13836</name>
@@ -474,13 +468,14 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (ForkNode) as false-->
+											<!--Initialize existence of f1 (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1346893158844_682791_13665_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_814119_13668_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
@@ -510,7 +505,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--f1_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158844_682791_13665_exists</expression>
 										</condition>
@@ -519,9 +514,21 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
+									<name>_17_0_5_edc0357_1346893158843_768602_13661</name>
+									<!--<actionName>vs4</actionName><actionType>Value Specification Action</actionType>-->
 									<members>
+										<parameter>
+											<!--previous event end time: f2 (ForkNode)-->
+											<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of asfvUsage (AddStructuralFeatureValueAction) as false-->
+											<name>_17_0_5_edc0357_1346893158844_114248_13662_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
 										<parameter>
 											<!--value specification VALUE-->
 											<name>_17_0_5_edc0357_1346893158927_153311_13838</name>
@@ -530,35 +537,62 @@
 										</parameter>
 									</members>
 									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_814119_13668_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158844_114248_13662_exists</name>
+											<type>Boolean</type>
+											<value>sig_17_0_5_edc0357_1346893158845_974799_13672.hasStuff(endTime)</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>sig_17_0_5_edc0357_1346893158845_210350_13670.send(_17_0_5_edc0357_1346893158927_153311_13838,startTime) </effect>
 								</effects>
 								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158844_114248_13662</eventType>
+											<eventName>AddStructuralFeatureValueAction</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158843_768602_13661_endTime</name>
+													<type>Integer</type>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158928_722123_13839</name>
+													<value>_17_0_5_edc0357_1346893158927_153311_13838</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--asfvUsage_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346893158844_114248_13662_exists</expression>
+										</condition>
+									</elaboration>
 								</elaborations>
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
+									<name>_17_0_5_edc0357_1346893158844_114248_13662</name>
+									<!--<actionName>asfvUsage</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1346893158928_722123_13839</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+											<!--previous event end time: vs4 (ValueSpecificationAction)-->
+											<name>_17_0_5_edc0357_1346893158843_768602_13661_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (JoinNode) as false-->
+											<!--Initialize existence of f3 (JoinNode) as false-->
 											<name>_17_0_5_edc0357_1346893158845_195958_13669_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -571,7 +605,7 @@
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_814119_13668_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158843_768602_13661_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
@@ -583,7 +617,6 @@
 								</class>
 								<effects>
 									<effect>_17_0_5_edc0357_1346893158928_585336_13840 = sig_17_0_5_edc0357_1346893158845_974799_13672.receive(startTime - 1)</effect>
-									<effect>_17_0_5_edc0357_1346893158928_722123_13839 = sig_17_0_5_edc0357_1346893158845_210350_13670.receive(startTime - 1)</effect>
 									<effect>usage__17_0_5_edc0357_1346893158684_563782_13525.setValue(_17_0_5_edc0357_1346893158928_722123_13839,startTime)</effect>
 								</effects>
 								<elaborations>
@@ -600,7 +633,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--f3_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158845_195958_13669_exists</expression>
 										</condition>
@@ -609,11 +642,11 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Initial Node</actionType>-->
+									<name>_17_0_5_edc0357_1346893158844_415930_13663</name>
+									<!--<actionName>init</actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (ForkNode) as false-->
+											<!--Initialize existence of f2 (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1346893158845_814119_13668_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -645,7 +678,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--f2_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158845_814119_13668_exists</expression>
 										</condition>
@@ -654,11 +687,11 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
+									<name>_17_0_5_edc0357_1346893158844_42063_13664</name>
+									<!--<actionName>fin</actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (JoinNode)-->
+											<!--previous event end time: f3 (JoinNode)-->
 											<name>_17_0_5_edc0357_1346893158845_195958_13669_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -677,11 +710,11 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
+									<name>_17_0_5_edc0357_1346893158844_682791_13665</name>
+									<!--<actionName>f1</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ReadSelfAction)-->
+											<!--previous event end time: rsI (ReadSelfAction)-->
 											<name>_17_0_5_edc0357_1346893158843_68308_13660_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -708,12 +741,12 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
+									<name>_17_0_5_edc0357_1346893158844_174958_13666</name>
+									<!--<actionName>asfvCap</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+											<!--previous event end time: vs0 (ValueSpecificationAction)-->
+											<name>_17_0_5_edc0357_1346893158844_847477_13667_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -724,21 +757,20 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1346893158929_378648_13841</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_814119_13668_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158844_847477_13667_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 									</dependencies>
 								</class>
 								<effects>
 									<effect>_17_0_5_edc0357_1346893158929_740428_13842 = sig_17_0_5_edc0357_1346893158845_488694_13674.receive(startTime - 1)</effect>
-									<effect>_17_0_5_edc0357_1346893158929_378648_13841 = sig_17_0_5_edc0357_1346893158845_515810_13673.receive(startTime - 1)</effect>
 									<effect>sig_17_0_5_edc0357_1346893158846_964404_13680.send(true,startTime)</effect>
 									<effect>cap__17_0_5_edc0357_1346893158687_808842_13530.setValue(_17_0_5_edc0357_1346893158929_378648_13841,startTime)</effect>
 								</effects>
@@ -747,8 +779,8 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
+									<name>_17_0_5_edc0357_1346893158844_847477_13667</name>
+									<!--<actionName>vs0</actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
 											<!--value specification VALUE-->
@@ -756,55 +788,27 @@
 											<type>Integer</type>
 											<value>0</value>
 										</parameter>
-									</members>
-									<constraints>
-									</constraints>
-									<dependencies>
-									</dependencies>
-								</class>
-								<effects>
-									<effect>sig_17_0_5_edc0357_1346893158845_515810_13673.send(_17_0_5_edc0357_1346893158930_266567_13844,startTime) </effect>
-								</effects>
-								<elaborations>
-								</elaborations>
-							</event>
-							<event>
-								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
-									<members>
 										<parameter>
-											<!--previous event end time:  (InitialNode)-->
-											<name>_17_0_5_edc0357_1346893158844_415930_13663_endTime</name>
+											<!--previous event end time: f2 (ForkNode)-->
+											<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
+											<!--Initialize existence of asfvCap (AddStructuralFeatureValueAction) as false-->
 											<name>_17_0_5_edc0357_1346893158844_174958_13666_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
-										<parameter>
-											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
-											<name>_17_0_5_edc0357_1346893158844_114248_13662_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158844_415930_13663_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_814119_13668_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1346893158844_174958_13666_exists</name>
 											<type>Boolean</type>
-											<value>sig_17_0_5_edc0357_1346893158845_488694_13674.hasStuff(endTime) &amp;&amp; sig_17_0_5_edc0357_1346893158845_515810_13673.hasStuff(endTime)</value>
-										</dependency>
-										<dependency>
-											<name>_17_0_5_edc0357_1346893158844_114248_13662_exists</name>
-											<type>Boolean</type>
-											<value>sig_17_0_5_edc0357_1346893158845_974799_13672.hasStuff(endTime) &amp;&amp; sig_17_0_5_edc0357_1346893158845_210350_13670.hasStuff(endTime)</value>
+											<value>sig_17_0_5_edc0357_1346893158845_488694_13674.hasStuff(endTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -818,22 +822,82 @@
 											<eventName>AddStructuralFeatureValueAction</eventName>
 											<arguments>
 												<parameter>
-													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+													<name>_17_0_5_edc0357_1346893158844_847477_13667_endTime</name>
 													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158929_378648_13841</name>
+													<value>_17_0_5_edc0357_1346893158930_266567_13844</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--asfvCap_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158844_174958_13666_exists</expression>
 										</condition>
 									</elaboration>
+								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1346893158845_814119_13668</name>
+									<!--<actionName>f2</actionName><actionType>Fork Node</actionType>-->
+									<members>
+										<parameter>
+											<!--Initialize existence of vs0 (ValueSpecificationAction) as false-->
+											<name>_17_0_5_edc0357_1346893158844_847477_13667_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time: init (InitialNode)-->
+											<name>_17_0_5_edc0357_1346893158844_415930_13663_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of rsI (ReadSelfAction) as false-->
+											<name>_17_0_5_edc0357_1346893158843_68308_13660_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of vs4 (ValueSpecificationAction) as false-->
+											<name>_17_0_5_edc0357_1346893158843_768602_13661_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158844_415930_13663_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158844_847477_13667_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158843_68308_13660_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158843_768602_13661_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects>
+								</effects>
+								<elaborations>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158844_114248_13662</eventType>
-											<eventName>AddStructuralFeatureValueAction</eventName>
+											<eventType>_17_0_5_edc0357_1346893158843_68308_13660</eventType>
+											<eventName>ReadSelfAction</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
@@ -842,26 +906,62 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--rsI_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1346893158844_114248_13662_exists</expression>
+											<expression>_17_0_5_edc0357_1346893158843_68308_13660_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158843_768602_13661</eventType>
+											<eventName>ValueSpecificationAction</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+													<type>Integer</type>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--vs4_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346893158843_768602_13661_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158844_847477_13667</eventType>
+											<eventName>ValueSpecificationAction</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+													<type>Integer</type>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--vs0_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346893158844_847477_13667_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Join Node</actionType>-->
+									<name>_17_0_5_edc0357_1346893158845_195958_13669</name>
+									<!--<actionName>f3</actionName><actionType>Join Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (ActivityFinalNode) as false-->
+											<!--Initialize existence of fin (ActivityFinalNode) as false-->
 											<name>_17_0_5_edc0357_1346893158844_42063_13664_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (AddStructuralFeatureValueAction)-->
+											<!--previous event end time: asfvUsage (AddStructuralFeatureValueAction)-->
 											<name>_17_0_5_edc0357_1346893158844_114248_13662_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -894,7 +994,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--fin_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158844_42063_13664_exists</expression>
 										</condition>
@@ -936,7 +1036,7 @@
 						<events>
 							<event>
 								<class>
-									<name>start</name>
+									<name>_17_0_5_edc0357_1346893158894_762690_13750</name>
 									<!--<actionName>start</actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
@@ -981,7 +1081,7 @@
 							</event>
 							<event>
 								<class>
-									<name>init</name>
+									<name>_17_0_5_edc0357_1346893158894_201560_13751</name>
 									<!--<actionName>init</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
@@ -1053,7 +1153,7 @@
 							</event>
 							<event>
 								<class>
-									<name>fork</name>
+									<name>_17_0_5_edc0357_1346893158895_53394_13753</name>
 									<!--<actionName>fork</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
@@ -1134,7 +1234,7 @@
 							</event>
 							<event>
 								<class>
-									<name>cpu</name>
+									<name>_17_0_5_edc0357_1346893158896_214295_13759</name>
 									<!--<actionName>cpu</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
@@ -1177,7 +1277,7 @@
 							</event>
 							<event>
 								<class>
-									<name>fin</name>
+									<name>_17_0_5_edc0357_1346893158896_969462_13761</name>
 									<!--<actionName>fin</actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
@@ -1200,7 +1300,7 @@
 							</event>
 							<event>
 								<class>
-									<name>timer_300s</name>
+									<name>_17_0_5_edc0357_1347395382223_262819_14641</name>
 									<!--<actionName>timer_300s</actionName><actionType>Accept Event Action</actionType>-->
 									<members>
 										<parameter>
