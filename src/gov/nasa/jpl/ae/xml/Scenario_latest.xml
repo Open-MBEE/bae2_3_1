@@ -168,12 +168,10 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_41089_13607_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158916_188297_13814</name>
-													<type>Object</type>
 													<value>_17_0_5_edc0357_1346893158916_491101_13813</value>
 												</parameter>
 											</arguments>
@@ -239,7 +237,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_218637_13608_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -284,7 +281,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_388211_13609_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -370,7 +366,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -388,7 +383,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -411,7 +405,6 @@
 								<arguments>
 									<parameter>
 										<name>startTime</name>
-										<type>Integer</type>
 										<value>invoke_time</value>
 									</parameter>
 								</arguments>
@@ -498,12 +491,10 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158843_68308_13660_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 												<parameter>
 													<name>objectToPass</name>
-													<type>Object</type>
 													<value>_17_0_5_edc0357_1346893158926_140857_13836</value>
 												</parameter>
 											</arguments>
@@ -561,12 +552,10 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158843_768602_13661_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158928_722123_13839</name>
-													<type>Object</type>
 													<value>_17_0_5_edc0357_1346893158927_153311_13838</value>
 												</parameter>
 											</arguments>
@@ -632,7 +621,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_114248_13662_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -677,7 +665,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_415930_13663_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -827,12 +814,10 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_847477_13667_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158929_378648_13841</name>
-													<type>Object</type>
 													<value>_17_0_5_edc0357_1346893158930_266567_13844</value>
 												</parameter>
 											</arguments>
@@ -906,7 +891,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -924,7 +908,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -942,7 +925,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -994,7 +976,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_195958_13669_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -1017,7 +998,6 @@
 								<arguments>
 									<parameter>
 										<name>startTime</name>
-										<type>Integer</type>
 										<value>invoke_time</value>
 									</parameter>
 								</arguments>
@@ -1073,7 +1053,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158894_762690_13750_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -1131,7 +1110,6 @@
 											<arguments>
 												<parameter>
 													<name>endTime</name>
-													<type>Integer</type>
 													<value>cba_endTime</value>
 												</parameter>
 											</arguments>
@@ -1145,7 +1123,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158894_201560_13751_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -1208,7 +1185,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -1226,7 +1202,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -1273,7 +1248,6 @@
 											<arguments>
 												<parameter>
 													<name>endTime</name>
-													<type>Integer</type>
 													<value>cba_endTime</value>
 												</parameter>
 											</arguments>
@@ -1349,7 +1323,6 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1347395382223_262819_14641_endTime</name>
-													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -1372,7 +1345,6 @@
 								<arguments>
 									<parameter>
 										<name>startTime</name>
-										<type>Integer</type>
 										<value>invoke_time</value>
 									</parameter>
 								</arguments>
