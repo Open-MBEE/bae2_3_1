@@ -1104,7 +1104,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<enclosingInstance>Customer.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158682_214024_13522</eventType>
 											<eventName>Activity</eventName>
 											<arguments>
@@ -1242,7 +1242,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<enclosingInstance>Customer.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158681_559654_13521</eventType>
 											<eventName>Activity</eventName>
 											<arguments>
