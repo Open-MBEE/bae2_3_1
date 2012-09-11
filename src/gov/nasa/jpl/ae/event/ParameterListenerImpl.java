@@ -158,14 +158,14 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T, CT extends Comparable< CT > > void addDependency( Parameter< T > p, Expression< T > e ) {
+  public < T > void addDependency( Parameter< T > p, Expression< T > e ) {
     Dependency< T > d = new Dependency< T >( p, e );
     if ( e.type == Expression.Type.Parameter ) {
       Parameter< T > ep = (Parameter< T >)e.expression;
       if ( ep.getDomain() instanceof AbstractRangeDomain &&
           p.getDomain() instanceof AbstractRangeDomain ) {
-        AbstractRangeDomain< CT > ard = (AbstractRangeDomain< CT >)p.getDomain();
-        AbstractRangeDomain< CT > eard = (AbstractRangeDomain< CT >)ep.getDomain();
+        AbstractRangeDomain< T > ard = (AbstractRangeDomain< T >)p.getDomain();
+        AbstractRangeDomain< T > eard = (AbstractRangeDomain< T >)ep.getDomain();
         eard.intersectRestrict( ard );
         ard.intersectRestrict( eard );
       }
