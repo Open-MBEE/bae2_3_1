@@ -94,11 +94,11 @@
 						<events>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Read Self Action</actionType>-->
+									<name>rscpu</name>
+									<!--<actionName>rscpu</actionName><actionType>Read Self Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
+											<!--previous event end time: fork2 (ForkNode)-->
 											<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -124,8 +124,8 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
+									<name>vs15</name>
+									<!--<actionName>vs15</actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
 											<!--value specification VALUE-->
@@ -134,13 +134,13 @@
 											<value>15</value>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
+											<!--Initialize existence of addstructUsage (AddStructuralFeatureValueAction) as false-->
 											<name>_17_0_5_edc0357_1346893158786_218637_13608_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
+											<!--previous event end time: fork2 (ForkNode)-->
 											<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -177,7 +177,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--addstructUsage_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158786_218637_13608_exists</expression>
 										</condition>
@@ -186,11 +186,11 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
+									<name>addstructUsage</name>
+									<!--<actionName>addstructUsage</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (ActivityFinalNode) as false-->
+											<!--Initialize existence of final (ActivityFinalNode) as false-->
 											<name>_17_0_5_edc0357_1346893158786_150429_13610_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -208,7 +208,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ValueSpecificationAction)-->
+											<!--previous event end time: vs15 (ValueSpecificationAction)-->
 											<name>_17_0_5_edc0357_1346893158786_41089_13607_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -243,7 +243,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--final_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158786_150429_13610_exists</expression>
 										</condition>
@@ -252,11 +252,11 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Initial Node</actionType>-->
+									<name>initial</name>
+									<!--<actionName>initial</actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (ForkNode) as false-->
+											<!--Initialize existence of fork2 (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1346893350205_452392_14267_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -288,7 +288,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--fork2_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893350205_452392_14267_exists</expression>
 										</condition>
@@ -297,11 +297,11 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
+									<name>final</name>
+									<!--<actionName>final</actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (AddStructuralFeatureValueAction)-->
+											<!--previous event end time: addstructUsage (AddStructuralFeatureValueAction)-->
 											<name>_17_0_5_edc0357_1346893158786_218637_13608_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -320,23 +320,23 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
+									<name>fork2</name>
+									<!--<actionName>fork2</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (ValueSpecificationAction) as false-->
+											<!--Initialize existence of vs15 (ValueSpecificationAction) as false-->
 											<name>_17_0_5_edc0357_1346893158786_41089_13607_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (InitialNode)-->
+											<!--previous event end time: initial (InitialNode)-->
 											<name>_17_0_5_edc0357_1346893158786_388211_13609_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (ReadSelfAction) as false-->
+											<!--Initialize existence of rscpu (ReadSelfAction) as false-->
 											<name>_17_0_5_edc0357_1346893158785_906489_13606_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -374,7 +374,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--rscpu_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158785_906489_13606_exists</expression>
 										</condition>
@@ -392,7 +392,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--vs15_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158786_41089_13607_exists</expression>
 										</condition>
@@ -930,23 +930,17 @@
 								<type>Integer</type>
 								<value/>
 							</parameter>
-							<parameter>
-								<!--object flow for signal-->
-								<name>sig_17_0_5_edc0357_1340656734213_808349_11756</name>
-								<type>ObjectFlow&lt;stop&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1340656734213_808349_11756")</value>
-							</parameter>
 						</members>
 						<constraints/>
 						<dependencies/>
 						<events>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Initial Node</actionType>-->
+									<name>start</name>
+									<!--<actionName>start</actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (CallBehaviorAction) as false-->
+											<!--Initialize existence of init (CallBehaviorAction) as false-->
 											<name>_17_0_5_edc0357_1346893158894_201560_13751_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -978,7 +972,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--init_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158894_201560_13751_exists</expression>
 										</condition>
@@ -987,17 +981,17 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
+									<name>init</name>
+									<!--<actionName>init</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (InitialNode)-->
+											<!--previous event end time: start (InitialNode)-->
 											<name>_17_0_5_edc0357_1346893158894_762690_13750_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (ForkNode) as false-->
+											<!--Initialize existence of fork (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1346893158895_53394_13753_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -1036,7 +1030,7 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--fork_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158895_53394_13753_exists</expression>
 										</condition>
@@ -1059,23 +1053,23 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
+									<name>fork</name>
+									<!--<actionName>fork</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of  (AcceptEventAction) as false-->
-											<name>_17_0_5_edc0357_1346893158895_247978_13754_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
-										<parameter>
-											<!--Initialize existence of  (CallBehaviorAction) as false-->
+											<!--Initialize existence of cpu (CallBehaviorAction) as false-->
 											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (CallBehaviorAction)-->
+											<!--Initialize existence of timer_300s (AcceptEventAction) as false-->
+											<name>_17_0_5_edc0357_1347395382223_262819_14641_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time: init (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346893158894_201560_13751_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -1086,12 +1080,12 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158895_247978_13754_exists</name>
+											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
+											<name>_17_0_5_edc0357_1347395382223_262819_14641_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
@@ -1100,24 +1094,6 @@
 								<effects>
 								</effects>
 								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158895_247978_13754</eventType>
-											<eventName>AcceptEventAction</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
-													<type>Integer</type>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346893158895_247978_13754_exists</expression>
-										</condition>
-									</elaboration>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
@@ -1131,79 +1107,38 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--cpu_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158896_214295_13759_exists</expression>
 										</condition>
 									</elaboration>
-								</elaborations>
-							</event>
-							<event>
-								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
-									<members>
-										<parameter>
-											<!--Initialize existence of  (ActivityFinalNode) as false-->
-											<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
-										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!-- (AcceptEventAction) accepts the stop signal-->
-											<name>sig_17_0_5_edc0357_1340656734213_808349_11756</name>
-											<type>stop</type>
-											<value/>
-										</parameter>
-									</members>
-									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158895_53394_13753_endTime</expression></constraint>
-									</constraints>
-									<dependencies>
-										<dependency>
-											<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
-											<type>Boolean</type>
-											<value>true</value>
-										</dependency>
-									</dependencies>
-								</class>
-								<effects>
-									<effect>sig_17_0_5_edc0357_1340656734213_808349_11756 = sig_17_0_5_edc0357_1340656734213_808349_11756.receive(startTime - 1)</effect>
-								</effects>
-								<elaborations>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158896_969462_13761</eventType>
-											<eventName>ActivityFinalNode</eventName>
+											<eventType>_17_0_5_edc0357_1347395382223_262819_14641</eventType>
+											<eventName>AcceptEventAction</eventName>
 											<arguments>
 												<parameter>
-													<name>_17_0_5_edc0357_1346893158895_247978_13754_endTime</name>
+													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
 													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--timer_300s_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1346893158896_969462_13761_exists</expression>
+											<expression>_17_0_5_edc0357_1347395382223_262819_14641_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
+									<name>cpu</name>
+									<!--<actionName>cpu</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
+											<!--previous event end time: fork (ForkNode)-->
 											<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -1242,18 +1177,18 @@
 							</event>
 							<event>
 								<class>
-									<name></name>
-									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
+									<name>fin</name>
+									<!--<actionName>fin</actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (AcceptEventAction)-->
-											<name>_17_0_5_edc0357_1346893158895_247978_13754_endTime</name>
+											<!--previous event end time: timer_300s (AcceptEventAction)-->
+											<name>_17_0_5_edc0357_1347395382223_262819_14641_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158895_247978_13754_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1347395382223_262819_14641_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 									</dependencies>
@@ -1261,6 +1196,63 @@
 								<effects>
 								</effects>
 								<elaborations>
+								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>timer_300s</name>
+									<!--<actionName>timer_300s</actionName><actionType>Accept Event Action</actionType>-->
+									<members>
+										<parameter>
+											<!--Initialize existence of fin (ActivityFinalNode) as false-->
+											<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time: fork (ForkNode)-->
+											<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158895_53394_13753_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Seconds</type>
+											<value>300</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects>
+								</effects>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158896_969462_13761</eventType>
+											<eventName>ActivityFinalNode</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1347395382223_262819_14641_endTime</name>
+													<type>Integer</type>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--fin_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346893158896_969462_13761_exists</expression>
+										</condition>
+									</elaboration>
 								</elaborations>
 							</event>
 						</events>
