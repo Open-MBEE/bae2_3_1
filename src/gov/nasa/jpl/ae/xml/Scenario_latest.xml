@@ -37,7 +37,7 @@
 	</events>
 	<classes>
 		<class>
-			<name>_17_0_5_edc0357_1346893158668_227375_13516</name>
+			<name>Customer</name>
 			<import>java.util.Queue</import>
 			<import>java.util.LinkedList</import>
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
@@ -1327,7 +1327,7 @@
 										</dependency>
 										<dependency>
 											<name>duration</name>
-											<type>Seconds</type>
+											<type>Integer</type>
 											<value>300</value>
 										</dependency>
 									</dependencies>
