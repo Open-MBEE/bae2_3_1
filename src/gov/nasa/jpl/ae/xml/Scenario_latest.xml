@@ -94,7 +94,7 @@
 						<events>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158785_906489_13606</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Read Self Action</actionType>-->
 									<members>
 										<parameter>
@@ -124,7 +124,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158786_41089_13607</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
@@ -162,6 +162,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_218637_13608</eventType>
 											<eventName>AddStructuralFeatureValueAction</eventName>
 											<arguments>
@@ -185,7 +186,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158786_218637_13608</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
@@ -231,6 +232,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_150429_13610</eventType>
 											<eventName>ActivityFinalNode</eventName>
 											<arguments>
@@ -250,7 +252,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158786_388211_13609</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
@@ -275,6 +277,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893350205_452392_14267</eventType>
 											<eventName>ForkNode</eventName>
 											<arguments>
@@ -294,7 +297,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158786_150429_13610</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
@@ -317,7 +320,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893350205_452392_14267</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
@@ -360,6 +363,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158785_906489_13606</eventType>
 											<eventName>ReadSelfAction</eventName>
 											<arguments>
@@ -377,6 +381,7 @@
 									</elaboration>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_41089_13607</eventType>
 											<eventName>ValueSpecificationAction</eventName>
 											<arguments>
@@ -399,6 +404,7 @@
 					<elaborations>
 						<elaboration>
 							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158786_388211_13609</eventType>
 								<eventName>InitialNode</eventName>
 								<arguments>
@@ -458,7 +464,7 @@
 						<events>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158843_68308_13660</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Read Self Action</actionType>-->
 									<members>
 										<parameter>
@@ -489,6 +495,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_682791_13665</eventType>
 											<eventName>ForkNode</eventName>
 											<arguments>
@@ -512,7 +519,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158843_768602_13661</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
@@ -535,7 +542,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158844_114248_13662</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
@@ -582,6 +589,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158845_195958_13669</eventType>
 											<eventName>JoinNode</eventName>
 											<arguments>
@@ -601,7 +609,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158844_415930_13663</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
@@ -626,6 +634,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158845_814119_13668</eventType>
 											<eventName>ForkNode</eventName>
 											<arguments>
@@ -645,7 +654,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158844_42063_13664</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
@@ -668,7 +677,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158844_682791_13665</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
@@ -699,7 +708,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158844_174958_13666</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
@@ -738,7 +747,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158844_847477_13667</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
@@ -761,7 +770,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158845_814119_13668</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
@@ -804,6 +813,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_174958_13666</eventType>
 											<eventName>AddStructuralFeatureValueAction</eventName>
 											<arguments>
@@ -821,6 +831,7 @@
 									</elaboration>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_114248_13662</eventType>
 											<eventName>AddStructuralFeatureValueAction</eventName>
 											<arguments>
@@ -840,7 +851,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158845_195958_13669</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Join Node</actionType>-->
 									<members>
 										<parameter>
@@ -872,6 +883,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_42063_13664</eventType>
 											<eventName>ActivityFinalNode</eventName>
 											<arguments>
@@ -894,6 +906,7 @@
 					<elaborations>
 						<elaboration>
 							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158844_415930_13663</eventType>
 								<eventName>InitialNode</eventName>
 								<arguments>
@@ -929,7 +942,7 @@
 						<events>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158894_762690_13750</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Initial Node</actionType>-->
 									<members>
 										<parameter>
@@ -954,6 +967,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158894_201560_13751</eventType>
 											<eventName>CallBehaviorAction</eventName>
 											<arguments>
@@ -973,7 +987,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158894_201560_13751</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
@@ -1011,6 +1025,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158895_53394_13753</eventType>
 											<eventName>ForkNode</eventName>
 											<arguments>
@@ -1028,6 +1043,7 @@
 									</elaboration>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158682_214024_13522</eventType>
 											<eventName>Activity</eventName>
 											<arguments>
@@ -1043,7 +1059,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158895_53394_13753</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
@@ -1086,6 +1102,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158895_247978_13754</eventType>
 											<eventName>AcceptEventAction</eventName>
 											<arguments>
@@ -1103,6 +1120,7 @@
 									</elaboration>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158896_214295_13759</eventType>
 											<eventName>CallBehaviorAction</eventName>
 											<arguments>
@@ -1122,7 +1140,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158895_247978_13754</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
 									<members>
 										<parameter>
@@ -1161,6 +1179,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158896_969462_13761</eventType>
 											<eventName>ActivityFinalNode</eventName>
 											<arguments>
@@ -1180,7 +1199,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158896_214295_13759</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
@@ -1207,6 +1226,7 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158681_559654_13521</eventType>
 											<eventName>Activity</eventName>
 											<arguments>
@@ -1222,7 +1242,7 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1346893158896_969462_13761</name>
+									<name></name>
 									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
 									<members>
 										<parameter>
@@ -1248,6 +1268,7 @@
 					<elaborations>
 						<elaboration>
 							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158894_762690_13750</eventType>
 								<eventName>InitialNode</eventName>
 								<arguments>
