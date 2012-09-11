@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Expression.Type;
 import gov.nasa.jpl.ae.util.Debug;
 
 import java.lang.reflect.InvocationTargetException;
@@ -109,7 +110,12 @@ public class FunctionCall implements HasParameters, Groundable {
         argObjects[i] = unevaluatedArg;
       } else {
         if ( unevaluatedArg instanceof Expression ) {
-          argObjects[i] = ((Expression<?>)unevaluatedArg).evaluate( propagate );
+          Expression< ? > expr = (Expression<?>)unevaluatedArg;
+          if ( expr.type == Type.Parameter && c.isInstance( expr.expression ) ) {
+            argObjects[i] = expr.expression;
+          } else {
+            argObjects[i] = expr.evaluate( propagate );
+          }
         }
         if ( !c.isAssignableFrom( argObjects[i].getClass() ) &&
              isSubclassOf( c, Expression.class ) &&
@@ -131,6 +137,26 @@ public class FunctionCall implements HasParameters, Groundable {
     Object result = null;
     try {
       Debug.outln( "About to invoke method from FunctionCall: " + this );
+      if ( object != null ) {
+        boolean io = object instanceof Parameter;
+        boolean ii1 = method.getDeclaringClass().isAssignableFrom( object.getClass() );
+        Debug.outln( object + " instanceof Parameter = " + io );
+        Debug.outln( "method.getDeclaringClass()=" + method.getDeclaringClass()
+                     + ".isAssignableFrom( " + object.getClass().getName()
+                     + " ) = " + ii1 );
+        if ( io ) {
+          Object v = ( (Parameter< ? >)object ).getValue();
+          boolean ii2 = true;
+          if ( v != null ) {
+            ii2 = method.getDeclaringClass().isAssignableFrom( v.getClass() );
+            Debug.outln( "method.getDeclaringClass()=" + method.getDeclaringClass()
+                         + ".isAssignableFrom( " + v.getClass() + " ) = " + ii2 );
+          }
+          if ( !ii1 && ii2 ) {
+            object = v;
+          }
+        }
+      }
       result = method.invoke( object, evaluatedArgs );// arguments.toArray() );
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block

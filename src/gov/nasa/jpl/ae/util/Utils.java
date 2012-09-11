@@ -340,7 +340,7 @@ public class Utils {
                 || ( aCtor.isVarArgs() 
                      && ( aCtor.getParameterTypes().length < args.length
                           || aCtor.getParameterTypes().length == 1 ) );
-        if ( !okNumArgs ) continue;
+        //if ( !okNumArgs ) continue;
         for ( int i = 0; i < Math.min( aCtor.getParameterTypes().length,
                                        args.length ); ++i ) {
           if ( args[ i ] == null ) continue;
@@ -348,7 +348,7 @@ public class Utils {
             ++numMatching;
           }
         }
-        if ( ( ctor == null ) || !gotOkNumArgs
+        if ( ( ctor == null ) || (okNumArgs && !gotOkNumArgs)
              || ( numMatching > mostMatchingArgs ) ) {
           ctor = aCtor;
           gotOkNumArgs = okNumArgs;
@@ -450,7 +450,7 @@ public class Utils {
                    && ( m.getParameterTypes().length < argTypes.length 
                         || m.getParameterTypes().length == 1 ) );
         Debug.outln( "okNumArgs = " + okNumArgs );
-        if ( !okNumArgs ) continue;
+        //if ( !okNumArgs ) continue;
         for ( int i = 0; i < Math.min( m.getParameterTypes().length,
                                        argTypes.length ); ++i ) {
           if ( argTypes[ i ] == null ) {

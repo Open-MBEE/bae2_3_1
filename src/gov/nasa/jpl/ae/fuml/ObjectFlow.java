@@ -16,31 +16,6 @@ import gov.nasa.jpl.ae.event.Timepoint;
  */
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
-  public class foo {
-    public class bar {
-      Class<?> c = ObjectFlow.foo.bar.class;
-      
-    }
-    Class<?> c = bar.class;
-  }
-  Class<?> c1 = ObjectFlow.foo.bar.class;
-  Class<?> c2 = foo.bar.class;
-  //Class<?> c3 = bar.class; doesn't compile
-  
-  
-  /**
-   * @param name
-   * @param initialValueFunction
-   * @param o
-   * @param samplePeriod
-   * @param horizonDuration
-   */
-  public ObjectFlow( String name, Method initialValueFunction, Object o,
-                     int samplePeriod, int horizonDuration ) {
-    super( name );
-    Assert.fail( "Error! Constructor not supported! ObjectFlow( String name, Method initialValueFunction, Object o, int samplePeriod, int horizonDuration )" );
-  }
-
   /**
    * @param name
    * @param defaultValue
@@ -49,7 +24,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     super( name, null );
   }
 
-  public void send( Timepoint t, Obj o ) {
+  public void send( Obj o, Timepoint t ) {
     this.setValue( t, o );
   }
   

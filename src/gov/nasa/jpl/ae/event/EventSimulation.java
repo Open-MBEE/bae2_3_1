@@ -162,7 +162,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );
           formatString = "%s%s -> %s\n";
-          w.printf( formatString, padding, name, value.toString() );
+          w.printf( formatString, padding, name, value == null ? "null" : value.toString() );
         } else {
           formatString = "%14s : %28s  %s -> %s\n";          
           w.printf( formatString,

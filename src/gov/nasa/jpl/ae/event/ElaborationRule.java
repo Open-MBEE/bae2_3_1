@@ -35,7 +35,12 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
   }
 
   public boolean isConditionSatisfied() {
-    return ( condition == null || condition.evaluate(true) );
+    Expression< Boolean > c = condition;
+    boolean isNull = ( c == null );
+    if ( isNull ) return true;
+    Boolean r = c.evaluate( true );
+    if (r == null) return false;
+    return r;//( condition == null || condition.evaluate(true) );
   }
   
   // Fix elaboration and return whether it is elaborated.
