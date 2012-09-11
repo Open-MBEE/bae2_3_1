@@ -24,7 +24,7 @@ import org.junit.Assert;
  * @author bclement
  *
  */
-public abstract class AbstractRangeDomain< T extends Comparable< T > >
+public abstract class AbstractRangeDomain< T  >
                         implements RangeDomain< T > {
 
   //protected static RangeDomain defaultDomain;
