@@ -61,7 +61,6 @@ src/gov/nasa/jpl/ae/event/HasTimeVaryingObjects.java -text
 src/gov/nasa/jpl/ae/event/IntegerParameter.java -text
 src/gov/nasa/jpl/ae/event/LazyUpdate.java -text
 src/gov/nasa/jpl/ae/event/Node.java -text
-src/gov/nasa/jpl/ae/event/Pair.java -text
 src/gov/nasa/jpl/ae/event/Parameter.java -text
 src/gov/nasa/jpl/ae/event/ParameterConstraint.java -text
 src/gov/nasa/jpl/ae/event/ParameterListener.java -text
