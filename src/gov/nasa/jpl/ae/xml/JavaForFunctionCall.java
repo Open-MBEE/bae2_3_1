@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 import gov.nasa.jpl.ae.event.TimeVarying; // don't remove!!
 import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove!!
+import japa.parser.ast.body.FieldDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.Expression;
 import japa.parser.ast.expr.MethodCallExpr;
@@ -29,6 +30,8 @@ public class JavaForFunctionCall {
   public String argumentArrayJava;
   public Vector<String> args;
   private boolean convertingArgumentsToExpressions;
+  public ArrayList<FieldDeclaration> generatedDependencies =
+      new ArrayList< FieldDeclaration >();
   
   public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
                               MethodCallExpr mce,

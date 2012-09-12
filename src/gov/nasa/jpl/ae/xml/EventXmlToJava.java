@@ -66,12 +66,12 @@ import org.xml.sax.SAXException;
 
 
 import gov.nasa.jpl.ae.event.DurativeEvent;
-import gov.nasa.jpl.ae.event.Pair;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.TimeVarying; // don't remove
 import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 
@@ -2151,7 +2151,8 @@ public class EventXmlToJava {
                                             variable );
       return new Pair< String, FieldDeclaration >( jffc.objectName, f );
     } else {
-      assert false; // TODO -- REVIEW -- Can it be something else?
+      assert false; // TODO -- REVIEW -- Can it be something else? an
+                    // assignment? signal = flow.receive(t)
     }
     return null; //new Pair( scopeExpr.toString(), f );
   }
