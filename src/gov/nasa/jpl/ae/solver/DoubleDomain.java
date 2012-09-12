@@ -73,7 +73,7 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   @Override
   public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
-    if ( lowerBound == upperBound ) return 1;
+    if ( lowerBound.equals( upperBound ) ) return 1;
     return -1;
   }
 

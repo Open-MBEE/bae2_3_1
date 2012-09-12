@@ -481,6 +481,15 @@ public class EventXmlToJava {
     return p; 
   }
 
+  public boolean isEvent( String className ) {
+    if ( Utils.isNullOrEmpty( className ) ) return false;
+    Boolean s = isEventMap.get( className );
+    if ( s != null && s ) return true;
+    String scopedName = getClassNameWithScope( className );
+    s = isEventMap.get( scopedName );
+    return ( s != null && s );
+  }
+  
   public boolean isStatic( String name ) {
     if ( Utils.isNullOrEmpty( name ) ) return false;
     Boolean s = isStaticMap.get( name );
@@ -975,7 +984,7 @@ public class EventXmlToJava {
     return equals;
   }
 
-  protected static void
+  protected void
       addStatementsToConstructor( ConstructorDeclaration ctor,
                                   List< Param > arguments ) {
     StringBuffer stmtList = new StringBuffer();
@@ -993,7 +1002,10 @@ public class EventXmlToJava {
       stmtList.append( "addDependency( this." + p.name + ", " + p.name
                        + " );\n" );
     }
-    stmtList.append( "init" + ctor.getName() + "Elaborations();\n" );
+    if ( isEvent( ctor.getName() ) ) {
+      stmtList.append( "init" + ctor.getName() + "Elaborations();\n" );
+      stmtList.append( "fixTimeDependencies();\n" );
+    }
     Debug.outln( "adding statements to block: " + stmtList.toString() );
     addStatements( block, stmtList.toString() );
     ctor.setBlock( block );

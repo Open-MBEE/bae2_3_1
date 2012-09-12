@@ -123,8 +123,10 @@ public class Functions {
   
   public static < T > java.lang.Number add( Expression< T > o1,
                                             Expression< T > o2 ) {
+    if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     T r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
     Number result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       double rd1 = ( (Double) r1).doubleValue();
@@ -161,8 +163,10 @@ public class Functions {
   
   public static < T > java.lang.Number subtract( Expression< T > o1, 
                                                  Expression< T > o2 ) {
-    T r1 = o1.evaluate(false);
-    T r2 = o2.evaluate(false);
+    if ( o1 == null || o2 == null ) return null;
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
     Number result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       double rd1 = ( (Double) r1).doubleValue();
@@ -392,22 +396,37 @@ public class Functions {
     return b;
   }
 
-  public static < T extends Comparable< ? super T > > Boolean
+  public static < T > Boolean
       equals( Expression< T > o1, Expression< T > o2 ) {
-    boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) == 0;
+    if ( o1 == o2 ) return true;
+    if ( o1 == null || o2 == null ) return false;
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == r2 ) return true;
+    if ( r1 == null || r2 == null ) return false;
+    boolean b = true;
+    if ( r1 instanceof Comparable ) {
+      b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+    } else {
+      b = r1.equals( r2 );
+    }
     Debug.outln( o1 + " == " + o2 + " = " + b );
     return b;
   }
   public static < T > Boolean
       notEquals( Expression< T > o1, Expression< T > o2 ) {
-    T r1 = o1.evaluate(false);
-    T r2 = o2.evaluate(false);
-    boolean b = false;
-    if ( r1 instanceof Comparable ) {
-      b = ( (Comparable<T>)r1 ).compareTo( r2 ) != 0;
-    } else {
-      b = r1.equals( r2 );
-    }
+//    if ( o1 == o2 ) return false;
+//    if ( o1 == null || o2 == null ) return true;
+//    T r1 = o1.evaluate( false );
+//    T r2 = o2.evaluate( false );
+//    if ( r1 == r2 ) return false;
+//    if ( r1 == null || r2 == null ) return true;
+    boolean b = !equals( o1, o2 );
+//    if ( r1 instanceof Comparable ) {
+//      b = ( (Comparable<T>)r1 ).compareTo( r2 ) != 0;
+//    } else {
+//      b = !r1.equals( r2 );
+//    }
     Debug.outln( o1 + " != " + o2 + " = " + b );
     return b;
   }
@@ -420,7 +439,11 @@ public class Functions {
     }
   }
   public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) {
-    boolean b = o1.evaluate(false) && o2.evaluate(false);
+    if ( o1 == null || o2 == null ) return null;
+    Boolean r1 = o1.evaluate( false );
+    Boolean r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    boolean b = r1 && r2;
     Debug.outln( o1 + " && " + o2 + " = " + b );
     return b;
   }
@@ -431,7 +454,11 @@ public class Functions {
     }
   }
   public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-    boolean b = o1.evaluate(false) && o2.evaluate(false);
+    if ( o1 == null || o2 == null ) return null;
+    Boolean r1 = o1.evaluate( false );
+    Boolean r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    boolean b = r1 || r2;
     Debug.outln( o1 + " || " + o2 + " = " + b );
     return b;
   }
@@ -443,7 +470,11 @@ public class Functions {
   }
   public static Boolean
       xor( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-    boolean b = ( o1.evaluate(false) ^ o2.evaluate(false) );
+    if ( o1 == null || o2 == null ) return null;
+    Boolean r1 = o1.evaluate( false );
+    Boolean r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    boolean b = ( r1 ^ r2 );
     Debug.outln( o1 + " ^ " + o2 + " = " + b );
     return b;
   }
@@ -454,7 +485,10 @@ public class Functions {
     }
   }
   public static Boolean not( Expression< Boolean > o ) {
-    boolean b = !o.evaluate(false);
+    if ( o == null ) return null;
+    Boolean r = o.evaluate( false );
+    if ( r == null ) return null;
+    boolean b = !r;
     Debug.outln( "!" + o + " = " + b );
     return b;
   }

@@ -159,7 +159,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T > void addDependency( Parameter< T > p, Expression< T > e ) {
+  public < T > Dependency addDependency( Parameter< T > p, Expression< T > e ) {
     Dependency< T > d = new Dependency< T >( p, e );
     if ( e.type == Expression.Type.Parameter ) {
       Parameter< T > ep = (Parameter< T >)e.expression;
@@ -172,10 +172,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       }
     }
     dependencies.add( d );
+    return d;
   }
 
-  public < T > void addDependency( Parameter< T > p, Parameter< T > source ) {
-    addDependency( p, new Expression< T >( source ) );
+  public < T > Dependency addDependency( Parameter< T > p, Parameter< T > source ) {
+    return addDependency( p, new Expression< T >( source ) );
   }
 
   public < T > boolean

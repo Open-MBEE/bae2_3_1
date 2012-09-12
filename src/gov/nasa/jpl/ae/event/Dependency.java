@@ -79,18 +79,21 @@ public class Dependency< T >
       sat = constraint.isSatisfied();
     } else if ( !parameter.isGrounded() ) {
       sat = false;
+      parameter.setStale( true );
     } else if ( !expression.isGrounded() ) {
       sat = false;
+      parameter.setStale( true );
     } else if ( !parameter.isSatisfied() ) {
       sat = false;
     } else if ( !expression.isSatisfied() ) {
       sat = false;
     } else {
       T value = expression.evaluate(false);
-      sat = parameter.getValueNoPropagate().equals( value );
-    }
-    if ( !sat ) {
-      parameter.setStale( true );
+      T pValue = parameter.getValueNoPropagate();
+      sat = pValue == value || ( pValue != null && pValue.equals( value ) );
+      if ( !sat ) {
+        parameter.setStale( true );
+      }
     }
     Debug.outln( "Dependency.isSatisfied() = " + sat + ": " + this );
     return sat;
@@ -181,7 +184,7 @@ public class Dependency< T >
     if ( variable == this.parameter ) {
       Object value = variable.getValue();
       if ( refresh( this.parameter ) ) {
-        if ( !variable.getValue().equals( value ) ) {
+        if ( !Parameter.valuesEqual( variable.getValue(), value ) ) {
           Debug.outln( "Dependency.pickValue(" + variable + ") returns true on refresh" );
           return true;
         }

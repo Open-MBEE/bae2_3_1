@@ -141,6 +141,14 @@ public class Parameter< T > implements Cloneable, Groundable,
     return value;
   }
 
+  public boolean valueEquals( T otherValue ) {
+    return value == otherValue || ( value != null && value.equals( otherValue ) );
+  }
+  
+  public static <T1> boolean valuesEqual( T1 v1, T1 v2 ) {
+    return v1 == v2 || ( v1 != null && v1.equals( v2 ) );
+  }
+  
   @Override
   public void setValue( T value ) {
     Debug.outln( "Parameter.setValue(" + value + ") start: " + this );
@@ -150,13 +158,16 @@ public class Parameter< T > implements Cloneable, Groundable,
   // setValue( value, false ) is lazy/passive updating
   // setValue( value, true ) is proactive updating
   public void setValue( T value, boolean propagateChange ) {
-    this.value = value;
-    if ( owner != null ) {
-      if ( propagateChange ) {
-        owner.handleValueChangeEvent( this );
-      } else {
-        // lazy/passive updating
-        owner.setStaleAnyReferencesTo( this );
+    boolean changing = !valueEquals( value );
+    if ( changing ) {
+      this.value = value;
+      if ( owner != null ) {
+        if ( propagateChange ) {
+          owner.handleValueChangeEvent( this );
+        } else {
+          // lazy/passive updating
+          owner.setStaleAnyReferencesTo( this );
+        }
       }
     }
     setStale( false );
@@ -181,7 +192,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( value instanceof Groundable ) {
       return ( (Groundable)value ).isGrounded();
     }
-    return ( value != null );
+    return (domain == null || value != null );
   }
 
 //  // Override this!
@@ -288,8 +299,14 @@ public class Parameter< T > implements Cloneable, Groundable,
   
   @Override
   public boolean isSatisfied() {
-    return ( domain == null ) || ( domain.size() == 0 ) || 
-           ( isGrounded() && !isStale() && inDomain() );
+    boolean nullDomain = domain == null;
+    if ( nullDomain ) return true;
+    boolean emptyDomain = domain.size() == 0;
+    if ( emptyDomain ) return true;
+    boolean grounded = isGrounded();
+    boolean stale = isStale();
+    boolean inDom = inDomain();
+    return grounded && !stale && inDom;
   }
 
   @Override

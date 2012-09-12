@@ -69,6 +69,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   protected Map< ElaborationRule, Vector< Event > > elaborations =
       new TreeMap< ElaborationRule, Vector< Event > >();
 
+  protected Dependency startTimeDependency = null;
+  
+  protected Dependency endTimeDependency = null;
+  
+  protected Dependency durationDependency = null;
+  
   // TODO -- consider breaking elaborations up into separate constraints
   protected Constraint elaborationsConstraint = 
       new AbstractParameterConstraint() {
@@ -201,7 +207,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       return getName() + ".effectsConstraint";
     }
   };  // end of effectsConstraint
-  
+
   
   // Constructors
 
@@ -218,17 +224,17 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         new Functions.Sum< Integer, Integer >(
             new Expression< Integer >( startTime ),
             new Expression< Integer >( duration ) );
-    addDependency( endTime, sum );
+    endTimeDependency  = addDependency( endTime, sum );
     Functions.Sub< Integer, Integer > sub1 =
         new Functions.Sub< Integer, Integer >(
             new Expression< Integer >( endTime ),
             new Expression< Integer >( duration ) );
-    addDependency( startTime, sub1 );
+    startTimeDependency = addDependency( startTime, sub1 );
     Functions.Sub< Integer, Integer > sub2 =
         new Functions.Sub< Integer, Integer >(
             new Expression< Integer >( endTime ),
             new Expression< Integer >( startTime ) );
-    addDependency( duration, sub2 );
+    durationDependency = addDependency( duration, sub2 );
   }
 
   public DurativeEvent( DurativeEvent durativeEvent ) {
@@ -277,6 +283,74 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // }
   }
 
+  public void fixTimeDependencies() {
+    boolean gotStart = false, gotEnd = false, gotDur = false;
+    boolean stillHaveStart = false, stillHaveEnd = false, stillHaveDur = false;
+    int numGot = 0;
+    int numHave = 0;
+    // see what time dependencies we have
+    for ( Dependency< ? > d : getDependencies() ) {
+      if ( d.parameter == startTime ) { 
+        if ( d == startTimeDependency ) {
+          stillHaveStart = true;
+          ++numHave;
+        } else {
+          gotStart = true;
+          ++numGot;
+        }
+      } else if ( d.parameter == endTime ) {
+        if ( d == endTimeDependency ) {
+          stillHaveEnd = true;
+          ++numHave;
+        } else {
+          gotEnd = true;
+          ++numGot;
+        }
+      } else if ( d.parameter == duration ) {
+        if ( d == durationDependency ) {
+          stillHaveDur = true;
+          ++numHave;
+        } else {
+          gotDur = true;
+          ++numGot;
+        }
+      }
+    }
+    // get rid of already replaced dependencies
+    if ( gotStart && stillHaveStart ) {
+      getDependencies().remove( startTimeDependency );
+      stillHaveStart = false;
+      --numHave;
+    }
+    if ( gotEnd && stillHaveEnd ) {
+      getDependencies().remove( endTimeDependency );
+      stillHaveEnd = false;
+      --numHave;
+    }
+    if ( gotDur && stillHaveDur ) {
+      getDependencies().remove( durationDependency );
+      stillHaveDur = false;
+      --numHave;
+    }
+    // only want one dependency among the three
+    if ( numHave > 1 ) {
+      if ( stillHaveEnd ) {
+        if ( stillHaveStart ) {
+          getDependencies().remove( startTimeDependency );
+        }
+        if ( stillHaveDur ) {
+          getDependencies().remove( durationDependency );
+        }
+      } else if ( stillHaveDur ) {
+        if ( stillHaveStart ) {
+          getDependencies().remove( startTimeDependency );
+        }
+      } else {
+        assert false;
+      }
+    }
+  }
+  
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
     boolean subbed = super.substitute( p1, p2, deep );

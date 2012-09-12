@@ -66,7 +66,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	// REVIEW -- Sometimes ranges don't include upperBound, just the limit to it.
 	@Override
   public boolean contains( Boolean t ) {
-    return ( t != null && ( lowerBound == t || upperBound == t ) );
+    return ( t != null && ( lowerBound.equals( t ) || upperBound.equals( t ) ) );
   }
 
   @Override
