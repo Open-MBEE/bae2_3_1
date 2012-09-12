@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.util.Debug;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -289,6 +290,7 @@ public class Expression< ResultType >
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.outln( "setStale(" + staleness + ") to " + this );
     // TODO -- REVIEW -- Do nothing?
   }
 

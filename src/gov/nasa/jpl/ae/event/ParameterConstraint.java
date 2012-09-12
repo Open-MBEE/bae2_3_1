@@ -62,6 +62,7 @@ public interface ParameterConstraint extends Constraint, HasParameters {
     public static < T > boolean pickValue( Constraint c, Variable< T > v ) {
       // TODO Auto-generated method stub
       //assert false;
+      if ( v == null ) return false;
       return v.pickValue();
       //return false;
     }

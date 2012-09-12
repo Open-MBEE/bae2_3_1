@@ -5,6 +5,8 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -262,6 +264,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.outln( "setStale(" + staleness + ") to " + this );
     Assert.assertTrue( "This method is not supported!", false );
   }
 
@@ -299,6 +302,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       return firstEntry().getValue();
     }
     return null;
+  }
+
+  public T setValue( Integer t, T value ) {
+    Timepoint tp = new Timepoint( "", t, null );
+    return setValue( tp, value );
   }
 
   @Override

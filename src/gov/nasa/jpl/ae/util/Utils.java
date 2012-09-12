@@ -3,9 +3,8 @@
  */
 package gov.nasa.jpl.ae.util;
 
-import gov.nasa.jpl.ae.event.Event;
-import gov.nasa.jpl.ae.event.Pair;
-import japa.parser.ast.body.MethodDeclaration;
+import gov.nasa.jpl.ae.event.Expression;
+import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -222,6 +221,15 @@ public class Utils {
     return 0;
   }
 
+  public static boolean isSubclassOf( Class<?> c1, Class<?> c2 ) {
+    try {
+      c1.asSubclass( c2 );
+    } catch( ClassCastException e ) {
+      return false;
+    }
+    return true;
+  }
+  
   public static Class< ? > tryClassForName( String className, 
                                             boolean initialize ) {
     Class< ? > classForName = null;
@@ -348,8 +356,9 @@ public class Utils {
             ++numMatching;
           }
         }
-        if ( ( ctor == null ) || (okNumArgs && !gotOkNumArgs)
-             || ( numMatching > mostMatchingArgs ) ) {
+        if ( ( ctor == null ) || ( okNumArgs && !gotOkNumArgs )
+             || ( ( okNumArgs && !gotOkNumArgs ) 
+                  && ( numMatching > mostMatchingArgs ) ) ) {
           ctor = aCtor;
           gotOkNumArgs = okNumArgs;
           mostMatchingArgs = numMatching;
@@ -403,6 +412,8 @@ public class Utils {
 
   public static Method getMethodForArgs( Class< ? > cls, String callName,
                                          Object... args ) {
+    Debug.outln( "getMethodForArgs( cls=" + cls.getName() + ", callName="
+        + callName + ", args=" + toString( args ) + " )" );
     Class< ? > argTypes[] = new Class< ? >[ args.length ];
     for ( int i = 0; i < args.length; ++i ) {
       if ( args[ i ] == null ) {
@@ -427,9 +438,12 @@ public class Utils {
   }
   public static Method getMethodForArgTypes( Class< ? > cls, String callName,
                                              Class<?>... argTypes ) {
+    Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
+                 + callName + ", argTypes=" + toString( argTypes ) + " )" );
     Method matchingMethod = null;
     boolean gotOkNumArgs = false;
     int mostMatchingArgs = 0;
+    int mostDeps = 0;
     boolean allArgsMatched = false;
     Method[] methods = null;
     Debug.outln( "calling getMethods() on class " + cls.getName() );
@@ -444,6 +458,7 @@ public class Utils {
     for ( Method m : methods ) {
       if ( m.getName().equals( callName ) ) {
         int numMatching = 0;
+        int numDeps = 0;
         boolean okNumArgs =
             ( m.getParameterTypes().length == argTypes.length )
               || ( m.isVarArgs()
@@ -462,6 +477,13 @@ public class Utils {
                            + m.getParameterTypes()[ i ] + " matches args[ " + i
                            + " ].getClass()=" + argTypes[ i ] );
             ++numMatching;
+          } else if ( Parameter.class.isAssignableFrom( m.getParameterTypes()[ i ] ) &&
+                      Expression.class.isAssignableFrom( argTypes[ i ] ) ) {
+              Debug.outln( "m.getParameterTypes()[ " + i + " ]="
+                           + m.getParameterTypes()[ i ]
+                           + " could be made dependent on args[ " + i
+                           + " ].getClass()=" + argTypes[ i ] );
+            ++numDeps;
           } else {
               Debug.outln( "m.getParameterTypes()[ " + i + " ]="
                            + m.getParameterTypes()[ i ]
@@ -469,17 +491,22 @@ public class Utils {
                            + argTypes[ i ] );
           }
         }
-        if ( ( matchingMethod == null ) || !gotOkNumArgs
-             || ( numMatching > mostMatchingArgs ) ) {
+        if ( ( matchingMethod == null )
+             || ( !gotOkNumArgs && okNumArgs )
+             || ( ( gotOkNumArgs == okNumArgs )
+                  && ( ( numMatching > mostMatchingArgs )
+                       || ( ( numMatching == mostMatchingArgs ) 
+                            && ( numDeps > mostDeps ) ) ) ) ) {
           matchingMethod = m;
           gotOkNumArgs = okNumArgs;
           mostMatchingArgs = numMatching;
+          mostDeps = numDeps;
           allArgsMatched = ( numMatching >= m.getParameterTypes().length );
             Debug.outln( "new match " + m + ", mostMatchingArgs="
-                         + mostMatchingArgs + ",  allArgsMatched="
+                         + mostMatchingArgs + ",  allArgsMatched = "
                          + allArgsMatched + " = numMatching(" + numMatching
                          + ") >= m.getParameterTypes().length("
-                         + m.getParameterTypes().length + ")" );
+                         + m.getParameterTypes().length + "), numDeps=" + numDeps );
         }
       }
     }

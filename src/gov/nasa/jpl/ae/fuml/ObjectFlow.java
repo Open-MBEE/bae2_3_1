@@ -28,7 +28,17 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     this.setValue( t, o );
   }
   
+  public void send( Obj o, Integer t ) {
+    this.setValue( t, o );
+  }
+
   public Obj receive( Timepoint t ) {
+    Obj o = this.getValue( t );
+    this.setValue( t, null );
+    return o;
+  }
+  
+  public Obj receive( Integer t ) {
     Obj o = this.getValue( t );
     this.setValue( t, null );
     return o;
@@ -38,4 +48,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return getValue( t ) != null;
   }
 
+  public boolean hasStuff( Integer t ) {
+    return getValue( t ) != null;
+  }
 }

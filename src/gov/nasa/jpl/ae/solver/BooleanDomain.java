@@ -102,12 +102,12 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 
   @Override
   public boolean greaterEquals( Boolean t1, Boolean t2 ) {
-    return t1;
+    return t1 || !t2;
   }
 
   @Override
   public boolean lessEquals( Boolean t1, Boolean t2 ) {
-    return t2;
+    return !t1 || t2;
   }
 
   @Override

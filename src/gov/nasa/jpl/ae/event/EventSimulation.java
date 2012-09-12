@@ -118,7 +118,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     }
     Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
     boolean existingEntry = false;
+    Object lastValue = null;
+    boolean first = true;
     for ( Map.Entry< Timepoint, V > e : tv.entrySet() ) {
+      if ( first ) first = false;
+      else if ( lastValue == e.getValue() ||
+                ( e.getValue() != null && e.getValue().equals( lastValue ) ) ) {
+        continue;
+      }
       if ( !put( e.getKey().getValue(), tv, e.getValue() ) ) {
         existingEntry = true;
       }
@@ -168,7 +175,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
-                    name, value.toString() );
+                    name, value == null ? "null" : value.toString() );
         }
         lastT = t;
       }

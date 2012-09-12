@@ -65,6 +65,7 @@ public class Dependency< T >
   }
   public void apply( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
+    Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     T val = expression.evaluate(propagate);
     if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
       parameter.setValue( val, propagate );
@@ -80,7 +81,7 @@ public class Dependency< T >
       sat = false;
     } else if ( !expression.isGrounded() ) {
       sat = false;
-    } else if ( !parameter.isSatisfied() ){
+    } else if ( !parameter.isSatisfied() ) {
       sat = false;
     } else if ( !expression.isSatisfied() ) {
       sat = false;
@@ -186,6 +187,8 @@ public class Dependency< T >
         }
       }
       Variable< ? > var = pickRandomFreeVariable();
+      if ( var == null ) var = pickRandomVariable();      
+      if ( var == null ) return false;
       Constraint c = getConstraintExpression();
       boolean changedSomething = false;
       if ( c != null ) {
@@ -323,6 +326,7 @@ public class Dependency< T >
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.outln( "setStale(" + staleness + ") to " + this );
     parameter.setStale( staleness );
   }
 

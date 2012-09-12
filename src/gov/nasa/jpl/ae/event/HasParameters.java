@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.Pair;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;

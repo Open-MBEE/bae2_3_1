@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.Pair;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

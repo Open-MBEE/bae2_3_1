@@ -212,15 +212,21 @@ public abstract class AbstractRangeDomain< T  >
 
   public Collection< Constraint > getConstraints( T t ) {
     List< Constraint > cList= new ArrayList< Constraint >();
-    Object args[] = new Object[] { lowerBound, t };
-    Method method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
+    Object args[] = null;
+    Method method = null;
+    if ( !lowerBound.equals( getTypeMinValue() ) ) {
+      args = new Object[] { lowerBound, t };
+      method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
-    cList.add( new ConstraintExpression( new FunctionCall( this, method,
+      cList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                            args ) ) );
-    args = new Object[] { upperBound, t };
-    method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
-    cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                           args ) ) );
+    }
+    if ( !upperBound.equals( getTypeMaxValue() ) ) {
+      args = new Object[] { upperBound, t };
+      method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
+      cList.add( new ConstraintExpression( new FunctionCall( this, method,
+                                                             args ) ) );
+    }
     return cList;
   }
 

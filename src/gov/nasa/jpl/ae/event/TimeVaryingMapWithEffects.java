@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.event.TimeVaryingMapWithEffects.ValueAndEffects;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Method;

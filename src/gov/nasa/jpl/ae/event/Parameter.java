@@ -85,6 +85,7 @@ public class Parameter< T > implements Cloneable, Groundable,
 
   @Override
   public boolean equals( Object val ) {
+    if ( value == null ) return val == null;
     return value.equals( val );
   }
   
@@ -272,6 +273,11 @@ public class Parameter< T > implements Cloneable, Groundable,
     // keep reservations separate for different Timepoints that occur at the
     // same time. Correct thing to do would be to have unique names (maybe using
     // scope).
+    if ( owner == null && o.owner != null ) return -1;
+    if ( owner != null && o.owner == null ) return 1;
+    if ( owner == null && o.owner == null ) {
+      return Utils.intCompare( hashCode(), o.hashCode() );
+    }
     return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
   }
 
@@ -282,7 +288,8 @@ public class Parameter< T > implements Cloneable, Groundable,
   
   @Override
   public boolean isSatisfied() {
-    return isGrounded() && !isStale() && inDomain();
+    return ( domain == null ) || ( domain.size() == 0 ) || 
+           ( isGrounded() && !isStale() && inDomain() );
   }
 
   @Override
@@ -343,10 +350,10 @@ public class Parameter< T > implements Cloneable, Groundable,
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.outln( "setStale(" + staleness + ") to " + this );
     stale = staleness;
   }
 
-  // TODO -- create constraint from domain
   @Override
   public Collection< Constraint > getConstraints() {
     List< Constraint > cList= new ArrayList< Constraint >();

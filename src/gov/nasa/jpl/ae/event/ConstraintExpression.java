@@ -194,6 +194,7 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.outln( "setStale(" + staleness + ") to " + this );
     ParameterConstraint.Helper.setStale( this, staleness );
   }
   

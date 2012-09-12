@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.event.Expression.Type;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -89,15 +90,6 @@ public class FunctionCall implements HasParameters, Groundable {
     return false;
   }
 
-  public static boolean isSubclassOf( Class<?> c1, Class<?> c2 ) {
-    try {
-      c1.asSubclass( c2 );
-    } catch( ClassCastException e ) {
-      return false;
-    }
-    return true;
-  }
-  
   // Try to match arguments to parameters by evaluating or creating expressions.
   protected Object[] evaluateArgs( boolean propagate ) {
     Class< ? >[] paramTypes = method.getParameterTypes();
@@ -106,9 +98,8 @@ public class FunctionCall implements HasParameters, Groundable {
     for ( int i = 0; i < arguments.size(); ++i ) {
       Object unevaluatedArg = arguments.get( i );
       Class< ? > c = paramTypes[ i ];
-      if ( c.isAssignableFrom( unevaluatedArg.getClass() ) ) {
-        argObjects[i] = unevaluatedArg;
-      } else {
+      argObjects[i] = unevaluatedArg;
+      if ( !c.isAssignableFrom( unevaluatedArg.getClass() ) ) {
         if ( unevaluatedArg instanceof Expression ) {
           Expression< ? > expr = (Expression<?>)unevaluatedArg;
           if ( expr.type == Type.Parameter && c.isInstance( expr.expression ) ) {
@@ -118,9 +109,8 @@ public class FunctionCall implements HasParameters, Groundable {
           }
         }
         if ( !c.isAssignableFrom( argObjects[i].getClass() ) &&
-             isSubclassOf( c, Expression.class ) &&
-             argObjects[i] instanceof Comparable ) {
-          argObjects[i] = new Expression( (Comparable<?>)argObjects[i] );
+             Utils.isSubclassOf( c, Expression.class ) ) {
+          argObjects[i] = new Expression( argObjects[i] );
         }
         assert( c.isAssignableFrom( argObjects[i].getClass() ) );
       }

@@ -8,6 +8,7 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Constructor;
@@ -365,9 +366,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( unsatisfiedConstraints.isEmpty() ) {
         System.err.println( getName() + "'s constraints were not satisfied!" );
       } else {
-        System.err.println( "Could not resolve the following constraints for "
-                            + getName() + ":" );
+        System.err.println( "Could not resolve the following "
+                            + unsatisfiedConstraints.size()
+                            + " constraints for " + getName() + ":" );
         for ( Constraint c : unsatisfiedConstraints ) {
+          c.isSatisfied();
           System.err.println( c.toString() );
         }
       }
@@ -733,19 +736,28 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
 
-    Iterator< Entry< Parameter< ? >, Set< Effect >>> i =  
-        getEffects().entrySet().iterator();
-    Map< Parameter< ? >, Set< Effect >> removedForReinserting =
-        new TreeMap< Parameter< ? >, Set< Effect > >();
-    while ( i.hasNext() ) {
-      Entry< Parameter< ? >, Set< Effect > > e = i.next();
-      i.remove();
-    //for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
-      // Temporarily remove in case propagation in TimeVarying can corrupt entry keys.
-      //getEffects().entrySet().remove( e );
-      Parameter< ? > tlParam = e.getKey();
+//    Iterator< Entry< Parameter< ? >, Set< Effect >>> i =  
+//        getEffects().entrySet().iterator();
+//    Map< Parameter< ? >, Set< Effect >> removedForReinserting =
+//        new TreeMap< Parameter< ? >, Set< Effect > >();
+    ArrayList< Pair< Parameter< ? >, Set< Effect > > > a =
+        new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
+    for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
+      a.add( new Pair< Parameter< ? >, Set< Effect > >( e.getKey(), e.getValue() ) );
+    }
+    getEffects().clear();
+//    while ( i.hasNext() ) {
+//      Entry< Parameter< ? >, Set< Effect > > e = i.next();
+//    //for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
+//      // Temporarily remove in case propagation in TimeVarying can corrupt entry keys.
+//      //getEffects().entrySet().remove( e );
+    for ( Pair< Parameter< ? >, Set< Effect > > p : a ) {
+      Parameter< ? > tlParam = p.first;
+//      Parameter< ? > tlParam = e.getKey();
       TimeVarying< ? > timeline = (TimeVarying< ? >)tlParam.getValue();
-      Set< Effect > effectSet = e.getValue();
+      Set< Effect > effectSet = p.second;
+//      Set< Effect > effectSet = e.getValue();
+//      //i.remove();
       for (Effect effect : effectSet ) {
         boolean hasParameter = false;
         if ( timeline instanceof HasParameters ) {
@@ -765,11 +777,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           effect.unApplyTo( timeline ); // , startTime, duration );
           effect.applyTo( timeline, true ); // , startTime, duration );
         }
-        removedForReinserting.put( e.getKey(), e.getValue() );
+        getEffects().put( tlParam, effectSet );
         //getEffects().put( e.getKey(), e.getValue() );
       }
     }
-    getEffects().putAll( removedForReinserting );
+//    getEffects().putAll( removedForReinserting );
 
   }
 
@@ -780,7 +792,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public boolean satisfyElaborations() {
     boolean satisfied = true;
     elaborate( true );
+    Vector< Vector< Event > > elaboratedEvents = new Vector< Vector<Event> >();
     for ( Vector< Event > v : elaborations.values() ) {
+      elaboratedEvents.add( new Vector< Event >( v ) );
+    }
+    for ( Vector< Event > v : elaboratedEvents ) {
       for ( Event e : v ) {
         if ( e instanceof Satisfiable ) {
           if ( !( (Satisfiable)e ).isSatisfied() ) {
