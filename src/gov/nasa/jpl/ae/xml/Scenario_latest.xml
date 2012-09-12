@@ -52,7 +52,7 @@
 				<parameter>
 					<!--simple property (name usage)-->
 					<name>usage__17_0_5_edc0357_1346893158684_563782_13525</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
+					<type>new TimeVaryingMap&lt;Integer&gt;</type>
 					<value/>
 				</parameter>
 				<parameter>
@@ -64,7 +64,7 @@
 				<parameter>
 					<!--simple property (name cap)-->
 					<name>cap__17_0_5_edc0357_1346893158687_808842_13530</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
+					<type>new TimeVaryingMap&lt;Integer&gt;</type>
 					<value/>
 				</parameter>
 			</members>
@@ -898,8 +898,8 @@
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158843_768602_13661</eventType>
-											<eventName>vs4_ValueSpecificationAction_initialize</eventName>
+											<eventType>_17_0_5_edc0357_1346893158844_847477_13667</eventType>
+											<eventName>vs0_ValueSpecificationAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
@@ -907,9 +907,9 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--vs4_exists-->
+										<!--vs0_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1346893158843_768602_13661_exists</expression>
+											<expression>_17_0_5_edc0357_1346893158844_847477_13667_exists</expression>
 										</condition>
 									</elaboration>
 									<elaboration>
@@ -932,8 +932,8 @@
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158844_847477_13667</eventType>
-											<eventName>vs0_ValueSpecificationAction_initialize</eventName>
+											<eventType>_17_0_5_edc0357_1346893158843_768602_13661</eventType>
+											<eventName>vs4_ValueSpecificationAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
@@ -941,9 +941,9 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--vs0_exists-->
+										<!--vs4_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1346893158844_847477_13667_exists</expression>
+											<expression>_17_0_5_edc0357_1346893158843_768602_13661_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
