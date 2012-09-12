@@ -4,6 +4,8 @@
 package gov.nasa.jpl.ae.fuml;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import junit.framework.Assert;
 
@@ -16,6 +18,10 @@ import gov.nasa.jpl.ae.event.Timepoint;
  */
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
+  protected List< ObjectFlow< Obj > > listeners =
+      new ArrayList< ObjectFlow< Obj > >();
+  protected Class< ? > type = null;
+  
   /**
    * @param name
    * @param defaultValue
@@ -24,12 +30,31 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     super( name, null );
   }
 
+  /**
+   * @param name
+   * @param defaultValue
+   */
+  public ObjectFlow( String name, Class< ? > type ) {
+    super( name, null );
+    this.type = type;
+  }
+
   public void send( Obj o, Timepoint t ) {
-    this.setValue( t, o );
+    if ( type == null || type.isInstance( o ) ) {
+      this.setValue( t, o );
+      for ( ObjectFlow< Obj > f : listeners ) {
+        f.send( o, t );
+      }
+    }
   }
   
   public void send( Obj o, Integer t ) {
-    this.setValue( t, o );
+    if ( type == null || type.isInstance( o ) ) {
+      this.setValue( t, o );
+      for ( ObjectFlow< Obj > f : listeners ) {
+        f.send( o, t );
+      }
+    }
   }
 
   public Obj receive( Timepoint t ) {
@@ -50,5 +75,33 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   public boolean hasStuff( Integer t ) {
     return getValue( t ) != null;
+  }
+
+  /**
+   * @return the listeners
+   */
+  public List< ObjectFlow< Obj >> getListeners() {
+    return listeners;
+  }
+
+  /**
+   * @param listeners the listeners to set
+   */
+  public void setListeners( List< ObjectFlow< Obj >> listeners ) {
+    this.listeners = listeners;
+  }
+
+  /**
+   * @return the type
+   */
+  public Class< ? > getType() {
+    return type;
+  }
+
+  /**
+   * @param type the type to set
+   */
+  public void setType( Class< ? > type ) {
+    this.type = type;
   }
 }
