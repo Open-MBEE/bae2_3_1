@@ -99,7 +99,6 @@ src/gov/nasa/jpl/ae/tests/TestExecute.java -text
 src/gov/nasa/jpl/ae/tests/TestJavaparser.java -text
 src/gov/nasa/jpl/ae/util/Debug.java -text
 src/gov/nasa/jpl/ae/util/FileUtils.java -text
-src/gov/nasa/jpl/ae/util/Pair.java -text
 src/gov/nasa/jpl/ae/util/Utils.java -text
 src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
 src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
