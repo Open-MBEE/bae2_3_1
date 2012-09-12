@@ -164,7 +164,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_218637_13608</eventType>
-											<eventName>AddStructuralFeatureValueAction</eventName>
+											<eventName>addstructUsage_AddStructuralFeatureValueAction_changePowerUsage</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_41089_13607_endTime</name>
@@ -237,7 +237,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_150429_13610</eventType>
-											<eventName>ActivityFinalNode</eventName>
+											<eventName>final_ActivityFinalNode_changePowerUsage</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_218637_13608_endTime</name>
@@ -281,7 +281,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893350205_452392_14267</eventType>
-											<eventName>ForkNode</eventName>
+											<eventName>fork2_ForkNode_changePowerUsage</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_388211_13609_endTime</name>
@@ -366,7 +366,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158785_906489_13606</eventType>
-											<eventName>ReadSelfAction</eventName>
+											<eventName>rscpu_ReadSelfAction_changePowerUsage</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
@@ -383,7 +383,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_41089_13607</eventType>
-											<eventName>ValueSpecificationAction</eventName>
+											<eventName>vs15_ValueSpecificationAction_changePowerUsage</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
@@ -405,7 +405,7 @@
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158786_388211_13609</eventType>
-								<eventName>InitialNode</eventName>
+								<eventName>initial_InitialNode_changePowerUsage</eventName>
 								<arguments>
 									<parameter>
 										<name>startTime</name>
@@ -491,7 +491,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_682791_13665</eventType>
-											<eventName>ForkNode</eventName>
+											<eventName>f1_ForkNode_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158843_68308_13660_endTime</name>
@@ -552,7 +552,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_114248_13662</eventType>
-											<eventName>AddStructuralFeatureValueAction</eventName>
+											<eventName>asfvUsage_AddStructuralFeatureValueAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158843_768602_13661_endTime</name>
@@ -625,7 +625,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158845_195958_13669</eventType>
-											<eventName>JoinNode</eventName>
+											<eventName>f3_JoinNode_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_114248_13662_endTime</name>
@@ -669,7 +669,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158845_814119_13668</eventType>
-											<eventName>ForkNode</eventName>
+											<eventName>f2_ForkNode_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_415930_13663_endTime</name>
@@ -822,7 +822,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_174958_13666</eventType>
-											<eventName>AddStructuralFeatureValueAction</eventName>
+											<eventName>asfvCap_AddStructuralFeatureValueAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_847477_13667_endTime</name>
@@ -899,7 +899,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158843_768602_13661</eventType>
-											<eventName>ValueSpecificationAction</eventName>
+											<eventName>vs4_ValueSpecificationAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
@@ -916,7 +916,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158843_68308_13660</eventType>
-											<eventName>ReadSelfAction</eventName>
+											<eventName>rsI_ReadSelfAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
@@ -933,7 +933,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_847477_13667</eventType>
-											<eventName>ValueSpecificationAction</eventName>
+											<eventName>vs0_ValueSpecificationAction_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
@@ -984,7 +984,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158844_42063_13664</eventType>
-											<eventName>ActivityFinalNode</eventName>
+											<eventName>fin_ActivityFinalNode_initialize</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_195958_13669_endTime</name>
@@ -1006,7 +1006,7 @@
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158844_415930_13663</eventType>
-								<eventName>InitialNode</eventName>
+								<eventName>init_InitialNode_initialize</eventName>
 								<arguments>
 									<parameter>
 										<name>startTime</name>
@@ -1061,7 +1061,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158894_201560_13751</eventType>
-											<eventName>CallBehaviorAction</eventName>
+											<eventName>init_CallBehaviorAction_CustomerCB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158894_762690_13750_endTime</name>
@@ -1118,7 +1118,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158895_53394_13753</eventType>
-											<eventName>ForkNode</eventName>
+											<eventName>fork_ForkNode_CustomerCB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158894_201560_13751_endTime</name>
@@ -1135,7 +1135,7 @@
 										<eventInvocation>
 											<enclosingInstance>Customer.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158682_214024_13522</eventType>
-											<eventName>Activity</eventName>
+											<eventName>initialize_Activity_Customer</eventName>
 											<arguments>
 												<parameter>
 													<name>endTime</name>
@@ -1193,7 +1193,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1347395382223_262819_14641</eventType>
-											<eventName>AcceptEventAction</eventName>
+											<eventName>timer_300s_AcceptEventAction_CustomerCB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
@@ -1210,7 +1210,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158896_214295_13759</eventType>
-											<eventName>CallBehaviorAction</eventName>
+											<eventName>cpu_CallBehaviorAction_CustomerCB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
@@ -1256,7 +1256,7 @@
 										<eventInvocation>
 											<enclosingInstance>Customer.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158681_559654_13521</eventType>
-											<eventName>Activity</eventName>
+											<eventName>changePowerUsage_Activity_Customer</eventName>
 											<arguments>
 												<parameter>
 													<name>endTime</name>
@@ -1331,7 +1331,7 @@
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158896_969462_13761</eventType>
-											<eventName>ActivityFinalNode</eventName>
+											<eventName>fin_ActivityFinalNode_CustomerCB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1347395382223_262819_14641_endTime</name>
@@ -1353,7 +1353,7 @@
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158894_762690_13750</eventType>
-								<eventName>InitialNode</eventName>
+								<eventName>start_InitialNode_CustomerCB</eventName>
 								<arguments>
 									<parameter>
 										<name>startTime</name>
