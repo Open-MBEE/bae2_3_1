@@ -30,12 +30,39 @@ public class JavaForFunctionCall {
   public String argumentArrayJava;
   public Vector<String> args;
   private boolean convertingArgumentsToExpressions;
+  /**
+   * When expressions are passed to functions that are expecting parameters, a
+   * dependency can be formed.
+   */
   public ArrayList<FieldDeclaration> generatedDependencies =
       new ArrayList< FieldDeclaration >();
   
   public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
                               MethodCallExpr mce,
                               boolean convertArgumentsToExpressions ) {
+    // Arguments may be Expressions, Parameters, or other. Method parameter
+    // types may also be Expressions, Parameters, or other.
+    //
+    // If argument is Expression, and parameter is Parameter,
+    //   see if the expression is a parameter and pass that instead.    
+    //
+    // If argument is Expression, and parameter is other,
+    //   pass the evaluation of the Expression.
+    //
+    // If argument is Parameter, and parameter is Expression,
+    //   wrap the argument in an Expression.
+    //
+    // If argument is Parameter, and parameter is other,
+    //   pass the Parameter's value.
+    //
+    // If argument is other,
+    //   wrap the argument in an Expression or Parameter according to the type.
+    //
+    // If there is a choice of methods, prefer matched types to matches through
+    // conversion, except when convertArgumentsToExpressions==true. Prefer those
+    // that match Expressions to those that match Parameters and Parameters to
+    // other.
+
     this.xmlToJava = eventXmlToJava;
     // REVIEW -- How do we know when we want to convert args to Expressions?
     // Constructors of events (and probably classes) convert args to

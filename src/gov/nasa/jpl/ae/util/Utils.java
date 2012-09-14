@@ -436,8 +436,16 @@ public class Utils {
     }
     return getMethodForArgTypes( classForName, callName, argTypes );
   }
+
   public static Method getMethodForArgTypes( Class< ? > cls, String callName,
                                              Class<?>... argTypes ) {
+//    return getMethodForArgTypes( cls, callName, argTypes, 10.0, 2.0, null );
+//  }
+//  public static Method getMethodForArgTypes( Class< ? > cls, String callName,
+//                                             Class<?>[] argTypes,
+//                                             double numArgsCost,
+//                                             double argMismatchCost,
+//                                             Map< Class< ? >, Map< Class< ? >, Double > > transformCost ) {
     Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
                  + callName + ", argTypes=" + toString( argTypes ) + " )" );
     Method matchingMethod = null;
@@ -445,6 +453,7 @@ public class Utils {
     int mostMatchingArgs = 0;
     int mostDeps = 0;
     boolean allArgsMatched = false;
+    double bestScore = Double.MAX_VALUE;
     Method[] methods = null;
     Debug.outln( "calling getMethods() on class " + cls.getName() );
     try {
@@ -457,6 +466,7 @@ public class Utils {
     if ( methods != null ) {
     for ( Method m : methods ) {
       if ( m.getName().equals( callName ) ) {
+//        double score = numArgsCost + argMismatchCost * argTypes.length;
         int numMatching = 0;
         int numDeps = 0;
         boolean okNumArgs =
@@ -465,7 +475,7 @@ public class Utils {
                    && ( m.getParameterTypes().length < argTypes.length 
                         || m.getParameterTypes().length == 1 ) );
         Debug.outln( "okNumArgs = " + okNumArgs );
-        //if ( !okNumArgs ) continue;
+//        if ( okNumArgs ) score -= numArgsCost;
         for ( int i = 0; i < Math.min( m.getParameterTypes().length,
                                        argTypes.length ); ++i ) {
           if ( argTypes[ i ] == null ) {

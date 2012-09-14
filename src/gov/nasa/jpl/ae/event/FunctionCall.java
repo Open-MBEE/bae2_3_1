@@ -93,27 +93,37 @@ public class FunctionCall implements HasParameters, Groundable {
   // Try to match arguments to parameters by evaluating or creating expressions.
   protected Object[] evaluateArgs( boolean propagate ) {
     Class< ? >[] paramTypes = method.getParameterTypes();
-    assert( arguments.size() == paramTypes.length );
+    assert ( arguments.size() == paramTypes.length || 
+             ( method.isVarArgs() && 
+               ( arguments.size() > paramTypes.length ||
+                 paramTypes.length == 1 ) ) );
     Object argObjects[] = new Object[arguments.size()];
     for ( int i = 0; i < arguments.size(); ++i ) {
       Object unevaluatedArg = arguments.get( i );
       Class< ? > c = paramTypes[ i ];
       argObjects[i] = unevaluatedArg;
-      if ( !c.isAssignableFrom( unevaluatedArg.getClass() ) ) {
+      if ( !c.isInstance( unevaluatedArg ) ) {
         if ( unevaluatedArg instanceof Expression ) {
           Expression< ? > expr = (Expression<?>)unevaluatedArg;
-          if ( expr.type == Type.Parameter && c.isInstance( expr.expression ) ) {
+          if ( c.isInstance( expr.expression ) ) {
             argObjects[i] = expr.expression;
           } else {
             argObjects[i] = expr.evaluate( propagate );
+          }
+        } else if ( unevaluatedArg instanceof Parameter ) {
+          Parameter<?> p = (Parameter<?>)unevaluatedArg;
+          Object v = p.getValue( propagate );
+          if ( v != null
+               && c.isAssignableFrom( v.getClass() ) ) {
+            argObjects[i] = v;
           }
         }
         if ( !c.isAssignableFrom( argObjects[i].getClass() ) &&
              Utils.isSubclassOf( c, Expression.class ) ) {
           argObjects[i] = new Expression( argObjects[i] );
         }
-        assert( c.isAssignableFrom( argObjects[i].getClass() ) );
       }
+      assert( argObjects[i] == null || c.isInstance( argObjects[i] ) );
     }
     return argObjects;
   }

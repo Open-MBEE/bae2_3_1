@@ -125,6 +125,11 @@ public class Parameter< T > implements Cloneable, Groundable,
     return value;
   }
 
+  public Object getValue( boolean propagate ) {
+    if ( propagate ) return getValue();
+    return getValueNoPropagate();
+  }
+
   @Override
   public T getValue() {
     Debug.outln( "Parameter.getValue() start: " + this );

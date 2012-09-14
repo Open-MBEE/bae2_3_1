@@ -440,8 +440,6 @@ public class EventXmlToJava {
   protected Param lookupMemberByName( String className, String paramName ) {
     if ( Utils.errorOnNull( "Passing null in lookupMemberByName(" + className + ", " + paramName + ")",
                        className, paramName) ) {
-    //if ( className == null ) return null;
-    //if ( paramName == null ) return null;
       return null;
     }
     if ( className.equals( "this" ) ) {
