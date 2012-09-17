@@ -4,15 +4,23 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.SocketClient;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+//import org.python.core.PyObject;
+//import org.python.util.PythonInterpreter;
 
 import junit.framework.Assert;
 
@@ -42,7 +50,37 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     
   }
 
+/* Running python from Java using PythonInterpreter, available from jython. 
+  private static class PlotPythonInterpreter implements Runnable {
+    protected void initiatePlotUsingInterpreter() {
+      PythonInterpreter interpreter = new PythonInterpreter();
+      // interpreter.execFile("animatePlot.py");
+      interpreter.exec( "import animatePlot" );
+      // execute a function that takes a string and returns a string
+      PyObject someFunc = interpreter.get( "animatePlot.main" );
+      PyObject result = someFunc.__call__();
+      String realResult = (String)result.__tojava__( String.class );
+      Debug.outln( realResult );
+    }
+
+    @Override
+    public void run() {
+      initiatePlotUsingInterpreter();
+    }
+  }
+*/
   // Members
+  
+  /**
+   * Whether or not the external plotter should be launched and connected to by
+   * socket.
+   */
+  boolean tryToPlot = true;
+  
+  Map< Object, Object > currentValues = new HashMap< Object, Object >();
+
+  SocketClient plotSocket = null;
+  Process plotProcess = null;
   
 //  // epochMillis is a timestamp corresponding to TimePoint = 0 as the date/time that the simulation starts.
 //  // It is an offset of the number of milliseconds since Jan 1, 1970.
@@ -130,6 +168,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         existingEntry = true;
       }
     }
+    if ( currentValues != null && !tv.isEmpty() && 
+        ( tv.firstEntry().getValue() instanceof Double ||
+            tv.firstEntry().getValue() instanceof Integer ) ) {
+      currentValues.put( tv,  tv.firstEntry().getValue() );
+    }
     return !existingEntry;
   }
   
@@ -137,6 +180,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     PrintWriter w = new PrintWriter( os, true );
     long startClock = -1;
     int lastT = -1;
+    
+    if ( tryToPlot ) {
+      initiatePlot();
+    }
     w.println("--- simulation start ---");
     for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
       for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
@@ -156,6 +203,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         int t = e1.getKey().intValue();
         Object variable = e2.getKey();
         Object value = e2.getValue();
+        if ( currentValues != null && currentValues.containsKey( variable ) ) {
+          currentValues.put( variable, value );
+        }
         String name;
         if ( variable instanceof ParameterListener ) {
           name = ((ParameterListener)variable).getName();
@@ -171,7 +221,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           formatString = "%s%s -> %s\n";
           w.printf( formatString, padding, name, value == null ? "null" : value.toString() );
         } else {
-          formatString = "%14s : %28s  %s -> %s\n";          
+          if ( tryToPlot ) {
+            plotValues();
+          }
+          formatString = "%14s : %28s  %s -> %s\n";
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
@@ -181,6 +234,149 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
       }
     }
     w.println("--- simulation end ---");
+    closePlotSocket();
+//    if ( tryToPlot ) {
+//      getPlotProcessOutput();
+//    }
+  }
+
+  protected void getPlotProcessOutput() {
+    if ( plotProcess != null ) {
+      Debug.outln( "Plot process stdout" );
+      InputStreamReader reader =
+          new InputStreamReader( plotProcess.getInputStream() );
+      char buf[] = new char[10000];
+      try {
+        reader.read( buf, 0, 10000 );
+        Debug.outln( new String( buf ) );
+      } catch ( IOException e ) {
+        e.printStackTrace();
+      }
+      Debug.outln( "Plot process stderr" );
+      reader = new InputStreamReader( plotProcess.getInputStream() );
+      try {
+        reader.read( buf, 0, 10000 );
+        Debug.outln( new String( buf ) );
+      } catch ( IOException e ) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+/* An alternative way to run the python plotter.
+  protected void initiatePlot2() {
+    PlotPythonInterpreter i = new PlotPythonInterpreter();
+    Thread t = new Thread( i );
+    t.start();
+  }
+*/
+
+  protected void initiatePlot() {
+    //Map< Object, Integer > varIndices = null;
+    try {
+      // Run the python plot program as a system command.
+      java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+      // Note that this requires that animatePlot.py be in the
+      // src/gov/nasa/jpl/ae/magicdrawPlugin directory.
+      // This python program requires special libraries that
+      // are included with the Enthought distribution.
+      String curDir = System.getProperty("user.dir");
+      File f =
+          new File( curDir + File.separator + "src" + File.separator + "gov"
+                    + File.separator + "nasa" + File.separator + "jpl"
+                    + File.separator + "ae" + File.separator
+                    + "magicdrawPlugin" );
+      plotProcess = rt.exec( "python animatePlot.py", null, f );
+      // Allow a half second for the process to start.
+      Thread t = new Thread( new Runnable() {
+        
+        @Override
+        public void run() {
+          System.out.println( "plot process output:" );
+          java.io.InputStream is = plotProcess.getInputStream();
+          java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+          // And print each line
+          String s = null;
+          try {
+            while ((s = reader.readLine()) != null) {
+                System.out.println("plot: " + s);
+            }
+            is.close();
+          } catch ( IOException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+      });
+      Thread t2 = new Thread( new Runnable() {
+        
+        @Override
+        public void run() {
+          System.err.println( "plot process error output:" );
+          java.io.InputStream is = plotProcess.getErrorStream();
+          java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+          // And print each line
+          String s = null;
+          try {
+            while ((s = reader.readLine()) != null) {
+                System.err.println("plot: " + s);
+            }
+            is.close();
+          } catch ( IOException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+      });
+      t.start();
+      t2.start();
+      
+      try {
+        Thread.sleep( 3000 );
+      } catch ( InterruptedException e ) {
+        e.printStackTrace();
+      }
+
+      // You can or maybe should wait for the process to complete
+      //p.waitFor();
+      //System.out.println("Process exited with code = " + p.exitValue());
+
+      // Try to connect to the python program's socket.
+      plotSocket = new SocketClient( "127.0.0.1", 60002 );
+      // Need to send a 1 so that the python socket server knows the correct
+      // endianness.
+      if ( plotSocket.isConnected() ) {
+        plotSocket.getDataOutputStream().writeInt(1);
+      }
+    } catch ( IOException e ) {
+      tryToPlot = false;
+    }
+  }
+
+  private void closePlotSocket() {
+    if ( plotSocket != null && plotSocket.isConnected() ) {
+      plotSocket.close();
+    }
+  }
+
+  protected void plotValues() {
+    if ( currentValues == null || 
+         plotSocket == null || !plotSocket.isConnected() ) {
+      return;
+    }
+    double doubleArray[] = new double[currentValues.size()];
+    int cnt = 0;
+    for ( Object v : currentValues.values() ) {
+      assert v instanceof Double || v instanceof Integer;
+      doubleArray[ cnt++ ] = ((Double)v).doubleValue();
+    }
+    try {
+      plotSocket.send( doubleArray );
+    } catch ( IOException e ) {
+      plotSocket.close();
+      tryToPlot = false;
+      e.printStackTrace();
+    }
   }
 
   public String toString() {
