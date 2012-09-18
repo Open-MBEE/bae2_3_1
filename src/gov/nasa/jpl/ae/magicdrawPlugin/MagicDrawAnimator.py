@@ -22,5 +22,5 @@ class MagicDrawAnimator(object):
         self.changeFillColor( self, componentId, "white" );
         self.changeLineColor( self, componentId, "black" );
 
-    def changeValue( self, componentId ):
+    def changeValue( self, componentId, newValue ):
         comp = self.components[componentId]
