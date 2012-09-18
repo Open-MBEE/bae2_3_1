@@ -76,6 +76,7 @@ src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/InterpolatedMap.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/MDAnimator.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/OneWaySocket.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
