@@ -1576,7 +1576,7 @@ public class EventXmlToJava {
     }
     // TODO -- REVIEW -- Why is p.value in args by default, but recognized types
     // do not include p.value?
-    String args = "\"" + p.name + "\", null, " + p.value + ", this";
+    String args = "\"" + p.name + "\", null, " + javaToAeExpr( p.value, p.type, false ) + ", this";
     if ( Utils.isNullOrEmpty( p.type ) ) {
       System.err.println( "Error! creating a field " + p + " of unknown type!" );
     } else if ( p.type.toLowerCase().equals( "time" ) ) {
@@ -1628,6 +1628,9 @@ public class EventXmlToJava {
 
   public FieldDeclaration createParameterField( Param p,
                                                 MethodDeclaration initMembers ) {
+    if ( p.name.contains( "ustome" ) ) {
+      System.out.println(p.toString());
+    }
     if ( initMembers == null ) {
       return createParameterField( p );
     }
@@ -1804,8 +1807,7 @@ public class EventXmlToJava {
         "new Expression" + ( Utils.isNullOrEmpty( type ) ? "" : "<" + type + ">" ) + "( ";
     final String suffix = " )";
     String middle = null;
-    // Inefficient string compare.
-    String name = expr.getClass().getSimpleName(); 
+    /*** BinaryExpr ***/
     if ( expr.getClass() == BinaryExpr.class ) {
         BinaryExpr be = ( (BinaryExpr)expr );
         // middle =
@@ -1816,6 +1818,7 @@ public class EventXmlToJava {
                + astToAeExpr( be.getRight(), 
                                            convertFcnCallArgsToExprs ) + " )";
     }
+    /*** UnaryExpr ***/
     if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         // middle =
@@ -1824,14 +1827,18 @@ public class EventXmlToJava {
                + astToAeExpr( ue.getExpr(), type,
                               convertFcnCallArgsToExprs ) + " )";
     }
+    /*** EnclosedExpr ***/
     if ( expr.getClass() == EnclosedExpr.class ) {
         middle =
             astToAeExpr( ( (EnclosedExpr)expr ).getInner(), type,
                          convertFcnCallArgsToExprs );
+    /*** NameExpr ***/
     } else if ( expr.getClass() == NameExpr.class ) {
         middle = ( (NameExpr)expr ).getName();
+    /*** ThisExpr ***/
     } else if ( expr.getClass() == ThisExpr.class ) {
       middle = expr.toString(); // just "this", right?
+    /*** FieldAccessExpr ***/
     } else if ( expr.getClass() == FieldAccessExpr.class ) {
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
       Param p = null;
@@ -1845,18 +1852,23 @@ public class EventXmlToJava {
       }
       // If the scope is also a member, then we should have a parameter for it,
       // in which case we should call getValue().
-      if ( fieldAccessExpr.getScope() instanceof FieldAccessExpr ) {
+      if ( fieldAccessExpr.getScope() != null
+           && ( fieldAccessExpr.getScope() instanceof FieldAccessExpr
+                || fieldAccessExpr.getScope() instanceof NameExpr ) ) {
         String parentType = astToAeExprType( fieldAccessExpr.getScope() );
         if ( !Utils.isNullOrEmpty( parentType ) ) {
-          p = lookupMemberByName( parentType,
-                                  fieldAccessExpr.getField() );
-          if ( p != null ) {
-            middle = astToAeExpr( fieldAccessExpr.getScope(), p.type, false ) + ".getValue()." + fieldAccessExpr.toString();
-          }
+          p = lookupMemberByName( parentType, fieldAccessExpr.getField() );
+          String parentString =
+              astToAeExpr( fieldAccessExpr.getScope(), parentType, false );
+          middle = "((" + parentType + ")" + parentString + ".getValue())."
+                   + fieldAccessExpr.getField().toString()
+                   + ( ( p != null && convertFcnCallArgsToExprs ) ? ".getValue()"
+                                                                  : "" );
         }
       } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
         middle = expr.toString();
       }
+    /*** AssignExpr ***/
     } else if ( expr.getClass() == AssignExpr.class ) {
         AssignExpr ae = (AssignExpr)expr;
         String result = null;
@@ -1881,6 +1893,7 @@ public class EventXmlToJava {
           return result;
         }
         middle = ae.toString();
+    /*** MethodCallExpr ***/
     } else if ( expr.getClass() == MethodCallExpr.class ) {
         MethodCallExpr mce = (MethodCallExpr)expr;
         JavaForFunctionCall javaForFunctionCall =

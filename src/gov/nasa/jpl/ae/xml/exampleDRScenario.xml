@@ -362,12 +362,12 @@
       <name>Grid</name>
       <import>demandResponse.Customer</import>
       <members>
-        <!--<parameter>
+        <parameter>
           <name>customer</name><type>Customer</type><value>new Customer()</value>
-        </parameter>-->
-        <!--<parameter>
+        </parameter>
+        <parameter>
           <name>customerLoad</name><type>TimeVaryingMap&lt; Double &gt;</type><value>customer.load</value>
-        </parameter>-->
+        </parameter>
       </members>
     </class>
   </classes>
