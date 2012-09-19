@@ -2018,8 +2018,26 @@
 											<value/>
 										</parameter>
 										<parameter>
+											<!--Result Pin: new_load-->
+											<name>new_load</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345510114791_46408_15119</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Argument Param: cap-->
+											<name>cap</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Argument Param: desired-->
+											<name>desired</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -2029,17 +2047,16 @@
 											<type>Integer</type>
 											<value/>
 										</parameter>
-										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114087_224243_14250_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
+										<dependency>
+											<name>sig_17_0_5_edc0357_1345510114089_873770_14267</name>
+											<type>Integer</type>
+											<value>new_load</value>
+										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114088_999820_14258_exists</name>
 											<type>Boolean</type>
@@ -2051,9 +2068,19 @@
 											<value>sig_17_0_5_edc0357_1345510114089_958429_14264.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114798_618420_15129</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114793_324647_15121.receive(endTime - 1)</value>
+											<name>new_load</name>
+											<type>Integer</type>
+											<value>min(desired,cap)</value>
+										</dependency>
+										<dependency>
+											<name>cap</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114089_958429_14264</value>
+										</dependency>
+										<dependency>
+											<name>desired</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114089_248814_14263</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -2079,19 +2106,6 @@
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114088_999820_14258_exists</expression>
 										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>changePowerUsage.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114086_498520_14248</eventType>
-											<eventName>get_val_with_cap_OpaqueBehavior_changePowerUsage</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -9161,6 +9175,12 @@
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Argument Param: exp-->
+											<name>exp</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114896_642880_15274</name>
 											<type>Integer</type>
@@ -9185,16 +9205,22 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Result Pin: diff-->
+											<name>diff</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Argument Param: gen-->
+											<name>gen</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
 											<name>_17_0_5_edc0357_1345510114401_676911_14635_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
-										</parameter>
-										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
-											<type>Integer</type>
-											<value/>
 										</parameter>
 									</members>
 									<constraints>
@@ -9202,14 +9228,14 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>exp</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114404_348430_14652</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1345510114896_642880_15274</name>
 											<type>Object</type>
 											<value>sig_17_0_5_edc0357_1345510114404_34398_14651.receive(startTime - 1)</value>
-										</dependency>
-										<dependency>
-											<name>_17_0_5_edc0357_1345510114906_56003_15289</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114897_165815_15276.receive(endTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114897_464730_15275</name>
@@ -9217,9 +9243,24 @@
 											<value>sig_17_0_5_edc0357_1345510114404_348430_14652.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
+											<name>sig_17_0_5_edc0357_1345510114408_253053_14677</name>
+											<type>Integer</type>
+											<value>diff</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1345510114403_960787_14647_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>diff</name>
+											<type>Integer</type>
+											<value>gen-exp</value>
+										</dependency>
+										<dependency>
+											<name>gen</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114404_34398_14651</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114401_676911_14635_exists</name>
@@ -9250,19 +9291,6 @@
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114403_960787_14647_exists</expression>
 										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>monitor_system.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114397_80994_14627</eventType>
-											<eventName>calculate_difference_OpaqueBehavior_monitor_system</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
 									</elaboration>
 									<elaboration>
 										<eventInvocation>
@@ -9307,14 +9335,26 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Result Pin: s-->
+											<name>s</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114898_711162_15277</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
+											<!--Argument Param: gen-->
+											<name>gen</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Argument Param: act-->
+											<name>act</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -9330,11 +9370,6 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114908_64090_15292</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114899_683693_15279.receive(endTime - 1)</value>
-										</dependency>
-										<dependency>
 											<name>_17_0_5_edc0357_1345510114403_773368_14646_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
@@ -9345,9 +9380,29 @@
 											<value>sig_17_0_5_edc0357_1345510114405_994113_14663.hasStuff(endTime) &amp;&amp; sig_17_0_5_edc0357_1345510114406_67045_14672.hasStuff(endTime)</value>
 										</dependency>
 										<dependency>
+											<name>s</name>
+											<type>Integer</type>
+											<value>gen-act</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1345510114898_711162_15277</name>
 											<type>Object</type>
 											<value>sig_17_0_5_edc0357_1345510114404_840866_14653.receive(startTime - 1)</value>
+										</dependency>
+										<dependency>
+											<name>gen</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114404_967702_14654</value>
+										</dependency>
+										<dependency>
+											<name>sig_17_0_5_edc0357_1345510114406_525371_14671</name>
+											<type>Integer</type>
+											<value>s</value>
+										</dependency>
+										<dependency>
+											<name>act</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114404_840866_14653</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114899_276069_15278</name>
@@ -9358,19 +9413,6 @@
 								</class>
 								<effects/>
 								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>monitor_system.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114399_430824_14628</eventType>
-											<eventName>calculate_shortage_OpaqueBehavior_monitor_system</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
@@ -11164,6 +11206,12 @@
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Result Pin: new_generation-->
+											<name>new_generation</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--previous event end time:  (ReadStructuralFeatureAction)-->
 											<name>_17_0_5_edc0357_1345510114622_317480_14808_endTime</name>
 											<type>Integer</type>
@@ -11176,14 +11224,20 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Outgoing Signal Flow new_generation-->
-											<name>_17_0_5_edc0357_1345510114947_257306_15378</name>
+											<!--Argument Param: current-->
+											<name>current</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
+											<!--Argument Param: margin-->
+											<name>margin</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Outgoing Signal Flow new_generation-->
+											<name>_17_0_5_edc0357_1345510114947_257306_15378</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -11199,35 +11253,36 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>new_generation</name>
+											<type>Integer</type>
+											<value>current-margin</value>
+										</dependency>
+										<dependency>
+											<name>sig_17_0_5_edc0357_1345510114623_673172_14818</name>
+											<type>Integer</type>
+											<value>new_generation</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1345510114942_15555_15371</name>
 											<type>Object</type>
 											<value>sig_17_0_5_edc0357_1345510114623_648729_14817.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114947_257306_15378</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114943_995460_15372.receive(endTime - 1)</value>
+											<name>current</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114623_648729_14817</value>
+										</dependency>
+										<dependency>
+											<name>margin</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114623_671383_14816</value>
 										</dependency>
 									</dependencies>
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1345510114623_673172_14818.send(_17_0_5_edc0357_1345510114947_257306_15378,startTime)</effect>
 								</effects>
-								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>generatePowerNow.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114620_240222_14805</eventType>
-											<eventName>calculate_new_power_OpaqueBehavior_generatePowerNow</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
-								</elaborations>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -11897,6 +11952,18 @@
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Result Pin: new_generation-->
+											<name>new_generation</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Argument Param: current-->
+											<name>current</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Outgoing Signal Flow new_generation-->
 											<name>_17_0_5_edc0357_1345510114965_375269_15409</name>
 											<type>Integer</type>
@@ -11909,8 +11976,8 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
+											<!--Argument Param: margin-->
+											<name>margin</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -11932,9 +11999,24 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114965_375269_15409</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114961_753751_15403.receive(endTime - 1)</value>
+											<name>new_generation</name>
+											<type>Integer</type>
+											<value>current-margin</value>
+										</dependency>
+										<dependency>
+											<name>current</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114692_973151_14871</value>
+										</dependency>
+										<dependency>
+											<name>sig_17_0_5_edc0357_1345510114692_988619_14872</name>
+											<type>Integer</type>
+											<value>new_generation</value>
+										</dependency>
+										<dependency>
+											<name>margin</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114692_193979_14870</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114960_284722_15402</name>
@@ -11946,21 +12028,7 @@
 								<effects>
 									<effect>sig_17_0_5_edc0357_1345510114692_988619_14872.send(_17_0_5_edc0357_1345510114965_375269_15409,startTime)</effect>
 								</effects>
-								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>generatePowerLater.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114690_690524_14861</eventType>
-											<eventName>calculate_new_power_OpaqueBehavior_generatePowerLater</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
-								</elaborations>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
