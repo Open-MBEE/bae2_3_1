@@ -53,7 +53,7 @@
 					<!--simple property (name usage)-->
 					<name>usage__17_0_5_edc0357_1346893158684_563782_13525</name>
 					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("usage")</value>
+					<value>new TimeVaryingPlottableMap("usage")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name cap)-->
@@ -123,7 +123,7 @@
 											<!--value specification VALUE-->
 											<name>_17_0_5_edc0357_1346893158916_491101_13813</name>
 											<type>Integer</type>
-											<value>15</value>
+											<value>Random.global.nextInt(20)</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existence of addstructUsage (AddStructuralFeatureValueAction) as false-->
