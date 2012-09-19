@@ -39,6 +39,14 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     this.type = type;
   }
 
+  /**
+   * Appends the specified ObjectFlow to the end of the list of listeners. 
+   * @param objectFlow is the ObjectFlow to add.
+   */
+  public void addListener( ObjectFlow< Obj > objectFlow ) {
+    getListeners().add( objectFlow );
+  }
+  
   public void send( Obj o, Timepoint t ) {
     if ( type == null || type.isInstance( o ) ) {
       this.setValue( t, o );
