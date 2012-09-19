@@ -114,6 +114,7 @@ src/gov/nasa/jpl/ae/xml/LADWP-XML-1.xml -text
 src/gov/nasa/jpl/ae/xml/LADWP-XML.xml -text
 src/gov/nasa/jpl/ae/xml/NameTranslator.java -text
 src/gov/nasa/jpl/ae/xml/Scenario_latest.xml -text
+src/gov/nasa/jpl/ae/xml/Scenario_medium.xml -text
 src/gov/nasa/jpl/ae/xml/Scenario_smallest.xml -text
 src/gov/nasa/jpl/ae/xml/XmlToJson.java -text
 src/gov/nasa/jpl/ae/xml/XmlUtils.java -text
