@@ -6,7 +6,6 @@ import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
-import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ConstructorDeclaration;
@@ -39,6 +38,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,10 +48,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.activation.FileDataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -64,16 +60,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
 import gov.nasa.jpl.ae.event.DurativeEvent;
-import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.event.TimeVarying; // don't remove
-import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
+
+// Keep these for resolving class references. 
+import gov.nasa.jpl.ae.event.*;
+import gov.nasa.jpl.ae.solver.*;
+import gov.nasa.jpl.ae.fuml.*;
+import demandResponse.*;
 
 /*
  * Translates XML to executable Java classes for Analysis Engine behavior (based
@@ -84,6 +81,7 @@ public class EventXmlToJava {
   // not using this yet
   public static final String charactersAssumedNotInIdentifiers = "<>+*/.";
   
+ 
   // A struct for packaging name, types, and values, which are used for many
   // purposes in the XML: parameters, args, dependencies, . . .
   public class Param {
@@ -156,6 +154,8 @@ public class EventXmlToJava {
   private boolean gotStartTimeDependency;
   private boolean gotEndTimeDependency;
   private boolean gotDurationDependency;
+  demandResponse.Customer c = new Customer( "stupid class loader" );
+  ObjectFlow<Object> o = new ObjectFlow< Object >( "stupid class loader" );
 
   public EventXmlToJava( String xmlFileName, String pkgName )
       throws ParserConfigurationException, SAXException, IOException {
@@ -437,7 +437,8 @@ public class EventXmlToJava {
     return otherClassName;
   }
 
-  protected Param lookupMemberByName( String className, String paramName ) {
+  protected Param lookupMemberByName( String className, String paramName,
+                                      boolean lookOutsideXml ) {
     if ( Utils.errorOnNull( "Passing null in lookupMemberByName(" + className + ", " + paramName + ")",
                        className, paramName) ) {
       return null;
@@ -451,10 +452,12 @@ public class EventXmlToJava {
     String classNameWithScope = null;
     if ( params == null ) {
       classNameWithScope = getClassNameWithScope( className );
-      if ( !Utils.errorOnNull( false, "Error! Could not find a class definition for " 
-                               + className
-                               + " when looking for member " + paramName + ".",
-                               classNameWithScope ) ) {
+      if ( classNameWithScope != null ||
+           ( !lookOutsideXml &&
+             !Utils.errorOnNull( false, "Error! Could not find a class definition for " 
+                                 + className
+                                 + " when looking for member " + paramName + ".",
+                                 classNameWithScope ) ) ) {
 //      if ( Utils.isNullOrEmpty( classNameWithScope ) ) {
         params = paramTable.get( classNameWithScope );
       }
@@ -467,13 +470,31 @@ public class EventXmlToJava {
     if ( p == null && isInnerClass( className ) ) {
       String enclosingClassName = getEnclosingClassName( className );
       if ( !Utils.isNullOrEmpty( enclosingClassName ) ) {
-        p = lookupMemberByName( enclosingClassName, paramName );
+        p = lookupMemberByName( enclosingClassName, paramName, lookOutsideXml );
+      }
+    }
+    if ( p == null && lookOutsideXml ) {
+      Class<?> classForName = Utils.getClassForName( className,
+                                                     this.packageName,
+                                                     false );//, getClass().getClassLoader(), Package.getPackages() );
+      if ( classForName != null ) {
+        Field field = null;
+        try {
+          field = classForName.getField( paramName );
+        } catch ( NoSuchFieldException e ) {
+          // ignore
+        } catch ( SecurityException e ) {
+          // ignore
+        }
+        if ( field != null ) {
+          p = new Param( paramName, field.getType().getName(), null );
+        }
       }
     }
     Debug.outln( "lookupMemberByName( className=" + className + ", paramName=" + paramName
                  + ") returning " + p );
     Utils.errorOnNull( false, "lookupMemberByName(" + className + ", "
-                              + paramName + ") :\n  paramTable =\n"
+                              + paramName + "): no parameter found\n  paramTable =\n"
                               + paramTable + "\n  enclosingClasses =\n"
                               + nestedToEnclosingClassNames, p );
     return p; 
@@ -926,7 +947,8 @@ public class EventXmlToJava {
               new ArrayList< japa.parser.ast.body.Parameter >();
           for ( Param p : arguments ) {
             if ( p.type == null ) {
-              Param memberDecl = lookupMemberByName( eventType, p.name );
+              Param memberDecl = lookupMemberByName( eventType, p.name,
+                                                     true );
               if ( !Utils.errorOnNull( "Error! Can't find member " + p.name
                                            + " for event class " + eventType
                                            + "!",
@@ -1559,12 +1581,15 @@ public class EventXmlToJava {
     return createFieldOfGenericType( name, typeName, null, constructorArgs );
   }
 
+  public String[] convertToEventParameterTypeAndConstructorArgs( Param p ) {
+    return convertToEventParameterTypeAndConstructorArgs(p, currentClass);
+  }
   // REVIEW -- Do we need to specify a domain in the XML? look up a domain based
   // on p.type?
-  public String[] convertToEventParameterTypeAndConstructorArgs( Param p ) {
+  public String[] convertToEventParameterTypeAndConstructorArgs( Param p, String classOfParameterName ) {
     String ret[] = new String[ 3 ];
     if ( p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase( "null" ) ) {
-      Param pDef = this.lookupCurrentClassMember( p.name );
+      Param pDef = this.lookupMemberByName( classOfParameterName, p.name, true );
       if ( pDef != null ) {
         p.type = pDef.type;
       }
@@ -1696,7 +1721,7 @@ public class EventXmlToJava {
 
   // TODO -- should probably import and do a switch on all classes in
   // japa.parser.ast.expr.*
-  public String astToAeExprType( Expression expr ) {
+  public String astToAeExprType( Expression expr, boolean lookOutsideXml ) {
     Param p = null;
     String name = null;
     String result = null;
@@ -1707,8 +1732,8 @@ public class EventXmlToJava {
         ConditionalExpr ce = ( (ConditionalExpr)expr );
 
         result =
-            dominantType( astToAeExprType( ce.getThenExpr() ),
-                          astToAeExprType( ce.getElseExpr() ) );
+            dominantType( astToAeExprType( ce.getThenExpr(), lookOutsideXml ),
+                          astToAeExprType( ce.getElseExpr(), lookOutsideXml ) );
     } else if ( expr.getClass() == ArrayCreationExpr.class ) {
       ArrayCreationExpr be = ( (ArrayCreationExpr)expr );
       result = be.getType().toString();
@@ -1716,15 +1741,15 @@ public class EventXmlToJava {
         BinaryExpr be = ( (BinaryExpr)expr );
         result =
             operatorResultType( be.getOperator(),
-                                astToAeExprType( be.getLeft() ),
-                                astToAeExprType( be.getRight() ) );
+                                astToAeExprType( be.getLeft(), lookOutsideXml ),
+                                astToAeExprType( be.getRight(), lookOutsideXml ) );
     } else if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         result =
             operatorResultType( ue.getOperator(),
-                                astToAeExprType( ue.getExpr() ) );
+                                astToAeExprType( ue.getExpr(), lookOutsideXml ) );
     } else if ( expr.getClass() == EnclosedExpr.class ) {
-        result = astToAeExprType( ( (EnclosedExpr)expr ).getInner() );
+        result = astToAeExprType( ( (EnclosedExpr)expr ).getInner(), lookOutsideXml );
     } else if ( expr.getClass() == MethodCallExpr.class ) {
       // don't worry about it--special purpose code is called later for this
       result = "null";
@@ -1739,17 +1764,17 @@ public class EventXmlToJava {
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
       // The member/field type is defined in its parent's class, and the parent class can be found by getting the type of the FiedAccessExpr's scope. 
       if ( fieldAccessExpr.getScope() instanceof FieldAccessExpr ) {
-        String parentType = astToAeExprType( fieldAccessExpr.getScope() );
+        String parentType = astToAeExprType( fieldAccessExpr.getScope(), lookOutsideXml );
         if ( !Utils.isNullOrEmpty( parentType ) ) {
           p = lookupMemberByName( parentType,
-                                  fieldAccessExpr.getField() );
+                                  fieldAccessExpr.getField(), lookOutsideXml );
         }
       }
       if ( p == null ) {
         // If the member is static, then the scope is a class name, and we can
         // try looking it up.  // TODO -- Check to see if it's static.
         p = lookupMemberByName( fieldAccessExpr.getScope().toString(),
-                                fieldAccessExpr.getField() );
+                                fieldAccessExpr.getField(), lookOutsideXml );
       }
       if ( p != null ) {
         result = p.type;
@@ -1785,7 +1810,7 @@ public class EventXmlToJava {
   }
 
   private Param lookupCurrentClassMember( String name ) {
-    return lookupMemberByName( currentClass, name );
+    return lookupMemberByName( currentClass, name, false );
   }
 
   private String
@@ -1795,10 +1820,11 @@ public class EventXmlToJava {
 
   
   public String astToAeExpr( Expression expr, String type,
-                             boolean convertFcnCallArgsToExprs ) {
+                             boolean convertFcnCallArgsToExprs,
+                             boolean lookOutsideXmlForTypes ) {
     type = typeToClass( type );
     if ( Utils.isNullOrEmpty( type ) ) {
-      type = astToAeExprType( expr );
+      type = astToAeExprType( expr, lookOutsideXmlForTypes );
     }
     final String prefix =
         "new Expression" + ( Utils.isNullOrEmpty( type ) ? "" : "<" + type + ">" ) + "( ";
@@ -1810,10 +1836,11 @@ public class EventXmlToJava {
         // middle =
         return "new Functions."
                + javaBinaryOpToEventFunctionName( be.getOperator() ) + "( "
-               + astToAeExpr( be.getLeft(), 
-                                           convertFcnCallArgsToExprs ) + ", "
+               + astToAeExpr( be.getLeft(), convertFcnCallArgsToExprs,
+                              lookOutsideXmlForTypes ) + ", "
                + astToAeExpr( be.getRight(), 
-                                           convertFcnCallArgsToExprs ) + " )";
+                              convertFcnCallArgsToExprs,
+                              lookOutsideXmlForTypes) + " )";
     }
     /*** UnaryExpr ***/
     if ( expr.getClass() == UnaryExpr.class ) {
@@ -1822,13 +1849,13 @@ public class EventXmlToJava {
         return "new Functions."
                + astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
                + astToAeExpr( ue.getExpr(), type,
-                              convertFcnCallArgsToExprs ) + " )";
+                              convertFcnCallArgsToExprs, lookOutsideXmlForTypes ) + " )";
     }
     /*** EnclosedExpr ***/
     if ( expr.getClass() == EnclosedExpr.class ) {
         middle =
             astToAeExpr( ( (EnclosedExpr)expr ).getInner(), type,
-                         convertFcnCallArgsToExprs );
+                         convertFcnCallArgsToExprs, lookOutsideXmlForTypes );
     /*** NameExpr ***/
     } else if ( expr.getClass() == NameExpr.class ) {
         middle = ( (NameExpr)expr ).getName();
@@ -1840,23 +1867,27 @@ public class EventXmlToJava {
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
       Param p = null;
       
-      if (!Utils.isNullOrEmpty( type ) ) {
-        p = lookupMemberByName( type,
-                                fieldAccessExpr.getField() );
-        if ( p != null ) {
-          // What were we going to do here??
-        }
-      }
+//      if (!Utils.isNullOrEmpty( type ) ) {
+//        p = lookupMemberByName( type,
+//                                fieldAccessExpr.getField(),
+//                                lookOutsideXmlForTypes );
+//        if ( p != null ) {
+//          // What were we going to do here??
+//        }
+//      }
       // If the scope is also a member, then we should have a parameter for it,
       // in which case we should call getValue().
       if ( fieldAccessExpr.getScope() != null
            && ( fieldAccessExpr.getScope() instanceof FieldAccessExpr
                 || fieldAccessExpr.getScope() instanceof NameExpr ) ) {
-        String parentType = astToAeExprType( fieldAccessExpr.getScope() );
+        String parentType = astToAeExprType( fieldAccessExpr.getScope(),
+                                             lookOutsideXmlForTypes );
         if ( !Utils.isNullOrEmpty( parentType ) ) {
-          p = lookupMemberByName( parentType, fieldAccessExpr.getField() );
+          p = lookupMemberByName( parentType, fieldAccessExpr.getField(),
+                                  lookOutsideXmlForTypes );
           String parentString =
-              astToAeExpr( fieldAccessExpr.getScope(), parentType, false );
+              astToAeExpr( fieldAccessExpr.getScope(), parentType, false,
+                           lookOutsideXmlForTypes );
           middle = "((" + parentType + ")" + parentString + ".getValue())."
                    + fieldAccessExpr.getField().toString()
                    + ( ( p != null && convertFcnCallArgsToExprs ) ? ".getValue()"
@@ -1872,8 +1903,8 @@ public class EventXmlToJava {
         if ( ae.getOperator() == AssignExpr.Operator.assign ) {
           result =
               ae.getTarget().toString() + ".setValue( "
-                  + astToAeExpr( ae.getValue(), 
-                                              convertFcnCallArgsToExprs ) + " )";
+                  + astToAeExpr( ae.getValue(), convertFcnCallArgsToExprs,
+                                 lookOutsideXmlForTypes ) + " )";
           return result;
         }
         BinaryExpr abe = new BinaryExpr();
@@ -1885,8 +1916,8 @@ public class EventXmlToJava {
           Assert.assertNotNull( abe.getOperator() );
           result =
               ae.getTarget().toString() + ".setValue( "
-                  + astToAeExpr( abe, 
-                                              convertFcnCallArgsToExprs ) + " )";
+                  + astToAeExpr( abe, convertFcnCallArgsToExprs,
+                                 lookOutsideXmlForTypes) + " )";
           return result;
         }
         middle = ae.toString();
@@ -1894,7 +1925,8 @@ public class EventXmlToJava {
     } else if ( expr.getClass() == MethodCallExpr.class ) {
         MethodCallExpr mce = (MethodCallExpr)expr;
         JavaForFunctionCall javaForFunctionCall =
-            new JavaForFunctionCall( this, mce, convertFcnCallArgsToExprs );
+            new JavaForFunctionCall( this, mce, convertFcnCallArgsToExprs,
+                                     packageName );
         return javaForFunctionCall.toNewExpressionString();
     } else  { //if ( expr.getClass() == ConditionalCallExpr.class ) {
       //case "ConditionalExpr": // TODO
@@ -1909,7 +1941,7 @@ public class EventXmlToJava {
   public String getObjectFromScope( Expression scopeExpr ) {
     String object = null;
     if ( scopeExpr != null) {
-      object = astToAeExpr( scopeExpr, false );
+      object = astToAeExpr( scopeExpr, false, true );
     }
     if ( object == null ) object = "null";
     return object;
@@ -1963,8 +1995,10 @@ public class EventXmlToJava {
   }
 
   public String astToAeExpr( Expression expr,
-                             boolean convertFcnCallArgsToExprs ) {
-    return astToAeExpr( expr, null, convertFcnCallArgsToExprs );
+                             boolean convertFcnCallArgsToExprs,
+                             boolean lookOutsideXmlForTypes ) {
+    return astToAeExpr( expr, null, convertFcnCallArgsToExprs,
+                        lookOutsideXmlForTypes);
   }
 
   private static String
@@ -2014,7 +2048,7 @@ public class EventXmlToJava {
       e.printStackTrace();
       return "new Expression<String>( \"" + exprString + "\" )";
     }
-    return astToAeExpr( expr, type, convertFcnCallArgsToExprs );
+    return astToAeExpr( expr, type, convertFcnCallArgsToExprs, true );
   }
 
   public FieldDeclaration createConstraintField( String name,
@@ -2152,7 +2186,8 @@ public class EventXmlToJava {
                                             // "MethodCallExpr" ) ) {
       MethodCallExpr mcExpr = (MethodCallExpr)expr;
 
-      JavaForFunctionCall jffc = new JavaForFunctionCall( this, mcExpr, false );
+      JavaForFunctionCall jffc = new JavaForFunctionCall( this, mcExpr, false,
+                                                          packageName );
 
       int myNum = counter++;
       String effectName = "effect" + myNum;
@@ -2205,10 +2240,11 @@ public class EventXmlToJava {
     for ( int i = 0; i < arguments.size(); ++i ) {
       Param p = arguments.get( i );
 
-      String parameterTypeAndArgs[] = convertToEventParameterTypeAndConstructorArgs( p );
+//      String parameterTypeAndArgs[] =
+//          convertToEventParameterTypeAndConstructorArgs( p, eventType );
       String type = typeToClass( p.type );
       if ( Utils.isNullOrEmpty( type ) ) {
-        Param param = lookupMemberByName( eventType, p.name );
+        Param param = lookupMemberByName( eventType, p.name, true );
         if ( param != null ) {
           type = param.type;
         }

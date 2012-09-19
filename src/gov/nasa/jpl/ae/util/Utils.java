@@ -232,9 +232,19 @@ public class Utils {
   
   public static Class< ? > tryClassForName( String className, 
                                             boolean initialize ) {
+    return tryClassForName( className, initialize, null );
+  }
+  
+  public static Class< ? > tryClassForName( String className, 
+                                            boolean initialize,
+                                            ClassLoader loader ) {
     Class< ? > classForName = null;
     try {
-      classForName = Class.forName( className );//, initialize, Utils.class.getClassLoader() );
+      if ( loader == null ) {
+        classForName = Class.forName( className );
+      } else {
+        classForName = Class.forName( className, initialize, loader );//, initialize, Utils.class.getClassLoader() );
+      }
     } catch ( Exception e ) {
       // ignore
     }
@@ -242,39 +252,83 @@ public class Utils {
     return classForName;
   }
 
-  public static Class< ? > getClassForName( String className,
+  public static Class<?> getClassForName( String className,
+                                          String preferredPackage,
+                                          boolean initialize ) {
+    List< Class<?>> classList = getClassesForName( className, initialize );
+    if ( !isNullOrEmpty( classList ) ) {
+      for ( Class< ? > c : classList ) {
+        if ( c.getPackage().getName().equals( preferredPackage ) ) {
+          Debug.errln("Found preferred package! " + preferredPackage );
+          return c;
+        }
+      }
+    }
+    return getClassFromClasses( classList );
+  }
+//  public static Class<?> getClassForName( String className,
+//                                          boolean initialize ) {    
+//    return getClassFromClasses( getClassesForName( className, initialize ) );
+//  }
+  
+  public static List< Class< ? >> getClassesForName( String className,
                                             boolean initialize ) {
+//                                            ClassLoader loader,
+//                                            Package[] packages) {
+    List< Class< ? > > classList = new ArrayList< Class< ? > >();
     if ( Utils.isNullOrEmpty( className ) ) return null;
-    Class< ? > classForName = tryClassForName( className, initialize );
-    if ( classForName != null ) return classForName;
+//    ClassLoader loader = Utils.class.getClassLoader();
+//    if ( loader != null ) {
+//      for ( String pkgName : packagesToForceLoad ) {
+//        try {
+//          loader.getResources( pkgName);
+//          loader.getResources( pkgName + File.separator + "*" );
+//          loader.loadClass("");
+//        } catch ( IOException e ) {
+//          // ignore
+//        } catch ( ClassNotFoundException e ) {
+//          // ignore
+//        }
+//      }
+//    }
+    Debug.outln( "getClassForName( " + className + " )" );
+    Class< ? > classForName = tryClassForName( className, initialize );//, loader );
+    if ( classForName != null ) classList.add( classForName );
     String strippedClassName = noParameterName( className );
+    Debug.outln( "getClassForName( " + className + " ): strippedClassName = "
+                 + strippedClassName );
     boolean strippedWorthTrying = false;
     if ( !Utils.isNullOrEmpty( strippedClassName ) ) {
       strippedWorthTrying = !strippedClassName.equals( className ); 
       if ( strippedWorthTrying ) {
-        classForName = tryClassForName( strippedClassName, initialize );
-        if ( classForName != null ) return classForName;
+        classForName = tryClassForName( strippedClassName, initialize );//, loader );
+        if ( classForName != null ) classList.add( classForName );
       }
     }
-    List<String> FQNs = getFullyQualifiedNames( className );
+    List<String> FQNs = getFullyQualifiedNames( className );//, packages );
+    Debug.outln( "getClassForName( " + className + " ): fully qualified names = "
+        + FQNs );
     if ( FQNs.isEmpty() && strippedWorthTrying ) {
-      FQNs = getFullyQualifiedNames( strippedClassName );
+      FQNs = getFullyQualifiedNames( strippedClassName );//, packages );
     }
     if ( !FQNs.isEmpty() ) {
       for ( String fqn : FQNs ) {
-        classForName = tryClassForName( fqn, initialize );
-        if ( classForName != null ) return classForName;
+        classForName = tryClassForName( fqn, initialize );//, loader );
+        if ( classForName != null ) classList.add( classForName );
       }
     }
-    return classForName;
+    return classList;
   }
   
-  public static Collection<String> getPackages() {
-    Set<String> packages = new HashSet<String>();
-    for (Package aPackage : Package.getPackages()) {
-        packages.add(aPackage.getName());
+  public static Collection<String> getPackageStrings(Package[] packages) {
+    Set<String> packageStrings = new HashSet<String>();
+    if ( isNullOrEmpty( packages ) ) {
+      packages = Package.getPackages();
     }
-    return packages;
+    for (Package aPackage : packages ) {
+      packageStrings.add(aPackage.getName());
+    }
+    return packageStrings;
   }
   
   public static String simpleName( String longName ) {
@@ -304,12 +358,16 @@ public class Utils {
     return paramPart;
   }
 
-  public static List<String> getFullyQualifiedNames(String simpleClassOrInterfaceName) {
-    Collection<String> packages = null;
-    packages = getPackages();
+  public static List<String> getFullyQualifiedNames(String simpleClassOrInterfaceName ) {
+    return getFullyQualifiedNames( simpleClassOrInterfaceName, null );
+  }
+  public static List<String> getFullyQualifiedNames(String simpleClassOrInterfaceName, Package[] packages) {
+    Collection<String> packageStrings = getPackageStrings( packages );
 
     List<String> fqns = new ArrayList<String>();
-    for (String aPackage : packages) {
+    Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
+                 + " ): packages = " + packageStrings );
+    for (String aPackage : packageStrings) {
         try {
             String fqn = aPackage + "." + simpleClassOrInterfaceName;
             Class.forName(fqn);
@@ -322,8 +380,9 @@ public class Utils {
   }
   
   public static Constructor< ? > getConstructorForArgs( String className,
-                                                        Object[] args ) {
-    Class< ? > classForName = getClassForName( className, false );
+                                                        Object[] args,
+                                                        String preferredPackage ) {
+    Class< ? > classForName = getClassForName( className, preferredPackage, false );
     if ( classForName == null ) {
       System.err.println( "Couldn't find the class " + className
                           + " to get constructor with args=" + toString( args ) );
@@ -399,9 +458,21 @@ public class Utils {
              && eventClass.getEnclosingClass() != null );
   }
 
-  public static Method getMethodForArgs( String className, String callName,
+  public static Class<?> getClassFromClasses( List< Class< ? > > classList ) {
+    if ( isNullOrEmpty( classList ) ) {
+      return null;
+    }
+    if ( classList.size() > 1 ) {
+      System.err.println( "Error! Got multiple class candidates for constructor! " + classList );
+    }
+    return classList.get( 0 );
+  }
+  
+  public static Method getMethodForArgs( String className,
+                                         String preferredPackage,
+                                         String callName,
                                          Object... args ) {
-    Class< ? > classForName = getClassForName( className, false );
+    Class< ? > classForName = getClassForName( className, preferredPackage, false );
     if ( errorOnNull( "Couldn't find the class " + className + " for method "
                       + callName + ( args == null ? "" : toString( args ) ),
                       classForName ) ) {
@@ -425,9 +496,11 @@ public class Utils {
     return getMethodForArgTypes( cls, callName, argTypes );
   }
 
-  public static Method getMethodForArgTypes( String className, String callName,
+  public static Method getMethodForArgTypes( String className,
+                                             String preferredPackage,
+                                             String callName,
                                              Class<?>... argTypes ) {
-    Class< ? > classForName = getClassForName( className, false );
+    Class< ? > classForName = getClassForName( className, preferredPackage, false );
     if ( errorOnNull( "Couldn't find the class " + className + " for method "
                           + callName
                           + ( argTypes == null ? "" : toString( argTypes ) ),
@@ -462,7 +535,7 @@ public class Utils {
       System.err.println( "Got exception calling " + cls.getName()
                           + ".getMethod(): " + e.getMessage() );
     }
-    Debug.outln( "--> got methods: " + methods );
+    Debug.outln( "--> got methods: " + toString( methods ) );
     if ( methods != null ) {
     for ( Method m : methods ) {
       if ( m.getName().equals( callName ) ) {

@@ -185,10 +185,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     if ( tryToPlot ) {
       initiatePlot();
     }
-    w.println("--- simulation start ---");
+    w.println("--- simulation start, timeScale = " + timeScale + " ---");
     for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
       for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
-        System.out.println("startClock = " + startClock );
+//        System.out.println("startClock = " + startClock );
         if (startClock == -1) {
           startClock = System.currentTimeMillis();
         } else {
@@ -198,10 +198,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           long waitMillis =
               (long)Math.min( (double)Long.MAX_VALUE / 2,
                               ( nextEventTimeScaled - timePassed  ) );
-          System.out.println("timePassed = " + timePassed );
-          System.out.println("nextEventTime = " + nextEventTime );
-          System.out.println("nextEventTimeScaled = " + nextEventTimeScaled );
-          System.out.println("waitMillis = " + waitMillis );
+//          System.out.println("timePassed = " + timePassed );
+//          System.out.println("nextEventTime = " + nextEventTime );
+//          System.out.println("nextEventTimeScaled = " + nextEventTimeScaled );
+//          System.out.println("waitMillis = " + waitMillis );
           if ( waitMillis > 0 ) {
             try {
               Thread.sleep( waitMillis );
@@ -211,7 +211,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
             }
           }
         }
-        System.out.println("current millis = " + System.currentTimeMillis() );
+//        System.out.println("current millis = " + System.currentTimeMillis() );
         int t = e1.getKey().intValue();
         Object variable = e2.getKey();
         Object value = e2.getValue();
@@ -285,6 +285,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
 
   protected void initiatePlot() {
     //Map< Object, Integer > varIndices = null;
+    if ( Utils.isNullOrEmpty( currentPlottableValues ) ) {
+      tryToPlot = false;
+      return;
+    }
     try {
       // Run the python plot program as a system command.
       java.lang.Runtime rt = java.lang.Runtime.getRuntime();

@@ -39,7 +39,8 @@ public class JavaForFunctionCall {
   
   public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
                               MethodCallExpr mce,
-                              boolean convertArgumentsToExpressions ) {
+                              boolean convertArgumentsToExpressions,
+                              String preferredPackageName ) {
     // Arguments may be Expressions, Parameters, or other. Method parameter
     // types may also be Expressions, Parameters, or other.
     //
@@ -84,7 +85,7 @@ public class JavaForFunctionCall {
     } else {
       // Get the class name from the declaration of the object.
       Param objectParam =
-          this.xmlToJava.lookupMemberByName( className, objectName );
+          this.xmlToJava.lookupMemberByName( className, objectName, true );
       if ( objectParam != null ) {
         className = objectParam.type;
       } else {
@@ -93,16 +94,25 @@ public class JavaForFunctionCall {
       }
     }
     
+/* This code should be unnecessary since lookupMemberByName() does this.
     if ( className != null && !className.isEmpty() ) {
-      Class<?> classForName = Utils.getClassForName( className, true );
+      Class<?> classForName = Utils.getClassForName( className,
+                                                     this.xmlToJava.packageName,
+                                                     true );
+//                                                     getClass().getClassLoader(),
+//                                                     Package.getPackages() );
       if ( classForName == null && !pkg.isEmpty() ) {
-        classForName = Utils.getClassForName( pkg + className, true );
+        classForName = Utils.getClassForName( pkg + className,
+                                              preferredPackageName,
+                                              true );
+//                                              getClass().getClassLoader(),
+//                                              Package.getPackages() );
       }
       if ( classForName != null ) {
         className = classForName.getName();
       }
     }
-    
+*/    
     // Assemble Java text for finding the java.reflect.Method for callName
     // uses Class<?>.getMethod( String callName, arg1Class, arg2Class, ...) 
     StringBuffer methodJavaSb = new StringBuffer();
@@ -110,8 +120,8 @@ public class JavaForFunctionCall {
 //                         + "\", " + toString(mce.getArgs().toArray()) );
 //    methodJavaSb.append( "Utils.getClassForSimpleName(\"" + className
 //                       + "\", true).getMethod(\"" + callName + "\"" );
-    methodJavaSb.append( "Utils.getMethodForArgTypes(\"" + className + "\", "
-                         + "\"" + callName + "\"" );
+    methodJavaSb.append( "Utils.getMethodForArgTypes(\"" + className + "\", \""
+                         + preferredPackageName + "\", \"" + callName + "\"" );
 //    methodJavaSb.append( "Class.forName(\"" + className
 //                         + "\").getMethod(\"" + callName + "\"" );
     // Get the list of methods with the same name (callName).
@@ -140,14 +150,19 @@ public class JavaForFunctionCall {
         for ( int i = 0; i < mce.getArgs().size(); ++i ) {
           argArr[ i ] =
               Utils.getClassForName( xmlToJava.astToAeExprType( mce.getArgs()
-                                                                   .get( i ) ),
-                                     false );
+                                                                   .get( i ),
+                                                                true ),
+                                                                preferredPackageName,
+                                                                false );// ,
+                                                                                // getClass().getClassLoader(),
+                                     //Package.getPackages() );
         }
         // argArr = mce.getArgs().toArray();
         // mce.getArgs().get( 0 ).
       }
       matchingMethod =
-          Utils.getMethodForArgTypes( className, callName, argArr );
+          Utils.getMethodForArgTypes( className, preferredPackageName,
+                                      callName, argArr );
         if ( matchingMethod != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
             methodJavaSb.append( ", " );
@@ -194,7 +209,7 @@ public class JavaForFunctionCall {
         }
         if ( convertArgumentsToExpressions ) {
           String e = 
-              xmlToJava.astToAeExpr( a, convertArgumentsToExpressions );
+              xmlToJava.astToAeExpr( a, convertArgumentsToExpressions, true );
           argumentArraySb.append( e );
         } else {
           argumentArraySb.append( a );
