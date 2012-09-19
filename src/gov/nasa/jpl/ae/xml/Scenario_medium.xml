@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/Users/mjackson/Documents/workspace-Helios/CS/bin/gov/nasa/jpl/ae/xml/eventSchema.xsd">
 	<epoch>2012-08-05T23:30:00-07:00</epoch>
 	<timeUnits>seconds</timeUnits>
 	<eventToBeExecuted>
@@ -53,23 +53,17 @@
 					<!--simple property (name usage)-->
 					<name>usage__17_0_5_edc0357_1346893158684_563782_13525</name>
 					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value/>
-				</parameter>
-				<parameter>
-					<!--Queue for Customer-->
-					<name>_17_0_5_edc0357_1346893158668_227375_13516_queue</name>
-					<type>Queue</type>
-					<value>new LinkedList&lt;Object&gt;()</value>
+					<value>new TimeVaryingMap("usage")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name cap)-->
 					<name>cap__17_0_5_edc0357_1346893158687_808842_13530</name>
 					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value/>
+					<value>new TimeVaryingMap("cap")</value>
 				</parameter>
 			</members>
-			<methods>
-			</methods>
+			<constructors/>
+			<methods/>
 			<events>
 				<event>
 					<!--changePowerUsage-->
@@ -107,20 +101,18 @@
 											<!--Instance of whoever is operating this activity-->
 											<name>_17_0_5_edc0357_1346893158915_567837_13811</name>
 											<type>Customer</type>
-											<value/>
+											<value>Customer.this</value>
 										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893350205_452392_14267_endTime</expression></constraint>
 									</constraints>
-									<dependencies>
-									</dependencies>
+									<dependencies/>
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1346893316294_823297_14255.send(_17_0_5_edc0357_1346893158915_567837_13811,startTime)</effect>
 								</effects>
-								<elaborations>
-								</elaborations>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -140,14 +132,14 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time: fork2 (ForkNode)-->
-											<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
+											<!--previous event end time:  (AcceptEventAction)-->
+											<name>_17_0_5_edc0357_1348095904689_562873_14480_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893350205_452392_14267_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348095904689_562873_14480_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
@@ -157,8 +149,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -201,7 +192,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1346893158916_188297_13814</name>
 											<type>Integer</type>
 											<value/>
@@ -224,7 +215,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346893158917_830514_13815</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1346893316294_823297_14255.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -274,8 +265,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -311,13 +301,10 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158786_218637_13608_endTime</expression></constraint>
 									</constraints>
-									<dependencies>
-									</dependencies>
+									<dependencies/>
 								</class>
-								<effects>
-								</effects>
-								<elaborations>
-								</elaborations>
+								<effects/>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -325,16 +312,16 @@
 									<!--<actionName>fork2</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of vs15 (ValueSpecificationAction) as false-->
-											<name>_17_0_5_edc0357_1346893158786_41089_13607_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time: initial (InitialNode)-->
 											<name>_17_0_5_edc0357_1346893158786_388211_13609_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of  (AcceptEventAction) as false-->
+											<name>_17_0_5_edc0357_1348095904689_562873_14480_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existence of rscpu (ReadSelfAction) as false-->
@@ -348,7 +335,7 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158786_41089_13607_exists</name>
+											<name>_17_0_5_edc0357_1348095904689_562873_14480_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
@@ -359,8 +346,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -382,11 +368,66 @@
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348095904689_562873_14480</eventType>
+											<eventName>_AcceptEventAction_changePowerUsage</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348095904689_562873_14480_exists</expression>
+										</condition>
+									</elaboration>
+								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1348095904689_562873_14480</name>
+									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
+									<members>
+										<parameter>
+											<!--Initialize existence of vs15 (ValueSpecificationAction) as false-->
+											<name>_17_0_5_edc0357_1346893158786_41089_13607_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time: fork2 (ForkNode)-->
+											<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893350205_452392_14267_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158786_41089_13607_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>30</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects/>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346893158786_41089_13607</eventType>
 											<eventName>vs15_ValueSpecificationAction_changePowerUsage</eventName>
 											<arguments>
 												<parameter>
-													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
+													<name>_17_0_5_edc0357_1348095904689_562873_14480_endTime</name>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -464,7 +505,7 @@
 											<!--Instance of whoever is operating this activity-->
 											<name>_17_0_5_edc0357_1346893158926_140857_13836</name>
 											<type>Customer</type>
-											<value/>
+											<value>Customer.this</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existence of f1 (ForkNode) as false-->
@@ -484,8 +525,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -545,8 +585,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -577,7 +616,7 @@
 									<!--<actionName>asfvUsage</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1346893158928_722123_13839</name>
 											<type>Integer</type>
 											<value/>
@@ -612,7 +651,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346893158928_585336_13840</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1346893158845_974799_13672.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -662,8 +701,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -699,13 +737,10 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_195958_13669_endTime</expression></constraint>
 									</constraints>
-									<dependencies>
-									</dependencies>
+									<dependencies/>
 								</class>
-								<effects>
-								</effects>
-								<elaborations>
-								</elaborations>
+								<effects/>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -728,15 +763,13 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158843_68308_13660_endTime</expression></constraint>
 									</constraints>
-									<dependencies>
-									</dependencies>
+									<dependencies/>
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1346893158845_974799_13672.send(objectToPass,startTime)</effect>
 									<effect>sig_17_0_5_edc0357_1346893158845_488694_13674.send(objectToPass,startTime)</effect>
 								</effects>
-								<elaborations>
-								</elaborations>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -756,7 +789,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1346893158929_378648_13841</name>
 											<type>Integer</type>
 											<value/>
@@ -768,7 +801,7 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1346893158929_740428_13842</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1346893158845_488694_13674.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -777,8 +810,7 @@
 									<effect>sig_17_0_5_edc0357_1346893158846_964404_13680.send(true,startTime)</effect>
 									<effect>cap__17_0_5_edc0357_1346893158687_808842_13530.setValue(startTime,_17_0_5_edc0357_1346893158929_378648_13841)</effect>
 								</effects>
-								<elaborations>
-								</elaborations>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -786,16 +818,16 @@
 									<!--<actionName>vs0</actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
-											<!--value specification VALUE-->
-											<name>_17_0_5_edc0357_1346893158930_266567_13844</name>
-											<type>Integer</type>
-											<value>0</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time: f2 (ForkNode)-->
 											<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<!--value specification VALUE-->
+											<name>_17_0_5_edc0357_1346893158930_266567_13844</name>
+											<type>Integer</type>
+											<value>0</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existence of asfvCap (AddStructuralFeatureValueAction) as false-->
@@ -815,8 +847,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -892,9 +923,25 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158844_847477_13667</eventType>
+											<eventName>vs0_ValueSpecificationAction_initialize</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--vs0_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346893158844_847477_13667_exists</expression>
+										</condition>
+									</elaboration>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
@@ -929,23 +976,6 @@
 											<expression>_17_0_5_edc0357_1346893158843_68308_13660_exists</expression>
 										</condition>
 									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158844_847477_13667</eventType>
-											<eventName>vs0_ValueSpecificationAction_initialize</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--vs0_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346893158844_847477_13667_exists</expression>
-										</condition>
-									</elaboration>
 								</elaborations>
 							</event>
 							<event>
@@ -977,8 +1007,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -1054,8 +1083,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -1111,9 +1139,21 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>Customer.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158682_214024_13522</eventType>
+											<eventName>initialize_Activity_Customer</eventName>
+											<arguments>
+												<parameter>
+													<name>endTime</name>
+													<value>cba_endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+									</elaboration>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
@@ -1130,19 +1170,6 @@
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158895_53394_13753_exists</expression>
 										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>Customer.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158682_214024_13522</eventType>
-											<eventName>initialize_Activity_Customer</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -1186,8 +1213,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -1246,11 +1272,9 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158895_53394_13753_endTime</expression></constraint>
 									</constraints>
-									<dependencies>
-									</dependencies>
+									<dependencies/>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -1282,13 +1306,10 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1347395382223_262819_14641_endTime</expression></constraint>
 									</constraints>
-									<dependencies>
-									</dependencies>
+									<dependencies/>
 								</class>
-								<effects>
-								</effects>
-								<elaborations>
-								</elaborations>
+								<effects/>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -1324,8 +1345,7 @@
 										</dependency>
 									</dependencies>
 								</class>
-								<effects>
-								</effects>
+								<effects/>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
@@ -1365,8 +1385,7 @@
 					</elaborations>
 				</event>
 			</events>
-			<classes>
-			</classes>
+			<classes/>
 		</class>
 	</classes>
 </scenario>
