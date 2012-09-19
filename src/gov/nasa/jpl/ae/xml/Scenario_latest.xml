@@ -46,20 +46,20 @@
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalyes between Customer and LADWP-->
 					<name>ss_17_0_5_edc0357_1345510113564_305135_13782_yes</name>
-					<type>ObjectFlow&lt;yes.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113564_305135_13782_yes,yes.class)</value>
+					<type>ObjectFlow&lt;Signalyes&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113564_305135_13782_yes",Signalyes.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalreceiveMeterReading between Customer and LADWP-->
 					<name>ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading</name>
-					<type>ObjectFlow&lt;receiveMeterReading.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading,receiveMeterReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveMeterReading&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading",SignalreceiveMeterReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalno between Customer and LADWP-->
 					<name>ss_17_0_5_edc0357_1345510113564_305135_13782_no</name>
-					<type>ObjectFlow&lt;no.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113564_305135_13782_no,no.class)</value>
+					<type>ObjectFlow&lt;Signalno&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113564_305135_13782_no",Signalno.class)</value>
 				</parameter>
 				<parameter>
 					<!--Classifier Behavior for Power_System is start_system-->
@@ -76,14 +76,14 @@
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalreceiveLoadReading between Power and LADWP-->
 					<name>ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading</name>
-					<type>ObjectFlow&lt;receiveLoadReading.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading,receiveLoadReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveLoadReading&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading",SignalreceiveLoadReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalchangeGenerationValue between LADWP and Power-->
 					<name>ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue</name>
-					<type>ObjectFlow&lt;changeGenerationValue.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue,changeGenerationValue.class)</value>
+					<type>ObjectFlow&lt;SignalchangeGenerationValue&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue",SignalchangeGenerationValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--part property (name l)-->
@@ -94,8 +94,8 @@
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalchangeLoadValue between Customer and Power-->
 					<name>ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue</name>
-					<type>ObjectFlow&lt;changeLoadValue.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue,changeLoadValue.class)</value>
+					<type>ObjectFlow&lt;SignalchangeLoadValue&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue",SignalchangeLoadValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--part property (name p)-->
@@ -106,40 +106,30 @@
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signalreceiveGenReading between Power and LADWP-->
 					<name>ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading</name>
-					<type>ObjectFlow&lt;receiveGenReading.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading,receiveGenReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveGenReading&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading",SignalreceiveGenReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New Structural SIgnal objectflow for signaldr_request between LADWP and Customer-->
 					<name>ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request</name>
-					<type>ObjectFlow&lt;dr_request.class&gt;</type>
-					<value>new ObjectFlow(ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request,dr_request.class)</value>
+					<type>ObjectFlow&lt;Signaldr_request&gt;</type>
+					<value>new ObjectFlow("ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request",Signaldr_request.class)</value>
 				</parameter>
 			</members>
 			<constructors>
 				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_Power_changeLoadValue});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_Power_changeGenerationValue});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_Customer_dr_request});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113564_305135_13782_yes.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_LADWP_yes});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113564_305135_13782_no.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_LADWP_no});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_LADWP_receiveMeterReading});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_LADWP_receiveLoadReading});]]>
-				</function>
-				<function>
-					<![CDATA[ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.setListeners(List&lt;ObjectFlow&lt;Obj&gt;&gt; {q_LADWP_receiveGenReading});]]>
+				<![CDATA[
+				 Power_System() {
+					ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.addListener(q_Power_changeLoadValue);
+					ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.addListener(q_Power_changeGenerationValue);
+					ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.addListener(q_Customer_dr_request);
+					ss_17_0_5_edc0357_1345510113564_305135_13782_yes.addListener(q_LADWP_yes);
+					ss_17_0_5_edc0357_1345510113564_305135_13782_no.addListener(q_LADWP_no);
+					ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.addListener(q_LADWP_receiveMeterReading);
+					ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.addListener(q_LADWP_receiveLoadReading);
+					ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.addListener(q_LADWP_receiveGenReading);
+				 }
+					]]>
 				</function>
 			</constructors>
 			<methods/>
@@ -152,7 +142,7 @@
 							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114227_570675_14436</name>
-								<type>ObjectFlow&lt;l&gt;</type>
+								<type>ObjectFlow&lt;LADWP&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114227_570675_14436")</value>
 							</parameter>
 							<parameter>
@@ -164,14 +154,8 @@
 							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114227_991374_14433</name>
-								<type>ObjectFlow&lt;p&gt;</type>
+								<type>ObjectFlow&lt;Power&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114227_991374_14433")</value>
-							</parameter>
-							<parameter>
-								<!--object flow for signal-->
-								<name>sig_17_0_5_edc0357_1340656734213_808349_11756</name>
-								<type>ObjectFlow&lt;stop&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1340656734213_808349_11756")</value>
 							</parameter>
 						</members>
 						<constraints/>
@@ -422,6 +406,12 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114834_104458_15211</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345510114834_33609_15212</name>
 											<type>Power_System</type>
@@ -654,38 +644,6 @@
 							</event>
 							<event>
 								<class>
-									<name>_17_0_5_edc0357_1345510114226_796333_14424</name>
-									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
-									<members>
-										<parameter>
-											<!--previous event end time: sobl (StartObjectBehaviorAction)-->
-											<name>_17_0_5_edc0357_1345510114226_407269_14426_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!-- (AcceptEventAction) accepts the stop signal-->
-											<name>sigVar_stop</name>
-											<type>stop</type>
-											<value/>
-										</parameter>
-									</members>
-									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114226_407269_14426_endTime</expression></constraint>
-									</constraints>
-									<dependencies>
-										<dependency>
-											<name>sigVar_stop</name>
-											<type>stop</type>
-											<value>q_Power_System_stop.receive(startTime - 1)</value>
-										</dependency>
-									</dependencies>
-								</class>
-								<effects/>
-								<elaborations/>
-							</event>
-							<event>
-								<class>
 									<name>_17_0_5_edc0357_1345510114226_580474_14425</name>
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
@@ -730,16 +688,16 @@
 									<!--<actionName>sobl</actionName><actionType>Start Object Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initialize existence of  (AcceptEventAction) as false-->
+											<name>_17_0_5_edc0357_1348077539710_788857_14450_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114839_131710_15220</name>
 											<type>l</type>
 											<value/>
-										</parameter>
-										<parameter>
-											<!--Initialize existence of  (AcceptEventAction) as false-->
-											<name>_17_0_5_edc0357_1345510114226_796333_14424_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
 										</parameter>
 										<parameter>
 											<!--previous event end time: sobp (StartObjectBehaviorAction)-->
@@ -753,36 +711,19 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>_17_0_5_edc0357_1348077539710_788857_14450_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1345510114839_131710_15220</name>
 											<type>Object</type>
 											<value>sig_17_0_5_edc0357_1345510114227_570675_14436.receive(startTime - 1)</value>
-										</dependency>
-										<dependency>
-											<name>_17_0_5_edc0357_1345510114226_796333_14424_exists</name>
-											<type>Boolean</type>
-											<value>q_Power_System_stop.hasStuff(endTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
 								<effects/>
 								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114226_796333_14424</eventType>
-											<eventName>_AcceptEventAction_start_system</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114226_407269_14426_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114226_796333_14424_exists</expression>
-										</condition>
-									</elaboration>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>LADWP.this</enclosingInstance>
@@ -796,7 +737,99 @@
 											</arguments>
 										</eventInvocation>
 									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348077539710_788857_14450</eventType>
+											<eventName>_AcceptEventAction_start_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114226_407269_14426_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348077539710_788857_14450_exists</expression>
+										</condition>
+									</elaboration>
 								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1348077539710_788857_14450</name>
+									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
+									<members>
+										<parameter>
+											<!--previous event end time: sobl (StartObjectBehaviorAction)-->
+											<name>_17_0_5_edc0357_1345510114226_407269_14426_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of  (ActivityFinalNode) as false-->
+											<name>_17_0_5_edc0357_1348077577791_22941_14468_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114226_407269_14426_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>10000</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1348077577791_22941_14468_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects/>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348077577791_22941_14468</eventType>
+											<eventName>_ActivityFinalNode_start_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348077539710_788857_14450_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348077577791_22941_14468_exists</expression>
+										</condition>
+									</elaboration>
+								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1348077577791_22941_14468</name>
+									<!--<actionName></actionName><actionType>Activity Final Node</actionType>-->
+									<members>
+										<parameter>
+											<!--previous event end time:  (AcceptEventAction)-->
+											<name>_17_0_5_edc0357_1348077539710_788857_14450_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348077539710_788857_14450_endTime</expression></constraint>
+									</constraints>
+									<dependencies/>
+								</class>
+								<effects/>
+								<elaborations/>
 							</event>
 						</events>
 					</class>
@@ -974,8 +1007,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_receiveMeterReading</name>
-					<type>ObjectFlow&lt;receiveMeterReading.class&gt;</type>
-					<value>new ObjectFlow(q_Customer_receiveMeterReading,receiveMeterReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveMeterReading&gt;</type>
+					<value>new ObjectFlow(q_Customer_receiveMeterReading,SignalreceiveMeterReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name usage)-->
@@ -986,8 +1019,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_dr_request</name>
-					<type>ObjectFlow&lt;dr_request.class&gt;</type>
-					<value>new ObjectFlow(q_Customer_dr_request,dr_request.class)</value>
+					<type>ObjectFlow&lt;Signaldr_request&gt;</type>
+					<value>new ObjectFlow(q_Customer_dr_request,Signaldr_request.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name cap)-->
@@ -998,20 +1031,20 @@
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_yes</name>
-					<type>ObjectFlow&lt;yes.class&gt;</type>
-					<value>new ObjectFlow(q_Customer_yes,yes.class)</value>
+					<type>ObjectFlow&lt;Signalyes&gt;</type>
+					<value>new ObjectFlow(q_Customer_yes,Signalyes.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_changeLoadValue</name>
-					<type>ObjectFlow&lt;changeLoadValue.class&gt;</type>
-					<value>new ObjectFlow(q_Customer_changeLoadValue,changeLoadValue.class)</value>
+					<type>ObjectFlow&lt;SignalchangeLoadValue&gt;</type>
+					<value>new ObjectFlow(q_Customer_changeLoadValue,SignalchangeLoadValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_no</name>
-					<type>ObjectFlow&lt;no.class&gt;</type>
-					<value>new ObjectFlow(q_Customer_no,no.class)</value>
+					<type>ObjectFlow&lt;Signalno&gt;</type>
+					<value>new ObjectFlow(q_Customer_no,Signalno.class)</value>
 				</parameter>
 			</members>
 			<constructors/>
@@ -1178,6 +1211,12 @@
 									<name>_17_0_5_edc0357_1345510114027_454308_14202</name>
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114781_279299_15103</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345510114781_225445_15104</name>
@@ -2024,8 +2063,20 @@
 											<value/>
 										</parameter>
 										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114799_201911_15131</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345510114791_46408_15119</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114799_903585_15130</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -2038,6 +2089,12 @@
 										<parameter>
 											<!--Argument Param: desired-->
 											<name>desired</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114798_618420_15129</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -2070,7 +2127,8 @@
 										<dependency>
 											<name>new_load</name>
 											<type>Integer</type>
-											<value>min(desired,cap)</value>
+											<value>min(desired,cap)
+else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>cap</name>
@@ -2863,16 +2921,16 @@
 									<!--<actionName>customerReadSelf</actionName><actionType>Read Self Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Instance of whoever is operating this activity-->
-											<name>_17_0_5_edc0357_1345510114817_17394_15168</name>
-											<type>Customer</type>
-											<value>Customer.this</value>
-										</parameter>
-										<parameter>
 											<!--Initialize existence of customerDecideParticipation (DecisionNode) as false-->
 											<name>_17_0_5_edc0357_1345510114163_254081_14351_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--Instance of whoever is operating this activity-->
+											<name>_17_0_5_edc0357_1345510114817_17394_15168</name>
+											<type>Customer</type>
+											<value>Customer.this</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existence of forkNodeReadSelf (ForkNode) as false-->
@@ -2963,15 +3021,15 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114819_229911_15170</name>
-											<type>Customer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--previous event end time: customerDecideParticipation (DecisionNode)-->
 											<name>_17_0_5_edc0357_1345510114163_254081_14351_endTime</name>
 											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114819_229911_15170</name>
+											<type>Customer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -3793,6 +3851,12 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346105140214_847754_15269</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!-- (AcceptEventAction) accepts the dr_request signal-->
 											<name>sigVar_dr_request</name>
 											<type>dr_request</type>
@@ -3906,6 +3970,12 @@
 									<name>_17_0_5_edc0357_1346104807417_467678_15096</name>
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1346105156021_864614_15281</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--Initialize existence of  (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1346105173460_397488_15297_exists</name>
@@ -4192,6 +4262,12 @@
 										<parameter>
 											<!--previous event end time:  (AcceptEventAction)-->
 											<name>_17_0_5_edc0357_1346104787974_430716_15054_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346105116990_449068_15259</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -4529,8 +4605,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_receiveGenReading</name>
-					<type>ObjectFlow&lt;receiveGenReading.class&gt;</type>
-					<value>new ObjectFlow(q_Power_receiveGenReading,receiveGenReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveGenReading&gt;</type>
+					<value>new ObjectFlow(q_Power_receiveGenReading,SignalreceiveGenReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name power)-->
@@ -4541,8 +4617,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_changeGenerationValue</name>
-					<type>ObjectFlow&lt;changeGenerationValue.class&gt;</type>
-					<value>new ObjectFlow(q_Power_changeGenerationValue,changeGenerationValue.class)</value>
+					<type>ObjectFlow&lt;SignalchangeGenerationValue&gt;</type>
+					<value>new ObjectFlow(q_Power_changeGenerationValue,SignalchangeGenerationValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name load)-->
@@ -4553,14 +4629,14 @@
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_receiveLoadReading</name>
-					<type>ObjectFlow&lt;receiveLoadReading.class&gt;</type>
-					<value>new ObjectFlow(q_Power_receiveLoadReading,receiveLoadReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveLoadReading&gt;</type>
+					<value>new ObjectFlow(q_Power_receiveLoadReading,SignalreceiveLoadReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_changeLoadValue</name>
-					<type>ObjectFlow&lt;changeLoadValue.class&gt;</type>
-					<value>new ObjectFlow(q_Power_changeLoadValue,changeLoadValue.class)</value>
+					<type>ObjectFlow&lt;SignalchangeLoadValue&gt;</type>
+					<value>new ObjectFlow(q_Power_changeLoadValue,SignalchangeLoadValue.class)</value>
 				</parameter>
 			</members>
 			<constructors/>
@@ -5468,15 +5544,15 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114754_415963_15049</name>
-											<type>Power</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345510114754_755936_15048</name>
 											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114754_415963_15049</name>
+											<type>Power</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -6878,6 +6954,12 @@
 											<type>Integer</type>
 											<value/>
 										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345756714103_564856_12930</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510644119_150669_18425_endTime</expression></constraint>
@@ -6925,6 +7007,12 @@
 									<name>_17_0_5_edc0357_1345510471635_699632_18330</name>
 									<!--<actionName>cvg_sig</actionName><actionType>Accept Event Action</actionType>-->
 									<members>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345756459554_558513_12886</name>
+											<type>changeGenerationValue</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--cvg_sig (AcceptEventAction) accepts the changeGenerationValue signal-->
 											<name>sigVar_changeGenerationValue</name>
@@ -7001,6 +7089,12 @@
 											<value/>
 										</parameter>
 										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345756719127_223191_12936</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Initialize existence of  (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1345510644119_150669_18425_exists</name>
 											<type>Boolean</type>
@@ -7069,6 +7163,12 @@
 									<name>_17_0_5_edc0357_1345510501544_90462_18367</name>
 									<!--<actionName>cgv</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345756500162_146891_12892</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345756501917_658961_12894</name>
@@ -7445,21 +7545,27 @@
 									<!--<actionName>readLoadFromSignal</actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345763208746_548851_13403</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Initialize existence of clv (CallBehaviorAction) as false-->
 											<name>_17_0_5_edc0357_1345510492737_394609_18349_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345763176758_698915_13402</name>
-											<type>changeLoadValue</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--previous event end time: clv_sig (AcceptEventAction)-->
 											<name>_17_0_5_edc0357_1345510469459_873081_18318_endTime</name>
 											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<name>_17_0_5_edc0357_1345763176758_698915_13402</name>
+											<type>changeLoadValue</type>
 											<value/>
 										</parameter>
 									</members>
@@ -7509,6 +7615,12 @@
 									<name>_17_0_5_edc0357_1345763300820_765750_13425</name>
 									<!--<actionName>readNewGenVal</actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345763333670_26957_13439</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--previous event end time: cvg_sig (AcceptEventAction)-->
 											<name>_17_0_5_edc0357_1345510471635_699632_18330_endTime</name>
@@ -7786,8 +7898,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_dr_request</name>
-					<type>ObjectFlow&lt;dr_request.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_dr_request,dr_request.class)</value>
+					<type>ObjectFlow&lt;Signaldr_request&gt;</type>
+					<value>new ObjectFlow(q_LADWP_dr_request,Signaldr_request.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name shortage)-->
@@ -7804,8 +7916,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_receiveLoadReading</name>
-					<type>ObjectFlow&lt;receiveLoadReading.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_receiveLoadReading,receiveLoadReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveLoadReading&gt;</type>
+					<value>new ObjectFlow(q_LADWP_receiveLoadReading,SignalreceiveLoadReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Classifier Behavior for LADWP is LADWP_CB-->
@@ -7822,14 +7934,14 @@
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_changeGenerationValue</name>
-					<type>ObjectFlow&lt;changeGenerationValue.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_changeGenerationValue,changeGenerationValue.class)</value>
+					<type>ObjectFlow&lt;SignalchangeGenerationValue&gt;</type>
+					<value>new ObjectFlow(q_LADWP_changeGenerationValue,SignalchangeGenerationValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_receiveGenReading</name>
-					<type>ObjectFlow&lt;receiveGenReading.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_receiveGenReading,receiveGenReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveGenReading&gt;</type>
+					<value>new ObjectFlow(q_LADWP_receiveGenReading,SignalreceiveGenReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_margin)-->
@@ -7864,14 +7976,14 @@
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_receiveMeterReading</name>
-					<type>ObjectFlow&lt;receiveMeterReading.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_receiveMeterReading,receiveMeterReading.class)</value>
+					<type>ObjectFlow&lt;SignalreceiveMeterReading&gt;</type>
+					<value>new ObjectFlow(q_LADWP_receiveMeterReading,SignalreceiveMeterReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_yes</name>
-					<type>ObjectFlow&lt;yes.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_yes,yes.class)</value>
+					<type>ObjectFlow&lt;Signalyes&gt;</type>
+					<value>new ObjectFlow(q_LADWP_yes,Signalyes.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_load)-->
@@ -7882,8 +7994,8 @@
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_no</name>
-					<type>ObjectFlow&lt;no.class&gt;</type>
-					<value>new ObjectFlow(q_LADWP_no,no.class)</value>
+					<type>ObjectFlow&lt;Signalno&gt;</type>
+					<value>new ObjectFlow(q_LADWP_no,Signalno.class)</value>
 				</parameter>
 			</members>
 			<constructors/>
@@ -8263,14 +8375,14 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114876_2649_15257</name>
+											<!--previous event end time: rs (ReadSelfAction)-->
+											<name>_17_0_5_edc0357_1345510114343_392589_14555_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time: rs (ReadSelfAction)-->
-											<name>_17_0_5_edc0357_1345510114343_392589_14555_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114876_2649_15257</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -8947,6 +9059,12 @@
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114902_370167_15283</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Initialize existence of reported_fork (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1345510114401_464493_14634_exists</name>
 											<type>Boolean</type>
@@ -9175,6 +9293,12 @@
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114908_999865_15291</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Argument Param: exp-->
 											<name>exp</name>
 											<type>Integer</type>
@@ -9183,6 +9307,12 @@
 										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114896_642880_15274</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114906_56003_15289</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -9221,6 +9351,12 @@
 											<name>_17_0_5_edc0357_1345510114401_676911_14635_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114907_962500_15290</name>
+											<type>Integer</type>
+											<value/>
 										</parameter>
 									</members>
 									<constraints>
@@ -9317,14 +9453,20 @@
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114908_64090_15292</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Initialize existence of current_margin_fork (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1345510114403_773368_14646_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ReadSelfAction)-->
-											<name>_17_0_5_edc0357_1345510114400_220423_14629_endTime</name>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114910_39106_15294</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -9333,12 +9475,6 @@
 											<name>_17_0_5_edc0357_1345510114402_549043_14640_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
-										</parameter>
-										<parameter>
-											<!--Result Pin: s-->
-											<name>s</name>
-											<type>Integer</type>
-											<value/>
 										</parameter>
 										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
@@ -9353,14 +9489,32 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Argument Param: act-->
-											<name>act</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114899_276069_15278</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114899_276069_15278</name>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114909_825675_15293</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--previous event end time:  (ReadSelfAction)-->
+											<name>_17_0_5_edc0357_1345510114400_220423_14629_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Result Pin: s-->
+											<name>s</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Argument Param: act-->
+											<name>act</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -10445,14 +10599,14 @@
 									<!--<actionName></actionName><actionType>Send Signal Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114926_775601_15346</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114498_54401_14718_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114498_54401_14718_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114926_775601_15346</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -11141,15 +11295,15 @@
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345510114946_838121_15377</name>
-											<type>LADWP</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1345510114622_749484_14811_endTime</name>
 											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<name>_17_0_5_edc0357_1345510114946_838121_15377</name>
+											<type>LADWP</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -11157,6 +11311,12 @@
 											<name>_17_0_5_edc0357_1345510114622_312578_14809_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114945_243329_15376</name>
+											<type>Integer</type>
+											<value/>
 										</parameter>
 									</members>
 									<constraints>
@@ -11214,6 +11374,18 @@
 										<parameter>
 											<!--previous event end time:  (ReadStructuralFeatureAction)-->
 											<name>_17_0_5_edc0357_1345510114622_317480_14808_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114947_671242_15379</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114948_342441_15380</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -11893,6 +12065,12 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114964_115792_15407</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1345510114964_600674_15408</name>
 											<type>LADWP</type>
@@ -11958,8 +12136,20 @@
 											<value/>
 										</parameter>
 										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114966_548034_15410</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Argument Param: current-->
 											<name>current</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--previous event end time:  (ReadStructuralFeatureAction)-->
+											<name>_17_0_5_edc0357_1345510114691_435966_14864_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -11970,8 +12160,8 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ReadStructuralFeatureAction)-->
-											<name>_17_0_5_edc0357_1345510114691_435966_14864_endTime</name>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1345510114966_798489_15411</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -12721,14 +12911,14 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114987_821137_15432</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114987_821137_15432</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -12998,14 +13188,14 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114993_45749_15442</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114993_45749_15442</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -13066,16 +13256,16 @@
 									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
-											<!--value specification VALUE-->
-											<name>_17_0_5_edc0357_1345510114994_761954_15445</name>
-											<type>Object</type>
-											<value>OpaqueExpression?</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<!--value specification VALUE-->
+											<name>_17_0_5_edc0357_1345510114994_761954_15445</name>
+											<type>Object</type>
+											<value>OpaqueExpression?</value>
 										</parameter>
 										<parameter>
 											<!--Initialize existence of  (ForkNode) as false-->
@@ -13728,16 +13918,16 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--value specification VALUE-->
-											<name>_17_0_5_edc0357_1345510114997_841873_15449</name>
-											<type>Boolean</type>
-											<value>False</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<!--value specification VALUE-->
+											<name>_17_0_5_edc0357_1345510114997_841873_15449</name>
+											<type>Boolean</type>
+											<value>False</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -14206,6 +14396,12 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1346100921583_684281_13761</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1346100922767_721473_13763</name>
 											<type>Integer</type>
@@ -14281,6 +14477,12 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346100752836_305657_13711</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!-- (AcceptEventAction) accepts the receiveMeterReading signal-->
 											<name>sigVar_receiveMeterReading</name>
 											<type>receiveMeterReading</type>
@@ -14354,6 +14556,12 @@
 										<parameter>
 											<!--previous event end time:  (AcceptEventAction)-->
 											<name>_17_0_5_edc0357_1346100738628_763629_13683_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346100827593_120288_13720</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -14467,6 +14675,12 @@
 											<value/>
 										</parameter>
 										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1346101088848_40963_13873</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Initialize existence of mnrlr (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1346101253799_271072_13939_exists</name>
 											<type>Boolean</type>
@@ -14542,6 +14756,12 @@
 											<value/>
 										</parameter>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346101040421_157561_13857</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
 											<name>_17_0_5_edc0357_1346101057612_324428_13858</name>
 											<type>receiveLoadReading</type>
@@ -14604,6 +14824,12 @@
 											<!-- (AcceptEventAction) accepts the receiveLoadReading signal-->
 											<name>sigVar_receiveLoadReading</name>
 											<type>receiveLoadReading</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346101014528_680095_13851</name>
+											<type>Object</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -14733,6 +14959,12 @@
 											<type>receiveGenReading</type>
 											<value/>
 										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346101342221_614382_13971</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346101486727_93891_14069_endTime</expression></constraint>
@@ -14783,6 +15015,12 @@
 										<parameter>
 											<!--previous event end time:  (AcceptEventAction)-->
 											<name>_17_0_5_edc0357_1346101323493_940716_13958_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346101376276_801916_13995</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -14845,6 +15083,12 @@
 									<name>_17_0_5_edc0357_1346101429843_239121_14015</name>
 									<!--<actionName>updateGenVal</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1346101436825_352758_14028</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--Initialize existence of mrrgr (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1346101486727_93891_14069_exists</name>
@@ -15386,6 +15630,12 @@
 									<!--<actionName>waitForDRResp</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346102888530_55753_14505</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1346102209293_902398_14297_endTime</name>
 											<type>Integer</type>
@@ -15568,6 +15818,12 @@
 										<parameter>
 											<!--previous event end time:  (DecisionNode)-->
 											<name>_17_0_5_edc0357_1346102275843_86387_14350_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initializing Input Pins-->
+											<name>_17_0_5_edc0357_1348001553696_468494_14278</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -15845,16 +16101,16 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Instance of whoever is operating this activity-->
-											<name>_17_0_5_edc0357_1346103876583_218379_14751</name>
-											<type>LADWP</type>
-											<value>LADWP.this</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time: monit (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346101533989_302317_14094_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<!--Instance of whoever is operating this activity-->
+											<name>_17_0_5_edc0357_1346103876583_218379_14751</name>
+											<type>LADWP</type>
+											<value>LADWP.this</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -16518,6 +16774,12 @@
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346102459862_624077_14418</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1346102573506_761015_14458_endTime</name>
 											<type>Integer</type>
@@ -16897,6 +17159,12 @@
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1346103096100_759763_14588</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--previous event end time: y (AcceptEventAction)-->
 											<name>_17_0_5_edc0357_1346102441989_709933_14404_endTime</name>
 											<type>Integer</type>
@@ -17115,16 +17383,16 @@
 									<!--<actionName></actionName><actionType>Value Specification Action</actionType>-->
 									<members>
 										<parameter>
-											<!--value specification VALUE-->
-											<name>_17_0_5_edc0357_1346103524024_311757_14690</name>
-											<type>Boolean</type>
-											<value>False</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time:  (ForkNode)-->
 											<name>_17_0_5_edc0357_1346103606797_653782_14706_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<!--value specification VALUE-->
+											<name>_17_0_5_edc0357_1346103524024_311757_14690</name>
+											<type>Boolean</type>
+											<value>False</value>
 										</parameter>
 									</members>
 									<constraints>
