@@ -439,6 +439,12 @@ public class EventXmlToJava {
 
   protected Param lookupMemberByName( String className, String paramName,
                                       boolean lookOutsideXml ) {
+    return lookupMemberByName( className, paramName, lookOutsideXml, true );
+  }
+
+  protected Param lookupMemberByName( String className, String paramName,
+                                      boolean lookOutsideXml,
+                                      boolean complainIfNotFound ) {
     if ( Utils.errorOnNull( "Passing null in lookupMemberByName(" + className + ", " + paramName + ")",
                        className, paramName) ) {
       return null;
@@ -453,7 +459,7 @@ public class EventXmlToJava {
     if ( params == null ) {
       classNameWithScope = getClassNameWithScope( className );
       if ( classNameWithScope != null ||
-           ( !lookOutsideXml &&
+           ( !lookOutsideXml && complainIfNotFound &&
              !Utils.errorOnNull( false, "Error! Could not find a class definition for " 
                                  + className
                                  + " when looking for member " + paramName + ".",
@@ -493,10 +499,12 @@ public class EventXmlToJava {
     }
     Debug.outln( "lookupMemberByName( className=" + className + ", paramName=" + paramName
                  + ") returning " + p );
-    Utils.errorOnNull( false, "lookupMemberByName(" + className + ", "
-                              + paramName + "): no parameter found\n  paramTable =\n"
-                              + paramTable + "\n  enclosingClasses =\n"
-                              + nestedToEnclosingClassNames, p );
+    if ( complainIfNotFound ) {
+      Utils.errorOnNull( false, "lookupMemberByName(" + className + ", "
+                                + paramName + "): no parameter found\n  paramTable =\n"
+                                + paramTable + "\n  enclosingClasses =\n"
+                                + nestedToEnclosingClassNames, p );
+    }
     return p; 
   }
 
@@ -1865,7 +1873,7 @@ public class EventXmlToJava {
     /*** FieldAccessExpr ***/
     } else if ( expr.getClass() == FieldAccessExpr.class ) {
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
-      Param p = null;
+      //Param p = null;
       
 //      if (!Utils.isNullOrEmpty( type ) ) {
 //        p = lookupMemberByName( type,
@@ -1883,15 +1891,15 @@ public class EventXmlToJava {
         String parentType = astToAeExprType( fieldAccessExpr.getScope(),
                                              lookOutsideXmlForTypes );
         if ( !Utils.isNullOrEmpty( parentType ) ) {
-          p = lookupMemberByName( parentType, fieldAccessExpr.getField(),
-                                  lookOutsideXmlForTypes );
+          Param p = lookupMemberByName( parentType, fieldAccessExpr.getField(),
+                                        false, false );
           String parentString =
               astToAeExpr( fieldAccessExpr.getScope(), parentType, false,
                            lookOutsideXmlForTypes );
           middle = "((" + parentType + ")" + parentString + ".getValue())."
                    + fieldAccessExpr.getField().toString()
-                   + ( ( p != null && convertFcnCallArgsToExprs ) ? ".getValue()"
-                                                                  : "" );
+                   + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
+                                                                   : "" );
         }
       } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
         middle = expr.toString();
