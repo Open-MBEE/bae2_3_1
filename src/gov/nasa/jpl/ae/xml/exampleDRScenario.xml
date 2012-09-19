@@ -366,7 +366,7 @@
           <name>customer</name><type>Customer</type><value>new Customer()</value>
         </parameter>
         <parameter>
-          <name>customerLoad</name><type>TimeVaryingMap&lt; Double &gt;</type><value>customer.load</value>
+          <name>customerLoad</name><type>TimeVaryingPlottableMap&lt; Double &gt;</type><value>customer.load</value>
         </parameter>
       </members>
     </class>

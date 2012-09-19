@@ -15,6 +15,7 @@ class OneWaySocket:
         """
         self.debugMode = mode
         self.client_socket = None
+        self.sock = None
         self.endianness = [
             ('@', 'native, native'),
             ('=', 'native, standard'),
@@ -60,6 +61,8 @@ class OneWaySocket:
             if packedValues[i][0:minPackLength] == msg:
                 self.endiannessIndex = i
                 break
+        # Need to eat any additional characters coming over the socket since we
+        # just got the minimum.
         if len(packedValues[self.endiannessIndex]) > minPackLength:
             msg = self.receiveInPieces(len(packedValues[self.endiannessIndex]) - minPackLength)
         self.debugPrint( "endianness is " + str(self.endianness[self.endiannessIndex]) )

@@ -10,6 +10,7 @@ import gov.nasa.jpl.ae.event.Consumable;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
+import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 import gov.nasa.jpl.ae.util.Debug;
 
 /**
@@ -35,7 +36,7 @@ public class Customer extends ParameterListenerImpl {
    * <p>gnuplot
    * <p>plot [0:24][0:1] f(x)=(1-m)*(sin(2*pi*(x/24-0.4))/2+0.5)+m, m=0.2, p=0.3, pi=3.14159, f(x)
    */
-  public TimeVaryingMap<Double> load = null;
+  public TimeVaryingPlottableMap<Double> load = null;
   public Consumable additiveLoad = null;
 
   public Parameter< TimeVaryingMap< Double > > loadParameter = null;
@@ -62,8 +63,8 @@ public class Customer extends ParameterListenerImpl {
   void init() {
     this.numGen = new Random(seed);
     double defaultValue = summerLoad(0);
-    load = new TimeVaryingMap< Double >( "load", getSummerLoadMethod(), this,
-                                         samplePeriod, loadHorizon );
+    load = new TimeVaryingPlottableMap< Double >( "load", getSummerLoadMethod(), this,
+                                                  samplePeriod, loadHorizon );
     additiveLoad = new Consumable( "additiveLoad", defaultValue,
                                    getSummerLoadDeltaMethod(), this,
                                    samplePeriod, loadHorizon,

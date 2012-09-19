@@ -77,7 +77,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
    */
   boolean tryToPlot = true;
   
-  Map< Object, Object > currentValues = new HashMap< Object, Object >();
+  Map< Object, Object > currentPlottableValues = new HashMap< Object, Object >();
 
   SocketClient plotSocket = null;
   Process plotProcess = null;
@@ -168,15 +168,16 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         existingEntry = true;
       }
     }
-    if ( currentValues != null && !tv.isEmpty() && 
-        ( tv.firstEntry().getValue() instanceof Double ||
-            tv.firstEntry().getValue() instanceof Integer ) ) {
-      currentValues.put( tv,  tv.firstEntry().getValue() );
+    if ( currentPlottableValues != null && !tv.isEmpty() && 
+         tv instanceof Plottable ) {
+//        ( tv.firstEntry().getValue() instanceof Double ||
+//            tv.firstEntry().getValue() instanceof Integer ) ) {
+      currentPlottableValues.put( tv,  tv.firstEntry().getValue() );
     }
     return !existingEntry;
   }
   
-  public void simulate( long tickInMilliseconds, java.io.OutputStream os ) {
+  public void simulate( double timeScale, java.io.OutputStream os ) {
     PrintWriter w = new PrintWriter( os, true );
     long startClock = -1;
     int lastT = -1;
@@ -187,10 +188,20 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     w.println("--- simulation start ---");
     for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
       for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
+        System.out.println("startClock = " + startClock );
         if (startClock == -1) {
           startClock = System.currentTimeMillis();
         } else {
-          long waitMillis = System.currentTimeMillis() - startClock - e1.getKey(); 
+          double nextEventTime = Duration.durationToMillis( e1.getKey() );
+          double nextEventTimeScaled = nextEventTime / timeScale;
+          double timePassed = ( (double)System.currentTimeMillis() ) - startClock;
+          long waitMillis =
+              (long)Math.min( (double)Long.MAX_VALUE / 2,
+                              ( nextEventTimeScaled - timePassed  ) );
+          System.out.println("timePassed = " + timePassed );
+          System.out.println("nextEventTime = " + nextEventTime );
+          System.out.println("nextEventTimeScaled = " + nextEventTimeScaled );
+          System.out.println("waitMillis = " + waitMillis );
           if ( waitMillis > 0 ) {
             try {
               Thread.sleep( waitMillis );
@@ -200,11 +211,12 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
             }
           }
         }
+        System.out.println("current millis = " + System.currentTimeMillis() );
         int t = e1.getKey().intValue();
         Object variable = e2.getKey();
         Object value = e2.getValue();
-        if ( currentValues != null && currentValues.containsKey( variable ) ) {
-          currentValues.put( variable, value );
+        if ( currentPlottableValues != null && currentPlottableValues.containsKey( variable ) ) {
+          currentPlottableValues.put( variable, value );
         }
         String name;
         if ( variable instanceof ParameterListener ) {
@@ -345,8 +357,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
       plotSocket = new SocketClient( "127.0.0.1", 60002 );
       // Need to send a 1 so that the python socket server knows the correct
       // endianness.
-      if ( plotSocket.isConnected() ) {
+      if ( plotSocket.isConnected() && currentPlottableValues.size() > 0 ) {
         plotSocket.getDataOutputStream().writeInt(1);
+        plotSocket.getDataOutputStream().writeInt(currentPlottableValues.size());
+      } else {
+        tryToPlot = false;
       }
     } catch ( IOException e ) {
       tryToPlot = false;
@@ -360,13 +375,13 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   }
 
   protected void plotValues() {
-    if ( currentValues == null || 
+    if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
-    double doubleArray[] = new double[currentValues.size()];
+    double doubleArray[] = new double[currentPlottableValues.size()];
     int cnt = 0;
-    for ( Object v : currentValues.values() ) {
+    for ( Object v : currentPlottableValues.values() ) {
       assert v instanceof Double || v instanceof Integer;
       doubleArray[ cnt++ ] = ((Double)v).doubleValue();
     }
@@ -381,7 +396,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
 
   public String toString() {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    simulate( 0, os );
+    simulate( 1.0e300, os );
     return os.toString();
   }
   

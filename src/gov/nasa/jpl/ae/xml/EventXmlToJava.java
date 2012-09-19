@@ -1628,9 +1628,6 @@ public class EventXmlToJava {
 
   public FieldDeclaration createParameterField( Param p,
                                                 MethodDeclaration initMembers ) {
-    if ( p.name.contains( "ustome" ) ) {
-      System.out.println(p.toString());
-    }
     if ( initMembers == null ) {
       return createParameterField( p );
     }

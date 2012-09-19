@@ -20,7 +20,7 @@ import junit.framework.Assert;
  * @author bclement
  *
  */
-public class Consumable extends TimeVaryingMap< Double > {
+public class Consumable extends TimeVaryingPlottableMap< Double > {
 
   /**
    * 

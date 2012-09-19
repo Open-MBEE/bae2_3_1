@@ -467,10 +467,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     System.out.println("execution:\n" + executionToString());
-    simulate(1, System.out);
+    simulate(1.0e6, System.out);
   }
 
-  public void simulate(long tickInMilliseconds, java.io.OutputStream os ) {
+  public void simulate(double timeScale, java.io.OutputStream os ) {
     EventSimulation sim = new EventSimulation( getEvents( true ) );
     sim.add( this );
     for ( TimeVarying< ? > tv : getTimeVaryingObjects( true ) ) {
@@ -478,7 +478,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         sim.add( (TimeVaryingMap< ? >)tv );
       }
     }
-    sim.simulate( 0, os );
+    sim.simulate( timeScale, os );
   }
   
   // Create an ElaborationRule for constructing an eventClass with

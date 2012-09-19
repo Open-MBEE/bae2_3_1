@@ -106,8 +106,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	}
 	
 	public long toMillis() {
-    return (long)( getValue().doubleValue()
-                   * Timepoint.Units.conversionFactor( Units.milliseconds ) );
+    return ticksToMillis( getValue() );
 	}
 	
   public String toFormattedString() {
@@ -122,7 +121,14 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	@Override
   public String toString() {
 	  return toStringWithUnits( true, true );
-    // TODO -- REVIEW -- units?  other formats?
+  }
+
+  public static long ticksToMillis( Integer d ) {
+    return durationToMillis( d );
+  }
+  public static long durationToMillis( Integer d ) {
+    return (long)( ((double)d)
+                   * Timepoint.Units.conversionFactor( Units.milliseconds ) );
   }
 	
 	

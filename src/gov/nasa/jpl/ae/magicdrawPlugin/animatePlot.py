@@ -4,14 +4,14 @@ import matplotlib.animation as animation
 from InterpolatedMap import InterpolatedMap as InterpolatedMap
 from OneWaySocket import OneWaySocket
 
-debugMode = False
+debugMode = True
 useSocket = True
 useTable = False
 useTestData = False
 
 showLabels = False
 
-numLines = 2
+numLines = 1
 #host = "192.168.1.100"
 host = "127.0.0.1"
 port = 60002
@@ -31,13 +31,17 @@ table[0]=[3,4,1]
 table[10]=[7,4,8]
 table[15]=[5,10,1]
 
-if useSocket:
-    sock = OneWaySocket(host, port, False, debugMode)
-    sock.endianGet()
-
 def debugPrint( s ):
     if debugMode:
         print s
+
+if useSocket:
+    sock = OneWaySocket(host, port, False, debugMode)
+    sock.endianGet()
+    numLines = sock.unpack("i", sock.receiveInPieces(4))
+    numLines = numLines[0]
+    debugPrint( "numLines = " + str(numLines) )
+
 
 def socketDataGen():
     cnt = 0
@@ -68,11 +72,14 @@ def dataFromTable():
 # Main loop
 #
 def main():
+    if numLines < 1:
+        return
     colors =  ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w']
     symbols = ['o', 'v', '^', 's', 'p', '*', '+', 'x']
     msizes =  [ 12,  10,  14,  16,  18,   8,  18,  20] 
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
     lines = [ ax.plot([0], [0], symbols[n % len(symbols)], markeredgecolor=colors[n % len(colors)], markeredgewidth=2, markersize=msizes[n % len(msizes)], markerfacecolor='None')[0] for n in xrange(numLines) ]
 
     ax.set_ylim(-1.1, 1.1)
