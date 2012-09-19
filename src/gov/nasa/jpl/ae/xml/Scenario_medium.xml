@@ -1179,8 +1179,8 @@
 									<!--<actionName>fork</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of cpu (CallBehaviorAction) as false-->
-											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
+											<!--Initialize existence of  (MergeNode) as false-->
+											<name>_17_0_5_edc0357_1348096121190_235211_14522_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
@@ -1202,7 +1202,7 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
+											<name>_17_0_5_edc0357_1348096121190_235211_14522_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
@@ -1215,6 +1215,23 @@
 								</class>
 								<effects/>
 								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348096121190_235211_14522</eventType>
+											<eventName>_MergeNode_CustomerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>invoker_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348096121190_235211_14522_exists</expression>
+										</condition>
+									</elaboration>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
@@ -1232,23 +1249,6 @@
 											<expression>_17_0_5_edc0357_1347395382223_262819_14641_exists</expression>
 										</condition>
 									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158896_214295_13759</eventType>
-											<eventName>cpu_CallBehaviorAction_CustomerCB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--cpu_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346893158896_214295_13759_exists</expression>
-										</condition>
-									</elaboration>
 								</elaborations>
 							</event>
 							<event>
@@ -1257,8 +1257,14 @@
 									<!--<actionName>cpu</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time: fork (ForkNode)-->
-											<name>_17_0_5_edc0357_1346893158895_53394_13753_endTime</name>
+											<!--Initialize existence of  (AcceptEventAction) as false-->
+											<name>_17_0_5_edc0357_1348096105668_435247_14501_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time:  (MergeNode)-->
+											<name>_17_0_5_edc0357_1348096121190_235211_14522_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -1270,9 +1276,15 @@
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158895_53394_13753_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348096121190_235211_14522_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1348096105668_435247_14501_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects/>
 								<elaborations>
@@ -1288,6 +1300,23 @@
 												</parameter>
 											</arguments>
 										</eventInvocation>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348096105668_435247_14501</eventType>
+											<eventName>_AcceptEventAction_CustomerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346893158896_214295_13759_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348096105668_435247_14501_exists</expression>
+										</condition>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -1362,6 +1391,111 @@
 										<!--fin_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346893158896_969462_13761_exists</expression>
+										</condition>
+									</elaboration>
+								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1348096105668_435247_14501</name>
+									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
+									<members>
+										<parameter>
+											<!--Initialize existence of  (MergeNode) as false-->
+											<name>_17_0_5_edc0357_1348096121190_235211_14522_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time: cpu (CallBehaviorAction)-->
+											<name>_17_0_5_edc0357_1346893158896_214295_13759_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158896_214295_13759_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1348096121190_235211_14522_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>10</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects/>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348096121190_235211_14522</eventType>
+											<eventName>_MergeNode_CustomerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>invoker_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348096121190_235211_14522_exists</expression>
+										</condition>
+									</elaboration>
+								</elaborations>
+							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1348096121190_235211_14522</name>
+									<!--<actionName></actionName><actionType>Merge Node</actionType>-->
+									<members>
+										<parameter>
+											<!--Invoke Time-->
+											<name>invoker_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of cpu (CallBehaviorAction) as false-->
+											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt; invoker_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1346893158896_214295_13759_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects/>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346893158896_214295_13759</eventType>
+											<eventName>cpu_CallBehaviorAction_CustomerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348096121190_235211_14522_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--cpu_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346893158896_214295_13759_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
