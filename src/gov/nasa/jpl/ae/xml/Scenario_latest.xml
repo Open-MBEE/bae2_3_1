@@ -120,14 +120,14 @@
 				<function>
 				<![CDATA[
 				 Power_System() {
-					ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.addListener(q_Power_changeLoadValue);
-					ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.addListener(q_Power_changeGenerationValue);
-					ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.addListener(q_Customer_dr_request);
-					ss_17_0_5_edc0357_1345510113564_305135_13782_yes.addListener(q_LADWP_yes);
-					ss_17_0_5_edc0357_1345510113564_305135_13782_no.addListener(q_LADWP_no);
-					ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.addListener(q_LADWP_receiveMeterReading);
-					ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.addListener(q_LADWP_receiveLoadReading);
-					ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.addListener(q_LADWP_receiveGenReading);
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeLoadValue.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeGenerationValue.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.getValue()).addListener(((ObjectFlow) ((Customer) c.getValue()).q_Customer_dr_request.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113564_305135_13782_yes.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_yes.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113564_305135_13782_no.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_no.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveMeterReading.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveLoadReading.getValue()));
+					((ObjectFlow) ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveGenReading.getValue()));
 				 }
 					]]>
 				</function>
@@ -412,7 +412,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) self-->
 											<name>_17_0_5_edc0357_1345510114834_33609_15212</name>
 											<type>Power_System</type>
 											<value/>
@@ -477,7 +477,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114836_890496_15214</name>
 											<type>Power_System</type>
 											<value/>
@@ -505,7 +505,7 @@
 									<!--<actionName>sobc</actionName><actionType>Start Object Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114836_265959_15215</name>
 											<type>Customer</type>
 											<value/>
@@ -598,7 +598,7 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114837_924145_15216</name>
-											<type>Object</type>
+											<type>p</type>
 											<value>sig_17_0_5_edc0357_1345510114227_991374_14433.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -660,7 +660,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114839_149885_15219</name>
 											<type>Power_System</type>
 											<value/>
@@ -717,7 +717,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114839_131710_15220</name>
-											<type>Object</type>
+											<type>l</type>
 											<value>sig_17_0_5_edc0357_1345510114227_570675_14436.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -1008,7 +1008,7 @@
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_receiveMeterReading</name>
 					<type>ObjectFlow&lt;SignalreceiveMeterReading&gt;</type>
-					<value>new ObjectFlow(q_Customer_receiveMeterReading,SignalreceiveMeterReading.class)</value>
+					<value>new ObjectFlow("q_Customer_receiveMeterReading",SignalreceiveMeterReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name usage)-->
@@ -1020,7 +1020,7 @@
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_dr_request</name>
 					<type>ObjectFlow&lt;Signaldr_request&gt;</type>
-					<value>new ObjectFlow(q_Customer_dr_request,Signaldr_request.class)</value>
+					<value>new ObjectFlow("q_Customer_dr_request",Signaldr_request.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name cap)-->
@@ -1032,19 +1032,19 @@
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_yes</name>
 					<type>ObjectFlow&lt;Signalyes&gt;</type>
-					<value>new ObjectFlow(q_Customer_yes,Signalyes.class)</value>
+					<value>new ObjectFlow("q_Customer_yes",Signalyes.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_changeLoadValue</name>
 					<type>ObjectFlow&lt;SignalchangeLoadValue&gt;</type>
-					<value>new ObjectFlow(q_Customer_changeLoadValue,SignalchangeLoadValue.class)</value>
+					<value>new ObjectFlow("q_Customer_changeLoadValue",SignalchangeLoadValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
 					<name>q_Customer_no</name>
 					<type>ObjectFlow&lt;Signalno&gt;</type>
-					<value>new ObjectFlow(q_Customer_no,Signalno.class)</value>
+					<value>new ObjectFlow("q_Customer_no",Signalno.class)</value>
 				</parameter>
 			</members>
 			<constructors/>
@@ -1218,7 +1218,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) self-->
 											<name>_17_0_5_edc0357_1345510114781_225445_15104</name>
 											<type>Customer</type>
 											<value/>
@@ -1295,7 +1295,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) target-->
 											<name>_17_0_5_edc0357_1345510114782_358183_15105</name>
 											<type>Customer</type>
 											<value/>
@@ -1313,7 +1313,7 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114783_59952_15106</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114028_129199_14214.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -1482,7 +1482,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) target-->
 											<name>_17_0_5_edc0357_1345510114784_30882_15107</name>
 											<type>Customer</type>
 											<value/>
@@ -1500,7 +1500,7 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114784_286838_15108</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114028_727317_14215.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -1785,7 +1785,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) self-->
 											<name>_17_0_5_edc0357_1345510114796_230370_15126</name>
 											<type>Customer</type>
 											<value/>
@@ -1809,7 +1809,7 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114795_154720_15125</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114089_103639_14268.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -1917,7 +1917,7 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114797_445623_15128</name>
 											<type>Customer</type>
 											<value/>
@@ -2063,20 +2063,8 @@
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114799_201911_15131</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) desired-->
 											<name>_17_0_5_edc0357_1345510114791_46408_15119</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114799_903585_15130</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -2110,35 +2098,34 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>sig_17_0_5_edc0357_1345510114089_873770_14267</name>
-											<type>Integer</type>
-											<value>new_load</value>
-										</dependency>
-										<dependency>
 											<name>_17_0_5_edc0357_1345510114088_999820_14258_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114792_358855_15120</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114089_958429_14264.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>new_load</name>
 											<type>Integer</type>
-											<value>min(desired,cap)
-else: new_load</value>
+											<value>min(desired,cap)</value>
 										</dependency>
 										<dependency>
 											<name>cap</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114089_958429_14264</value>
+											<value>_17_0_5_edc0357_1345510114792_358855_15120</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114798_618420_15129</name>
+											<type>Integer</type>
+											<value>new_load</value>
 										</dependency>
 										<dependency>
 											<name>desired</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114089_248814_14263</value>
+											<value>_17_0_5_edc0357_1345510114791_46408_15119</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -2203,7 +2190,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114801_45672_15133</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114089_58426_14269.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -2213,7 +2200,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114800_96164_15132</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114089_297842_14265.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -2521,7 +2508,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114808_431003_15150</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114105_938474_14303.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -2531,7 +2518,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114809_763294_15151</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114105_705998_14305.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -2681,12 +2668,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114810_534712_15153</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114105_129800_14307.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114810_895741_15152</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114105_724841_14306.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -3021,15 +3008,15 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time: customerDecideParticipation (DecisionNode)-->
-											<name>_17_0_5_edc0357_1345510114163_254081_14351_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114819_229911_15170</name>
 											<type>Customer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--previous event end time: customerDecideParticipation (DecisionNode)-->
+											<name>_17_0_5_edc0357_1345510114163_254081_14351_endTime</name>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -3044,12 +3031,12 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114818_835880_15169</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114167_567578_14359.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114819_229911_15170</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114167_732692_14364.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -3234,7 +3221,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114820_809313_15172</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114168_746941_14366.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -3304,12 +3291,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114822_185942_15174</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114167_676201_14362.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114821_349321_15173</name>
-											<type>Object</type>
+											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114168_147606_14365.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -3971,19 +3958,13 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1346105156021_864614_15281</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Initialize existence of  (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1346105173460_397488_15297_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) capval-->
 											<name>_17_0_5_edc0357_1346105157074_69873_15283</name>
 											<type>Integer</type>
 											<value/>
@@ -4023,6 +4004,10 @@ else: new_load</value>
 												<parameter>
 													<name>endTime</name>
 													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346105157074_69873_15283</name>
+													<value>_17_0_5_edc0357_1346105157074_69873_15283</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -4272,7 +4257,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) drReqSig-->
 											<name>_17_0_5_edc0357_1346105104143_626038_15258</name>
 											<type>dr_request</type>
 											<value/>
@@ -4606,7 +4591,7 @@ else: new_load</value>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_receiveGenReading</name>
 					<type>ObjectFlow&lt;SignalreceiveGenReading&gt;</type>
-					<value>new ObjectFlow(q_Power_receiveGenReading,SignalreceiveGenReading.class)</value>
+					<value>new ObjectFlow("q_Power_receiveGenReading",SignalreceiveGenReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name power)-->
@@ -4618,7 +4603,7 @@ else: new_load</value>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_changeGenerationValue</name>
 					<type>ObjectFlow&lt;SignalchangeGenerationValue&gt;</type>
-					<value>new ObjectFlow(q_Power_changeGenerationValue,SignalchangeGenerationValue.class)</value>
+					<value>new ObjectFlow("q_Power_changeGenerationValue",SignalchangeGenerationValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name load)-->
@@ -4630,13 +4615,13 @@ else: new_load</value>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_receiveLoadReading</name>
 					<type>ObjectFlow&lt;SignalreceiveLoadReading&gt;</type>
-					<value>new ObjectFlow(q_Power_receiveLoadReading,SignalreceiveLoadReading.class)</value>
+					<value>new ObjectFlow("q_Power_receiveLoadReading",SignalreceiveLoadReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
 					<name>q_Power_changeLoadValue</name>
 					<type>ObjectFlow&lt;SignalchangeLoadValue&gt;</type>
-					<value>new ObjectFlow(q_Power_changeLoadValue,SignalchangeLoadValue.class)</value>
+					<value>new ObjectFlow("q_Power_changeLoadValue",SignalchangeLoadValue.class)</value>
 				</parameter>
 			</members>
 			<constructors/>
@@ -4759,7 +4744,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1345510114740_587173_15023</name>
 											<type>Integer</type>
 											<value/>
@@ -4777,7 +4762,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114741_475296_15024</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113902_184025_14005.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -4914,12 +4899,12 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114742_225045_15026</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113902_964176_14006.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114743_924337_15027</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510113902_380027_14003.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -5253,12 +5238,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114747_983362_15039</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345756813363_602852_13369.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114748_254651_15040</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113922_694984_14041.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -5544,15 +5529,15 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345510114754_755936_15048</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114754_415963_15049</name>
 											<type>Power</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
+											<name>_17_0_5_edc0357_1345510114754_755936_15048</name>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -5573,7 +5558,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114754_415963_15049</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113942_415807_14078.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -5607,7 +5592,7 @@ else: new_load</value>
 									<!--<actionName>power_struct_add</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1345510114755_802377_15050</name>
 											<type>Integer</type>
 											<value/>
@@ -5631,7 +5616,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114756_517661_15051</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113942_807692_14079.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -6243,7 +6228,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114765_157490_15070</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113964_922533_14122.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -6322,7 +6307,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114767_768687_15072</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113964_266967_14123.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -6391,12 +6376,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114768_446406_15074</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510113964_263672_14120.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114767_751097_15073</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113964_837067_14124.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -6459,12 +6444,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114769_966831_15076</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510113963_14719_14119.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114769_461455_15075</name>
-											<type>Object</type>
+											<type>Power</type>
 											<value>sig_17_0_5_edc0357_1345510113964_881600_14125.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -7083,14 +7068,8 @@ else: new_load</value>
 									<!--<actionName>clv</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) newLoadVal-->
 											<name>_17_0_5_edc0357_1345756720553_849612_12938</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345756719127_223191_12936</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -7153,6 +7132,10 @@ else: new_load</value>
 													<name>endTime</name>
 													<value>cba_endTime</value>
 												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345756720553_849612_12938</name>
+													<value>_17_0_5_edc0357_1345756720553_849612_12938</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 									</elaboration>
@@ -7164,13 +7147,7 @@ else: new_load</value>
 									<!--<actionName>cgv</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345756500162_146891_12892</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) newGenVal-->
 											<name>_17_0_5_edc0357_1345756501917_658961_12894</name>
 											<type>Integer</type>
 											<value/>
@@ -7216,6 +7193,10 @@ else: new_load</value>
 												<parameter>
 													<name>endTime</name>
 													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345756501917_658961_12894</name>
+													<value>_17_0_5_edc0357_1345756501917_658961_12894</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -7557,15 +7538,15 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time: clv_sig (AcceptEventAction)-->
-											<name>_17_0_5_edc0357_1345510469459_873081_18318_endTime</name>
-											<type>Integer</type>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) sig-->
+											<name>_17_0_5_edc0357_1345763176758_698915_13402</name>
+											<type>changeLoadValue</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345763176758_698915_13402</name>
-											<type>changeLoadValue</type>
+											<!--previous event end time: clv_sig (AcceptEventAction)-->
+											<name>_17_0_5_edc0357_1345510469459_873081_18318_endTime</name>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -7634,7 +7615,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) sig-->
 											<name>_17_0_5_edc0357_1345763308884_192100_13438</name>
 											<type>changeGenerationValue</type>
 											<value/>
@@ -7899,7 +7880,7 @@ else: new_load</value>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_dr_request</name>
 					<type>ObjectFlow&lt;Signaldr_request&gt;</type>
-					<value>new ObjectFlow(q_LADWP_dr_request,Signaldr_request.class)</value>
+					<value>new ObjectFlow("q_LADWP_dr_request",Signaldr_request.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name shortage)-->
@@ -7917,7 +7898,7 @@ else: new_load</value>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_receiveLoadReading</name>
 					<type>ObjectFlow&lt;SignalreceiveLoadReading&gt;</type>
-					<value>new ObjectFlow(q_LADWP_receiveLoadReading,SignalreceiveLoadReading.class)</value>
+					<value>new ObjectFlow("q_LADWP_receiveLoadReading",SignalreceiveLoadReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Classifier Behavior for LADWP is LADWP_CB-->
@@ -7935,13 +7916,13 @@ else: new_load</value>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_changeGenerationValue</name>
 					<type>ObjectFlow&lt;SignalchangeGenerationValue&gt;</type>
-					<value>new ObjectFlow(q_LADWP_changeGenerationValue,SignalchangeGenerationValue.class)</value>
+					<value>new ObjectFlow("q_LADWP_changeGenerationValue",SignalchangeGenerationValue.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_receiveGenReading</name>
 					<type>ObjectFlow&lt;SignalreceiveGenReading&gt;</type>
-					<value>new ObjectFlow(q_LADWP_receiveGenReading,SignalreceiveGenReading.class)</value>
+					<value>new ObjectFlow("q_LADWP_receiveGenReading",SignalreceiveGenReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_margin)-->
@@ -7977,13 +7958,13 @@ else: new_load</value>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_receiveMeterReading</name>
 					<type>ObjectFlow&lt;SignalreceiveMeterReading&gt;</type>
-					<value>new ObjectFlow(q_LADWP_receiveMeterReading,SignalreceiveMeterReading.class)</value>
+					<value>new ObjectFlow("q_LADWP_receiveMeterReading",SignalreceiveMeterReading.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_yes</name>
 					<type>ObjectFlow&lt;Signalyes&gt;</type>
-					<value>new ObjectFlow(q_LADWP_yes,Signalyes.class)</value>
+					<value>new ObjectFlow("q_LADWP_yes",Signalyes.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_load)-->
@@ -7995,7 +7976,7 @@ else: new_load</value>
 					<!--Create New objectflow for signal to LADWP-->
 					<name>q_LADWP_no</name>
 					<type>ObjectFlow&lt;Signalno&gt;</type>
-					<value>new ObjectFlow(q_LADWP_no,Signalno.class)</value>
+					<value>new ObjectFlow("q_LADWP_no",Signalno.class)</value>
 				</parameter>
 			</members>
 			<constructors/>
@@ -8094,7 +8075,7 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) self-->
 											<name>_17_0_5_edc0357_1345510114872_767304_15249</name>
 											<type>LADWP</type>
 											<value/>
@@ -8129,7 +8110,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114870_148039_15248</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1346100955782_830873_13796.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -8375,19 +8356,19 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time: rs (ReadSelfAction)-->
-											<name>_17_0_5_edc0357_1345510114343_392589_14555_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114876_2649_15257</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--previous event end time: rs (ReadSelfAction)-->
+											<name>_17_0_5_edc0357_1345510114343_392589_14555_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) self-->
 											<name>_17_0_5_edc0357_1345510114877_268291_15258</name>
 											<type>LADWP</type>
 											<value/>
@@ -8404,7 +8385,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114876_2649_15257</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1346101200222_265463_13908.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -8662,7 +8643,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114882_909563_15267</name>
 											<type>LADWP</type>
 											<value/>
@@ -8674,7 +8655,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114881_103661_15266</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1346101473960_270064_14063.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -9025,7 +9006,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114901_629279_15282</name>
 											<type>LADWP</type>
 											<value/>
@@ -9071,7 +9052,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114903_863541_15284</name>
 											<type>LADWP</type>
 											<value/>
@@ -9142,7 +9123,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114904_450251_15286</name>
 											<type>LADWP</type>
 											<value/>
@@ -9249,7 +9230,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114905_557932_15287</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114408_335204_14678.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -9259,7 +9240,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114906_761156_15288</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114404_445687_14661.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -9292,12 +9273,6 @@ else: new_load</value>
 									<name>_17_0_5_edc0357_1345510114401_569392_14636</name>
 									<!--<actionName></actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114908_999865_15291</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
 										<parameter>
 											<!--Argument Param: exp-->
 											<name>exp</name>
@@ -9352,12 +9327,6 @@ else: new_load</value>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114907_962500_15290</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114403_590610_14645_endTime</expression></constraint>
@@ -9366,22 +9335,22 @@ else: new_load</value>
 										<dependency>
 											<name>exp</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114404_348430_14652</value>
+											<value>_17_0_5_edc0357_1345510114897_464730_15275</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114896_642880_15274</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114404_34398_14651.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114897_464730_15275</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114404_348430_14652.receive(startTime - 1)</value>
-										</dependency>
-										<dependency>
-											<name>sig_17_0_5_edc0357_1345510114408_253053_14677</name>
+											<name>_17_0_5_edc0357_1345510114906_56003_15289</name>
 											<type>Integer</type>
 											<value>diff</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114897_464730_15275</name>
+											<type>Integer</type>
+											<value>sig_17_0_5_edc0357_1345510114404_348430_14652.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114403_960787_14647_exists</name>
@@ -9396,7 +9365,7 @@ else: new_load</value>
 										<dependency>
 											<name>gen</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114404_34398_14651</value>
+											<value>_17_0_5_edc0357_1345510114896_642880_15274</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114401_676911_14635_exists</name>
@@ -9465,8 +9434,8 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114910_39106_15294</name>
+											<!--previous event end time:  (ReadSelfAction)-->
+											<name>_17_0_5_edc0357_1345510114400_220423_14629_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -9475,6 +9444,12 @@ else: new_load</value>
 											<name>_17_0_5_edc0357_1345510114402_549043_14640_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--Result Pin: s-->
+											<name>s</name>
+											<type>Integer</type>
+											<value/>
 										</parameter>
 										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
@@ -9489,32 +9464,14 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114899_276069_15278</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114909_825675_15293</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--previous event end time:  (ReadSelfAction)-->
-											<name>_17_0_5_edc0357_1345510114400_220423_14629_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Result Pin: s-->
-											<name>s</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Argument Param: act-->
 											<name>act</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114899_276069_15278</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -9523,6 +9480,11 @@ else: new_load</value>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114400_220423_14629_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114908_64090_15292</name>
+											<type>Integer</type>
+											<value>s</value>
+										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114403_773368_14646_exists</name>
 											<type>Boolean</type>
@@ -9540,27 +9502,22 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114898_711162_15277</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114404_840866_14653.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>gen</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114404_967702_14654</value>
-										</dependency>
-										<dependency>
-											<name>sig_17_0_5_edc0357_1345510114406_525371_14671</name>
-											<type>Integer</type>
-											<value>s</value>
+											<value>_17_0_5_edc0357_1345510114899_276069_15278</value>
 										</dependency>
 										<dependency>
 											<name>act</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114404_840866_14653</value>
+											<value>_17_0_5_edc0357_1345510114898_711162_15277</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114899_276069_15278</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114404_967702_14654.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -9820,12 +9777,12 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114911_249955_15296</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114405_994113_14663.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114910_287897_15295</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114406_67045_14672.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -9889,12 +9846,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114912_644333_15298</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114405_752265_14664.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114912_558392_15297</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1345510114406_563398_14668.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -10023,7 +9980,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114915_875209_15302</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114406_582786_14666.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -10033,7 +9990,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114914_734899_15301</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1345510114406_650884_14669.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -10127,7 +10084,7 @@ else: new_load</value>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114407_219573_14673</name>
 											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114407_219573_14673.receive(startTime - 1</value>
+											<value>sig_17_0_5_edc0357_1345510114407_219573_14673.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114401_569392_14636_exists</name>
@@ -10279,7 +10236,7 @@ else: new_load</value>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114408_563101_14679</name>
 											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1345510114408_563101_14679.receive(startTime - 1</value>
+											<value>sig_17_0_5_edc0357_1345510114408_563101_14679.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346106020869_685207_15351_exists</name>
@@ -10565,15 +10522,15 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Outgoing Signal Flow result-->
-											<name>_17_0_5_edc0357_1345510114924_922147_15343</name>
-											<type>Integer</type>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
+											<name>_17_0_5_edc0357_1345510114924_63685_15344</name>
+											<type>LADWP</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345510114924_63685_15344</name>
-											<type>LADWP</type>
+											<!--Outgoing Signal Flow result-->
+											<name>_17_0_5_edc0357_1345510114924_922147_15343</name>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -10599,14 +10556,14 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Send Signal Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114498_54401_14718_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114926_775601_15346</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114926_775601_15346</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114498_54401_14718_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -10617,7 +10574,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) target-->
 											<name>_17_0_5_edc0357_1345510114925_118349_15345</name>
 											<type>LADWP</type>
 											<value/>
@@ -10629,7 +10586,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114926_775601_15346</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114499_464852_14726.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -10946,7 +10903,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114933_118299_15363</name>
 											<type>LADWP</type>
 											<value/>
@@ -10963,7 +10920,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114932_192686_15362</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1348001582336_313784_14297.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -11255,7 +11212,7 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114945_289088_15375</name>
 											<type>LADWP</type>
 											<value/>
@@ -11295,15 +11252,15 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114622_749484_14811_endTime</name>
-											<type>Integer</type>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
+											<name>_17_0_5_edc0357_1345510114946_838121_15377</name>
+											<type>LADWP</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345510114946_838121_15377</name>
-											<type>LADWP</type>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114622_749484_14811_endTime</name>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -11378,18 +11335,6 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114947_671242_15379</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114948_342441_15380</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1345510114942_15555_15371</name>
 											<type>Integer</type>
@@ -11414,7 +11359,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) margin-->
 											<name>_17_0_5_edc0357_1345510114941_778134_15370</name>
 											<type>Integer</type>
 											<value/>
@@ -11430,24 +11375,24 @@ else: new_load</value>
 											<value>current-margin</value>
 										</dependency>
 										<dependency>
-											<name>sig_17_0_5_edc0357_1345510114623_673172_14818</name>
-											<type>Integer</type>
-											<value>new_generation</value>
-										</dependency>
-										<dependency>
 											<name>_17_0_5_edc0357_1345510114942_15555_15371</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114623_648729_14817.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>current</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114623_648729_14817</value>
+											<value>_17_0_5_edc0357_1345510114942_15555_15371</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114947_257306_15378</name>
+											<type>Integer</type>
+											<value>new_generation</value>
 										</dependency>
 										<dependency>
 											<name>margin</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114623_671383_14816</value>
+											<value>_17_0_5_edc0357_1345510114941_778134_15370</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -11492,12 +11437,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114950_379431_15382</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114623_673172_14818.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114949_404158_15381</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114623_885329_14820.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -11724,12 +11669,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114950_81581_15383</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1345510114624_890227_14824.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114951_495912_15384</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114624_220759_14825.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -12019,7 +11964,7 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Read Structural Feature Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
 											<name>_17_0_5_edc0357_1345510114963_707579_15406</name>
 											<type>LADWP</type>
 											<value/>
@@ -12065,15 +12010,15 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Initializing Output Pins-->
-											<name>_17_0_5_edc0357_1345510114964_115792_15407</name>
-											<type>Integer</type>
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) object-->
+											<name>_17_0_5_edc0357_1345510114964_600674_15408</name>
+											<type>LADWP</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
-											<name>_17_0_5_edc0357_1345510114964_600674_15408</name>
-											<type>LADWP</type>
+											<!--Initializing Output Pins-->
+											<name>_17_0_5_edc0357_1345510114964_115792_15407</name>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -12136,12 +12081,6 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114966_548034_15410</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Argument Param: current-->
 											<name>current</name>
 											<type>Integer</type>
@@ -12160,12 +12099,6 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1345510114966_798489_15411</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Argument Param: margin-->
 											<name>margin</name>
 											<type>Integer</type>
@@ -12178,7 +12111,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) margin-->
 											<name>_17_0_5_edc0357_1345510114959_575761_15401</name>
 											<type>Integer</type>
 											<value/>
@@ -12194,23 +12127,23 @@ else: new_load</value>
 											<value>current-margin</value>
 										</dependency>
 										<dependency>
-											<name>current</name>
-											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114692_973151_14871</value>
-										</dependency>
-										<dependency>
-											<name>sig_17_0_5_edc0357_1345510114692_988619_14872</name>
+											<name>_17_0_5_edc0357_1345510114965_375269_15409</name>
 											<type>Integer</type>
 											<value>new_generation</value>
 										</dependency>
 										<dependency>
+											<name>current</name>
+											<type>Integer</type>
+											<value>_17_0_5_edc0357_1345510114960_284722_15402</value>
+										</dependency>
+										<dependency>
 											<name>margin</name>
 											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114692_193979_14870</value>
+											<value>_17_0_5_edc0357_1345510114959_575761_15401</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114960_284722_15402</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114692_973151_14871.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -12256,12 +12189,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114967_325736_15412</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114692_891792_14873.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114968_74650_15413</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114692_988619_14872.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -12791,12 +12724,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114983_337424_15426</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_148053_14927.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114984_511435_15427</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_115246_14941.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -12837,12 +12770,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114985_383319_15429</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_433084_14940.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114984_949321_15428</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_343415_14926.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -12883,12 +12816,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114986_756803_15430</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_394314_14933.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114986_143356_15431</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_943749_14942.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -12911,14 +12844,14 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114987_821137_15432</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114987_821137_15432</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -12929,12 +12862,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114988_339710_15433</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_908211_14937.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114987_821137_15432</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_662975_14930.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -12975,12 +12908,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114988_614192_15434</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114711_993419_14925.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114989_580516_15435</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_504410_14939.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -13021,12 +12954,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114990_966028_15437</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_927688_14938.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114990_167194_15436</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_230967_14928.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -13067,12 +13000,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114991_200706_15438</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_405485_14932.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114992_216784_15439</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_836896_14943.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -13188,14 +13121,14 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<name>_17_0_5_edc0357_1345510114993_45749_15442</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
-											<name>_17_0_5_edc0357_1345510114993_45749_15442</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -13217,12 +13150,12 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114993_45749_15442</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1345510114712_959438_14929.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114994_895167_15443</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114713_823361_14936.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -13890,12 +13823,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114996_973134_15447</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114715_620321_14961.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114995_46510_15446</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1345510114715_883477_14965.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -13996,12 +13929,12 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114998_119629_15451</name>
-											<type>Object</type>
+											<type>LADWP</type>
 											<value>sig_17_0_5_edc0357_1345510114716_642816_14967.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114997_709943_15450</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1345510114715_582865_14966.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
@@ -14064,6 +13997,18 @@ else: new_load</value>
 					<class>
 						<name>_17_0_5_edc0357_1346100467245_506694_13577</name>
 						<members>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1346104106512_507599_14867</name>
+								<type>ObjectFlow&lt;Boolean&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346104106512_507599_14867")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1346103964252_49821_14797</name>
+								<type>ObjectFlow&lt;Boolean&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346103964252_49821_14797")</value>
+							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1348001642582_861167_14319</name>
@@ -14396,13 +14341,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1346100921583_684281_13761</name>
-											<type>Object</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) reportedLoad-->
 											<name>_17_0_5_edc0357_1346100922767_721473_13763</name>
 											<type>Integer</type>
 											<value/>
@@ -14442,6 +14381,10 @@ else: new_load</value>
 												<parameter>
 													<name>endTime</name>
 													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346100922767_721473_13763</name>
+													<value>_17_0_5_edc0357_1346100922767_721473_13763</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -14548,7 +14491,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) -->
 											<name>_17_0_5_edc0357_1346100796330_896110_13719</name>
 											<type>receiveMeterReading</type>
 											<value/>
@@ -14675,19 +14618,13 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1346101088848_40963_13873</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Initialize existence of mnrlr (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1346101253799_271072_13939_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) actualLoad-->
 											<name>_17_0_5_edc0357_1346101090161_713198_13875</name>
 											<type>Integer</type>
 											<value/>
@@ -14721,6 +14658,10 @@ else: new_load</value>
 												<parameter>
 													<name>endTime</name>
 													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346101090161_713198_13875</name>
+													<value>_17_0_5_edc0357_1346101090161_713198_13875</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -14762,7 +14703,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) signal-->
 											<name>_17_0_5_edc0357_1346101057612_324428_13858</name>
 											<type>receiveLoadReading</type>
 											<value/>
@@ -15031,7 +14972,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) genReadingSignal-->
 											<name>_17_0_5_edc0357_1346101356139_450740_13994</name>
 											<type>receiveGenReading</type>
 											<value/>
@@ -15084,19 +15025,13 @@ else: new_load</value>
 									<!--<actionName>updateGenVal</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1346101436825_352758_14028</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
 											<!--Initialize existence of mrrgr (MergeNode) as false-->
 											<name>_17_0_5_edc0357_1346101486727_93891_14069_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) actualGeneration-->
 											<name>_17_0_5_edc0357_1346101437766_368293_14030</name>
 											<type>Integer</type>
 											<value/>
@@ -15153,6 +15088,10 @@ else: new_load</value>
 												<parameter>
 													<name>endTime</name>
 													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346101437766_368293_14030</name>
+													<value>_17_0_5_edc0357_1346101437766_368293_14030</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -15422,7 +15361,7 @@ else: new_load</value>
 									<!--<actionName>genPowerLater</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (DecisionNode)-->
+											<!--previous event end time: mnmnnnn (DecisionNode)-->
 											<name>_17_0_5_edc0357_1346102275843_86387_14350_endTime</name>
 											<type>Integer</type>
 											<value/>
@@ -15511,7 +15450,7 @@ else: new_load</value>
 										<parameter>
 											<!--Variable for DecisionInputFlow-->
 											<name>_17_0_5_edc0357_1346103964252_49821_14797</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value/>
 										</parameter>
 									</members>
@@ -15531,8 +15470,8 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346103964252_49821_14797</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1346103964252_49821_14797.receive(startTime - 1</value>
+											<type>Boolean</type>
+											<value>sig_17_0_5_edc0357_1346103964252_49821_14797.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -15642,13 +15581,13 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (ForkNode) as false-->
+											<!--Initialize existence of fnnn (ForkNode) as false-->
 											<name>_17_0_5_edc0357_1348001608547_58915_14306_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Initialize existence of  (DecisionNode) as false-->
+											<!--Initialize existence of mnmnnnn (DecisionNode) as false-->
 											<name>_17_0_5_edc0357_1346102275843_86387_14350_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
@@ -15666,7 +15605,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1346102888530_55753_14505</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1346102889543_283441_14507.receive(endTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -15687,15 +15626,19 @@ else: new_load</value>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1348001608547_58915_14306</eventType>
-											<eventName>_ForkNode_LADWP_CB</eventName>
+											<eventName>fnnn_ForkNode_LADWP_CB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346102113184_840698_14284_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>objectToPass</name>
+													<value>_17_0_5_edc0357_1346102888530_55753_14505</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--fnnn_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1348001608547_58915_14306_exists</expression>
 										</condition>
@@ -15704,7 +15647,7 @@ else: new_load</value>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346102275843_86387_14350</eventType>
-											<eventName>_DecisionNode_LADWP_CB</eventName>
+											<eventName>mnmnnnn_DecisionNode_LADWP_CB</eventName>
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346102113184_840698_14284_endTime</name>
@@ -15712,7 +15655,7 @@ else: new_load</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--mnmnnnn_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346102275843_86387_14350_exists</expression>
 										</condition>
@@ -15816,14 +15759,8 @@ else: new_load</value>
 									<!--<actionName>updateExpLoad</actionName><actionType>Call Behavior Action</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (DecisionNode)-->
+											<!--previous event end time: mnmnnnn (DecisionNode)-->
 											<name>_17_0_5_edc0357_1346102275843_86387_14350_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Initializing Input Pins-->
-											<name>_17_0_5_edc0357_1348001553696_468494_14278</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -15852,7 +15789,7 @@ else: new_load</value>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1348001555541_398388_14280</name>
-											<type>Object</type>
+											<type>Integer</type>
 											<value>sig_17_0_5_edc0357_1348001642582_861167_14319.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
@@ -15873,6 +15810,10 @@ else: new_load</value>
 												<parameter>
 													<name>endTime</name>
 													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1348001555541_398388_14280</name>
+													<value>_17_0_5_edc0357_1348001555541_398388_14280</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -15899,8 +15840,14 @@ else: new_load</value>
 							<event>
 								<class>
 									<name>_17_0_5_edc0357_1346102275843_86387_14350</name>
-									<!--<actionName></actionName><actionType>Decision Node</actionType>-->
+									<!--<actionName>mnmnnnn</actionName><actionType>Decision Node</actionType>-->
 									<members>
+										<parameter>
+											<!--Variable for DecisionInputFlow-->
+											<name>_17_0_5_edc0357_1348001609357_382848_14312</name>
+											<type>Object</type>
+											<value/>
+										</parameter>
 										<parameter>
 											<!--previous event end time: waitForDRResp (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346102113184_840698_14284_endTime</name>
@@ -15925,14 +15872,19 @@ else: new_load</value>
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>_17_0_5_edc0357_1348001609357_382848_14312</name>
+											<type>Object</type>
+											<value>sig_17_0_5_edc0357_1348001609357_382848_14312.receive(startTime - 1)</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1346102261726_372521_14337_exists</name>
 											<type>Boolean</type>
-											<value>ALH.getTokenValue()&gt;-1 &amp;&amp; sig_17_0_5_edc0357_1348001642582_861167_14319.hasStuff(endTime)</value>
+											<value>_17_0_5_edc0357_1348001609357_382848_14312&gt;-1 &amp;&amp; sig_17_0_5_edc0357_1348001642582_861167_14319.hasStuff(endTime)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346101631180_812549_14165_exists</name>
 											<type>Boolean</type>
-											<value>ALH.getTokenValue()&lt;0</value>
+											<value>_17_0_5_edc0357_1348001609357_382848_14312&lt;0</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -16008,7 +15960,7 @@ else: new_load</value>
 										<parameter>
 											<!--Variable for DecisionInputFlow-->
 											<name>_17_0_5_edc0357_1346104106512_507599_14867</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -16035,8 +15987,8 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346104106512_507599_14867</name>
-											<type>Object</type>
-											<value>sig_17_0_5_edc0357_1346104106512_507599_14867.receive(startTime - 1</value>
+											<type>Boolean</type>
+											<value>sig_17_0_5_edc0357_1346104106512_507599_14867.receive(startTime - 1)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346101621154_926007_14131_exists</name>
@@ -16179,7 +16131,7 @@ else: new_load</value>
 										<parameter>
 											<!--Outgoing Signal Flow shortage-->
 											<name>_17_0_5_edc0357_1346103927444_968068_14786</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -16189,7 +16141,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) ladwp-->
 											<name>_17_0_5_edc0357_1346103914949_580826_14785</name>
 											<type>LADWP</type>
 											<value/>
@@ -16315,7 +16267,7 @@ else: new_load</value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) ladwp-->
 											<name>_17_0_5_edc0357_1346104058977_172678_14847</name>
 											<type>LADWP</type>
 											<value/>
@@ -16323,7 +16275,7 @@ else: new_load</value>
 										<parameter>
 											<!--Outgoing Signal Flow dr-->
 											<name>_17_0_5_edc0357_1346104069409_904806_14848</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value/>
 										</parameter>
 									</members>
@@ -16587,11 +16539,17 @@ else: new_load</value>
 							<event>
 								<class>
 									<name>_17_0_5_edc0357_1348001608547_58915_14306</name>
-									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
+									<!--<actionName>fnnn</actionName><actionType>Fork Node</actionType>-->
 									<members>
 										<parameter>
 											<!--previous event end time: waitForDRResp (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346102113184_840698_14284_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Object that this control node passes along-->
+											<name>objectToPass</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -17061,14 +17019,14 @@ else: new_load</value>
 									<!--<actionName>result</actionName><actionType>Activity Parameter Node</actionType>-->
 									<members>
 										<parameter>
-											<!--previous event end time:  (ReadStructuralFeatureAction)-->
-											<name>_17_0_5_edc0357_1346103062558_947732_14567_endTime</name>
+											<!--Parameter passed in by Object-Invoker to ParamNode result-->
+											<name>_17_0_5_edc0357_1346102889543_283441_14507</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Object that this control node passes along-->
-											<name>objectToPass</name>
+											<!--previous event end time:  (ReadStructuralFeatureAction)-->
+											<name>_17_0_5_edc0357_1346103062558_947732_14567_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -17177,7 +17135,7 @@ else: new_load</value>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) yesSig-->
 											<name>_17_0_5_edc0357_1346103082067_604440_14587</name>
 											<type>yes</type>
 											<value/>
@@ -17222,6 +17180,10 @@ else: new_load</value>
 													<name>_17_0_5_edc0357_1346103062558_947732_14567_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346102889543_283441_14507</name>
+													<value>_17_0_5_edc0357_1346103096100_759763_14588</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--result_exists-->
@@ -17254,7 +17216,7 @@ else: new_load</value>
 									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Parameter passed in by Object-Invoker (pin id or parameter id)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) self-->
 											<name>_17_0_5_edc0357_1346103407692_242808_14639</name>
 											<type>LADWP</type>
 											<value/>
@@ -17289,7 +17251,7 @@ else: new_load</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346103434426_385137_14640</name>
-											<type>Object</type>
+											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1346103552856_270449_14698.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
