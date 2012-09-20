@@ -32,6 +32,12 @@ src/demandResponse/STAS.java -text
 src/demandResponse/Service.java -text
 src/demandResponse/VectorData.java -text
 src/demandResponse/readme.txt -text
+src/generated/BobCreator.java -text svneol=unset#text/plain
+src/generated/Customer.java -text svneol=unset#text/plain
+src/generated/LADWP.java -text svneol=unset#text/plain
+src/generated/Main.java -text svneol=unset#text/plain
+src/generated/Power.java -text svneol=unset#text/plain
+src/generated/Power_System.java -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/event/AbstractParameterConstraint.java -text
 src/gov/nasa/jpl/ae/event/BooleanParameter.java -text
 src/gov/nasa/jpl/ae/event/ConstraintExpression.java -text
