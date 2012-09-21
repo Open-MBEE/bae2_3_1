@@ -94,18 +94,18 @@ public class Power_System extends ParameterListenerImpl {
 
     public void initPower_SystemMembers() {
         try {
-            ss_17_0_5_edc0357_1345510113564_305135_13782_yes = new Parameter("ss_17_0_5_edc0357_1345510113564_305135_13782_yes", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113564_305135_13782_yes", Signalyes.class), this);
-            ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading = new Parameter("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading", SignalreceiveMeterReading.class), this);
-            ss_17_0_5_edc0357_1345510113564_305135_13782_no = new Parameter("ss_17_0_5_edc0357_1345510113564_305135_13782_no", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113564_305135_13782_no", Signalno.class), this);
+            ss_17_0_5_edc0357_1345510113564_305135_13782_yes = new Parameter("ss_17_0_5_edc0357_1345510113564_305135_13782_yes", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113564_305135_13782_yes", Power_System.Signalyes.class), this);
+            ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading = new Parameter("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading", Power_System.SignalreceiveMeterReading.class), this);
+            ss_17_0_5_edc0357_1345510113564_305135_13782_no = new Parameter("ss_17_0_5_edc0357_1345510113564_305135_13782_no", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113564_305135_13782_no", Power_System.Signalno.class), this);
             classifierBehavior = new StringParameter("classifierBehavior", this);
             c = new Parameter("c", null, new Customer(this), this);
-            ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading = new Parameter("ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading", SignalreceiveLoadReading.class), this);
-            ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue = new Parameter("ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue", SignalchangeGenerationValue.class), this);
+            ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading = new Parameter("ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading", Power_System.SignalreceiveLoadReading.class), this);
+            ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue = new Parameter("ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue", Power_System.SignalchangeGenerationValue.class), this);
             l = new Parameter("l", null, new LADWP(this), this);
-            ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue = new Parameter("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue", SignalchangeLoadValue.class), this);
+            ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue = new Parameter("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue", Power_System.SignalchangeLoadValue.class), this);
             p = new Parameter("p", null, new Power(this), this);
-            ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading = new Parameter("ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading", SignalreceiveGenReading.class), this);
-            ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request = new Parameter("ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request", Signaldr_request.class), this);
+            ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading = new Parameter("ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading", Power_System.SignalreceiveGenReading.class), this);
+            ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request = new Parameter("ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request", null, new ObjectFlow("ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request", Power_System.Signaldr_request.class), this);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -129,20 +129,7 @@ public class Power_System extends ParameterListenerImpl {
     public void initPower_SystemElaborations() {
     }
 
-    public Power_System() {
-        super();
-        initPower_SystemMembers();
-        initPower_SystemCollections();
-        initPower_SystemElaborations();
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeLoadValue.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeGenerationValue.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.getValue()).addListener(((ObjectFlow) ((Customer) c.getValue()).q_Customer_dr_request.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113564_305135_13782_yes.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_yes.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113564_305135_13782_no.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_no.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveMeterReading.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveLoadReading.getValue()));
-        ((ObjectFlow) ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveGenReading.getValue()));
-    }
+
 
     public class _17_0_5_edc0357_1345510113586_863604_13814 extends DurativeEvent {
 
@@ -868,29 +855,37 @@ public class Power_System extends ParameterListenerImpl {
     }
 
     public class SignalchangeLoadValue extends ParameterListenerImpl {
-    	
-    	public Parameter load =null;
+
+        public Parameter load__17_0_5_edc0357_1345510113551_910480_13770 = null;
+
         public void initSignalchangeLoadValueMembers() {
             try {
-            	load = new Parameter("load",null, new TimeVaryingMap("load"), this);
+                load__17_0_5_edc0357_1345510113551_910480_13770 = new Parameter("load__17_0_5_edc0357_1345510113551_910480_13770", null, new TimeVaryingMap("load"), this);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         protected void initSignalchangeLoadValueCollections() {
-        	parameters.add(load);
+            parameters.add(load__17_0_5_edc0357_1345510113551_910480_13770);
         }
 
         public void initSignalchangeLoadValueElaborations() {
         }
 
-        public SignalchangeLoadValue(Integer integer) {
+        public SignalchangeLoadValue() {
             super();
             initSignalchangeLoadValueMembers();
             initSignalchangeLoadValueCollections();
             initSignalchangeLoadValueElaborations();
-            load.setValue(integer);
+        }
+
+        public SignalchangeLoadValue(Integer x) {
+            super();
+            initSignalchangeLoadValueMembers();
+            initSignalchangeLoadValueCollections();
+            initSignalchangeLoadValueElaborations();
+            load__17_0_5_edc0357_1345510113551_910480_13770.setValue(x);
         }
     }
 
@@ -913,12 +908,19 @@ public class Power_System extends ParameterListenerImpl {
         public void initSignalchangeGenerationValueElaborations() {
         }
 
-        public SignalchangeGenerationValue(Integer integer) {
+        public SignalchangeGenerationValue() {
             super();
             initSignalchangeGenerationValueMembers();
             initSignalchangeGenerationValueCollections();
             initSignalchangeGenerationValueElaborations();
-            newGenValue__17_0_5_edc0357_1345510113551_931345_13769.setValue(integer);
+        }
+
+        public SignalchangeGenerationValue(Integer x) {
+            super();
+            initSignalchangeGenerationValueMembers();
+            initSignalchangeGenerationValueCollections();
+            initSignalchangeGenerationValueElaborations();
+            newGenValue__17_0_5_edc0357_1345510113551_931345_13769.setValue(x);
         }
     }
 
@@ -941,12 +943,19 @@ public class Power_System extends ParameterListenerImpl {
         public void initSignaldr_requestElaborations() {
         }
 
-        public Signaldr_request(Integer integer) {
+        public Signaldr_request() {
             super();
             initSignaldr_requestMembers();
             initSignaldr_requestCollections();
             initSignaldr_requestElaborations();
-            cap__17_0_5_edc0357_1345510113618_430459_13856.setValue(integer);
+        }
+
+        public Signaldr_request(Integer x) {
+            super();
+            initSignaldr_requestMembers();
+            initSignaldr_requestCollections();
+            initSignaldr_requestElaborations();
+            cap__17_0_5_edc0357_1345510113618_430459_13856.setValue(x);
         }
     }
 
@@ -969,12 +978,19 @@ public class Power_System extends ParameterListenerImpl {
         public void initSignalyesElaborations() {
         }
 
-        public Signalyes(Integer blah) {
+        public Signalyes() {
             super();
             initSignalyesMembers();
             initSignalyesCollections();
             initSignalyesElaborations();
-            newLoad__17_0_5_edc0357_1345510113619_149263_13857.setValue(blah);
+        }
+
+        public Signalyes(Integer x) {
+            super();
+            initSignalyesMembers();
+            initSignalyesCollections();
+            initSignalyesElaborations();
+            newLoad__17_0_5_edc0357_1345510113619_149263_13857.setValue(x);
         }
     }
 
@@ -1020,12 +1036,19 @@ public class Power_System extends ParameterListenerImpl {
         public void initSignalreceiveMeterReadingElaborations() {
         }
 
-        public SignalreceiveMeterReading(Integer integer) {
+        public SignalreceiveMeterReading() {
             super();
             initSignalreceiveMeterReadingMembers();
             initSignalreceiveMeterReadingCollections();
             initSignalreceiveMeterReadingElaborations();
-            meter_value__17_0_5_edc0357_1345510113616_372105_13853.setValue(integer);
+        }
+
+        public SignalreceiveMeterReading(Integer x) {
+            super();
+            initSignalreceiveMeterReadingMembers();
+            initSignalreceiveMeterReadingCollections();
+            initSignalreceiveMeterReadingElaborations();
+            meter_value__17_0_5_edc0357_1345510113616_372105_13853.setValue(x);
         }
     }
 
@@ -1048,12 +1071,19 @@ public class Power_System extends ParameterListenerImpl {
         public void initSignalreceiveLoadReadingElaborations() {
         }
 
-        public SignalreceiveLoadReading(Integer blah) {
+        public SignalreceiveLoadReading() {
             super();
             initSignalreceiveLoadReadingMembers();
             initSignalreceiveLoadReadingCollections();
             initSignalreceiveLoadReadingElaborations();
-            actual_load__17_0_5_edc0357_1345510113617_570582_13854.setValue(blah);
+        }
+
+        public SignalreceiveLoadReading(Integer x) {
+            super();
+            initSignalreceiveLoadReadingMembers();
+            initSignalreceiveLoadReadingCollections();
+            initSignalreceiveLoadReadingElaborations();
+            actual_load__17_0_5_edc0357_1345510113617_570582_13854.setValue(x);
         }
     }
 
@@ -1076,13 +1106,34 @@ public class Power_System extends ParameterListenerImpl {
         public void initSignalreceiveGenReadingElaborations() {
         }
 
-        public SignalreceiveGenReading(Integer blah) {
+        public SignalreceiveGenReading() {
             super();
             initSignalreceiveGenReadingMembers();
             initSignalreceiveGenReadingCollections();
             initSignalreceiveGenReadingElaborations();
-            actual_power__17_0_5_edc0357_1345510113617_469482_13855.setValue(blah);
+        }
+
+        public SignalreceiveGenReading(Integer x) {
+            super();
+            initSignalreceiveGenReadingMembers();
+            initSignalreceiveGenReadingCollections();
+            initSignalreceiveGenReadingElaborations();
+            actual_power__17_0_5_edc0357_1345510113617_469482_13855.setValue(x);
         }
     }
 
+    public Power_System() {
+        super();
+        initPower_SystemMembers();
+        initPower_SystemCollections();
+        initPower_SystemElaborations();
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeLoadValue.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeGenerationValue.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.getValue()).addListener(((ObjectFlow) ((Customer) c.getValue()).q_Customer_dr_request.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113564_305135_13782_yes.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_yes.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113564_305135_13782_no.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_no.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveMeterReading.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveLoadReading.getValue()));
+        ((ObjectFlow) ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.getValue()).addListener(((ObjectFlow) ((LADWP) l.getValue()).q_LADWP_receiveGenReading.getValue()));
+    }
 }
