@@ -1156,6 +1156,7 @@ public class EventXmlToJava {
                                             String suffix ) {
     Map< String, Set< FieldDeclaration > > map = new TreeMap< String, Set< FieldDeclaration > >();
     for ( Pair< String, FieldDeclaration > p : fieldCollection ) {
+      if ( !p.second.getType().toString().equals( "Effect" ) ) continue;
       Set< FieldDeclaration > set = map.get( p.first );
       if ( set == null ) {
         set = new HashSet< FieldDeclaration >();
@@ -1486,6 +1487,10 @@ public class EventXmlToJava {
     ImportDeclaration d = new ImportDeclaration( ne, false, false );
     if ( currentCompilationUnit.getImports() == null ) {
       currentCompilationUnit.setImports( new ArrayList< ImportDeclaration >() );
+    }
+    // check for duplicates -- REVIEW - inefficient linear search
+    for ( ImportDeclaration i : currentCompilationUnit.getImports() ) {
+      if ( i.getName().getName().equals( impName ) ) return;
     }
     currentCompilationUnit.getImports().add( d );
   }
@@ -1902,10 +1907,14 @@ public class EventXmlToJava {
 //              + fieldAccessExpr.getField().toString()
 //              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
 //                                                              : "" );
-          middle = parentString + ".getMember(\""
-                   + fieldAccessExpr.getField().toString() + "\")"
-                   + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
-                                                                   : "" );
+          if ( ( p == null || convertFcnCallArgsToExprs ) ) {
+            middle = parentString + ".getMember(\""
+                + fieldAccessExpr.getField().toString() + "\")";
+          } else {
+            middle = "(((Parameter<?>)(" + parentString + ".getMember(\""
+                     + fieldAccessExpr.getField().toString() + "\")"
+                     + ")).getValue())";
+          }
         }
       } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
         middle = expr.toString();
@@ -2174,11 +2183,13 @@ public class EventXmlToJava {
     return createFieldOfGenericType( name, "Dependency", p.type, null );
   }
 
-  public Pair< String, FieldDeclaration > createEffectField( Node effectNode,
-                                                             MethodDeclaration initMembers ) {
+  public List< Pair< String, FieldDeclaration > > createEffectField( Node effectNode,
+                                                                     MethodDeclaration initMembers ) {
     if ( effectNode == null ) return null;
     ClassOrInterfaceType fieldType =
         new ClassOrInterfaceType( "Effect" );
+    ClassOrInterfaceType varFieldType =
+            new ClassOrInterfaceType( "Object" ); 
     FieldDeclaration f = null;
     String effectText = fixValue( effectNode.getTextContent() );
 
@@ -2205,9 +2216,14 @@ public class EventXmlToJava {
 
       int myNum = counter++;
       String effectName = "effect" + myNum;
+      String timeVaryingName = effectName + "Var";
 
       StringBuffer stmtString = new StringBuffer();
-      stmtString.append( effectName + " = new EffectFunction( " + jffc.toNewFunctionCallString()
+      stmtString.append( timeVaryingName + " = " 
+                         + jffc.objectName + ";\n" );
+      stmtString.append( effectName + " = new EffectFunction( " 
+                         + jffc.toNewFunctionCallString().replace( jffc.objectName,
+                                                                   timeVaryingName )
                          + " );" );
       
       addStatements( initMembers.getBody(), stmtString.toString() );
@@ -2218,7 +2234,16 @@ public class EventXmlToJava {
       f =
           ASTHelper.createFieldDeclaration( ModifierSet.PUBLIC, fieldType,
                                             variable );
-      return new Pair< String, FieldDeclaration >( jffc.objectName, f );
+      List< Pair< String, FieldDeclaration > > pairs = new ArrayList< Pair< String, FieldDeclaration > >();
+      pairs.add( new Pair< String, FieldDeclaration >( timeVaryingName, f ) );
+      id = new VariableDeclaratorId( timeVaryingName );
+      //init = new NameExpr( "null" );
+      variable = new VariableDeclarator( id, init );
+      f =
+          ASTHelper.createFieldDeclaration( ModifierSet.PUBLIC, varFieldType,
+                                            variable );
+      pairs.add( new Pair< String, FieldDeclaration >( timeVaryingName, f ) );
+      return pairs; //new Pair< String, FieldDeclaration >( timeVaryingName, f1 );
     } else {
       assert false; // TODO -- REVIEW -- Can it be something else? an
                     // assignment? signal = flow.receive(t)
@@ -2406,10 +2431,10 @@ public class EventXmlToJava {
     List< Node > nodeList = XmlUtils.getChildNodes( effectsNode, "effect" );
     for ( int i = 0; i < nodeList.size(); i++ ) {
       Node childNode = nodeList.get( i );
-      Pair< String, FieldDeclaration > p =
+      List< Pair< String, FieldDeclaration > > pairs =
           createEffectField( childNode, initMembers );
-      if ( p != null && p.second != null ) {
-        effects.add( p );
+      if ( pairs != null ) {
+        effects.addAll( pairs );
       }
     }
     return effects;

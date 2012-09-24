@@ -48,7 +48,7 @@ public class TestEventXmlToJava {
 //    }
 //    if ( !f.exists() ) {
       System.err.println( "File \"" + xmlFileName + "\" does not exist!" );
-      //System.exit(1);
+      System.exit(1);
     }
     //xmlFileName = f.getAbsolutePath();
     xmlFileName = xmlUrl.getFile();
