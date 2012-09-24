@@ -20,51 +20,16 @@ import gov.nasa.jpl.ae.event.Event;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.TimeVarying;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
+import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 import gov.nasa.jpl.ae.util.Utils;
 import java.util.Vector;
 import java.util.Map;
 import java.util.Queue;
 import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.fuml.ObjectFlow;
 import java.util.Set;
 import java.util.HashSet;
 import gov.nasa.jpl.ae.event.EffectFunction;
-import java.util.Set;
-import java.util.HashSet;
-import gov.nasa.jpl.ae.event.EffectFunction;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
-import java.util.Queue;
-import java.util.LinkedList;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
 
 public class Power_System extends ParameterListenerImpl {
 
@@ -335,8 +300,8 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments5 = new Expression<?>[2];
                 arguments5[0] = new Expression<Integer>(endTime);
                 arguments5[1] = new Expression<Power_System>(objectToPass);
-                Expression<Boolean> condition5 = new Expression<Boolean>(_17_0_5_edc0357_1345510114225_927143_14421_exists);
-                elaborationRule5 = addElaborationRule(condition5, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114225_927143_14421.class, "_ReadStructuralFeatureAction_start_system", arguments5);
+                Expression<Boolean> condition5 = new Expression<Boolean>(_17_0_5_edc0357_1345510114226_580474_14425_exists);
+                elaborationRule5 = addElaborationRule(condition5, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114226_580474_14425.class, "_ReadStructuralFeatureAction_start_system", arguments5);
                 Expression<?>[] arguments6 = new Expression<?>[2];
                 arguments6[0] = new Expression<Integer>(endTime);
                 arguments6[1] = new Expression<Power_System>(objectToPass);
@@ -345,8 +310,8 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments7 = new Expression<?>[2];
                 arguments7[0] = new Expression<Integer>(endTime);
                 arguments7[1] = new Expression<Power_System>(objectToPass);
-                Expression<Boolean> condition7 = new Expression<Boolean>(_17_0_5_edc0357_1345510114226_580474_14425_exists);
-                elaborationRule7 = addElaborationRule(condition7, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114226_580474_14425.class, "_ReadStructuralFeatureAction_start_system", arguments7);
+                Expression<Boolean> condition7 = new Expression<Boolean>(_17_0_5_edc0357_1345510114225_927143_14421_exists);
+                elaborationRule7 = addElaborationRule(condition7, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114225_927143_14421.class, "_ReadStructuralFeatureAction_start_system", arguments7);
             }
 
             public _17_0_5_edc0357_1345510114225_676052_14419() {
@@ -393,7 +358,7 @@ public class Power_System extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114834_33609_15212 = new Parameter("_17_0_5_edc0357_1345510114834_33609_15212", null, null, this);
                     constraint8 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114225_676052_14419_endTime)));
                     _17_0_5_edc0357_1345510114225_19712_14422_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114225_19712_14422_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1345510114834_104458_15211Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114834_104458_15211, new Expression<Customer>(((Power_System) _17_0_5_edc0357_1345510114834_33609_15212.getValue()).c));
+                    _17_0_5_edc0357_1345510114834_104458_15211Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114834_104458_15211, new Expression<Customer>(((Customer) _17_0_5_edc0357_1345510114834_33609_15212.getMember("c"))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -449,14 +414,17 @@ public class Power_System extends ParameterListenerImpl {
 
             public Effect effect11 = null;
 
+            public Object effect11Var = null;
+
             public void init_17_0_5_edc0357_1345510114225_927143_14421Members() {
                 try {
                     _17_0_5_edc0357_1345510114225_676052_14419_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114225_676052_14419_endTime", this);
                     _17_0_5_edc0357_1345510114835_226978_15213 = new Parameter("_17_0_5_edc0357_1345510114835_226978_15213", null, null, this);
                     _17_0_5_edc0357_1345510114836_890496_15214 = new Parameter("_17_0_5_edc0357_1345510114836_890496_15214", null, null, this);
                     constraint10 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114225_676052_14419_endTime)));
-                    _17_0_5_edc0357_1345510114835_226978_15213Dependency = new Dependency<Power>(_17_0_5_edc0357_1345510114835_226978_15213, new Expression<Power>(((Power_System) _17_0_5_edc0357_1345510114836_890496_15214.getValue()).p));
-                    effect11 = new EffectFunction(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114227_991374_14433, Utils.getMethodForArgTypes("ObjectFlow<Power>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1345510114835_226978_15213, startTime }));
+                    _17_0_5_edc0357_1345510114835_226978_15213Dependency = new Dependency<Power>(_17_0_5_edc0357_1345510114835_226978_15213, new Expression<Power>(((Power) _17_0_5_edc0357_1345510114836_890496_15214.getMember("p"))));
+                    effect11Var = sig_17_0_5_edc0357_1345510114227_991374_14433;
+                    effect11 = new EffectFunction(new FunctionCall((Object) effect11Var, Utils.getMethodForArgTypes("ObjectFlow<Power>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1345510114835_226978_15213, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -468,9 +436,9 @@ public class Power_System extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1345510114836_890496_15214);
                 constraintExpressions.add(constraint10);
                 dependencies.add(_17_0_5_edc0357_1345510114835_226978_15213Dependency);
-                Set<Effect> effectsForsig_17_0_5_edc0357_1345510114227_991374_14433 = new HashSet<Effect>();
-                effectsForsig_17_0_5_edc0357_1345510114227_991374_14433.add(effect11);
-                effects.put((Parameter<?>) sig_17_0_5_edc0357_1345510114227_991374_14433, effectsForsig_17_0_5_edc0357_1345510114227_991374_14433);
+                Set<Effect> effectsForeffect11Var = new HashSet<Effect>();
+                effectsForeffect11Var.add(effect11);
+                effects.put((Parameter<?>) effect11Var, effectsForeffect11Var);
             }
 
             public void init_17_0_5_edc0357_1345510114225_927143_14421Elaborations() {
@@ -532,13 +500,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public void init_17_0_5_edc0357_1345510114225_19712_14422Elaborations() {
                 Expression<?>[] arguments13 = new Expression<?>[1];
-                arguments13[0] = new Expression<Integer>(startTime);
-                Expression<Boolean> condition13 = new Expression<Boolean>(true);
-                elaborationRule13 = addElaborationRule(condition13, c, Customer._17_0_5_edc0357_1346104706708_917454_14957.class, "CustomerCB_Activity_Customer", arguments13);
+                arguments13[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition13 = new Expression<Boolean>(_17_0_5_edc0357_1345510114226_959292_14423_exists);
+                elaborationRule13 = addElaborationRule(condition13, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114226_959292_14423.class, "sobp_StartObjectBehaviorAction_start_system", arguments13);
                 Expression<?>[] arguments14 = new Expression<?>[1];
-                arguments14[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition14 = new Expression<Boolean>(_17_0_5_edc0357_1345510114226_959292_14423_exists);
-                elaborationRule14 = addElaborationRule(condition14, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114226_959292_14423.class, "sobp_StartObjectBehaviorAction_start_system", arguments14);
+                arguments14[0] = new Expression<Integer>(startTime);
+                Expression<Boolean> condition14 = new Expression<Boolean>(true);
+                elaborationRule14 = addElaborationRule(condition14, c, Customer._17_0_5_edc0357_1346104706708_917454_14957.class, "CustomerCB_Activity_Customer", arguments14);
             }
 
             public _17_0_5_edc0357_1345510114225_19712_14422() {
@@ -601,13 +569,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public void init_17_0_5_edc0357_1345510114226_959292_14423Elaborations() {
                 Expression<?>[] arguments16 = new Expression<?>[1];
-                arguments16[0] = new Expression<Integer>(startTime);
-                Expression<Boolean> condition16 = new Expression<Boolean>(true);
-                elaborationRule16 = addElaborationRule(condition16, p, Power._17_0_5_edc0357_1345510155557_623464_18238.class, "PowerCB_Activity_Power", arguments16);
+                arguments16[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition16 = new Expression<Boolean>(_17_0_5_edc0357_1345510114226_407269_14426_exists);
+                elaborationRule16 = addElaborationRule(condition16, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114226_407269_14426.class, "sobl_StartObjectBehaviorAction_start_system", arguments16);
                 Expression<?>[] arguments17 = new Expression<?>[1];
-                arguments17[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition17 = new Expression<Boolean>(_17_0_5_edc0357_1345510114226_407269_14426_exists);
-                elaborationRule17 = addElaborationRule(condition17, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1345510114226_407269_14426.class, "sobl_StartObjectBehaviorAction_start_system", arguments17);
+                arguments17[0] = new Expression<Integer>(startTime);
+                Expression<Boolean> condition17 = new Expression<Boolean>(true);
+                elaborationRule17 = addElaborationRule(condition17, p, Power._17_0_5_edc0357_1345510155557_623464_18238.class, "PowerCB_Activity_Power", arguments17);
             }
 
             public _17_0_5_edc0357_1345510114226_959292_14423() {
@@ -641,14 +609,17 @@ public class Power_System extends ParameterListenerImpl {
 
             public Effect effect19 = null;
 
+            public Object effect19Var = null;
+
             public void init_17_0_5_edc0357_1345510114226_580474_14425Members() {
                 try {
                     _17_0_5_edc0357_1345510114225_676052_14419_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114225_676052_14419_endTime", this);
                     _17_0_5_edc0357_1345510114838_659499_15218 = new Parameter("_17_0_5_edc0357_1345510114838_659499_15218", null, null, this);
                     _17_0_5_edc0357_1345510114839_149885_15219 = new Parameter("_17_0_5_edc0357_1345510114839_149885_15219", null, null, this);
                     constraint18 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114225_676052_14419_endTime)));
-                    _17_0_5_edc0357_1345510114838_659499_15218Dependency = new Dependency<LADWP>(_17_0_5_edc0357_1345510114838_659499_15218, new Expression<LADWP>(((Power_System) _17_0_5_edc0357_1345510114839_149885_15219.getValue()).l));
-                    effect19 = new EffectFunction(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114227_570675_14436, Utils.getMethodForArgTypes("ObjectFlow<LADWP>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1345510114838_659499_15218, startTime }));
+                    _17_0_5_edc0357_1345510114838_659499_15218Dependency = new Dependency<LADWP>(_17_0_5_edc0357_1345510114838_659499_15218, new Expression<LADWP>(((LADWP) _17_0_5_edc0357_1345510114839_149885_15219.getMember("l"))));
+                    effect19Var = sig_17_0_5_edc0357_1345510114227_570675_14436;
+                    effect19 = new EffectFunction(new FunctionCall((Object) effect19Var, Utils.getMethodForArgTypes("ObjectFlow<LADWP>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1345510114838_659499_15218, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -660,9 +631,9 @@ public class Power_System extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1345510114839_149885_15219);
                 constraintExpressions.add(constraint18);
                 dependencies.add(_17_0_5_edc0357_1345510114838_659499_15218Dependency);
-                Set<Effect> effectsForsig_17_0_5_edc0357_1345510114227_570675_14436 = new HashSet<Effect>();
-                effectsForsig_17_0_5_edc0357_1345510114227_570675_14436.add(effect19);
-                effects.put((Parameter<?>) sig_17_0_5_edc0357_1345510114227_570675_14436, effectsForsig_17_0_5_edc0357_1345510114227_570675_14436);
+                Set<Effect> effectsForeffect19Var = new HashSet<Effect>();
+                effectsForeffect19Var.add(effect19);
+                effects.put((Parameter<?>) effect19Var, effectsForeffect19Var);
             }
 
             public void init_17_0_5_edc0357_1345510114226_580474_14425Elaborations() {
@@ -728,13 +699,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public void init_17_0_5_edc0357_1345510114226_407269_14426Elaborations() {
                 Expression<?>[] arguments21 = new Expression<?>[1];
-                arguments21[0] = new Expression<Integer>(startTime);
-                Expression<Boolean> condition21 = new Expression<Boolean>(true);
-                elaborationRule21 = addElaborationRule(condition21, l, LADWP._17_0_5_edc0357_1346100467245_506694_13577.class, "LADWP_CB_Activity_LADWP", arguments21);
+                arguments21[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition21 = new Expression<Boolean>(_17_0_5_edc0357_1348077539710_788857_14450_exists);
+                elaborationRule21 = addElaborationRule(condition21, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1348077539710_788857_14450.class, "_AcceptEventAction_start_system", arguments21);
                 Expression<?>[] arguments22 = new Expression<?>[1];
-                arguments22[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition22 = new Expression<Boolean>(_17_0_5_edc0357_1348077539710_788857_14450_exists);
-                elaborationRule22 = addElaborationRule(condition22, _17_0_5_edc0357_1345510113586_863604_13814.this, Power_System._17_0_5_edc0357_1345510113586_863604_13814._17_0_5_edc0357_1348077539710_788857_14450.class, "_AcceptEventAction_start_system", arguments22);
+                arguments22[0] = new Expression<Integer>(startTime);
+                Expression<Boolean> condition22 = new Expression<Boolean>(true);
+                elaborationRule22 = addElaborationRule(condition22, l, LADWP._17_0_5_edc0357_1346100467245_506694_13577.class, "LADWP_CB_Activity_LADWP", arguments22);
             }
 
             public _17_0_5_edc0357_1345510114226_407269_14426() {

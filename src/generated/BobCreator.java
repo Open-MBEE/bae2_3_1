@@ -20,6 +20,7 @@ import gov.nasa.jpl.ae.event.Event;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.TimeVarying;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
+import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 import gov.nasa.jpl.ae.util.Utils;
 import java.util.Vector;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class BobCreator extends DurativeEvent {
 
     public Parameter Bob = null;
 
-    public ElaborationRule elaborationRule671 = null;
+    public ElaborationRule elaborationRule674 = null;
 
     public void initBobCreatorMembers() {
         try {
@@ -43,9 +44,9 @@ public class BobCreator extends DurativeEvent {
     }
 
     public void initBobCreatorElaborations() {
-        Expression<?>[] arguments671 = new Expression<?>[0];
-        Expression<Boolean> condition671 = new Expression<Boolean>(true);
-        elaborationRule671 = addElaborationRule(condition671, Bob, Power_System._17_0_5_edc0357_1345510113586_863604_13814.class, "Activity", arguments671);
+        Expression<?>[] arguments674 = new Expression<?>[0];
+        Expression<Boolean> condition674 = new Expression<Boolean>(true);
+        elaborationRule674 = addElaborationRule(condition674, Bob, Power_System._17_0_5_edc0357_1345510113586_863604_13814.class, "Activity", arguments674);
     }
 
     public BobCreator() {
