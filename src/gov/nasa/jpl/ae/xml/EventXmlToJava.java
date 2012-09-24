@@ -1908,8 +1908,8 @@ public class EventXmlToJava {
 //              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
 //                                                              : "" );
           if ( ( p == null || convertFcnCallArgsToExprs ) ) {
-            middle = parentString + ".getMember(\""
-                + fieldAccessExpr.getField().toString() + "\")";
+            middle = "((" + type + ")" + parentString + ".getMember(\""
+                + fieldAccessExpr.getField().toString() + "\"))";
           } else {
             middle = "(((Parameter<?>)(" + parentString + ".getMember(\""
                      + fieldAccessExpr.getField().toString() + "\")"
