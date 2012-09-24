@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.event.Expression;
 import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -603,6 +604,31 @@ public class Utils {
                           + " not found for " + cls.getSimpleName() );
     }
     return matchingMethod;
-  }    
+  }
+  
+  public static Object getFieldValue( Object o, String fieldName ) {
+    if ( o == null || isNullOrEmpty( fieldName ) ) {
+      return null;
+    }
+    Field f = null;
+    try {
+      f = o.getClass().getField( fieldName );
+      if ( f == null ) return null;
+      return f.get( o );
+    } catch ( NoSuchFieldException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( SecurityException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( IllegalArgumentException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
+  }
   
 }

@@ -146,6 +146,13 @@ public class Parameter< T > implements Cloneable, Groundable,
     return value;
   }
 
+  public Object getMember( String fieldName ) {
+    T v = getValueNoPropagate();
+    if ( v == null ) return null;
+    Object f = Utils.getFieldValue( v, fieldName );
+    return null;
+  }
+  
   public boolean valueEquals( T otherValue ) {
     return value == otherValue || ( value != null && value.equals( otherValue ) );
   }

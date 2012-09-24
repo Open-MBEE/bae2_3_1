@@ -4,6 +4,7 @@
 package demandResponse;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Random;
 
 import gov.nasa.jpl.ae.event.Consumable;
@@ -11,6 +12,8 @@ import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
+import gov.nasa.jpl.ae.event.Timepoint;
+import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.Debug;
 
 /**
@@ -19,24 +22,28 @@ import gov.nasa.jpl.ae.util.Debug;
  */
 public class Customer extends ParameterListenerImpl {
 
+  public enum CustomerType { summer, summerProfile };
+  
   public boolean additive = false;
   public int offsetSecondsFromMidnight = 0;
   public int loadHorizon = 86400; // 1 day in seconds 
   public double maxLoad = 3.5;  // kW
   public double minLoadFraction = 0.2;
   public double varianceFactor = 0.15;  // this is not Gaussian variance
-  public double chanceOfChange = 0.8;
+  public double chanceOfChange = 0.7;
   public double correctionFactor = 0.5;
   public int samplePeriod = 900; // may only support seconds!
-  public long seed = System.currentTimeMillis();
+  public long seed = 3;//System.currentTimeMillis();
   public Random numGen = null;
+  
+  public DRObject drEvent = null;
   
   /**
    * The customer load behavior over time.  Here's a gnuplot command for its basic shape over a 24 hour period:
    * <p>gnuplot
    * <p>plot [0:24][0:1] f(x)=(1-m)*(sin(2*pi*(x/24-0.4))/2+0.5)+m, m=0.2, p=0.3, pi=3.14159, f(x)
    */
-  public TimeVaryingPlottableMap<Double> load = null;
+  public TimeVaryingMap<Double> load = null;
   public Consumable additiveLoad = null;
 
   public Parameter< TimeVaryingMap< Double > > loadParameter = null;
@@ -57,13 +64,16 @@ public class Customer extends ParameterListenerImpl {
    */
   public Customer( String name ) {
     super( name );
+    if ( name.equals( "summerCustomer" ) ) {
+      
+    }
     init();
   }
   
   void init() {
     this.numGen = new Random(seed);
     double defaultValue = summerLoad(0);
-    load = new TimeVaryingPlottableMap< Double >( "load", getSummerLoadMethod(), this,
+    load = new TimeVaryingMap< Double >( "load", getSummerLoadMethod(), this,
                                                   samplePeriod, loadHorizon );
     additiveLoad = new Consumable( "additiveLoad", defaultValue,
                                    getSummerLoadDeltaMethod(), this,
@@ -85,21 +95,47 @@ public class Customer extends ParameterListenerImpl {
    * @param seed
    */
   public Customer( int offsetSecondsFromMidnight, int loadHorizon,
-                   double maxLoad, double minLoadFraction, long seed ) {
+                   double maxLoad, double minLoadFraction, 
+                   double varianceFactor, long seed ) {
     super();
     this.offsetSecondsFromMidnight = offsetSecondsFromMidnight;
     this.loadHorizon = loadHorizon;
     this.maxLoad = maxLoad;
     this.minLoadFraction = minLoadFraction;
+    this.varianceFactor = varianceFactor;
     this.seed = seed;
     init();
   }
 
-  public double summerLoadProfile( int timeSecs ) {
+  public Customer( Date start, int loadHorizon,
+                   double maxLoad, double minLoadFraction, 
+                   double varianceFactor, long seed ) {
+    super();
+    this.offsetSecondsFromMidnight = (int)(Timepoint.timeSinceMidnight(start) * Units.conversionFactor( Units.seconds ));
+    this.loadHorizon = loadHorizon;
+    this.maxLoad = maxLoad;
+    this.minLoadFraction = minLoadFraction;
+    this.varianceFactor = varianceFactor;
+    this.seed = seed;
+    init();
+  }
+
+  public Customer( CustomerType type ) {
+    this( Timepoint.getEpoch(), 24 * 3600, 3.5, 0.2,
+          ( type==Customer.CustomerType.summer ? 0.15 : 0.0 ), 3 ); 
+  }
+  
+  public double getMaxLoad( double t, boolean includeAnyDrEvent ) {
+    if ( !includeAnyDrEvent || drEvent == null ) return maxLoad;
+    return maxLoad - drEvent.predictedLoadReduction( t / Units.conversionFactor( Units.seconds ) );
+  }
+  
+  public double summerLoadProfile( int timeSecs, boolean includeAnyDrEvent ) {
     int t = offsetSecondsFromMidnight + timeSecs;
-    double kWatts = ( maxLoad * ( 1 - minLoadFraction )
-                      * ( Math.sin( 2 * Math.PI * ( t / ( 24 * 3600.0 ) - 0.4 ) )
-                          / 2.0 + 0.5 ) + minLoadFraction );
+    double kWatts = (  minLoadFraction
+                       + getMaxLoad(timeSecs,includeAnyDrEvent) * ( 1 - minLoadFraction )
+                         * ( 0.5 + 0.5 * Math.sin( 2 * Math.PI 
+                                                   * ( t / ( 24 * 3600.0 ) - 0.4 ) ) ) );
     Debug.outln("summerLoadProfile(" + timeSecs + ") = " + kWatts );
     return kWatts;
   }
@@ -108,8 +144,9 @@ public class Customer extends ParameterListenerImpl {
     double g = numGen.nextGaussian();
     double d = numGen.nextDouble();
     double kWatts =
-        summerLoadProfile( timeSecs )
-            * ( 1 + Math.pow( d, 1 / varianceFactor ) );
+        summerLoadProfile( timeSecs, true )
+            * ( 1 + g * varianceFactor );
+//          * ( 1 + Math.pow( d, 1 / varianceFactor ) );
     Debug.outln("summerLoad(" + timeSecs + ") = " + kWatts );
     return kWatts;
   }
@@ -117,8 +154,8 @@ public class Customer extends ParameterListenerImpl {
   public double summerLoadDelta( int timeSecsBefore, Double kWattsBefore,
                                  int timeSecsNext ) {
     double kWattsDelta = 0;
-    double kWattsPredictedBefore = summerLoadProfile( timeSecsBefore );
-    double kWattsPredictedNext = summerLoadProfile( timeSecsNext );
+    double kWattsPredictedBefore = summerLoadProfile( timeSecsBefore, true );
+    double kWattsPredictedNext = summerLoadProfile( timeSecsNext, true );
     double kWattsVariedNext = summerLoad( timeSecsNext );
     double kWattsOffNominal = kWattsBefore - kWattsPredictedBefore;
     boolean change = ( numGen.nextDouble() < chanceOfChange );

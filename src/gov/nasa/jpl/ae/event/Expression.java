@@ -199,7 +199,9 @@ public class Expression< ResultType >
 	public Set< Parameter<?> > getParameters( boolean deep ) {
 		Set< Parameter<?> > set = new TreeSet< Parameter<?> >();
 		if ( type == Type.Parameter ) {
-			set.add( (Parameter<?>) this.expression );
+		  if ( expression != null ) {
+		    set.add( (Parameter<?>) this.expression );
+		  }
 		} else if ( expression instanceof HasParameters ) {
 			HasParameters gotParameters = (HasParameters) expression;
 			if ( gotParameters != null ) {

@@ -76,6 +76,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
    * socket.
    */
   boolean tryToPlot = true;
+  Timepoint.Units timeUnits = Timepoint.Units.hours;
+  double timeScale;
   
   Map< Object, Object > currentPlottableValues = new HashMap< Object, Object >();
 
@@ -94,11 +96,12 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   
   // New Constructors
   
-  public EventSimulation( Collection<Event> events) {
+  public EventSimulation( Collection<Event> events, double timeScale ) {
     super();
     for ( Event e : events ) {
       add( e );
     }
+    this.timeScale = timeScale;
   }
 
   protected boolean put( Integer time, Object variable, Object value ) {
@@ -177,6 +180,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     return !existingEntry;
   }
   
+  public void simulate( java.io.OutputStream os ) {
+    simulate( this.timeScale, os );
+  }
+  
   public void simulate( double timeScale, java.io.OutputStream os ) {
     PrintWriter w = new PrintWriter( os, true );
     long startClock = -1;
@@ -234,7 +241,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           w.printf( formatString, padding, name, value == null ? "null" : value.toString() );
         } else {
           if ( tryToPlot ) {
-            plotValues();
+            plotValues( t );
           }
           formatString = "%14s : %28s  %s -> %s\n";
           w.printf( formatString,
@@ -378,13 +385,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     }
   }
 
-  protected void plotValues() {
+  protected void plotValues( double time ) {
     if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
-    double doubleArray[] = new double[currentPlottableValues.size()];
-    int cnt = 0;
+    double doubleArray[] = new double[currentPlottableValues.size()+1];
+    doubleArray[0] = Timepoint.Units.conversionFactor( this.timeUnits ) * time;
+    int cnt = 1;
     for ( Object v : currentPlottableValues.values() ) {
       assert v instanceof Double || v instanceof Integer;
       doubleArray[ cnt++ ] = ((Double)v).doubleValue();

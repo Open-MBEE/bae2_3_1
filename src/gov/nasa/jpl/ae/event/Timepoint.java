@@ -34,7 +34,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   // The unit of time for the epoch and all other integer values of time.  
   protected static Units units = Units.seconds;
 
-  protected static int counter = 0; 
+  protected static int counter = 0;
+  private final static Timepoint epochTimepoint = new Timepoint( "", 0, null );
 
   public static final String timestampFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
@@ -154,6 +155,22 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     }
   }
 
+  public int timeSinceMidnight() {
+    if (!isGrounded()) return 0;
+    double f = Units.conversionFactor( Units.milliseconds );
+    long v =  (long)(getValue() * f + getEpoch().getTime());
+    Date d = new Date( v );
+    return timeSinceMidnight( d );
+//    return (int)( ( ( (long)( v * f ) ) % ( 24 * 3600 * 1000 ) ) / f );
+  }
+  
+
+  public static int timeSinceMidnight( Date start ) {
+    long v =  start.getTime();
+    double f = Units.conversionFactor( Units.milliseconds );
+    return (int)(((long)((v % ( 24 * 3600 * 1000 ))/f)));
+  }
+
   /**
 	 * @param name
 	 * @param o 
@@ -184,6 +201,13 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	  Double f = new Double( Units.conversionFactor( toUnit ) );
 	  f *= getValue();
 	  return (long)( f.longValue() );
+	}
+	
+	public Date getDate() {
+	  if ( !isGrounded() ) return null;
+	  Date d = new Date( (long)(Units.conversionFactor( Units.milliseconds )
+	                            * getValue()) );
+	  return d;
 	}
 	
   public static Date dateFromTimestamp( String timestamp ) {
@@ -268,6 +292,10 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   public synchronized static Date getEpoch() {
     return epoch;
   }
+  public synchronized static Timepoint getEpochTimepoint() {
+    return epochTimepoint;
+  }
+
 
   /**
    * @param epoch the epoch to set

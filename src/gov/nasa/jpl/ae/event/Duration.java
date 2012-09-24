@@ -60,7 +60,14 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 		super( duration );
 	}
 	
-	// parse a Duration from a String in either the duration format or
+	public Duration( String name, double durVal,
+                   Units durUnits, ParameterListener o ) {
+    super( name, IntegerDomain.positiveDomain,
+           new Integer( (int)(durVal * Timepoint.Units.conversionFactor( durUnits )) ),
+           o );
+  }
+
+  // parse a Duration from a String in either the duration format or
 	// as a long followed by a unit specification, like 100s.
 	public static synchronized Duration fromString( String duration ) {
     long t = 0;
@@ -129,6 +136,10 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
   public static long durationToMillis( Integer d ) {
     return (long)( ((double)d)
                    * Timepoint.Units.conversionFactor( Units.milliseconds ) );
+  }
+
+  public static int lengthOfOne( Units u ) {
+    return (int) (1.0 / Units.conversionFactor( u ) );
   }
 	
 	

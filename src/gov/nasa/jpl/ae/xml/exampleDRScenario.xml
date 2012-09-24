@@ -363,7 +363,12 @@
       <import>demandResponse.Customer</import>
       <members>
         <parameter>
-          <name>customer</name><type>Customer</type><value>new Customer()</value>
+          <name>customer</name><type>Customer</type><value>new Customer(Customer.CustomerType.summer)</value>
+        </parameter>
+        <parameter>
+        	<name>predictedCustomer</name>
+        	<type>Customer</type>
+        	<value>new Customer(Customer.CustomerType.summerProfile)</value>
         </parameter>
         <parameter>
           <name>customerLoad</name><type>TimeVaryingPlottableMap&lt; Double &gt;</type><value>customer.load</value>

@@ -9,9 +9,11 @@ useSocket = True
 useTable = False
 useTestData = False
 
+genXValues = True
+
 showLabels = False
 
-numLines = 1
+numLines = 4
 #host = "192.168.1.100"
 host = "127.0.0.1"
 port = 60002
@@ -27,9 +29,9 @@ xdata = None
 ydata = None
 
 table = InterpolatedMap()
-table[0]=[3,4,1]
-table[10]=[7,4,8]
-table[15]=[5,10,1]
+table[0]=[3,4,1,0]
+table[10]=[7,4,8,4]
+table[15]=[5,10,1,10]
 
 def debugPrint( s ):
     if debugMode:
@@ -45,12 +47,20 @@ if useSocket:
 
 def socketDataGen():
     cnt = 0
-    yield 0, [0.0 for n in range(numLines)]
+    if genXValues:
+        yRange = range(1,numLines+1)
+    else:
+        yRange = range(numLines)
+    yield 0, [0.0 for n in yRange]
     while 1:
         try:
-            x = sock.receive()
-            if x != None and len(x) >= numLines:
-                yield cnt, [x[i] for i in range(numLines)] #[ x[13], x[14], x[15] ]
+            arr = sock.receive()
+            if genXValues:
+                xVal = arr[0]
+            else:
+                xVal = cnt
+            if arr != None and len(arr) >= numLines:
+                yield xVal, [arr[i] for i in yRange] #[ arr[13], arr[14], arr[15] ]
             cnt+=1
         except RuntimeError:
             print "Socket connection terminated"
@@ -65,7 +75,7 @@ def testDataGen():
 def dataFromTable():
     cnt = 0
     while 1:
-        yield cnt, table[cnt]
+        yield cnt, [table[cnt][i] for i in range(numLines)]
         cnt+=1
 
 #
@@ -74,13 +84,13 @@ def dataFromTable():
 def main():
     if numLines < 1:
         return
-    colors =  ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w']
-    symbols = ['o', 'v', '^', 's', 'p', '*', '+', 'x']
+    colors =  ['r', 'g', 'b', 'm', 'c', 'y', 'k', 'w']
+    symbols = ['-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
     msizes =  [ 12,  10,  14,  16,  18,   8,  18,  20] 
     fig = plt.figure()
     ax = fig.add_subplot(111)
     debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
-    lines = [ ax.plot([0], [0], symbols[n % len(symbols)], markeredgecolor=colors[n % len(colors)], markeredgewidth=2, markersize=msizes[n % len(msizes)], markerfacecolor='None')[0] for n in xrange(numLines) ]
+    lines = [ ax.plot([0], [0], symbols[n % len(symbols)], lw=4, markeredgecolor=colors[n % len(colors)], markeredgewidth=2, markersize=msizes[n % len(msizes)], markerfacecolor='None')[0] for n in xrange(numLines) ]
 
     ax.set_ylim(-1.1, 1.1)
     ax.set_xlim(0, 5)

@@ -475,7 +475,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate(double timeScale, java.io.OutputStream os ) {
-    EventSimulation sim = new EventSimulation( getEvents( true ) );
+    EventSimulation sim = new EventSimulation( getEvents( true ), 1.0e12 );
     sim.add( this );
     for ( TimeVarying< ? > tv : getTimeVaryingObjects( true ) ) {
       if ( tv instanceof TimeVaryingMap ) {

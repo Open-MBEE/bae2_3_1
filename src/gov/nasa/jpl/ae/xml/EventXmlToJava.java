@@ -830,6 +830,7 @@ public class EventXmlToJava {
     // Need to import event.Expression etc. for constructor arguments
     addImport( "gov.nasa.jpl.ae.event.TimeVarying" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingMap" );
+    addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMap" );
     addImport( "gov.nasa.jpl.ae.event.Expression" );
     addImport( "gov.nasa.jpl.ae.event.Timepoint" );
 //    addImport( "event.FunctionCall" );
@@ -1473,6 +1474,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.DurativeEvent" );
     addImport( "gov.nasa.jpl.ae.event.TimeVarying" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingMap" );
+    addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMap" );
     addImport( "gov.nasa.jpl.ae.util.Utils" );
     addImport( "java.util.Vector" );
     addImport( "java.util.Map" );
@@ -1896,8 +1898,12 @@ public class EventXmlToJava {
           String parentString =
               astToAeExpr( fieldAccessExpr.getScope(), parentType, false,
                            lookOutsideXmlForTypes );
-          middle = "((" + parentType + ")" + parentString + ".getValue())."
-                   + fieldAccessExpr.getField().toString()
+//          middle = "((" + parentType + ")" + parentString + ".getValue())."
+//              + fieldAccessExpr.getField().toString()
+//              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
+//                                                              : "" );
+          middle = parentString + ".getMember(\""
+                   + fieldAccessExpr.getField().toString() + "\")"
                    + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
                                                                    : "" );
         }
