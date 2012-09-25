@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
 	<epoch>2012-08-05T23:30:00-07:00</epoch>
+	<horizon>P1Y</horizon>
 	<timeUnits>seconds</timeUnits>
 	<eventToBeExecuted>
 		<eventType>BobCreator</eventType>

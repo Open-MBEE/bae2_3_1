@@ -2,6 +2,8 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
+import gov.nasa.jpl.ae.util.Utils;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +37,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   protected static Units units = Units.seconds;
 
   protected static int counter = 0;
+  protected static int horizonDuration = 24 * 3600;
+  
   private final static Timepoint epochTimepoint = new Timepoint( "", 0, null );
 
   public static final String timestampFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
@@ -176,7 +180,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	 * @param o 
 	 */
 	public Timepoint(String name, ParameterListener o) {
-		super(name, IntegerDomain.positiveDomain, o);
+		super(name, TimeDomain.horizonDomain, o);
 	}
 
 	/**
@@ -185,7 +189,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	 * @param v
 	 */
 	public Timepoint(String name, Integer value, ParameterListener o) {
-		super(name, IntegerDomain.positiveDomain, value, o);
+		super(name, TimeDomain.horizonDomain, value, o);
 	}
 
 	public Timepoint(Timepoint timepoint) {
@@ -322,9 +326,26 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     Timepoint.units = units;
   }
 
+  /**
+   * @param timeUnits
+   */
   public static void setUnits( String timeUnits ) {
     setUnits( Units.fromString( timeUnits ) );
     
+  }
+
+  /**
+   * @param durationString the horizon duration to set 
+   */
+  public static void setHorizonDuration( int duration ) {
+    horizonDuration = duration;
+  }
+
+  /**
+   * @return the horizon duration
+   */
+  public static Integer getHorizonDuration() {
+    return horizonDuration;
   }
 
 }

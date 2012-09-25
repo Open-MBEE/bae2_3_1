@@ -4,32 +4,44 @@
   <xs:element name="scenario">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="epoch" type="xs:dateTime" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>The time from which integer timepoints are offset.</xs:documentation>
-          </xs:annotation>
-        </xs:element>
-        <xs:element name="timeUnits" type="xs:string" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>The units of time expressed as an integer (e.g., seconds, days, microseconds).</xs:documentation>
-          </xs:annotation>
-        </xs:element>
-        <xs:element name="eventToBeExecuted" type="invocationType" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>the top-level event, scenario, or test case</xs:documentation>
-          </xs:annotation>
-        </xs:element>
-        <xs:element name="events" type="eventsType" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>event definitions</xs:documentation>
-          </xs:annotation>
-        </xs:element>
-        <xs:element name="classes" type="classesType" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>definitions of classes that are not events</xs:documentation>
-          </xs:annotation>
-        </xs:element>
-      </xs:sequence>
+      	<xs:element name="epoch" type="xs:dateTime" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				The time from which integer timepoints are offset.
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="horizon" type="xs:duration" maxOccurs="1" minOccurs="1">
+      	</xs:element>
+      	<xs:element name="timeUnits" type="xs:string" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				The units of time expressed as an integer (e.g.,
+      				seconds, days, microseconds).
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="eventToBeExecuted" type="invocationType"
+      		minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				the top-level event, scenario, or test case
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="events" type="eventsType" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>event definitions</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="classes" type="classesType" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				definitions of classes that are not events
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:complexType name="eventType">

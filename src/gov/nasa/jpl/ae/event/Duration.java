@@ -28,7 +28,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
    * @param o 
    */
   public Duration(ParameterListener o) {
-    super("duration", IntegerDomain.positiveDomain, o);
+    super("duration", TimeDomain.horizonDomain, o);
   }
 
   /**
@@ -36,7 +36,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
    * @param name
    */
   public Duration(String name, ParameterListener o) {
-    super(name, IntegerDomain.positiveDomain, o);
+    super(name, TimeDomain.horizonDomain, o);
   }
 
 	/**
@@ -44,7 +44,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	 * @param v
 	 */
 	public Duration(Integer value, ParameterListener o) {
-		super( "duration", IntegerDomain.positiveDomain, value, o );
+		super( "duration", TimeDomain.horizonDomain, value, o );
 	}
 
   /**
@@ -53,7 +53,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
    * @param v
    */
   public Duration(String name, Integer value, ParameterListener o) {
-    super( name, IntegerDomain.positiveDomain, value, o );
+    super( name, TimeDomain.horizonDomain, value, o );
   }
 
 	public Duration(Duration duration) {
@@ -62,7 +62,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	
 	public Duration( String name, double durVal,
                    Units durUnits, ParameterListener o ) {
-    super( name, IntegerDomain.positiveDomain,
+    super( name, TimeDomain.horizonDomain,
            new Integer( (int)(durVal * Timepoint.Units.conversionFactor( durUnits )) ),
            o );
   }

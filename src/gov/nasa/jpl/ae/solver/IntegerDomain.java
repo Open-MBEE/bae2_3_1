@@ -85,6 +85,15 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
     return (int)(middle + r2 * half);
 	}
 
+	 public Integer pickRandomValueLessThan( int maxVal ) {
+	   int u = getUpperBound();
+	   setUpperBound( maxVal );
+	   int p = pickRandomValue();
+	   setUpperBound( u );
+	   return p;
+	 }
+
+	
 	private Integer getMiddleValue() {
     // TODO -- should interpret null as zero 
     if ( lowerBound == null || upperBound == null ) return 0;

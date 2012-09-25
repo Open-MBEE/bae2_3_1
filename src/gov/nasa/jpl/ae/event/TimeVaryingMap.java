@@ -121,7 +121,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     super();
     this.name = name;
     Timepoint t = new Timepoint(StringDomain.typeMinValue, 0, this);
-    System.out.println(name + "put(" + t + ", " + defaultValue + ")" );
+    //System.out.println(name + " put(" + t + ", " + defaultValue + ")" );
     put( t, defaultValue );
   }
 

@@ -62,6 +62,7 @@ import org.xml.sax.SAXException;
 
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Timepoint;
+import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -181,14 +182,6 @@ public class EventXmlToJava {
     Node scenarioNode = XmlUtils.findNode( xmlDocDOM, "scenario" );
     Assert.assertNotNull( scenarioNode );
     
-    // get epoch
-    String epochString = XmlUtils.getChildElementText( scenarioNode, "epoch" );
-    if ( epochString == null || epochString.isEmpty() ) {
-      Debug.outln( "no epoch specified; using default" );
-    } else {
-      Timepoint.setEpoch( epochString );
-    }
-    System.out.println( "epoch = " + Timepoint.getEpoch() );
     // get units
     String timeUnits = XmlUtils.getChildElementText( scenarioNode, "timeUnits" );
     if ( timeUnits == null || timeUnits.isEmpty() ) {
@@ -197,6 +190,26 @@ public class EventXmlToJava {
       Timepoint.setUnits( timeUnits );
     }
     System.out.println( "units = " + Timepoint.getUnits() );
+    
+    // get epoch
+    String epochString = XmlUtils.getChildElementText( scenarioNode, "epoch" );
+    if ( epochString == null || epochString.isEmpty() ) {
+      Debug.outln( "no epoch specified; using default" );
+    } else {
+      Timepoint.setEpoch( epochString );
+    }
+    System.out.println( "epoch = " + Timepoint.getEpoch() );
+
+    // get horizon duration
+    String durationString = XmlUtils.getChildElementText( scenarioNode, "horizon" );
+    if ( durationString == null || durationString.isEmpty() ) {
+      Debug.errln( "no duration specified; using default" );
+    } else {
+      int secs = XmlUtils.getDurationInSeconds( durationString );
+      Timepoint.setHorizonDuration( (int)(secs / Units.conversionFactor( Units.seconds )) );
+    }
+    System.out.println( "horizon duration = " + Timepoint.getHorizonDuration()
+                        + Timepoint.getUnits() );
     
     // build tables
     buildParamTable( xmlDocDOM, paramTable );
@@ -207,18 +220,6 @@ public class EventXmlToJava {
 
     // process events
     processClassDeclarations( scenarioNode, null, "events", false );//, false );
-//    nodeList = xmlDocDOM.getElementsByTagName( "events" );
-//    Assert.assertTrue( nodeList.getLength() < 2 );
-//    if ( nodeList.getLength() == 1 ) {
-//      // nodeList = nodeList.item( 0 ).XmlUtils.getChildNodes();
-//      List< Node > nList = XmlUtils.getChildNodes( nodeList.item( 0 ), "event" );
-//      for ( int i = 0; i < nList.size(); i++ ) {
-//        Node node = nList.get( i );
-//        // for ( int i = 0; i < nodeList.getLength(); i++ ) {
-//        // Node node = nodeList.item( i );
-//        processEvent( node, false );
-//      }
-//    }
 
     // process event to be executed
     NodeList nodeList = xmlDocDOM.getElementsByTagName( "eventToBeExecuted" );
@@ -230,24 +231,8 @@ public class EventXmlToJava {
 
     // Add constructors for invocations.
     addConstructors();
-
   }
 
-//  public void processClasses( Node scenarioNode, boolean asEvent, boolean isInner ) {
-//    String classesOrEvents = ( asEvent ? "events" : "classes" );
-//    List<Node> nodeList = XmlUtils.getChildNodes( scenarioNode, classesOrEvents );//xmlDocDOM.getElementsByTagName( "classes" );
-//    Assert.assertTrue( nodeList.size() < 2 );
-//    if ( nodeList.size() == 1 ) {
-//      List< Node > nList = XmlUtils.getChildNodes( nodeList.get( 0 ), "class" );
-//      for ( int i = 0; i < nList.size(); i++ ) {
-//        Node node = nList.get( i );
-//        processClass( node, isInner );
-//      }
-//    }
-//  }
-
-/*
-*/
   /**
    * Fix all words in the string, name, so that it can be used as a Java
    * identifier or type name. The assumption is that a name may have the form
@@ -808,6 +793,9 @@ public class EventXmlToJava {
                    "Timepoint.setUnits(\"" + Timepoint.getUnits() + "\");\n" );
     addStatements( mainMethodDecl.getBody(),
                    "Timepoint.setEpoch(\"" + Timepoint.getEpoch() + "\");\n" );
+    addStatements( mainMethodDecl.getBody(),
+                   "Timepoint.setHorizonDuration("
+                   + Timepoint.getHorizonDuration() + ");\n" );
 
     // Create String args[].
     Type type = ASTHelper.createReferenceType( "String", 1 );

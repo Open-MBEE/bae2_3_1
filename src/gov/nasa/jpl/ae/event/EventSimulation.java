@@ -315,14 +315,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         
         @Override
         public void run() {
-          System.out.println( "plot process output:" );
+          Debug.outln( "plot process output:" );
           java.io.InputStream is = plotProcess.getInputStream();
           java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
           // And print each line
           String s = null;
           try {
             while ((s = reader.readLine()) != null) {
-                System.out.println("plot: " + s);
+              Debug.outln("plot: " + s);
             }
             is.close();
           } catch ( IOException e ) {
@@ -335,14 +335,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         
         @Override
         public void run() {
-          System.err.println( "plot process error output:" );
+          Debug.errln( "plot process error output:" );
           java.io.InputStream is = plotProcess.getErrorStream();
           java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
           // And print each line
           String s = null;
           try {
             while ((s = reader.readLine()) != null) {
-                System.err.println("plot: " + s);
+              Debug.errln("plot: " + s);
             }
             is.close();
           } catch ( IOException e ) {

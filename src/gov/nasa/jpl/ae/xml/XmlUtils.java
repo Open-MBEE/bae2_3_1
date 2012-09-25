@@ -34,6 +34,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -67,8 +70,6 @@ public class XmlUtils {
   public static final String defaultXsdFileName = "eventSchema.xsd";
   public static final String defaultXsdFilePath = getXmlFilePath( defaultXsdFileName );
   public static final String defaultXmlFolder = FileUtils.existingFolder( defaultXsdFilePath );
-
-  protected Document xmlDocDOM = null;
 
   /*
   public XmlUtils( String xmlFileName )
@@ -111,7 +112,65 @@ public class XmlUtils {
   }
 
 */
+
+  public static int getDurationInSeconds( String durStr ) {
+    if ( Utils.isNullOrEmpty( durStr ) ) return -1;
+    if ( durStr.charAt( 0 ) != 'P' ) {
+      gov.nasa.jpl.ae.event.Duration duration =
+          gov.nasa.jpl.ae.event.Duration.fromString(durStr);
+      return (int)(duration.toMillis() / 1000);
+    }
+    DatatypeFactory f;
+    try {
+      f = DatatypeFactory.newInstance();
+      //String fullDurationString = buildFullDurationString(durStr);
+      javax.xml.datatype.Duration d = f.newDuration( durStr );//fullDurationString );
+      if ( d != null ) {
+        return (int)(d.getTimeInMillis( Timepoint.getEpoch() ) / 1000);
+      }
+    } catch ( DatatypeConfigurationException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return -1;
+  }
   
+  public static String buildFullDurationString( String durStr ) {
+    StringBuilder fullDurationString = new StringBuilder("P");
+    String[] fields = new String[] { "Y", "M", "D", "H", "M", "S" };
+    int[] numbers = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+    TreeMap<String,Integer> map = new TreeMap< String, Integer >();
+    for ( String f : fields ) {
+      map.put( f, 0 );
+    }
+    int pos1 = 1, pos2 = 1;
+    int len = durStr.length();
+    while( pos2 < len ) {
+      pos1 = pos2;
+      while ( pos2 < len && Character.isDigit( durStr.charAt( pos2 ) ) ) {
+        ++pos2;
+      }
+      if ( pos2 < len && pos2 - pos1 > 0 ) {
+        int num = Utils.toInteger( durStr.substring( pos1, pos2 ) );
+        pos1 = pos2;
+        while ( pos2 < len && !Character.isDigit( durStr.charAt( pos2 ) ) ) {
+          ++pos2;
+        }
+        String field = durStr.substring( pos1, pos2 );
+        // just getting first character in case 'T' follows 'D' for the T format 
+        map.put( field.substring( 0, 1 ).toUpperCase(), num );
+      }
+    }
+    for ( String f : fields ) {
+      fullDurationString.append( map.get( f ) );
+      fullDurationString.append( f );
+      if ( f.equals( "D" ) ) {
+        fullDurationString.append( "T" );
+      }
+    }
+    return fullDurationString.toString();
+  }
+
   // Validate the AE XML.
   public static boolean
       validateXML( String aeXmlFilePathName, Document xmlDoc ) throws SAXException,
@@ -241,7 +300,7 @@ public class XmlUtils {
   }
   
   // Return the first child of node that has the name of childTag.
-  protected static Node getChildNode( Node node, String childTag ) {
+  public static Node getChildNode( Node node, String childTag ) {
     if ( node == null ) return null;
     NodeList nodeList = node.getChildNodes();
     for ( int i = 0; i < nodeList.getLength(); i++ ) {
@@ -255,7 +314,7 @@ public class XmlUtils {
   }
 
   // Return a the children of node that have a name of childTag.
-  protected static List< Node > getChildNodes( Node node, String childTag ) {
+  public static List< Node > getChildNodes( Node node, String childTag ) {
     ArrayList< Node > nodes = new ArrayList< Node >();
     if ( node == null ) return nodes;
     NodeList nodeList = node.getChildNodes();
@@ -271,7 +330,7 @@ public class XmlUtils {
 
   // Return the text content of the first child of node that has the name of
   // childTag.
-  protected static String getChildElementText( Node node, String childTag ) {
+  public static String getChildElementText( Node node, String childTag ) {
     if ( node == null ) return null;
     Node n = getChildNode( node, childTag );
     if ( n != null ) return n.getTextContent().trim();
@@ -280,7 +339,7 @@ public class XmlUtils {
 
   // Return the text content of all children of node that have the name of
   // childTag.
-  protected static List< String > getChildrenElementText( Node node,
+  public static List< String > getChildrenElementText( Node node,
                                                           String childTag ) {
     ArrayList< String > stringList = new ArrayList< String >();
     if ( node == null ) return stringList;
@@ -292,7 +351,7 @@ public class XmlUtils {
   }
 
   // Recursively find all nodes in the tree from root with a local name of tag.
-  protected static List< Node > findNodes( Node root, String tag ) {
+  public static List< Node > findNodes( Node root, String tag ) {
     List< Node > nodes = new ArrayList< Node >();
     if ( root != null && root.getLocalName() != null
          && root.getLocalName().equals( tag ) ) {
@@ -308,7 +367,7 @@ public class XmlUtils {
 
   // Return the first discovered node in the tree from root with a local name of
   // tag.
-  protected static Node findNode( Node root, String tag ) {
+  public static Node findNode( Node root, String tag ) {
     if ( root != null && root.getLocalName() != null
          && root.getLocalName().equals( tag ) ) {
       return root;
@@ -326,7 +385,7 @@ public class XmlUtils {
 
   // Return the text content of the first discovered node that has the name of
   // childTag.
-  protected static String findElementText( Node node, String childTag ) {
+  public static String findElementText( Node node, String childTag ) {
     if ( node == null ) return null;
     Node n = findNode( node, childTag );
     if ( n != null ) return n.getTextContent().trim();
@@ -335,7 +394,7 @@ public class XmlUtils {
 
   // Return the text content of the all nodes that have the name of
   // childTag.
-  protected static List< String > findElementsText( Node node,
+  public static List< String > findElementsText( Node node,
                                                            String childTag ) {
     ArrayList< String > stringList = new ArrayList< String >();
     if ( node == null ) return stringList;
@@ -364,7 +423,7 @@ public class XmlUtils {
   
   // XML file/path helpers
   
-//protected static String getDefaultXsdFileName() {
+//public static String getDefaultXsdFileName() {
 //URL url = EventXmlToJava.class.getResource( "eventSchema.xsd" );
 //if ( url == null ) {
 //  return ( defaultXmlFolder == null ? "" : defaultXmlFolder
@@ -376,48 +435,49 @@ public class XmlUtils {
 //return null;
 //}
 
-protected static String getDefaultXsdFilePath() {
-String filePath = getXmlFilePath( defaultXsdFileName );
-if ( filePath == defaultXsdFileName ) { // getFilePath() probably failed
-  URL url = EventXmlToJava.class.getResource( "EventXmlToJava.java" );
-  String fileName = FileUtils.existingPath( url );
-  if ( fileName != null ) {
-    filePath = fileName;
-  }
-}
-return filePath;
-}
-
-// Try to find a file in general places where XML files can be found.
-protected static String getXmlFilePath( String fileName ) {
-String filePath = null;
-URL url = EventXmlToJava.class.getResource( fileName );
-if ( url != null ) {
-  filePath = FileUtils.existingPath( url );
-}
-if ( filePath == null ) {
-  Enumeration< URL > urls = null;
-  try {
-    urls = Thread.currentThread().getContextClassLoader().getResources( fileName );
-    if ( urls == null || !urls.hasMoreElements() ) {
-      Thread.currentThread().getContextClassLoader();
-      urls = ClassLoader.getSystemResources( fileName );
+  public static String getDefaultXsdFilePath() {
+    String filePath = getXmlFilePath( defaultXsdFileName );
+    if ( filePath == defaultXsdFileName ) { // getFilePath() probably failed
+      URL url = EventXmlToJava.class.getResource( "EventXmlToJava.java" );
+      String fileName = FileUtils.existingPath( url );
+      if ( fileName != null ) {
+        filePath = fileName;
+      }
     }
-  } catch ( IOException e ) {
-    e.printStackTrace();
+    return filePath;
   }
-  if ( urls == null || !urls.hasMoreElements() ) return null;
-  while ( urls.hasMoreElements() ) {
-    url = urls.nextElement();
-    filePath = FileUtils.existingPath( url );
-    if ( filePath != null ) return filePath;
-  }
-}
-if ( filePath == null ) {
-  filePath = fileName;
-}    
-return filePath;
-}
 
+  // Try to find a file in general places where XML files can be found.
+  public static String getXmlFilePath( String fileName ) {
+    String filePath = null;
+    URL url = EventXmlToJava.class.getResource( fileName );
+    if ( url != null ) {
+      filePath = FileUtils.existingPath( url );
+    }
+    if ( filePath == null ) {
+      Enumeration< URL > urls = null;
+      try {
+        urls =
+            Thread.currentThread().getContextClassLoader()
+                  .getResources( fileName );
+        if ( urls == null || !urls.hasMoreElements() ) {
+          Thread.currentThread().getContextClassLoader();
+          urls = ClassLoader.getSystemResources( fileName );
+        }
+      } catch ( IOException e ) {
+        e.printStackTrace();
+      }
+      if ( urls == null || !urls.hasMoreElements() ) return null;
+      while ( urls.hasMoreElements() ) {
+        url = urls.nextElement();
+        filePath = FileUtils.existingPath( url );
+        if ( filePath != null ) return filePath;
+      }
+    }
+    if ( filePath == null ) {
+      filePath = fileName;
+    }
+    return filePath;
+  }
 
 }

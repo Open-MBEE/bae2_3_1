@@ -62,18 +62,18 @@ public class SocketClient {
 
   public void send( double... doubleArray ) throws IOException {
     String formatString = doubleArray.length + "d";
-    System.out.println("sending int size of format string: " + formatString.length() );
+    Debug.outln("sending int size of format string: " + formatString.length() );
     dataOutputStream.writeInt( formatString.length() );
     dataOutputStream.flush();
-    System.out.println("sending formatString: " + formatString );
+    Debug.outln("sending formatString: " + formatString );
     dataOutputStream.writeBytes( formatString );
     dataOutputStream.flush();
     int size = doubleArray.length * 8;
-    System.out.println("sending int size of double array: " + size );    
+    Debug.outln("sending int size of double array: " + size );    
     dataOutputStream.writeInt( size );
     dataOutputStream.flush();
     for ( double d : doubleArray ) {
-      System.out.println("sending double " + d );
+      Debug.outln("sending double " + d );
       dataOutputStream.writeDouble( d );
     }
     dataOutputStream.flush();

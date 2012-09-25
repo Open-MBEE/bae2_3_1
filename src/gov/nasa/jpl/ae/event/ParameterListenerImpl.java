@@ -111,6 +111,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return subbed;
   }
 
+  public static <T> T getValue( Parameter<T> parameter ) {
+    if ( parameter == null ) return null;
+    return parameter.getValue();
+  }
+  
   // Build a list of pairs of parameters, each in this event paired with the
   // corresponding ones in another event. Subclasses may need to override this
   // to add their own parameters.

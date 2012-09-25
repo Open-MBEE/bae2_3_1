@@ -4,7 +4,9 @@
 package gov.nasa.jpl.ae.tests;
 
 import gov.nasa.jpl.ae.util.FileUtils;
+import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava;
+import gov.nasa.jpl.ae.xml.XmlUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,8 +41,16 @@ public class TestEventXmlToJava {
 //          "src" + File.separator + "xml" + File.separator
 //              + "exampleDRScenario.xml";
     }
+    File file = FileUtils.findFile( xmlFileName );
+    if ( file != null && file.exists() ) {
+      xmlFileName = file.getAbsolutePath();
+    }
+    String fp = XmlUtils.getXmlFilePath( xmlFileName );
+    if ( fp != null ) {
+      xmlFileName = fp;
+    }
     URL xmlUrl = EventXmlToJava.class.getResource(xmlFileName);
-    if ( xmlUrl == null ) {
+    if ( xmlUrl == null && Utils.isNullOrEmpty( xmlFileName ) ) {
 //    File f = new File(xmlFileName);
 //    if ( !f.exists() ) {
 //      String newXmlFileName = "src" + File.separator + "xml" + File.separator + xmlFileName;
@@ -51,9 +61,11 @@ public class TestEventXmlToJava {
       System.exit(1);
     }
     //xmlFileName = f.getAbsolutePath();
-    xmlFileName = xmlUrl.getFile();
+    if ( xmlUrl != null && Utils.isNullOrEmpty( xmlUrl.getFile() ) ) {
+      xmlFileName = xmlUrl.getFile();
+    }
     //String directory = "src";
-    String directory = FileUtils.existingFolder( xmlUrl.getPath() );
+    String directory = FileUtils.existingFolder( xmlFileName );
     directory = directory.substring( 0, directory.indexOf("CS")+3 ) + "src";
     System.out.println( "file \"" + xmlFileName + "\"" );
     System.out.println( "directory \"" + directory + "\"" );

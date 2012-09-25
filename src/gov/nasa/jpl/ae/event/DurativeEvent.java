@@ -82,6 +82,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     @Override
     public boolean satisfy() {
       boolean satisfied = true;
+      if ( !DurativeEvent.this.startTime.isGrounded() ) return false;
+
+      // Don't elaborate outside the horizon.  Need startTime grounded to know.
+      if ( !startTime.isGrounded() ) return false;
+      if ( startTime.getValue() >= Timepoint.getHorizonDuration() ) {
+        Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
+                     + getName() );
+        return true;
+      }
+      
       for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
         if ( isElaborated( er ) != er.getKey().isConditionSatisfied() ) {
           if ( er.getKey().attemptElaboration( er.getValue(), true ) ) {
@@ -97,8 +107,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     @Override
     public boolean isSatisfied() {
       for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
-        if ( isElaborated( er ) != er.getKey().isConditionSatisfied() ) {
-          return false;
+        if ( !startTime.isGrounded() ) return false;
+        if ( startTime.getValue() < Timepoint.getHorizonDuration() ) {
+          if ( isElaborated( er ) != er.getKey().isConditionSatisfied() ) {
+            return false;
+          }
         }
       }
       return true;
@@ -568,6 +581,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   protected boolean tryToSatisfy() {
     boolean satisfied = super.tryToSatisfy();
+    // REVIEW -- Is it necessary to call satisfyElaborations given the
+    // elaborationsConstraint?
     satisfyElaborations();
     Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
     return satisfied;
@@ -639,6 +654,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                             boolean force ) {
     boolean elaborated = true;
     if ( !isElaborated( entry ) || force ) {
+
+      // Don't elaborate outside the horizon.  Need startTime grounded to know.
+      if ( !startTime.isGrounded() ) return false;
+      if ( startTime.getValue() >= Timepoint.getHorizonDuration() ) {
+        Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
+                     + getName() );
+        return true;
+      }
+
       Vector< Event > oldEvents = entry.getValue(); 
       elaborated = entry.getKey().attemptElaboration( oldEvents, true );
     }
@@ -794,7 +818,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Vector< Event > elaboratedEvents = entry.getValue();  
       ElaborationRule elaborationRule = entry.getKey();
       
-      // REVIEW -- Do we want to pass in true here?
       boolean elaborated = 
           elaborationRule.attemptElaboration( elaboratedEvents, false );
       
@@ -868,6 +891,17 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    *         satisfied.
    */
   public boolean satisfyElaborations() {
+    // REVIEW -- code below is replicated in elaborate() and
+    // elaborationsConstraint.
+    // Don't elaborate outside the horizon.  Need startTime grounded to know.
+    if ( !startTime.isGrounded() ) startTime.ground();
+    if ( !startTime.isGrounded() ) return false;
+    if ( startTime.getValue() >= Timepoint.getHorizonDuration() ) {
+      Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
+                   + getName() );
+      return true;
+    }
+    
     boolean satisfied = true;
     elaborate( true );
     Vector< Vector< Event > > elaboratedEvents = new Vector< Vector<Event> >();
