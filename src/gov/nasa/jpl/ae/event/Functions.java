@@ -89,6 +89,7 @@ public class Functions {
     }
   }
 
+  
   // Simple math functions
 
   public static class Sum< T , R > extends Binary< T, R > {
@@ -200,6 +201,26 @@ public class Functions {
     Debug.outln( r1 + " - " + r2 + " = " + result );
     return result;
   }
+
+  public static class Negative<T> extends Unary< T, T > {
+    public Negative( Expression< T > o ) {
+      super( o, "negative" );
+    }
+  }
+  public static <T> java.lang.Number negative( Expression< T > o ) {
+    if ( o == null ) return null;
+    T r = o.evaluate( false );
+    Number result = null;
+    if ( r == null ) return null;
+    if ( r.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      result = ((Double)r) * -1.0;
+    } else if ( r.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      result = ((Integer)r) * -1;
+    }
+    Debug.outln( "-" + o + " = " + result );
+    return result;
+  }
+
 
   // Inequality functions
 

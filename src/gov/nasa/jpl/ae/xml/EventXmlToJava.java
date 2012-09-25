@@ -388,6 +388,30 @@ public class EventXmlToJava {
 //    return null;
   }
   
+  public String getClassNameWithScope( String classOrInterfaceName,
+                                       boolean doTypeParameters ) {
+    String typeParameters = "";
+    if ( classOrInterfaceName.contains( "<" )
+         && classOrInterfaceName.contains( ">" ) ) {
+      typeParameters =
+          classOrInterfaceName.substring( classOrInterfaceName.indexOf( '<' ) + 1,
+                                          classOrInterfaceName.lastIndexOf( '>' ) ).trim();
+      if ( doTypeParameters ) {
+        String tpNameWithScope = getClassNameWithScope( typeParameters, true );
+        if ( !Utils.isNullOrEmpty( tpNameWithScope ) ) {
+          typeParameters = tpNameWithScope;
+        }
+      }
+      typeParameters = "<" + typeParameters + ">";
+      classOrInterfaceName =
+          classOrInterfaceName.substring( 0, classOrInterfaceName.indexOf( '<' ) );
+    }
+    String classNameWithScope = getClassNameWithScope( classOrInterfaceName );
+    if ( !Utils.isNullOrEmpty( classNameWithScope ) ) {
+      classOrInterfaceName = classNameWithScope;
+    }
+    return classOrInterfaceName + typeParameters;
+  }
   // Try to figure out the scope of the class name if an inner class, and return
   // the scoped class name.
   public String getClassNameWithScope( String className ) {
@@ -1489,6 +1513,7 @@ public class EventXmlToJava {
       currentCompilationUnit.setImports( new ArrayList< ImportDeclaration >() );
     }
     // check for duplicates -- REVIEW - inefficient linear search
+    // TODO -- never finds duplicates!
     for ( ImportDeclaration i : currentCompilationUnit.getImports() ) {
       if ( i.getName().getName().equals( impName ) ) return;
     }
@@ -1611,6 +1636,10 @@ public class EventXmlToJava {
     }
     String type = "Parameter";
     String parameterTypes = p.type;
+    
+    //parameterTypes = getFullyQualifiedName( parameterTypes, true );
+    parameterTypes = getClassNameWithScope( parameterTypes, true );
+    
     if ( Utils.isNullOrEmpty( p.value ) ) {
       p.value = "null";
     }
@@ -1658,6 +1687,35 @@ public class EventXmlToJava {
     return ret;
   }
 
+  public String getFullyQualifiedName( String classOrInterfaceName, boolean doTypeParameters ) {
+    String typeParameters = "";
+    if ( classOrInterfaceName.contains( "<" )
+         && classOrInterfaceName.contains( ">" ) ) {
+      typeParameters =
+          classOrInterfaceName.substring( classOrInterfaceName.indexOf( '<' ) + 1,
+                                          classOrInterfaceName.lastIndexOf( '>' ) ).trim();
+      typeParameters = "<" + ( doTypeParameters
+                               ? getFullyQualifiedName( typeParameters, true )
+                               : typeParameters ) + ">";
+      classOrInterfaceName =
+          classOrInterfaceName.substring( 0, classOrInterfaceName.indexOf( '<' ) );
+    }
+    String n = Utils.getFullyQualifiedName( classOrInterfaceName, false );
+    if ( Utils.isNullOrEmpty( n ) || n.equals( classOrInterfaceName ) ) {
+      n = getClassNameWithScope( classOrInterfaceName );
+    }
+    if ( Utils.isNullOrEmpty( n ) || n.equals( classOrInterfaceName ) ) {
+      n = getClassNameWithScope( Utils.simpleName( classOrInterfaceName ) );
+    }
+    if ( Utils.isNullOrEmpty( n ) || n.equals( classOrInterfaceName ) ) {
+      n = classOrInterfaceName;
+    }
+    n = n + typeParameters;
+    Debug.outln( "getFullyQualifiedName(" + classOrInterfaceName + ", "
+                 + doTypeParameters + ") = " + n );
+    return n;
+  }
+
   public FieldDeclaration createParameterField( Param p ) {
     String args[] = convertToEventParameterTypeAndConstructorArgs( p );
     // return createFieldOfGenericType( p.name, type, p.type, args );
@@ -1674,12 +1732,12 @@ public class EventXmlToJava {
     String args[] = convertToEventParameterTypeAndConstructorArgs( p );
     Statement s =
         createAssignmentOfGenericType( p.name, args[ 0 ],
-                                       null,//args[ 1 ],
+                                       args[ 1 ],
                                        args[ 2 ] );
     ASTHelper.addStmt( initMembers.getBody(), s );
     FieldDeclaration f =
         createFieldOfGenericType( p.name, args[ 0 ],
-                                  null,//args[ 1 ],
+                                  args[ 1 ],
                                   null );
     if ( isMemberStatic( p.name ) ) {
       makeStatic( f );

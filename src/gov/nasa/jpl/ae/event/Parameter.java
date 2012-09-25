@@ -61,9 +61,9 @@ public class Parameter< T > implements Cloneable, Groundable,
     stale = !isGrounded();
   }
 
-  public Parameter( String n, Domain< T > d, Parameter<T> v, ParameterListener o ) {
-    this(n, d, (v == null) ? null : v.getValue(), o);
-  }
+//  public Parameter( String n, Domain< T > d, Parameter<T> v, ParameterListener o ) {
+//    this(n, d, (v == null) ? null : v.getValue(), o);
+//  }
 
   public Parameter( Parameter< T > parameter ) {
     name = parameter.name;

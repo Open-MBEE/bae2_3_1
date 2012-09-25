@@ -359,6 +359,35 @@ public class Utils {
     return paramPart;
   }
 
+  public static String getFullyQualifiedName( String classOrInterfaceName,
+                                              boolean doTypeParameters ) {
+    String typeParameters = "";
+    if ( classOrInterfaceName.contains( "<" )
+         && classOrInterfaceName.contains( ">" ) ) {
+      typeParameters =
+          classOrInterfaceName.substring( classOrInterfaceName.indexOf( '<' ) + 1,
+                                          classOrInterfaceName.lastIndexOf( '>' ) ).trim();
+      typeParameters = "<" + ( doTypeParameters
+                               ? getFullyQualifiedName( typeParameters, true )
+                               : typeParameters ) + ">";
+      classOrInterfaceName =
+          classOrInterfaceName.substring( 0, classOrInterfaceName.indexOf( '<' ) );
+    }
+    List< String > names = Utils.getFullyQualifiedNames( classOrInterfaceName );
+    if ( Utils.isNullOrEmpty( names ) ) {
+      names = Utils.getFullyQualifiedNames( Utils.simpleName( classOrInterfaceName ) );
+    }
+    if ( !Utils.isNullOrEmpty( names ) ) {
+      for ( String n : names ) {
+        if ( n.endsWith( classOrInterfaceName ) ) {
+          classOrInterfaceName = n;
+          break;
+        }
+      }
+    }
+    return classOrInterfaceName + typeParameters;
+  }
+  
   public static List<String> getFullyQualifiedNames(String simpleClassOrInterfaceName ) {
     return getFullyQualifiedNames( simpleClassOrInterfaceName, null );
   }
@@ -377,6 +406,8 @@ public class Utils {
             // Ignore
         }
     }
+    Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
+                 + " ): returning " + fqns );
     return fqns;
   }
   
