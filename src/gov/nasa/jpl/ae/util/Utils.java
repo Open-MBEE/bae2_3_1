@@ -517,12 +517,15 @@ public class Utils {
                                          Object... args ) {
     Debug.outln( "getMethodForArgs( cls=" + cls.getName() + ", callName="
         + callName + ", args=" + toString( args ) + " )" );
-    Class< ? > argTypes[] = new Class< ? >[ args.length ];
-    for ( int i = 0; i < args.length; ++i ) {
-      if ( args[ i ] == null ) {
-        argTypes[ i ] = null;
-      } else {
-        argTypes[ i ] = args[ i ].getClass();
+    Class< ? > argTypes[] = null;
+    if ( args != null ) {
+      argTypes = new Class< ? >[ args.length ];
+      for ( int i = 0; i < args.length; ++i ) {
+        if ( args[ i ] == null ) {
+          argTypes[ i ] = null;
+        } else {
+          argTypes[ i ] = args[ i ].getClass();
+        }
       }
     }
     return getMethodForArgTypes( cls, callName, argTypes );
@@ -551,6 +554,7 @@ public class Utils {
 //                                             double numArgsCost,
 //                                             double argMismatchCost,
 //                                             Map< Class< ? >, Map< Class< ? >, Double > > transformCost ) {
+    if ( argTypes == null ) argTypes = new Class<?>[] {};
     Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
                  + callName + ", argTypes=" + toString( argTypes ) + " )" );
     Method matchingMethod = null;
