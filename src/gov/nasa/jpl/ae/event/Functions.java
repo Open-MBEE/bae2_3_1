@@ -419,7 +419,7 @@ public class Functions {
       greaterThan( Expression< T > o1, Expression< T > o2 ) {
     if ( !o1.isGrounded() ) {
       if ( !o2.isGrounded() ) {
-        return false;
+        return false;  // TODO -- REVIEW -- throw exception?
       }
       return lessThan( o2, o1 );
     }

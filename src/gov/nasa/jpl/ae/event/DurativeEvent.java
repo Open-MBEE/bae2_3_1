@@ -569,7 +569,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public Set< Parameter< ? > > getParameters( boolean deep ) {
     Set< Parameter< ? > > set = super.getParameters( deep );
     if ( deep ) {
-      for ( Event e : getEvents( deep ) ) {
+      for ( Event e : getEvents(false) ) {
         if ( e instanceof HasParameters ) {
           set.addAll( ((HasParameters)e).getParameters( deep ) );
         }

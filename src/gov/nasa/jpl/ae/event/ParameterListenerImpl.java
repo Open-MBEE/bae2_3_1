@@ -304,7 +304,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   @Override
   public boolean isSatisfied() {
-    for ( Constraint c : getConstraints() ) {
+    for ( Constraint c : getConstraints( true ) ) {
       if ( !c.isSatisfied() ) {
         return false;
       }
@@ -347,7 +347,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return satisfied;
   }
   public Collection< Constraint > getConstraints() {
-    return getConstraints( true );
+    return getConstraints( false );
   }
 
   public Collection< Constraint > getConstraints( boolean deep ) {
