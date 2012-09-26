@@ -331,27 +331,6 @@
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114226_580474_14425</eventType>
-											<eventName>_ReadStructuralFeatureAction_start_system</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114225_676052_14419_endTime</name>
-													<value>endTime</value>
-												</parameter>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114839_149885_15219</name>
-													<value>objectToPass</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114226_580474_14425_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114225_255738_14420</eventType>
 											<eventName>_ReadStructuralFeatureAction_start_system</eventName>
 											<arguments>
@@ -389,6 +368,27 @@
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114225_927143_14421_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114226_580474_14425</eventType>
+											<eventName>_ReadStructuralFeatureAction_start_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114225_676052_14419_endTime</name>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114839_149885_15219</name>
+													<value>objectToPass</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114226_580474_14425_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -543,19 +543,6 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>c</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346104706708_917454_14957</eventType>
-											<eventName>CustomerCB_Activity_Customer</eventName>
-											<arguments>
-												<parameter>
-													<name>invoke_time</name>
-													<value>startTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113586_863604_13814.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114226_959292_14423</eventType>
 											<eventName>sobp_StartObjectBehaviorAction_start_system</eventName>
@@ -570,6 +557,19 @@
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114226_959292_14423_exists</expression>
 										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>c</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346104706708_917454_14957</eventType>
+											<eventName>CustomerCB_Activity_Customer</eventName>
+											<arguments>
+												<parameter>
+													<name>invoke_time</name>
+													<value>startTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -1543,27 +1543,6 @@
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113556_623276_13775.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114027_454308_14202</eventType>
-											<eventName>rsfa_up_ReadStructuralFeatureAction_usePower</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114027_337563_14204_endTime</name>
-													<value>endTime</value>
-												</parameter>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114781_225445_15104</name>
-													<value>objectToPass</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--rsfa_up_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114027_454308_14202_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113556_623276_13775.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114027_512113_14203</eventType>
 											<eventName>clvsend_SendSignalAction_usePower</eventName>
 											<arguments>
@@ -1580,6 +1559,27 @@
 										<!--clvsend_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114027_512113_14203_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113556_623276_13775.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114027_454308_14202</eventType>
+											<eventName>rsfa_up_ReadStructuralFeatureAction_usePower</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114027_337563_14204_endTime</name>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114781_225445_15104</name>
+													<value>objectToPass</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--rsfa_up_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114027_454308_14202_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -1741,15 +1741,15 @@
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1348163666246_377742_14732</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1348163666246_377742_14732")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1348163531723_681524_14685</name>
 								<type>ObjectFlow&lt;Integer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1348163531723_681524_14685")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1348163666246_377742_14732</name>
+								<type>ObjectFlow&lt;Integer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1348163666246_377742_14732")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
@@ -2105,6 +2105,23 @@
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113557_625793_13776.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348163580677_177144_14706</eventType>
+											<eventName>_DecisionNode_changePowerUsage</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114087_731407_14254_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348163580677_177144_14706_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113557_625793_13776.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1348163517879_726154_14671</eventType>
 											<eventName>_ForkNode_changePowerUsage</eventName>
 											<arguments>
@@ -2121,23 +2138,6 @@
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1348163517879_726154_14671_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113557_625793_13776.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348163580677_177144_14706</eventType>
-											<eventName>_DecisionNode_changePowerUsage</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114087_731407_14254_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1348163580677_177144_14706_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -2885,22 +2885,10 @@ else: </value>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114106_840970_14313")</value>
 							</parameter>
 							<parameter>
-								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114105_724841_14306</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114105_724841_14306")</value>
-							</parameter>
-							<parameter>
 								<!--invoke time for whole activity-->
 								<name>invoke_time</name>
 								<type>Integer</type>
 								<value/>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114105_938474_14303</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114105_938474_14303")</value>
 							</parameter>
 						</members>
 						<constraints/>
@@ -2918,6 +2906,12 @@ else: </value>
 											<value>false</value>
 										</parameter>
 										<parameter>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1348690759146_406635_13262_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
 											<!--Instance of whoever is operating this activity-->
 											<name>_17_0_5_edc0357_1345510114806_956292_15147</name>
 											<type>Customer</type>
@@ -2925,6 +2919,7 @@ else: </value>
 										</parameter>
 									</members>
 									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348690759146_406635_13262_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
@@ -2970,15 +2965,54 @@ else: </value>
 											<type>Integer</type>
 											<value>4</value>
 										</parameter>
+										<parameter>
+											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
+											<name>_17_0_5_edc0357_1345510114103_810338_14295_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1348690759146_406635_13262_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
 									</members>
 									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348690759146_406635_13262_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114103_810338_14295_exists</name>
+											<type>Boolean</type>
+											<value>sig_17_0_5_edc0357_1345510114105_705998_14305.hasStuff(endTime)</value>
+										</dependency>
+									</dependencies>
 								</class>
-								<effects>
-									<effect>sig_17_0_5_edc0357_1345510114105_938474_14303.send(_17_0_5_edc0357_1345510114807_983002_15149,startTime)</effect>
-								</effects>
-								<elaborations/>
+								<effects/>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114103_810338_14295</eventType>
+											<eventName>_AddStructuralFeatureValueAction_initialize</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114103_36875_14294_endTime</name>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114808_431003_15150</name>
+													<value>_17_0_5_edc0357_1345510114807_983002_15149</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114103_810338_14295_exists</expression>
+										</condition>
+									</elaboration>
+								</elaborations>
 							</event>
 							<event>
 								<class>
@@ -2986,14 +3020,14 @@ else: </value>
 									<!--<actionName></actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1345510114808_431003_15150</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114104_812599_14301_endTime</name>
+											<!--previous event end time:  (ValueSpecificationAction)-->
+											<name>_17_0_5_edc0357_1345510114103_36875_14294_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -3011,14 +3045,9 @@ else: </value>
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114104_812599_14301_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114103_36875_14294_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
-										<dependency>
-											<name>_17_0_5_edc0357_1345510114808_431003_15150</name>
-											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114105_938474_14303.receive(startTime - 1)</value>
-										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114104_720146_14302_exists</name>
 											<type>Boolean</type>
@@ -3061,7 +3090,7 @@ else: </value>
 									<members>
 										<parameter>
 											<!--Initialize existence of  (ForkNode) as false-->
-											<name>_17_0_5_edc0357_1345510114104_812599_14301_exists</name>
+											<name>_17_0_5_edc0357_1348690759146_406635_13262_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
@@ -3070,7 +3099,7 @@ else: </value>
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114104_812599_14301_exists</name>
+											<name>_17_0_5_edc0357_1348690759146_406635_13262_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
@@ -3081,7 +3110,7 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114104_812599_14301</eventType>
+											<eventType>_17_0_5_edc0357_1348690759146_406635_13262</eventType>
 											<eventName>_ForkNode_initialize</eventName>
 											<arguments>
 												<parameter>
@@ -3092,7 +3121,7 @@ else: </value>
 										</eventInvocation>
 										<!--_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1345510114104_812599_14301_exists</expression>
+											<expression>_17_0_5_edc0357_1348690759146_406635_13262_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -3158,31 +3187,26 @@ else: </value>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (ForkNode)-->
-											<name>_17_0_5_edc0357_1345510114104_812599_14301_endTime</name>
+											<!--previous event end time:  (ValueSpecificationAction)-->
+											<name>_17_0_5_edc0357_1345510114104_334510_14300_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
-											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
+											<!--Parameter passed in by Object-Invoker (pin id or parameter id) v-->
 											<name>_17_0_5_edc0357_1345510114810_895741_15152</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114104_812599_14301_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114104_334510_14300_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
 											<name>_17_0_5_edc0357_1345510114810_534712_15153</name>
 											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1345510114105_129800_14307.receive(startTime - 1)</value>
-										</dependency>
-										<dependency>
-											<name>_17_0_5_edc0357_1345510114810_895741_15152</name>
-											<type>Integer</type>
-											<value>sig_17_0_5_edc0357_1345510114105_724841_14306.receive(startTime - 1)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -3203,53 +3227,27 @@ else: </value>
 											<type>Integer</type>
 											<value>0</value>
 										</parameter>
-									</members>
-									<constraints>
-									</constraints>
-									<dependencies/>
-								</class>
-								<effects>
-									<effect>sig_17_0_5_edc0357_1345510114105_724841_14306.send(_17_0_5_edc0357_1345510114811_932135_15155,startTime)</effect>
-								</effects>
-								<elaborations/>
-							</event>
-							<event>
-								<class>
-									<name>_17_0_5_edc0357_1345510114104_812599_14301</name>
-									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
-									<members>
 										<parameter>
 											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
-											<name>_17_0_5_edc0357_1345510114103_810338_14295_exists</name>
+											<name>_17_0_5_edc0357_1345510114104_663398_14299_exists</name>
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
 										<parameter>
-											<!--previous event end time:  (InitialNode)-->
-											<name>_17_0_5_edc0357_1345510114103_561395_14296_endTime</name>
+											<!--previous event end time:  (ForkNode)-->
+											<name>_17_0_5_edc0357_1348690759146_406635_13262_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
-										<parameter>
-											<!--Initialize existence of  (AddStructuralFeatureValueAction) as false-->
-											<name>_17_0_5_edc0357_1345510114104_663398_14299_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
 									</members>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114103_561395_14296_endTime</expression></constraint>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348690759146_406635_13262_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1345510114103_810338_14295_exists</name>
-											<type>Boolean</type>
-											<value>sig_17_0_5_edc0357_1345510114105_705998_14305.hasStuff(endTime) &amp;&amp; sig_17_0_5_edc0357_1345510114105_938474_14303.hasStuff(endTime)</value>
-										</dependency>
-										<dependency>
 											<name>_17_0_5_edc0357_1345510114104_663398_14299_exists</name>
 											<type>Boolean</type>
-											<value>sig_17_0_5_edc0357_1345510114105_129800_14307.hasStuff(endTime) &amp;&amp; sig_17_0_5_edc0357_1345510114105_724841_14306.hasStuff(endTime)</value>
+											<value>sig_17_0_5_edc0357_1345510114105_129800_14307.hasStuff(endTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -3258,29 +3256,16 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114103_810338_14295</eventType>
-											<eventName>_AddStructuralFeatureValueAction_initialize</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114104_812599_14301_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114103_810338_14295_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114104_663398_14299</eventType>
 											<eventName>_AddStructuralFeatureValueAction_initialize</eventName>
 											<arguments>
 												<parameter>
-													<name>_17_0_5_edc0357_1345510114104_812599_14301_endTime</name>
+													<name>_17_0_5_edc0357_1345510114104_334510_14300_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114810_895741_15152</name>
+													<value>_17_0_5_edc0357_1345510114811_932135_15155</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -3341,6 +3326,112 @@ else: </value>
 									</elaboration>
 								</elaborations>
 							</event>
+							<event>
+								<class>
+									<name>_17_0_5_edc0357_1348690759146_406635_13262</name>
+									<!--<actionName></actionName><actionType>Fork Node</actionType>-->
+									<members>
+										<parameter>
+											<!--Initialize existence of  (ValueSpecificationAction) as false-->
+											<name>_17_0_5_edc0357_1345510114103_36875_14294_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of  (ReadSelfAction) as false-->
+											<name>_17_0_5_edc0357_1345510114103_775997_14293_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+										<parameter>
+											<!--previous event end time:  (InitialNode)-->
+											<name>_17_0_5_edc0357_1345510114103_561395_14296_endTime</name>
+											<type>Integer</type>
+											<value/>
+										</parameter>
+										<parameter>
+											<!--Initialize existence of  (ValueSpecificationAction) as false-->
+											<name>_17_0_5_edc0357_1345510114104_334510_14300_exists</name>
+											<type>Boolean</type>
+											<value>false</value>
+										</parameter>
+									</members>
+									<constraints>
+										<constraint><expression>startTime &gt;_17_0_5_edc0357_1345510114103_561395_14296_endTime</expression></constraint>
+									</constraints>
+									<dependencies>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114103_36875_14294_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114103_775997_14293_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+										<dependency>
+											<name>_17_0_5_edc0357_1345510114104_334510_14300_exists</name>
+											<type>Boolean</type>
+											<value>true</value>
+										</dependency>
+									</dependencies>
+								</class>
+								<effects/>
+								<elaborations>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114104_334510_14300</eventType>
+											<eventName>_ValueSpecificationAction_initialize</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348690759146_406635_13262_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114104_334510_14300_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114103_36875_14294</eventType>
+											<eventName>_ValueSpecificationAction_initialize</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348690759146_406635_13262_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114103_36875_14294_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113559_180117_13777.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114103_775997_14293</eventType>
+											<eventName>_ReadSelfAction_initialize</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348690759146_406635_13262_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114103_775997_14293_exists</expression>
+										</condition>
+									</elaboration>
+								</elaborations>
+							</event>
 						</events>
 					</class>
 					<elaborations>
@@ -3384,15 +3475,15 @@ else: </value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114168_147606_14365</name>
-								<type>ObjectFlow&lt;Customer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114168_147606_14365")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114168_746941_14366</name>
 								<type>ObjectFlow&lt;Customer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114168_746941_14366")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510114168_147606_14365</name>
+								<type>ObjectFlow&lt;Customer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114168_147606_14365")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
@@ -3697,23 +3788,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114163_833189_14352</eventType>
-											<eventName>sendSignalNo_SendSignalAction_setDRCap</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114163_254081_14351_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--sendSignalNo_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114163_833189_14352_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114160_29879_14347</eventType>
 											<eventName>addStructuralFeatureCap_AddStructuralFeatureValueAction_setDRCap</eventName>
 											<arguments>
@@ -3726,6 +3800,23 @@ else: </value>
 										<!--addStructuralFeatureCap_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114160_29879_14347_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114163_833189_14352</eventType>
+											<eventName>sendSignalNo_SendSignalAction_setDRCap</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114163_254081_14351_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--sendSignalNo_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114163_833189_14352_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -4052,23 +4143,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348187213310_199425_14961</eventType>
-											<eventName>custParticip_ValueSpecificationAction_setDRCap</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1348187326552_305667_14984_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--custParticip_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1348187213310_199425_14961_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114159_726624_14346</eventType>
 											<eventName>customerReadSelf_ReadSelfAction_setDRCap</eventName>
 											<arguments>
@@ -4081,6 +4155,23 @@ else: </value>
 										<!--customerReadSelf_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114159_726624_14346_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348187213310_199425_14961</eventType>
+											<eventName>custParticip_ValueSpecificationAction_setDRCap</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348187326552_305667_14984_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--custParticip_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348187213310_199425_14961_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -4141,19 +4232,6 @@ else: </value>
 						<elaboration>
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
-								<eventType>_17_0_5_edc0357_1345510114161_34701_14349</eventType>
-								<eventName>customerInitial_InitialNode_setDRCap</eventName>
-								<arguments>
-									<parameter>
-										<name>startTime</name>
-										<value>invoke_time</value>
-									</parameter>
-								</arguments>
-							</eventInvocation>
-						</elaboration>
-						<elaboration>
-							<eventInvocation>
-								<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346105164389_404592_15285</eventType>
 								<eventName>capval_ActivityParameterNode_setDRCap</eventName>
 								<arguments>
@@ -4164,6 +4242,19 @@ else: </value>
 									<parameter>
 										<name>_17_0_5_edc0357_1346105157074_69873_15283</name>
 										<value>_17_0_5_edc0357_1346105157074_69873_15283</value>
+									</parameter>
+								</arguments>
+							</eventInvocation>
+						</elaboration>
+						<elaboration>
+							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1345510113560_522513_13778.this</enclosingInstance>
+								<eventType>_17_0_5_edc0357_1345510114161_34701_14349</eventType>
+								<eventName>customerInitial_InitialNode_setDRCap</eventName>
+								<arguments>
+									<parameter>
+										<name>startTime</name>
+										<value>invoke_time</value>
 									</parameter>
 								</arguments>
 							</eventInvocation>
@@ -4273,19 +4364,6 @@ else: </value>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>Customer.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510113559_180117_13777</eventType>
-											<eventName>initialize_Activity_Customer</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346104706708_917454_14957.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1348000884142_707118_14045</eventType>
 											<eventName>_AcceptEventAction_CustomerCB</eventName>
@@ -4300,6 +4378,19 @@ else: </value>
 										<condition>
 											<expression>_17_0_5_edc0357_1348000884142_707118_14045_exists</expression>
 										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>Customer.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510113559_180117_13777</eventType>
+											<eventName>initialize_Activity_Customer</eventName>
+											<arguments>
+												<parameter>
+													<name>endTime</name>
+													<value>cba_endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -4370,6 +4461,23 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346104706708_917454_14957.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348163169744_444878_14578</eventType>
+											<eventName>_AcceptEventAction_CustomerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346104764223_34184_15024_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348163169744_444878_14578_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346104706708_917454_14957.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346104908659_55389_15177</eventType>
 											<eventName>_MergeNode_CustomerCB</eventName>
 											<arguments>
@@ -4416,23 +4524,6 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346105076614_639562_15240_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346104706708_917454_14957.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348163169744_444878_14578</eventType>
-											<eventName>_AcceptEventAction_CustomerCB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346104764223_34184_15024_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1348163169744_444878_14578_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -4669,19 +4760,6 @@ else: </value>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>Customer.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510113557_625793_13776</eventType>
-											<eventName>changePowerUsage_Activity_Customer</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346104706708_917454_14957.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346105076614_639562_15240</eventType>
 											<eventName>_MergeNode_CustomerCB</eventName>
@@ -4696,6 +4774,19 @@ else: </value>
 										<condition>
 											<expression>_17_0_5_edc0357_1346105076614_639562_15240_exists</expression>
 										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>Customer.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510113557_625793_13776</eventType>
+											<eventName>changePowerUsage_Activity_Customer</eventName>
+											<arguments>
+												<parameter>
+													<name>endTime</name>
+													<value>cba_endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -5769,15 +5860,15 @@ else: </value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510113922_694984_14041</name>
-								<type>ObjectFlow&lt;Power&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510113922_694984_14041")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345756813363_602852_13369</name>
 								<type>ObjectFlow&lt;Integer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345756813363_602852_13369")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510113922_694984_14041</name>
+								<type>ObjectFlow&lt;Power&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510113922_694984_14041")</value>
 							</parameter>
 						</members>
 						<constraints/>
@@ -6502,23 +6593,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113542_666806_13761.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510113940_348480_14070</eventType>
-											<eventName>load_val_spec_ValueSpecificationAction_intialize</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510113940_364097_14072_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--load_val_spec_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510113940_348480_14070_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113542_666806_13761.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510113939_719662_14069</eventType>
 											<eventName>power_val_spec_ValueSpecificationAction_intialize</eventName>
 											<arguments>
@@ -6531,6 +6605,23 @@ else: </value>
 										<!--power_val_spec_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510113939_719662_14069_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113542_666806_13761.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510113940_348480_14070</eventType>
+											<eventName>load_val_spec_ValueSpecificationAction_intialize</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510113940_364097_14072_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--load_val_spec_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510113940_348480_14070_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -6636,6 +6727,12 @@ else: </value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510113963_14719_14119</name>
+								<type>ObjectFlow&lt;Integer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510113963_14719_14119")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510113964_881600_14125</name>
 								<type>ObjectFlow&lt;Power&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510113964_881600_14125")</value>
@@ -6645,12 +6742,6 @@ else: </value>
 								<name>sig_17_0_5_edc0357_1345510113964_837067_14124</name>
 								<type>ObjectFlow&lt;Power&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510113964_837067_14124")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510113963_14719_14119</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510113963_14719_14119")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
@@ -7482,40 +7573,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510646254_583840_18431</eventType>
-											<eventName>_MergeNode_PowerCB</eventName>
-											<arguments>
-												<parameter>
-													<name>invoker_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510646254_583840_18431_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510642223_296237_18420</eventType>
-											<eventName>_MergeNode_PowerCB</eventName>
-											<arguments>
-												<parameter>
-													<name>invoker_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510642223_296237_18420_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1348162996982_701989_14540</eventType>
 											<eventName>_AcceptEventAction_PowerCB</eventName>
 											<arguments>
@@ -7545,6 +7602,40 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510644119_150669_18425_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510646254_583840_18431</eventType>
+											<eventName>_MergeNode_PowerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>invoker_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510646254_583840_18431_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510642223_296237_18420</eventType>
+											<eventName>_MergeNode_PowerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>invoker_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510642223_296237_18420_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -7797,23 +7888,6 @@ else: </value>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510642223_296237_18420</eventType>
-											<eventName>_MergeNode_PowerCB</eventName>
-											<arguments>
-												<parameter>
-													<name>invoker_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510642223_296237_18420_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
 											<enclosingInstance>Power.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510113540_247161_13759</eventType>
 											<eventName>changeGenerationValue_Activity_Power</eventName>
@@ -7828,6 +7902,23 @@ else: </value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510155557_623464_18238.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510642223_296237_18420</eventType>
+											<eventName>_MergeNode_PowerCB</eventName>
+											<arguments>
+												<parameter>
+													<name>invoker_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510642223_296237_18420_exists</expression>
+										</condition>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -9056,19 +9147,6 @@ else: </value>
 						<elaboration>
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1345510113597_14205_13829.this</enclosingInstance>
-								<eventType>_17_0_5_edc0357_1345510114344_59836_14558</eventType>
-								<eventName>initial_InitialNode_updateActualLoad</eventName>
-								<arguments>
-									<parameter>
-										<name>startTime</name>
-										<value>invoke_time</value>
-									</parameter>
-								</arguments>
-							</eventInvocation>
-						</elaboration>
-						<elaboration>
-							<eventInvocation>
-								<enclosingInstance>_17_0_5_edc0357_1345510113597_14205_13829.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346101105922_421213_13877</eventType>
 								<eventName>actualLoad_ActivityParameterNode_updateActualLoad</eventName>
 								<arguments>
@@ -9079,6 +9157,19 @@ else: </value>
 									<parameter>
 										<name>_17_0_5_edc0357_1346101090161_713198_13875</name>
 										<value>_17_0_5_edc0357_1346101090161_713198_13875</value>
+									</parameter>
+								</arguments>
+							</eventInvocation>
+						</elaboration>
+						<elaboration>
+							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1345510113597_14205_13829.this</enclosingInstance>
+								<eventType>_17_0_5_edc0357_1345510114344_59836_14558</eventType>
+								<eventName>initial_InitialNode_updateActualLoad</eventName>
+								<arguments>
+									<parameter>
+										<name>startTime</name>
+										<value>invoke_time</value>
 									</parameter>
 								</arguments>
 							</eventInvocation>
@@ -9397,12 +9488,6 @@ else: </value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114404_840866_14653</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114404_840866_14653")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114404_445687_14661</name>
 								<type>ObjectFlow&lt;LADWP&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114404_445687_14661")</value>
@@ -9412,6 +9497,12 @@ else: </value>
 								<name>sig_17_0_5_edc0357_1345510114406_582786_14666</name>
 								<type>ObjectFlow&lt;LADWP&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114406_582786_14666")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510114404_840866_14653</name>
+								<type>ObjectFlow&lt;Integer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114404_840866_14653")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
@@ -9944,6 +10035,23 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114401_676911_14635</eventType>
+											<eventName>_AddStructuralFeatureValueAction_monitor_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114401_569392_14636_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114401_676911_14635_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114403_960787_14647</eventType>
 											<eventName>exp_margin_fork_ForkNode_monitor_system</eventName>
 											<arguments>
@@ -9960,23 +10068,6 @@ else: </value>
 										<!--exp_margin_fork_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114403_960787_14647_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114401_676911_14635</eventType>
-											<eventName>_AddStructuralFeatureValueAction_monitor_system</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114401_569392_14636_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114401_676911_14635_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -10196,6 +10287,27 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114400_398544_14631</eventType>
+											<eventName>_ReadStructuralFeatureAction_monitor_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114402_986311_14638_endTime</name>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114903_863541_15284</name>
+													<value>objectToPass</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114400_398544_14631_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114400_746991_14630</eventType>
 											<eventName>_ReadStructuralFeatureAction_monitor_system</eventName>
 											<arguments>
@@ -10233,27 +10345,6 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114400_400850_14632_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114400_398544_14631</eventType>
-											<eventName>_ReadStructuralFeatureAction_monitor_system</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114402_986311_14638_endTime</name>
-													<value>endTime</value>
-												</parameter>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114903_863541_15284</name>
-													<value>objectToPass</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114400_398544_14631_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -10668,23 +10759,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114401_569392_14636</eventType>
-											<eventName>_CallBehaviorAction_monitor_system</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114403_590610_14645_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114401_569392_14636_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114402_392534_14643</eventType>
 											<eventName>_AddStructuralFeatureValueAction_monitor_system</eventName>
 											<arguments>
@@ -10697,6 +10771,23 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114402_392534_14643_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114401_569392_14636</eventType>
+											<eventName>_CallBehaviorAction_monitor_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114403_590610_14645_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114401_569392_14636_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -10815,23 +10906,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114402_483196_14641</eventType>
-											<eventName>_AddStructuralFeatureValueAction_monitor_system</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114403_226098_14648_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114402_483196_14641_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346106020869_685207_15351</eventType>
 											<eventName>finalmerge_MergeNode_monitor_system</eventName>
 											<arguments>
@@ -10844,6 +10918,23 @@ else: </value>
 										<!--finalmerge_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346106020869_685207_15351_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113599_525430_13831.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114402_483196_14641</eventType>
+											<eventName>_AddStructuralFeatureValueAction_monitor_system</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114403_226098_14648_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114402_483196_14641_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -11603,19 +11694,6 @@ else: </value>
 						<elaboration>
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1345510113601_377571_13833.this</enclosingInstance>
-								<eventType>_17_0_5_edc0357_1345510114536_703738_14767</eventType>
-								<eventName>_InitialNode_updateExpectedLoad</eventName>
-								<arguments>
-									<parameter>
-										<name>startTime</name>
-										<value>invoke_time</value>
-									</parameter>
-								</arguments>
-							</eventInvocation>
-						</elaboration>
-						<elaboration>
-							<eventInvocation>
-								<enclosingInstance>_17_0_5_edc0357_1345510113601_377571_13833.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1348001565573_115349_14282</eventType>
 								<eventName>expectedLoad_ActivityParameterNode_updateExpectedLoad</eventName>
 								<arguments>
@@ -11630,6 +11708,19 @@ else: </value>
 								</arguments>
 							</eventInvocation>
 						</elaboration>
+						<elaboration>
+							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1345510113601_377571_13833.this</enclosingInstance>
+								<eventType>_17_0_5_edc0357_1345510114536_703738_14767</eventType>
+								<eventName>_InitialNode_updateExpectedLoad</eventName>
+								<arguments>
+									<parameter>
+										<name>startTime</name>
+										<value>invoke_time</value>
+									</parameter>
+								</arguments>
+							</eventInvocation>
+						</elaboration>
 					</elaborations>
 				</event>
 				<event>
@@ -11639,15 +11730,15 @@ else: </value>
 						<members>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114623_673172_14818</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114623_673172_14818")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114624_890227_14824</name>
 								<type>ObjectFlow&lt;Boolean&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114624_890227_14824")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510114623_673172_14818</name>
+								<type>ObjectFlow&lt;Integer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114623_673172_14818")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
@@ -11734,6 +11825,23 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113602_28656_13834.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114622_183257_14810</eventType>
+											<eventName>_SendSignalAction_generatePowerNow</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114621_721122_14806_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114622_183257_14810_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113602_28656_13834.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114622_749484_14811</eventType>
 											<eventName>_ForkNode_generatePowerNow</eventName>
 											<arguments>
@@ -11750,23 +11858,6 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114622_749484_14811_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113602_28656_13834.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114622_183257_14810</eventType>
-											<eventName>_SendSignalAction_generatePowerNow</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114621_721122_14806_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114622_183257_14810_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -12345,23 +12436,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113602_28656_13834.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114623_127267_14815</eventType>
-											<eventName>_ValueSpecificationAction_generatePowerNow</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1348001227222_390756_14207_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114623_127267_14815_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113602_28656_13834.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114621_721122_14806</eventType>
 											<eventName>_ReadSelfAction_generatePowerNow</eventName>
 											<arguments>
@@ -12374,6 +12448,23 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114621_721122_14806_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113602_28656_13834.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114623_127267_14815</eventType>
+											<eventName>_ValueSpecificationAction_generatePowerNow</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1348001227222_390756_14207_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114623_127267_14815_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -13004,15 +13095,15 @@ else: </value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114712_959438_14929</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114712_959438_14929")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114716_642816_14967</name>
 								<type>ObjectFlow&lt;LADWP&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114716_642816_14967")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510114712_959438_14929</name>
+								<type>ObjectFlow&lt;Integer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114712_959438_14929")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow-->
@@ -13040,15 +13131,15 @@ else: </value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
-								<name>sig_17_0_5_edc0357_1345510114712_662975_14930</name>
-								<type>ObjectFlow&lt;Integer&gt;</type>
-								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114712_662975_14930")</value>
-							</parameter>
-							<parameter>
-								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1345510114713_504410_14939</name>
 								<type>ObjectFlow&lt;LADWP&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114713_504410_14939")</value>
+							</parameter>
+							<parameter>
+								<!--member for object flow signal-->
+								<name>sig_17_0_5_edc0357_1345510114712_662975_14930</name>
+								<type>ObjectFlow&lt;Integer&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1345510114712_662975_14930")</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow signal-->
@@ -14014,91 +14105,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114708_795071_14906</eventType>
-											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114708_795071_14906_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114709_216705_14913</eventType>
-											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114709_216705_14913_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114708_870746_14908</eventType>
-											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114708_870746_14908_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114711_88466_14922</eventType>
-											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114711_88466_14922_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114710_121887_14914</eventType>
-											<eventName>vs10_ValueSpecificationAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--vs10_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114710_121887_14914_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114709_635836_14911</eventType>
 											<eventName>vszero_ValueSpecificationAction_InitializeLADWP</eventName>
 											<arguments>
@@ -14111,23 +14117,6 @@ else: </value>
 										<!--vszero_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114709_635836_14911_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114708_203082_14907</eventType>
-											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114708_203082_14907_exists</expression>
 										</condition>
 									</elaboration>
 									<elaboration>
@@ -14150,7 +14139,7 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114711_949447_14920</eventType>
+											<eventType>_17_0_5_edc0357_1345510114708_870746_14908</eventType>
 											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
 											<arguments>
 												<parameter>
@@ -14161,24 +14150,7 @@ else: </value>
 										</eventInvocation>
 										<!--_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1345510114711_949447_14920_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510114707_62220_14903</eventType>
-											<eventName>_ReadSelfAction_InitializeLADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1345510114707_62220_14903_exists</expression>
+											<expression>_17_0_5_edc0357_1345510114708_870746_14908_exists</expression>
 										</condition>
 									</elaboration>
 									<elaboration>
@@ -14196,6 +14168,91 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114707_796416_14904_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114708_203082_14907</eventType>
+											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114708_203082_14907_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114710_121887_14914</eventType>
+											<eventName>vs10_ValueSpecificationAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--vs10_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114710_121887_14914_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114708_795071_14906</eventType>
+											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114708_795071_14906_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114711_949447_14920</eventType>
+											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114711_949447_14920_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114711_88466_14922</eventType>
+											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114711_88466_14922_exists</expression>
 										</condition>
 									</elaboration>
 									<elaboration>
@@ -14235,6 +14292,23 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114709_216705_14913</eventType>
+											<eventName>_AddStructuralFeatureValueAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114709_216705_14913_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510114711_700135_14921</eventType>
 											<eventName>_ValueSpecificationAction_InitializeLADWP</eventName>
 											<arguments>
@@ -14247,6 +14321,23 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1345510114711_700135_14921_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1345510113603_796245_13836.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510114707_62220_14903</eventType>
+											<eventName>_ReadSelfAction_InitializeLADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1345510114710_630744_14916_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1345510114707_62220_14903_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -14659,6 +14750,19 @@ else: </value>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>LADWP.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510113603_796245_13836</eventType>
+											<eventName>InitializeLADWP_Activity_LADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>endTime</name>
+													<value>cba_endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1348008482216_500972_14383</eventType>
 											<eventName>_AcceptEventAction_LADWP_CB</eventName>
@@ -14673,19 +14777,6 @@ else: </value>
 										<condition>
 											<expression>_17_0_5_edc0357_1348008482216_500972_14383_exists</expression>
 										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>LADWP.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510113603_796245_13836</eventType>
-											<eventName>InitializeLADWP_Activity_LADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -14810,18 +14901,35 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346100882824_187464_13736</eventType>
-											<eventName>mnrmr_MergeNode_LADWP_CB</eventName>
+											<eventType>_17_0_5_edc0357_1348163055082_50872_14559</eventType>
+											<eventName>_AcceptEventAction_LADWP_CB</eventName>
 											<arguments>
 												<parameter>
-													<name>invoker_endTime</name>
+													<name>_17_0_5_edc0357_1346100685814_732050_13654_endTime</name>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--mnrmr_exists-->
+										<!--_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1346100882824_187464_13736_exists</expression>
+											<expression>_17_0_5_edc0357_1348163055082_50872_14559_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348001296069_146013_14222</eventType>
+											<eventName>_AcceptEventAction_LADWP_CB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346100685814_732050_13654_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348001296069_146013_14222_exists</expression>
 										</condition>
 									</elaboration>
 									<elaboration>
@@ -14844,23 +14952,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348163055082_50872_14559</eventType>
-											<eventName>_AcceptEventAction_LADWP_CB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346100685814_732050_13654_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1348163055082_50872_14559_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346101486727_93891_14069</eventType>
 											<eventName>mrrgr_MergeNode_LADWP_CB</eventName>
 											<arguments>
@@ -14878,18 +14969,18 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348001296069_146013_14222</eventType>
-											<eventName>_AcceptEventAction_LADWP_CB</eventName>
+											<eventType>_17_0_5_edc0357_1346100882824_187464_13736</eventType>
+											<eventName>mnrmr_MergeNode_LADWP_CB</eventName>
 											<arguments>
 												<parameter>
-													<name>_17_0_5_edc0357_1346100685814_732050_13654_endTime</name>
+													<name>invoker_endTime</name>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
-										<!--_exists-->
+										<!--mnrmr_exists-->
 										<condition>
-											<expression>_17_0_5_edc0357_1348001296069_146013_14222_exists</expression>
+											<expression>_17_0_5_edc0357_1346100882824_187464_13736_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -14939,23 +15030,6 @@ else: </value>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346100882824_187464_13736</eventType>
-											<eventName>mnrmr_MergeNode_LADWP_CB</eventName>
-											<arguments>
-												<parameter>
-													<name>invoker_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--mnrmr_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346100882824_187464_13736_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
 											<enclosingInstance>LADWP.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1345510113596_603128_13828</eventType>
 											<eventName>updateReportedLoad_Activity_LADWP</eventName>
@@ -14970,6 +15044,23 @@ else: </value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346100882824_187464_13736</eventType>
+											<eventName>mnrmr_MergeNode_LADWP_CB</eventName>
+											<arguments>
+												<parameter>
+													<name>invoker_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--mnrmr_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346100882824_187464_13736_exists</expression>
+										</condition>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -16148,27 +16239,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348001608547_58915_14306</eventType>
-											<eventName>fnnn_ForkNode_LADWP_CB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346102113184_840698_14284_endTime</name>
-													<value>endTime</value>
-												</parameter>
-												<parameter>
-													<name>objectToPass</name>
-													<value>_17_0_5_edc0357_1346102888530_55753_14505</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--fnnn_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1348001608547_58915_14306_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346102275843_86387_14350</eventType>
 											<eventName>mnmnnnn_DecisionNode_LADWP_CB</eventName>
 											<arguments>
@@ -16199,6 +16269,27 @@ else: </value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348001608547_58915_14306</eventType>
+											<eventName>fnnn_ForkNode_LADWP_CB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346102113184_840698_14284_endTime</name>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>objectToPass</name>
+													<value>_17_0_5_edc0357_1346102888530_55753_14505</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--fnnn_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348001608547_58915_14306_exists</expression>
+										</condition>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -16330,23 +16421,6 @@ else: </value>
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
-											<enclosingInstance>LADWP.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1345510113601_377571_13833</eventType>
-											<eventName>updateExpectedLoad_Activity_LADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>endTime</name>
-													<value>cba_endTime</value>
-												</parameter>
-												<parameter>
-													<name>_17_0_5_edc0357_1348001555541_398388_14280</name>
-													<value>_17_0_5_edc0357_1348001555541_398388_14280</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346106459827_751417_15369</eventType>
 											<eventName>_MergeNode_LADWP_CB</eventName>
@@ -16361,6 +16435,23 @@ else: </value>
 										<condition>
 											<expression>_17_0_5_edc0357_1346106459827_751417_15369_exists</expression>
 										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>LADWP.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1345510113601_377571_13833</eventType>
+											<eventName>updateExpectedLoad_Activity_LADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>endTime</name>
+													<value>cba_endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1348001555541_398388_14280</name>
+													<value>_17_0_5_edc0357_1348001555541_398388_14280</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>
@@ -16529,23 +16620,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1348001473382_273655_14257</eventType>
-											<eventName>_AcceptEventAction_LADWP_CB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346103858168_44487_14734_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1348001473382_273655_14257_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346101621154_926007_14131</eventType>
 											<eventName>sendDR_CallBehaviorAction_LADWP_CB</eventName>
 											<arguments>
@@ -16558,6 +16632,23 @@ else: </value>
 										<!--sendDR_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346101621154_926007_14131_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1348001473382_273655_14257</eventType>
+											<eventName>_AcceptEventAction_LADWP_CB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346103858168_44487_14734_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1348001473382_273655_14257_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -16741,27 +16832,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346103897886_203198_14770</eventType>
-											<eventName>readShortage_ReadStructuralFeatureAction_LADWP_CB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346103985885_527964_14802_endTime</name>
-													<value>endTime</value>
-												</parameter>
-												<parameter>
-													<name>_17_0_5_edc0357_1346103914949_580826_14785</name>
-													<value>objectToPass</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--readShortage_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346103897886_203198_14770_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346104054307_959096_14833</eventType>
 											<eventName>readDemandResponse_ReadStructuralFeatureAction_LADWP_CB</eventName>
 											<arguments>
@@ -16778,6 +16848,27 @@ else: </value>
 										<!--readDemandResponse_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346104054307_959096_14833_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346100467245_506694_13577.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346103897886_203198_14770</eventType>
+											<eventName>readShortage_ReadStructuralFeatureAction_LADWP_CB</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346103985885_527964_14802_endTime</name>
+													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>_17_0_5_edc0357_1346103914949_580826_14785</name>
+													<value>objectToPass</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--readShortage_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346103897886_203198_14770_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -17484,23 +17575,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346102095091_571012_14257.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346102549978_121685_14442</eventType>
-											<eventName>_AcceptEventAction_waitForDRResponse</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346102573506_761015_14458_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346102549978_121685_14442_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346102095091_571012_14257.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346102441989_709933_14404</eventType>
 											<eventName>y_AcceptEventAction_waitForDRResponse</eventName>
 											<arguments>
@@ -17513,6 +17587,23 @@ else: </value>
 										<!--y_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346102441989_709933_14404_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346102095091_571012_14257.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346102549978_121685_14442</eventType>
+											<eventName>_AcceptEventAction_waitForDRResponse</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346102573506_761015_14458_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346102549978_121685_14442_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
@@ -17916,23 +18007,6 @@ else: </value>
 									<elaboration>
 										<eventInvocation>
 											<enclosingInstance>_17_0_5_edc0357_1346102095091_571012_14257.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346103518161_525445_14678</eventType>
-											<eventName>_ValueSpecificationAction_waitForDRResponse</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346103606797_653782_14706_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346103518161_525445_14678_exists</expression>
-										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346102095091_571012_14257.this</enclosingInstance>
 											<eventType>_17_0_5_edc0357_1346103478833_548117_14651</eventType>
 											<eventName>_ReadSelfAction_waitForDRResponse</eventName>
 											<arguments>
@@ -17945,6 +18019,23 @@ else: </value>
 										<!--_exists-->
 										<condition>
 											<expression>_17_0_5_edc0357_1346103478833_548117_14651_exists</expression>
+										</condition>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
+											<enclosingInstance>_17_0_5_edc0357_1346102095091_571012_14257.this</enclosingInstance>
+											<eventType>_17_0_5_edc0357_1346103518161_525445_14678</eventType>
+											<eventName>_ValueSpecificationAction_waitForDRResponse</eventName>
+											<arguments>
+												<parameter>
+													<name>_17_0_5_edc0357_1346103606797_653782_14706_endTime</name>
+													<value>endTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+										<!--_exists-->
+										<condition>
+											<expression>_17_0_5_edc0357_1346103518161_525445_14678_exists</expression>
 										</condition>
 									</elaboration>
 								</elaborations>
