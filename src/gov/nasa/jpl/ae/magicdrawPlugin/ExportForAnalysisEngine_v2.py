@@ -1031,6 +1031,8 @@ def run(s):
 	for k,v in partsDict.items():
 		gl.log(k.name + " -- " + str(v))
 	
+	gl.log("The log file for this execution is located at: " + str(log_dir))
+	
 	return
 
 '''<events>
