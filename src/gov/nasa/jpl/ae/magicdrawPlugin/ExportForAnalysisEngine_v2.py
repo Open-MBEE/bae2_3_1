@@ -23,12 +23,20 @@
 #fix sends
 # = setValue(add a time)
 # .class on to the signal type definitions
+#Objects (BOOL for controls)
+#time parameter in constructors (load, cap, meterblah)... --->.getvalue().setValue(0,x) (THINK i fixed)
+#constructors set value is a parameter... (THINK i fixed)
 
 #.java file for objectflow and structuralsignal
 #magicdraw's code generation
 #need = exceution context or something sot hat we actually instantiate Power SYstem? CONSTRUCTORS
 #opaque function - this.duration = 20 for sleeps... 
 #no condition, no exists var if it's always true to elaborate.
+
+
+#c,l,v ---> classes
+
+
 
 from com.nomagic.magicdraw.core import Application
 from com.nomagic.magicdraw.core import Project
@@ -67,6 +75,8 @@ from com.nomagic.uml2.ext.magicdraw.actions.mdbasicactions import Pin
 from java.io import File
 from javax.swing import JFileChooser
 
+global gl
+
 class ClassifierClass(object):
 	def __init__(self,system):
 		classType = str(system.getClassType()).split(".")[-1].strip("'>")
@@ -99,8 +109,9 @@ class ClassifierClass(object):
 			propName = p.name + "_" + p.getID()
 			self.members[propName] = ("TimeVaryingMap&lt;%s&gt;" % p.type.name,'new TimeVaryingMap("%s")' % p.name,"simple property (name " + p.name + ")")
 			if isinstance(system,Signal): 
-				self.cArgs["x"]=p.type
-				self.constructors.append("%s.setValue(x);" % propName)
+				self.cArgs["x"]=p.type.name
+				self.cArgs["t"]="Integer"
+				self.constructors.append("%s.getValue().setValue(t,x);" % propName)
 		
 		partProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,Class)]
 		gl.log("Part Properties: " + str([str(pt.name) for pt in partProperties]))
@@ -112,7 +123,7 @@ class ClassifierClass(object):
 		if system in constructorArgs.keys():
 			self.constructors.append("super();")
 			arg = constructorArgs[system]
-			self.cArgs["x"]=arg
+			self.cArgs["x"]=arg.name
 			self.constructors.append('this.x = new Parameter<%s>("%s",null,x,null);' % (arg.name,arg.name))
 			self.members["x"]=(arg.name,None,"initialize reference to power system (or containing class)") #remove?
 			self.constructors.append("init%sMembers();" % self.id)
@@ -276,7 +287,7 @@ class activityEventClass(object):
 				
 				for inc in [z for z in join.incoming if z is not join.incoming[0]]:
 					signame = "sig" + str(inc.getID())
-					self.members[signame] = ("ObjectFlow&lt;Object&gt;",'new ObjectFlow("'+signame+'")',"member for object flow")
+					self.members[signame] = ("ObjectFlow&lt;Boolean&gt;",'new ObjectFlow("'+signame+'")',"member for object flow")
 		
 		#inspect edges...
 		for e in activity.edge:
@@ -458,13 +469,13 @@ class actionEventClass(object):
 					t = self.flowTypes[pin.outgoing[0]].name #TODO - maybe need to check if it's a property?
 				elif isinstance(actionNode,ReadStructuralFeatureAction):
 					t = actionNode.structuralFeature.type.name
-				elif isinstance(owner,AcceptEventAction):
-					event = owner.trigger[0].event
+				elif isinstance(actionNode,AcceptEventAction):
+					event = actionNode.trigger[0].event
 					if not isinstance(event,TimeEvent):
 						sig = event.signal
 						t = "Signal" + sig.name
-				elif isinstance(owner,ValueSpecificationAction):
-					t =  owner.value.type.name
+				elif isinstance(actionNode,ValueSpecificationAction):
+					t =  actionNode.value.type.name
 				self.members[pin.getID()] = (t,None,"Initializing Output Pins")
 		except: gl.log("exception trying to acquire output pins")
 		
@@ -690,10 +701,10 @@ class actionEventClass(object):
 			try: 
 				ct = constructorArgs[node.context]
 				prepend=ct.name+"."
-				invokePhrase = "x.getValue().new Signal%s(%s)" % (sig.getName(),argPhrase)
+				invokePhrase = "x.new Signal%s(endTime,%s)" % (sig.getName(),argPhrase)
 			except: 
 				prepend = ""
-				invokePhrase = "new %sSignal%s(%s)" % (prepend,sig.getName(),argPhrase)
+				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
 			self.effects.append(structSig + ".send(%s,endTime)" % invokePhrase)
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
@@ -951,8 +962,8 @@ class StructuralSignal(object):
 		self.signalType = signalType #name of signal (?)
 		self.currentSignal = None #timeVaryingMapThingy?
 	def send(self,sigInstance,time):
-		if self.isValid and isinstance(signal,signalType):
-			targetQueue.getInstance().add(sigInstance,time)
+		if self.isValid and isinstance(sigInstance,self.signalType):
+			self.targetQueue.getInstance().add(sigInstance,time)
 			self.currentSignal = sigInstance
 	def receive(self,time):
 		if self.currentSignal:
@@ -1080,7 +1091,7 @@ def logAndExport(tabNum,tag,text):
 
 def writeScenario(top,classesToTranslate):
 	logAndExport(0,None,"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>")
-	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"/Users/mjackson/Documents/workspace-Helios/CS/bin/gov/nasa/jpl/ae/xml/eventSchema.xsd\">")
+	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"/Users/mjackson/Documents/workspace-Helios/CS/src/gov/nasa/jpl/ae/xml/eventSchema.xsd\">")
 	logAndExport(1,"epoch","2012-08-05T23:30:00-07:00")
 	logAndExport(1,"timeUnits","seconds")
 	writeTopEvent(top)
@@ -1139,7 +1150,9 @@ def writeConstructor(classThingy,l):
 	if len(classThingy.constructors)>0:
 		x=""
 		if len(classThingy.cArgs.keys())>0:
-			x = classThingy.cArgs["x"].name + " x"
+			if "t" in classThingy.cArgs.keys(): x = classThingy.cArgs["t"] + " t,"
+			else: x = ""
+			x+= str(classThingy.cArgs["x"] + " x")
 		logAndExport(l,None,"<constructors>")
 		logAndExport(l+1,None,"<function>")
 		logAndExport(l+1,None,"<![CDATA[")
