@@ -1,10 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema_v6.xsd">
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+  <horizon>PT1M</horizon>
+  <eventToBeExecuted>
+    <eventType>A</eventType>
+    <eventName>loopy</eventName>
+    <arguments>
+      <parameter>
+        <name>i</name>
+        <value>10</value>
+      </parameter>
+    </arguments>
+  </eventToBeExecuted>
   <events>
     <event>
       <class>
         <name>A</name>
-        <members><parameter><name>i</name><type>Integer</type><value>0</value></parameter></members>
+        <members><parameter><name>i</name><type>Integer</type><value>2</value></parameter></members>
         <dependencies></dependencies>
       </class>
       <elaborations>
