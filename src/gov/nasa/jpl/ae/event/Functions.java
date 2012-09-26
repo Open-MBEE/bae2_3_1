@@ -391,6 +391,12 @@ public class Functions {
 
   public static < T extends Comparable< ? super T > > Boolean
       lessThan( Expression< T > o1, Expression< T > o2 ) {
+    if ( !o1.isGrounded() ) {
+      if ( !o2.isGrounded() ) {
+        return false;
+      }
+      return greaterThan( o2, o1 );
+    }
     boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) < 0;
     Debug.outln( o1 + " < " + o2 + " = " + b );
     return b;
@@ -398,6 +404,12 @@ public class Functions {
 
   public static < T extends Comparable< ? super T > > Boolean
       lessThanOrEqual( Expression< T > o1, Expression< T > o2 ) {
+    if ( !o1.isGrounded() ) {
+      if ( !o2.isGrounded() ) {
+        return false;
+      }
+      return greaterThanOrEqual( o2, o1 );
+    }
     boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) <= 0;
     Debug.outln( o1 + " <= " + o2 + " = " + b );
     return b;
@@ -405,6 +417,12 @@ public class Functions {
 
   public static < T extends Comparable< ? super T > > Boolean
       greaterThan( Expression< T > o1, Expression< T > o2 ) {
+    if ( !o1.isGrounded() ) {
+      if ( !o2.isGrounded() ) {
+        return false;
+      }
+      return lessThan( o2, o1 );
+    }
     boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) > 0;
     Debug.outln( o1 + " > " + o2 + " = " + b );
     return b;
@@ -412,6 +430,12 @@ public class Functions {
 
   public static < T extends Comparable< ? super T > > Boolean
       greaterThanOrEqual( Expression< T > o1, Expression< T > o2 ) {
+    if ( !o1.isGrounded() ) {
+      if ( !o2.isGrounded() ) {
+        return false;
+      }
+      return lessThanOrEqual( o2, o1 );
+    }
     boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) >= 0;
     Debug.outln( o1 + " >= " + o2 + " = " + b );
     return b;
