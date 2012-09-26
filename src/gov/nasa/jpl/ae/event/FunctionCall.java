@@ -27,10 +27,25 @@ public class FunctionCall implements HasParameters, Groundable {
   protected Vector< Object > arguments = null; // arguments to method
 
   /**
+   * A function call on the result of this function call.
+   */
+  protected FunctionCall nestedCall = null;
+  
+  /**
+   * Construct a call to a static method.
    * @param method
    */
   public FunctionCall( Method method ) {
     this.method = method; // the method must be static
+  }
+
+  /**
+   * Construct a call to a static method.
+   * @param cls
+   * @param methodName
+   */
+  public FunctionCall( Class<?> cls, String methodName ) {
+    this.method = Utils.getMethodForArgTypes( cls, methodName, (Class<?>[])null ); 
   }
 
   /**
@@ -40,6 +55,11 @@ public class FunctionCall implements HasParameters, Groundable {
   public FunctionCall( Object object, Method method ) {
     this.object = object;
     this.method = method;
+  }
+
+  public FunctionCall( Object object, Class<?> cls, String methodName ) {
+    this( cls, methodName );
+    this.object = object;
   }
 
   /**
@@ -52,6 +72,50 @@ public class FunctionCall implements HasParameters, Groundable {
     this.method = method;
     this.arguments = arguments;
     hasTypeErrors();
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param arguments
+   */
+  public FunctionCall( Object object, Class<?> cls, String methodName,
+                       Vector< Object > arguments ) {
+    this.object = object;
+    Object argArr[] = null;
+    if ( !Utils.isNullOrEmpty( arguments ) ) {
+      argArr = arguments.toArray();
+    }
+    this.method = Utils.getMethodForArgs( cls, methodName, argArr );
+    this.arguments = arguments;
+    hasTypeErrors();
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param arguments
+   * @param nestedCall
+   */
+  public FunctionCall( Object object, Method method, Vector< Object > arguments,
+                       FunctionCall nestedCall ) {
+    this(object, method, arguments);
+    this.nestedCall = nestedCall;
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param arguments
+   * @param nestedCall
+   */
+  public FunctionCall( Object object, Class<?> cls, String methodName,
+                       Vector< Object > arguments,
+                       FunctionCall nestedCall ) {
+    this(object, cls, methodName, arguments);
+    this.nestedCall = nestedCall;
   }
 
   /**
@@ -71,10 +135,51 @@ public class FunctionCall implements HasParameters, Groundable {
     hasTypeErrors();
   }
 
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param argumentsA
+   */
+  public FunctionCall( Object object, Class<?> cls, String methodName, Object argumentsA[] ) {
+    this.object = object;
+    this.method = Utils.getMethodForArgs( cls, methodName, argumentsA );
+    this.arguments = new Vector<Object>();
+    if ( argumentsA != null ) {
+      for ( Object o : argumentsA ) {
+        this.arguments.add( o );
+      }
+    }
+    hasTypeErrors();
+  }
+
+  public FunctionCall( Object object, Method method, Object argumentsA[], FunctionCall nestedCall ) {
+    this.object = object;
+    this.method = method;
+    this.arguments = new Vector<Object>();
+    if ( argumentsA != null ) {
+      for ( Object o : argumentsA ) {
+        this.arguments.add( o );
+      }
+    }
+    this.nestedCall = nestedCall;
+    hasTypeErrors();
+  }
+
+  public FunctionCall( Object object, Class<?> cls, String methodName,
+                       Object argumentsA[], FunctionCall nestedCall ) {
+    this( object, cls, methodName, argumentsA );
+    this.nestedCall = nestedCall;
+  }
+
+  /**
+   * @param e
+   */
   public FunctionCall( FunctionCall e ) {
     this.object = e.object;
     this.method = e.method;
     this.arguments = e.arguments;
+    this.nestedCall = e.nestedCall;
     hasTypeErrors();
   }
 
@@ -168,6 +273,10 @@ public class FunctionCall implements HasParameters, Groundable {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+    if ( result != null && nestedCall != null ) {
+      nestedCall.object = result;
+      result = nestedCall.evaluate( propagate );
+    }
     return result;
   }
 
@@ -188,6 +297,10 @@ public class FunctionCall implements HasParameters, Groundable {
         boolean s = ( (HasParameters)a ).substitute( p1, p2, deep );
         subbed = subbed || s;
       }
+    }
+    if ( nestedCall != null ) {
+      boolean s = nestedCall.substitute( p1, p2, deep ); 
+      subbed = subbed || s;
     }
     return subbed;
   }
@@ -213,6 +326,9 @@ public class FunctionCall implements HasParameters, Groundable {
           set.addAll( gotParameters.getParameters( deep ) );
         }
       }
+    }
+    if ( nestedCall != null ) {
+      set.addAll( nestedCall.getParameters( deep ) );
     }
     return set;
   }
@@ -248,6 +364,9 @@ public class FunctionCall implements HasParameters, Groundable {
         }
       }
     }
+    if ( nestedCall != null ) {
+      if ( !nestedCall.isGrounded() ) return false;
+    }
     return true;
   }
 
@@ -268,6 +387,11 @@ public class FunctionCall implements HasParameters, Groundable {
              && !( (Groundable)o ).ground() ) {
           grounded = false;
         }
+      }
+    }
+    if ( nestedCall != null ) {
+      if ( !nestedCall.ground() ) {
+        grounded = false;
       }
     }
     return grounded;
@@ -302,6 +426,9 @@ public class FunctionCall implements HasParameters, Groundable {
       }
       sb.append( ")" );
     }
+    if ( nestedCall != null ) {
+      sb.append( "." + nestedCall.toString() );
+    }
     return sb.toString();
   }
 
@@ -309,6 +436,9 @@ public class FunctionCall implements HasParameters, Groundable {
   public boolean isStale() {
     for ( Parameter< ? > p : getParameters( false ) ) {
       if ( p.isStale() ) return true;
+    }
+    if ( nestedCall != null ) {
+      if ( nestedCall.isStale() ) return true;
     }
     return false;
   }
@@ -375,6 +505,20 @@ public class FunctionCall implements HasParameters, Groundable {
    */
   public void setArguments( Vector< Object > arguments ) {
     this.arguments = arguments;
+  }
+
+  /**
+   * @return the nestedCall
+   */
+  public FunctionCall getNestedCall() {
+    return nestedCall;
+  }
+
+  /**
+   * @param nestedCall the nestedCall to set
+   */
+  public void setNestedCall( FunctionCall nestedCall ) {
+    this.nestedCall = nestedCall;
   }
   
 }

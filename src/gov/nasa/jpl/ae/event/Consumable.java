@@ -61,7 +61,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     try {
       int lastT = 0;
       double lastValue = initialValue; 
-      System.err.println("minCap=" + minCap + "; maxCap=" + maxCap );
+      Debug.errln("minCap=" + minCap + "; maxCap=" + maxCap );
       for ( int t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
         double value = (Double)deltaValueFunction.invoke( o, lastT, lastValue, t );
         lastValue = add( new Timepoint( "", t, this ), value );
@@ -193,15 +193,15 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public Double setValue( Timepoint t, Double value ) {
     assert minCap <= maxCap;
     if ( value < minCap ) {
-      System.err.println("hit minCap!");
+      Debug.errln("hit minCap!");
       value = minCap;
     }
     if ( value > maxCap ) {
-      System.err.println("hit maxCap!");
+      Debug.errln("hit maxCap!");
       value = maxCap;
     }
     if ( value < 0.0 ) {
-      System.err.println("why negative?!");
+      Debug.errln("why negative?!");
     }
     return super.setValue( t, value );
 //    Debug.errln( "Error! Ignoring attempt to call setValue() on " + this + "!" );
