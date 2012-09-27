@@ -19,6 +19,8 @@ import java.util.Vector;
  */
 public class Functions {
 
+  private static boolean complainAboutBadExpressions = true;
+  
   // Abstract n-ary functions
 
   public static class Binary< T , R >
@@ -121,7 +123,7 @@ public class Functions {
       super( o1, o2 );
     }
   }
-  
+
   public static < T > java.lang.Number add( Expression< T > o1,
                                             Expression< T > o2 ) {
     if ( o1 == null || o2 == null ) return null;
@@ -389,54 +391,93 @@ public class Functions {
   }
 
 
-  public static < T extends Comparable< ? super T > > Boolean
-      lessThan( Expression< T > o1, Expression< T > o2 ) {
-    if ( !o1.isGrounded() ) {
-      if ( !o2.isGrounded() ) {
+  private static boolean expressionsAreOkay( boolean complain,
+                                            Expression< ? >... exprs ) {
+    if ( exprs == null ) return true;
+    for ( Expression<?> expr : exprs ) {
+      if ( expr == null || !expr.isGrounded() ) {
+        if ( complain ) {
+          System.err.println( "Expression is not grounded! " + expr );
+          
+        }
         return false;
       }
-      return greaterThan( o2, o1 );
     }
-    boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) < 0;
+    return true;
+  }
+  
+  public static < T extends Comparable< ? super T > > Boolean
+      lessThan( Expression< T > o1, Expression< T > o2 ) {
+//    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
+////    if ( !o1.isGrounded() || !o2.isGrounded() ) {      
+//        return false;
+////      }
+////      return greaterThan( o2, o1 );
+//    }
+    if ( o1 == o2 ) return false;
+    if ( o1 == null || o2 == null ) return (o2 != null);
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == r2 ) return false;
+    if ( r1 == null || r2 == null ) return (r2 != null);
+    boolean b = r1.compareTo( r2 ) < 0;
     Debug.outln( o1 + " < " + o2 + " = " + b );
     return b;
   }
 
   public static < T extends Comparable< ? super T > > Boolean
       lessThanOrEqual( Expression< T > o1, Expression< T > o2 ) {
-    if ( !o1.isGrounded() ) {
-      if ( !o2.isGrounded() ) {
-        return false;
-      }
-      return greaterThanOrEqual( o2, o1 );
-    }
-    boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) <= 0;
+//    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
+////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
+//        return false;
+////      }
+////      return greaterThanOrEqual( o2, o1 );
+//    }
+    if ( o1 == o2 ) return true;
+    if ( o1 == null || o2 == null ) return (o1 == null);
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == r2 ) return true;
+    if ( r1 == null || r2 == null ) return (r1 == null);
+    boolean b = r1.compareTo( r2 ) <= 0;
     Debug.outln( o1 + " <= " + o2 + " = " + b );
     return b;
   }
 
   public static < T extends Comparable< ? super T > > Boolean
       greaterThan( Expression< T > o1, Expression< T > o2 ) {
-    if ( !o1.isGrounded() ) {
-      if ( !o2.isGrounded() ) {
-        return false;  // TODO -- REVIEW -- throw exception?
-      }
-      return lessThan( o2, o1 );
-    }
-    boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) > 0;
+//    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
+////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
+//        return false;  // TODO -- REVIEW -- throw exception?
+////      }
+////      return lessThan( o2, o1 );
+//    }
+    if ( o1 == o2 ) return false;
+    if ( o1 == null || o2 == null ) return (o1 != null);
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == r2 ) return false;
+    if ( r1 == null || r2 == null ) return (r1 != null);
+    boolean b = r1.compareTo( r2 ) > 0;
     Debug.outln( o1 + " > " + o2 + " = " + b );
     return b;
   }
 
   public static < T extends Comparable< ? super T > > Boolean
       greaterThanOrEqual( Expression< T > o1, Expression< T > o2 ) {
-    if ( !o1.isGrounded() ) {
-      if ( !o2.isGrounded() ) {
-        return false;
-      }
-      return lessThanOrEqual( o2, o1 );
-    }
-    boolean b = o1.evaluate(false).compareTo( o2.evaluate(false) ) >= 0;
+//    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
+////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
+//        return false;
+////      }
+////      return lessThanOrEqual( o2, o1 );
+//    }
+    if ( o1 == o2 ) return true;
+    if ( o1 == null || o2 == null ) return (o2 == null);
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == r2 ) return true;
+    if ( r1 == null || r2 == null ) return (r2 == null);
+    boolean b = r1.compareTo( r2 ) >= 0;
     Debug.outln( o1 + " >= " + o2 + " = " + b );
     return b;
   }

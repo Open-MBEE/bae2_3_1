@@ -270,6 +270,17 @@ public class Parameter< T > implements Cloneable, Groundable,
     int compare = 0;
     if ( value == null && o.value != null ) return -1;
     if ( o.value == null && value != null ) return 1;
+    // REVIEW -- TODO -- doing weird stuff here!!!
+    if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
+      Parameter<?> p = (Parameter)value;
+      if ( !p.isGrounded() ) return -1;
+      return p.compareTo(o);
+    }
+    if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
+      Parameter<?> p = (Parameter)o.value;
+      if ( !p.isGrounded() ) return 1;
+      return compareTo(p);
+    }
     if ( value != null && value.getClass().isAssignableFrom( o.value.getClass() ) ) {
       if ( value instanceof Comparable ) {
         T oValue = (T)o.value;

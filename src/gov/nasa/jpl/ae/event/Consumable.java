@@ -191,6 +191,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   // map value.  It might be smart to somehow disallow the use of this in effects.
   @Override
   public Double setValue( Timepoint t, Double value ) {
+    if ( value == null ) return null;
     assert minCap <= maxCap;
     if ( value < minCap ) {
       Debug.errln("hit minCap!");

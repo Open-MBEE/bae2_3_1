@@ -11,6 +11,7 @@ src/demandResponse/AssessDRCommitmentEvent.java -text
 src/demandResponse/Computer.java -text
 src/demandResponse/ControlRealTimeLoadReductionEvent.java -text
 src/demandResponse/Customer.java -text
+src/demandResponse/Customers.java -text
 src/demandResponse/DDS.java -text
 src/demandResponse/DRAS.java -text
 src/demandResponse/DRCustomerList.java -text

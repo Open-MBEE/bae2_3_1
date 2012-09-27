@@ -184,6 +184,7 @@ public class FunctionCall implements HasParameters, Groundable {
   }
 
   private Boolean hasTypeErrors() {
+    if ( method == null ) return true;
     Class< ? >[] paramTypes = method.getParameterTypes();
     Assert.assertEquals( arguments.size(), paramTypes.length );
     // Code below is not right! The arguments may be expressions, the results of

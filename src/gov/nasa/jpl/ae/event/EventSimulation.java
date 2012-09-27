@@ -189,6 +189,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     long startClock = -1;
     int lastT = -1;
     
+    //PythonInterpreter p = new PythonInterpreter();
+    
+    
     if ( tryToPlot ) {
       initiatePlot();
     }
@@ -226,6 +229,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           currentPlottableValues.put( variable, value );
         }
         String name;
+        String classNames = variable.getClass().getSimpleName() + " ==> " + variable.getClass().getName();
         if ( variable instanceof ParameterListener ) {
           name = ((ParameterListener)variable).getName();
         } else {
@@ -237,17 +241,18 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         String formatString = null;
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );
-          formatString = "%s%s -> %s\n";
-          w.printf( formatString, padding, name, value == null ? "null" : value.toString() );
+          formatString = "%s%s -> %s     %s\n";
+          w.printf( formatString, padding, name,
+                    value == null ? "null" : value.toString(), classNames );
         } else {
           if ( tryToPlot ) {
             plotValues( t );
           }
-          formatString = "%14s : %28s  %s -> %s\n";
+          formatString = "%14s : %28s  %s -> %s     %s\n";
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
-                    name, value == null ? "null" : value.toString() );
+                    name, value == null ? "null" : value.toString(), classNames );
         }
         lastT = t;
       }
