@@ -1013,7 +1013,10 @@ def run(s):
 		classesToTranslate.append(inspect(thing))
 		count += 1
 
-	log_dir = os.path.join(os.getenv('HOME'),'LADWP_LOGS')
+	homeDir = os.getenv('HOME')
+	if homeDir == None:
+		homeDir = os.curdir
+	log_dir = os.path.join(homeDir,'LADWP_LOGS')
 	if not os.path.exists(log_dir):
 		try: os.mkdir(log_dir)
 		except: #this won't do much if you're running in batch mode...
@@ -1032,7 +1035,12 @@ def run(s):
 		log_file.close
 	#data=inspectClassifier(firstSelected,None,data)
 	log_file.close()
-	shutil.copyfile(log_file_name,"latest/Scenario_latest.xml")
+	latestDir = "latest"
+	if not os.path.exists(latestDir):
+		try: os.mkdir(latestDir)
+		except: #this won't do much if you're running in batch mode...
+		    print "Error creating latest directory!"
+	shutil.copyfile(log_file_name,latestDir + os.sep + "Scenario_latest.xml")
 	
 	gl.log("INSPECTED:")
 	for thing in inspected:
