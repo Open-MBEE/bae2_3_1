@@ -39,7 +39,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +51,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+
+import javax.tools.JavaCompiler;
+import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -157,6 +167,12 @@ public class EventXmlToJava {
   private boolean gotDurationDependency;
   demandResponse.Customer c = new Customer( "stupid class loader" );
   ObjectFlow<Object> o = new ObjectFlow< Object >( "stupid class loader" );
+
+  protected StandardJavaFileManager fileManager  =
+      ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null);
+
+  protected ClassLoader loader = null;
+  protected Class<?> mainClass = null; 
 
   public EventXmlToJava( String xmlFileName, String pkgName )
       throws ParserConfigurationException, SAXException, IOException {
@@ -783,17 +799,24 @@ public class EventXmlToJava {
     
     MethodDeclaration mainMethodDecl =
         new MethodDeclaration( mods, new VoidType(), "main" );
-    mainMethodDecl.setBody( new BlockStmt() );
-  
+    BlockStmt mainBody = new BlockStmt();
+    mainMethodDecl.setBody( mainBody );
+
+    ConstructorDeclaration ctor =
+        new ConstructorDeclaration( ModifierSet.PUBLIC, newClassDecl.getName() );
+    ASTHelper.addMember( newClassDecl, ctor );
+    BlockStmt ctorBody = new BlockStmt();
+    ctor.setBlock( ctorBody );
+    
     // Need to set the epoch and units first thing.
     // REVIEW -- We need a scenario event that requires these arguments as a
     // constructor to ensure they are set up front.
     //String epochString = Timepoint.toTimestamp( Timepoint.getEpoch().getTime() );
-    addStatements( mainMethodDecl.getBody(),
+    addStatements( mainBody,
                    "Timepoint.setUnits(\"" + Timepoint.getUnits() + "\");\n" );
-    addStatements( mainMethodDecl.getBody(),
+    addStatements( mainBody,
                    "Timepoint.setEpoch(\"" + Timepoint.getEpoch() + "\");\n" );
-    addStatements( mainMethodDecl.getBody(),
+    addStatements( mainBody,
                    "Timepoint.setHorizonDuration("
                    + Timepoint.getHorizonDuration() + ");\n" );
 
@@ -809,20 +832,26 @@ public class EventXmlToJava {
     // Now add statements to main()
     
     // Get the name/class of the event to execute
-    //List< Expression > args = new ArrayList< Expression >();
     String className = fixName( XmlUtils.getChildElementText( invocationNode, "eventType" ) );
     String instanceName = fixName( XmlUtils.getChildElementText( invocationNode, "eventName" ) );
     if ( instanceName == null || instanceName.isEmpty() ) {
       instanceName = className + (counter++);
     }
 
+    // The Main class will extend the event to execute.
+    addExtends( newClassDecl, className );
+    
     // Use a StringBuffer to collect the statements. 
-    StringBuffer stmtsSB = new StringBuffer();
+    StringBuffer stmtsMain = new StringBuffer();
+    //StringBuffer stmtsCtor = new StringBuffer();
 
     // Get constructor arguments and create a statement constructing the instance.
-    stmtsSB.append( className + " " + instanceName + " = new " + className + "(");
+    stmtsMain.append( "Main scenario = new Main();");
+    //stmtsSB.append( className + " " + instanceName + " = new " + className + "(");
+    //stmtsCtor.append( "super(");
     Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
     //List< Param > arguments = new ArrayList< Param >();
+    List< Expression > args = new ArrayList< Expression >();
     if ( argumentsNode != null ) {
       List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode, "parameter" );
       boolean first = true;
@@ -830,14 +859,18 @@ public class EventXmlToJava {
         if ( first ) {
           first = false;
         } else {
-          stmtsSB.append( ", " );
+          //stmtsCtor.append( ", " );
         }
         Node argNode = argNodeList.get( j );
         Param p = new Param( argNode );
-        stmtsSB.append( javaToAeExpr( p.value, p.type, true ) );
+        String exprStr = javaToAeExpr( p.value, p.type, true );
+        japa.parser.ast.expr.Expression expr = new NameExpr( exprStr );
+        args.add( expr );
+        //stmtsCtor.append( exprStr );
       }
     }
-    stmtsSB.append(");\n");
+    //stmtsCtor.append(");\n");
+    ASTHelper.addStmt( ctorBody, new ExplicitConstructorInvocationStmt( false, null, args ) );
     
     // Need to import event.Expression etc. for constructor arguments
     addImport( "gov.nasa.jpl.ae.event.TimeVarying" );
@@ -849,10 +882,22 @@ public class EventXmlToJava {
 //    addImport( "event.Functions" );
     
     // Create statements for executing & simulating the scenario event.
-    stmtsSB.append( instanceName + ".execute();\n" );
+    //stmtsSB.append( instanceName + ".executeAndSimulate();\n" );
+    stmtsMain.append( "scenario.executeAndSimulate();\n" );
+    
+    // Put the statements in the constructor.
+    //addStatements( ctorBody, stmtsCtor.toString() );
     
     // Put the statements in main().
-    addStatements( mainMethodDecl.getBody(), stmtsSB.toString() );
+    addStatements( mainBody, stmtsMain.toString() );
+  }
+
+  protected static void addExtends( ClassOrInterfaceDeclaration newClassDecl,
+                                    String superClass ) {
+    if ( newClassDecl.getExtends() == null ) {
+      newClassDecl.setExtends( new ArrayList< ClassOrInterfaceType >() );
+    }
+    newClassDecl.getExtends().add( new ClassOrInterfaceType( superClass ) );
   }
 
 //  protected BlockStmt addTryCatch( BlockStmt blockStmt,
@@ -1388,12 +1433,8 @@ public class EventXmlToJava {
       newClassDecl.setExtends( extendsList );
     }
     if ( Utils.isNullOrEmpty( newClassDecl.getExtends() ) ) {
-      if ( newClassDecl.getExtends() == null ) {
-        newClassDecl.setExtends( new ArrayList< ClassOrInterfaceType >() );
-      }
-      String superClass =
-          ( isEvent ? "DurativeEvent" : "ParameterListenerImpl" );
-      newClassDecl.getExtends().add( new ClassOrInterfaceType( superClass ) );
+      addExtends( newClassDecl, isEvent ? "DurativeEvent"
+                                       : "ParameterListenerImpl" );
     }
     List< ClassOrInterfaceType > implementsList = getImplementsFrom( clsNode );
     if ( !Utils.isNullOrEmpty( implementsList ) ) {
@@ -2398,6 +2439,9 @@ public class EventXmlToJava {
     return f;
   }
 
+  
+  
+  
   // REVIEW -- Do we really need to create fields for these? Just need
   // to load parameters from constructor; and not redefine loadPrameters().
   public ArrayList< FieldDeclaration >
@@ -2681,6 +2725,37 @@ public class EventXmlToJava {
     return methodDeclarations;
   }
 
+  /**
+   * @return the loader
+   */
+  public ClassLoader getLoader() {
+    if ( loader == null ) {
+      loader = getClass().getClassLoader();//fileManager.getClassLoader(null);
+    }
+    return loader;
+  }
+
+  /**
+   * @param loader the loader to set
+   */
+  public void setLoader( ClassLoader loader ) {
+    this.loader = loader;
+  }
+
+  /**
+   * @return the packageName
+   */
+  public String getPackageName() {
+    return packageName;
+  }
+
+  /**
+   * @param packageName the packageName to set
+   */
+  public void setPackageName( String packageName ) {
+    this.packageName = packageName;
+  }
+
   public void writeJavaFile( String fileName ) throws IOException {
     File f = new File( fileName );
     FileWriter w = new FileWriter( f );
@@ -2693,17 +2768,146 @@ public class EventXmlToJava {
       currentClass = e.getKey();
       currentCompilationUnit = e.getValue();
       String fileName =
-          ( javaPath.trim() + File.separator + e.getKey() + ".java" );// .replaceAll(
-                                                                      // File.separator
-                                                                      // +
-                                                                      // File.separator
-                                                                      // + "+",
-                                                                      // File.separator
-                                                                      // );
+          ( javaPath.trim() + File.separator + e.getKey() + ".java" );
       writeJavaFile( fileName );
     }
   }
 
+  public File[] getJavaFiles( String javaPath, boolean sourceOrClass,
+                              boolean justCurrentClasses ) {
+    File[] fileArr = null;
+    File path = new File(javaPath);
+    assert path.exists();
+    if ( javaPath == null ) {
+      javaPath = "src" + File.separator + this.packageName;
+    }
+    if ( !justCurrentClasses ) {
+      fileArr = path.listFiles();
+      return fileArr;
+    }
+
+    fileArr = new File[this.classes.size()];
+    int ctr = 0;
+    for ( String clsName : this.classes.keySet() ) {
+      String filePathName = javaPath.trim() + File.separator + clsName
+                            + ( sourceOrClass ? ".java" : ".class" );
+      fileArr[ctr++] = new File(filePathName);
+    }
+    return fileArr;
+  }
+  
+  public boolean compileJavaFiles( String javaPath ) {
+    File[] fileArr = getJavaFiles( javaPath, true, true );//path.listFiles();
+    JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+    System.out.println( "compileJavaFiles(" + javaPath
+                        + "): about to get compilationUnits/java file objects for: "
+                        + Utils.toString(fileArr) );
+    Iterable<? extends JavaFileObject> compilationUnits =
+        fileManager.getJavaFileObjectsFromFiles(Arrays.asList(fileArr));
+    System.out.println( "compileJavaFiles(" + javaPath
+                        + "): got compilationUnits as java file objects: "
+                        + compilationUnits );
+    CompilationTask task = 
+        compiler.getTask(null, fileManager, null, null, null, compilationUnits);
+    System.out.println( "compileJavaFiles(" + javaPath + 
+                        "): got CompilationTask: " + task );
+    boolean succ = task.call();
+    System.out.println( "compileJavaFiles(" + javaPath + 
+                        "): compilation success=" + succ );
+    return succ;
+  }
+  
+  public boolean loadClasses( String javaPath, String packageName ) {
+    boolean succ = true;
+    File path = new File(javaPath);
+    assert path.exists();
+    File[] fileArr = null;
+    fileArr = getJavaFiles( javaPath, false, true );//path.listFiles();
+    //loader = getClass().getClassLoader();//fileManager.getClassLoader(null);
+    for ( File f : fileArr ) {
+      int pos = f.getName().lastIndexOf( '.' );
+      if ( pos == -1 ) pos = f.getName().length();
+      String className = packageName + '.' + f.getName().substring( 0, pos );
+      try {
+        Class<?> cls = getLoader().loadClass( className );
+        System.out.println( "loadClasses(" + javaPath + ", " + packageName +
+                            "): loaded class: " + cls.getName() );
+        if ( cls.getName().equals( packageName + ".Main" ) ) {
+          mainClass = cls;
+        }
+      } catch ( ClassNotFoundException e ) {
+        System.err.println( "Couldn't load class: " + className );
+        e.printStackTrace();
+        succ = false;
+      }
+    }
+    return succ;
+  }
+
+  public boolean compileLoadAndRun( String projectPath ) {
+    boolean succ = true;
+    if ( projectPath == null ) {
+      projectPath = "";
+    } else {
+      projectPath += File.separator;
+    }
+    String packagePath = getPackageName().replace( '.', File.separatorChar );
+    String srcPath = projectPath + "src" + File.separator + packagePath;
+    String binPath = projectPath + "bin" + File.separator + packagePath;
+    if (!compileJavaFiles( srcPath ) ) {
+      succ = false;
+    } else {
+      if (!loadClasses( binPath, getPackageName() ) ) {
+        succ = false;
+      } else {
+//        //Class<?> cls = Utils.getClassForName( "Main", getPackageName(), true );
+//        Class< ? > cls;
+//        try {
+//          cls = Class.forName( "Main" );
+//        } catch ( ClassNotFoundException e1 ) {
+//          cls = Utils.getClassForName( "Main", getPackageName(), true );
+//          if ( cls == null ) {
+//            System.err.println("Couldn't find main!");
+//            e1.printStackTrace();
+//            return false;
+//          }
+//        }
+        String args[] = new String[]{null};
+        Utils.loader = getLoader();
+        Method m = Utils.getMethodForArgTypes( mainClass, "main", args.getClass() );
+        succ = false;
+        try {
+          m.invoke( null, (Object[])args );
+          succ = true;
+        } catch ( IllegalAccessException e ) {
+          e.printStackTrace();
+        } catch ( IllegalArgumentException e ) {
+          e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return succ;
+  }
+
+  public <T extends DurativeEvent> T generateExecution( Class<T> eventToExecute ) {
+    //boolean succ = true;
+    T instance = null;
+    try {
+      instance = eventToExecute.newInstance();
+      instance.execute();
+      //succ = true;
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    }
+    
+    return instance;
+  }
+  
   /**
    * @return the compilationUnit
    */

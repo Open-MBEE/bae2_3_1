@@ -25,6 +25,8 @@ import java.util.TreeMap;
  *
  */
 public class Utils {
+  
+  public static ClassLoader loader = null;
 
   public static String toString( Object[] arr ) {
     if (arr == null) return "null";
@@ -238,15 +240,20 @@ public class Utils {
   
   public static Class< ? > tryClassForName( String className, 
                                             boolean initialize,
-                                            ClassLoader loader ) {
+                                            ClassLoader myLoader ) {
+    Debug.outln( "trying tryClassForName( " + className + " )");
     Class< ? > classForName = null;
+    if ( myLoader == null ) myLoader = loader; 
+    if ( myLoader == null ) myLoader = gov.nasa.jpl.ae.event.Expression.class.getClassLoader(); 
     try {
-      if ( loader == null ) {
+      if ( myLoader == null ) {
         classForName = Class.forName( className );
       } else {
-        classForName = Class.forName( className, initialize, loader );//, initialize, Utils.class.getClassLoader() );
+        classForName = Class.forName( className, initialize, myLoader );//, initialize, Utils.class.getClassLoader() );
       }
     } catch ( Exception e ) {
+      // ignore
+    } catch ( NoClassDefFoundError e) {
       // ignore
     }
     Debug.outln( "tryClassForName( " + className + " ) = " + classForName );

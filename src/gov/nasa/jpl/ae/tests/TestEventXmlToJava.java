@@ -25,22 +25,17 @@ import org.xml.sax.SAXException;
  */
 public class TestEventXmlToJava {
 
-  public static int onePlusone() { return 2; }
-  /**
-   * @param args
-   */
-  public static void main( String[] args ) {
-    System.out.println("Started TestEventXmlToJava");
-    // Try to find the XML file to read in.
-    String xmlFileName = "exampleDRScenario.xml";
-    
-    if ( args.length == 1 ) {
-      xmlFileName = args[0];
-    } else {
-//      xmlFileName =
-//          "src" + File.separator + "xml" + File.separator
-//              + "exampleDRScenario.xml";
-    }
+  public EventXmlToJava translator = null;
+  public String xmlFileName = "exampleDRScenario.xml";
+  public String directory = null;
+  public String packageName = "generated";
+  
+  public TestEventXmlToJava(String xmlFileName) {
+    this.xmlFileName = xmlFileName;
+    initialize();
+  }
+  
+  public EventXmlToJava initialize() {
     File file = FileUtils.findFile( xmlFileName );
     if ( file != null && file.exists() ) {
       xmlFileName = file.getAbsolutePath();
@@ -65,14 +60,12 @@ public class TestEventXmlToJava {
       xmlFileName = xmlUrl.getFile();
     }
     //String directory = "src";
-    String directory = FileUtils.existingFolder( xmlFileName );
+    directory = FileUtils.existingFolder( xmlFileName );
     directory = directory.substring( 0, directory.indexOf("CS")+3 ) + "src";
     System.out.println( "file \"" + xmlFileName + "\"" );
     System.out.println( "directory \"" + directory + "\"" );
     
-    
     // Now translate the XML file into Java Event class files.
-    EventXmlToJava translator = null;
     try {
       translator =
           new EventXmlToJava( xmlFileName, "" );
@@ -80,15 +73,56 @@ public class TestEventXmlToJava {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+
+    return translator;
+  }
+  
+  public void writeFiles() {
     if ( translator != null ) {
+      String targetDirectory = null;
+      if ( directory == null ) {
+        targetDirectory = packageName;
+      } else {
+        targetDirectory = directory + File.separator + packageName;
+      }
       try {
-        translator.writeJavaFiles( directory + File.separator + "generated" );
+        translator.writeJavaFiles( targetDirectory );
       } catch ( IOException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
+  }
+  
+  /**
+   * @param args
+   */
+  public static void main( String[] args ) {
+    System.out.println("Started TestEventXmlToJava");
+    // Try to find the XML file to read in.
+    String xmlFileName = "exampleDRScenario.xml";
+    
+    if ( args.length == 1 ) {
+      xmlFileName = args[0];
+    } else {
+//      xmlFileName =
+//          "src" + File.separator + "xml" + File.separator
+//              + "exampleDRScenario.xml";
+    }
+    TestEventXmlToJava textj = new TestEventXmlToJava( xmlFileName );
+    EventXmlToJava translator = textj.translator;
+
+    textj.writeFiles();
+    translator.compileLoadAndRun(null);
+//    translator.compileJavaFiles( "src" + File.separator + translator.getPackageName() );
+//    translator.loadClasses( "bin" + File.separator
+//                                  + translator.getPackageName()
+//                                            .replace( '.', File.separatorChar ),
+//                            translator.getPackageName() );
+    
     System.out.println("Completed TestEventXmlToJava");
   }
 
+  public static int onePlusone() { return 2; }
+  
 }

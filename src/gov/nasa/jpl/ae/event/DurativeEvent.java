@@ -432,15 +432,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return sb.toString();
   }
 
+  public void executeAndSimulate() {
+    executeAndSimulate( 1.0e12 );
+  }
+  
+  public void executeAndSimulate( double timeScale ) {
+    execute();
+    System.out.println("execution:\n" + executionToString());
+    simulate(timeScale, System.out);
+  }
+  
   /* (non-Javadoc)
    * @see event.Event#execute()
    */
   @Override
-  public void execute() {
-    execute( 1.0e12 );
-  }
-  
-  public void execute( double timeScale ) { // differentiate between execute for simulation and
+  public void execute() { // differentiate between execute for simulation and
     // execute in external environment?
     Debug.outln( getName() + ".execute()" );
     boolean satisfied = satisfy();
@@ -483,8 +489,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       e1.printStackTrace();
     }
 
-    System.out.println("execution:\n" + executionToString());
-    simulate(timeScale, System.out);
   }
 
   public void simulate(double timeScale, java.io.OutputStream os ) {

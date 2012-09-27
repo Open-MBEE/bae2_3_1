@@ -77,6 +77,8 @@ from javax.swing import JFileChooser
 
 global gl
 
+generatedXmlFileName = ''
+
 class ClassifierClass(object):
 	def __init__(self,system):
 		classType = str(system.getClassType()).split(".")[-1].strip("'>")
@@ -1039,14 +1041,15 @@ def run(s):
 	if not os.path.exists(latestDir):
 		try: os.mkdir(latestDir)
 		except: #this won't do much if you're running in batch mode...
-		    print "Error creating latest directory!"
-	shutil.copyfile(log_file_name,latestDir + os.sep + "Scenario_latest.xml")
+			print "Error creating latest directory!"
+	generatedXmlFileName = latestDir + os.sep + "Scenario_latest.xml"
+	shutil.copyfile(log_file_name, generatedXmlFileName)
 	
 	gl.log("INSPECTED:")
 	for thing in inspected:
 		gl.log("	+" + thing.name + " (" + thing.humanType + ")")
 		
-	gl.log("/nPARTS DICT:")
+	gl.log("\nPARTS DICT:")
 	for k,v in partsDict.items():
 		gl.log(k.name + " -- " + str(v))
 	

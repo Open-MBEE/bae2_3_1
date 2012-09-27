@@ -547,7 +547,8 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114784_286838_15108Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114784_286838_15108, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114028_727317_14215, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
                     effect41Var = sig_17_0_5_edc0357_1346280185062_487679_12810;
                     effect41 = new EffectFunction(new FunctionCall((Object) effect41Var, Utils.getMethodForArgTypes("ObjectFlow<Object>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { true, startTime }));
-                    effect42Var = (((Parameter<?>) (x.getMember("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading"))).getValue());
+                    Parameter<?> y = (Parameter< ? >)x.getMember("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading");
+                    effect42Var = y.getValue();
                     effect42 = new EffectFunction(new FunctionCall((Object) effect42Var, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_379047_14205", "generated", "send"), new Object[] { x.getValue().new SignalreceiveMeterReading(_17_0_5_edc0357_1345510114784_286838_15108.getValue()), endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
