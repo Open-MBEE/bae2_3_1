@@ -112,7 +112,7 @@ class ClassifierClass(object):
 			self.members[propName] = ("TimeVaryingMap&lt;%s&gt;" % p.type.name,'new TimeVaryingMap("%s")' % p.name,"simple property (name " + p.name + ")")
 			if isinstance(system,Signal): 
 				self.cArgs["x"]=p.type.name
-				self.cArgs["t"]="Integer"
+				self.cArgs["t"]="Timepoint"
 				self.constructors.append("%s.getValue().setValue(t,x);" % propName)
 		
 		partProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,Class)]
@@ -661,6 +661,7 @@ class actionEventClass(object):
 				if outFlow in self.flowTypes.keys():
 					t = self.flowTypes[outFlow] #apparently there can be a key errror. wtf!?
 					if t: tname = t.name
+					if isinstance(t,Property): tname = t.type.name
 				self.members[outFlow.source.getID()] = (tname,None,"Outgoing Signal Flow " + outFlow.source.name)
 			elif isinstance(actionNode,ActivityParameterNode):
 				self.effects.append("sig" + outFlow.getID() + ".send(" + actionNode.parameter.getID()+ ",startTime)")
@@ -703,7 +704,7 @@ class actionEventClass(object):
 			try: 
 				ct = constructorArgs[node.context]
 				prepend=ct.name+"."
-				invokePhrase = "x.new Signal%s(endTime,%s)" % (sig.getName(),argPhrase)
+				invokePhrase = "x.getValue().new Signal%s(endTime,%s)" % (sig.getName(),argPhrase)
 			except: 
 				prepend = ""
 				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
@@ -795,7 +796,8 @@ class actionEventClass(object):
 			if flowThing: 
 				if isinstance(flowThing,Element):
 					gl.log("ELABORATION= " + str(flowThing) + flowThing.name + node.name)
-					flowClass = flowThing.type
+					flowClass=flowThing
+					if isinstance(flowThing,Property): flowClass = flowThing.type
 					self.elaborations[flowClass.classifierBehavior] = {
 					#self.elaborations[flowThing.classifierBehavior] = {
 																	"args" : [("invoke_time","startTime","Integer")],
@@ -1104,6 +1106,7 @@ def writeScenario(top,classesToTranslate):
 	logAndExport(0,None,"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>")
 	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"/Users/mjackson/Documents/workspace-Helios/CS/src/gov/nasa/jpl/ae/xml/eventSchema.xsd\">")
 	logAndExport(1,"epoch","2012-08-05T23:30:00-07:00")
+	logAndExport(1,"horizon","P1D")
 	logAndExport(1,"timeUnits","seconds")
 	writeTopEvent(top)
 	writeScenarioRunner(top)
