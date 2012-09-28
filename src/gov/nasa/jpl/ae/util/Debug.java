@@ -27,4 +27,7 @@ public class Debug {
   public static void errln( String s ) {
     if (on) System.err.println( s );
   }
+  public static boolean isOn() {
+    return on;
+  }
 }
