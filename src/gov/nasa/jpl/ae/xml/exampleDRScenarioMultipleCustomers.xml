@@ -1,0 +1,382 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+  <epoch>2012-08-05T11:00:00-07:00</epoch>
+  <horizon>P2D</horizon>
+  <timeUnits>seconds</timeUnits>
+  <eventToBeExecuted>
+    <eventType>
+      PlanAndControlLoadReductionEvent
+    </eventType>
+    <eventName>firstPlanAndControlLoadReduction</eventName>
+    <arguments>
+      <parameter><name>startTime</name><type>Integer</type><value>0</value></parameter>
+      <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>0</value></parameter>-->
+      <parameter><name>DREventStartTime</name><type>Integer</type><value>3600</value></parameter>
+      <parameter><name>DREventEndTime</name><type>Integer</type><value>21600</value></parameter>
+      <parameter><name>DRArea</name><type>String</type><value>"Area 51"</value></parameter>
+      <parameter><name>LoadReductionNeeded</name><type>Double</type><value>1000.0</value></parameter>
+      <parameter><name>loadReductionActual</name><type>Double</type><value>1000.0</value></parameter>
+      <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>0.0</value></parameter>
+      <parameter><name>assessEventStartTime</name><type>Integer</type><value>150</value></parameter>
+      <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
+      <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;("DRState", "")</value></parameter>
+      <parameter><name>generator</name><type>Generator</type><value>new Generator()</value></parameter>
+    </arguments>
+  </eventToBeExecuted>
+  <events>
+    <event>
+      <class>
+        <name>
+          DREvent
+        </name>
+        <members>
+          <!-- Could encapsulate these in a DRObject class. -->
+          <parameter><name>DREventStartTime</name><type>Integer</type></parameter>
+          <parameter><name>DREventEndTime</name><type>Integer</type></parameter>
+          <parameter><name>DRArea</name><type>String</type></parameter>
+          <parameter><name>LoadReductionNeeded</name><type>Double</type></parameter>
+          <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>null</value></parameter>
+        </members>
+        <constraints></constraints>
+        <dependencies></dependencies>
+        </class>
+      <effects>
+        <effect>DRState.setValue(startTime,getName())</effect>
+      </effects>
+    </event>
+    <event>
+      <class>
+        <name>
+          PlanAndControlLoadReductionEvent
+        </name>
+        <inheritsFrom>DREvent</inheritsFrom>
+        <members>
+          <!-- Any values here are just initializations, and the variables may be reassigned. -->
+          <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>2400</value></parameter>-->
+          <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>0.0</value></parameter>
+          <parameter><name>loadReductionActual</name><type>Double</type><value>1000.0</value></parameter>
+          <parameter><name>assessEventStartTime</name><type>Integer</type><value>100</value></parameter>
+          <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
+          <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
+          <parameter><name>theGrid</name><type>Grid</type><value>new Grid()</value></parameter>
+          <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
+        </members>
+        <constraints>
+          <!-- TODO: Add a constraint that AssessDRCommitmentEvent.startTime >= GenerateDRRequest.startTime -->
+        </constraints>
+        <methods>
+          <function>
+            int sq(int n) {
+              return n*n;
+            }
+          </function>
+        </methods>
+        <dependencies>
+          <dependency><name>endTime</name><value>DREventEndTime</value></dependency>
+          <dependency><name>testX</name><value>sq(12)</value></dependency>
+        </dependencies>
+      </class>
+      <effects></effects>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <eventType>GenerateDRRequest</eventType>
+            <!-- Values specified here are in the scope of PlanAndControlLoadReductionEvent and are dependencies (not just initializations), so if the value changes in PlanAndControlLoadReductionEvent, the dependent variable in GenerateDRRequest is reassigned. -->
+            <arguments>
+              <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
+              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
+              <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
+              <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>true</expression></condition>
+        </elaboration>
+        <elaboration>
+          <eventInvocation>
+            <eventType>AssessDRCommitmentEvent</eventType>
+            <arguments>
+              <parameter><name>startTime</name><type>Integer</type><value>startTime + assessEventStartTime</value></parameter>
+              <!-- The duration could be uncontrollable/uncertain, but we are hardcoding it for now. -->
+              <!--<parameter><name>duration</name><type>Integer</type><value>200</value></parameter>-->
+              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
+              <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
+              <!-- The loadReductionProjectedBasedOnResponses is hardcoded for now as 0 to represent an attack blackholes the responses. -->
+              <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>loadReductionProjectedBasedOnResponses</value></parameter>
+              <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>lastDREventStartTime</value></parameter>-->
+              <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>maxNumTimesReplan</value></parameter>
+              <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>true</expression></condition>
+        </elaboration>
+        <elaboration>
+          <eventInvocation>
+            <eventType>ControlRealTimeLoadReductionEvent</eventType>
+            <eventName>monitorAndControl</eventName>
+            <arguments>
+              <parameter><name>startTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
+              <parameter><name>endTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
+              <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
+              <parameter><name>loadReductionActual</name><type>Double</type><value>loadReductionActual</value></parameter>
+              <parameter><name>projectedLoadReduction</name><type>Double</type><value>loadReductionProjectedBasedOnResponses</value></parameter>
+              <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
+              <parameter><name>generator</name><type>Generator</type><value>generator</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition><expression>true</expression></condition>
+        </elaboration>
+      </elaborations>
+    </event>
+    <event>
+      <class>
+        <name>
+          GenerateDRRequest
+        </name>
+        <inheritsFrom>DREvent</inheritsFrom>
+        <members></members>
+        <constraints>
+          <constraint><expression>DREventStartTime &gt;= endTime</expression></constraint>
+        </constraints>
+        <methods></methods>
+        <dependencies>
+          <dependency><name>duration</name><type>Integer</type><value>100</value></dependency>
+        </dependencies>
+      </class>
+      <effects></effects>
+      <elaborations></elaborations>
+    </event>
+    <event>
+      <class>
+        <name>
+          AssessDRCommitmentEvent
+        </name>
+        <inheritsFrom>DREvent</inheritsFrom>
+        <import>java.util.Queue</import>
+        <import>java.util.LinkedList</import>
+        <members>
+          <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type></parameter>
+          <parameter><name>loadReductionSufficient</name><type>Boolean</type></parameter>
+          <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>2400</value></parameter>-->
+          <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
+          <parameter><name>queue</name><type>Queue</type><value>new LinkedList&lt; String &gt;()</value></parameter>
+        </members>
+        <constraints>
+          <constraint><expression>DREventStartTime &gt;= endTime</expression></constraint>
+        </constraints>
+        <methods></methods>
+        <dependencies>
+          <dependency>
+            <!-- The duration could be uncontrollable/uncertain, but we are hardcoding it for now. -->
+            <name>duration</name><type>Integer</type><value>200</value>
+          </dependency>
+          <dependency>
+            <name>loadReductionSufficient</name><type>Boolean</type>
+            <value>LoadReductionNeeded - loadReductionProjectedBasedOnResponses &gt; 500.0</value>
+          </dependency>
+        </dependencies>
+      </class>
+      <effects></effects>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <eventType>
+              PlanAndControlLoadReductionEvent
+            </eventType>
+            <arguments>
+              <!-- This is redundant with a precedence constraint defined above -->
+              <parameter><name>startTime</name><type>Integer</type><value>endTime</value></parameter>
+              <!-- Could allow a different event start/end. -->
+              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <!-- A new area should be selected. -->
+              <!--<parameter><name>DRArea</name><type>String</type><value>"Area 54"</value></parameter>-->
+              <!--<parameter><name>DRArea</name><type>String</type><value>"TA-21"</value></parameter>-->
+              <!--<parameter><name>DRArea</name><type>String</type><value>"TA-33"</value></parameter>-->
+              <!-- Compute the additional load to reduce. -->
+              <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded - loadReductionProjectedBasedOnResponses</value></parameter>
+              <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>-->
+              <!-- Decrement replan count. -->
+              <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>maxNumTimesReplan-1</value></parameter>
+              <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition>
+            <!-- &amp = '&' = #x0026 from http://en.wikipedia.org/wiki/UTF-8#Codepage_layout -->
+            <expression>maxNumTimesReplan > 0 &amp;&amp; !loadReductionSufficient</expression>
+          </condition>
+        </elaboration>
+      </elaborations>
+    </event>
+    <event>
+      <class>
+        <name>
+          ControlRealTimeLoadReductionEvent
+        </name>
+        <inheritsFrom>DREvent</inheritsFrom>
+        <members>
+          <parameter><name>loadReductionActual</name><type>Double</type></parameter>
+          <parameter><name>projectedLoadReduction</name><type>Double</type><value>1000.0</value></parameter>
+          <parameter><name>increaseGeneration</name><type>Boolean</type><value>false</value></parameter>
+          <parameter><name>increasedGeneration</name><type>Double</type><value>0.0</value></parameter>
+          <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
+          <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
+        </members>
+        <constraints>
+          <constraint><expression>LoadReductionNeeded - loadReductionActual &lt;= 500.0</expression></constraint>
+        </constraints>
+        <dependencies>
+          <!-- Again, hardcoding uncontrollable/uncertain value. -->
+          <!--<dependency><name>loadReductionActual</name><type>Double</type><value>1000.0</value></dependency>-->
+          <!-- TODO: optionally elaborate into IncreaseGeneration. -->
+          <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &gt;= 500.0</value></dependency>-->
+          <dependency><name>increasedGeneration</name><value>0.0</value></dependency>
+          <dependency><name>amountToIncrease</name><value>1000.0</value></dependency>
+        </dependencies>
+        <events>
+          <event>
+            <!-- An inner class! -->
+            <class>
+              <name>
+                IncreaseGeneration
+              </name>
+              <members>
+                <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
+                <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
+              </members>
+              <constraints>
+                <!-- '<' = #x003C from http://en.wikipedia.org/wiki/UTF-8#Codepage_layout -->
+                <constraint><expression>amountToIncrease &lt; 2000.0</expression></constraint>
+                <constraint><expression>amountToIncrease &gt;= 500.0</expression></constraint>
+              </constraints>
+              <dependencies>
+              </dependencies>
+            </class>
+            <elaborations>
+              <elaboration>
+                <eventInvocation>
+                  <enclosingInstance>generator</enclosingInstance>
+                  <eventType>turnOn</eventType><eventName>generate</eventName>
+                  <arguments>
+                    <parameter><name>startTime</name><value>startTime</value></parameter>
+                  </arguments>
+                </eventInvocation>
+              </elaboration>
+              <elaboration>
+                <eventInvocation>
+                  <enclosingInstance>generator</enclosingInstance>
+                  <eventType>turnOff</eventType><eventName>stopGenerating</eventName>
+                  <arguments>
+                    <parameter><name>startTime</name><value>endTime</value></parameter>
+                  </arguments>
+                </eventInvocation>
+              </elaboration>
+            </elaborations>
+          </event>
+        </events>
+      </class>
+      <elaborations>
+        <elaboration>
+          <eventInvocation>
+            <enclosingInstance>this</enclosingInstance>
+            <eventType>IncreaseGeneration</eventType>
+            <arguments>
+              <parameter><name>startTime</name><value>startTime+1800</value></parameter>
+              <parameter><name>endTime</name><value>endTime</value></parameter>
+              <parameter><name>amountToIncrease</name><value>amountToIncrease</value></parameter>
+              <parameter><name>generator</name><value>generator</value></parameter>
+            </arguments>
+          </eventInvocation>
+          <condition>
+          	<expression>increaseGeneration</expression>
+          </condition>
+        </elaboration>
+      </elaborations>
+    </event>
+    <!--<event>
+      <class>
+        <name></name>
+      </class>
+    </event>-->
+  </events>
+  <classes>
+    <class>
+      <name>Generator</name>
+      <members>
+        <parameter><name>online</name><type>TimeVaryingMap&lt; Boolean &gt;</type><value>new TimeVaryingMap&lt; Boolean &gt;("online",false)</value></parameter>
+        <parameter><name>power</name><type>Double</type></parameter>
+      </members>
+      <dependencies>
+        <dependency><name>power</name><value>1000.0</value></dependency>
+      </dependencies>
+      <events>
+        <event>
+          <class>
+            <name>turnOn</name>
+            <dependencies>
+              <dependency><name>duration</name><value>1</value></dependency>
+            </dependencies>
+          </class>
+          <effects>
+            <effect>online.setValue(startTime, true)</effect>
+          </effects>
+        </event>
+        <event>
+          <class>
+            <name>turnOff</name>
+            <dependencies>
+              <dependency><name>duration</name><value>1</value></dependency>
+            </dependencies>
+          </class>
+          <effects>
+            <effect>online.setValue(startTime, false)</effect>
+          </effects>
+        </event>
+      </events>
+      <classes>
+        <class static="true">
+          <name>MyStaticClass</name>
+        </class>
+      </classes>
+    </class>
+    <!--<class>
+      <name>EnumState</name>
+      <inheritsFrom>gov.nasa.jpl.ae.event.TimeVaryingMap&lt; String &gt;</inheritsFrom>
+      <members>
+        --><!--<parameter><name>state</name><type>String</type><value>""</value></parameter>--><!--
+      </members>
+      <methods>
+        --><!--<function>
+          public boolean set(Timepoint t, String value) {
+            put( t, value );
+          }
+        </function>--><!--
+      </methods>
+    </class>-->
+    <class>
+      <name>Grid</name>
+      <import>demandResponse.Customer</import>
+      <import>demandResponse.Customers</import>
+      <members>
+        <parameter>
+          <name>customer</name><type>Customers</type><value>new Customers(Customer.CustomerType.summer, 10)</value>
+        </parameter>
+        <parameter>
+        	<name>predictedCustomer</name>
+        	<type>Customers</type>
+        	<value>new Customers(Customer.CustomerType.summerProfile, 10)</value>
+        </parameter>
+        <parameter>
+          <name>customerLoad</name><type>TimeVaryingPlottableMap&lt; Double &gt;</type><value>customer.load</value>
+        </parameter>
+      </members>
+    </class>
+  </classes>
+</scenario>
+

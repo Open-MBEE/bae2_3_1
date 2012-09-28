@@ -172,7 +172,9 @@ public class EventXmlToJava {
       ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null);
 
   protected ClassLoader loader = null;
-  protected Class<?> mainClass = null; 
+  protected Class<?> mainClass = null;
+
+  protected DurativeEvent mainInstance = null;
 
   public EventXmlToJava( String xmlFileName, String pkgName )
       throws ParserConfigurationException, SAXException, IOException {
@@ -2845,7 +2847,7 @@ public class EventXmlToJava {
     return succ;
   }
 
-  public boolean compileLoadAndRun( String projectPath ) {
+  public boolean compileAndLoad( String projectPath ) {
     boolean succ = true;
     if ( projectPath == null ) {
       projectPath = "";
@@ -2860,7 +2862,55 @@ public class EventXmlToJava {
     } else {
       if (!loadClasses( binPath, getPackageName() ) ) {
         succ = false;
-      } else {
+      }
+    }
+    return succ;
+  }
+  
+  public boolean compileLoadAndRun( String projectPath ) {
+    boolean succ = compileAndLoad( projectPath );
+    if ( !succ ) return false;
+    return runMain(); 
+  }
+  
+  
+  public Class<?> getMainClass() {
+    if ( mainClass == null ) {
+      try {
+        mainClass = getLoader().loadClass( getPackageName() + ".Main" );
+      } catch ( ClassNotFoundException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      if ( mainClass != null ) {
+        Debug.outln( "loaded class: " + mainClass.getName() );
+      }
+    }
+    return mainClass;
+  }
+  
+  public DurativeEvent getMainInstance() {
+    if ( mainInstance == null) {
+      try {
+        mainInstance = (DurativeEvent)getMainClass().newInstance();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    return mainInstance;
+  }
+  
+  
+  /**
+   * Invoke Main.main()
+   * @return whether the invocation was successful.
+   */
+  public boolean runMain() {
+    boolean succ = false;
 //        //Class<?> cls = Utils.getClassForName( "Main", getPackageName(), true );
 //        Class< ? > cls;
 //        try {
@@ -2873,25 +2923,27 @@ public class EventXmlToJava {
 //            return false;
 //          }
 //        }
-        String args[] = new String[]{null};
-        Utils.loader = getLoader();
-        Method m = Utils.getMethodForArgTypes( mainClass, "main", args.getClass() );
-        succ = false;
-        try {
-          m.invoke( null, (Object[])args );
-          succ = true;
-        } catch ( IllegalAccessException e ) {
-          e.printStackTrace();
-        } catch ( IllegalArgumentException e ) {
-          e.printStackTrace();
-        } catch ( InvocationTargetException e ) {
-          e.printStackTrace();
-        }
-      }
+    String args[] = new String[] { null };
+    Utils.loader = getLoader();
+    Method m = Utils.getMethodForArgTypes( getMainClass(), "main", args.getClass() );
+    try {
+      m.invoke( null, (Object[])args );
+      succ = true;
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( IllegalArgumentException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
     }
     return succ;
   }
 
+  public DurativeEvent generateExecution() {
+    getMainInstance().execute();
+    return getMainInstance();
+  }
+  
   public <T extends DurativeEvent> T generateExecution( Class<T> eventToExecute ) {
     //boolean succ = true;
     T instance = null;

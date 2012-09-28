@@ -12,9 +12,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -83,6 +85,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
 
   SocketClient plotSocket = null;
   Process plotProcess = null;
+  List<Executor> executors = new ArrayList<Executor>();
+  
   
 //  // epochMillis is a timestamp corresponding to TimePoint = 0 as the date/time that the simulation starts.
 //  // It is an offset of the number of milliseconds since Jan 1, 1970.
@@ -180,6 +184,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     return !existingEntry;
   }
   
+  public void add( Executor exec ) {
+    executors.add( exec );
+  }
+  
   public void simulate( java.io.OutputStream os ) {
     simulate( this.timeScale, os );
   }
@@ -198,11 +206,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
     for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
       for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
-//        System.out.println("startClock = " + startClock );
+        
+        // Delay between events
+//      System.out.println("startClock = " + startClock );
+        double nextEventTime = 0.0;
         if (startClock == -1) {
           startClock = System.currentTimeMillis();
         } else {
-          double nextEventTime = Duration.durationToMillis( e1.getKey() );
+          nextEventTime = Duration.durationToMillis( e1.getKey() );
           double nextEventTimeScaled = nextEventTime / timeScale;
           double timePassed = ( (double)System.currentTimeMillis() ) - startClock;
           long waitMillis =
@@ -222,22 +233,36 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           }
         }
 //        System.out.println("current millis = " + System.currentTimeMillis() );
+        
+        // the event & value(s)
         int t = e1.getKey().intValue();
         Object variable = e2.getKey();
         Object value = e2.getValue();
         if ( currentPlottableValues != null && currentPlottableValues.containsKey( variable ) ) {
           currentPlottableValues.put( variable, value );
         }
+        // the names of the event
         String name;
-        String classNames = variable.getClass().getSimpleName() + " ==> " + variable.getClass().getName();
+        String longClassName = variable.getClass().getName();
+        String shortClassName = variable.getClass().getSimpleName();
+        String classNames = shortClassName + " ==> " + longClassName;
         if ( variable instanceof ParameterListener ) {
           name = ((ParameterListener)variable).getName();
         } else {
           name = variable.getClass().getSimpleName();
         }
+        
+        // get String for Double
         if ( value instanceof Double ) {
           value = String.format( "%.2f", value );
         }
+        
+        // unleash the executors!
+        for ( Executor exec : executors ) {
+          exec.execute( nextEventTime, name, shortClassName, longClassName,
+                        value.toString() );
+        }
+        
         String formatString = null;
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );

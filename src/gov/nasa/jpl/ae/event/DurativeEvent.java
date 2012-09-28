@@ -439,7 +439,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public void executeAndSimulate( double timeScale ) {
     execute();
     System.out.println("execution:\n" + executionToString());
-    simulate(timeScale, System.out);
+    simulate(timeScale);
   }
   
   /* (non-Javadoc)
@@ -490,8 +490,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
   }
-
-  public void simulate(double timeScale, java.io.OutputStream os ) {
+  
+  public EventSimulation createEventSimulation() {
     EventSimulation sim = new EventSimulation( getEvents( true ), 1.0e12 );
     sim.add( this );
     for ( TimeVarying< ? > tv : getTimeVaryingObjects( true ) ) {
@@ -499,9 +499,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         sim.add( (TimeVaryingMap< ? >)tv );
       }
     }
+    return sim;
+  }
+
+  public void simulate(double timeScale, java.io.OutputStream os ) {
+    EventSimulation sim = createEventSimulation();
     sim.simulate( timeScale, os );
   }
-  
+
+  public void simulate(double timeScale ) {
+    simulate( timeScale, System.out);
+  }
+
   // Create an ElaborationRule for constructing an eventClass with
   // constructorParamTypes.
   // This method assumes that there is a constructor whose parameters match the

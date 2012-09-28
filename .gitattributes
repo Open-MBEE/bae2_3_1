@@ -58,6 +58,7 @@ src/gov/nasa/jpl/ae/event/ElaborationRule.java -text
 src/gov/nasa/jpl/ae/event/Event.java -text
 src/gov/nasa/jpl/ae/event/EventInvocation.java -text
 src/gov/nasa/jpl/ae/event/EventSimulation.java -text
+src/gov/nasa/jpl/ae/event/Executor.java -text
 src/gov/nasa/jpl/ae/event/Expression.java -text
 src/gov/nasa/jpl/ae/event/FunctionCall.java -text
 src/gov/nasa/jpl/ae/event/Functions.java -text
@@ -86,13 +87,16 @@ src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAnalysisEngine_v2.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/HelloWorld.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/InterpolatedMap.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawExecutor.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/OneWaySocket.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/main.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/script.xml -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/testPython.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/AbstractRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/BooleanDomain.java -text
@@ -111,10 +115,13 @@ src/gov/nasa/jpl/ae/solver/StringDomain.java -text
 src/gov/nasa/jpl/ae/solver/TimeDependentConstraint.java -text
 src/gov/nasa/jpl/ae/solver/TimeVariable.java -text
 src/gov/nasa/jpl/ae/solver/Variable.java -text
+src/gov/nasa/jpl/ae/tests/Adder.java -text
+src/gov/nasa/jpl/ae/tests/JythonAdderFactory.java -text
 src/gov/nasa/jpl/ae/tests/TestDate.java -text
 src/gov/nasa/jpl/ae/tests/TestEventXmlToJava.java -text
 src/gov/nasa/jpl/ae/tests/TestExecute.java -text
 src/gov/nasa/jpl/ae/tests/TestJavaparser.java -text
+src/gov/nasa/jpl/ae/tests/TestJythonAdder.java -text
 src/gov/nasa/jpl/ae/util/Debug.java -text
 src/gov/nasa/jpl/ae/util/FileUtils.java -text
 src/gov/nasa/jpl/ae/util/Pair.java -text
@@ -131,6 +138,7 @@ src/gov/nasa/jpl/ae/xml/XmlUtils.java -text
 src/gov/nasa/jpl/ae/xml/anotherStateChartExample.xml -text
 src/gov/nasa/jpl/ae/xml/eventSchema.xsd -text
 src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml -text
+src/gov/nasa/jpl/ae/xml/exampleDRScenarioMultipleCustomers.xml -text
 src/gov/nasa/jpl/ae/xml/iterationExample.xml -text
 src/gov/nasa/jpl/ae/xml/stateChartExample.xml -text
 src/latest/BobCreator.java -text

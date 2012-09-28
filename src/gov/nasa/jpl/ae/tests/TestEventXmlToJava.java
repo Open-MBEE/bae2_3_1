@@ -123,6 +123,4 @@ public class TestEventXmlToJava {
     System.out.println("Completed TestEventXmlToJava");
   }
 
-  public static int onePlusone() { return 2; }
-  
 }
