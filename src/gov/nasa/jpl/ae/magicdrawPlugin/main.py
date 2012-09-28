@@ -130,6 +130,7 @@ class BrowserContextAMConfigurator(BrowserContextAMConfigurator):
 			#category.addAction(ExampleAction("MassRefactor",None))
 			#category.addAction(ExampleAction("ExportForAnalysisEngine",None))
 			category.addAction(ExampleAction("ExportForAnalysisEngine_v2",None))
+			category.addAction(ExampleAction("AE",None))
 			#category.addAction(ExampleAction("RegisterAcronyms",None))
 			#category.addAction(ExampleAction("UpdateDocumentNumbering"))
 			#category.addAction(ExampleAction("DocumentViewer"))

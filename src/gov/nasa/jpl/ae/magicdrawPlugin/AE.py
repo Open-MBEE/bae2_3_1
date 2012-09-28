@@ -37,7 +37,7 @@ class AE:
 #    simulate = True
 #    animate = True
     options = { 'sysMlToAeXml':False, 'xmlToJava':True, 'compileAndLoad':True,
-                'execute':True, 'simulate':True, 'animate':True }
+                'execute':True, 'simulate':True, 'animate':False }
     
     # other members
     translator = None
@@ -93,10 +93,17 @@ class AE:
                         from MagicDrawExecutor import MagicDrawExecutor
                         self.magicDrawExecutor = MagicDrawExecutor()
                         self.simulator.add( self.magicDrawExecutor )
-                    t = Thread(target=self.simulate, args=(self.simulator,))
+                    t = Thread(target=self.simulate, args=None)
                     t.start()
+        print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
         print "AE run() finished!"
-    
+
+def run():
+    ae = AE()
+    ae.options['sysMlToAeXml'] = True;
+    ae.options['animate'] = True;
+    ae.run()
+
 def testJava():
     print "Hello world!"
     foo = TreeSet()

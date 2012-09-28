@@ -1,10 +1,12 @@
+import os
+#print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from InterpolatedMap import InterpolatedMap as InterpolatedMap
 from OneWaySocket import OneWaySocket
 
-debugMode = True
+debugMode = False
 useSocket = True
 useTable = False
 useTestData = False
@@ -32,6 +34,7 @@ table = InterpolatedMap()
 table[0]=[3,4,1,0]
 table[10]=[7,4,8,4]
 table[15]=[5,10,1,10]
+
 
 def debugPrint( s ):
     if debugMode:
@@ -63,7 +66,7 @@ def socketDataGen():
                 yield xVal, [arr[i] for i in yRange] #[ arr[13], arr[14], arr[15] ]
             cnt+=1
         except RuntimeError:
-            print "Socket connection terminated"
+            #print "Socket connection terminated"
             break
 
 def testDataGen():
@@ -82,6 +85,7 @@ def dataFromTable():
 # Main loop
 #
 def main():
+   # print "I am really running."
     if numLines < 1:
         return
     colors =  ['r', 'g', 'b', 'm', 'c', 'y', 'k', 'w']
@@ -160,4 +164,5 @@ def main():
 
 
 if __name__ == "__main__":
+    #print "I am running."
     main()

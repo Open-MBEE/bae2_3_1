@@ -672,5 +672,16 @@ public class Utils {
     }
     return null;
   }
+
+  public static String join( Collection<String> strings, String delim ) {
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for ( String s : strings ) {
+      if ( first ) first = false;
+      else sb.append( delim );
+      sb.append( s );
+    }
+    return sb.toString();
+  }
   
 }

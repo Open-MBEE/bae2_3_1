@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import org.python.core.util.StringUtil;
 
 //import org.python.core.PyObject;
 //import org.python.util.PythonInterpreter;
@@ -35,6 +38,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   // Constants & Types
 
   private static final long serialVersionUID = 7629618647715394322L;
+  private static final String enthoughtPythonPath = "c:\\Users\\bclement\\workspace\\CS\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;c:\\Python27\\Lib";
+  private static final String enthoughtPython = "c:\\Python27\\python.exe";
+  private static final String enthoughtTempDir = "c:\\temp";
 
   public enum EventType {
     start,
@@ -188,6 +194,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     executors.add( exec );
   }
   
+  public void simulate( double timeScale ) {
+    simulate( timeScale, System.out );
+  }
+  
   public void simulate( java.io.OutputStream os ) {
     simulate( this.timeScale, os );
   }
@@ -197,18 +207,17 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     long startClock = -1;
     int lastT = -1;
     
-    //PythonInterpreter p = new PythonInterpreter();
-    
-    
     if ( tryToPlot ) {
+      //Debug.turnOn();
       initiatePlot();
+      //Debug.turnOff();
     }
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
     for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
       for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
         
         // Delay between events
-//      System.out.println("startClock = " + startClock );
+        //Debug.outln("startClock = " + startClock );
         double nextEventTime = 0.0;
         if (startClock == -1) {
           startClock = System.currentTimeMillis();
@@ -219,10 +228,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
           long waitMillis =
               (long)Math.min( (double)Long.MAX_VALUE / 2,
                               ( nextEventTimeScaled - timePassed  ) );
-//          System.out.println("timePassed = " + timePassed );
-//          System.out.println("nextEventTime = " + nextEventTime );
-//          System.out.println("nextEventTimeScaled = " + nextEventTimeScaled );
-//          System.out.println("waitMillis = " + waitMillis );
+//          Debug.outln("timePassed = " + timePassed );
+//          Debug.outln("nextEventTime = " + nextEventTime );
+//          Debug.outln("nextEventTimeScaled = " + nextEventTimeScaled );
+//          Debug.outln("waitMillis = " + waitMillis );
           if ( waitMillis > 0 ) {
             try {
               Thread.sleep( waitMillis );
@@ -232,7 +241,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
             }
           }
         }
-//        System.out.println("current millis = " + System.currentTimeMillis() );
+//        Debug.outln("current millis = " + System.currentTimeMillis() );
         
         // the event & value(s)
         int t = e1.getKey().intValue();
@@ -263,17 +272,18 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
                         value.toString() );
         }
         
+        // todo -- printing should be an Executor
         String formatString = null;
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );
-          formatString = "%s%s -> %s     %s\n";
+          formatString = "%s%s -> %-40s     %s\n";
           w.printf( formatString, padding, name,
                     value == null ? "null" : value.toString(), classNames );
         } else {
           if ( tryToPlot ) {
             plotValues( t );
           }
-          formatString = "%14s : %28s  %s -> %s     %s\n";
+          formatString = "%14s : %28s  %s -> %-40s     %s\n";
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
@@ -323,9 +333,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   protected void initiatePlot() {
     //Map< Object, Integer > varIndices = null;
     if ( Utils.isNullOrEmpty( currentPlottableValues ) ) {
+      Debug.outln( "No plottable values." );
       tryToPlot = false;
       return;
     }
+    Debug.outln( "initiatePlot()" );
     try {
       // Run the python plot program as a system command.
       java.lang.Runtime rt = java.lang.Runtime.getRuntime();
@@ -334,25 +346,58 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
       // This python program requires special libraries that
       // are included with the Enthought distribution.
       String curDir = System.getProperty("user.dir");
-      File f =
-          new File( curDir + File.separator + "src" + File.separator + "gov"
-                    + File.separator + "nasa" + File.separator + "jpl"
-                    + File.separator + "ae" + File.separator
-                    + "magicdrawPlugin" );
-      plotProcess = rt.exec( "python animatePlot.py", null, f );
+      Map< String, String > env = System.getenv();
+      String pythonPath = env.get( "PYTHONPATH" );
+      Debug.outln("System.getProperty(\"user.dir\") = " + curDir );
+//      //Debug.outln("System.getenv()[PYTHONPATH] = " + pythonPath );
+//      //File curPath = new File(curDir);
+//      //Arrays.asList( curPath.listFiles() );
+//      String[] pythonPaths = pythonPath.split( File.pathSeparator );
+//      List<String> pathList = Arrays.asList( pythonPaths );
+//      pathList.add( 0, enthoughtPythonPath );
+      pythonPath = //"PYTHONPATH=" + 
+          enthoughtPythonPath;// + File.pathSeparator + pythonPath;//Utils.join(pathList, File.pathSeparator); //pathList.toArray()
+      //String mplPath = //"MPLCONFIGDIR="  
+      //     enthoughtTempDir;
+      //env.put( "PYTHONPATH", pythonPath );
+      //env.put( "MPLCONFIGDIR", enthoughtTempDir );
+      String[] newEnv = new String[env.size()];
+      int ct = 0;
+      for ( Map.Entry< String, String > envar : env.entrySet() ) {
+        if ( envar.getKey().equals( "PYTHONPATH" ) ) {
+          newEnv[ct++] = envar.getKey() + "=" + pythonPath;
+        } else {
+          newEnv[ct++] = envar.getKey() + "=" + envar.getValue();
+        }
+      }
+      if ( !curDir.contains( "src" ) && !curDir.contains( "magicDrawPlugin" ) ) {
+        curDir += File.separator + "src" + File.separator + "gov"
+            + File.separator + "nasa" + File.separator + "jpl"
+            + File.separator + "ae" + File.separator
+            + "magicdrawPlugin";
+      }
+      File f = new File( curDir  );
+      String pythonExe = enthoughtPython;
+      if ( Utils.isNullOrEmpty( pythonExe ) ) pythonExe = "python";
+      plotProcess = rt.exec( pythonExe + " animatePlot.py", newEnv, f );
+                             //new String[] { pythonPath, mplPath }, f );
       // Allow a half second for the process to start.
       Thread t = new Thread( new Runnable() {
-        
+        // save the debug state since it could be changed by another thread
+        boolean debugOn = Debug.isOn();
+       
         @Override
         public void run() {
-          Debug.outln( "plot process output:" );
+          if (debugOn)
+            System.out.println( "[plot]: process output:" );
           java.io.InputStream is = plotProcess.getInputStream();
           java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
           // And print each line
           String s = null;
           try {
             while ((s = reader.readLine()) != null) {
-              Debug.outln("plot: " + s);
+              if (debugOn)
+                System.out.println("[plot]: " + s);
             }
             is.close();
           } catch ( IOException e ) {
@@ -362,17 +407,20 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         }
       });
       Thread t2 = new Thread( new Runnable() {
-        
+        boolean debugOn = Debug.isOn();
+       
         @Override
         public void run() {
-          Debug.errln( "plot process error output:" );
+          if (debugOn)
+            System.err.println( "[plot]: process error output:" );
           java.io.InputStream is = plotProcess.getErrorStream();
           java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
           // And print each line
           String s = null;
           try {
             while ((s = reader.readLine()) != null) {
-              Debug.errln("plot: " + s);
+              if (debugOn)
+                System.err.println("[plot]: " + s);
             }
             is.close();
           } catch ( IOException e ) {
@@ -406,6 +454,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
       }
     } catch ( IOException e ) {
       tryToPlot = false;
+      e.printStackTrace();
     }
   }
 
