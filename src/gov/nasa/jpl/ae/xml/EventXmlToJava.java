@@ -2788,18 +2788,22 @@ public class EventXmlToJava {
       return fileArr;
     }
 
-    fileArr = new File[this.classes.size()];
-    int ctr = 0;
-    for ( String clsName : this.classes.keySet() ) {
-      String filePathName = javaPath.trim() + File.separator + clsName
-                            + ( sourceOrClass ? ".java" : ".class" );
-      fileArr[ctr++] = new File(filePathName);
+    fileArr = new File[ this.classes.size() ];
+    if ( !this.classes.isEmpty() ) {
+      int ctr = 0;
+      for ( String clsName : this.classes.keySet() ) {
+        String filePathName =
+            javaPath.trim() + File.separator + clsName
+                + ( sourceOrClass ? ".java" : ".class" );
+        fileArr[ ctr++ ] = new File( filePathName );
+      }
     }
     return fileArr;
   }
   
   public boolean compileJavaFiles( String javaPath ) {
     File[] fileArr = getJavaFiles( javaPath, true, true );//path.listFiles();
+    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true, false );
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
     System.out.println( "compileJavaFiles(" + javaPath
@@ -2826,6 +2830,7 @@ public class EventXmlToJava {
     assert path.exists();
     File[] fileArr = null;
     fileArr = getJavaFiles( javaPath, false, true );//path.listFiles();
+    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, false, false );
     //loader = getClass().getClassLoader();//fileManager.getClassLoader(null);
     for ( File f : fileArr ) {
       int pos = f.getName().lastIndexOf( '.' );
@@ -2859,10 +2864,9 @@ public class EventXmlToJava {
     String binPath = projectPath + "bin" + File.separator + packagePath;
     if (!compileJavaFiles( srcPath ) ) {
       succ = false;
-    } else {
-      if (!loadClasses( binPath, getPackageName() ) ) {
-        succ = false;
-      }
+    }
+    if (!loadClasses( binPath, getPackageName() ) ) {
+      succ = false;
     }
     return succ;
   }

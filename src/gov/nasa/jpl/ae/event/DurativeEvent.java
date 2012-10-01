@@ -596,8 +596,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     boolean satisfied = super.tryToSatisfy();
     // REVIEW -- Is it necessary to call satisfyElaborations given the
     // elaborationsConstraint?
-    satisfyElaborations();
-    Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
+    if ( satisfied ) {
+      satisfied = satisfyElaborations();
+      Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
+    }
     return satisfied;
   }
   
