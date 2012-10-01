@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.xml;
 
+import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Map;
@@ -187,7 +188,7 @@ public class NameTranslator {
   public static String makeNameUnique( String newName, Set< String > names,
                                        int numTries ) {
     while ( names.contains( newName ) && numTries > 0 ) {
-      newName = newName + ( (int)( Math.random() * 10 ) );
+      newName = newName + ( (int)( Random.global.nextDouble() * 10 ) );
       --numTries;
     }
     // Fail if not unique.

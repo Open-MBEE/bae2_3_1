@@ -276,18 +276,19 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         String formatString = null;
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );
-          formatString = "%s%s -> %-40s     %s\n";
-          w.printf( formatString, padding, name,
-                    value == null ? "null" : value.toString(), classNames );
+          formatString = "%s%-60s   %s\n";
+          w.printf( formatString, padding, name + " -> " +
+                    ( value == null ? "null" : value.toString() ), classNames );
         } else {
           if ( tryToPlot ) {
             plotValues( t );
           }
-          formatString = "%14s : %28s  %s -> %-40s     %s\n";
+          formatString = "%14s : %28s  %-60s   %s\n";
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
-                    name, value == null ? "null" : value.toString(), classNames );
+                    name + " -> " + ( value == null ? "null" : value.toString() ),
+                    classNames );
         }
         lastT = t;
       }

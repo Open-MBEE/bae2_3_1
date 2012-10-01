@@ -288,8 +288,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public T getValue( Timepoint t ) {
+    if ( t == null ) return null;
     T v = get( t ); //.first;
     if ( v != null ) return v;
+    if ( t.getValue() == null ) return null;
     return getValue( t.getValue() );
   }
 

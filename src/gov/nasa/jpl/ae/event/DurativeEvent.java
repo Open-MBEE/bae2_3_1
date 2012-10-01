@@ -49,10 +49,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                            ParameterListener,
                            HasTimeVaryingObjects {
 
-  // Constants
-  
-  final double timeoutSeconds = 30.0;
-
   // Static members
   
   protected static int counter = 0;

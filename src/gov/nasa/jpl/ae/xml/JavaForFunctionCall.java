@@ -236,7 +236,12 @@ public class JavaForFunctionCall {
   }
   
   public String toNewFunctionCallString() {
-    return "new FunctionCall( (Object)" + objectName + ", " + methodJava
+    if ( objectName.startsWith( "new FunctionCall" ) ) {
+      // nest the function calls
+      return "new FunctionCall( null, " + methodJava
+             + ", " + argumentArrayJava + ", " + objectName + " )";
+    }
+    return "new FunctionCall( (Object)(" + objectName + "), " + methodJava
            + ", " + argumentArrayJava + " )";
   }
   public String toNewExpressionString() {

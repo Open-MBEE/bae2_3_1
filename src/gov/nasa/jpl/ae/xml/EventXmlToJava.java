@@ -714,12 +714,23 @@ public class EventXmlToJava {
   // Add constructors for invocations.
   private void addConstructors() {
     Collection< ConstructorDeclaration > constructors =
-        createConstructors( this.xmlDocDOM );
-    constructors.addAll( getConstructorDeclarations( this.xmlDocDOM ) );
+        getConstructorDeclarations( this.xmlDocDOM );
+    constructors.addAll( createConstructors( this.xmlDocDOM, constructors ) );
     for ( ConstructorDeclaration c : constructors ) {
       TypeDeclaration type = getTypeDeclaration( c.getName() );
+      boolean alreadyAdded = false;
       if ( type != null && c != null ) {
-        ASTHelper.addMember( type, c );
+        for ( BodyDeclaration bd : type.getMembers() ) {
+          if ( bd instanceof ConstructorDeclaration ) {
+            if ( equals(c, (ConstructorDeclaration)bd ) ) {
+              alreadyAdded = true;
+              break;
+            }
+          }
+        }
+        if ( !alreadyAdded ) {
+          ASTHelper.addMember( type, c );
+        }
       }
     }
   }
@@ -811,7 +822,7 @@ public class EventXmlToJava {
     ctor.setBlock( ctorBody );
     
     // Need to set the epoch and units first thing.
-    // REVIEW -- We need a scenario event that requires these arguments as a
+    // REVIEW -- We need a scenario event that requires these arguments in the
     // constructor to ensure they are set up front.
     //String epochString = Timepoint.toTimestamp( Timepoint.getEpoch().getTime() );
     addStatements( mainBody,
@@ -987,11 +998,16 @@ public class EventXmlToJava {
   }
   
   // Create constructors for event invocations.
-  protected Collection< ConstructorDeclaration > createConstructors( Node top ) {
-    Collection< ConstructorDeclaration > ctors =
-        new ArrayList< ConstructorDeclaration >();
+  protected Collection< ConstructorDeclaration > 
+   createConstructors( Node top, Collection< ConstructorDeclaration > ctors ) {
+    //Collection< ConstructorDeclaration > ctors =
+    //    new ArrayList< ConstructorDeclaration >();
 
-    List< Node > invocations = XmlUtils.findNodes( top, "eventToBeExecuted" );
+    //Debug.turnOn();
+    Debug.outln( "existing constructors: " + ctors );
+    //Debug.turnOff();
+    List< Node > invocations = 
+        XmlUtils.findNodes( top, "eventToBeExecuted" );
     invocations.addAll( XmlUtils.findNodes( top, "eventInvocation" ) );
     for ( Node invocationNode : invocations ) {
       //String name = XmlUtils.getChildElementText( invocationNode, "eventName" );
@@ -1037,12 +1053,15 @@ public class EventXmlToJava {
 
         // Check and see if we've already added this one.
         boolean alreadyCreated = false;
+        //Debug.turnOn();
         for ( ConstructorDeclaration c : ctors ) {
           if ( equals( c, ctor ) ) {
+            Debug.outln( "constructor already created: " + ctor );
             alreadyCreated = true;
             break;
           }
         }
+        //Debug.turnOff();
         // Don't add if already created. Default constructor is added
         // elsewhere, so filter that one out by checking if arguments is empty.
         if ( !alreadyCreated && !arguments.isEmpty() ) {
@@ -1055,19 +1074,36 @@ public class EventXmlToJava {
 
   public static boolean equals( ConstructorDeclaration c1,
                                 ConstructorDeclaration c2 ) {
+    Debug.outln( "equals(c1 = " + c1.getName() + ", c2 = " + c2.getName() );
+    Debug.outln( "equals() for c1 = \n" + c1 );
+    Debug.outln( "and c2 = \n" + c2 );
     boolean equals = false;
     List< japa.parser.ast.body.Parameter > params1 = c1.getParameters();
     List< japa.parser.ast.body.Parameter > params2 = c2.getParameters();
-    if ( c1.getName() == c2.getName() && params1.size() == params2.size() ) {
-      equals = true;
-      for ( int i = 0; i < params1.size(); ++i ) {
-        japa.parser.ast.body.Parameter p1 = params1.get( i );
-        japa.parser.ast.body.Parameter p2 = params2.get( i );
-        if ( p1.getType() != p2.getType() ) {
-          equals = false;
-          break;
+    int paramsSize1 = (params1 == null ? 0 : params1.size() );
+    int paramsSize2 = (params2 == null ? 0 : params2.size() );
+    if ( c1.getName().equals( c2.getName() ) ) {
+      if ( paramsSize1 == paramsSize2 ) {
+        equals = true;
+        for ( int i = 0; i < paramsSize1; ++i ) {
+          japa.parser.ast.body.Parameter p1 = params1.get( i );
+          japa.parser.ast.body.Parameter p2 = params2.get( i );
+          if ( !p1.getType().toString().equals( p2.getType().toString()) ) {
+            Debug.outln( "constructors not equal; number " + i
+                         + " param types do not match: "
+                         + p1.getType().toString() + " != "
+                         + p2.getType().toString() );
+            equals = false;
+            break;
+          }
         }
+      } else {
+        Debug.outln( "constructors not equal; different numbers of params: "
+                     + paramsSize1 + " != " + paramsSize2 );
       }
+    } else {
+      Debug.outln( "constructors not equal; different names: "
+                   + c1.getName() + " != " + c2.getName() );
     }
     return equals;
   }
@@ -1996,13 +2032,23 @@ public class EventXmlToJava {
 //              + fieldAccessExpr.getField().toString()
 //              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
 //                                                              : "" );
+          String obj = parentString;
+          if ( !Utils.isNullOrEmpty( type ) ) {
+            obj = "(" + type + ")(" + parentString + ")";
+          }
+          middle = "new FunctionCall(" + obj + ", Parameter.class, \"getMember\", "
+              + "new Object[]{\"" + fieldAccessExpr.getField().toString()
+              + "\"})";
           if ( ( p == null || convertFcnCallArgsToExprs ) ) {
-            middle = "((" + type + ")" + parentString + ".getMember(\""
-                + fieldAccessExpr.getField().toString() + "\"))";
+//            middle = "((" + type + ")" + parentString + ".getMember(\""
+//                + fieldAccessExpr.getField().toString() + "\"))";
           } else {
-            middle = "(((Parameter<?>)(" + parentString + ".getMember(\""
-                     + fieldAccessExpr.getField().toString() + "\")"
-                     + ")).getValue())";
+            // nesting function calls
+            middle = "new FunctionCall(null, Parameter.class, \"getValue\", "
+                     + "(Object[])null, " + middle + ")";
+//            middle = "(((Parameter<?>)(" + parentString + ".getMember(\""
+//                     + fieldAccessExpr.getField().toString() + "\")"
+//                     + ")).getValue())";
           }
         }
       } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
