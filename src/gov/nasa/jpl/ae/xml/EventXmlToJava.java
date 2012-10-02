@@ -168,8 +168,9 @@ public class EventXmlToJava {
   demandResponse.Customer c = new Customer( "stupid class loader" );
   ObjectFlow<Object> o = new ObjectFlow< Object >( "stupid class loader" );
 
-  protected StandardJavaFileManager fileManager  =
-      ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null);
+  protected JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+  protected StandardJavaFileManager fileManager =
+      ( compiler == null ? null : compiler.getStandardFileManager(null, null, null) );
 
   protected ClassLoader loader = null;
   protected Class<?> mainClass = null;
@@ -1898,6 +1899,9 @@ public class EventXmlToJava {
       return result;  // to avoid the error message
     } else if ( expr.getClass() == NameExpr.class ) {
       name = ( (NameExpr)expr ).getName();
+//      below doesn't work.
+//      if ( name == "True" ) name = "true";
+//      if ( name == "False" ) name = "false";
     } else if ( expr.getClass() == ThisExpr.class ) {
       result = currentClass;
     } else if ( expr.getClass() == FieldAccessExpr.class ) {
@@ -2033,9 +2037,9 @@ public class EventXmlToJava {
 //              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
 //                                                              : "" );
           String obj = parentString;
-          if ( !Utils.isNullOrEmpty( type ) ) {
-            obj = "(" + type + ")(" + parentString + ")";
-          }
+//          if ( !Utils.isNullOrEmpty( type ) ) {
+//            obj = "(" + type + ")(" + parentString + ")";
+//          }
           middle = "new FunctionCall(" + obj + ", Parameter.class, \"getMember\", "
               + "new Object[]{\"" + fieldAccessExpr.getField().toString()
               + "\"})";
@@ -2324,7 +2328,7 @@ public class EventXmlToJava {
     ClassOrInterfaceType fieldType =
         new ClassOrInterfaceType( "Effect" );
     ClassOrInterfaceType varFieldType =
-            new ClassOrInterfaceType( "Object" ); 
+            new ClassOrInterfaceType( "Parameter" ); 
     FieldDeclaration f = null;
     String effectText = fixValue( effectNode.getTextContent() );
 
@@ -2354,8 +2358,12 @@ public class EventXmlToJava {
       String timeVaryingName = effectName + "Var";
 
       StringBuffer stmtString = new StringBuffer();
-      stmtString.append( timeVaryingName + " = " 
-                         + jffc.objectName + ";\n" );
+      // REVIEW -- might need a dependency instead of an assignment,
+      //   timeVarying <-- new Expresion(timeVaryingV) 
+      
+      stmtString.append( "Object " + timeVaryingName + "V = " + jffc.objectName + ";\n" );
+      stmtString.append( timeVaryingName + " = new Parameter(\"" + timeVaryingName + "\", null, null, this);\n" );
+      stmtString.append( "addDependency(" + timeVaryingName + ", new Expression(" + timeVaryingName + "V));\n" );
       stmtString.append( effectName + " = new EffectFunction( " 
                          + jffc.toNewFunctionCallString().replace( jffc.objectName,
                                                                    timeVaryingName )
@@ -2850,8 +2858,10 @@ public class EventXmlToJava {
   public boolean compileJavaFiles( String javaPath ) {
     File[] fileArr = getJavaFiles( javaPath, true, true );//path.listFiles();
     if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true, false );
+    System.out.println( "java.home = " + System.getProperty( "java.home" ) );
+    System.setProperty( "java.home", "C:\\Program Files\\Java\\jdk1.6.0_35");
+    System.out.println( "java.home = " + System.getProperty( "java.home" ) );
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): about to get compilationUnits/java file objects for: "
                         + Utils.toString(fileArr) );
