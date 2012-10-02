@@ -91,7 +91,7 @@ public class Customer extends ParameterListenerImpl {
 
     public class _17_0_5_edc0357_1345510113556_623276_13775 extends DurativeEvent {
 
-        public Parameter< ObjectFlow<Object> > sig_17_0_5_edc0357_1346280185062_487679_12810 = null;
+        public Parameter< ObjectFlow<Boolean> > sig_17_0_5_edc0357_1346280185062_487679_12810 = null;
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1345510114028_727317_14215 = null;
 
@@ -103,7 +103,7 @@ public class Customer extends ParameterListenerImpl {
 
         public void init_17_0_5_edc0357_1345510113556_623276_13775Members() {
             try {
-                sig_17_0_5_edc0357_1346280185062_487679_12810 = new Parameter<ObjectFlow<Object>>("sig_17_0_5_edc0357_1346280185062_487679_12810", null, new ObjectFlow("sig_17_0_5_edc0357_1346280185062_487679_12810"), this);
+                sig_17_0_5_edc0357_1346280185062_487679_12810 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_5_edc0357_1346280185062_487679_12810", null, new ObjectFlow("sig_17_0_5_edc0357_1346280185062_487679_12810"), this);
                 sig_17_0_5_edc0357_1345510114028_727317_14215 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114028_727317_14215", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114028_727317_14215"), this);
                 sig_17_0_5_edc0357_1345510114028_129199_14214 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114028_129199_14214", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114028_129199_14214"), this);
                 invoke_time = new IntegerParameter("invoke_time", this);
@@ -304,12 +304,7 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114027_337563_14204_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114027_337563_14204_endTime", this);
                     _17_0_5_edc0357_1345510114027_851146_14206_exists = new BooleanParameter("_17_0_5_edc0357_1345510114027_851146_14206_exists", this);
                     constraint31 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114027_337563_14204_endTime)));
-                    FunctionCall nestedCall3 = new FunctionCall(null, TimeVaryingMap.class, "getValue", new Object[] { startTime } );
-                    FunctionCall nestedCall2 = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, nestedCall3 );
-                    FunctionCall call1 = new FunctionCall(_17_0_5_edc0357_1345510114781_225445_15104, Parameter.class, "getMember", new Object[] { "usage__17_0_5_edc0357_1345510113561_560076_13779" }, nestedCall2 );
-                    _17_0_5_edc0357_1345510114781_279299_15103Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114781_279299_15103, new Expression< Integer >(call1));
-                    // Above 4 lines replaces line below; note that the TimeVaryingMap.class is substituted for the wrong class name, "Customer...14202," below.
-                    //_17_0_5_edc0357_1345510114781_279299_15103Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114781_279299_15103, new Expression(new FunctionCall((Object) (((Parameter<?>) (_17_0_5_edc0357_1345510114781_225445_15104.getMember("usage__17_0_5_edc0357_1345510113561_560076_13779"))).getValue()), Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_454308_14202", "generated", "getValue"), new Object[] { new Expression<Integer>(startTime) })));
+                    _17_0_5_edc0357_1345510114781_279299_15103Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114781_279299_15103, new Expression(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_454308_14202", "generated", "getValue"), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(_17_0_5_edc0357_1345510114781_225445_15104, Parameter.class, "getMember", new Object[] { "usage__17_0_5_edc0357_1345510113561_560076_13779" })))));
                     _17_0_5_edc0357_1345510114027_851146_14206_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114027_851146_14206_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -370,7 +365,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect34 = null;
 
-            public Object effect34Var = null;
+            public Parameter effect34Var = null;
 
             public ElaborationRule elaborationRule35 = null;
 
@@ -381,10 +376,12 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114782_358183_15105 = new Parameter<Customer>("_17_0_5_edc0357_1345510114782_358183_15105", null, null, this);
                     _17_0_5_edc0357_1346280179065_311539_12799_exists = new BooleanParameter("_17_0_5_edc0357_1346280179065_311539_12799_exists", this);
                     constraint33 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114027_337563_14204_endTime)));
-                    _17_0_5_edc0357_1345510114783_59952_15106Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114783_59952_15106, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114028_129199_14214, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1346280179065_311539_12799_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346280179065_311539_12799_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1346280185062_487679_12810, Utils.getMethodForArgTypes("ObjectFlow<Object>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
-                    effect34Var = (((Parameter<?>) (x.getMember("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue"))).getValue());
-                    effect34 = new EffectFunction(new FunctionCall((Object) effect34Var, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_512113_14203", "generated", "send"), new Object[] { x.getValue().new SignalchangeLoadValue(_17_0_5_edc0357_1345510114783_59952_15106.getValue()), endTime }));
+                    _17_0_5_edc0357_1345510114783_59952_15106Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114783_59952_15106, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114028_129199_14214, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1346280179065_311539_12799_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346280179065_311539_12799_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1346280185062_487679_12810, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    Object effect34VarV = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue" }));
+                    effect34Var = new Parameter("effect34Var", null, null, this);
+                    addDependency(effect34Var, new Expression(effect34VarV));
+                    effect34 = new EffectFunction(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_512113_14203", "generated", "send"), new Object[] { x.getValue().new SignalchangeLoadValue(endTime.getValue(), _17_0_5_edc0357_1345510114783_59952_15106.getValue()), endTime }, effect34Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -463,8 +460,8 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114027_379047_14205_exists = new BooleanParameter("_17_0_5_edc0357_1345510114027_379047_14205_exists", this);
                     constraint36 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114026_592814_14200_endTime)));
                     _17_0_5_edc0357_1345510114027_454308_14202_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114027_454308_14202_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1345510114027_512113_14203_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114027_512113_14203_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114028_129199_14214, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
-                    _17_0_5_edc0357_1345510114027_379047_14205_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114027_379047_14205_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114028_727317_14215, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    _17_0_5_edc0357_1345510114027_512113_14203_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114027_512113_14203_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114028_129199_14214, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    _17_0_5_edc0357_1345510114027_379047_14205_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114027_379047_14205_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114028_727317_14215, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -532,11 +529,11 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect41 = null;
 
-            public Object effect41Var = null;
+            public Parameter effect41Var = null;
 
             public Effect effect42 = null;
 
-            public Object effect42Var = null;
+            public Parameter effect42Var = null;
 
             public void init_17_0_5_edc0357_1345510114027_379047_14205Members() {
                 try {
@@ -544,9 +541,15 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114784_30882_15107 = new Parameter<Customer>("_17_0_5_edc0357_1345510114784_30882_15107", null, null, this);
                     _17_0_5_edc0357_1345510114784_286838_15108 = new IntegerParameter("_17_0_5_edc0357_1345510114784_286838_15108", this);
                     constraint40 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114027_337563_14204_endTime)));
-                    _17_0_5_edc0357_1345510114784_286838_15108Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114784_286838_15108, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114028_727317_14215, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect41Var = sig_17_0_5_edc0357_1346280185062_487679_12810;
-                    effect41 = new EffectFunction(new FunctionCall((Object) effect41Var, Utils.getMethodForArgTypes("ObjectFlow<Object>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { true, startTime }));
+                    _17_0_5_edc0357_1345510114784_286838_15108Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114784_286838_15108, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114028_727317_14215, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect41VarV = sig_17_0_5_edc0357_1346280185062_487679_12810;
+                    effect41Var = new Parameter("effect41Var", null, null, this);
+                    addDependency(effect41Var, new Expression(effect41VarV));
+                    effect41 = new EffectFunction(new FunctionCall(effect41Var, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { true, startTime }));
+                    Object effect42VarV = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading" }));
+                    effect42Var = new Parameter("effect42Var", null, null, this);
+                    addDependency(effect42Var, new Expression(effect42VarV));
+                    effect42 = new EffectFunction(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_379047_14205", "generated", "send"), new Object[] { x.getValue().new SignalreceiveMeterReading(endTime.getValue(), _17_0_5_edc0357_1345510114784_286838_15108.getValue()), endTime }, effect42Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -561,16 +564,9 @@ public class Customer extends ParameterListenerImpl {
                 Set<Effect> effectsForeffect41Var = new HashSet<Effect>();
                 effectsForeffect41Var.add(effect41);
                 effects.put((Parameter<?>) effect41Var, effectsForeffect41Var);
-
-                Parameter<?> y = (Parameter< ? >)x.getMember("ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading");
-                if ( y != null && y.getValue() != null ) { 
-                effect42Var = y.getValue();
-                effect42 = new EffectFunction(new FunctionCall((Object) effect42Var, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113556_623276_13775._17_0_5_edc0357_1345510114027_379047_14205", "generated", "send"), new Object[] { x.getValue().new SignalreceiveMeterReading(_17_0_5_edc0357_1345510114784_286838_15108.getValue()), endTime }));
-                
                 Set<Effect> effectsForeffect42Var = new HashSet<Effect>();
                 effectsForeffect42Var.add(effect42);
                 effects.put((Parameter<?>) effect42Var, effectsForeffect42Var);
-                }
             }
 
             public void init_17_0_5_edc0357_1345510114027_379047_14205Elaborations() {
@@ -604,21 +600,25 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect44 = null;
 
-            public Object effect44Var = null;
+            public Parameter effect44Var = null;
 
             public Effect effect45 = null;
 
-            public Object effect45Var = null;
+            public Parameter effect45Var = null;
 
             public void init_17_0_5_edc0357_1345510114027_851146_14206Members() {
                 try {
                     _17_0_5_edc0357_1345510114027_454308_14202_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114027_454308_14202_endTime", this);
                     objectToPass = new IntegerParameter("objectToPass", this);
                     constraint43 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114027_454308_14202_endTime)));
-                    effect44Var = sig_17_0_5_edc0357_1345510114028_129199_14214;
-                    effect44 = new EffectFunction(new FunctionCall((Object) effect44Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect45Var = sig_17_0_5_edc0357_1345510114028_727317_14215;
-                    effect45 = new EffectFunction(new FunctionCall((Object) effect45Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect44VarV = sig_17_0_5_edc0357_1345510114028_129199_14214;
+                    effect44Var = new Parameter("effect44Var", null, null, this);
+                    addDependency(effect44Var, new Expression(effect44VarV));
+                    effect44 = new EffectFunction(new FunctionCall(effect44Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect45VarV = sig_17_0_5_edc0357_1345510114028_727317_14215;
+                    effect45Var = new Parameter("effect45Var", null, null, this);
+                    addDependency(effect45Var, new Expression(effect45VarV));
+                    effect45 = new EffectFunction(new FunctionCall(effect45Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -728,9 +728,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1345510114793_324647_15121 = null;
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1348163531723_681524_14685 = null;
-
         public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1348163666246_377742_14732 = null;
+
+        public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1348163531723_681524_14685 = null;
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1345510114089_103639_14268 = null;
 
@@ -750,8 +750,8 @@ public class Customer extends ParameterListenerImpl {
             try {
                 sig_17_0_5_edc0357_1348163389494_378042_14636 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1348163389494_378042_14636", null, new ObjectFlow("sig_17_0_5_edc0357_1348163389494_378042_14636"), this);
                 sig_17_0_5_edc0357_1345510114793_324647_15121 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114793_324647_15121", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114793_324647_15121"), this);
-                sig_17_0_5_edc0357_1348163531723_681524_14685 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1348163531723_681524_14685", null, new ObjectFlow("sig_17_0_5_edc0357_1348163531723_681524_14685"), this);
                 sig_17_0_5_edc0357_1348163666246_377742_14732 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1348163666246_377742_14732", null, new ObjectFlow("sig_17_0_5_edc0357_1348163666246_377742_14732"), this);
+                sig_17_0_5_edc0357_1348163531723_681524_14685 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1348163531723_681524_14685", null, new ObjectFlow("sig_17_0_5_edc0357_1348163531723_681524_14685"), this);
                 sig_17_0_5_edc0357_1345510114089_103639_14268 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114089_103639_14268", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114089_103639_14268"), this);
                 invoke_time = new IntegerParameter("invoke_time", this);
                 sig_17_0_5_edc0357_1348163519133_975185_14677 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1348163519133_975185_14677", null, new ObjectFlow("sig_17_0_5_edc0357_1348163519133_975185_14677"), this);
@@ -766,8 +766,8 @@ public class Customer extends ParameterListenerImpl {
         protected void init_17_0_5_edc0357_1345510113557_625793_13776Collections() {
             parameters.add(sig_17_0_5_edc0357_1348163389494_378042_14636);
             parameters.add(sig_17_0_5_edc0357_1345510114793_324647_15121);
-            parameters.add(sig_17_0_5_edc0357_1348163531723_681524_14685);
             parameters.add(sig_17_0_5_edc0357_1348163666246_377742_14732);
+            parameters.add(sig_17_0_5_edc0357_1348163531723_681524_14685);
             parameters.add(sig_17_0_5_edc0357_1345510114089_103639_14268);
             parameters.add(invoke_time);
             parameters.add(sig_17_0_5_edc0357_1348163519133_975185_14677);
@@ -926,7 +926,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect54 = null;
 
-            public Object effect54Var = null;
+            public Parameter effect54Var = null;
 
             public ElaborationRule elaborationRule55 = null;
 
@@ -937,10 +937,12 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114088_571377_14257_exists = new BooleanParameter("_17_0_5_edc0357_1345510114088_571377_14257_exists", this);
                     _17_0_5_edc0357_1345510114088_487345_14255_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114088_487345_14255_endTime", this);
                     constraint53 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114088_487345_14255_endTime)));
-                    _17_0_5_edc0357_1345510114795_154720_15125Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114795_154720_15125, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114089_103639_14268, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1345510114088_571377_14257_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114088_571377_14257_exists, new Functions.And(new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114089_58426_14269, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114089_297842_14265, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
-                    effect54Var = usage__17_0_5_edc0357_1345510113561_560076_13779;
-                    effect54 = new EffectFunction(new FunctionCall((Object) effect54Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114795_154720_15125 }));
+                    _17_0_5_edc0357_1345510114795_154720_15125Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114795_154720_15125, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114089_103639_14268, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1345510114088_571377_14257_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114088_571377_14257_exists, new Functions.And(new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114089_58426_14269, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114089_297842_14265, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
+                    Object effect54VarV = usage__17_0_5_edc0357_1345510113561_560076_13779;
+                    effect54Var = new Parameter("effect54Var", null, null, this);
+                    addDependency(effect54Var, new Expression(effect54VarV));
+                    effect54 = new EffectFunction(new FunctionCall(effect54Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114795_154720_15125 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1103,13 +1105,9 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1348163580677_177144_14706_exists = new BooleanParameter("_17_0_5_edc0357_1348163580677_177144_14706_exists", this);
                     _17_0_5_edc0357_1345510114088_487345_14255_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114088_487345_14255_endTime", this);
                     constraint58 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114088_487345_14255_endTime)));
-                    FunctionCall nestedCall3 = new FunctionCall(null, TimeVaryingMap.class, "getValue", new Object[] { startTime } );
-                    FunctionCall nestedCall2 = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, nestedCall3 );
-                    FunctionCall call1 = new FunctionCall(_17_0_5_edc0357_1345510114797_445623_15128, Parameter.class, "getMember", new Object[] { "cap__17_0_5_edc0357_1345510113566_55150_13784" }, nestedCall2 );
-                    _17_0_5_edc0357_1345510114796_365668_15127Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114796_365668_15127, new Expression( call1 ) );
-                    //_17_0_5_edc0357_1345510114796_365668_15127Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114796_365668_15127, new Expression(new FunctionCall((Object) (((Parameter<?>) (_17_0_5_edc0357_1345510114797_445623_15128.getMember("cap__17_0_5_edc0357_1345510113566_55150_13784"))).getValue()), Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114087_731407_14254", "generated", "getValue"), new Object[] { new Expression<Integer>(startTime) })));
+                    _17_0_5_edc0357_1345510114796_365668_15127Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114796_365668_15127, new Expression(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114087_731407_14254", "generated", "getValue"), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(_17_0_5_edc0357_1345510114797_445623_15128, Parameter.class, "getMember", new Object[] { "cap__17_0_5_edc0357_1345510113566_55150_13784" })))));
                     _17_0_5_edc0357_1348163517879_726154_14671_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163517879_726154_14671_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1348163580677_177144_14706_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163580677_177144_14706_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163519133_975185_14677, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    _17_0_5_edc0357_1348163580677_177144_14706_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163580677_177144_14706_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163519133_975185_14677, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1128,15 +1126,15 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_5_edc0357_1345510114087_731407_14254Elaborations() {
-                Expression<?>[] arguments59 = new Expression<?>[2];
+                Expression<?>[] arguments59 = new Expression<?>[1];
                 arguments59[0] = new Expression<Integer>(endTime);
-                arguments59[1] = new Expression<Integer>(_17_0_5_edc0357_1345510114796_365668_15127);
-                Expression<Boolean> condition59 = new Expression<Boolean>(_17_0_5_edc0357_1348163517879_726154_14671_exists);
-                elaborationRule59 = addElaborationRule(condition59, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1348163517879_726154_14671.class, "_ForkNode_changePowerUsage", arguments59);
-                Expression<?>[] arguments60 = new Expression<?>[1];
+                Expression<Boolean> condition59 = new Expression<Boolean>(_17_0_5_edc0357_1348163580677_177144_14706_exists);
+                elaborationRule59 = addElaborationRule(condition59, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1348163580677_177144_14706.class, "_DecisionNode_changePowerUsage", arguments59);
+                Expression<?>[] arguments60 = new Expression<?>[2];
                 arguments60[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition60 = new Expression<Boolean>(_17_0_5_edc0357_1348163580677_177144_14706_exists);
-                elaborationRule60 = addElaborationRule(condition60, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1348163580677_177144_14706.class, "_DecisionNode_changePowerUsage", arguments60);
+                arguments60[1] = new Expression<Integer>(_17_0_5_edc0357_1345510114796_365668_15127);
+                Expression<Boolean> condition60 = new Expression<Boolean>(_17_0_5_edc0357_1348163517879_726154_14671_exists);
+                elaborationRule60 = addElaborationRule(condition60, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1348163517879_726154_14671.class, "_ForkNode_changePowerUsage", arguments60);
             }
 
             public _17_0_5_edc0357_1345510114087_731407_14254() {
@@ -1175,7 +1173,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect62 = null;
 
-            public Object effect62Var = null;
+            public Parameter effect62Var = null;
 
             public ElaborationRule elaborationRule63 = null;
 
@@ -1188,10 +1186,12 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114087_731407_14254_exists = new BooleanParameter("_17_0_5_edc0357_1345510114087_731407_14254_exists", this);
                     _17_0_5_edc0357_1345510114087_484087_14249_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114087_484087_14249_endTime", this);
                     constraint61 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114087_484087_14249_endTime)));
-                    _17_0_5_edc0357_1345510114087_795044_14251_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114087_795044_14251_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114089_103639_14268, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    _17_0_5_edc0357_1345510114087_795044_14251_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114087_795044_14251_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114089_103639_14268, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                     _17_0_5_edc0357_1345510114087_731407_14254_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114087_731407_14254_exists, new Expression<Boolean>(true));
-                    effect62Var = sig_17_0_5_edc0357_1345510114089_297842_14265;
-                    effect62 = new EffectFunction(new FunctionCall((Object) effect62Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect62VarV = sig_17_0_5_edc0357_1345510114089_297842_14265;
+                    effect62Var = new Parameter("effect62Var", null, null, this);
+                    addDependency(effect62Var, new Expression(effect62VarV));
+                    effect62 = new EffectFunction(new FunctionCall(effect62Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1288,10 +1288,10 @@ public class Customer extends ParameterListenerImpl {
                     desired = new IntegerParameter("desired", this);
                     _17_0_5_edc0357_1345510114798_618420_15129 = new IntegerParameter("_17_0_5_edc0357_1345510114798_618420_15129", this);
                     constraint65 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348163580677_177144_14706_endTime)));
-                    _17_0_5_edc0357_1345510114792_358855_15120Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114792_358855_15120, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163531723_681524_14685, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    new_loadDependency = new Dependency<Integer>(new_load, new Expression(new FunctionCall((Object) this, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114088_357828_14256", "generated", "min"), new Object[] { new Expression<Integer>(desired), new Expression<Integer>(cap) })));
+                    _17_0_5_edc0357_1345510114792_358855_15120Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114792_358855_15120, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163531723_681524_14685, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    new_loadDependency = new Dependency<Integer>(new_load, new Expression(new FunctionCall(this, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114088_357828_14256", "generated", "min"), new Object[] { new Expression<Integer>(desired), new Expression<Integer>(cap) })));
                     _17_0_5_edc0357_1348165551875_6141_14745_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348165551875_6141_14745_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1345510114791_46408_15119Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114791_46408_15119, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163663482_249339_14727, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1345510114791_46408_15119Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114791_46408_15119, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163663482_249339_14727, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
                     capDependency = new Dependency<Integer>(cap, new Expression<Integer>(_17_0_5_edc0357_1345510114792_358855_15120));
                     _17_0_5_edc0357_1345510114798_618420_15129Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114798_618420_15129, new Expression<Integer>(new_load));
                     desiredDependency = new Dependency<Integer>(desired, new Expression<Integer>(_17_0_5_edc0357_1345510114791_46408_15119));
@@ -1364,7 +1364,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect68 = null;
 
-            public Object effect68Var = null;
+            public Parameter effect68Var = null;
 
             public ElaborationRule elaborationRule69 = null;
 
@@ -1375,11 +1375,13 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114087_791191_14253_exists = new BooleanParameter("_17_0_5_edc0357_1345510114087_791191_14253_exists", this);
                     _17_0_5_edc0357_1345510114800_96164_15132 = new Parameter<Customer>("_17_0_5_edc0357_1345510114800_96164_15132", null, null, this);
                     constraint67 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114087_795044_14251_endTime)));
-                    _17_0_5_edc0357_1345510114801_45672_15133Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114801_45672_15133, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114089_58426_14269, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1345510114801_45672_15133Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114801_45672_15133, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114089_58426_14269, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
                     _17_0_5_edc0357_1345510114087_791191_14253_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114087_791191_14253_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1345510114800_96164_15132Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114800_96164_15132, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114089_297842_14265, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect68Var = (((Parameter<?>) (x.getMember("ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue"))).getValue());
-                    effect68 = new EffectFunction(new FunctionCall((Object) effect68Var, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114088_571377_14257", "generated", "send"), new Object[] { x.getValue().new SignalchangeLoadValue(_17_0_5_edc0357_1345510114801_45672_15133.getValue()), endTime }));
+                    _17_0_5_edc0357_1345510114800_96164_15132Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114800_96164_15132, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114089_297842_14265, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect68VarV = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue" }));
+                    effect68Var = new Parameter("effect68Var", null, null, this);
+                    addDependency(effect68Var, new Expression(effect68VarV));
+                    effect68 = new EffectFunction(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114088_571377_14257", "generated", "send"), new Object[] { x.getValue().new SignalchangeLoadValue(endTime.getValue(), _17_0_5_edc0357_1345510114801_45672_15133.getValue()), endTime }, effect68Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1433,21 +1435,25 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect71 = null;
 
-            public Object effect71Var = null;
+            public Parameter effect71Var = null;
 
             public Effect effect72 = null;
 
-            public Object effect72Var = null;
+            public Parameter effect72Var = null;
 
             public void init_17_0_5_edc0357_1345510114088_999820_14258Members() {
                 try {
                     objectToPass = new IntegerParameter("objectToPass", this);
                     _17_0_5_edc0357_1348165551875_6141_14745_endTime = new IntegerParameter("_17_0_5_edc0357_1348165551875_6141_14745_endTime", this);
                     constraint70 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348165551875_6141_14745_endTime)));
-                    effect71Var = sig_17_0_5_edc0357_1345510114089_103639_14268;
-                    effect71 = new EffectFunction(new FunctionCall((Object) effect71Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect72Var = sig_17_0_5_edc0357_1345510114089_58426_14269;
-                    effect72 = new EffectFunction(new FunctionCall((Object) effect72Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect71VarV = sig_17_0_5_edc0357_1345510114089_103639_14268;
+                    effect71Var = new Parameter("effect71Var", null, null, this);
+                    addDependency(effect71Var, new Expression(effect71VarV));
+                    effect71 = new EffectFunction(new FunctionCall(effect71Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect72VarV = sig_17_0_5_edc0357_1345510114089_58426_14269;
+                    effect72Var = new Parameter("effect72Var", null, null, this);
+                    addDependency(effect72Var, new Expression(effect72VarV));
+                    effect72 = new EffectFunction(new FunctionCall(effect72Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1529,12 +1535,12 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_5_edc0357_1348000726471_590820_13942Elaborations() {
                 Expression<?>[] arguments74 = new Expression<?>[1];
                 arguments74[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition74 = new Expression<Boolean>(_17_0_5_edc0357_1345510114087_224243_14250_exists);
-                elaborationRule74 = addElaborationRule(condition74, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114087_224243_14250.class, "_ValueSpecificationAction_changePowerUsage", arguments74);
+                Expression<Boolean> condition74 = new Expression<Boolean>(_17_0_5_edc0357_1345510114087_484087_14249_exists);
+                elaborationRule74 = addElaborationRule(condition74, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114087_484087_14249.class, "_ReadSelfAction_changePowerUsage", arguments74);
                 Expression<?>[] arguments75 = new Expression<?>[1];
                 arguments75[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition75 = new Expression<Boolean>(_17_0_5_edc0357_1345510114087_484087_14249_exists);
-                elaborationRule75 = addElaborationRule(condition75, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114087_484087_14249.class, "_ReadSelfAction_changePowerUsage", arguments75);
+                Expression<Boolean> condition75 = new Expression<Boolean>(_17_0_5_edc0357_1345510114087_224243_14250_exists);
+                elaborationRule75 = addElaborationRule(condition75, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114087_224243_14250.class, "_ValueSpecificationAction_changePowerUsage", arguments75);
             }
 
             public _17_0_5_edc0357_1348000726471_590820_13942() {
@@ -1593,7 +1599,7 @@ public class Customer extends ParameterListenerImpl {
                     constraint76 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348163580677_177144_14706_endTime)));
                     new_loadDependency = new Dependency<Integer>(new_load, new Expression<Integer>(desired));
                     _17_0_5_edc0357_1348163392389_228149_14655Dependency = new Dependency<Integer>(_17_0_5_edc0357_1348163392389_228149_14655, new Expression<Integer>(new_load));
-                    _17_0_5_edc0357_1348163632207_233130_14717Dependency = new Dependency<Integer>(_17_0_5_edc0357_1348163632207_233130_14717, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163666246_377742_14732, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1348163632207_233130_14717Dependency = new Dependency<Integer>(_17_0_5_edc0357_1348163632207_233130_14717, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163666246_377742_14732, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
                     _17_0_5_edc0357_1348165551875_6141_14745_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348165551875_6141_14745_exists, new Expression<Boolean>(true));
                     desiredDependency = new Dependency<Integer>(desired, new Expression<Integer>(_17_0_5_edc0357_1348163632207_233130_14717));
                 } catch (Exception e) {
@@ -1651,21 +1657,25 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect79 = null;
 
-            public Object effect79Var = null;
+            public Parameter effect79Var = null;
 
             public Effect effect80 = null;
 
-            public Object effect80Var = null;
+            public Parameter effect80Var = null;
 
             public void init_17_0_5_edc0357_1348163517879_726154_14671Members() {
                 try {
                     objectToPass = new IntegerParameter("objectToPass", this);
                     _17_0_5_edc0357_1345510114087_731407_14254_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114087_731407_14254_endTime", this);
                     constraint78 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114087_731407_14254_endTime)));
-                    effect79Var = sig_17_0_5_edc0357_1348163519133_975185_14677;
-                    effect79 = new EffectFunction(new FunctionCall((Object) effect79Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect80Var = sig_17_0_5_edc0357_1348163531723_681524_14685;
-                    effect80 = new EffectFunction(new FunctionCall((Object) effect80Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect79VarV = sig_17_0_5_edc0357_1348163519133_975185_14677;
+                    effect79Var = new Parameter("effect79Var", null, null, this);
+                    addDependency(effect79Var, new Expression(effect79VarV));
+                    effect79 = new EffectFunction(new FunctionCall(effect79Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect80VarV = sig_17_0_5_edc0357_1348163531723_681524_14685;
+                    effect80Var = new Parameter("effect80Var", null, null, this);
+                    addDependency(effect80Var, new Expression(effect80VarV));
+                    effect80 = new EffectFunction(new FunctionCall(effect80Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1733,9 +1743,9 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114088_357828_14256_exists = new BooleanParameter("_17_0_5_edc0357_1345510114088_357828_14256_exists", this);
                     _17_0_5_edc0357_1345510114087_731407_14254_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114087_731407_14254_endTime", this);
                     constraint81 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114087_731407_14254_endTime)));
-                    _17_0_5_edc0357_1348163519133_975185_14677Dependency = new Dependency<Integer>(_17_0_5_edc0357_1348163519133_975185_14677, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163519133_975185_14677, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1348163392370_265702_14643_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163392370_265702_14643_exists, new Functions.And(new Functions.LessEquals(new Expression<Integer>(_17_0_5_edc0357_1348163519133_975185_14677), new Expression<Integer>(0)), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163666246_377742_14732, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
-                    _17_0_5_edc0357_1345510114088_357828_14256_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114088_357828_14256_exists, new Functions.And(new Functions.And(new Functions.Greater(new Expression<Integer>(_17_0_5_edc0357_1348163519133_975185_14677), new Expression<Integer>(0)), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163663482_249339_14727, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348163531723_681524_14685, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
+                    _17_0_5_edc0357_1348163519133_975185_14677Dependency = new Dependency<Integer>(_17_0_5_edc0357_1348163519133_975185_14677, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163519133_975185_14677, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1348163392370_265702_14643_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163392370_265702_14643_exists, new Functions.And(new Functions.LessEquals(new Expression<Integer>(_17_0_5_edc0357_1348163519133_975185_14677), new Expression<Integer>(0)), new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163666246_377742_14732, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
+                    _17_0_5_edc0357_1345510114088_357828_14256_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114088_357828_14256_exists, new Functions.And(new Functions.And(new Functions.Greater(new Expression<Integer>(_17_0_5_edc0357_1348163519133_975185_14677), new Expression<Integer>(0)), new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163663482_249339_14727, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))), new Expression(new FunctionCall(sig_17_0_5_edc0357_1348163531723_681524_14685, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1755,12 +1765,12 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_5_edc0357_1348163580677_177144_14706Elaborations() {
                 Expression<?>[] arguments82 = new Expression<?>[1];
                 arguments82[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition82 = new Expression<Boolean>(_17_0_5_edc0357_1345510114088_357828_14256_exists);
-                elaborationRule82 = addElaborationRule(condition82, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114088_357828_14256.class, "min_CallBehaviorAction_changePowerUsage", arguments82);
+                Expression<Boolean> condition82 = new Expression<Boolean>(_17_0_5_edc0357_1348163392370_265702_14643_exists);
+                elaborationRule82 = addElaborationRule(condition82, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1348163392370_265702_14643.class, "setd_CallBehaviorAction_changePowerUsage", arguments82);
                 Expression<?>[] arguments83 = new Expression<?>[1];
                 arguments83[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition83 = new Expression<Boolean>(_17_0_5_edc0357_1348163392370_265702_14643_exists);
-                elaborationRule83 = addElaborationRule(condition83, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1348163392370_265702_14643.class, "setd_CallBehaviorAction_changePowerUsage", arguments83);
+                Expression<Boolean> condition83 = new Expression<Boolean>(_17_0_5_edc0357_1345510114088_357828_14256_exists);
+                elaborationRule83 = addElaborationRule(condition83, _17_0_5_edc0357_1345510113557_625793_13776.this, Customer._17_0_5_edc0357_1345510113557_625793_13776._17_0_5_edc0357_1345510114088_357828_14256.class, "min_CallBehaviorAction_changePowerUsage", arguments83);
             }
 
             public _17_0_5_edc0357_1348163580677_177144_14706() {
@@ -1790,21 +1800,25 @@ public class Customer extends ParameterListenerImpl {
 
             public Effect effect85 = null;
 
-            public Object effect85Var = null;
+            public Parameter effect85Var = null;
 
             public Effect effect86 = null;
 
-            public Object effect86Var = null;
+            public Parameter effect86Var = null;
 
             public void init_17_0_5_edc0357_1348163662246_240262_14722Members() {
                 try {
                     objectToPass = new IntegerParameter("objectToPass", this);
                     _17_0_5_edc0357_1345510114087_224243_14250_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114087_224243_14250_endTime", this);
                     constraint84 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114087_224243_14250_endTime)));
-                    effect85Var = sig_17_0_5_edc0357_1348163663482_249339_14727;
-                    effect85 = new EffectFunction(new FunctionCall((Object) effect85Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect86Var = sig_17_0_5_edc0357_1348163666246_377742_14732;
-                    effect86 = new EffectFunction(new FunctionCall((Object) effect86Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect85VarV = sig_17_0_5_edc0357_1348163663482_249339_14727;
+                    effect85Var = new Parameter("effect85Var", null, null, this);
+                    addDependency(effect85Var, new Expression(effect85VarV));
+                    effect85 = new EffectFunction(new FunctionCall(effect85Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect86VarV = sig_17_0_5_edc0357_1348163666246_377742_14732;
+                    effect86Var = new Parameter("effect86Var", null, null, this);
+                    addDependency(effect86Var, new Expression(effect86VarV));
+                    effect86 = new EffectFunction(new FunctionCall(effect86Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1920,13 +1934,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Customer> > sig_17_0_5_edc0357_1345510114105_129800_14307 = null;
 
-        public Parameter< ObjectFlow<Object> > sig_17_0_5_edc0357_1345510114106_840970_14313 = null;
-
-        public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1345510114105_724841_14306 = null;
+        public Parameter< ObjectFlow<Boolean> > sig_17_0_5_edc0357_1345510114106_840970_14313 = null;
 
         public IntegerParameter invoke_time = null;
-
-        public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1345510114105_938474_14303 = null;
 
         public ElaborationRule elaborationRule89 = null;
 
@@ -1934,10 +1944,8 @@ public class Customer extends ParameterListenerImpl {
             try {
                 sig_17_0_5_edc0357_1345510114105_705998_14305 = new Parameter<ObjectFlow<Customer>>("sig_17_0_5_edc0357_1345510114105_705998_14305", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114105_705998_14305"), this);
                 sig_17_0_5_edc0357_1345510114105_129800_14307 = new Parameter<ObjectFlow<Customer>>("sig_17_0_5_edc0357_1345510114105_129800_14307", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114105_129800_14307"), this);
-                sig_17_0_5_edc0357_1345510114106_840970_14313 = new Parameter<ObjectFlow<Object>>("sig_17_0_5_edc0357_1345510114106_840970_14313", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114106_840970_14313"), this);
-                sig_17_0_5_edc0357_1345510114105_724841_14306 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114105_724841_14306", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114105_724841_14306"), this);
+                sig_17_0_5_edc0357_1345510114106_840970_14313 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_5_edc0357_1345510114106_840970_14313", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114106_840970_14313"), this);
                 invoke_time = new IntegerParameter("invoke_time", this);
-                sig_17_0_5_edc0357_1345510114105_938474_14303 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114105_938474_14303", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114105_938474_14303"), this);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1947,9 +1955,7 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(sig_17_0_5_edc0357_1345510114105_705998_14305);
             parameters.add(sig_17_0_5_edc0357_1345510114105_129800_14307);
             parameters.add(sig_17_0_5_edc0357_1345510114106_840970_14313);
-            parameters.add(sig_17_0_5_edc0357_1345510114105_724841_14306);
             parameters.add(invoke_time);
-            parameters.add(sig_17_0_5_edc0357_1345510114105_938474_14303);
         }
 
         public void init_17_0_5_edc0357_1345510113559_180117_13777Elaborations() {
@@ -1970,16 +1976,22 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1345510114104_596689_14298_exists = null;
 
+            public IntegerParameter _17_0_5_edc0357_1348690759146_406635_13262_endTime = null;
+
             public Parameter< Customer > _17_0_5_edc0357_1345510114806_956292_15147 = null;
+
+            public ConstraintExpression constraint90 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114104_596689_14298_existsDependency = null;
 
-            public ElaborationRule elaborationRule90 = null;
+            public ElaborationRule elaborationRule91 = null;
 
             public void init_17_0_5_edc0357_1345510114103_775997_14293Members() {
                 try {
                     _17_0_5_edc0357_1345510114104_596689_14298_exists = new BooleanParameter("_17_0_5_edc0357_1345510114104_596689_14298_exists", this);
+                    _17_0_5_edc0357_1348690759146_406635_13262_endTime = new IntegerParameter("_17_0_5_edc0357_1348690759146_406635_13262_endTime", this);
                     _17_0_5_edc0357_1345510114806_956292_15147 = new Parameter<Customer>("_17_0_5_edc0357_1345510114806_956292_15147", null, Customer.this, this);
+                    constraint90 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348690759146_406635_13262_endTime)));
                     _17_0_5_edc0357_1345510114104_596689_14298_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_596689_14298_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1988,16 +2000,18 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114103_775997_14293Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114104_596689_14298_exists);
+                parameters.add(_17_0_5_edc0357_1348690759146_406635_13262_endTime);
                 parameters.add(_17_0_5_edc0357_1345510114806_956292_15147);
+                constraintExpressions.add(constraint90);
                 dependencies.add(_17_0_5_edc0357_1345510114104_596689_14298_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1345510114103_775997_14293Elaborations() {
-                Expression<?>[] arguments90 = new Expression<?>[2];
-                arguments90[0] = new Expression<Integer>(endTime);
-                arguments90[1] = new Expression<Customer>(_17_0_5_edc0357_1345510114806_956292_15147);
-                Expression<Boolean> condition90 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_596689_14298_exists);
-                elaborationRule90 = addElaborationRule(condition90, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_596689_14298.class, "_ForkNode_initialize", arguments90);
+                Expression<?>[] arguments91 = new Expression<?>[2];
+                arguments91[0] = new Expression<Integer>(endTime);
+                arguments91[1] = new Expression<Customer>(_17_0_5_edc0357_1345510114806_956292_15147);
+                Expression<Boolean> condition91 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_596689_14298_exists);
+                elaborationRule91 = addElaborationRule(condition91, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_596689_14298.class, "_ForkNode_initialize", arguments91);
             }
 
             public _17_0_5_edc0357_1345510114103_775997_14293() {
@@ -2006,21 +2020,38 @@ public class Customer extends ParameterListenerImpl {
                 init_17_0_5_edc0357_1345510114103_775997_14293Collections();
                 init_17_0_5_edc0357_1345510114103_775997_14293Elaborations();
             }
+
+            public _17_0_5_edc0357_1345510114103_775997_14293(Expression<Integer> _17_0_5_edc0357_1348690759146_406635_13262_endTime) {
+                super();
+                init_17_0_5_edc0357_1345510114103_775997_14293Members();
+                init_17_0_5_edc0357_1345510114103_775997_14293Collections();
+                addDependency(this._17_0_5_edc0357_1348690759146_406635_13262_endTime, _17_0_5_edc0357_1348690759146_406635_13262_endTime);
+                init_17_0_5_edc0357_1345510114103_775997_14293Elaborations();
+                fixTimeDependencies();
+            }
         }
 
         public class _17_0_5_edc0357_1345510114103_36875_14294 extends DurativeEvent {
 
             public IntegerParameter _17_0_5_edc0357_1345510114807_983002_15149 = null;
 
-            public Effect effect91 = null;
+            public BooleanParameter _17_0_5_edc0357_1345510114103_810338_14295_exists = null;
 
-            public Object effect91Var = null;
+            public IntegerParameter _17_0_5_edc0357_1348690759146_406635_13262_endTime = null;
+
+            public ConstraintExpression constraint92 = null;
+
+            public Dependency< Boolean > _17_0_5_edc0357_1345510114103_810338_14295_existsDependency = null;
+
+            public ElaborationRule elaborationRule93 = null;
 
             public void init_17_0_5_edc0357_1345510114103_36875_14294Members() {
                 try {
                     _17_0_5_edc0357_1345510114807_983002_15149 = new IntegerParameter("_17_0_5_edc0357_1345510114807_983002_15149", this);
-                    effect91Var = sig_17_0_5_edc0357_1345510114105_938474_14303;
-                    effect91 = new EffectFunction(new FunctionCall((Object) effect91Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1345510114807_983002_15149, startTime }));
+                    _17_0_5_edc0357_1345510114103_810338_14295_exists = new BooleanParameter("_17_0_5_edc0357_1345510114103_810338_14295_exists", this);
+                    _17_0_5_edc0357_1348690759146_406635_13262_endTime = new IntegerParameter("_17_0_5_edc0357_1348690759146_406635_13262_endTime", this);
+                    constraint92 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348690759146_406635_13262_endTime)));
+                    _17_0_5_edc0357_1345510114103_810338_14295_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114103_810338_14295_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114105_705998_14305, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2028,12 +2059,18 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114103_36875_14294Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114807_983002_15149);
-                Set<Effect> effectsForeffect91Var = new HashSet<Effect>();
-                effectsForeffect91Var.add(effect91);
-                effects.put((Parameter<?>) effect91Var, effectsForeffect91Var);
+                parameters.add(_17_0_5_edc0357_1345510114103_810338_14295_exists);
+                parameters.add(_17_0_5_edc0357_1348690759146_406635_13262_endTime);
+                constraintExpressions.add(constraint92);
+                dependencies.add(_17_0_5_edc0357_1345510114103_810338_14295_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1345510114103_36875_14294Elaborations() {
+                Expression<?>[] arguments93 = new Expression<?>[2];
+                arguments93[0] = new Expression<Integer>(endTime);
+                arguments93[1] = new Expression<Integer>(_17_0_5_edc0357_1345510114807_983002_15149);
+                Expression<Boolean> condition93 = new Expression<Boolean>(_17_0_5_edc0357_1345510114103_810338_14295_exists);
+                elaborationRule93 = addElaborationRule(condition93, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114103_810338_14295.class, "_AddStructuralFeatureValueAction_initialize", arguments93);
             }
 
             public _17_0_5_edc0357_1345510114103_36875_14294() {
@@ -2042,44 +2079,52 @@ public class Customer extends ParameterListenerImpl {
                 init_17_0_5_edc0357_1345510114103_36875_14294Collections();
                 init_17_0_5_edc0357_1345510114103_36875_14294Elaborations();
             }
+
+            public _17_0_5_edc0357_1345510114103_36875_14294(Expression<Integer> _17_0_5_edc0357_1348690759146_406635_13262_endTime) {
+                super();
+                init_17_0_5_edc0357_1345510114103_36875_14294Members();
+                init_17_0_5_edc0357_1345510114103_36875_14294Collections();
+                addDependency(this._17_0_5_edc0357_1348690759146_406635_13262_endTime, _17_0_5_edc0357_1348690759146_406635_13262_endTime);
+                init_17_0_5_edc0357_1345510114103_36875_14294Elaborations();
+                fixTimeDependencies();
+            }
         }
 
         public class _17_0_5_edc0357_1345510114103_810338_14295 extends DurativeEvent {
 
             public IntegerParameter _17_0_5_edc0357_1345510114808_431003_15150 = null;
 
-            public IntegerParameter _17_0_5_edc0357_1345510114104_812599_14301_endTime = null;
+            public IntegerParameter _17_0_5_edc0357_1345510114103_36875_14294_endTime = null;
 
             public BooleanParameter _17_0_5_edc0357_1345510114104_720146_14302_exists = null;
 
             public Parameter< Customer > _17_0_5_edc0357_1345510114809_763294_15151 = null;
 
-            public ConstraintExpression constraint92 = null;
-
-            public Dependency< Integer > _17_0_5_edc0357_1345510114808_431003_15150Dependency = null;
+            public ConstraintExpression constraint94 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114104_720146_14302_existsDependency = null;
 
             public Dependency< Customer > _17_0_5_edc0357_1345510114809_763294_15151Dependency = null;
 
-            public Effect effect93 = null;
+            public Effect effect95 = null;
 
-            public Object effect93Var = null;
+            public Parameter effect95Var = null;
 
-            public ElaborationRule elaborationRule94 = null;
+            public ElaborationRule elaborationRule96 = null;
 
             public void init_17_0_5_edc0357_1345510114103_810338_14295Members() {
                 try {
                     _17_0_5_edc0357_1345510114808_431003_15150 = new IntegerParameter("_17_0_5_edc0357_1345510114808_431003_15150", this);
-                    _17_0_5_edc0357_1345510114104_812599_14301_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114104_812599_14301_endTime", this);
+                    _17_0_5_edc0357_1345510114103_36875_14294_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114103_36875_14294_endTime", this);
                     _17_0_5_edc0357_1345510114104_720146_14302_exists = new BooleanParameter("_17_0_5_edc0357_1345510114104_720146_14302_exists", this);
                     _17_0_5_edc0357_1345510114809_763294_15151 = new Parameter<Customer>("_17_0_5_edc0357_1345510114809_763294_15151", null, null, this);
-                    constraint92 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114104_812599_14301_endTime)));
-                    _17_0_5_edc0357_1345510114808_431003_15150Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114808_431003_15150, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_938474_14303, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1345510114104_720146_14302_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_720146_14302_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114106_840970_14313, Utils.getMethodForArgTypes("ObjectFlow<Object>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
-                    _17_0_5_edc0357_1345510114809_763294_15151Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114809_763294_15151, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_705998_14305, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect93Var = usage__17_0_5_edc0357_1345510113561_560076_13779;
-                    effect93 = new EffectFunction(new FunctionCall((Object) effect93Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114808_431003_15150 }));
+                    constraint94 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114103_36875_14294_endTime)));
+                    _17_0_5_edc0357_1345510114104_720146_14302_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_720146_14302_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114106_840970_14313, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    _17_0_5_edc0357_1345510114809_763294_15151Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114809_763294_15151, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114105_705998_14305, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect95VarV = usage__17_0_5_edc0357_1345510113561_560076_13779;
+                    effect95Var = new Parameter("effect95Var", null, null, this);
+                    addDependency(effect95Var, new Expression(effect95VarV));
+                    effect95 = new EffectFunction(new FunctionCall(effect95Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114808_431003_15150 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2087,23 +2132,22 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114103_810338_14295Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114808_431003_15150);
-                parameters.add(_17_0_5_edc0357_1345510114104_812599_14301_endTime);
+                parameters.add(_17_0_5_edc0357_1345510114103_36875_14294_endTime);
                 parameters.add(_17_0_5_edc0357_1345510114104_720146_14302_exists);
                 parameters.add(_17_0_5_edc0357_1345510114809_763294_15151);
-                constraintExpressions.add(constraint92);
-                dependencies.add(_17_0_5_edc0357_1345510114808_431003_15150Dependency);
+                constraintExpressions.add(constraint94);
                 dependencies.add(_17_0_5_edc0357_1345510114104_720146_14302_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1345510114809_763294_15151Dependency);
-                Set<Effect> effectsForeffect93Var = new HashSet<Effect>();
-                effectsForeffect93Var.add(effect93);
-                effects.put((Parameter<?>) effect93Var, effectsForeffect93Var);
+                Set<Effect> effectsForeffect95Var = new HashSet<Effect>();
+                effectsForeffect95Var.add(effect95);
+                effects.put((Parameter<?>) effect95Var, effectsForeffect95Var);
             }
 
             public void init_17_0_5_edc0357_1345510114103_810338_14295Elaborations() {
-                Expression<?>[] arguments94 = new Expression<?>[1];
-                arguments94[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition94 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_720146_14302_exists);
-                elaborationRule94 = addElaborationRule(condition94, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_720146_14302.class, "_JoinNode_initialize", arguments94);
+                Expression<?>[] arguments96 = new Expression<?>[1];
+                arguments96[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition96 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_720146_14302_exists);
+                elaborationRule96 = addElaborationRule(condition96, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_720146_14302.class, "_JoinNode_initialize", arguments96);
             }
 
             public _17_0_5_edc0357_1345510114103_810338_14295() {
@@ -2113,11 +2157,12 @@ public class Customer extends ParameterListenerImpl {
                 init_17_0_5_edc0357_1345510114103_810338_14295Elaborations();
             }
 
-            public _17_0_5_edc0357_1345510114103_810338_14295(Expression<Integer> _17_0_5_edc0357_1345510114104_812599_14301_endTime) {
+            public _17_0_5_edc0357_1345510114103_810338_14295(Expression<Integer> _17_0_5_edc0357_1345510114103_36875_14294_endTime, Expression<Integer> _17_0_5_edc0357_1345510114808_431003_15150) {
                 super();
                 init_17_0_5_edc0357_1345510114103_810338_14295Members();
                 init_17_0_5_edc0357_1345510114103_810338_14295Collections();
-                addDependency(this._17_0_5_edc0357_1345510114104_812599_14301_endTime, _17_0_5_edc0357_1345510114104_812599_14301_endTime);
+                addDependency(this._17_0_5_edc0357_1345510114103_36875_14294_endTime, _17_0_5_edc0357_1345510114103_36875_14294_endTime);
+                addDependency(this._17_0_5_edc0357_1345510114808_431003_15150, _17_0_5_edc0357_1345510114808_431003_15150);
                 init_17_0_5_edc0357_1345510114103_810338_14295Elaborations();
                 fixTimeDependencies();
             }
@@ -2125,31 +2170,31 @@ public class Customer extends ParameterListenerImpl {
 
         public class _17_0_5_edc0357_1345510114103_561395_14296 extends DurativeEvent {
 
-            public BooleanParameter _17_0_5_edc0357_1345510114104_812599_14301_exists = null;
+            public BooleanParameter _17_0_5_edc0357_1348690759146_406635_13262_exists = null;
 
-            public Dependency< Boolean > _17_0_5_edc0357_1345510114104_812599_14301_existsDependency = null;
+            public Dependency< Boolean > _17_0_5_edc0357_1348690759146_406635_13262_existsDependency = null;
 
-            public ElaborationRule elaborationRule95 = null;
+            public ElaborationRule elaborationRule97 = null;
 
             public void init_17_0_5_edc0357_1345510114103_561395_14296Members() {
                 try {
-                    _17_0_5_edc0357_1345510114104_812599_14301_exists = new BooleanParameter("_17_0_5_edc0357_1345510114104_812599_14301_exists", this);
-                    _17_0_5_edc0357_1345510114104_812599_14301_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_812599_14301_exists, new Expression<Boolean>(true));
+                    _17_0_5_edc0357_1348690759146_406635_13262_exists = new BooleanParameter("_17_0_5_edc0357_1348690759146_406635_13262_exists", this);
+                    _17_0_5_edc0357_1348690759146_406635_13262_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348690759146_406635_13262_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             protected void init_17_0_5_edc0357_1345510114103_561395_14296Collections() {
-                parameters.add(_17_0_5_edc0357_1345510114104_812599_14301_exists);
-                dependencies.add(_17_0_5_edc0357_1345510114104_812599_14301_existsDependency);
+                parameters.add(_17_0_5_edc0357_1348690759146_406635_13262_exists);
+                dependencies.add(_17_0_5_edc0357_1348690759146_406635_13262_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1345510114103_561395_14296Elaborations() {
-                Expression<?>[] arguments95 = new Expression<?>[1];
-                arguments95[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition95 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_812599_14301_exists);
-                elaborationRule95 = addElaborationRule(condition95, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_812599_14301.class, "_ForkNode_initialize", arguments95);
+                Expression<?>[] arguments97 = new Expression<?>[1];
+                arguments97[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition97 = new Expression<Boolean>(_17_0_5_edc0357_1348690759146_406635_13262_exists);
+                elaborationRule97 = addElaborationRule(condition97, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1348690759146_406635_13262.class, "_ForkNode_initialize", arguments97);
             }
 
             public _17_0_5_edc0357_1345510114103_561395_14296() {
@@ -2174,12 +2219,12 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1345510114104_720146_14302_endTime = null;
 
-            public ConstraintExpression constraint96 = null;
+            public ConstraintExpression constraint98 = null;
 
             public void init_17_0_5_edc0357_1345510114103_977080_14297Members() {
                 try {
                     _17_0_5_edc0357_1345510114104_720146_14302_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114104_720146_14302_endTime", this);
-                    constraint96 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114104_720146_14302_endTime)));
+                    constraint98 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114104_720146_14302_endTime)));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2187,7 +2232,7 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114103_977080_14297Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114104_720146_14302_endTime);
-                constraintExpressions.add(constraint96);
+                constraintExpressions.add(constraint98);
             }
 
             public void init_17_0_5_edc0357_1345510114103_977080_14297Elaborations() {
@@ -2216,25 +2261,29 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1345510114103_775997_14293_endTime = null;
 
-            public ConstraintExpression constraint97 = null;
+            public ConstraintExpression constraint99 = null;
 
-            public Effect effect98 = null;
+            public Effect effect100 = null;
 
-            public Object effect98Var = null;
+            public Parameter effect100Var = null;
 
-            public Effect effect99 = null;
+            public Effect effect101 = null;
 
-            public Object effect99Var = null;
+            public Parameter effect101Var = null;
 
             public void init_17_0_5_edc0357_1345510114104_596689_14298Members() {
                 try {
                     objectToPass = new Parameter<Customer>("objectToPass", null, null, this);
                     _17_0_5_edc0357_1345510114103_775997_14293_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114103_775997_14293_endTime", this);
-                    constraint97 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114103_775997_14293_endTime)));
-                    effect98Var = sig_17_0_5_edc0357_1345510114105_705998_14305;
-                    effect98 = new EffectFunction(new FunctionCall((Object) effect98Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect99Var = sig_17_0_5_edc0357_1345510114105_129800_14307;
-                    effect99 = new EffectFunction(new FunctionCall((Object) effect99Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    constraint99 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114103_775997_14293_endTime)));
+                    Object effect100VarV = sig_17_0_5_edc0357_1345510114105_705998_14305;
+                    effect100Var = new Parameter("effect100Var", null, null, this);
+                    addDependency(effect100Var, new Expression(effect100VarV));
+                    effect100 = new EffectFunction(new FunctionCall(effect100Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect101VarV = sig_17_0_5_edc0357_1345510114105_129800_14307;
+                    effect101Var = new Parameter("effect101Var", null, null, this);
+                    addDependency(effect101Var, new Expression(effect101VarV));
+                    effect101 = new EffectFunction(new FunctionCall(effect101Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2243,13 +2292,13 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1345510114104_596689_14298Collections() {
                 parameters.add(objectToPass);
                 parameters.add(_17_0_5_edc0357_1345510114103_775997_14293_endTime);
-                constraintExpressions.add(constraint97);
-                Set<Effect> effectsForeffect98Var = new HashSet<Effect>();
-                effectsForeffect98Var.add(effect98);
-                effects.put((Parameter<?>) effect98Var, effectsForeffect98Var);
-                Set<Effect> effectsForeffect99Var = new HashSet<Effect>();
-                effectsForeffect99Var.add(effect99);
-                effects.put((Parameter<?>) effect99Var, effectsForeffect99Var);
+                constraintExpressions.add(constraint99);
+                Set<Effect> effectsForeffect100Var = new HashSet<Effect>();
+                effectsForeffect100Var.add(effect100);
+                effects.put((Parameter<?>) effect100Var, effectsForeffect100Var);
+                Set<Effect> effectsForeffect101Var = new HashSet<Effect>();
+                effectsForeffect101Var.add(effect101);
+                effects.put((Parameter<?>) effect101Var, effectsForeffect101Var);
             }
 
             public void init_17_0_5_edc0357_1345510114104_596689_14298Elaborations() {
@@ -2277,36 +2326,37 @@ public class Customer extends ParameterListenerImpl {
 
             public Parameter< Customer > _17_0_5_edc0357_1345510114810_534712_15153 = null;
 
-            public IntegerParameter _17_0_5_edc0357_1345510114104_812599_14301_endTime = null;
+            public IntegerParameter _17_0_5_edc0357_1345510114104_334510_14300_endTime = null;
 
             public IntegerParameter _17_0_5_edc0357_1345510114810_895741_15152 = null;
 
-            public ConstraintExpression constraint100 = null;
+            public ConstraintExpression constraint102 = null;
 
             public Dependency< Customer > _17_0_5_edc0357_1345510114810_534712_15153Dependency = null;
 
-            public Dependency< Integer > _17_0_5_edc0357_1345510114810_895741_15152Dependency = null;
+            public Effect effect103 = null;
 
-            public Effect effect101 = null;
+            public Parameter effect103Var = null;
 
-            public Object effect101Var = null;
+            public Effect effect104 = null;
 
-            public Effect effect102 = null;
-
-            public Object effect102Var = null;
+            public Parameter effect104Var = null;
 
             public void init_17_0_5_edc0357_1345510114104_663398_14299Members() {
                 try {
                     _17_0_5_edc0357_1345510114810_534712_15153 = new Parameter<Customer>("_17_0_5_edc0357_1345510114810_534712_15153", null, null, this);
-                    _17_0_5_edc0357_1345510114104_812599_14301_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114104_812599_14301_endTime", this);
+                    _17_0_5_edc0357_1345510114104_334510_14300_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114104_334510_14300_endTime", this);
                     _17_0_5_edc0357_1345510114810_895741_15152 = new IntegerParameter("_17_0_5_edc0357_1345510114810_895741_15152", this);
-                    constraint100 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114104_812599_14301_endTime)));
-                    _17_0_5_edc0357_1345510114810_534712_15153Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114810_534712_15153, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_129800_14307, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1345510114810_895741_15152Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114810_895741_15152, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_724841_14306, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect101Var = sig_17_0_5_edc0357_1345510114106_840970_14313;
-                    effect101 = new EffectFunction(new FunctionCall((Object) effect101Var, Utils.getMethodForArgTypes("ObjectFlow<Object>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { true, startTime }));
-                    effect102Var = cap__17_0_5_edc0357_1345510113566_55150_13784;
-                    effect102 = new EffectFunction(new FunctionCall((Object) effect102Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114810_895741_15152 }));
+                    constraint102 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114104_334510_14300_endTime)));
+                    _17_0_5_edc0357_1345510114810_534712_15153Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114810_534712_15153, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114105_129800_14307, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect103VarV = sig_17_0_5_edc0357_1345510114106_840970_14313;
+                    effect103Var = new Parameter("effect103Var", null, null, this);
+                    addDependency(effect103Var, new Expression(effect103VarV));
+                    effect103 = new EffectFunction(new FunctionCall(effect103Var, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { true, startTime }));
+                    Object effect104VarV = cap__17_0_5_edc0357_1345510113566_55150_13784;
+                    effect104Var = new Parameter("effect104Var", null, null, this);
+                    addDependency(effect104Var, new Expression(effect104VarV));
+                    effect104 = new EffectFunction(new FunctionCall(effect104Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114810_895741_15152 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2314,17 +2364,16 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114104_663398_14299Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114810_534712_15153);
-                parameters.add(_17_0_5_edc0357_1345510114104_812599_14301_endTime);
+                parameters.add(_17_0_5_edc0357_1345510114104_334510_14300_endTime);
                 parameters.add(_17_0_5_edc0357_1345510114810_895741_15152);
-                constraintExpressions.add(constraint100);
+                constraintExpressions.add(constraint102);
                 dependencies.add(_17_0_5_edc0357_1345510114810_534712_15153Dependency);
-                dependencies.add(_17_0_5_edc0357_1345510114810_895741_15152Dependency);
-                Set<Effect> effectsForeffect101Var = new HashSet<Effect>();
-                effectsForeffect101Var.add(effect101);
-                effects.put((Parameter<?>) effect101Var, effectsForeffect101Var);
-                Set<Effect> effectsForeffect102Var = new HashSet<Effect>();
-                effectsForeffect102Var.add(effect102);
-                effects.put((Parameter<?>) effect102Var, effectsForeffect102Var);
+                Set<Effect> effectsForeffect103Var = new HashSet<Effect>();
+                effectsForeffect103Var.add(effect103);
+                effects.put((Parameter<?>) effect103Var, effectsForeffect103Var);
+                Set<Effect> effectsForeffect104Var = new HashSet<Effect>();
+                effectsForeffect104Var.add(effect104);
+                effects.put((Parameter<?>) effect104Var, effectsForeffect104Var);
             }
 
             public void init_17_0_5_edc0357_1345510114104_663398_14299Elaborations() {
@@ -2337,11 +2386,12 @@ public class Customer extends ParameterListenerImpl {
                 init_17_0_5_edc0357_1345510114104_663398_14299Elaborations();
             }
 
-            public _17_0_5_edc0357_1345510114104_663398_14299(Expression<Integer> _17_0_5_edc0357_1345510114104_812599_14301_endTime) {
+            public _17_0_5_edc0357_1345510114104_663398_14299(Expression<Integer> _17_0_5_edc0357_1345510114104_334510_14300_endTime, Expression<Integer> _17_0_5_edc0357_1345510114810_895741_15152) {
                 super();
                 init_17_0_5_edc0357_1345510114104_663398_14299Members();
                 init_17_0_5_edc0357_1345510114104_663398_14299Collections();
-                addDependency(this._17_0_5_edc0357_1345510114104_812599_14301_endTime, _17_0_5_edc0357_1345510114104_812599_14301_endTime);
+                addDependency(this._17_0_5_edc0357_1345510114104_334510_14300_endTime, _17_0_5_edc0357_1345510114104_334510_14300_endTime);
+                addDependency(this._17_0_5_edc0357_1345510114810_895741_15152, _17_0_5_edc0357_1345510114810_895741_15152);
                 init_17_0_5_edc0357_1345510114104_663398_14299Elaborations();
                 fixTimeDependencies();
             }
@@ -2351,15 +2401,23 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1345510114811_932135_15155 = null;
 
-            public Effect effect103 = null;
+            public BooleanParameter _17_0_5_edc0357_1345510114104_663398_14299_exists = null;
 
-            public Object effect103Var = null;
+            public IntegerParameter _17_0_5_edc0357_1348690759146_406635_13262_endTime = null;
+
+            public ConstraintExpression constraint105 = null;
+
+            public Dependency< Boolean > _17_0_5_edc0357_1345510114104_663398_14299_existsDependency = null;
+
+            public ElaborationRule elaborationRule106 = null;
 
             public void init_17_0_5_edc0357_1345510114104_334510_14300Members() {
                 try {
                     _17_0_5_edc0357_1345510114811_932135_15155 = new IntegerParameter("_17_0_5_edc0357_1345510114811_932135_15155", this);
-                    effect103Var = sig_17_0_5_edc0357_1345510114105_724841_14306;
-                    effect103 = new EffectFunction(new FunctionCall((Object) effect103Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1345510114811_932135_15155, startTime }));
+                    _17_0_5_edc0357_1345510114104_663398_14299_exists = new BooleanParameter("_17_0_5_edc0357_1345510114104_663398_14299_exists", this);
+                    _17_0_5_edc0357_1348690759146_406635_13262_endTime = new IntegerParameter("_17_0_5_edc0357_1348690759146_406635_13262_endTime", this);
+                    constraint105 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348690759146_406635_13262_endTime)));
+                    _17_0_5_edc0357_1345510114104_663398_14299_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_663398_14299_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114105_129800_14307, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2367,12 +2425,18 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114104_334510_14300Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114811_932135_15155);
-                Set<Effect> effectsForeffect103Var = new HashSet<Effect>();
-                effectsForeffect103Var.add(effect103);
-                effects.put((Parameter<?>) effect103Var, effectsForeffect103Var);
+                parameters.add(_17_0_5_edc0357_1345510114104_663398_14299_exists);
+                parameters.add(_17_0_5_edc0357_1348690759146_406635_13262_endTime);
+                constraintExpressions.add(constraint105);
+                dependencies.add(_17_0_5_edc0357_1345510114104_663398_14299_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1345510114104_334510_14300Elaborations() {
+                Expression<?>[] arguments106 = new Expression<?>[2];
+                arguments106[0] = new Expression<Integer>(endTime);
+                arguments106[1] = new Expression<Integer>(_17_0_5_edc0357_1345510114811_932135_15155);
+                Expression<Boolean> condition106 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_663398_14299_exists);
+                elaborationRule106 = addElaborationRule(condition106, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_663398_14299.class, "_AddStructuralFeatureValueAction_initialize", arguments106);
             }
 
             public _17_0_5_edc0357_1345510114104_334510_14300() {
@@ -2381,72 +2445,13 @@ public class Customer extends ParameterListenerImpl {
                 init_17_0_5_edc0357_1345510114104_334510_14300Collections();
                 init_17_0_5_edc0357_1345510114104_334510_14300Elaborations();
             }
-        }
 
-        public class _17_0_5_edc0357_1345510114104_812599_14301 extends DurativeEvent {
-
-            public BooleanParameter _17_0_5_edc0357_1345510114103_810338_14295_exists = null;
-
-            public IntegerParameter _17_0_5_edc0357_1345510114103_561395_14296_endTime = null;
-
-            public BooleanParameter _17_0_5_edc0357_1345510114104_663398_14299_exists = null;
-
-            public ConstraintExpression constraint104 = null;
-
-            public Dependency< Boolean > _17_0_5_edc0357_1345510114103_810338_14295_existsDependency = null;
-
-            public Dependency< Boolean > _17_0_5_edc0357_1345510114104_663398_14299_existsDependency = null;
-
-            public ElaborationRule elaborationRule105 = null;
-
-            public ElaborationRule elaborationRule106 = null;
-
-            public void init_17_0_5_edc0357_1345510114104_812599_14301Members() {
-                try {
-                    _17_0_5_edc0357_1345510114103_810338_14295_exists = new BooleanParameter("_17_0_5_edc0357_1345510114103_810338_14295_exists", this);
-                    _17_0_5_edc0357_1345510114103_561395_14296_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114103_561395_14296_endTime", this);
-                    _17_0_5_edc0357_1345510114104_663398_14299_exists = new BooleanParameter("_17_0_5_edc0357_1345510114104_663398_14299_exists", this);
-                    constraint104 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114103_561395_14296_endTime)));
-                    _17_0_5_edc0357_1345510114103_810338_14295_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114103_810338_14295_exists, new Functions.And(new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_705998_14305, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_938474_14303, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
-                    _17_0_5_edc0357_1345510114104_663398_14299_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_663398_14299_exists, new Functions.And(new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_129800_14307, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114105_724841_14306, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            protected void init_17_0_5_edc0357_1345510114104_812599_14301Collections() {
-                parameters.add(_17_0_5_edc0357_1345510114103_810338_14295_exists);
-                parameters.add(_17_0_5_edc0357_1345510114103_561395_14296_endTime);
-                parameters.add(_17_0_5_edc0357_1345510114104_663398_14299_exists);
-                constraintExpressions.add(constraint104);
-                dependencies.add(_17_0_5_edc0357_1345510114103_810338_14295_existsDependency);
-                dependencies.add(_17_0_5_edc0357_1345510114104_663398_14299_existsDependency);
-            }
-
-            public void init_17_0_5_edc0357_1345510114104_812599_14301Elaborations() {
-                Expression<?>[] arguments105 = new Expression<?>[1];
-                arguments105[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition105 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_663398_14299_exists);
-                elaborationRule105 = addElaborationRule(condition105, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_663398_14299.class, "_AddStructuralFeatureValueAction_initialize", arguments105);
-                Expression<?>[] arguments106 = new Expression<?>[1];
-                arguments106[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition106 = new Expression<Boolean>(_17_0_5_edc0357_1345510114103_810338_14295_exists);
-                elaborationRule106 = addElaborationRule(condition106, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114103_810338_14295.class, "_AddStructuralFeatureValueAction_initialize", arguments106);
-            }
-
-            public _17_0_5_edc0357_1345510114104_812599_14301() {
+            public _17_0_5_edc0357_1345510114104_334510_14300(Expression<Integer> _17_0_5_edc0357_1348690759146_406635_13262_endTime) {
                 super();
-                init_17_0_5_edc0357_1345510114104_812599_14301Members();
-                init_17_0_5_edc0357_1345510114104_812599_14301Collections();
-                init_17_0_5_edc0357_1345510114104_812599_14301Elaborations();
-            }
-
-            public _17_0_5_edc0357_1345510114104_812599_14301(Expression<Integer> _17_0_5_edc0357_1345510114103_561395_14296_endTime) {
-                super();
-                init_17_0_5_edc0357_1345510114104_812599_14301Members();
-                init_17_0_5_edc0357_1345510114104_812599_14301Collections();
-                addDependency(this._17_0_5_edc0357_1345510114103_561395_14296_endTime, _17_0_5_edc0357_1345510114103_561395_14296_endTime);
-                init_17_0_5_edc0357_1345510114104_812599_14301Elaborations();
+                init_17_0_5_edc0357_1345510114104_334510_14300Members();
+                init_17_0_5_edc0357_1345510114104_334510_14300Collections();
+                addDependency(this._17_0_5_edc0357_1348690759146_406635_13262_endTime, _17_0_5_edc0357_1348690759146_406635_13262_endTime);
+                init_17_0_5_edc0357_1345510114104_334510_14300Elaborations();
                 fixTimeDependencies();
             }
         }
@@ -2505,6 +2510,88 @@ public class Customer extends ParameterListenerImpl {
             }
         }
 
+        public class _17_0_5_edc0357_1348690759146_406635_13262 extends DurativeEvent {
+
+            public BooleanParameter _17_0_5_edc0357_1345510114103_36875_14294_exists = null;
+
+            public BooleanParameter _17_0_5_edc0357_1345510114103_775997_14293_exists = null;
+
+            public IntegerParameter _17_0_5_edc0357_1345510114103_561395_14296_endTime = null;
+
+            public BooleanParameter _17_0_5_edc0357_1345510114104_334510_14300_exists = null;
+
+            public ConstraintExpression constraint109 = null;
+
+            public Dependency< Boolean > _17_0_5_edc0357_1345510114103_36875_14294_existsDependency = null;
+
+            public Dependency< Boolean > _17_0_5_edc0357_1345510114103_775997_14293_existsDependency = null;
+
+            public Dependency< Boolean > _17_0_5_edc0357_1345510114104_334510_14300_existsDependency = null;
+
+            public ElaborationRule elaborationRule110 = null;
+
+            public ElaborationRule elaborationRule111 = null;
+
+            public ElaborationRule elaborationRule112 = null;
+
+            public void init_17_0_5_edc0357_1348690759146_406635_13262Members() {
+                try {
+                    _17_0_5_edc0357_1345510114103_36875_14294_exists = new BooleanParameter("_17_0_5_edc0357_1345510114103_36875_14294_exists", this);
+                    _17_0_5_edc0357_1345510114103_775997_14293_exists = new BooleanParameter("_17_0_5_edc0357_1345510114103_775997_14293_exists", this);
+                    _17_0_5_edc0357_1345510114103_561395_14296_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114103_561395_14296_endTime", this);
+                    _17_0_5_edc0357_1345510114104_334510_14300_exists = new BooleanParameter("_17_0_5_edc0357_1345510114104_334510_14300_exists", this);
+                    constraint109 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114103_561395_14296_endTime)));
+                    _17_0_5_edc0357_1345510114103_36875_14294_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114103_36875_14294_exists, new Expression<Boolean>(true));
+                    _17_0_5_edc0357_1345510114103_775997_14293_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114103_775997_14293_exists, new Expression<Boolean>(true));
+                    _17_0_5_edc0357_1345510114104_334510_14300_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114104_334510_14300_exists, new Expression<Boolean>(true));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            protected void init_17_0_5_edc0357_1348690759146_406635_13262Collections() {
+                parameters.add(_17_0_5_edc0357_1345510114103_36875_14294_exists);
+                parameters.add(_17_0_5_edc0357_1345510114103_775997_14293_exists);
+                parameters.add(_17_0_5_edc0357_1345510114103_561395_14296_endTime);
+                parameters.add(_17_0_5_edc0357_1345510114104_334510_14300_exists);
+                constraintExpressions.add(constraint109);
+                dependencies.add(_17_0_5_edc0357_1345510114103_36875_14294_existsDependency);
+                dependencies.add(_17_0_5_edc0357_1345510114103_775997_14293_existsDependency);
+                dependencies.add(_17_0_5_edc0357_1345510114104_334510_14300_existsDependency);
+            }
+
+            public void init_17_0_5_edc0357_1348690759146_406635_13262Elaborations() {
+                Expression<?>[] arguments110 = new Expression<?>[1];
+                arguments110[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition110 = new Expression<Boolean>(_17_0_5_edc0357_1345510114103_36875_14294_exists);
+                elaborationRule110 = addElaborationRule(condition110, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114103_36875_14294.class, "_ValueSpecificationAction_initialize", arguments110);
+                Expression<?>[] arguments111 = new Expression<?>[1];
+                arguments111[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition111 = new Expression<Boolean>(_17_0_5_edc0357_1345510114104_334510_14300_exists);
+                elaborationRule111 = addElaborationRule(condition111, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114104_334510_14300.class, "_ValueSpecificationAction_initialize", arguments111);
+                Expression<?>[] arguments112 = new Expression<?>[1];
+                arguments112[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition112 = new Expression<Boolean>(_17_0_5_edc0357_1345510114103_775997_14293_exists);
+                elaborationRule112 = addElaborationRule(condition112, _17_0_5_edc0357_1345510113559_180117_13777.this, Customer._17_0_5_edc0357_1345510113559_180117_13777._17_0_5_edc0357_1345510114103_775997_14293.class, "_ReadSelfAction_initialize", arguments112);
+            }
+
+            public _17_0_5_edc0357_1348690759146_406635_13262() {
+                super();
+                init_17_0_5_edc0357_1348690759146_406635_13262Members();
+                init_17_0_5_edc0357_1348690759146_406635_13262Collections();
+                init_17_0_5_edc0357_1348690759146_406635_13262Elaborations();
+            }
+
+            public _17_0_5_edc0357_1348690759146_406635_13262(Expression<Integer> _17_0_5_edc0357_1345510114103_561395_14296_endTime) {
+                super();
+                init_17_0_5_edc0357_1348690759146_406635_13262Members();
+                init_17_0_5_edc0357_1348690759146_406635_13262Collections();
+                addDependency(this._17_0_5_edc0357_1345510114103_561395_14296_endTime, _17_0_5_edc0357_1345510114103_561395_14296_endTime);
+                init_17_0_5_edc0357_1348690759146_406635_13262Elaborations();
+                fixTimeDependencies();
+            }
+        }
+
         public _17_0_5_edc0357_1345510113559_180117_13777(Expression<Integer> endTime) {
             super();
             init_17_0_5_edc0357_1345510113559_180117_13777Members();
@@ -2524,9 +2611,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Boolean> > sig_17_0_5_edc0357_1348187257705_321405_14980 = null;
 
-        public Parameter< ObjectFlow<Customer> > sig_17_0_5_edc0357_1345510114168_746941_14366 = null;
-
         public Parameter< ObjectFlow<Customer> > sig_17_0_5_edc0357_1345510114168_147606_14365 = null;
+
+        public Parameter< ObjectFlow<Customer> > sig_17_0_5_edc0357_1345510114168_746941_14366 = null;
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_5_edc0357_1345510114167_676201_14362 = null;
 
@@ -2534,17 +2621,17 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Customer> > sig_17_0_5_edc0357_1345510114167_732692_14364 = null;
 
-        public ElaborationRule elaborationRule109 = null;
+        public ElaborationRule elaborationRule113 = null;
 
-        public ElaborationRule elaborationRule110 = null;
+        public ElaborationRule elaborationRule114 = null;
 
         public void init_17_0_5_edc0357_1345510113560_522513_13778Members() {
             try {
                 sig_17_0_5_edc0357_1345510114167_567578_14359 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114167_567578_14359", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114167_567578_14359"), this);
                 _17_0_5_edc0357_1346105157074_69873_15283 = new IntegerParameter("_17_0_5_edc0357_1346105157074_69873_15283", this);
                 sig_17_0_5_edc0357_1348187257705_321405_14980 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_5_edc0357_1348187257705_321405_14980", null, new ObjectFlow("sig_17_0_5_edc0357_1348187257705_321405_14980"), this);
-                sig_17_0_5_edc0357_1345510114168_746941_14366 = new Parameter<ObjectFlow<Customer>>("sig_17_0_5_edc0357_1345510114168_746941_14366", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114168_746941_14366"), this);
                 sig_17_0_5_edc0357_1345510114168_147606_14365 = new Parameter<ObjectFlow<Customer>>("sig_17_0_5_edc0357_1345510114168_147606_14365", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114168_147606_14365"), this);
+                sig_17_0_5_edc0357_1345510114168_746941_14366 = new Parameter<ObjectFlow<Customer>>("sig_17_0_5_edc0357_1345510114168_746941_14366", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114168_746941_14366"), this);
                 sig_17_0_5_edc0357_1345510114167_676201_14362 = new Parameter<ObjectFlow<Integer>>("sig_17_0_5_edc0357_1345510114167_676201_14362", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114167_676201_14362"), this);
                 invoke_time = new IntegerParameter("invoke_time", this);
                 sig_17_0_5_edc0357_1345510114167_732692_14364 = new Parameter<ObjectFlow<Customer>>("sig_17_0_5_edc0357_1345510114167_732692_14364", null, new ObjectFlow("sig_17_0_5_edc0357_1345510114167_732692_14364"), this);
@@ -2557,23 +2644,23 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(sig_17_0_5_edc0357_1345510114167_567578_14359);
             parameters.add(_17_0_5_edc0357_1346105157074_69873_15283);
             parameters.add(sig_17_0_5_edc0357_1348187257705_321405_14980);
-            parameters.add(sig_17_0_5_edc0357_1345510114168_746941_14366);
             parameters.add(sig_17_0_5_edc0357_1345510114168_147606_14365);
+            parameters.add(sig_17_0_5_edc0357_1345510114168_746941_14366);
             parameters.add(sig_17_0_5_edc0357_1345510114167_676201_14362);
             parameters.add(invoke_time);
             parameters.add(sig_17_0_5_edc0357_1345510114167_732692_14364);
         }
 
         public void init_17_0_5_edc0357_1345510113560_522513_13778Elaborations() {
-            Expression<?>[] arguments109 = new Expression<?>[2];
-            arguments109[0] = new Expression<Integer>(invoke_time);
-            arguments109[1] = new Expression<Integer>(_17_0_5_edc0357_1346105157074_69873_15283);
-            Expression<Boolean> condition109 = new Expression<Boolean>(true);
-            elaborationRule109 = addElaborationRule(condition109, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1346105164389_404592_15285.class, "capval_ActivityParameterNode_setDRCap", arguments109);
-            Expression<?>[] arguments110 = new Expression<?>[1];
-            arguments110[0] = new Expression<Integer>(invoke_time);
-            Expression<Boolean> condition110 = new Expression<Boolean>(true);
-            elaborationRule110 = addElaborationRule(condition110, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114161_34701_14349.class, "customerInitial_InitialNode_setDRCap", arguments110);
+            Expression<?>[] arguments113 = new Expression<?>[1];
+            arguments113[0] = new Expression<Integer>(invoke_time);
+            Expression<Boolean> condition113 = new Expression<Boolean>(true);
+            elaborationRule113 = addElaborationRule(condition113, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114161_34701_14349.class, "customerInitial_InitialNode_setDRCap", arguments113);
+            Expression<?>[] arguments114 = new Expression<?>[2];
+            arguments114[0] = new Expression<Integer>(invoke_time);
+            arguments114[1] = new Expression<Integer>(_17_0_5_edc0357_1346105157074_69873_15283);
+            Expression<Boolean> condition114 = new Expression<Boolean>(true);
+            elaborationRule114 = addElaborationRule(condition114, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1346105164389_404592_15285.class, "capval_ActivityParameterNode_setDRCap", arguments114);
         }
 
         public _17_0_5_edc0357_1345510113560_522513_13778() {
@@ -2593,15 +2680,15 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1348187326552_305667_14984_endTime = null;
 
-            public ConstraintExpression constraint111 = null;
+            public ConstraintExpression constraint115 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114163_254081_14351_existsDependency = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114166_387809_14355_existsDependency = null;
 
-            public ElaborationRule elaborationRule112 = null;
+            public ElaborationRule elaborationRule116 = null;
 
-            public ElaborationRule elaborationRule113 = null;
+            public ElaborationRule elaborationRule117 = null;
 
             public void init_17_0_5_edc0357_1345510114159_726624_14346Members() {
                 try {
@@ -2609,8 +2696,8 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114817_17394_15168 = new Parameter<Customer>("_17_0_5_edc0357_1345510114817_17394_15168", null, Customer.this, this);
                     _17_0_5_edc0357_1345510114166_387809_14355_exists = new BooleanParameter("_17_0_5_edc0357_1345510114166_387809_14355_exists", this);
                     _17_0_5_edc0357_1348187326552_305667_14984_endTime = new IntegerParameter("_17_0_5_edc0357_1348187326552_305667_14984_endTime", this);
-                    constraint111 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348187326552_305667_14984_endTime)));
-                    _17_0_5_edc0357_1345510114163_254081_14351_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114163_254081_14351_exists, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348187257705_321405_14980, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    constraint115 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348187326552_305667_14984_endTime)));
+                    _17_0_5_edc0357_1345510114163_254081_14351_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114163_254081_14351_exists, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348187257705_321405_14980, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                     _17_0_5_edc0357_1345510114166_387809_14355_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114166_387809_14355_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -2622,21 +2709,21 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1345510114817_17394_15168);
                 parameters.add(_17_0_5_edc0357_1345510114166_387809_14355_exists);
                 parameters.add(_17_0_5_edc0357_1348187326552_305667_14984_endTime);
-                constraintExpressions.add(constraint111);
+                constraintExpressions.add(constraint115);
                 dependencies.add(_17_0_5_edc0357_1345510114163_254081_14351_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1345510114166_387809_14355_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1345510114159_726624_14346Elaborations() {
-                Expression<?>[] arguments112 = new Expression<?>[2];
-                arguments112[0] = new Expression<Integer>(endTime);
-                arguments112[1] = new Expression<Customer>(_17_0_5_edc0357_1345510114817_17394_15168);
-                Expression<Boolean> condition112 = new Expression<Boolean>(_17_0_5_edc0357_1345510114166_387809_14355_exists);
-                elaborationRule112 = addElaborationRule(condition112, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114166_387809_14355.class, "forkNodeReadSelf_ForkNode_setDRCap", arguments112);
-                Expression<?>[] arguments113 = new Expression<?>[1];
-                arguments113[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition113 = new Expression<Boolean>(_17_0_5_edc0357_1345510114163_254081_14351_exists);
-                elaborationRule113 = addElaborationRule(condition113, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114163_254081_14351.class, "customerDecideParticipation_DecisionNode_setDRCap", arguments113);
+                Expression<?>[] arguments116 = new Expression<?>[1];
+                arguments116[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition116 = new Expression<Boolean>(_17_0_5_edc0357_1345510114163_254081_14351_exists);
+                elaborationRule116 = addElaborationRule(condition116, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114163_254081_14351.class, "customerDecideParticipation_DecisionNode_setDRCap", arguments116);
+                Expression<?>[] arguments117 = new Expression<?>[2];
+                arguments117[0] = new Expression<Integer>(endTime);
+                arguments117[1] = new Expression<Customer>(_17_0_5_edc0357_1345510114817_17394_15168);
+                Expression<Boolean> condition117 = new Expression<Boolean>(_17_0_5_edc0357_1345510114166_387809_14355_exists);
+                elaborationRule117 = addElaborationRule(condition117, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114166_387809_14355.class, "forkNodeReadSelf_ForkNode_setDRCap", arguments117);
             }
 
             public _17_0_5_edc0357_1345510114159_726624_14346() {
@@ -2666,7 +2753,7 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1345510114163_254081_14351_endTime = null;
 
-            public ConstraintExpression constraint114 = null;
+            public ConstraintExpression constraint118 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114165_641732_14354_existsDependency = null;
 
@@ -2674,11 +2761,11 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Customer > _17_0_5_edc0357_1345510114819_229911_15170Dependency = null;
 
-            public Effect effect115 = null;
+            public Effect effect119 = null;
 
-            public Object effect115Var = null;
+            public Parameter effect119Var = null;
 
-            public ElaborationRule elaborationRule116 = null;
+            public ElaborationRule elaborationRule120 = null;
 
             public void init_17_0_5_edc0357_1345510114160_29879_14347Members() {
                 try {
@@ -2686,12 +2773,14 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114818_835880_15169 = new IntegerParameter("_17_0_5_edc0357_1345510114818_835880_15169", this);
                     _17_0_5_edc0357_1345510114819_229911_15170 = new Parameter<Customer>("_17_0_5_edc0357_1345510114819_229911_15170", null, null, this);
                     _17_0_5_edc0357_1345510114163_254081_14351_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114163_254081_14351_endTime", this);
-                    constraint114 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114163_254081_14351_endTime)));
-                    _17_0_5_edc0357_1345510114165_641732_14354_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114165_641732_14354_exists, new Functions.And(new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114167_676201_14362, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114168_147606_14365, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
-                    _17_0_5_edc0357_1345510114818_835880_15169Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114818_835880_15169, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114167_567578_14359, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1345510114819_229911_15170Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114819_229911_15170, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114167_732692_14364, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect115Var = cap__17_0_5_edc0357_1345510113566_55150_13784;
-                    effect115 = new EffectFunction(new FunctionCall((Object) effect115Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114818_835880_15169 }));
+                    constraint118 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114163_254081_14351_endTime)));
+                    _17_0_5_edc0357_1345510114165_641732_14354_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114165_641732_14354_exists, new Functions.And(new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114167_676201_14362, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114168_147606_14365, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
+                    _17_0_5_edc0357_1345510114818_835880_15169Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114818_835880_15169, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114167_567578_14359, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1345510114819_229911_15170Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114819_229911_15170, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114167_732692_14364, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect119VarV = cap__17_0_5_edc0357_1345510113566_55150_13784;
+                    effect119Var = new Parameter("effect119Var", null, null, this);
+                    addDependency(effect119Var, new Expression(effect119VarV));
+                    effect119 = new EffectFunction(new FunctionCall(effect119Var, Utils.getMethodForArgTypes("TimeVaryingMap<Integer>", "generated", "setValue", java.lang.Integer.class, java.lang.Object.class), new Object[] { startTime, _17_0_5_edc0357_1345510114818_835880_15169 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2702,20 +2791,20 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1345510114818_835880_15169);
                 parameters.add(_17_0_5_edc0357_1345510114819_229911_15170);
                 parameters.add(_17_0_5_edc0357_1345510114163_254081_14351_endTime);
-                constraintExpressions.add(constraint114);
+                constraintExpressions.add(constraint118);
                 dependencies.add(_17_0_5_edc0357_1345510114165_641732_14354_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1345510114818_835880_15169Dependency);
                 dependencies.add(_17_0_5_edc0357_1345510114819_229911_15170Dependency);
-                Set<Effect> effectsForeffect115Var = new HashSet<Effect>();
-                effectsForeffect115Var.add(effect115);
-                effects.put((Parameter<?>) effect115Var, effectsForeffect115Var);
+                Set<Effect> effectsForeffect119Var = new HashSet<Effect>();
+                effectsForeffect119Var.add(effect119);
+                effects.put((Parameter<?>) effect119Var, effectsForeffect119Var);
             }
 
             public void init_17_0_5_edc0357_1345510114160_29879_14347Elaborations() {
-                Expression<?>[] arguments116 = new Expression<?>[1];
-                arguments116[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition116 = new Expression<Boolean>(_17_0_5_edc0357_1345510114165_641732_14354_exists);
-                elaborationRule116 = addElaborationRule(condition116, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114165_641732_14354.class, "sendSignalYes_SendSignalAction_setDRCap", arguments116);
+                Expression<?>[] arguments120 = new Expression<?>[1];
+                arguments120[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition120 = new Expression<Boolean>(_17_0_5_edc0357_1345510114165_641732_14354_exists);
+                elaborationRule120 = addElaborationRule(condition120, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114165_641732_14354.class, "sendSignalYes_SendSignalAction_setDRCap", arguments120);
             }
 
             public _17_0_5_edc0357_1345510114160_29879_14347() {
@@ -2741,7 +2830,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Boolean > _17_0_5_edc0357_1348187326552_305667_14984_existsDependency = null;
 
-            public ElaborationRule elaborationRule117 = null;
+            public ElaborationRule elaborationRule121 = null;
 
             public void init_17_0_5_edc0357_1345510114161_34701_14349Members() {
                 try {
@@ -2758,10 +2847,10 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_5_edc0357_1345510114161_34701_14349Elaborations() {
-                Expression<?>[] arguments117 = new Expression<?>[1];
-                arguments117[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition117 = new Expression<Boolean>(_17_0_5_edc0357_1348187326552_305667_14984_exists);
-                elaborationRule117 = addElaborationRule(condition117, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348187326552_305667_14984.class, "_ForkNode_setDRCap", arguments117);
+                Expression<?>[] arguments121 = new Expression<?>[1];
+                arguments121[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition121 = new Expression<Boolean>(_17_0_5_edc0357_1348187326552_305667_14984_exists);
+                elaborationRule121 = addElaborationRule(condition121, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348187326552_305667_14984.class, "_ForkNode_setDRCap", arguments121);
             }
 
             public _17_0_5_edc0357_1345510114161_34701_14349() {
@@ -2786,12 +2875,12 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1348188047453_317575_14999_endTime = null;
 
-            public ConstraintExpression constraint118 = null;
+            public ConstraintExpression constraint122 = null;
 
             public void init_17_0_5_edc0357_1345510114162_717249_14350Members() {
                 try {
                     _17_0_5_edc0357_1348188047453_317575_14999_endTime = new IntegerParameter("_17_0_5_edc0357_1348188047453_317575_14999_endTime", this);
-                    constraint118 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348188047453_317575_14999_endTime)));
+                    constraint122 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348188047453_317575_14999_endTime)));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2799,7 +2888,7 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1345510114162_717249_14350Collections() {
                 parameters.add(_17_0_5_edc0357_1348188047453_317575_14999_endTime);
-                constraintExpressions.add(constraint118);
+                constraintExpressions.add(constraint122);
             }
 
             public void init_17_0_5_edc0357_1345510114162_717249_14350Elaborations() {
@@ -2832,7 +2921,7 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1345510114160_29879_14347_exists = null;
 
-            public ConstraintExpression constraint119 = null;
+            public ConstraintExpression constraint123 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1348187257705_321405_14980Dependency = null;
 
@@ -2840,9 +2929,9 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114160_29879_14347_existsDependency = null;
 
-            public ElaborationRule elaborationRule120 = null;
+            public ElaborationRule elaborationRule124 = null;
 
-            public ElaborationRule elaborationRule121 = null;
+            public ElaborationRule elaborationRule125 = null;
 
             public void init_17_0_5_edc0357_1345510114163_254081_14351Members() {
                 try {
@@ -2850,10 +2939,10 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1345510114163_833189_14352_exists = new BooleanParameter("_17_0_5_edc0357_1345510114163_833189_14352_exists", this);
                     _17_0_5_edc0357_1345510114159_726624_14346_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114159_726624_14346_endTime", this);
                     _17_0_5_edc0357_1345510114160_29879_14347_exists = new BooleanParameter("_17_0_5_edc0357_1345510114160_29879_14347_exists", this);
-                    constraint119 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114159_726624_14346_endTime)));
-                    _17_0_5_edc0357_1348187257705_321405_14980Dependency = new Dependency<Boolean>(_17_0_5_edc0357_1348187257705_321405_14980, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1348187257705_321405_14980, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1345510114163_833189_14352_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114163_833189_14352_exists, new Functions.And(new Functions.Equals(new Expression<Boolean>(_17_0_5_edc0357_1348187257705_321405_14980), new Expression<Boolean>(false)), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114168_746941_14366, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
-                    _17_0_5_edc0357_1345510114160_29879_14347_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114160_29879_14347_exists, new Functions.And(new Functions.And(new Functions.Equals(new Expression<Boolean>(_17_0_5_edc0357_1348187257705_321405_14980), new Expression<Boolean>(true)), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114167_732692_14364, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))), new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114167_567578_14359, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
+                    constraint123 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114159_726624_14346_endTime)));
+                    _17_0_5_edc0357_1348187257705_321405_14980Dependency = new Dependency<Boolean>(_17_0_5_edc0357_1348187257705_321405_14980, new Expression(new FunctionCall(sig_17_0_5_edc0357_1348187257705_321405_14980, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1345510114163_833189_14352_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114163_833189_14352_exists, new Functions.And(new Functions.Equals(new Expression<Boolean>(_17_0_5_edc0357_1348187257705_321405_14980), new Expression<Boolean>(false)), new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114168_746941_14366, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
+                    _17_0_5_edc0357_1345510114160_29879_14347_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114160_29879_14347_exists, new Functions.And(new Functions.And(new Functions.Equals(new Expression<Boolean>(_17_0_5_edc0357_1348187257705_321405_14980), new Expression<Boolean>(true)), new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114167_732692_14364, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))), new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114167_567578_14359, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) }))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2864,21 +2953,21 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1345510114163_833189_14352_exists);
                 parameters.add(_17_0_5_edc0357_1345510114159_726624_14346_endTime);
                 parameters.add(_17_0_5_edc0357_1345510114160_29879_14347_exists);
-                constraintExpressions.add(constraint119);
+                constraintExpressions.add(constraint123);
                 dependencies.add(_17_0_5_edc0357_1348187257705_321405_14980Dependency);
                 dependencies.add(_17_0_5_edc0357_1345510114163_833189_14352_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1345510114160_29879_14347_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1345510114163_254081_14351Elaborations() {
-                Expression<?>[] arguments120 = new Expression<?>[1];
-                arguments120[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition120 = new Expression<Boolean>(_17_0_5_edc0357_1345510114160_29879_14347_exists);
-                elaborationRule120 = addElaborationRule(condition120, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114160_29879_14347.class, "addStructuralFeatureCap_AddStructuralFeatureValueAction_setDRCap", arguments120);
-                Expression<?>[] arguments121 = new Expression<?>[1];
-                arguments121[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition121 = new Expression<Boolean>(_17_0_5_edc0357_1345510114163_833189_14352_exists);
-                elaborationRule121 = addElaborationRule(condition121, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114163_833189_14352.class, "sendSignalNo_SendSignalAction_setDRCap", arguments121);
+                Expression<?>[] arguments124 = new Expression<?>[1];
+                arguments124[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition124 = new Expression<Boolean>(_17_0_5_edc0357_1345510114163_833189_14352_exists);
+                elaborationRule124 = addElaborationRule(condition124, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114163_833189_14352.class, "sendSignalNo_SendSignalAction_setDRCap", arguments124);
+                Expression<?>[] arguments125 = new Expression<?>[1];
+                arguments125[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition125 = new Expression<Boolean>(_17_0_5_edc0357_1345510114160_29879_14347_exists);
+                elaborationRule125 = addElaborationRule(condition125, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114160_29879_14347.class, "addStructuralFeatureCap_AddStructuralFeatureValueAction_setDRCap", arguments125);
             }
 
             public _17_0_5_edc0357_1345510114163_254081_14351() {
@@ -2906,28 +2995,30 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1345510114163_254081_14351_endTime = null;
 
-            public ConstraintExpression constraint122 = null;
+            public ConstraintExpression constraint126 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1348188047453_317575_14999_existsDependency = null;
 
             public Dependency< Customer > _17_0_5_edc0357_1345510114820_809313_15172Dependency = null;
 
-            public Effect effect123 = null;
+            public Effect effect127 = null;
 
-            public Object effect123Var = null;
+            public Parameter effect127Var = null;
 
-            public ElaborationRule elaborationRule124 = null;
+            public ElaborationRule elaborationRule128 = null;
 
             public void init_17_0_5_edc0357_1345510114163_833189_14352Members() {
                 try {
                     _17_0_5_edc0357_1348188047453_317575_14999_exists = new BooleanParameter("_17_0_5_edc0357_1348188047453_317575_14999_exists", this);
                     _17_0_5_edc0357_1345510114820_809313_15172 = new Parameter<Customer>("_17_0_5_edc0357_1345510114820_809313_15172", null, null, this);
                     _17_0_5_edc0357_1345510114163_254081_14351_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114163_254081_14351_endTime", this);
-                    constraint122 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114163_254081_14351_endTime)));
+                    constraint126 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114163_254081_14351_endTime)));
                     _17_0_5_edc0357_1348188047453_317575_14999_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348188047453_317575_14999_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1345510114820_809313_15172Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114820_809313_15172, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114168_746941_14366, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect123Var = (((Parameter<?>) (x.getMember("ss_17_0_5_edc0357_1345510113564_305135_13782_no"))).getValue());
-                    effect123 = new EffectFunction(new FunctionCall((Object) effect123Var, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114163_833189_14352", "generated", "send"), new Object[] { x.getValue().new Signalno(), endTime }));
+                    _17_0_5_edc0357_1345510114820_809313_15172Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114820_809313_15172, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114168_746941_14366, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect127VarV = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_5_edc0357_1345510113564_305135_13782_no" }));
+                    effect127Var = new Parameter("effect127Var", null, null, this);
+                    addDependency(effect127Var, new Expression(effect127VarV));
+                    effect127 = new EffectFunction(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114163_833189_14352", "generated", "send"), new Object[] { x.getValue().new Signalno(endTime.getValue(), _17_0_5_edc0357_1345510114820_809313_15172.getValue()), endTime }, effect127Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2937,19 +3028,19 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1348188047453_317575_14999_exists);
                 parameters.add(_17_0_5_edc0357_1345510114820_809313_15172);
                 parameters.add(_17_0_5_edc0357_1345510114163_254081_14351_endTime);
-                constraintExpressions.add(constraint122);
+                constraintExpressions.add(constraint126);
                 dependencies.add(_17_0_5_edc0357_1348188047453_317575_14999_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1345510114820_809313_15172Dependency);
-                Set<Effect> effectsForeffect123Var = new HashSet<Effect>();
-                effectsForeffect123Var.add(effect123);
-                effects.put((Parameter<?>) effect123Var, effectsForeffect123Var);
+                Set<Effect> effectsForeffect127Var = new HashSet<Effect>();
+                effectsForeffect127Var.add(effect127);
+                effects.put((Parameter<?>) effect127Var, effectsForeffect127Var);
             }
 
             public void init_17_0_5_edc0357_1345510114163_833189_14352Elaborations() {
-                Expression<?>[] arguments124 = new Expression<?>[1];
-                arguments124[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition124 = new Expression<Boolean>(_17_0_5_edc0357_1348188047453_317575_14999_exists);
-                elaborationRule124 = addElaborationRule(condition124, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348188047453_317575_14999.class, "_MergeNode_setDRCap", arguments124);
+                Expression<?>[] arguments128 = new Expression<?>[1];
+                arguments128[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition128 = new Expression<Boolean>(_17_0_5_edc0357_1348188047453_317575_14999_exists);
+                elaborationRule128 = addElaborationRule(condition128, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348188047453_317575_14999.class, "_MergeNode_setDRCap", arguments128);
             }
 
             public _17_0_5_edc0357_1345510114163_833189_14352() {
@@ -2975,25 +3066,29 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1346105164389_404592_15285_endTime = null;
 
-            public ConstraintExpression constraint125 = null;
+            public ConstraintExpression constraint129 = null;
 
-            public Effect effect126 = null;
+            public Effect effect130 = null;
 
-            public Object effect126Var = null;
+            public Parameter effect130Var = null;
 
-            public Effect effect127 = null;
+            public Effect effect131 = null;
 
-            public Object effect127Var = null;
+            public Parameter effect131Var = null;
 
             public void init_17_0_5_edc0357_1345510114164_830320_14353Members() {
                 try {
                     objectToPass = new IntegerParameter("objectToPass", this);
                     _17_0_5_edc0357_1346105164389_404592_15285_endTime = new IntegerParameter("_17_0_5_edc0357_1346105164389_404592_15285_endTime", this);
-                    constraint125 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105164389_404592_15285_endTime)));
-                    effect126Var = sig_17_0_5_edc0357_1345510114167_567578_14359;
-                    effect126 = new EffectFunction(new FunctionCall((Object) effect126Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect127Var = sig_17_0_5_edc0357_1345510114167_676201_14362;
-                    effect127 = new EffectFunction(new FunctionCall((Object) effect127Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    constraint129 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105164389_404592_15285_endTime)));
+                    Object effect130VarV = sig_17_0_5_edc0357_1345510114167_567578_14359;
+                    effect130Var = new Parameter("effect130Var", null, null, this);
+                    addDependency(effect130Var, new Expression(effect130VarV));
+                    effect130 = new EffectFunction(new FunctionCall(effect130Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect131VarV = sig_17_0_5_edc0357_1345510114167_676201_14362;
+                    effect131Var = new Parameter("effect131Var", null, null, this);
+                    addDependency(effect131Var, new Expression(effect131VarV));
+                    effect131 = new EffectFunction(new FunctionCall(effect131Var, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3002,13 +3097,13 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1345510114164_830320_14353Collections() {
                 parameters.add(objectToPass);
                 parameters.add(_17_0_5_edc0357_1346105164389_404592_15285_endTime);
-                constraintExpressions.add(constraint125);
-                Set<Effect> effectsForeffect126Var = new HashSet<Effect>();
-                effectsForeffect126Var.add(effect126);
-                effects.put((Parameter<?>) effect126Var, effectsForeffect126Var);
-                Set<Effect> effectsForeffect127Var = new HashSet<Effect>();
-                effectsForeffect127Var.add(effect127);
-                effects.put((Parameter<?>) effect127Var, effectsForeffect127Var);
+                constraintExpressions.add(constraint129);
+                Set<Effect> effectsForeffect130Var = new HashSet<Effect>();
+                effectsForeffect130Var.add(effect130);
+                effects.put((Parameter<?>) effect130Var, effectsForeffect130Var);
+                Set<Effect> effectsForeffect131Var = new HashSet<Effect>();
+                effectsForeffect131Var.add(effect131);
+                effects.put((Parameter<?>) effect131Var, effectsForeffect131Var);
             }
 
             public void init_17_0_5_edc0357_1345510114164_830320_14353Elaborations() {
@@ -3042,7 +3137,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Parameter< Customer > _17_0_5_edc0357_1345510114821_349321_15173 = null;
 
-            public ConstraintExpression constraint128 = null;
+            public ConstraintExpression constraint132 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1348188047453_317575_14999_existsDependency = null;
 
@@ -3050,11 +3145,11 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Customer > _17_0_5_edc0357_1345510114821_349321_15173Dependency = null;
 
-            public Effect effect129 = null;
+            public Effect effect133 = null;
 
-            public Object effect129Var = null;
+            public Parameter effect133Var = null;
 
-            public ElaborationRule elaborationRule130 = null;
+            public ElaborationRule elaborationRule134 = null;
 
             public void init_17_0_5_edc0357_1345510114165_641732_14354Members() {
                 try {
@@ -3062,12 +3157,14 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1348188047453_317575_14999_exists = new BooleanParameter("_17_0_5_edc0357_1348188047453_317575_14999_exists", this);
                     _17_0_5_edc0357_1345510114822_185942_15174 = new IntegerParameter("_17_0_5_edc0357_1345510114822_185942_15174", this);
                     _17_0_5_edc0357_1345510114821_349321_15173 = new Parameter<Customer>("_17_0_5_edc0357_1345510114821_349321_15173", null, null, this);
-                    constraint128 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114160_29879_14347_endTime)));
+                    constraint132 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114160_29879_14347_endTime)));
                     _17_0_5_edc0357_1348188047453_317575_14999_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348188047453_317575_14999_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1345510114822_185942_15174Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114822_185942_15174, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114167_676201_14362, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    _17_0_5_edc0357_1345510114821_349321_15173Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114821_349321_15173, new Expression(new FunctionCall((Object) sig_17_0_5_edc0357_1345510114168_147606_14365, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
-                    effect129Var = (((Parameter<?>) (x.getMember("ss_17_0_5_edc0357_1345510113564_305135_13782_yes"))).getValue());
-                    effect129 = new EffectFunction(new FunctionCall((Object) effect129Var, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114165_641732_14354", "generated", "send"), new Object[] { x.getValue().new Signalyes(_17_0_5_edc0357_1345510114822_185942_15174.getValue()), endTime }));
+                    _17_0_5_edc0357_1345510114822_185942_15174Dependency = new Dependency<Integer>(_17_0_5_edc0357_1345510114822_185942_15174, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114167_676201_14362, Utils.getMethodForArgTypes("ObjectFlow<Integer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1345510114821_349321_15173Dependency = new Dependency<Customer>(_17_0_5_edc0357_1345510114821_349321_15173, new Expression(new FunctionCall(sig_17_0_5_edc0357_1345510114168_147606_14365, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    Object effect133VarV = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_5_edc0357_1345510113564_305135_13782_yes" }));
+                    effect133Var = new Parameter("effect133Var", null, null, this);
+                    addDependency(effect133Var, new Expression(effect133VarV));
+                    effect133 = new EffectFunction(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114165_641732_14354", "generated", "send"), new Object[] { x.getValue().new Signalyes(endTime.getValue(), _17_0_5_edc0357_1345510114822_185942_15174.getValue()), endTime }, effect133Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3078,20 +3175,20 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1348188047453_317575_14999_exists);
                 parameters.add(_17_0_5_edc0357_1345510114822_185942_15174);
                 parameters.add(_17_0_5_edc0357_1345510114821_349321_15173);
-                constraintExpressions.add(constraint128);
+                constraintExpressions.add(constraint132);
                 dependencies.add(_17_0_5_edc0357_1348188047453_317575_14999_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1345510114822_185942_15174Dependency);
                 dependencies.add(_17_0_5_edc0357_1345510114821_349321_15173Dependency);
-                Set<Effect> effectsForeffect129Var = new HashSet<Effect>();
-                effectsForeffect129Var.add(effect129);
-                effects.put((Parameter<?>) effect129Var, effectsForeffect129Var);
+                Set<Effect> effectsForeffect133Var = new HashSet<Effect>();
+                effectsForeffect133Var.add(effect133);
+                effects.put((Parameter<?>) effect133Var, effectsForeffect133Var);
             }
 
             public void init_17_0_5_edc0357_1345510114165_641732_14354Elaborations() {
-                Expression<?>[] arguments130 = new Expression<?>[1];
-                arguments130[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition130 = new Expression<Boolean>(_17_0_5_edc0357_1348188047453_317575_14999_exists);
-                elaborationRule130 = addElaborationRule(condition130, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348188047453_317575_14999.class, "_MergeNode_setDRCap", arguments130);
+                Expression<?>[] arguments134 = new Expression<?>[1];
+                arguments134[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition134 = new Expression<Boolean>(_17_0_5_edc0357_1348188047453_317575_14999_exists);
+                elaborationRule134 = addElaborationRule(condition134, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348188047453_317575_14999.class, "_MergeNode_setDRCap", arguments134);
             }
 
             public _17_0_5_edc0357_1345510114165_641732_14354() {
@@ -3117,31 +3214,37 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1345510114159_726624_14346_endTime = null;
 
-            public ConstraintExpression constraint131 = null;
+            public ConstraintExpression constraint135 = null;
 
-            public Effect effect132 = null;
+            public Effect effect136 = null;
 
-            public Object effect132Var = null;
+            public Parameter effect136Var = null;
 
-            public Effect effect133 = null;
+            public Effect effect137 = null;
 
-            public Object effect133Var = null;
+            public Parameter effect137Var = null;
 
-            public Effect effect134 = null;
+            public Effect effect138 = null;
 
-            public Object effect134Var = null;
+            public Parameter effect138Var = null;
 
             public void init_17_0_5_edc0357_1345510114166_387809_14355Members() {
                 try {
                     objectToPass = new Parameter<Customer>("objectToPass", null, null, this);
                     _17_0_5_edc0357_1345510114159_726624_14346_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114159_726624_14346_endTime", this);
-                    constraint131 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114159_726624_14346_endTime)));
-                    effect132Var = sig_17_0_5_edc0357_1345510114167_732692_14364;
-                    effect132 = new EffectFunction(new FunctionCall((Object) effect132Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect133Var = sig_17_0_5_edc0357_1345510114168_147606_14365;
-                    effect133 = new EffectFunction(new FunctionCall((Object) effect133Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
-                    effect134Var = sig_17_0_5_edc0357_1345510114168_746941_14366;
-                    effect134 = new EffectFunction(new FunctionCall((Object) effect134Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    constraint135 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114159_726624_14346_endTime)));
+                    Object effect136VarV = sig_17_0_5_edc0357_1345510114167_732692_14364;
+                    effect136Var = new Parameter("effect136Var", null, null, this);
+                    addDependency(effect136Var, new Expression(effect136VarV));
+                    effect136 = new EffectFunction(new FunctionCall(effect136Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect137VarV = sig_17_0_5_edc0357_1345510114168_147606_14365;
+                    effect137Var = new Parameter("effect137Var", null, null, this);
+                    addDependency(effect137Var, new Expression(effect137VarV));
+                    effect137 = new EffectFunction(new FunctionCall(effect137Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
+                    Object effect138VarV = sig_17_0_5_edc0357_1345510114168_746941_14366;
+                    effect138Var = new Parameter("effect138Var", null, null, this);
+                    addDependency(effect138Var, new Expression(effect138VarV));
+                    effect138 = new EffectFunction(new FunctionCall(effect138Var, Utils.getMethodForArgTypes("ObjectFlow<Customer>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { objectToPass, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3150,16 +3253,16 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1345510114166_387809_14355Collections() {
                 parameters.add(objectToPass);
                 parameters.add(_17_0_5_edc0357_1345510114159_726624_14346_endTime);
-                constraintExpressions.add(constraint131);
-                Set<Effect> effectsForeffect132Var = new HashSet<Effect>();
-                effectsForeffect132Var.add(effect132);
-                effects.put((Parameter<?>) effect132Var, effectsForeffect132Var);
-                Set<Effect> effectsForeffect133Var = new HashSet<Effect>();
-                effectsForeffect133Var.add(effect133);
-                effects.put((Parameter<?>) effect133Var, effectsForeffect133Var);
-                Set<Effect> effectsForeffect134Var = new HashSet<Effect>();
-                effectsForeffect134Var.add(effect134);
-                effects.put((Parameter<?>) effect134Var, effectsForeffect134Var);
+                constraintExpressions.add(constraint135);
+                Set<Effect> effectsForeffect136Var = new HashSet<Effect>();
+                effectsForeffect136Var.add(effect136);
+                effects.put((Parameter<?>) effect136Var, effectsForeffect136Var);
+                Set<Effect> effectsForeffect137Var = new HashSet<Effect>();
+                effectsForeffect137Var.add(effect137);
+                effects.put((Parameter<?>) effect137Var, effectsForeffect137Var);
+                Set<Effect> effectsForeffect138Var = new HashSet<Effect>();
+                effectsForeffect138Var.add(effect138);
+                effects.put((Parameter<?>) effect138Var, effectsForeffect138Var);
             }
 
             public void init_17_0_5_edc0357_1345510114166_387809_14355Elaborations() {
@@ -3191,7 +3294,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114164_830320_14353_existsDependency = null;
 
-            public ElaborationRule elaborationRule135 = null;
+            public ElaborationRule elaborationRule139 = null;
 
             public void init_17_0_5_edc0357_1346105164389_404592_15285Members() {
                 try {
@@ -3210,11 +3313,11 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_5_edc0357_1346105164389_404592_15285Elaborations() {
-                Expression<?>[] arguments135 = new Expression<?>[2];
-                arguments135[0] = new Expression<Integer>(endTime);
-                arguments135[1] = new Expression<Integer>(_17_0_5_edc0357_1346105157074_69873_15283);
-                Expression<Boolean> condition135 = new Expression<Boolean>(_17_0_5_edc0357_1345510114164_830320_14353_exists);
-                elaborationRule135 = addElaborationRule(condition135, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114164_830320_14353.class, "forkNodeLastSignalValue_ForkNode_setDRCap", arguments135);
+                Expression<?>[] arguments139 = new Expression<?>[2];
+                arguments139[0] = new Expression<Integer>(endTime);
+                arguments139[1] = new Expression<Integer>(_17_0_5_edc0357_1346105157074_69873_15283);
+                Expression<Boolean> condition139 = new Expression<Boolean>(_17_0_5_edc0357_1345510114164_830320_14353_exists);
+                elaborationRule139 = addElaborationRule(condition139, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114164_830320_14353.class, "forkNodeLastSignalValue_ForkNode_setDRCap", arguments139);
             }
 
             public _17_0_5_edc0357_1346105164389_404592_15285() {
@@ -3242,19 +3345,21 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1348187326552_305667_14984_endTime = null;
 
-            public ConstraintExpression constraint136 = null;
+            public ConstraintExpression constraint140 = null;
 
-            public Effect effect137 = null;
+            public Effect effect141 = null;
 
-            public Object effect137Var = null;
+            public Parameter effect141Var = null;
 
             public void init_17_0_5_edc0357_1348187213310_199425_14961Members() {
                 try {
                     _17_0_5_edc0357_1348187213310_584836_14962 = new BooleanParameter("_17_0_5_edc0357_1348187213310_584836_14962", this);
                     _17_0_5_edc0357_1348187326552_305667_14984_endTime = new IntegerParameter("_17_0_5_edc0357_1348187326552_305667_14984_endTime", this);
-                    constraint136 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348187326552_305667_14984_endTime)));
-                    effect137Var = sig_17_0_5_edc0357_1348187257705_321405_14980;
-                    effect137 = new EffectFunction(new FunctionCall((Object) effect137Var, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1348187213310_584836_14962, startTime }));
+                    constraint140 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348187326552_305667_14984_endTime)));
+                    Object effect141VarV = sig_17_0_5_edc0357_1348187257705_321405_14980;
+                    effect141Var = new Parameter("effect141Var", null, null, this);
+                    addDependency(effect141Var, new Expression(effect141VarV));
+                    effect141 = new EffectFunction(new FunctionCall(effect141Var, Utils.getMethodForArgTypes("ObjectFlow<Boolean>", "generated", "send", java.lang.Object.class, java.lang.Integer.class), new Object[] { _17_0_5_edc0357_1348187213310_584836_14962, startTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3263,10 +3368,10 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1348187213310_199425_14961Collections() {
                 parameters.add(_17_0_5_edc0357_1348187213310_584836_14962);
                 parameters.add(_17_0_5_edc0357_1348187326552_305667_14984_endTime);
-                constraintExpressions.add(constraint136);
-                Set<Effect> effectsForeffect137Var = new HashSet<Effect>();
-                effectsForeffect137Var.add(effect137);
-                effects.put((Parameter<?>) effect137Var, effectsForeffect137Var);
+                constraintExpressions.add(constraint140);
+                Set<Effect> effectsForeffect141Var = new HashSet<Effect>();
+                effectsForeffect141Var.add(effect141);
+                effects.put((Parameter<?>) effect141Var, effectsForeffect141Var);
             }
 
             public void init_17_0_5_edc0357_1348187213310_199425_14961Elaborations() {
@@ -3297,22 +3402,22 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1348187213310_199425_14961_exists = null;
 
-            public ConstraintExpression constraint138 = null;
+            public ConstraintExpression constraint142 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114159_726624_14346_existsDependency = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1348187213310_199425_14961_existsDependency = null;
 
-            public ElaborationRule elaborationRule139 = null;
+            public ElaborationRule elaborationRule143 = null;
 
-            public ElaborationRule elaborationRule140 = null;
+            public ElaborationRule elaborationRule144 = null;
 
             public void init_17_0_5_edc0357_1348187326552_305667_14984Members() {
                 try {
                     _17_0_5_edc0357_1345510114159_726624_14346_exists = new BooleanParameter("_17_0_5_edc0357_1345510114159_726624_14346_exists", this);
                     _17_0_5_edc0357_1345510114161_34701_14349_endTime = new IntegerParameter("_17_0_5_edc0357_1345510114161_34701_14349_endTime", this);
                     _17_0_5_edc0357_1348187213310_199425_14961_exists = new BooleanParameter("_17_0_5_edc0357_1348187213310_199425_14961_exists", this);
-                    constraint138 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114161_34701_14349_endTime)));
+                    constraint142 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1345510114161_34701_14349_endTime)));
                     _17_0_5_edc0357_1345510114159_726624_14346_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114159_726624_14346_exists, new Expression<Boolean>(true));
                     _17_0_5_edc0357_1348187213310_199425_14961_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348187213310_199425_14961_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
@@ -3324,20 +3429,20 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1345510114159_726624_14346_exists);
                 parameters.add(_17_0_5_edc0357_1345510114161_34701_14349_endTime);
                 parameters.add(_17_0_5_edc0357_1348187213310_199425_14961_exists);
-                constraintExpressions.add(constraint138);
+                constraintExpressions.add(constraint142);
                 dependencies.add(_17_0_5_edc0357_1345510114159_726624_14346_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1348187213310_199425_14961_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1348187326552_305667_14984Elaborations() {
-                Expression<?>[] arguments139 = new Expression<?>[1];
-                arguments139[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition139 = new Expression<Boolean>(_17_0_5_edc0357_1345510114159_726624_14346_exists);
-                elaborationRule139 = addElaborationRule(condition139, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114159_726624_14346.class, "customerReadSelf_ReadSelfAction_setDRCap", arguments139);
-                Expression<?>[] arguments140 = new Expression<?>[1];
-                arguments140[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition140 = new Expression<Boolean>(_17_0_5_edc0357_1348187213310_199425_14961_exists);
-                elaborationRule140 = addElaborationRule(condition140, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348187213310_199425_14961.class, "custParticip_ValueSpecificationAction_setDRCap", arguments140);
+                Expression<?>[] arguments143 = new Expression<?>[1];
+                arguments143[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition143 = new Expression<Boolean>(_17_0_5_edc0357_1348187213310_199425_14961_exists);
+                elaborationRule143 = addElaborationRule(condition143, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1348187213310_199425_14961.class, "custParticip_ValueSpecificationAction_setDRCap", arguments143);
+                Expression<?>[] arguments144 = new Expression<?>[1];
+                arguments144[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition144 = new Expression<Boolean>(_17_0_5_edc0357_1345510114159_726624_14346_exists);
+                elaborationRule144 = addElaborationRule(condition144, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114159_726624_14346.class, "customerReadSelf_ReadSelfAction_setDRCap", arguments144);
             }
 
             public _17_0_5_edc0357_1348187326552_305667_14984() {
@@ -3363,17 +3468,17 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter invoker_endTime = null;
 
-            public ConstraintExpression constraint141 = null;
+            public ConstraintExpression constraint145 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1345510114162_717249_14350_existsDependency = null;
 
-            public ElaborationRule elaborationRule142 = null;
+            public ElaborationRule elaborationRule146 = null;
 
             public void init_17_0_5_edc0357_1348188047453_317575_14999Members() {
                 try {
                     _17_0_5_edc0357_1345510114162_717249_14350_exists = new BooleanParameter("_17_0_5_edc0357_1345510114162_717249_14350_exists", this);
                     invoker_endTime = new IntegerParameter("invoker_endTime", this);
-                    constraint141 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
+                    constraint145 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
                     _17_0_5_edc0357_1345510114162_717249_14350_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1345510114162_717249_14350_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -3383,15 +3488,15 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1348188047453_317575_14999Collections() {
                 parameters.add(_17_0_5_edc0357_1345510114162_717249_14350_exists);
                 parameters.add(invoker_endTime);
-                constraintExpressions.add(constraint141);
+                constraintExpressions.add(constraint145);
                 dependencies.add(_17_0_5_edc0357_1345510114162_717249_14350_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1348188047453_317575_14999Elaborations() {
-                Expression<?>[] arguments142 = new Expression<?>[1];
-                arguments142[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition142 = new Expression<Boolean>(_17_0_5_edc0357_1345510114162_717249_14350_exists);
-                elaborationRule142 = addElaborationRule(condition142, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114162_717249_14350.class, "customerFinal_ActivityFinalNode_setDRCap", arguments142);
+                Expression<?>[] arguments146 = new Expression<?>[1];
+                arguments146[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition146 = new Expression<Boolean>(_17_0_5_edc0357_1345510114162_717249_14350_exists);
+                elaborationRule146 = addElaborationRule(condition146, _17_0_5_edc0357_1345510113560_522513_13778.this, Customer._17_0_5_edc0357_1345510113560_522513_13778._17_0_5_edc0357_1345510114162_717249_14350.class, "customerFinal_ActivityFinalNode_setDRCap", arguments146);
             }
 
             public _17_0_5_edc0357_1348188047453_317575_14999() {
@@ -3429,7 +3534,7 @@ public class Customer extends ParameterListenerImpl {
 
         public IntegerParameter invoke_time = null;
 
-        public ElaborationRule elaborationRule143 = null;
+        public ElaborationRule elaborationRule147 = null;
 
         public void init_17_0_5_edc0357_1346104706708_917454_14957Members() {
             try {
@@ -3446,10 +3551,10 @@ public class Customer extends ParameterListenerImpl {
         }
 
         public void init_17_0_5_edc0357_1346104706708_917454_14957Elaborations() {
-            Expression<?>[] arguments143 = new Expression<?>[1];
-            arguments143[0] = new Expression<Integer>(invoke_time);
-            Expression<Boolean> condition143 = new Expression<Boolean>(true);
-            elaborationRule143 = addElaborationRule(condition143, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104724327_278485_14979.class, "_InitialNode_CustomerCB", arguments143);
+            Expression<?>[] arguments147 = new Expression<?>[1];
+            arguments147[0] = new Expression<Integer>(invoke_time);
+            Expression<Boolean> condition147 = new Expression<Boolean>(true);
+            elaborationRule147 = addElaborationRule(condition147, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104724327_278485_14979.class, "_InitialNode_CustomerCB", arguments147);
         }
 
         public _17_0_5_edc0357_1346104706708_917454_14957() {
@@ -3465,7 +3570,7 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104727721_22566_14990_existsDependency = null;
 
-            public ElaborationRule elaborationRule144 = null;
+            public ElaborationRule elaborationRule148 = null;
 
             public void init_17_0_5_edc0357_1346104724327_278485_14979Members() {
                 try {
@@ -3482,10 +3587,10 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_5_edc0357_1346104724327_278485_14979Elaborations() {
-                Expression<?>[] arguments144 = new Expression<?>[1];
-                arguments144[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition144 = new Expression<Boolean>(_17_0_5_edc0357_1346104727721_22566_14990_exists);
-                elaborationRule144 = addElaborationRule(condition144, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104727721_22566_14990.class, "_CallBehaviorAction_CustomerCB", arguments144);
+                Expression<?>[] arguments148 = new Expression<?>[1];
+                arguments148[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition148 = new Expression<Boolean>(_17_0_5_edc0357_1346104727721_22566_14990_exists);
+                elaborationRule148 = addElaborationRule(condition148, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104727721_22566_14990.class, "_CallBehaviorAction_CustomerCB", arguments148);
             }
 
             public _17_0_5_edc0357_1346104724327_278485_14979() {
@@ -3514,20 +3619,20 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter cba_endTime = null;
 
-            public ConstraintExpression constraint145 = null;
+            public ConstraintExpression constraint149 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1348000884142_707118_14045_existsDependency = null;
 
-            public ElaborationRule elaborationRule146 = null;
+            public ElaborationRule elaborationRule150 = null;
 
-            public ElaborationRule elaborationRule147 = null;
+            public ElaborationRule elaborationRule151 = null;
 
             public void init_17_0_5_edc0357_1346104727721_22566_14990Members() {
                 try {
                     _17_0_5_edc0357_1348000884142_707118_14045_exists = new BooleanParameter("_17_0_5_edc0357_1348000884142_707118_14045_exists", this);
                     _17_0_5_edc0357_1346104724327_278485_14979_endTime = new IntegerParameter("_17_0_5_edc0357_1346104724327_278485_14979_endTime", this);
                     cba_endTime = new IntegerParameter("cba_endTime", this);
-                    constraint145 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104724327_278485_14979_endTime)));
+                    constraint149 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104724327_278485_14979_endTime)));
                     _17_0_5_edc0357_1348000884142_707118_14045_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348000884142_707118_14045_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -3538,19 +3643,19 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1348000884142_707118_14045_exists);
                 parameters.add(_17_0_5_edc0357_1346104724327_278485_14979_endTime);
                 parameters.add(cba_endTime);
-                constraintExpressions.add(constraint145);
+                constraintExpressions.add(constraint149);
                 dependencies.add(_17_0_5_edc0357_1348000884142_707118_14045_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346104727721_22566_14990Elaborations() {
-                Expression<?>[] arguments146 = new Expression<?>[1];
-                arguments146[0] = new Expression<Integer>(cba_endTime);
-                Expression<Boolean> condition146 = new Expression<Boolean>(true);
-                elaborationRule146 = addElaborationRule(condition146, Customer.this, Customer._17_0_5_edc0357_1345510113559_180117_13777.class, "initialize_Activity_Customer", arguments146);
-                Expression<?>[] arguments147 = new Expression<?>[1];
-                arguments147[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition147 = new Expression<Boolean>(_17_0_5_edc0357_1348000884142_707118_14045_exists);
-                elaborationRule147 = addElaborationRule(condition147, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1348000884142_707118_14045.class, "_AcceptEventAction_CustomerCB", arguments147);
+                Expression<?>[] arguments150 = new Expression<?>[1];
+                arguments150[0] = new Expression<Integer>(cba_endTime);
+                Expression<Boolean> condition150 = new Expression<Boolean>(true);
+                elaborationRule150 = addElaborationRule(condition150, Customer.this, Customer._17_0_5_edc0357_1345510113559_180117_13777.class, "initialize_Activity_Customer", arguments150);
+                Expression<?>[] arguments151 = new Expression<?>[1];
+                arguments151[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition151 = new Expression<Boolean>(_17_0_5_edc0357_1348000884142_707118_14045_exists);
+                elaborationRule151 = addElaborationRule(condition151, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1348000884142_707118_14045.class, "_AcceptEventAction_CustomerCB", arguments151);
             }
 
             public _17_0_5_edc0357_1346104727721_22566_14990() {
@@ -3582,7 +3687,7 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1348000884142_707118_14045_endTime = null;
 
-            public ConstraintExpression constraint148 = null;
+            public ConstraintExpression constraint152 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346105173460_397488_15297_existsDependency = null;
 
@@ -3592,13 +3697,13 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Boolean > _17_0_5_edc0357_1346105076614_639562_15240_existsDependency = null;
 
-            public ElaborationRule elaborationRule149 = null;
+            public ElaborationRule elaborationRule153 = null;
 
-            public ElaborationRule elaborationRule150 = null;
+            public ElaborationRule elaborationRule154 = null;
 
-            public ElaborationRule elaborationRule151 = null;
+            public ElaborationRule elaborationRule155 = null;
 
-            public ElaborationRule elaborationRule152 = null;
+            public ElaborationRule elaborationRule156 = null;
 
             public void init_17_0_5_edc0357_1346104764223_34184_15024Members() {
                 try {
@@ -3607,7 +3712,7 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1348163169744_444878_14578_exists = new BooleanParameter("_17_0_5_edc0357_1348163169744_444878_14578_exists", this);
                     _17_0_5_edc0357_1346105076614_639562_15240_exists = new BooleanParameter("_17_0_5_edc0357_1346105076614_639562_15240_exists", this);
                     _17_0_5_edc0357_1348000884142_707118_14045_endTime = new IntegerParameter("_17_0_5_edc0357_1348000884142_707118_14045_endTime", this);
-                    constraint148 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348000884142_707118_14045_endTime)));
+                    constraint152 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348000884142_707118_14045_endTime)));
                     _17_0_5_edc0357_1346105173460_397488_15297_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346105173460_397488_15297_exists, new Expression<Boolean>(true));
                     _17_0_5_edc0357_1346104908659_55389_15177_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104908659_55389_15177_exists, new Expression<Boolean>(true));
                     _17_0_5_edc0357_1348163169744_444878_14578_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163169744_444878_14578_exists, new Expression<Boolean>(true));
@@ -3623,7 +3728,7 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1348163169744_444878_14578_exists);
                 parameters.add(_17_0_5_edc0357_1346105076614_639562_15240_exists);
                 parameters.add(_17_0_5_edc0357_1348000884142_707118_14045_endTime);
-                constraintExpressions.add(constraint148);
+                constraintExpressions.add(constraint152);
                 dependencies.add(_17_0_5_edc0357_1346105173460_397488_15297_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1346104908659_55389_15177_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1348163169744_444878_14578_existsDependency);
@@ -3631,22 +3736,22 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_5_edc0357_1346104764223_34184_15024Elaborations() {
-                Expression<?>[] arguments149 = new Expression<?>[1];
-                arguments149[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition149 = new Expression<Boolean>(_17_0_5_edc0357_1346105076614_639562_15240_exists);
-                elaborationRule149 = addElaborationRule(condition149, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105076614_639562_15240.class, "_MergeNode_CustomerCB", arguments149);
-                Expression<?>[] arguments150 = new Expression<?>[1];
-                arguments150[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition150 = new Expression<Boolean>(_17_0_5_edc0357_1348163169744_444878_14578_exists);
-                elaborationRule150 = addElaborationRule(condition150, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1348163169744_444878_14578.class, "_AcceptEventAction_CustomerCB", arguments150);
-                Expression<?>[] arguments151 = new Expression<?>[1];
-                arguments151[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition151 = new Expression<Boolean>(_17_0_5_edc0357_1346105173460_397488_15297_exists);
-                elaborationRule151 = addElaborationRule(condition151, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105173460_397488_15297.class, "_MergeNode_CustomerCB", arguments151);
-                Expression<?>[] arguments152 = new Expression<?>[1];
-                arguments152[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition152 = new Expression<Boolean>(_17_0_5_edc0357_1346104908659_55389_15177_exists);
-                elaborationRule152 = addElaborationRule(condition152, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104908659_55389_15177.class, "_MergeNode_CustomerCB", arguments152);
+                Expression<?>[] arguments153 = new Expression<?>[1];
+                arguments153[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition153 = new Expression<Boolean>(_17_0_5_edc0357_1348163169744_444878_14578_exists);
+                elaborationRule153 = addElaborationRule(condition153, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1348163169744_444878_14578.class, "_AcceptEventAction_CustomerCB", arguments153);
+                Expression<?>[] arguments154 = new Expression<?>[1];
+                arguments154[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition154 = new Expression<Boolean>(_17_0_5_edc0357_1346104908659_55389_15177_exists);
+                elaborationRule154 = addElaborationRule(condition154, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104908659_55389_15177.class, "_MergeNode_CustomerCB", arguments154);
+                Expression<?>[] arguments155 = new Expression<?>[1];
+                arguments155[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition155 = new Expression<Boolean>(_17_0_5_edc0357_1346105076614_639562_15240_exists);
+                elaborationRule155 = addElaborationRule(condition155, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105076614_639562_15240.class, "_MergeNode_CustomerCB", arguments155);
+                Expression<?>[] arguments156 = new Expression<?>[1];
+                arguments156[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition156 = new Expression<Boolean>(_17_0_5_edc0357_1346105173460_397488_15297_exists);
+                elaborationRule156 = addElaborationRule(condition156, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105173460_397488_15297.class, "_MergeNode_CustomerCB", arguments156);
             }
 
             public _17_0_5_edc0357_1346104764223_34184_15024() {
@@ -3674,22 +3779,22 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1346105173460_397488_15297_endTime = null;
 
-            public ConstraintExpression constraint153 = null;
+            public ConstraintExpression constraint157 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346105013928_873722_15220_existsDependency = null;
 
             public Dependency< Power_System.Signaldr_request > _17_0_5_edc0357_1346105140214_847754_15269Dependency = null;
 
-            public ElaborationRule elaborationRule154 = null;
+            public ElaborationRule elaborationRule158 = null;
 
             public void init_17_0_5_edc0357_1346104787974_430716_15054Members() {
                 try {
                     _17_0_5_edc0357_1346105013928_873722_15220_exists = new BooleanParameter("_17_0_5_edc0357_1346105013928_873722_15220_exists", this);
                     _17_0_5_edc0357_1346105140214_847754_15269 = new Parameter<Power_System.Signaldr_request>("_17_0_5_edc0357_1346105140214_847754_15269", null, null, this);
                     _17_0_5_edc0357_1346105173460_397488_15297_endTime = new IntegerParameter("_17_0_5_edc0357_1346105173460_397488_15297_endTime", this);
-                    constraint153 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105173460_397488_15297_endTime)));
+                    constraint157 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105173460_397488_15297_endTime)));
                     _17_0_5_edc0357_1346105013928_873722_15220_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346105013928_873722_15220_exists, new Expression<Boolean>(true));
-                    _17_0_5_edc0357_1346105140214_847754_15269Dependency = new Dependency<Power_System.Signaldr_request>(_17_0_5_edc0357_1346105140214_847754_15269, new Expression(new FunctionCall((Object) q_Customer_dr_request, Utils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
+                    _17_0_5_edc0357_1346105140214_847754_15269Dependency = new Dependency<Power_System.Signaldr_request>(_17_0_5_edc0357_1346105140214_847754_15269, new Expression(new FunctionCall(q_Customer_dr_request, Utils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "generated", "receive", java.lang.Integer.class), new Object[] { new Functions.Minus(new Expression<Integer>(startTime), new Expression<Integer>(1)) })));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3699,17 +3804,17 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1346105013928_873722_15220_exists);
                 parameters.add(_17_0_5_edc0357_1346105140214_847754_15269);
                 parameters.add(_17_0_5_edc0357_1346105173460_397488_15297_endTime);
-                constraintExpressions.add(constraint153);
+                constraintExpressions.add(constraint157);
                 dependencies.add(_17_0_5_edc0357_1346105013928_873722_15220_existsDependency);
                 dependencies.add(_17_0_5_edc0357_1346105140214_847754_15269Dependency);
             }
 
             public void init_17_0_5_edc0357_1346104787974_430716_15054Elaborations() {
-                Expression<?>[] arguments154 = new Expression<?>[2];
-                arguments154[0] = new Expression<Integer>(endTime);
-                arguments154[1] = new Expression<Power_System.Signaldr_request>(_17_0_5_edc0357_1346105140214_847754_15269);
-                Expression<Boolean> condition154 = new Expression<Boolean>(_17_0_5_edc0357_1346105013928_873722_15220_exists);
-                elaborationRule154 = addElaborationRule(condition154, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105013928_873722_15220.class, "_ReadStructuralFeatureAction_CustomerCB", arguments154);
+                Expression<?>[] arguments158 = new Expression<?>[2];
+                arguments158[0] = new Expression<Integer>(endTime);
+                arguments158[1] = new Expression<Power_System.Signaldr_request>(_17_0_5_edc0357_1346105140214_847754_15269);
+                Expression<Boolean> condition158 = new Expression<Boolean>(_17_0_5_edc0357_1346105013928_873722_15220_exists);
+                elaborationRule158 = addElaborationRule(condition158, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105013928_873722_15220.class, "_ReadStructuralFeatureAction_CustomerCB", arguments158);
             }
 
             public _17_0_5_edc0357_1346104787974_430716_15054() {
@@ -3735,19 +3840,19 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1346104840585_256912_15134_exists = null;
 
-            public ConstraintExpression constraint155 = null;
+            public ConstraintExpression constraint159 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104840585_256912_15134_existsDependency = null;
 
             public Dependency< Integer > durationDependency = null;
 
-            public ElaborationRule elaborationRule156 = null;
+            public ElaborationRule elaborationRule160 = null;
 
             public void init_17_0_5_edc0357_1346104794886_467330_15077Members() {
                 try {
                     _17_0_5_edc0357_1346104908659_55389_15177_endTime = new IntegerParameter("_17_0_5_edc0357_1346104908659_55389_15177_endTime", this);
                     _17_0_5_edc0357_1346104840585_256912_15134_exists = new BooleanParameter("_17_0_5_edc0357_1346104840585_256912_15134_exists", this);
-                    constraint155 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104908659_55389_15177_endTime)));
+                    constraint159 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104908659_55389_15177_endTime)));
                     _17_0_5_edc0357_1346104840585_256912_15134_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104840585_256912_15134_exists, new Expression<Boolean>(true));
                     durationDependency = new Dependency<Integer>(duration, new Expression<Integer>(15));
                 } catch (Exception e) {
@@ -3758,17 +3863,17 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1346104794886_467330_15077Collections() {
                 parameters.add(_17_0_5_edc0357_1346104908659_55389_15177_endTime);
                 parameters.add(_17_0_5_edc0357_1346104840585_256912_15134_exists);
-                constraintExpressions.add(constraint155);
+                constraintExpressions.add(constraint159);
                 removeDependency(duration);
                 dependencies.add(_17_0_5_edc0357_1346104840585_256912_15134_existsDependency);
                 dependencies.add(durationDependency);
             }
 
             public void init_17_0_5_edc0357_1346104794886_467330_15077Elaborations() {
-                Expression<?>[] arguments156 = new Expression<?>[1];
-                arguments156[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition156 = new Expression<Boolean>(_17_0_5_edc0357_1346104840585_256912_15134_exists);
-                elaborationRule156 = addElaborationRule(condition156, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104840585_256912_15134.class, "_CallBehaviorAction_CustomerCB", arguments156);
+                Expression<?>[] arguments160 = new Expression<?>[1];
+                arguments160[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition160 = new Expression<Boolean>(_17_0_5_edc0357_1346104840585_256912_15134_exists);
+                elaborationRule160 = addElaborationRule(condition160, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104840585_256912_15134.class, "_CallBehaviorAction_CustomerCB", arguments160);
             }
 
             public _17_0_5_edc0357_1346104794886_467330_15077() {
@@ -3798,13 +3903,13 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter cba_endTime = null;
 
-            public ConstraintExpression constraint157 = null;
+            public ConstraintExpression constraint161 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346105173460_397488_15297_existsDependency = null;
 
-            public ElaborationRule elaborationRule158 = null;
+            public ElaborationRule elaborationRule162 = null;
 
-            public ElaborationRule elaborationRule159 = null;
+            public ElaborationRule elaborationRule163 = null;
 
             public void init_17_0_5_edc0357_1346104807417_467678_15096Members() {
                 try {
@@ -3812,7 +3917,7 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1346105157074_69873_15283 = new IntegerParameter("_17_0_5_edc0357_1346105157074_69873_15283", this);
                     _17_0_5_edc0357_1346105013928_873722_15220_endTime = new IntegerParameter("_17_0_5_edc0357_1346105013928_873722_15220_endTime", this);
                     cba_endTime = new IntegerParameter("cba_endTime", this);
-                    constraint157 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105013928_873722_15220_endTime)));
+                    constraint161 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105013928_873722_15220_endTime)));
                     _17_0_5_edc0357_1346105173460_397488_15297_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346105173460_397488_15297_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -3824,20 +3929,20 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1346105157074_69873_15283);
                 parameters.add(_17_0_5_edc0357_1346105013928_873722_15220_endTime);
                 parameters.add(cba_endTime);
-                constraintExpressions.add(constraint157);
+                constraintExpressions.add(constraint161);
                 dependencies.add(_17_0_5_edc0357_1346105173460_397488_15297_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346104807417_467678_15096Elaborations() {
-                Expression<?>[] arguments158 = new Expression<?>[1];
-                arguments158[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition158 = new Expression<Boolean>(_17_0_5_edc0357_1346105173460_397488_15297_exists);
-                elaborationRule158 = addElaborationRule(condition158, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105173460_397488_15297.class, "_MergeNode_CustomerCB", arguments158);
-                Expression<?>[] arguments159 = new Expression<?>[2];
-                arguments159[0] = new Expression<Integer>(cba_endTime);
-                arguments159[1] = new Expression<Integer>(_17_0_5_edc0357_1346105157074_69873_15283);
-                Expression<Boolean> condition159 = new Expression<Boolean>(true);
-                elaborationRule159 = addElaborationRule(condition159, Customer.this, Customer._17_0_5_edc0357_1345510113560_522513_13778.class, "setDRCap_Activity_Customer", arguments159);
+                Expression<?>[] arguments162 = new Expression<?>[2];
+                arguments162[0] = new Expression<Integer>(cba_endTime);
+                arguments162[1] = new Expression<Integer>(_17_0_5_edc0357_1346105157074_69873_15283);
+                Expression<Boolean> condition162 = new Expression<Boolean>(true);
+                elaborationRule162 = addElaborationRule(condition162, Customer.this, Customer._17_0_5_edc0357_1345510113560_522513_13778.class, "setDRCap_Activity_Customer", arguments162);
+                Expression<?>[] arguments163 = new Expression<?>[1];
+                arguments163[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition163 = new Expression<Boolean>(_17_0_5_edc0357_1346105173460_397488_15297_exists);
+                elaborationRule163 = addElaborationRule(condition163, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105173460_397488_15297.class, "_MergeNode_CustomerCB", arguments163);
             }
 
             public _17_0_5_edc0357_1346104807417_467678_15096() {
@@ -3866,20 +3971,20 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter cba_endTime = null;
 
-            public ConstraintExpression constraint160 = null;
+            public ConstraintExpression constraint164 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346105076614_639562_15240_existsDependency = null;
 
-            public ElaborationRule elaborationRule161 = null;
+            public ElaborationRule elaborationRule165 = null;
 
-            public ElaborationRule elaborationRule162 = null;
+            public ElaborationRule elaborationRule166 = null;
 
             public void init_17_0_5_edc0357_1346104812245_253068_15114Members() {
                 try {
                     _17_0_5_edc0357_1346105076614_639562_15240_exists = new BooleanParameter("_17_0_5_edc0357_1346105076614_639562_15240_exists", this);
                     _17_0_5_edc0357_1348163241394_286425_14598_endTime = new IntegerParameter("_17_0_5_edc0357_1348163241394_286425_14598_endTime", this);
                     cba_endTime = new IntegerParameter("cba_endTime", this);
-                    constraint160 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348163241394_286425_14598_endTime)));
+                    constraint164 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348163241394_286425_14598_endTime)));
                     _17_0_5_edc0357_1346105076614_639562_15240_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346105076614_639562_15240_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -3890,19 +3995,19 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1346105076614_639562_15240_exists);
                 parameters.add(_17_0_5_edc0357_1348163241394_286425_14598_endTime);
                 parameters.add(cba_endTime);
-                constraintExpressions.add(constraint160);
+                constraintExpressions.add(constraint164);
                 dependencies.add(_17_0_5_edc0357_1346105076614_639562_15240_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346104812245_253068_15114Elaborations() {
-                Expression<?>[] arguments161 = new Expression<?>[1];
-                arguments161[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition161 = new Expression<Boolean>(_17_0_5_edc0357_1346105076614_639562_15240_exists);
-                elaborationRule161 = addElaborationRule(condition161, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105076614_639562_15240.class, "_MergeNode_CustomerCB", arguments161);
-                Expression<?>[] arguments162 = new Expression<?>[1];
-                arguments162[0] = new Expression<Integer>(cba_endTime);
-                Expression<Boolean> condition162 = new Expression<Boolean>(true);
-                elaborationRule162 = addElaborationRule(condition162, Customer.this, Customer._17_0_5_edc0357_1345510113557_625793_13776.class, "changePowerUsage_Activity_Customer", arguments162);
+                Expression<?>[] arguments165 = new Expression<?>[1];
+                arguments165[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition165 = new Expression<Boolean>(_17_0_5_edc0357_1346105076614_639562_15240_exists);
+                elaborationRule165 = addElaborationRule(condition165, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105076614_639562_15240.class, "_MergeNode_CustomerCB", arguments165);
+                Expression<?>[] arguments166 = new Expression<?>[1];
+                arguments166[0] = new Expression<Integer>(cba_endTime);
+                Expression<Boolean> condition166 = new Expression<Boolean>(true);
+                elaborationRule166 = addElaborationRule(condition166, Customer.this, Customer._17_0_5_edc0357_1345510113557_625793_13776.class, "changePowerUsage_Activity_Customer", arguments166);
             }
 
             public _17_0_5_edc0357_1346104812245_253068_15114() {
@@ -3930,20 +4035,20 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter cba_endTime = null;
 
-            public ConstraintExpression constraint163 = null;
+            public ConstraintExpression constraint167 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104908659_55389_15177_existsDependency = null;
 
-            public ElaborationRule elaborationRule164 = null;
+            public ElaborationRule elaborationRule168 = null;
 
-            public ElaborationRule elaborationRule165 = null;
+            public ElaborationRule elaborationRule169 = null;
 
             public void init_17_0_5_edc0357_1346104840585_256912_15134Members() {
                 try {
                     _17_0_5_edc0357_1346104908659_55389_15177_exists = new BooleanParameter("_17_0_5_edc0357_1346104908659_55389_15177_exists", this);
                     _17_0_5_edc0357_1346104794886_467330_15077_endTime = new IntegerParameter("_17_0_5_edc0357_1346104794886_467330_15077_endTime", this);
                     cba_endTime = new IntegerParameter("cba_endTime", this);
-                    constraint163 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104794886_467330_15077_endTime)));
+                    constraint167 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104794886_467330_15077_endTime)));
                     _17_0_5_edc0357_1346104908659_55389_15177_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104908659_55389_15177_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -3954,19 +4059,19 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1346104908659_55389_15177_exists);
                 parameters.add(_17_0_5_edc0357_1346104794886_467330_15077_endTime);
                 parameters.add(cba_endTime);
-                constraintExpressions.add(constraint163);
+                constraintExpressions.add(constraint167);
                 dependencies.add(_17_0_5_edc0357_1346104908659_55389_15177_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346104840585_256912_15134Elaborations() {
-                Expression<?>[] arguments164 = new Expression<?>[1];
-                arguments164[0] = new Expression<Integer>(cba_endTime);
-                Expression<Boolean> condition164 = new Expression<Boolean>(true);
-                elaborationRule164 = addElaborationRule(condition164, Customer.this, Customer._17_0_5_edc0357_1345510113556_623276_13775.class, "usePower_Activity_Customer", arguments164);
-                Expression<?>[] arguments165 = new Expression<?>[1];
-                arguments165[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition165 = new Expression<Boolean>(_17_0_5_edc0357_1346104908659_55389_15177_exists);
-                elaborationRule165 = addElaborationRule(condition165, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104908659_55389_15177.class, "_MergeNode_CustomerCB", arguments165);
+                Expression<?>[] arguments168 = new Expression<?>[1];
+                arguments168[0] = new Expression<Integer>(cba_endTime);
+                Expression<Boolean> condition168 = new Expression<Boolean>(true);
+                elaborationRule168 = addElaborationRule(condition168, Customer.this, Customer._17_0_5_edc0357_1345510113556_623276_13775.class, "usePower_Activity_Customer", arguments168);
+                Expression<?>[] arguments169 = new Expression<?>[1];
+                arguments169[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition169 = new Expression<Boolean>(_17_0_5_edc0357_1346104908659_55389_15177_exists);
+                elaborationRule169 = addElaborationRule(condition169, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104908659_55389_15177.class, "_MergeNode_CustomerCB", arguments169);
             }
 
             public _17_0_5_edc0357_1346104840585_256912_15134() {
@@ -3990,12 +4095,12 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter _17_0_5_edc0357_1348163169744_444878_14578_endTime = null;
 
-            public ConstraintExpression constraint166 = null;
+            public ConstraintExpression constraint170 = null;
 
             public void init_17_0_5_edc0357_1346104860701_80157_15146Members() {
                 try {
                     _17_0_5_edc0357_1348163169744_444878_14578_endTime = new IntegerParameter("_17_0_5_edc0357_1348163169744_444878_14578_endTime", this);
-                    constraint166 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348163169744_444878_14578_endTime)));
+                    constraint170 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1348163169744_444878_14578_endTime)));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4003,7 +4108,7 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_5_edc0357_1346104860701_80157_15146Collections() {
                 parameters.add(_17_0_5_edc0357_1348163169744_444878_14578_endTime);
-                constraintExpressions.add(constraint166);
+                constraintExpressions.add(constraint170);
             }
 
             public void init_17_0_5_edc0357_1346104860701_80157_15146Elaborations() {
@@ -4032,17 +4137,17 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter invoker_endTime = null;
 
-            public ConstraintExpression constraint167 = null;
+            public ConstraintExpression constraint171 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104794886_467330_15077_existsDependency = null;
 
-            public ElaborationRule elaborationRule168 = null;
+            public ElaborationRule elaborationRule172 = null;
 
             public void init_17_0_5_edc0357_1346104908659_55389_15177Members() {
                 try {
                     _17_0_5_edc0357_1346104794886_467330_15077_exists = new BooleanParameter("_17_0_5_edc0357_1346104794886_467330_15077_exists", this);
                     invoker_endTime = new IntegerParameter("invoker_endTime", this);
-                    constraint167 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
+                    constraint171 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
                     _17_0_5_edc0357_1346104794886_467330_15077_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104794886_467330_15077_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -4052,15 +4157,15 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1346104908659_55389_15177Collections() {
                 parameters.add(_17_0_5_edc0357_1346104794886_467330_15077_exists);
                 parameters.add(invoker_endTime);
-                constraintExpressions.add(constraint167);
+                constraintExpressions.add(constraint171);
                 dependencies.add(_17_0_5_edc0357_1346104794886_467330_15077_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346104908659_55389_15177Elaborations() {
-                Expression<?>[] arguments168 = new Expression<?>[1];
-                arguments168[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition168 = new Expression<Boolean>(_17_0_5_edc0357_1346104794886_467330_15077_exists);
-                elaborationRule168 = addElaborationRule(condition168, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104794886_467330_15077.class, "_AcceptEventAction_CustomerCB", arguments168);
+                Expression<?>[] arguments172 = new Expression<?>[1];
+                arguments172[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition172 = new Expression<Boolean>(_17_0_5_edc0357_1346104794886_467330_15077_exists);
+                elaborationRule172 = addElaborationRule(condition172, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104794886_467330_15077.class, "_AcceptEventAction_CustomerCB", arguments172);
             }
 
             public _17_0_5_edc0357_1346104908659_55389_15177() {
@@ -4078,7 +4183,6 @@ public class Customer extends ParameterListenerImpl {
                 init_17_0_5_edc0357_1346104908659_55389_15177Elaborations();
                 fixTimeDependencies();
             }
-
         }
 
         public class _17_0_5_edc0357_1346105013928_873722_15220 extends DurativeEvent {
@@ -4091,13 +4195,13 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1346104807417_467678_15096_exists = null;
 
-            public ConstraintExpression constraint169 = null;
+            public ConstraintExpression constraint173 = null;
 
             public Dependency< Integer > _17_0_5_edc0357_1346105116990_449068_15259Dependency = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104807417_467678_15096_existsDependency = null;
 
-            public ElaborationRule elaborationRule170 = null;
+            public ElaborationRule elaborationRule174 = null;
 
             public void init_17_0_5_edc0357_1346105013928_873722_15220Members() {
                 try {
@@ -4105,12 +4209,8 @@ public class Customer extends ParameterListenerImpl {
                     _17_0_5_edc0357_1346105116990_449068_15259 = new IntegerParameter("_17_0_5_edc0357_1346105116990_449068_15259", this);
                     _17_0_5_edc0357_1346105104143_626038_15258 = new Parameter<Power_System.Signaldr_request>("_17_0_5_edc0357_1346105104143_626038_15258", null, null, this);
                     _17_0_5_edc0357_1346104807417_467678_15096_exists = new BooleanParameter("_17_0_5_edc0357_1346104807417_467678_15096_exists", this);
-                    constraint169 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104787974_430716_15054_endTime)));
-                    FunctionCall nestedCall3 = new FunctionCall(null, TimeVaryingMap.class, "getValue", new Object[] { startTime } );
-                    FunctionCall nestedCall2 = new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, nestedCall3 );
-                    FunctionCall call1 = new FunctionCall(_17_0_5_edc0357_1346105116990_449068_15259, Parameter.class, "getMember", new Object[] { "cap__17_0_5_edc0357_1345510113618_430459_13856" }, nestedCall2 );
-                    _17_0_5_edc0357_1346105116990_449068_15259Dependency = new Dependency<Integer>(_17_0_5_edc0357_1346105116990_449068_15259, new Expression(call1));
-                    //_17_0_5_edc0357_1346105116990_449068_15259Dependency = new Dependency<Integer>(_17_0_5_edc0357_1346105116990_449068_15259, new Expression(new FunctionCall((Object) (((Parameter<?>) (_17_0_5_edc0357_1346105104143_626038_15258.getMember("cap__17_0_5_edc0357_1345510113618_430459_13856"))).getValue()), Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105013928_873722_15220", "generated", "getValue"), new Object[] { new Expression<Integer>(startTime) })));
+                    constraint173 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104787974_430716_15054_endTime)));
+                    _17_0_5_edc0357_1346105116990_449068_15259Dependency = new Dependency<Integer>(_17_0_5_edc0357_1346105116990_449068_15259, new Expression(new FunctionCall(null, Utils.getMethodForArgTypes("Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346105013928_873722_15220", "generated", "getValue"), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(null, Parameter.class, "getValue", (Object[]) null, new FunctionCall(_17_0_5_edc0357_1346105104143_626038_15258, Parameter.class, "getMember", new Object[] { "cap__17_0_5_edc0357_1345510113618_430459_13856" })))));
                     _17_0_5_edc0357_1346104807417_467678_15096_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104807417_467678_15096_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -4122,17 +4222,17 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_5_edc0357_1346105116990_449068_15259);
                 parameters.add(_17_0_5_edc0357_1346105104143_626038_15258);
                 parameters.add(_17_0_5_edc0357_1346104807417_467678_15096_exists);
-                constraintExpressions.add(constraint169);
+                constraintExpressions.add(constraint173);
                 dependencies.add(_17_0_5_edc0357_1346105116990_449068_15259Dependency);
                 dependencies.add(_17_0_5_edc0357_1346104807417_467678_15096_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346105013928_873722_15220Elaborations() {
-                Expression<?>[] arguments170 = new Expression<?>[2];
-                arguments170[0] = new Expression<Integer>(endTime);
-                arguments170[1] = new Expression<Integer>(_17_0_5_edc0357_1346105116990_449068_15259);
-                Expression<Boolean> condition170 = new Expression<Boolean>(_17_0_5_edc0357_1346104807417_467678_15096_exists);
-                elaborationRule170 = addElaborationRule(condition170, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104807417_467678_15096.class, "_CallBehaviorAction_CustomerCB", arguments170);
+                Expression<?>[] arguments174 = new Expression<?>[2];
+                arguments174[0] = new Expression<Integer>(endTime);
+                arguments174[1] = new Expression<Integer>(_17_0_5_edc0357_1346105116990_449068_15259);
+                Expression<Boolean> condition174 = new Expression<Boolean>(_17_0_5_edc0357_1346104807417_467678_15096_exists);
+                elaborationRule174 = addElaborationRule(condition174, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104807417_467678_15096.class, "_CallBehaviorAction_CustomerCB", arguments174);
             }
 
             public _17_0_5_edc0357_1346105013928_873722_15220() {
@@ -4159,17 +4259,17 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1348163241394_286425_14598_exists = null;
 
-            public ConstraintExpression constraint171 = null;
+            public ConstraintExpression constraint175 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1348163241394_286425_14598_existsDependency = null;
 
-            public ElaborationRule elaborationRule172 = null;
+            public ElaborationRule elaborationRule176 = null;
 
             public void init_17_0_5_edc0357_1346105076614_639562_15240Members() {
                 try {
                     invoker_endTime = new IntegerParameter("invoker_endTime", this);
                     _17_0_5_edc0357_1348163241394_286425_14598_exists = new BooleanParameter("_17_0_5_edc0357_1348163241394_286425_14598_exists", this);
-                    constraint171 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
+                    constraint175 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
                     _17_0_5_edc0357_1348163241394_286425_14598_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1348163241394_286425_14598_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -4179,15 +4279,15 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1346105076614_639562_15240Collections() {
                 parameters.add(invoker_endTime);
                 parameters.add(_17_0_5_edc0357_1348163241394_286425_14598_exists);
-                constraintExpressions.add(constraint171);
+                constraintExpressions.add(constraint175);
                 dependencies.add(_17_0_5_edc0357_1348163241394_286425_14598_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346105076614_639562_15240Elaborations() {
-                Expression<?>[] arguments172 = new Expression<?>[1];
-                arguments172[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition172 = new Expression<Boolean>(_17_0_5_edc0357_1348163241394_286425_14598_exists);
-                elaborationRule172 = addElaborationRule(condition172, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1348163241394_286425_14598.class, "_AcceptEventAction_CustomerCB", arguments172);
+                Expression<?>[] arguments176 = new Expression<?>[1];
+                arguments176[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition176 = new Expression<Boolean>(_17_0_5_edc0357_1348163241394_286425_14598_exists);
+                elaborationRule176 = addElaborationRule(condition176, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1348163241394_286425_14598.class, "_AcceptEventAction_CustomerCB", arguments176);
             }
 
             public _17_0_5_edc0357_1346105076614_639562_15240() {
@@ -4213,18 +4313,18 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1346104787974_430716_15054_exists = null;
 
-            public ConstraintExpression constraint173 = null;
+            public ConstraintExpression constraint177 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104787974_430716_15054_existsDependency = null;
 
-            public ElaborationRule elaborationRule174 = null;
+            public ElaborationRule elaborationRule178 = null;
 
             public void init_17_0_5_edc0357_1346105173460_397488_15297Members() {
                 try {
                     invoker_endTime = new IntegerParameter("invoker_endTime", this);
                     _17_0_5_edc0357_1346104787974_430716_15054_exists = new BooleanParameter("_17_0_5_edc0357_1346104787974_430716_15054_exists", this);
-                    constraint173 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
-                    _17_0_5_edc0357_1346104787974_430716_15054_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104787974_430716_15054_exists, new Expression(new FunctionCall((Object) q_Customer_dr_request, Utils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
+                    constraint177 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(invoker_endTime)));
+                    _17_0_5_edc0357_1346104787974_430716_15054_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104787974_430716_15054_exists, new Expression(new FunctionCall(q_Customer_dr_request, Utils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "generated", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4233,15 +4333,15 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1346105173460_397488_15297Collections() {
                 parameters.add(invoker_endTime);
                 parameters.add(_17_0_5_edc0357_1346104787974_430716_15054_exists);
-                constraintExpressions.add(constraint173);
+                constraintExpressions.add(constraint177);
                 dependencies.add(_17_0_5_edc0357_1346104787974_430716_15054_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1346105173460_397488_15297Elaborations() {
-                Expression<?>[] arguments174 = new Expression<?>[1];
-                arguments174[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition174 = new Expression<Boolean>(_17_0_5_edc0357_1346104787974_430716_15054_exists);
-                elaborationRule174 = addElaborationRule(condition174, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104787974_430716_15054.class, "_AcceptEventAction_CustomerCB", arguments174);
+                Expression<?>[] arguments178 = new Expression<?>[1];
+                arguments178[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition178 = new Expression<Boolean>(_17_0_5_edc0357_1346104787974_430716_15054_exists);
+                elaborationRule178 = addElaborationRule(condition178, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104787974_430716_15054.class, "_AcceptEventAction_CustomerCB", arguments178);
             }
 
             public _17_0_5_edc0357_1346105173460_397488_15297() {
@@ -4267,19 +4367,19 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1346104764223_34184_15024_exists = null;
 
-            public ConstraintExpression constraint175 = null;
+            public ConstraintExpression constraint179 = null;
 
             public Dependency< Integer > durationDependency = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104764223_34184_15024_existsDependency = null;
 
-            public ElaborationRule elaborationRule176 = null;
+            public ElaborationRule elaborationRule180 = null;
 
             public void init_17_0_5_edc0357_1348000884142_707118_14045Members() {
                 try {
                     _17_0_5_edc0357_1346104727721_22566_14990_endTime = new IntegerParameter("_17_0_5_edc0357_1346104727721_22566_14990_endTime", this);
                     _17_0_5_edc0357_1346104764223_34184_15024_exists = new BooleanParameter("_17_0_5_edc0357_1346104764223_34184_15024_exists", this);
-                    constraint175 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104727721_22566_14990_endTime)));
+                    constraint179 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104727721_22566_14990_endTime)));
                     durationDependency = new Dependency<Integer>(duration, new Expression<Integer>(20));
                     _17_0_5_edc0357_1346104764223_34184_15024_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104764223_34184_15024_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
@@ -4290,17 +4390,17 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1348000884142_707118_14045Collections() {
                 parameters.add(_17_0_5_edc0357_1346104727721_22566_14990_endTime);
                 parameters.add(_17_0_5_edc0357_1346104764223_34184_15024_exists);
-                constraintExpressions.add(constraint175);
+                constraintExpressions.add(constraint179);
                 removeDependency(duration);
                 dependencies.add(durationDependency);
                 dependencies.add(_17_0_5_edc0357_1346104764223_34184_15024_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1348000884142_707118_14045Elaborations() {
-                Expression<?>[] arguments176 = new Expression<?>[1];
-                arguments176[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition176 = new Expression<Boolean>(_17_0_5_edc0357_1346104764223_34184_15024_exists);
-                elaborationRule176 = addElaborationRule(condition176, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104764223_34184_15024.class, "_ForkNode_CustomerCB", arguments176);
+                Expression<?>[] arguments180 = new Expression<?>[1];
+                arguments180[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition180 = new Expression<Boolean>(_17_0_5_edc0357_1346104764223_34184_15024_exists);
+                elaborationRule180 = addElaborationRule(condition180, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104764223_34184_15024.class, "_ForkNode_CustomerCB", arguments180);
             }
 
             public _17_0_5_edc0357_1348000884142_707118_14045() {
@@ -4326,19 +4426,19 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1346104860701_80157_15146_exists = null;
 
-            public ConstraintExpression constraint177 = null;
+            public ConstraintExpression constraint181 = null;
 
             public Dependency< Integer > durationDependency = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104860701_80157_15146_existsDependency = null;
 
-            public ElaborationRule elaborationRule178 = null;
+            public ElaborationRule elaborationRule182 = null;
 
             public void init_17_0_5_edc0357_1348163169744_444878_14578Members() {
                 try {
                     _17_0_5_edc0357_1346104764223_34184_15024_endTime = new IntegerParameter("_17_0_5_edc0357_1346104764223_34184_15024_endTime", this);
                     _17_0_5_edc0357_1346104860701_80157_15146_exists = new BooleanParameter("_17_0_5_edc0357_1346104860701_80157_15146_exists", this);
-                    constraint177 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104764223_34184_15024_endTime)));
+                    constraint181 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346104764223_34184_15024_endTime)));
                     durationDependency = new Dependency<Integer>(duration, new Expression<Integer>(10000));
                     _17_0_5_edc0357_1346104860701_80157_15146_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104860701_80157_15146_exists, new Expression<Boolean>(true));
                 } catch (Exception e) {
@@ -4349,17 +4449,17 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1348163169744_444878_14578Collections() {
                 parameters.add(_17_0_5_edc0357_1346104764223_34184_15024_endTime);
                 parameters.add(_17_0_5_edc0357_1346104860701_80157_15146_exists);
-                constraintExpressions.add(constraint177);
+                constraintExpressions.add(constraint181);
                 removeDependency(duration);
                 dependencies.add(durationDependency);
                 dependencies.add(_17_0_5_edc0357_1346104860701_80157_15146_existsDependency);
             }
 
             public void init_17_0_5_edc0357_1348163169744_444878_14578Elaborations() {
-                Expression<?>[] arguments178 = new Expression<?>[1];
-                arguments178[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition178 = new Expression<Boolean>(_17_0_5_edc0357_1346104860701_80157_15146_exists);
-                elaborationRule178 = addElaborationRule(condition178, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104860701_80157_15146.class, "_ActivityFinalNode_CustomerCB", arguments178);
+                Expression<?>[] arguments182 = new Expression<?>[1];
+                arguments182[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition182 = new Expression<Boolean>(_17_0_5_edc0357_1346104860701_80157_15146_exists);
+                elaborationRule182 = addElaborationRule(condition182, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104860701_80157_15146.class, "_ActivityFinalNode_CustomerCB", arguments182);
             }
 
             public _17_0_5_edc0357_1348163169744_444878_14578() {
@@ -4385,19 +4485,19 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_5_edc0357_1346104812245_253068_15114_exists = null;
 
-            public ConstraintExpression constraint179 = null;
+            public ConstraintExpression constraint183 = null;
 
             public Dependency< Boolean > _17_0_5_edc0357_1346104812245_253068_15114_existsDependency = null;
 
             public Dependency< Integer > durationDependency = null;
 
-            public ElaborationRule elaborationRule180 = null;
+            public ElaborationRule elaborationRule184 = null;
 
             public void init_17_0_5_edc0357_1348163241394_286425_14598Members() {
                 try {
                     _17_0_5_edc0357_1346105076614_639562_15240_endTime = new IntegerParameter("_17_0_5_edc0357_1346105076614_639562_15240_endTime", this);
                     _17_0_5_edc0357_1346104812245_253068_15114_exists = new BooleanParameter("_17_0_5_edc0357_1346104812245_253068_15114_exists", this);
-                    constraint179 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105076614_639562_15240_endTime)));
+                    constraint183 = new ConstraintExpression(new Functions.Greater(new Expression<Integer>(startTime), new Expression<Integer>(_17_0_5_edc0357_1346105076614_639562_15240_endTime)));
                     _17_0_5_edc0357_1346104812245_253068_15114_existsDependency = new Dependency<Boolean>(_17_0_5_edc0357_1346104812245_253068_15114_exists, new Expression<Boolean>(true));
                     durationDependency = new Dependency<Integer>(duration, new Expression<Integer>(60));
                 } catch (Exception e) {
@@ -4408,17 +4508,17 @@ public class Customer extends ParameterListenerImpl {
             protected void init_17_0_5_edc0357_1348163241394_286425_14598Collections() {
                 parameters.add(_17_0_5_edc0357_1346105076614_639562_15240_endTime);
                 parameters.add(_17_0_5_edc0357_1346104812245_253068_15114_exists);
-                constraintExpressions.add(constraint179);
+                constraintExpressions.add(constraint183);
                 removeDependency(duration);
                 dependencies.add(_17_0_5_edc0357_1346104812245_253068_15114_existsDependency);
                 dependencies.add(durationDependency);
             }
 
             public void init_17_0_5_edc0357_1348163241394_286425_14598Elaborations() {
-                Expression<?>[] arguments180 = new Expression<?>[1];
-                arguments180[0] = new Expression<Integer>(endTime);
-                Expression<Boolean> condition180 = new Expression<Boolean>(_17_0_5_edc0357_1346104812245_253068_15114_exists);
-                elaborationRule180 = addElaborationRule(condition180, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104812245_253068_15114.class, "_CallBehaviorAction_CustomerCB", arguments180);
+                Expression<?>[] arguments184 = new Expression<?>[1];
+                arguments184[0] = new Expression<Integer>(endTime);
+                Expression<Boolean> condition184 = new Expression<Boolean>(_17_0_5_edc0357_1346104812245_253068_15114_exists);
+                elaborationRule184 = addElaborationRule(condition184, _17_0_5_edc0357_1346104706708_917454_14957.this, Customer._17_0_5_edc0357_1346104706708_917454_14957._17_0_5_edc0357_1346104812245_253068_15114.class, "_CallBehaviorAction_CustomerCB", arguments184);
             }
 
             public _17_0_5_edc0357_1348163241394_286425_14598() {

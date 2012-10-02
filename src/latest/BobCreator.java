@@ -29,7 +29,7 @@ public class BobCreator extends DurativeEvent {
 
     public Parameter< Power_System > Bob = null;
 
-    public ElaborationRule elaborationRule674 = null;
+    public ElaborationRule elaborationRule678 = null;
 
     public void initBobCreatorMembers() {
         try {
@@ -44,9 +44,9 @@ public class BobCreator extends DurativeEvent {
     }
 
     public void initBobCreatorElaborations() {
-        Expression<?>[] arguments674 = new Expression<?>[0];
-        Expression<Boolean> condition674 = new Expression<Boolean>(true);
-        elaborationRule674 = addElaborationRule(condition674, Bob, Power_System._17_0_5_edc0357_1345510113586_863604_13814.class, "Activity", arguments674);
+        Expression<?>[] arguments678 = new Expression<?>[0];
+        Expression<Boolean> condition678 = new Expression<Boolean>(true);
+        elaborationRule678 = addElaborationRule(condition678, Bob, Power_System._17_0_5_edc0357_1345510113586_863604_13814.class, "Activity", arguments678);
     }
 
     public BobCreator() {
