@@ -1002,7 +1002,7 @@
 							initSignalnoMembers();
 							initSignalnoCollections();
 							initSignalnoElaborations();
-							newLoad__17_0_5_edc0357_1345510113619_149263_13857.getValue().setValue(t,x);
+							customerSignal.getValue().setValue(t,x);
 						 }
 							]]>
             </function>
