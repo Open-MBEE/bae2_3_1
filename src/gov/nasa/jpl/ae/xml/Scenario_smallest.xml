@@ -8,7 +8,13 @@
 		<arguments>
 			<parameter>
 				<name>startTime</name>
+				<type>Integer</type>
 				<value>0</value>
+			</parameter>
+			<parameter>
+				<name>duration</name>
+				<type>Integer</type>
+				<value>30</value>
 			</parameter>
 		</arguments>
 	</eventToBeExecuted>
@@ -98,6 +104,11 @@
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
+										<parameter>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>3</value>
+										</parameter>
 									</members>
 									<constraints>
 									</constraints>
@@ -119,6 +130,7 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893970408_473222_14358_endTime</name>
+													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -140,6 +152,11 @@
 											<name>_17_0_5_edc0357_1346893970408_473222_14358_endTime</name>
 											<type>Integer</type>
 											<value/>
+										</parameter>
+										<parameter>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>3</value>
 										</parameter>
 									</members>
 									<constraints>
@@ -196,6 +213,11 @@
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
+										<parameter>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>3</value>
+										</parameter>
 									</members>
 									<constraints>
 									</constraints>
@@ -217,6 +239,7 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893970422_843838_14398_endTime</name>
+													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
@@ -251,6 +274,11 @@
 											<type>Integer</type>
 											<value/>
 										</parameter>
+										<parameter>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>3</value>
+										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893970422_843838_14398_endTime</expression></constraint>
@@ -273,6 +301,7 @@
 											<arguments>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893970422_682489_14399_endTime</name>
+													<type>Integer</type>
 													<value>endTime</value>
 												</parameter>
 											</arguments>
