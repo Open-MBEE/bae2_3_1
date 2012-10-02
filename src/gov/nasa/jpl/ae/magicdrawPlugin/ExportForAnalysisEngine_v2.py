@@ -719,10 +719,10 @@ class actionEventClass(object):
 			try: 
 				ct = constructorArgs[node.context]
 				prepend=ct.name+"."
-				invokePhrase = "x.getValue().new Signal%s(endTime.getValue(),%s)" % (sig.getName(),argPhrase)
+				invokePhrase = "x.getValue().new Signal%s(endTime,%s)" % (sig.getName(),argPhrase)
 			except: 
 				prepend = ""
-				invokePhrase = "new %sSignal%s(endTime.getValue(),%s)" % (prepend,sig.getName(),argPhrase)
+				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
 			self.effects.append(structSig + ".send(%s,endTime.getValue())" % invokePhrase)
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
