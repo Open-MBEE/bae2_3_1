@@ -167,7 +167,7 @@ class ClassifierClass(object):
 					for e in c.end:
 						if e.partWithPort.type is targetQueueOwner: pwp = e.partWithPort
 					if pwp:
-						constructortext = "((ObjectFlow) %s.getValue()).addListener(((ObjectFlow) ((%s) %s.getValue()).%s.getValue()));" % (name,targetQueueOwner.name,pwp.name,targname)
+						constructortext = "((ObjectFlow) %s.getValue()).addListener(((ObjectFlow) (%s.getValue()).%s.getValue()));" % (name,pwp.name,targname)
 					self.constructors.append(constructortext)
 					#((ObjectFlow) ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeLoadValue.getValue()));
 			
@@ -604,7 +604,7 @@ class actionEventClass(object):
 				#gl.log(self.enclosingClass)
 				self.elaborations[next]={
 										"args": [(elabVar,"endTime","Integer")],
-										"conditions": {next:"endTime.getValue()"},
+										"conditions": {next:"endTime"},
 										"enclosingClass" : self.enclosingClass}
 				
 				#dependencies on "_exists"
@@ -628,7 +628,7 @@ class actionEventClass(object):
 					if len(nextsInPins)>0:
 						signalFlows.extend([x.incoming[0] for x in nextsInPins if x.incoming[0] is not invokingFlow])
 					for inc in signalFlows:	
-						s = "sig" + str(inc.getID()) + ".hasStuff(endTime.getValue())"
+						s = "sig" + str(inc.getID()) + ".hasStuff(endTime)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 				if isinstance(next,AcceptEventAction):
@@ -636,7 +636,7 @@ class actionEventClass(object):
 					if not isinstance(event,TimeEvent):
 						sig = event.signal
 						context = next.context
-						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime.getValue())"
+						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 				if not dependencyString: dependencyString = "true"
@@ -713,7 +713,7 @@ class actionEventClass(object):
 			argPhrase = ""
 			for arg in node.argument:
 				if argPhrase is not "": argPhrase = " , ".join(argPhrase,arg.getID())
-				else: argPhrase = arg.getID()+".getValue()"
+				else: argPhrase = arg.getID() + ".getValue()"
 			if argPhrase =="": #means there are no arguments
 				argPhrase = "true"
 			try: 
@@ -723,7 +723,7 @@ class actionEventClass(object):
 			except: 
 				prepend = ""
 				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
-			self.effects.append(structSig + ".send(%s,endTime.getValue())" % invokePhrase)
+			self.effects.append(structSig + ".send(%s,endTime)" % invokePhrase)
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
 			if not isinstance(event,TimeEvent):
@@ -798,7 +798,7 @@ class actionEventClass(object):
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"
 					#self.effects.append(pin.getID()+ " = sig" + pin.parameter.getID() + ".receive(endTime - 1)")
-					self.dependencies[pin.getID()] = (tname,"sig" + pin.parameter.getID() + ".receive(endTime.getValue() - 1)")
+					self.dependencies[pin.getID()] = (tname,"sig" + pin.parameter.getID() + ".receive(endTime - 1)")
 					self.elaborations[node.behavior]["args"].append(("sig"+pin.parameter.getID(),"sig"+pin.parameter.getID(),"ObjectFlow"))
 				self.members["cba_endTime"] = ("Integer",None,"Placeholder for CBA's end time")
 				
@@ -823,7 +823,7 @@ class actionEventClass(object):
 			#else: it's none, that's an error! maybe need to make structural features add this to flow dict...
 		elif myType =="Activity Parameter Node":
 			if len(node.incoming) > 0: 
-				self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime.getValue())")
+				self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime)")
 		elif myType =="Decision Node":
 			gl.log("Special Decision Node Guard Handling...")
 			dif = node.decisionInputFlow
