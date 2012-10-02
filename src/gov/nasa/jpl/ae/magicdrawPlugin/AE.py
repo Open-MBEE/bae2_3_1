@@ -2,6 +2,19 @@
 Created on Sep 5, 2012
 
 '''
+import os
+workspacePath = 'C:\\Users\\bclement\\workspace'
+mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
+projectPath = workspacePath + os.sep + 'CS'
+pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
+                'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
+aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
+             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'LADWP'
+import sys
+sys.path.append(aePluginDir)
+sys.path.append(pluginSrcPath);
+sys.path.append(projectPath + os.sep + 'bin');
+sys.path.append(projectPath + os.sep + 'AE.jar');
 
 from gov.nasa.jpl.ae.tests import TestEventXmlToJava
 from gov.nasa.jpl.ae.xml import EventXmlToJava
@@ -14,7 +27,6 @@ from gov.nasa.jpl.ae.util import Utils
 #for testing jython link to java
 from java.util import TreeSet as TreeSet
 
-import os
 from threading import Thread
 
 #global gl
@@ -22,7 +34,7 @@ from threading import Thread
     
 class AE:
     
-    xmlFileName = 'exampleDRScenario.xml'
+    xmlFileName = 'Scenario_latest.xml'
     #projectDir = 'c:\\Users\\bclement\\workspace\\CS'
     workspaceDir = os.path.join('c:\\Users','bclement','workspace')
     projectDir = os.path.join(workspaceDir,'CS')
@@ -36,8 +48,9 @@ class AE:
 #    execute = True
 #    simulate = True
 #    animate = True
-    options = { 'sysMlToAeXml':False, 'xmlToJava':True, 'compileAndLoad':True,
-                'execute':True, 'simulate':True, 'animate':False }
+    options = { 'sysMlToAeXml':False, 'xmlToJava':True, 'writeJavaFiles':False,
+                'compileAndLoad':True, 'execute':True, 'simulate':True,
+                'animate':False }
     
     # other members
     translator = None
@@ -45,16 +58,18 @@ class AE:
     mainEvent = None
     simulator = None
     magicDrawExecutor = None
+    system = None # the selected SysML system/component to be processed
     
-    def __init__(self):#, anim):#, sim):
+    def __init__(self, system):#, anim):#, sim):
         '''
         Constructor
         '''
-        pass
+        self.system = system
 
     def runSysMlToAeXml(self):
         import ExportForAnalysisEngine_v2
-        ExportForAnalysisEngine_v2.run(None)
+        reload(ExportForAnalysisEngine_v2)
+        ExportForAnalysisEngine_v2.run(self.system)
         self.xmlFileName = ExportForAnalysisEngine_v2.generatedXmlFileName
     
     def simulate( self ):
@@ -67,7 +82,8 @@ class AE:
             self.runSysMlToAeXml()
         if self.options['xmlToJava']:
             self.translatorTester = TestEventXmlToJava( self.xmlFileName )
-            self.translatorTester.writeFiles()
+            if self.options['writeJavaFiles']:
+                self.translatorTester.writeFiles()
             self.translator = self.translatorTester.translator
         if self.options['compileAndLoad']:
             if self.translator == None:
@@ -91,6 +107,7 @@ class AE:
                 else:
                     if self.options['animate']:
                         from MagicDrawExecutor import MagicDrawExecutor
+                        reload(MagicDrawExecutor)
                         self.magicDrawExecutor = MagicDrawExecutor()
                         self.simulator.add( self.magicDrawExecutor )
                     t = Thread(target=self.simulate, args=None)
@@ -98,9 +115,10 @@ class AE:
         print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
         print "AE run() finished!"
 
-def run():
-    ae = AE()
+def run(system):
+    ae = AE(system)
     ae.options['sysMlToAeXml'] = True;
+    ae.options['writeJavaFiles'] = True;
     ae.options['animate'] = True;
     ae.run()
 

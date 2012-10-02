@@ -342,9 +342,12 @@ class activityEventClass(object):
 				for op in node.output:
 					param = op.parameter
 					pt = "Object"
-					if param.type: pt = param.type.name
-					signame = "sig" + param.getID()
-					self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes")
+					if param == None:
+					  gl.log("BADNESS 0")
+					else:
+					  if param.type: pt = param.type.name
+					  signame = "sig" + param.getID()
+					  self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes")
 			
 			dicts = (self.invokeDict,self.invokedInvoker,self.invokedFlow,self.flowObject,self.invokerInvoked,self.invokerFlow,self.objectFlows)
 			self.classes.append(actionEventClass(node,dicts,self.id))
@@ -508,7 +511,8 @@ class actionEventClass(object):
 					if isinstance(invokingFlow.target,Pin): #should be a pin I own...
 						ip = invokingFlow.target
 						if isinstance(actionNode,CallBehaviorAction): ip = invokingFlow.target.parameter
-						self.members[ip.getID()] = (oname,None,"Parameter passed in by Object-Invoker (pin id or parameter id) %s" % ip.name)
+						if ip:
+							self.members[ip.getID()] = (oname,None,"Parameter passed in by Object-Invoker (pin id or parameter id) %s" % ip.name)
 					elif isinstance(invokingFlow.target,ActivityParameterNode):
 						try: d = str(invokingFlow.target.parameter.getDefault())
 						except: d = None
@@ -532,9 +536,12 @@ class actionEventClass(object):
 							else: tname = "Object"
 							ip = inpin
 							if isinstance(actionNode,CallBehaviorAction): ip = inpin.parameter
-							self.members[ip.getID()] = (tname,None,"Variable to store signal receipt from this pin (or parameter if it's a call behavior)")
-							#self.effects.append(ip.getID() + " = sig" + flow.getID() + ".receive(startTime - 1)") #or should it be .setValue(flow.getID().receive(startTime))
-							self.dependencies[ip.getID()] = (tname,"sig" + flow.getID() + ".receive(startTime - 1)")
+							if ip == None:
+							  gl.log("BADNESS 1")
+							else:
+							  self.members[ip.getID()] = (tname,None,"Variable to store signal receipt from this pin (or parameter if it's a call behavior)")
+							  #self.effects.append(ip.getID() + " = sig" + flow.getID() + ".receive(startTime - 1)") #or should it be .setValue(flow.getID().receive(startTime))
+							  self.dependencies[ip.getID()] = (tname,"sig" + flow.getID() + ".receive(startTime - 1)")
 				#DECISION NODE - NEED VARIABLE FOR DECISION INPUT
 				elif isinstance(actionNode,DecisionNode): pass #SEPARATE
 					
@@ -762,14 +769,14 @@ class actionEventClass(object):
 				for p in args: 
 					if p.type: tname = p.type.name #parameter
 					else: tname = "Object"
-					self.members[p.parameter.name] = (tname,None,"Argument Param: " + p.name)
-					self.dependencies[p.parameter.name] = (str(p.type.name),p.parameter.getID())
+					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Argument Param: " + p.name)
+					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),p.parameter.getID())
 				for p in res:
 					if p.type: tname = p.type.name
 					else: tname = "Object"
-					self.members[p.parameter.name] = (tname,None,"Result Pin: " + p.name)
-					self.dependencies[p.parameter.name] = (str(p.type.name),node.behavior.body[0].split("=")[1])
-					self.dependencies[p.getID()] = (str(p.type.name),p.parameter.name)
+					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Result Pin: " + p.name)
+					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),node.behavior.body[0].split("=")[1])
+					if p.parameter: self.dependencies[p.getID()] = (str(tname),p.parameter.name)
 			else:
 				self.elaborations[node.behavior]={
 												"args": [("endTime","cba_endTime","Integer")],
@@ -777,7 +784,8 @@ class actionEventClass(object):
 				for pin in node.input:
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"
-					self.elaborations[node.behavior]["args"].append((pin.parameter.getID(),pin.parameter.getID(),tname))
+					if pin.parameter:
+						self.elaborations[node.behavior]["args"].append((pin.parameter.getID(),pin.parameter.getID(),tname))
 				for pin in node.output:
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"

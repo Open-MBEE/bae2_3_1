@@ -10,9 +10,23 @@ from com.nomagic.magicdraw.core import Application
 
 from com.nomagic.magicdraw.uml import *
 from java.lang import String
-import os
-import sys
 import traceback
+
+import os
+workspacePath = 'C:\\Users\\bclement\\workspace'
+mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
+projectPath = workspacePath + os.sep + 'CS'
+pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
+                'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
+aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
+             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'LADWP'
+import sys
+sys.path.append(aePluginDir)
+sys.path.append(pluginSrcPath);
+sys.path.append(projectPath + os.sep + 'bin');
+sys.path.append(projectPath + os.sep + 'AE.jar');
+
+print 'AE sys.path = ' + sys.path
 
 class ExampleAction( MDAction ):
 	def __init__(self, name, s):
