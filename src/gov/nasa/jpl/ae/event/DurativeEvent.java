@@ -866,7 +866,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( Pair< Parameter< ? >, Set< Effect > > p : a ) {
       Parameter< ? > tlParam = p.first;
 //      Parameter< ? > tlParam = e.getKey();
-      TimeVarying< ? > timeline = (TimeVarying< ? >)tlParam.getValue();
+      assert tlParam != null;
+      Parameter< ? > tlParam2 = tlParam;
+      if ( tlParam.getValue() instanceof Parameter ) {
+        tlParam2 = (Parameter< ? >)tlParam.getValue();
+      }
+      if ( tlParam2.getValue() == null ) continue;
+      assert tlParam2.getValue() instanceof TimeVarying;
+      TimeVarying< ? > timeline = (TimeVarying< ? >)tlParam2.getValue();
       Set< Effect > effectSet = p.second;
 //      Set< Effect > effectSet = e.getValue();
 //      //i.remove();

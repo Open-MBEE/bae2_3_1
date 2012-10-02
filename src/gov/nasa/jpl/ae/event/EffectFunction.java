@@ -1,4 +1,6 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.util.Debug;
+
 import java.lang.reflect.Method;
 import java.util.Vector;
 
@@ -116,7 +118,17 @@ public class EffectFunction extends FunctionCall implements Effect {
 
   @Override
   public boolean isApplied( Parameter< ? > variable ) {
-    return variable.getValue() != null && ((TimeVarying<?>)(variable.getValue())).isApplied( this );
+    if ( variable == null ) return false;
+    Object value = variable.getValueNoPropagate();
+    if ( value == null ) return false;
+    if ( !(value instanceof TimeVarying) && ( value instanceof Parameter ) ) {
+      return isApplied( (Parameter< ? >)value );
+    }
+    if ( !(value instanceof TimeVarying) ) {
+      Debug.errln( "Effect variable is not TimeVarying! " + variable );
+      return false;
+    }
+    return ((TimeVarying<?>)value).isApplied( this );
   }
 
 }
