@@ -241,7 +241,7 @@ public class JavaForFunctionCall {
       return "new FunctionCall( null, " + methodJava
              + ", " + argumentArrayJava + ", " + objectName + " )";
     }
-    return "new FunctionCall( (Object)(" + objectName + "), " + methodJava
+    return "new FunctionCall( " + objectName + ", " + methodJava
            + ", " + argumentArrayJava + " )";
   }
   public String toNewExpressionString() {

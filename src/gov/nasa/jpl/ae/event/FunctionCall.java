@@ -29,7 +29,7 @@ public class FunctionCall implements HasParameters, Groundable {
   /**
    * A function call on the result of this function call.
    */
-  protected FunctionCall nestedCall = null;
+  protected Parameter<FunctionCall> nestedCall = null;
   
   /**
    * Construct a call to a static method.
@@ -101,6 +101,19 @@ public class FunctionCall implements HasParameters, Groundable {
   public FunctionCall( Object object, Method method, Vector< Object > arguments,
                        FunctionCall nestedCall ) {
     this(object, method, arguments);
+    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param arguments
+   * @param nestedCall
+   */
+  public FunctionCall( Object object, Method method, Vector< Object > arguments,
+                       Parameter<FunctionCall> nestedCall ) {
+    this(object, method, arguments);
+    
     this.nestedCall = nestedCall;
   }
 
@@ -114,6 +127,13 @@ public class FunctionCall implements HasParameters, Groundable {
   public FunctionCall( Object object, Class<?> cls, String methodName,
                        Vector< Object > arguments,
                        FunctionCall nestedCall ) {
+    this(object, cls, methodName, arguments);
+    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+  }
+
+  public FunctionCall( Object object, Class<?> cls, String methodName,
+                       Vector< Object > arguments,
+                       Parameter<FunctionCall> nestedCall ) {
     this(object, cls, methodName, arguments);
     this.nestedCall = nestedCall;
   }
@@ -153,7 +173,40 @@ public class FunctionCall implements HasParameters, Groundable {
     hasTypeErrors();
   }
 
-  public FunctionCall( Object object, Method method, Object argumentsA[], FunctionCall nestedCall ) {
+//  /**
+//   * @param object
+//   * @param cls
+//   * @param methodName
+//   * @param argumentTypesA
+//   */
+//  public FunctionCall( Object object, Class<?> cls, String methodName, Class<?> argumentTypesA[] ) {
+//    this.object = object;
+//    this.method = Utils.getMethodForArgTypes( cls, methodName, argumentTypesA );
+//    this.arguments = new Vector<Object>();
+//    if ( argumentTypesA != null ) {
+//      for ( Object o : argumentTypesA ) {
+//        this.arguments.add( o );
+//      }
+//    }
+//    hasTypeErrors();
+//  }
+
+  public FunctionCall( Object object, Method method, Object argumentsA[],
+                       FunctionCall nestedCall ) {
+    this.object = object;
+    this.method = method;
+    this.arguments = new Vector<Object>();
+    if ( argumentsA != null ) {
+      for ( Object o : argumentsA ) {
+        this.arguments.add( o );
+      }
+    }
+    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+    hasTypeErrors();
+  }
+
+  public FunctionCall( Object object, Method method, Object argumentsA[],
+                       Parameter<FunctionCall> nestedCall ) {
     this.object = object;
     this.method = method;
     this.arguments = new Vector<Object>();
@@ -169,8 +222,19 @@ public class FunctionCall implements HasParameters, Groundable {
   public FunctionCall( Object object, Class<?> cls, String methodName,
                        Object argumentsA[], FunctionCall nestedCall ) {
     this( object, cls, methodName, argumentsA );
+    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+  }
+  public FunctionCall( Object object, Class<?> cls, String methodName,
+                       Object argumentsA[], Parameter<FunctionCall> nestedCall ) {
+    this( object, cls, methodName, argumentsA );
     this.nestedCall = nestedCall;
   }
+
+//  public FunctionCall( Object object, Class<?> cls, String methodName,
+//                       Class<?> argumentTypesA[], FunctionCall nestedCall ) {
+//    this( object, cls, methodName, argumentTypesA );
+//    this.nestedCall = nestedCall;
+//  }
 
   /**
    * @param e
@@ -274,9 +338,9 @@ public class FunctionCall implements HasParameters, Groundable {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    if ( result != null && nestedCall != null ) {
-      nestedCall.object = result;
-      result = nestedCall.evaluate( propagate );
+    if ( result != null && nestedCall != null && nestedCall.getValue() != null ) {
+      nestedCall.getValue().object = result;
+      result = nestedCall.getValue().evaluate( propagate );
     }
     return result;
   }
@@ -299,8 +363,8 @@ public class FunctionCall implements HasParameters, Groundable {
         subbed = subbed || s;
       }
     }
-    if ( nestedCall != null ) {
-      boolean s = nestedCall.substitute( p1, p2, deep ); 
+    if ( nestedCall != null && nestedCall.getValue() != null ) {
+      boolean s = nestedCall.getValue().substitute( p1, p2, deep ); 
       subbed = subbed || s;
     }
     return subbed;
@@ -328,8 +392,9 @@ public class FunctionCall implements HasParameters, Groundable {
         }
       }
     }
-    if ( nestedCall != null ) {
-      set.addAll( nestedCall.getParameters( deep ) );
+    if ( nestedCall != null && nestedCall.getValue() != null ) {
+      // REVIEW -- bother with adding nestedCall as a parameter?
+      set.addAll( nestedCall.getValue().getParameters( deep ) );
     }
     return set;
   }
@@ -512,14 +577,18 @@ public class FunctionCall implements HasParameters, Groundable {
    * @return the nestedCall
    */
   public FunctionCall getNestedCall() {
-    return nestedCall;
+    return (nestedCall == null ? null : nestedCall.getValue() );
   }
 
   /**
    * @param nestedCall the nestedCall to set
    */
   public void setNestedCall( FunctionCall nestedCall ) {
-    this.nestedCall = nestedCall;
+    if ( this.nestedCall == null ) {
+      this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+    } else {
+      this.nestedCall.setValue( nestedCall );
+    }
   }
   
 }
