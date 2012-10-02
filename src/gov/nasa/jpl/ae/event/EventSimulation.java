@@ -22,11 +22,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.python.core.util.StringUtil;
-
-//import org.python.core.PyObject;
-//import org.python.util.PythonInterpreter;
-
 import junit.framework.Assert;
 
 /**
