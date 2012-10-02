@@ -35,10 +35,6 @@ from threading import Thread
 class AE:
     
     xmlFileName = 'Scenario_latest.xml'
-    #projectDir = 'c:\\Users\\bclement\\workspace\\CS'
-    workspaceDir = os.path.join('c:\\Users','bclement','workspace')
-    projectDir = os.path.join(workspaceDir,'CS')
-    #binDir = os.path.join(projectDir, 'bin')
     timeScale = 1e12
     
     # Options for what to run
@@ -89,8 +85,8 @@ class AE:
             if self.translator == None:
                 print >>sys.stderr, "Trying to compile and load Java, but there's no translator to provide it!"
             else:
-                os.chdir(self.projectDir)
-                self.translator.compileAndLoad( self.projectDir )
+                os.chdir(projectPath)
+                self.translator.compileAndLoad( projectPath )
         if self.options['execute']:
             if self.translator == None:
                 print >>sys.stderr, "Trying to execute event, but there's no translator to provide it!"
@@ -117,8 +113,8 @@ class AE:
 
 def run(system):
     ae = AE(system)
-    ae.options['sysMlToAeXml'] = True;
-    ae.options['writeJavaFiles'] = True;
+    #ae.options['sysMlToAeXml'] = True;
+    #ae.options['writeJavaFiles'] = True;
     ae.options['animate'] = True;
     ae.run()
 

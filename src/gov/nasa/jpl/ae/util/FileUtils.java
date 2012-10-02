@@ -6,14 +6,15 @@ package gov.nasa.jpl.ae.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
+//import java.nio.file.FileSystems;
+//import java.nio.file.FileVisitOption;
+//import java.nio.file.FileVisitResult;
+//import java.nio.file.FileVisitor;
+//import java.nio.file.Files;
+//import java.nio.file.Path;
+//import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,67 +75,35 @@ public final class FileUtils {
     return curDir;
   }
   
-  public static class FileFinder implements FileVisitor< Path > {
-    public String fileName;
-    public FileFinder( String fileName ) {
-      this.fileName = fileName;
-    }
-    public List< File > files = new ArrayList<File>();
-    @Override
-    public
-        FileVisitResult
-        preVisitDirectory( Path dir, BasicFileAttributes attrs )
-                                                             throws IOException {
-      return FileVisitResult.CONTINUE;
-    }
-
-    @Override
-    public FileVisitResult
-        visitFile( Path file, BasicFileAttributes attrs ) throws IOException {
-      //Debug.outln("visiting file " + file.toString() );
-      if ( file.endsWith( fileName ) ) {
-        files.add( file.toFile() );
-      }
-      return FileVisitResult.CONTINUE;
-    }
-
-    @Override
-    public FileVisitResult
-        visitFileFailed( Path file, IOException exc ) throws IOException {
-      System.err.println(exc);
-      return FileVisitResult.CONTINUE;
-    }
-
-    @Override
-    public FileVisitResult
-        postVisitDirectory( Path dir, IOException exc ) throws IOException {
-      return FileVisitResult.CONTINUE;
-    }};
-  
   public static File findFile( final String fileName ) {
     File file = existingFile( fileName );
     if ( file == null ) {
-//      PathMatcher matcher =
-//          FileSystems.getDefault().getPathMatcher( fileName );
-      FileFinder fv = new FileFinder( fileName );
-      try {
-        Set<FileVisitOption> s = new HashSet<FileVisitOption>();
-        Path cwd = FileSystems.getDefault().getPath( getCurrentWorkingDirectory() );
-        Files.walkFileTree( cwd, s, 100, fv );
-        long latestModified = 0;
-        File latestModifiedFile = null;
-        for ( File f : fv.files ) {
-          long t = f.lastModified();
-          if ( t > latestModified ) {
-            latestModified = t;
-            latestModifiedFile = f;
-          }
+      File cwd = new File( getCurrentWorkingDirectory() );
+      assert cwd.exists();
+      List< File > q = new ArrayList< File >();
+      List< File > files = new ArrayList< File >();
+      q.add( cwd );
+      while ( !q.isEmpty() ) {
+        File f = q.get( 0 );
+        q.remove( 0 );
+        if ( f.isDirectory() ) {
+          File[] dirFiles = f.listFiles();
+          q.addAll( Arrays.asList( dirFiles ) );
         }
-        file = latestModifiedFile;
-      } catch ( IOException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        if ( f.getAbsolutePath().endsWith( fileName ) ) {
+          files.add( f );
+        }
       }
+      long latestModified = 0;
+      File latestModifiedFile = null;
+      for ( File f : files ) {
+        long t = f.lastModified();
+        if ( t > latestModified ) {
+          latestModified = t;
+          latestModifiedFile = f;
+        }
+      }
+      file = latestModifiedFile;
     }
     return file;
   }
