@@ -102,7 +102,7 @@ class ClassifierClass(object):
 		#fill members
 		simpleProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,DataType)]
 		gl.log("Simple Properties: " + str([str(pt.name) for pt in simpleProperties]))
-		if len(simpleProperties)>0 and isinstance(system,Signal):
+		if isinstance(system,Signal):
 			self.constructors.append("super();")
 			self.constructors.append("init%sMembers();" % self.id)
 			self.constructors.append("init%sCollections();" % self.id)
@@ -114,6 +114,12 @@ class ClassifierClass(object):
 				self.cArgs["x"]=p.type.name
 				self.cArgs["t"]="Timepoint"
 				self.constructors.append("%s.getValue().setValue(t,x);" % propName)
+		if len(simpleProperties)==0 and isinstance(system,Signal): 
+			propName="control"
+			self.members[propName] = ("TimeVaryingMap&lt;Boolean&gt;",'new TimeVaryingMap("%s")' % propName,"DEFAULT NO STRUCTURE OBJECT FLOW (name Control)")
+			self.cArgs["x"]= "Boolean"
+			self.cArgs["t"]="Timepoint"
+			self.constructors.append("%s.getValue().setValue(t,x);" % propName)
 		
 		partProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,Class)]
 		gl.log("Part Properties: " + str([str(pt.name) for pt in partProperties]))
@@ -598,7 +604,7 @@ class actionEventClass(object):
 				#gl.log(self.enclosingClass)
 				self.elaborations[next]={
 										"args": [(elabVar,"endTime","Integer")],
-										"conditions": {next:"endTime"},
+										"conditions": {next:"endTime.getValue()"},
 										"enclosingClass" : self.enclosingClass}
 				
 				#dependencies on "_exists"
@@ -622,7 +628,7 @@ class actionEventClass(object):
 					if len(nextsInPins)>0:
 						signalFlows.extend([x.incoming[0] for x in nextsInPins if x.incoming[0] is not invokingFlow])
 					for inc in signalFlows:	
-						s = "sig" + str(inc.getID()) + ".hasStuff(endTime)"
+						s = "sig" + str(inc.getID()) + ".hasStuff(endTime.getValue())"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 				if isinstance(next,AcceptEventAction):
@@ -630,7 +636,7 @@ class actionEventClass(object):
 					if not isinstance(event,TimeEvent):
 						sig = event.signal
 						context = next.context
-						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime)"
+						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime.getValue())"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 				if not dependencyString: dependencyString = "true"
@@ -708,14 +714,16 @@ class actionEventClass(object):
 			for arg in node.argument:
 				if argPhrase is not "": argPhrase = " , ".join(argPhrase,arg.getID())
 				else: argPhrase = arg.getID()+".getValue()"
+			if argPhrase =="": #means there are no arguments
+				argPhrase = "true"
 			try: 
 				ct = constructorArgs[node.context]
 				prepend=ct.name+"."
-				invokePhrase = "x.getValue().new Signal%s(endTime,%s)" % (sig.getName(),argPhrase)
+				invokePhrase = "x.getValue().new Signal%s(endTime.getValue(),%s)" % (sig.getName(),argPhrase)
 			except: 
 				prepend = ""
-				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
-			self.effects.append(structSig + ".send(%s,endTime)" % invokePhrase)
+				invokePhrase = "new %sSignal%s(endTime.getValue(),%s)" % (prepend,sig.getName(),argPhrase)
+			self.effects.append(structSig + ".send(%s,endTime.getValue())" % invokePhrase)
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
 			if not isinstance(event,TimeEvent):
@@ -790,7 +798,7 @@ class actionEventClass(object):
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"
 					#self.effects.append(pin.getID()+ " = sig" + pin.parameter.getID() + ".receive(endTime - 1)")
-					self.dependencies[pin.getID()] = (tname,"sig" + pin.parameter.getID() + ".receive(endTime - 1)")
+					self.dependencies[pin.getID()] = (tname,"sig" + pin.parameter.getID() + ".receive(endTime.getValue() - 1)")
 					self.elaborations[node.behavior]["args"].append(("sig"+pin.parameter.getID(),"sig"+pin.parameter.getID(),"ObjectFlow"))
 				self.members["cba_endTime"] = ("Integer",None,"Placeholder for CBA's end time")
 				
@@ -815,7 +823,7 @@ class actionEventClass(object):
 			#else: it's none, that's an error! maybe need to make structural features add this to flow dict...
 		elif myType =="Activity Parameter Node":
 			if len(node.incoming) > 0: 
-				self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime)")
+				self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime.getValue())")
 		elif myType =="Decision Node":
 			gl.log("Special Decision Node Guard Handling...")
 			dif = node.decisionInputFlow
@@ -987,6 +995,7 @@ class StructuralSignal(object):
 
 def run(s):
 	if not setup(): return
+	gl.log("Date: October 2")
 	#get the user's selection - the element that should be top level and contain (recursively) all other systems/behaviors you wish to reason about.
 	firstSelected = Application.getInstance().getMainFrame().getBrowser().getActiveTree().getSelectedNodes()[0].getUserObject()
 	gl.log(str(time.time()) + "You have selected " + firstSelected.name + " as the highest level element in your system.")
