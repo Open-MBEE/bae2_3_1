@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/Users/mjackson/Documents/workspace-Helios/CS/src/gov/nasa/jpl/ae/xml/eventSchema.xsd">
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
 	<epoch>2012-08-05T23:30:00-07:00</epoch>
 	<horizon>P1D</horizon>
 	<timeUnits>seconds</timeUnits>
@@ -478,7 +478,7 @@
 										<parameter>
 											<!--Outgoing Signal Flow result-->
 											<name>_17_0_5_edc0357_1345510114835_226978_15213</name>
-											<type>p</type>
+											<type>Power</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -661,7 +661,7 @@
 										<parameter>
 											<!--Outgoing Signal Flow result-->
 											<name>_17_0_5_edc0357_1345510114838_659499_15218</name>
-											<type>l</type>
+											<type>LADWP</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -986,9 +986,28 @@
 					<import>java.util.LinkedList</import>
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
-					<members/>
-					<constructors/>
-					<methods/>
+          <members>
+            <parameter>
+              <!--simple property (name newLoad)-->
+              <name>customerSignal</name>
+              <type>TimeVaryingMap&lt;Customer&gt;</type>
+              <value>new TimeVaryingMap("customer")</value>
+            </parameter>
+          </members>
+          <constructors>
+            <function>
+              <![CDATA[
+						 Signalno(Integer t,Customer x) {
+							super();
+							initSignalnoMembers();
+							initSignalnoCollections();
+							initSignalnoElaborations();
+							newLoad__17_0_5_edc0357_1345510113619_149263_13857.getValue().setValue(t,x);
+						 }
+							]]>
+            </function>
+          </constructors>
+          <methods/>
 					<events/>
 					<classes/>
 				</class>
@@ -1438,7 +1457,7 @@
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.send(x.new SignalchangeLoadValue(endTime,_17_0_5_edc0357_1345510114783_59952_15106.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.send(x.getValue().new SignalchangeLoadValue(endTime.getValue(),_17_0_5_edc0357_1345510114783_59952_15106.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -1621,7 +1640,7 @@
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1346280185062_487679_12810.send(true,startTime)</effect>
-									<effect>x.ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.send(x.new SignalreceiveMeterReading(endTime,_17_0_5_edc0357_1345510114784_286838_15108.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113565_310611_13783_receiveMeterReading.send(x.getValue().new SignalreceiveMeterReading(endTime.getValue(),_17_0_5_edc0357_1345510114784_286838_15108.getValue()),endTime)</effect>
 								</effects>
 								<elaborations/>
 							</event>
@@ -2409,7 +2428,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.send(x.new SignalchangeLoadValue(endTime,_17_0_5_edc0357_1345510114801_45672_15133.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.send(x.getValue().new SignalchangeLoadValue(endTime.getValue(),_17_0_5_edc0357_1345510114801_45672_15133.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -3862,7 +3881,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113564_305135_13782_no.send(x.new Signalno(endTime,),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113564_305135_13782_no.send(x.getValue().new Signalno(endTime.getValue(),_17_0_5_edc0357_1345510114820_809313_15172.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -3965,7 +3984,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113564_305135_13782_yes.send(x.new Signalyes(endTime,_17_0_5_edc0357_1345510114822_185942_15174.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113564_305135_13782_yes.send(x.getValue().new Signalyes(endTime.getValue(),_17_0_5_edc0357_1345510114822_185942_15174.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -5646,7 +5665,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.send(x.new SignalreceiveGenReading(endTime,_17_0_5_edc0357_1345510114743_924337_15027.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.send(x.getValue().new SignalreceiveGenReading(endTime.getValue(),_17_0_5_edc0357_1345510114743_924337_15027.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -7128,7 +7147,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.send(x.new SignalreceiveGenReading(endTime,_17_0_5_edc0357_1345510114768_446406_15074.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113550_816176_13768_receiveGenReading.send(x.getValue().new SignalreceiveGenReading(endTime.getValue(),_17_0_5_edc0357_1345510114768_446406_15074.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -7192,7 +7211,7 @@ else: </value>
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1345510113965_962222_14133.send(true,startTime)</effect>
-									<effect>x.ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.send(x.new SignalreceiveLoadReading(endTime,_17_0_5_edc0357_1345510114769_966831_15076.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113549_985081_13767_receiveLoadReading.send(x.getValue().new SignalreceiveLoadReading(endTime.getValue(),_17_0_5_edc0357_1345510114769_966831_15076.getValue()),endTime)</effect>
 								</effects>
 								<elaborations/>
 							</event>
@@ -11265,7 +11284,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.send(x.new Signaldr_request(endTime,_17_0_5_edc0357_1345510114926_775601_15346.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113605_306486_13837_dr_request.send(x.getValue().new Signaldr_request(endTime.getValue(),_17_0_5_edc0357_1345510114926_775601_15346.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -12121,7 +12140,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.send(x.new SignalchangeGenerationValue(endTime,_17_0_5_edc0357_1345510114950_379431_15382.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.send(x.getValue().new SignalchangeGenerationValue(endTime.getValue(),_17_0_5_edc0357_1345510114950_379431_15382.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -12873,7 +12892,7 @@ else: </value>
 									</dependencies>
 								</class>
 								<effects>
-									<effect>x.ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.send(x.new SignalchangeGenerationValue(endTime,_17_0_5_edc0357_1345510114968_74650_15413.getValue()),endTime)</effect>
+									<effect>x.ss_17_0_5_edc0357_1345510113607_182740_13840_changeGenerationValue.send(x.getValue().new SignalchangeGenerationValue(endTime.getValue(),_17_0_5_edc0357_1345510114968_74650_15413.getValue()),endTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -16110,7 +16129,7 @@ else: </value>
 										<dependency>
 											<name>_17_0_5_edc0357_1346101629323_369188_14149_exists</name>
 											<type>Boolean</type>
-											<value>_17_0_5_edc0357_1346103964252_49821_14797 == True</value>
+											<value>_17_0_5_edc0357_1346103964252_49821_14797</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346103964252_49821_14797</name>
