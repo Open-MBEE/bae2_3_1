@@ -39,7 +39,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  final double timeoutSeconds = 3.0;
+  final double timeoutSeconds = 10.0;
 
   // Static members
   
