@@ -30,6 +30,7 @@ class MagicDrawAnimator(object):
     Changes visualization of SysML components
     '''
     def __init__(self):
+        gl.log("Initializing the Magic Draw Animator!")
         #project is used to find element by ID
         #SEM is key to getting symbols (usages on diagram) from elements
         self.project = Application.getInstance().getProjectsManager().getActiveProject()
@@ -49,9 +50,13 @@ class MagicDrawAnimator(object):
         5. toggle it on (it's set to off initially)
         '''
         sym = self.findSymbolToHighlight(componentId)
+        #gl.log("Debug: found symbol...")
         if componentId not in self.defaults.keys(): self.setDefaults(componentId)
+        #gl.log("Debug: symbol: " + str(sym))
         diagram = sym.getDiagramPresentationElement()
+        gl.log("Debug: found diagram")
         diagram.open()
+        #gl.log("Debug: opened diagram")
         self.activeDiagrams.append(diagram)
         t = AwesomePaintAction(sym,diagram,self.defaults[sym])
         self.paintEvents[sym]=t
@@ -84,6 +89,7 @@ class MagicDrawAnimator(object):
             if len(symbols)>1:
                 for s in symbols: gl.log("MULTIPLE SYMBOLS!! " + str(s) + " in diagram " + str(s.getDiagramPresentationElement()))
             self.knownComponents[componentId]=symbols[0]
+            #gl.log("Debug: symbols found for id... "  + str(symbols))
             return symbols[0]
              
     def setDefaults(self,cid):
@@ -94,7 +100,10 @@ class MagicDrawAnimator(object):
         sym = self.knownComponents[cid]
         if sym not in self.defaults.keys():
             pm = sym.getPropertyManager()
-            fcolor = pm.getPropertyByName("Fill Color").getColor()
+            try: fcolor = pm.getPropertyByName("Fill Color").getColor()
+            except:
+                gl.log("Eek, this is probably a node")
+                fcolor = None
             lcolor = pm.getPropertyByName("Pen Color").getColor()
             self.defaults[sym]=(fcolor,lcolor)
             #gl.log("Debug: defaults: " + str(fcolor) + " & " + str(lcolor))
@@ -130,9 +139,10 @@ class AwesomePaintAction(NMAction):
             fc = self.defaultFillColor
             lc = self.defaultLineColor
             if not self.on: 
+                lc = Color.GREEN
                 fc = Color.GREEN
-                lc = Color.BLACK
-            newPM.addProperty(ColorProperty(PropertyID.FILL_COLOR,fc))
+                if self.defaultFillColor: lc = Color.BLACK
+            if self.defaultFillColor: newPM.addProperty(ColorProperty(PropertyID.FILL_COLOR,fc))
             newPM.addProperty(ColorProperty(PropertyID.PEN_COLOR,lc))
             PresentationElementsManager.getInstance().setPresentationElementProperties(self.element, newPM)
             self.on = not self.on

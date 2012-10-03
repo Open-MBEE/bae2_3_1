@@ -3,7 +3,7 @@ Created on Sep 18, 2012
 
 '''
 #handy python things
-import time,sys,traceback
+import time,sys,traceback,re
 
 #some MD utils. 
 from com.nomagic.magicdraw.core import * #application, project...
@@ -53,16 +53,46 @@ class highlighterThread(Thread):
     def __init__(self):
         pass
     def run(self):
-        e = "_17_0_5_edc0357_1345510114621_963079_14807"
-        mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
-        gl.log("Starting e")
-        mda.start(e)
-    
-        i = 3
-        while i > 0:
-            i-=1
-            gl.log(".")
-            time.sleep(1)
+        mode = 0
+        if mode == 0:
+            mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
+            filepath = "/Users/mjackson/Desktop/TinySim.txt"
+            #gl.log(filepath)
+            f = open(filepath,"r")
+            for line in f.readlines():
+                #gl.log(line)
+                x = re.search(" (\S*) -> (\S*)\s*(\S*) ==>",line)
+                if x: 
+                    action=x.groups()[1]
+                    id = x.groups()[2]
+                    type = x.groups()[0]
+                else: continue
+                gl.log("%s %s (%s)" % (action.upper(), id, type))
+                if "Main" in id: 
+                    gl.log("    ---> Skipping - can't animate Main")
+                    continue
+                if re.search("(_)?Activity(_.*)?(?!\S)",type): 
+                    gl.log("    ---> Skipping - can't animate the Activity object!")
+                    continue
+                if "start" in action: 
+                    gl.log("    ---> STARTING")
+                    mda.start(id)
+                elif "end" in action: 
+                    gl.log("    ---> ENDING")
+                    mda.end(id)
+                time.sleep(1)
         
-        gl.log("ending e")
-        mda.end(e)
+        elif mode == 1:
+            e = "_17_0_5_edc0357_1346893970422_843838_14398"
+            mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
+            gl.log("Starting e (%s)" % e)
+            mda.start(e)
+        
+            i = 3
+            while i > 0:
+                i-=1
+                gl.log(".")
+                time.sleep(1)
+            
+            gl.log("ending e")
+            mda.end(e)
