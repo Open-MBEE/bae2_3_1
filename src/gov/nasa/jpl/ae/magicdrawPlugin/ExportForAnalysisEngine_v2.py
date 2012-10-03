@@ -137,6 +137,20 @@ class ClassifierClass(object):
 			self.constructors.append("init%sMembers();" % self.id)
 			self.constructors.append("init%sCollections();" % self.id)
 			self.constructors.append("init%sElaborations();" % self.id)
+			for p in system.ownedPort:
+				for e in p.end:
+					c = e.owner
+					infoFlows = c.get_informationFlowOfRealizingConnector() 
+					gl.log("CONNECTOR: ")
+					gl.log("	" + str(isinstance(infoFlows[0].conveyed[0],Signal)) + " ... " + infoFlows[0].conveyed[0].humanType)
+					gl.log("	" + str(isinstance(infoFlows[0].source,Port)) + " ... " + infoFlows[0].source[0].humanType)
+					gl.log("	" + str(isinstance(infoFlows[0].target,Port)) + " ... " + infoFlows[0].target[0].humanType)
+					for i in [x for x in infoFlows if isinstance(x.conveyed[0],Signal) and isinstance(x.source[0],Port) and isinstance(x.target[0],Port)]: 
+						signal = i.conveyed[0] #generic signal type...
+						#if signal not in signalsToBuild: signalsToBuild.append(signal)
+						ofName = "q_"+system.name+"_"+signal.name
+						q_invocation = 'new ObjectFlow("%s",%s.Signal%s.class)' % (ofName,constructorArgs[system].name,signal.name) #portID_sigID, sigID.class
+						self.members[ofName] = ("ObjectFlow&lt;Signal%s&gt;" % signal.name,q_invocation,"Create New objectflow for signal to " + system.name)
 		
 		#structural signals
 		if not isinstance(system,Signal):
@@ -170,23 +184,6 @@ class ClassifierClass(object):
 						constructortext = "((ObjectFlow) %s.getValue()).addListener(((ObjectFlow) (%s.getValue()).%s.getValue()));" % (name,pwp.name,targname)
 					self.constructors.append(constructortext)
 					#((ObjectFlow) ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeLoadValue.getValue()));
-			
-			
-			
-			for p in system.ownedPort:
-				for e in p.end:
-					c = e.owner
-					infoFlows = c.get_informationFlowOfRealizingConnector() 
-					gl.log("CONNECTOR: ")
-					gl.log("	" + str(isinstance(infoFlows[0].conveyed[0],Signal)) + " ... " + infoFlows[0].conveyed[0].humanType)
-					gl.log("	" + str(isinstance(infoFlows[0].source,Port)) + " ... " + infoFlows[0].source[0].humanType)
-					gl.log("	" + str(isinstance(infoFlows[0].target,Port)) + " ... " + infoFlows[0].target[0].humanType)
-					for i in [x for x in infoFlows if isinstance(x.conveyed[0],Signal) and isinstance(x.source[0],Port) and isinstance(x.target[0],Port)]: 
-						signal = i.conveyed[0] #generic signal type...
-						#if signal not in signalsToBuild: signalsToBuild.append(signal)
-						ofName = "q_"+system.name+"_"+signal.name
-						q_invocation = 'new ObjectFlow("%s",%s.Signal%s.class)' % (ofName,constructorArgs[system].name,signal.name) #portID_sigID, sigID.class
-						self.members[ofName] = ("ObjectFlow&lt;Signal%s&gt;" % signal.name,q_invocation,"Create New objectflow for signal to " + system.name)
 						
 			
 			#build signals
