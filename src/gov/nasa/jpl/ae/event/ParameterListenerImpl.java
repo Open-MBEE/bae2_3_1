@@ -40,6 +40,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   final double timeoutSeconds = 10.0;
+  final long numIterations = 10;
+  final boolean timeOrLoopLimit = false;
 
   // Static members
   
@@ -54,7 +56,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected Vector< Dependency< ? > > dependencies =
       new Vector< Dependency< ? > >();
-  protected Solver solver = new ConstraintLoopSolver( timeoutSeconds * 1000.0 );
+  protected Solver solver = new ConstraintLoopSolver();
 
   protected SortedSet< TimeVarying< ? > > timeVaryingObjects =
       new TreeSet< TimeVarying< ? > >();
@@ -262,6 +264,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.addAll( getParameters() );
     if ( deep ) {
+      for ( Parameter<?> p : getParameters() ) {
+        if ( p.getValueNoPropagate() != null && p.getValueNoPropagate() instanceof HasParameters ) {
+          set.addAll( ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep ) );
+        }
+      }
       // TODO -- Get parameters from members that implement HasPaameters?
       /*
       for ( Field f : this.getClass().getFields() ) {
@@ -316,6 +323,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public boolean satisfy() {
     if ( isSatisfied() ) return true;
     double clockStart = System.currentTimeMillis();
+    long numLoops = 0;
     
     boolean satisfied = false;
     double curTimeLeft =
@@ -324,12 +332,15 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     // TODO -- REVIEW -- How do we get elaborations (conditional constraints
     // into the problem)? Add all possible constraints as implied by conditions?
     // Treat each elaboration as a constraint?
-    while (!satisfied && ( curTimeLeft > 0.0 ) ) {
+    while ( !satisfied
+            && ( timeOrLoopLimit ? ( curTimeLeft > 0.0 )
+                                 : ( numLoops < numIterations ) ) ) {
       Debug.outln( this.getClass().getName() + " satisfy loop with "
           + curTimeLeft + "milliseconds left" );
       satisfied = tryToSatisfy();
       curTimeLeft =
           ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
+      ++numLoops;
     }
     return satisfied;
   }
@@ -353,7 +364,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public Collection< Constraint > getConstraints( boolean deep ) {
     Set< Constraint > set = new TreeSet< Constraint >();
     for ( Parameter< ? > p : getParameters( deep ) ) {
-      set.addAll( p.getConstraints() );
+      set.addAll( p.getConstraints( deep ) );
     }
     set.addAll( constraintExpressions );
     set.addAll( dependencies );

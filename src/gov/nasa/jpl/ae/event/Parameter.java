@@ -73,6 +73,20 @@ public class Parameter< T > implements Cloneable, Groundable,
     stale = !isGrounded();
   }
 
+  public Parameter( String n, Domain d, Expression<T> expression,
+                    ParameterListener o ) {
+    name = n;
+    domain = d;
+    owner = o;
+    if ( expression != null ) {
+      if ( o instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pli = (ParameterListenerImpl)o;
+        pli.addDependency( this, expression );
+      }
+    }
+    stale = true; // not grounded
+  }
+
   /*
    * (non-Javadoc)
    * 
@@ -329,7 +343,12 @@ public class Parameter< T > implements Cloneable, Groundable,
     boolean grounded = isGrounded();
     boolean stale = isStale();
     boolean inDom = inDomain();
-    return grounded && !stale && inDom;
+    if (!(grounded && !stale && inDom)) return false;
+    T v = getValueNoPropagate();
+    if ( v != null && v instanceof Satisfiable ) {
+      if ( !((Satisfiable)v).isSatisfied() ) return false;
+    }
+    return true;
   }
 
   @Override
@@ -394,8 +413,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     stale = staleness;
   }
 
-  @Override
-  public Collection< Constraint > getConstraints() {
+  public Collection< Constraint > getConstraints( boolean deep ) {
     List< Constraint > cList= new ArrayList< Constraint >();
     Method method;
     if ( domain != null && domain instanceof AbstractRangeDomain
@@ -418,7 +436,22 @@ public class Parameter< T > implements Cloneable, Groundable,
 //        new Functions.NotEquals< T >( new Expression< T >( value ),
 //                                      new Expression< T >( (T)null ) );
 //    cList.add( new ConstraintExpression( f ) );
+    if ( deep ) {
+      T v = getValueNoPropagate(); 
+      if ( v != null && 
+           v instanceof ParameterListenerImpl ) {
+        cList.addAll( ((ParameterListenerImpl)v).getConstraints( deep ) );
+      } else if ( v != null && 
+                  v instanceof HasConstraints ) {
+        cList.addAll( ((HasConstraints)v).getConstraints() );
+      }
+    }
     return cList;
+  }
+
+  @Override
+  public Collection< Constraint > getConstraints() {
+    return getConstraints( true );
   }
 
 }

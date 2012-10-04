@@ -472,7 +472,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // TODO -- REVIEW -- ???
     for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
           effects.entrySet() ) {
-      TimeVarying< ? > tv = (TimeVarying< ? >)e.getKey().getValue();
+      TimeVarying< ? > tv = null;
+      if ( e.getKey().getValue() instanceof Parameter && !(e.getKey().getValue() instanceof TimeVarying ) ) {
+        // TODO -- This is weird!!
+        Debug.errln("Warning! Parameter inside effect parameter! " + e.getKey() );
+        tv = (TimeVarying< ? >)(((Parameter)e.getKey().getValue()).getValue());
+      } else {
+        tv = (TimeVarying< ? >)e.getKey().getValue();
+      }
       for ( Effect eff : e.getValue() ) {
         eff.applyTo( tv, false ); //, startTime, duration );
       }
