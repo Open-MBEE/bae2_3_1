@@ -73,6 +73,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     stale = !isGrounded();
   }
 
+  /*
   public Parameter( String n, Domain d, Expression<T> expression,
                     ParameterListener o ) {
     name = n;
@@ -86,7 +87,8 @@ public class Parameter< T > implements Cloneable, Groundable,
     }
     stale = true; // not grounded
   }
-
+*/
+  
   /*
    * (non-Javadoc)
    * 

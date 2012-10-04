@@ -24,6 +24,9 @@ public class ConstraintLoopSolver implements Solver {
     this.timeOutMilliseconds = timeOutMilliseconds;
   }
 
+  public ConstraintLoopSolver() {
+  }
+
   @Override
   public boolean solve( Collection< Constraint > constraints ) {
     Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
