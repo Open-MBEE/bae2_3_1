@@ -395,7 +395,7 @@ public class TimeVaryingMapWithEffects< T >
   }
 
   @Override
-  public T getValue( int t ) {
+  public T getValue( Integer t ) {
     Timepoint tp = new Timepoint( StringDomain.typeMaxValue, t, null );
     Entry< Timepoint, ValueAndEffects > e = this.floorEntry( tp );
     if ( e != null ) return e.getValue().first;

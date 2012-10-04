@@ -136,15 +136,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     protected boolean
       areEffectsOnTimeVaryingSatisfied( Parameter< ? > variable,
                                         Set< Effect > effects ) {
+        if (variable.getName().contains("21")){
+        	System.out.println("Cactus");
+        }
       if ( !variable.isGrounded() ) {
         return false;
       }
       for ( Effect e : effects ) {
-        if ( !e.isApplied( variable ) ) {
-          if ( !variable.isGrounded() ) {
+        if ( !e.isApplied( variable ) || !variable.isGrounded() ) {
             return false;
           }
-        }
       }
       return true;
     }
@@ -164,8 +165,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           if ( !variable.isGrounded() ) {
             satisfied = false;
           } else {
-            TimeVarying<?> value = (TimeVarying< ? >)variable.getValue();
-            e.applyTo( value, true );
+        	  Object value = variable.getValue();
+        	  if ( (!(value instanceof TimeVarying )) && value instanceof Parameter) {
+        		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects); 
+        	  } else if (value instanceof TimeVarying) {
+        		  e.applyTo( (TimeVarying<?>) variable.getValueNoPropagate(), true );
+        	  }
           }
         }
       }
@@ -178,6 +183,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
         Set< Effect > set = entry.getValue();
         Parameter< ? > variable = entry.getKey();
+        if (variable.getName().contains("21")){
+        	System.out.println("Blaah");
+        }
         if ( !satisfyEffectsOnTimeVarying( variable, set ) ) {
           satisfied = false;
         }
@@ -190,6 +198,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
         Set< Effect > set = entry.getValue();
         Parameter< ? > variable = entry.getKey();
+        if (variable.getName().contains("21")){
+        	System.out.println("Blaah");
+        }
         if ( !areEffectsOnTimeVaryingSatisfied( variable, set ) ) {
           return false;
         }
@@ -451,11 +462,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       satisfied = solver.solve( getConstraints( true ) );
       Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
     }
+    Collection<Constraint> constraints = getConstraints( true );
+    Debug.turnOn();
+    Debug.outln("All constraints: ");
+    for (Constraint c : constraints) {
+    	Debug.outln("Constraint: " + c);
+    }
+    Debug.turnOff();
     if ( satisfied ) {
-      Debug.outln( "All constraints were satisfied!" );
+      System.out.println( "All constraints were satisfied!" );
     } else {
       Collection< Constraint > unsatisfiedConstraints =
-          ConstraintLoopSolver.getUnsatisfiedConstraints( getConstraints( true ) );
+          ConstraintLoopSolver.getUnsatisfiedConstraints( constraints );
       if ( unsatisfiedConstraints.isEmpty() ) {
         System.err.println( getName() + "'s constraints were not satisfied!" );
       } else {

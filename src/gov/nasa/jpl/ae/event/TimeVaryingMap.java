@@ -96,8 +96,8 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   /**
    * For the convenience of referring to the effect method.
    */
-  protected static Method setValueMethod = getSetValueMethod();
-
+  protected static Method setValueMethod1 = getSetValueMethod1();
+  protected static Method setValueMethod2 = getSetValueMethod2();
   /**
    * Floating effects are those whose time or duration is changing. They must be
    * removed from TimeVaryingMap's map before they change; else, they will
@@ -296,7 +296,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   @Override
-  public T getValue( int t ) {
+  public T getValue( Integer t ){
     Timepoint tp = new Timepoint( StringDomain.typeMaxValue, t, null );
     Entry< Timepoint, T > e = this.floorEntry( tp );
     if ( e != null ) return e.getValue();
@@ -375,26 +375,42 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     // could cause a problem with small probability.
   }
   
-  public static Method getSetValueMethod() {
-    if ( setValueMethod == null ) {
+  public static Method getSetValueMethod1() {
+    if ( setValueMethod1 == null ) {
       for ( Method m : TimeVaryingMap.class.getMethods() ) {
-        if ( m.getName().equals("setValue") ) {
-          setValueMethod = m;
+        if ( m.getName().equals("setValue") && m.getParameterTypes() != null && m.getParameterTypes().length == 2 && m.getParameterTypes() [1] == Timepoint.class ) {
+          setValueMethod1 = m;
         }
       }
     }
-    return setValueMethod;
+    return setValueMethod1;
+  }
+  
+  public static Method getSetValueMethod2() {
+    if ( setValueMethod2 == null ) {
+      for ( Method m : TimeVaryingMap.class.getMethods() ) {
+        if (m.getName().equals("setValue") && m.getParameterTypes() != null && m.getParameterTypes().length == 2 && m.getParameterTypes() [1] == Integer.class) {
+          setValueMethod2 = m;
+        }
+      }
+    }
+    return setValueMethod2;
   }
 
   @Override
   public boolean isApplied( Effect effect ) {
+	return isApplied(effect, getSetValueMethod1(), getSetValueMethod2());
+  }
+  public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     if ( !( effect instanceof EffectFunction ) ) {
       return false;
     }
     EffectFunction effectFunction = (EffectFunction)effect;
-    if ( effectFunction.method.equals( getSetValueMethod() ) ) {
+    boolean isMethod1 = effectFunction.method.equals(method1);
+    boolean isMethod2 =  effectFunction.method.equals( method2);
+    if ( isMethod1  || isMethod2 ) {
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
-        Timepoint t = (Timepoint)effectFunction.arguments.get( 0 );
+        Object t = (Timepoint)effectFunction.arguments.get( 0 );
         Object o = effectFunction.arguments.get( 1 );
         T value = null;
         try {
@@ -403,7 +419,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
           //e.printStackTrace();
         }
         if ( value != null ) {
-          return value.equals( getValue( t ) );
+          if (isMethod1){
+        	return value.equals( getValue( (Timepoint) t ) );
+          }
+          return value.equals(getValue((Integer) t));
         }
       }
     }

@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public interface TimeVarying< V > extends Comparable< TimeVarying< V > > { //extends Map< Timepoint, T > {
   public V getValue( Timepoint t );
-  public V getValue( int t );
+  public V getValue( Integer t );
   public V setValue( Timepoint t, V value );
   public V unsetValue( Timepoint t, V value );
 //  public Iterator< ? > iterator();

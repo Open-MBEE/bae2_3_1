@@ -335,7 +335,7 @@ public class DurativeTimeVaryingMap< T >
   }
 
   @Override
-  public T getValue( int t ) {
+  public T getValue( Integer t ) {
     // TODO Auto-generated method stub
     return null;
   }
