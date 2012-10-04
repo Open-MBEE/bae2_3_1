@@ -9,6 +9,8 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import gov.nasa.jpl.ae.event.Effect;
+import gov.nasa.jpl.ae.event.EffectFunction;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 
@@ -18,9 +20,15 @@ import gov.nasa.jpl.ae.event.Timepoint;
  */
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
-  protected List< ObjectFlow< Obj > > listeners =
+	  /**
+	   * For the convenience of referring to the effect method.
+	   */
+	  protected static Method sendMethod1 = getSendMethod1();
+	  protected static Method sendMethod2 = getSendMethod2();
+
+	  protected List< ObjectFlow< Obj > > listeners =
       new ArrayList< ObjectFlow< Obj > >();
-  protected Class< ? > type = null;
+	  protected Class< ? > type = null;
   
   /**
    * @param name
@@ -85,7 +93,43 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return getValue( t ) != null;
   }
 
-  /**
+  @Override
+  public boolean isApplied( Effect effect ) {
+	  if (super.isApplied(effect)) {
+		  return true;
+	  }
+	return isApplied(effect, getSendMethod1(), getSendMethod2());
+  }
+  
+	public static Method getSendMethod1() {
+		if (setValueMethod1 == null) {
+			for (Method m : TimeVaryingMap.class.getMethods()) {
+				if (m.getName().equals("setValue")
+						&& m.getParameterTypes() != null
+						&& m.getParameterTypes().length == 2
+						&& m.getParameterTypes()[1] == Timepoint.class) {
+					setValueMethod1 = m;
+				}
+			}
+		}
+		return setValueMethod1;
+	}
+
+	public static Method getSendMethod2() {
+		if (setValueMethod2 == null) {
+			for (Method m : TimeVaryingMap.class.getMethods()) {
+				if (m.getName().equals("setValue")
+						&& m.getParameterTypes() != null
+						&& m.getParameterTypes().length == 2
+						&& m.getParameterTypes()[1] == Integer.class) {
+					setValueMethod2 = m;
+				}
+			}
+		}
+		return setValueMethod2;
+	}
+
+/**
    * @return the listeners
    */
   public List< ObjectFlow< Obj >> getListeners() {
@@ -112,4 +156,5 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public void setType( Class< ? > type ) {
     this.type = type;
   }
+  
 }
