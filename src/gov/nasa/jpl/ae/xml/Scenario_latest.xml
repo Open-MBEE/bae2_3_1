@@ -31,7 +31,16 @@
 						<enclosingInstance>Bob</enclosingInstance>
 						<eventType>Customer._17_0_5_edc0357_1346893158683_244828_13524</eventType>
 						<eventName>Activity</eventName>
-						<arguments/>
+						<arguments>
+							<parameter>
+								<name>endTime</name>
+								<value>endTime</value>
+							</parameter>
+							<parameter>
+								<name>startTime</name>
+								<value>startTime</value>
+							</parameter>
+						</arguments>
 					</eventInvocation>
 				</elaboration>
 			</elaborations>
@@ -90,14 +99,26 @@
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893316294_823297_14255")</value>
 							</parameter>
 							<parameter>
-								<!--invoke time for whole activity-->
-								<name>invoke_time</name>
-								<type>Integer</type>
-								<value/>
+								<!--Initialize existence of final (ActivityFinalNode) as false-->
+								<name>_17_0_5_edc0357_1346893158786_150429_13610_exists</name>
+								<type>Boolean</type>
+								<value>false</value>
+							</parameter>
+							<parameter>
+								<!--member for FINAL NODE object flow-->
+								<name>sig_17_0_5_edc0357_1346893329998_582425_14262</name>
+								<type>ObjectFlow&lt;Boolean&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893329998_582425_14262")</value>
 							</parameter>
 						</members>
 						<constraints/>
-						<dependencies/>
+						<dependencies>
+							<dependency>
+								<name>_17_0_5_edc0357_1346893158786_150429_13610_exists</name>
+								<type>Boolean</type>
+								<value>sig_17_0_5_edc0357_1346893329998_582425_14262.hasStuff(endTime)</value>
+							</dependency>
+						</dependencies>
 						<events>
 							<event>
 								<class>
@@ -120,7 +141,13 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893350205_452392_14267_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1346893316294_823297_14255.send(_17_0_5_edc0357_1346893158915_567837_13811,startTime)</effect>
@@ -160,6 +187,11 @@
 											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1346893316294_823297_14255.hasStuff(endTime)</value>
 										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects/>
@@ -173,6 +205,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158786_41089_13607_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158916_188297_13814</name>
@@ -192,12 +228,6 @@
 									<name>_17_0_5_edc0357_1346893158786_218637_13608</name>
 									<!--<actionName>addstructUsage</actionName><actionType>Add Structural Feature Value Action</actionType>-->
 									<members>
-										<parameter>
-											<!--Initialize existence of final (ActivityFinalNode) as false-->
-											<name>_17_0_5_edc0357_1346893158786_150429_13610_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
 										<parameter>
 											<!--Variable to store signal receipt from this pin (or parameter if it's a call behavior)-->
 											<name>_17_0_5_edc0357_1346893158917_830514_13815</name>
@@ -222,39 +252,22 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158786_150429_13610_exists</name>
-											<type>Boolean</type>
-											<value>true</value>
-										</dependency>
-										<dependency>
 											<name>_17_0_5_edc0357_1346893158917_830514_13815</name>
 											<type>Customer</type>
 											<value>sig_17_0_5_edc0357_1346893316294_823297_14255.receive(startTime - 1)</value>
 										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects>
+									<effect>sig_17_0_5_edc0357_1346893329998_582425_14262.send(true,endTime)</effect>
 									<effect>usage__17_0_5_edc0357_1346893158684_563782_13525.setValue(startTime,_17_0_5_edc0357_1346893158916_188297_13814)</effect>
 								</effects>
-								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158786_150429_13610</eventType>
-											<eventName>final_ActivityFinalNode_changePowerUsage</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346893158786_218637_13608_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--final_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346893158786_150429_13610_exists</expression>
-										</condition>
-									</elaboration>
-								</elaborations>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -276,6 +289,11 @@
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects/>
@@ -290,6 +308,10 @@
 													<name>_17_0_5_edc0357_1346893158786_388211_13609_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--fork2_exists-->
@@ -303,18 +325,16 @@
 								<class>
 									<name>_17_0_5_edc0357_1346893158786_150429_13610</name>
 									<!--<actionName>final</actionName><actionType>Activity Final Node</actionType>-->
-									<members>
-										<parameter>
-											<!--previous event end time: addstructUsage (AddStructuralFeatureValueAction)-->
-											<name>_17_0_5_edc0357_1346893158786_218637_13608_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-									</members>
+									<members/>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158786_218637_13608_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects/>
 								<elaborations/>
@@ -348,6 +368,11 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1348095904689_562873_14480_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
@@ -371,6 +396,10 @@
 													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--rscpu_exists-->
@@ -387,6 +416,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893350205_452392_14267_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -443,6 +476,10 @@
 													<name>_17_0_5_edc0357_1348095904689_562873_14480_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--vs15_exists-->
@@ -458,12 +495,29 @@
 						<elaboration>
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
+								<eventType>_17_0_5_edc0357_1346893158786_150429_13610</eventType>
+								<eventName>final_ActivityFinalNode_changePowerUsage</eventName>
+								<arguments>
+									<parameter>
+										<name>endTime</name>
+										<value>endTime</value>
+									</parameter>
+								</arguments>
+							</eventInvocation>
+							<!--final_exists-->
+							<condition>
+								<expression>_17_0_5_edc0357_1346893158786_150429_13610_exists</expression>
+							</condition>
+						</elaboration>
+						<elaboration>
+							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1346893158681_559654_13521.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158786_388211_13609</eventType>
 								<eventName>initial_InitialNode_changePowerUsage</eventName>
 								<arguments>
 									<parameter>
 										<name>startTime</name>
-										<value>invoke_time</value>
+										<value>startTime</value>
 									</parameter>
 								</arguments>
 							</eventInvocation>
@@ -476,10 +530,22 @@
 						<name>_17_0_5_edc0357_1346893158682_214024_13522</name>
 						<members>
 							<parameter>
+								<!--member for FINAL NODE object flow-->
+								<name>sig_17_0_5_edc0357_1346893158846_91926_13679</name>
+								<type>ObjectFlow&lt;Boolean&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893158846_91926_13679")</value>
+							</parameter>
+							<parameter>
 								<!--member for object flow signal-->
 								<name>sig_17_0_5_edc0357_1346893158845_974799_13672</name>
 								<type>ObjectFlow&lt;Customer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893158845_974799_13672")</value>
+							</parameter>
+							<parameter>
+								<!--Initialize existence of fin (ActivityFinalNode) as false-->
+								<name>_17_0_5_edc0357_1346893158844_42063_13664_exists</name>
+								<type>Boolean</type>
+								<value>false</value>
 							</parameter>
 							<parameter>
 								<!--member for object flow-->
@@ -493,15 +559,15 @@
 								<type>ObjectFlow&lt;Customer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_5_edc0357_1346893158845_488694_13674")</value>
 							</parameter>
-							<parameter>
-								<!--invoke time for whole activity-->
-								<name>invoke_time</name>
-								<type>Integer</type>
-								<value/>
-							</parameter>
 						</members>
 						<constraints/>
-						<dependencies/>
+						<dependencies>
+							<dependency>
+								<name>_17_0_5_edc0357_1346893158844_42063_13664_exists</name>
+								<type>Boolean</type>
+								<value>sig_17_0_5_edc0357_1346893158846_91926_13679.hasStuff(endTime)</value>
+							</dependency>
+						</dependencies>
 						<events>
 							<event>
 								<class>
@@ -532,6 +598,11 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1346893158844_682791_13665_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
@@ -549,6 +620,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158843_68308_13660_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 												<parameter>
 													<name>objectToPass</name>
@@ -592,6 +667,11 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1346893158844_114248_13662_exists</name>
 											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1346893158845_974799_13672.hasStuff(endTime)</value>
@@ -609,6 +689,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158843_768602_13661_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158928_722123_13839</name>
@@ -658,6 +742,11 @@
 									</constraints>
 									<dependencies>
 										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1346893158845_195958_13669_exists</name>
 											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1346893158846_964404_13680.hasStuff(endTime)</value>
@@ -682,6 +771,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_114248_13662_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -712,6 +805,11 @@
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects/>
@@ -726,6 +824,10 @@
 													<name>_17_0_5_edc0357_1346893158844_415930_13663_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--f2_exists-->
@@ -739,18 +841,16 @@
 								<class>
 									<name>_17_0_5_edc0357_1346893158844_42063_13664</name>
 									<!--<actionName>fin</actionName><actionType>Activity Final Node</actionType>-->
-									<members>
-										<parameter>
-											<!--previous event end time: f3 (JoinNode)-->
-											<name>_17_0_5_edc0357_1346893158845_195958_13669_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-									</members>
+									<members/>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158845_195958_13669_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects/>
 								<elaborations/>
@@ -776,7 +876,13 @@
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158843_68308_13660_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects>
 									<effect>sig_17_0_5_edc0357_1346893158845_974799_13672.send(objectToPass,startTime)</effect>
@@ -812,6 +918,11 @@
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158844_847477_13667_endTime</expression></constraint>
 									</constraints>
 									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 										<dependency>
 											<name>_17_0_5_edc0357_1346893158929_740428_13842</name>
 											<type>Customer</type>
@@ -858,6 +969,11 @@
 											<type>Boolean</type>
 											<value>sig_17_0_5_edc0357_1346893158845_488694_13674.hasStuff(endTime)</value>
 										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects/>
@@ -871,6 +987,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158844_847477_13667_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158929_378648_13841</name>
@@ -930,6 +1050,11 @@
 											<value>true</value>
 										</dependency>
 										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+										<dependency>
 											<name>_17_0_5_edc0357_1346893158843_768602_13661_exists</name>
 											<type>Boolean</type>
 											<value>true</value>
@@ -948,6 +1073,10 @@
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--vs0_exists-->
@@ -964,6 +1093,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -982,6 +1115,10 @@
 													<name>_17_0_5_edc0357_1346893158845_814119_13668_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--rsI_exists-->
@@ -997,12 +1134,6 @@
 									<!--<actionName>f3</actionName><actionType>Join Node</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of fin (ActivityFinalNode) as false-->
-											<name>_17_0_5_edc0357_1346893158844_42063_13664_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time: asfvUsage (AddStructuralFeatureValueAction)-->
 											<name>_17_0_5_edc0357_1346893158844_114248_13662_endTime</name>
 											<type>Integer</type>
@@ -1014,36 +1145,37 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158844_42063_13664_exists</name>
-											<type>Boolean</type>
-											<value>true</value>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
 										</dependency>
 									</dependencies>
 								</class>
-								<effects/>
-								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158844_42063_13664</eventType>
-											<eventName>fin_ActivityFinalNode_initialize</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1346893158845_195958_13669_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--fin_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346893158844_42063_13664_exists</expression>
-										</condition>
-									</elaboration>
-								</elaborations>
+								<effects>
+									<effect>sig_17_0_5_edc0357_1346893158846_91926_13679.send(true,endTime)</effect>
+								</effects>
+								<elaborations/>
 							</event>
 						</events>
 					</class>
 					<elaborations>
+						<elaboration>
+							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
+								<eventType>_17_0_5_edc0357_1346893158844_42063_13664</eventType>
+								<eventName>fin_ActivityFinalNode_initialize</eventName>
+								<arguments>
+									<parameter>
+										<name>endTime</name>
+										<value>endTime</value>
+									</parameter>
+								</arguments>
+							</eventInvocation>
+							<!--fin_exists-->
+							<condition>
+								<expression>_17_0_5_edc0357_1346893158844_42063_13664_exists</expression>
+							</condition>
+						</elaboration>
 						<elaboration>
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1346893158682_214024_13522.this</enclosingInstance>
@@ -1052,7 +1184,7 @@
 								<arguments>
 									<parameter>
 										<name>startTime</name>
-										<value>invoke_time</value>
+										<value>startTime</value>
 									</parameter>
 								</arguments>
 							</eventInvocation>
@@ -1065,14 +1197,26 @@
 						<name>_17_0_5_edc0357_1346893158683_244828_13524</name>
 						<members>
 							<parameter>
-								<!--invoke time for whole activity-->
-								<name>invoke_time</name>
-								<type>Integer</type>
-								<value/>
+								<!--Initialize existence of fin (ActivityFinalNode) as false-->
+								<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
+								<type>Boolean</type>
+								<value>false</value>
+							</parameter>
+							<parameter>
+								<!--member for FINAL NODE object flow-->
+								<name>sig_17_0_5_40a10589_1349299681213_974371_16831</name>
+								<type>ObjectFlow&lt;Boolean&gt;</type>
+								<value>new ObjectFlow("sig_17_0_5_40a10589_1349299681213_974371_16831")</value>
 							</parameter>
 						</members>
 						<constraints/>
-						<dependencies/>
+						<dependencies>
+							<dependency>
+								<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
+								<type>Boolean</type>
+								<value>sig_17_0_5_40a10589_1349299681213_974371_16831.hasStuff(endTime)</value>
+							</dependency>
+						</dependencies>
 						<events>
 							<event>
 								<class>
@@ -1094,6 +1238,11 @@
 											<type>Boolean</type>
 											<value>true</value>
 										</dependency>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
 									</dependencies>
 								</class>
 								<effects/>
@@ -1107,6 +1256,10 @@
 												<parameter>
 													<name>_17_0_5_edc0357_1346893158894_762690_13750_endTime</name>
 													<value>endTime</value>
+												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
 												</parameter>
 											</arguments>
 										</eventInvocation>
@@ -1134,12 +1287,6 @@
 											<type>Boolean</type>
 											<value>false</value>
 										</parameter>
-										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
 									</members>
 									<constraints>
 										<constraint><expression>startTime &gt;_17_0_5_edc0357_1346893158894_762690_13750_endTime</expression></constraint>
@@ -1164,6 +1311,10 @@
 													<name>_17_0_5_edc0357_1346893158894_201560_13751_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--cpu_exists-->
@@ -1179,10 +1330,10 @@
 											<arguments>
 												<parameter>
 													<name>endTime</name>
-													<value>cba_endTime</value>
+													<value>endTime</value>
 												</parameter>
 												<parameter>
-													<name>invoke_time</name>
+													<name>startTime</name>
 													<value>startTime</value>
 												</parameter>
 											</arguments>
@@ -1197,7 +1348,13 @@
 									<members/>
 									<constraints>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects/>
 								<elaborations/>
@@ -1216,12 +1373,6 @@
 										<parameter>
 											<!--previous event end time: init (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346893158894_201560_13751_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-										<parameter>
-											<!--Placeholder for CBA's end time-->
-											<name>cba_endTime</name>
 											<type>Integer</type>
 											<value/>
 										</parameter>
@@ -1247,10 +1398,10 @@
 											<arguments>
 												<parameter>
 													<name>endTime</name>
-													<value>cba_endTime</value>
+													<value>endTime</value>
 												</parameter>
 												<parameter>
-													<name>invoke_time</name>
+													<name>startTime</name>
 													<value>startTime</value>
 												</parameter>
 											</arguments>
@@ -1266,6 +1417,10 @@
 													<name>_17_0_5_edc0357_1346893158896_214295_13759_endTime</name>
 													<value>endTime</value>
 												</parameter>
+												<parameter>
+													<name>startTime</name>
+													<value>endTime+1</value>
+												</parameter>
 											</arguments>
 										</eventInvocation>
 										<!--_exists-->
@@ -1279,18 +1434,16 @@
 								<class>
 									<name>_17_0_5_edc0357_1346893158896_969462_13761</name>
 									<!--<actionName>fin</actionName><actionType>Activity Final Node</actionType>-->
-									<members>
-										<parameter>
-											<!--previous event end time:  (AcceptEventAction)-->
-											<name>_17_0_5_edc0357_1348096105668_435247_14501_endTime</name>
-											<type>Integer</type>
-											<value/>
-										</parameter>
-									</members>
+									<members/>
 									<constraints>
-										<constraint><expression>startTime &gt;_17_0_5_edc0357_1348096105668_435247_14501_endTime</expression></constraint>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects/>
 								<elaborations/>
@@ -1319,12 +1472,6 @@
 									<!--<actionName></actionName><actionType>Accept Event Action</actionType>-->
 									<members>
 										<parameter>
-											<!--Initialize existence of fin (ActivityFinalNode) as false-->
-											<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
-											<type>Boolean</type>
-											<value>false</value>
-										</parameter>
-										<parameter>
 											<!--previous event end time: cpu (CallBehaviorAction)-->
 											<name>_17_0_5_edc0357_1346893158896_214295_13759_endTime</name>
 											<type>Integer</type>
@@ -1336,37 +1483,16 @@
 									</constraints>
 									<dependencies>
 										<dependency>
-											<name>_17_0_5_edc0357_1346893158896_969462_13761_exists</name>
-											<type>Boolean</type>
-											<value>true</value>
-										</dependency>
-										<dependency>
 											<name>duration</name>
 											<type>Integer</type>
 											<value>10</value>
 										</dependency>
 									</dependencies>
 								</class>
-								<effects/>
-								<elaborations>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
-											<eventType>_17_0_5_edc0357_1346893158896_969462_13761</eventType>
-											<eventName>fin_ActivityFinalNode_CustomerCB</eventName>
-											<arguments>
-												<parameter>
-													<name>_17_0_5_edc0357_1348096105668_435247_14501_endTime</name>
-													<value>endTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
-										<!--fin_exists-->
-										<condition>
-											<expression>_17_0_5_edc0357_1346893158896_969462_13761_exists</expression>
-										</condition>
-									</elaboration>
-								</elaborations>
+								<effects>
+									<effect>sig_17_0_5_40a10589_1349299681213_974371_16831.send(true,endTime)</effect>
+								</effects>
+								<elaborations/>
 							</event>
 							<event>
 								<class>
@@ -1375,7 +1501,13 @@
 									<members/>
 									<constraints>
 									</constraints>
-									<dependencies/>
+									<dependencies>
+										<dependency>
+											<name>duration</name>
+											<type>Integer</type>
+											<value>1</value>
+										</dependency>
+									</dependencies>
 								</class>
 								<effects/>
 								<elaborations/>
@@ -1386,12 +1518,29 @@
 						<elaboration>
 							<eventInvocation>
 								<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
+								<eventType>_17_0_5_edc0357_1346893158896_969462_13761</eventType>
+								<eventName>fin_ActivityFinalNode_CustomerCB</eventName>
+								<arguments>
+									<parameter>
+										<name>endTime</name>
+										<value>endTime</value>
+									</parameter>
+								</arguments>
+							</eventInvocation>
+							<!--fin_exists-->
+							<condition>
+								<expression>_17_0_5_edc0357_1346893158896_969462_13761_exists</expression>
+							</condition>
+						</elaboration>
+						<elaboration>
+							<eventInvocation>
+								<enclosingInstance>_17_0_5_edc0357_1346893158683_244828_13524.this</enclosingInstance>
 								<eventType>_17_0_5_edc0357_1346893158894_762690_13750</eventType>
 								<eventName>start_InitialNode_CustomerCB</eventName>
 								<arguments>
 									<parameter>
 										<name>startTime</name>
-										<value>invoke_time</value>
+										<value>startTime</value>
 									</parameter>
 								</arguments>
 							</eventInvocation>
