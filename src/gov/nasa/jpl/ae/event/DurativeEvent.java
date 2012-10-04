@@ -87,15 +87,24 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                      + getName() );
         return true;
       }
-      
+      List< Pair< ElaborationRule, Vector< Event >>> list =
+          new ArrayList< Pair< ElaborationRule, Vector< Event >>>();
       for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
-        if ( isElaborated( er ) != er.getKey().isConditionSatisfied() ) {
-          if ( er.getKey().attemptElaboration( er.getValue(), true ) ) {
-            if ( !er.getKey().isConditionSatisfied() ) satisfied = false;
+            list.add( new Pair< ElaborationRule, Vector< Event >>( er.getKey(),
+                                                                   er.getValue() ) );
+      }
+      elaborations.clear();
+      for ( Pair< ElaborationRule, Vector< Event > > p : list ) {
+        ElaborationRule r = p.first;
+        Vector< Event > events = p.second;
+        if ( isElaborated( events ) != r.isConditionSatisfied() ) {
+          if ( r.attemptElaboration( events, true ) ) {
+            if ( !r.isConditionSatisfied() ) satisfied = false;
           } else {
-            if ( er.getKey().isConditionSatisfied() ) satisfied = false;
+            if ( r.isConditionSatisfied() ) satisfied = false;
           }
         }
+        elaborations.put( r, events );
       }
       return satisfied;
     }
@@ -678,7 +687,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @return
    */
   protected boolean isElaborated( Entry< ElaborationRule, Vector< Event > > entry ) {
-    return !( entry.getValue() == null || entry.getValue().isEmpty() );
+    return isElaborated( entry.getValue() );
+  }
+  
+  /**
+   * @param events
+   * @return
+   */
+  protected boolean isElaborated( Vector< Event > events ) {
+    return !Utils.isNullOrEmpty( events );
   }
   
   /**
