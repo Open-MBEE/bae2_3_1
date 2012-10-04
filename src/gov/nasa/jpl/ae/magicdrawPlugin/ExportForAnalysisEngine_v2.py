@@ -219,7 +219,10 @@ class activityEventClass(object):
 		self.dependencies = {} #are there any?
 		self.classes = []
 		self.initial = None
-		self.members["invoke_time"] = ("Integer",None,"invoke time for whole activity")
+		#self.members["invoke_time"] = ("Integer",None,"invoke time for whole activity")
+		#self.members["cba_endTime"] = ("Integer",None,"Placeholder for end time of event!!")
+		#self.dependencies["startTime"] = ("Integer","invoke_time")
+		#self.dependencies["endTime"] = ("Integer","cba_endTime")
 		self.invokeDict = {}
 		self.enclosingClass = self.id + ".this"
 		
@@ -293,6 +296,13 @@ class activityEventClass(object):
 				for inc in [z for z in join.incoming if z is not join.incoming[0]]:
 					signame = "sig" + str(inc.getID())
 					self.members[signame] = ("ObjectFlow&lt;Boolean&gt;",'new ObjectFlow("'+signame+'")',"member for object flow")
+		for final in [f for f in activity.node if isinstance(f,ActivityFinalNode)]:
+			self.members[final.getID() + "_exists"] = ("Boolean","false","Initialize existence of " + getPrettyIdent(final) + " as false")
+			for inc in final.incoming:
+				signame = "sig" + str(inc.getID())
+				self.members[signame] = ("ObjectFlow&lt;Boolean&gt;",'new ObjectFlow("'+signame+'")',"member for FINAL NODE object flow")
+			s = "sig" + str(inc.getID()) + ".hasStuff(endTime)"
+			self.dependencies[final.getID() + "_exists"] = ("Boolean",s)
 		
 		#inspect edges...
 		for e in activity.edge:
@@ -322,7 +332,12 @@ class activityEventClass(object):
 			if isinstance(node,InitialNode):
 				self.initial = node
 				self.elaborations[node] = {
-										"args":[("startTime","invoke_time","Integer")],
+										"args":[("startTime","startTime","Integer")],
+										"enclosingClass" : self.enclosingClass}
+			if isinstance (node,ActivityFinalNode):
+				self.elaborations[node] = {
+										"args":[("endTime","endTime","Integer")],
+										"conditions": {node:"endTime"},
 										"enclosingClass" : self.enclosingClass}
 			if isinstance(node,ActivityParameterNode):
 				p_id = node.parameter.getID()
@@ -332,7 +347,7 @@ class activityEventClass(object):
 				gl.log("PARAM DIRECTION: " + str(node.parameter.direction))
 				if str(node.parameter.direction)=="out": self.members["sig"+p_id]=("ObjectFlow&lt;%s&gt;" % node.parameter.type.name,None,"Initialize passed-in object flow!")
 				if len(node.outgoing)>0: self.elaborations[node] = {
-																"args": [("startTime","invoke_time","Integer"),(p_id,p_id,tname)],
+																"args": [("startTime","startTime","Integer"),(p_id,p_id,tname)],
 																"enclosingClass" : self.enclosingClass}
 				elif len(node.outgoing)>0: pass #HOW DO I GET THE VALUE OUT OF IT>>>>
 			if isinstance(node,AcceptEventAction):
@@ -496,9 +511,9 @@ class actionEventClass(object):
 				invokingFlow = self.invokedFlow[actionNode][0]
 				object = self.flowObject[invokingFlow]
 				if isinstance(object,Property): object = self.safeConvertProperty(object)
-				
-				self.members[previous.getID() + "_endTime"] = ("Integer",None,"previous event end time: " + getPrettyIdent(previous))
-				self.constraints["startTime"].append("startTime &gt;" + str(previous.getID())+"_endTime")
+				if not isinstance(actionNode,ActivityFinalNode):
+					self.members[previous.getID() + "_endTime"] = ("Integer",None,"previous event end time: " + getPrettyIdent(previous))
+					self.constraints["startTime"].append("startTime &gt;" + str(previous.getID())+"_endTime")
 				
 				#members for object input receptions
 				if object != "Control": #control type
@@ -589,6 +604,10 @@ class actionEventClass(object):
 			for next in nextList:
 				gl.log("next: " + next.name)
 				invokingFlow = self.invokerFlow[actionNode][i]
+				if isinstance(next,ActivityFinalNode):
+					signame = "sig" + invokingFlow.getID()
+					self.effects.append("sig" + invokingFlow.getID() + ".send(true,endTime)")
+					continue
 				object = self.flowObject[invokingFlow]
 				if isinstance(object,Property): object = self.safeConvertProperty(object)
 				
@@ -600,7 +619,7 @@ class actionEventClass(object):
 				if isinstance(next,MergeNode): elabVar = "invoker_endTime"
 				#gl.log(self.enclosingClass)
 				self.elaborations[next]={
-										"args": [(elabVar,"endTime","Integer")],
+										"args": [(elabVar,"endTime","Integer"),("startTime","endTime+1","Integer")],
 										"conditions": {next:"endTime"},
 										"enclosingClass" : self.enclosingClass}
 				
@@ -649,13 +668,13 @@ class actionEventClass(object):
 					if isinstance(invokingFlow.target,Pin): #pin-pin - easy object-invoker
 						it = invokingFlow.target.getID()
 						if isinstance(invokingFlow.target.owner,CallBehaviorAction): it = invokingFlow.target.parameter.getID()
-						self.elaborations[next]["args"].append((it,src,"Object"))
+						self.elaborations[next]["args"].extend([(it,src,"Object")])
 						self.elaborations[next]["enclosingClass"] = self.enclosingClass
 					elif isinstance(invokingFlow.target,ControlNode):
-						self.elaborations[next]["args"].append(("objectToPass",src,"Object"))
+						self.elaborations[next]["args"].extend([("objectToPass",src,"Object")])
 						self.elaborations[next]["enclosingClass"] = self.enclosingClass
 					elif isinstance(invokingFlow.target,ActivityParameterNode):
-						self.elaborations[next]["args"].append((invokingFlow.target.parameter.getID(),src,"Object"))
+						self.elaborations[next]["args"].extend([(invokingFlow.target.parameter.getID(),src,"Object")])
 						self.elaborations[next]["enclosingClass"] = self.enclosingClass
 				i+=1
 		else:
@@ -684,17 +703,20 @@ class actionEventClass(object):
 	def inspectByType(self,node):
 		myType = node.humanType
 		if myType == "Read Self Action":
+			self.dependencies["duration"] = ("Integer","1")
 			#add: member for out-pin?
 			objectFlowOut = node.result.outgoing[0]
 			try: itemname = node.result.type.name
 			except: itemname = node.owner.owner.name
 			self.members[node.result.getID()] = (itemname,itemname+".this","Instance of whoever is operating this activity")
 		elif myType =="Add Structural Feature Value Action" :
+			self.dependencies["duration"] = ("Integer","1")
 			sf = node.structuralFeature
 			objectFlowIn = node.object.incoming[0]
 			valueFlowIn = node.value.incoming[0]
 			self.effects.append(sf.name + "_" + sf.getID() + ".setValue(startTime,"+ node.value.getID() + ")")
 		elif myType =="Read Structural Feature Action" :
+			self.dependencies["duration"] = ("Integer","1")
 			sf = node.structuralFeature
 			objectIn = node.object
 			objectOut = node.result
@@ -704,6 +726,7 @@ class actionEventClass(object):
 			if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, node.object.getID() + "." + sf.name + "_" + sf.getID() + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
 			else: self.dependencies[objectOut.getID()] = (tname,node.object.getID() + "." + sf.name)
 		elif myType =="Send Signal Action" :
+			self.dependencies["duration"] = ("Integer","1")
 			sig = node.signal
 			port = node.onPort
 			structSig = "x.ss" + port.getID() + "_" + sig.name
@@ -722,8 +745,10 @@ class actionEventClass(object):
 				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
 			self.effects.append(structSig + ".send(%s,endTime)" % invokePhrase)
 		elif myType =="Accept Event Action" :
+			
 			event = node.trigger[0].event
 			if not isinstance(event,TimeEvent):
+				self.dependencies["duration"] = ("Integer","1")
 				sig = event.signal
 				context = node.context
 				try: 
@@ -762,6 +787,7 @@ class actionEventClass(object):
 				t = node.value.type
 				if t: tname = node.value.type.name
 			self.members[node.result.getID()] = (tname,str(v),"value specification VALUE")
+			self.dependencies["duration"] = ("Integer","1")
 		elif myType =="Opaque Action" :
 			self.effects.append("result = " + str(node.body))
 		elif myType =="Call Behavior Action" :
@@ -784,24 +810,26 @@ class actionEventClass(object):
 					if p.parameter: self.dependencies[p.getID()] = (str(tname),p.parameter.name)
 			else:
 				self.elaborations[node.behavior]={
-												"args": [("endTime","cba_endTime","Integer")],
+												"args": [("endTime","endTime","Integer"),("startTime","startTime","Integer")],
 												"enclosingClass" : node.behavior.owner.name+".this"}
 				for pin in node.input:
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"
 					if pin.parameter:
-						self.elaborations[node.behavior]["args"].append((pin.parameter.getID(),pin.parameter.getID(),tname))
+						self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),tname)])
 				for pin in node.output:
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"
 					#self.effects.append(pin.getID()+ " = sig" + pin.parameter.getID() + ".receive(endTime - 1)")
 					self.dependencies[pin.getID()] = (tname,"sig" + pin.parameter.getID() + ".receive(endTime - 1)")
-					self.elaborations[node.behavior]["args"].append(("sig"+pin.parameter.getID(),"sig"+pin.parameter.getID(),"ObjectFlow"))
-				self.members["cba_endTime"] = ("Integer",None,"Placeholder for CBA's end time")
+					self.elaborations[node.behavior]["args"].extend([("sig"+pin.parameter.getID(),"sig"+pin.parameter.getID(),"ObjectFlow"),("startTime","endTime+1","Integer")])
+				#self.members["cba_endTime"] = ("Integer",None,"Placeholder for CBA's end time")
+				#self.members["endTime"] = ("Integer","cba_endTime","END TIME OF ACTIVITY")
 				
 				
 			#self.dependencies["myBehavior"]=("Integer",node.behavior.getID()+".endTime")
 		elif myType =="Start Object Behavior Action":
+			self.dependencies["duration"] = ("Integer","1")
 			#self.effects.append(node.object.getID() + ".start()")
 			inc = node.object.incoming[0]
 			#gl.log(inc.getID())
@@ -813,15 +841,17 @@ class actionEventClass(object):
 					if isinstance(flowThing,Property): flowClass = flowThing.type
 					self.elaborations[flowClass.classifierBehavior] = {
 					#self.elaborations[flowThing.classifierBehavior] = {
-																	"args" : [("invoke_time","startTime","Integer")],
+																	"args" : [("startTime","startTime","Integer")],
 																	"enclosingClass" : flowThing.name}
 				else: gl.log("*****ERROR -- CONTROL FLOW INTO START OBJECT BEHAVIOR OBJECT PIN!!")
 			else: gl.log("*****ERROR -- CANNOT ELABORATE TO NONE FROM START OBJECT BEHAVIOR!!")
 			#else: it's none, that's an error! maybe need to make structural features add this to flow dict...
 		elif myType =="Activity Parameter Node":
+			self.dependencies["duration"] = ("Integer","1")
 			if len(node.incoming) > 0: 
 				self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime)")
 		elif myType =="Decision Node":
+			self.dependencies["duration"] = ("Integer","1")
 			gl.log("Special Decision Node Guard Handling...")
 			dif = node.decisionInputFlow
 			if dif:
@@ -833,7 +863,8 @@ class actionEventClass(object):
 				for dName,(dType,dVal) in self.dependencies.items():
 					if dName.endswith("_exists"):
 						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()",dif.getID()))
-
+		else:
+			self.dependencies["duration"] = ("Integer","1")
 				
 	
 	
@@ -1073,42 +1104,6 @@ def run(s):
 	
 	return
 
-'''<events>
-		<event>
-			<class>
-				<name>CustomerCreator</name>
-				<members>
-					<parameter>
-						<name>cust</name>
-						<type>Customer</type>
-						<value>new Customer()</value>
-					</parameter>
-				</members>
-			</class>
-			<elaborations>
-				<elaboration>
-					<eventInvocation>
-						<enclosingInstance>cust</enclosingInstance>
-						<eventType>Customer._17_0_5_edc0357_1346893970375_935485_14291</eventType>
-						<eventName>Activity</eventName>
-					</eventInvocation>
-				</elaboration>
-			</elaborations>
-		</event>
-	</events>
-	
-	<eventToBeExecuted>
-		<eventType>CustomerCreator</eventType>
-		<arguments>
-			<parameter>
-				<name>startTime</name>
-				<value>0</value>
-			</parameter>
-		</arguments>
-	</eventToBeExecuted>'''
-
-
-
 def logAndExport(tabNum,tag,text):
 	line = "	"*tabNum
 	if tag: line = line+"<%s>%s</%s>" % (tag,text,tag)
@@ -1119,6 +1114,7 @@ def logAndExport(tabNum,tag,text):
 def writeScenario(top,classesToTranslate):
 	logAndExport(0,None,"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>")
 	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"/Users/mjackson/Documents/workspace-Helios/CS/src/gov/nasa/jpl/ae/xml/eventSchema.xsd\">")
+	logAndExport(0,None,"<!--RUNNING ON: %s (owner: %s)-->" % (top.name,top.owner.name))
 	logAndExport(1,"epoch","2012-08-05T23:30:00-07:00")
 	logAndExport(1,"horizon","P1D")
 	logAndExport(1,"timeUnits","seconds")
@@ -1142,7 +1138,7 @@ def writeScenarioRunner(e):
 	logAndExport(6,"type",e.name)
 	logAndExport(6,"value","new " + e.name + "()")
 	logAndExport(5,None,"</parameter>")
-	logAndExport(4,None,"</members>")
+	logAndExport(4,None,"</members>")	
 	logAndExport(3,None,"</class>")
 	logAndExport(3,None,"<elaborations>")
 	logAndExport(4,None,"<elaboration>")
@@ -1150,7 +1146,16 @@ def writeScenarioRunner(e):
 	logAndExport(6,"enclosingInstance","Bob")
 	logAndExport(6,"eventType",e.name + "." + cb.getID())
 	logAndExport(6,"eventName","Activity")
-	logAndExport(6,None,"<arguments/>")
+	logAndExport(6,None,"<arguments>")
+	logAndExport(7,None,"<parameter>")
+	logAndExport(8,"name","endTime")
+	logAndExport(8,"value","endTime")
+	logAndExport(7,None,"</parameter>")
+	logAndExport(7,None,"<parameter>")
+	logAndExport(8,"name","startTime")
+	logAndExport(8,"value","startTime")
+	logAndExport(7,None,"</parameter>")
+	logAndExport(6,None,"</arguments>")
 	logAndExport(5,None,"</eventInvocation>")
 	logAndExport(4,None,"</elaboration>")
 	logAndExport(3,None,"</elaborations>")
@@ -1304,7 +1309,8 @@ def translateActivity(classThingy,l):
 	logAndExport(l+2,"name",str(classThingy.id))
 	writeMembers(classThingy,l+2)
 	logAndExport(l+2,None,"<constraints/>")
-	logAndExport(l+2,None,"<dependencies/>")
+	#logAndExport(l+2,None,"<dependencies/>")
+	writeDependencies(classThingy,l+2)
 	
 	#---EVENTS---#
 	logAndExport(l+2,None,"<events>")

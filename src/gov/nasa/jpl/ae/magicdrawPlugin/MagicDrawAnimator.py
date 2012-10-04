@@ -56,7 +56,8 @@ class highlighterThread(Thread):
         mode = 0
         if mode == 0:
             mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
-            filepath = "/Users/mjackson/Desktop/TinySim.txt"
+            #filepath = "/Users/mjackson/Desktop/TinySim.txt"
+            filepath = "/Users/mjackson/Desktop/MedSim.txt"
             #gl.log(filepath)
             f = open(filepath,"r")
             for line in f.readlines():
@@ -68,8 +69,8 @@ class highlighterThread(Thread):
                     type = x.groups()[0]
                 else: continue
                 gl.log("%s %s (%s)" % (action.upper(), id, type))
-                if "Main" in id: 
-                    gl.log("    ---> Skipping - can't animate Main")
+                if any([x in id for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
+                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap or ObjectFlow")
                     continue
                 if re.search("(_)?Activity(_.*)?(?!\S)",type): 
                     gl.log("    ---> Skipping - can't animate the Activity object!")
