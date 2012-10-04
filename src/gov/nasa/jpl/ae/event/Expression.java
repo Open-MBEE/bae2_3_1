@@ -200,7 +200,14 @@ public class Expression< ResultType >
 		Set< Parameter<?> > set = new TreeSet< Parameter<?> >();
 		if ( type == Type.Parameter ) {
 		  if ( expression != null ) {
-		    set.add( (Parameter<?>) this.expression );
+		    Parameter<?> p = (Parameter<?>) this.expression; 
+		    set.add( p );
+		    if ( deep ) {
+		      Object v = p.getValueNoPropagate(); 
+		      if ( v != null && v instanceof HasParameters ) {
+		        set.addAll( ((HasParameters)v).getParameters( deep ) );
+		      }
+		    }
 		  }
 		} else if ( expression instanceof HasParameters ) {
 			HasParameters gotParameters = (HasParameters) expression;
@@ -210,7 +217,7 @@ public class Expression< ResultType >
 		}
 		return set;
 	}
-
+	
 	@Override
 	public Set<Parameter<?>> getFreeParameters(boolean deep) {
 		Assert.assertFalse("This method should not be called since an Expression does not differentiate between free and dependent parameters.", true );
