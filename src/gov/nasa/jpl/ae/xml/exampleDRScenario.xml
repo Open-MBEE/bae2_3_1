@@ -362,6 +362,7 @@
     <class>
       <name>Grid</name>
       <import>demandResponse.Customer</import>
+      <import>demandResponse.Customers</import>
       <members>
         <parameter>
           <name>customer</name><type>Customer</type><value>new Customer(Customer.CustomerType.summer)</value>
@@ -373,6 +374,21 @@
         </parameter>
         <parameter>
           <name>customerLoad</name><type>TimeVaryingPlottableMap&lt; Double &gt;</type><value>customer.load</value>
+        </parameter>
+        <parameter>
+          <name>customers</name>
+          <type>Customers</type>
+          <value>new Customers(Customer.CustomerType.summer, 10)</value>
+        </parameter>
+        <parameter>
+          <name>predictedCustomers</name>
+          <type>Customers</type>
+          <value>new Customers(Customer.CustomerType.summerProfile, 10)</value>
+        </parameter>
+        <parameter>
+          <name>customerLoads</name>
+          <type>TimeVaryingPlottableMap&lt; Double &gt;</type>
+          <value>customers.additiveLoad</value>
         </parameter>
       </members>
     </class>

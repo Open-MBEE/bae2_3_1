@@ -148,6 +148,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     }
   }
 
+  public Timepoint getTimepointBefore( Timepoint t ) {
+    return this.lowerKey( t );
+  }
+  
   protected static int correctSamplePeriod( int samplePeriod,
                                             int horizonDuration ) {
     if ( samplePeriod == 0 ) {
@@ -291,6 +295,8 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( t == null ) return null;
     T v = get( t ); //.first;
     if ( v != null ) return v;
+    // Saving this check until later in case a null time value is acceptable,
+    // and get(t) above works.
     if ( t.getValue() == null ) return null;
     return getValue( t.getValue() );
   }

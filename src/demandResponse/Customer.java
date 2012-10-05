@@ -17,8 +17,7 @@ import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.Debug;
 
 /**
- * @author bclement
- *
+ * 
  */
 public class Customer extends ParameterListenerImpl {
 
@@ -34,7 +33,7 @@ public class Customer extends ParameterListenerImpl {
   public double correctionFactor = 0.5;
   public int samplePeriod = 900; // may only support seconds!
   public long seed = 3;//System.currentTimeMillis();
-  public Random numGen = null;
+  public Random numGen = gov.nasa.jpl.ae.solver.Random.global;
   
   public DRObject drEvent = null;
   

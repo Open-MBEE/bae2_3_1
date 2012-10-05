@@ -93,20 +93,12 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   }
   
   public double add( Timepoint t, Double delta ) {
-    Timepoint justBeforeTime = this.lowerKey( t );
-    Double valBefore = new Double(0);
-    if ( justBeforeTime != null ) {
-      valBefore = get( justBeforeTime );
-    }
-    setValue( t, valBefore ); 
+    Double valBefore = getValueBefore( t );
+    setValue( t, valBefore );  // we're going to add delta to this below.
     SortedMap< Timepoint, Double > tail = this.tailMap( t );
-    //for ( Map.Entry< Timepoint, N > e : tail.entrySet() ) {
-//  Iterator< Entry< Timepoint, Double > > iter = tail.entrySet().iterator();
-//  while ( iter.hasNext() ) {
-//    Entry< Timepoint, Double > e = iter.next();
-//    e.setValue( e.getValue() +  delta );
-//  }
-
+    // Had trouble changing the value while iterating through the tail map, so
+    // keys are copied to a list, and setValue() is called while walking the list.
+    // So, this is nlogn when it should be n.
     List< Timepoint > laterTimes = new ArrayList< Timepoint >( tail.keySet() );
     for ( Timepoint tt : laterTimes ) {
       setValue( tt, getValue( tt ) + delta );
@@ -115,6 +107,81 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     return valueSet;
   }
 
+  /**
+   * Clear this map and generate values from a deltaMap. A deltaMap is a map
+   * whose values are interpreted to be changes from previous values. A
+   * (t,delta) entry in the delta map is translated to a (t,sum) entry in this
+   * map where sum = Sum_{all t' in keys() where t' <= t}(deltaMap.get(t')). For
+   * any Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
+   * change the entries in c.
+   * 
+   * @param deltaMap
+   */
+  public void initializeFromDeltaMap( TimeVaryingMap< Double > deltaMap ) {
+    clear();
+    double summedValue = 0.0;
+    for ( java.util.Map.Entry< Timepoint, Double > e : deltaMap.entrySet() ) {
+      if ( e.getValue() != null && e.getValue() != 0 ) {
+        summedValue += e.getValue();
+      }
+      put( e.getKey(), summedValue );
+    }
+  }
+  
+  /**
+   * @return a generated map of the changes in values from the previous point.
+   *         <p>
+   *         For example, the deltaMap of { 0=0.0, 3=4.4, 7=10.0 } is { 0=0.0,
+   *         3=4.4, 7=5.6 }. The map is fully computed on each call. For any
+   *         Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
+   *         change the entries in c.
+   */
+ public TimeVaryingMap< Double > getDeltaMap() {
+    TimeVaryingPlottableMap< Double > deltaMap =
+      new TimeVaryingPlottableMap< Double >( "delta_" + name );
+    Double lastValue = 0.0;
+    for ( Entry< Timepoint, Double > e : entrySet() ) {
+      Double thisValue = 0.0; // null value is interpreted as 0.0
+      if ( e.getValue() != null ) {
+        thisValue = e.getValue();
+      }
+      deltaMap.put( e.getKey(), thisValue - lastValue );
+      lastValue = thisValue;
+    }
+    return deltaMap;
+  }
+  
+  public Double getValueBefore( Timepoint t ) {
+    Timepoint justBeforeTime = getTimepointBefore( t );
+    Double valBefore = new Double(0);
+    if ( justBeforeTime != null ) {
+      valBefore = get( justBeforeTime );
+    }
+    return valBefore;
+  }
+  
+  /**
+   * Treat this map as a deltaMap and add a deltaMap to it to represent the sum
+   * of the two.
+   * 
+   * @param otherDeltaMap
+   */
+  public static TimeVaryingMap< Double >
+      deltaMapPlusEquals( TimeVaryingMap< Double > deltaMap,
+                          TimeVaryingMap< Double > otherDeltaMap ) {
+    for ( Entry< Timepoint, Double > e : otherDeltaMap.entrySet() ) {
+      Double v = deltaMap.get( e.getKey() );
+      if ( v == null ) v = 0.0;
+      if ( e.getValue() != null ) v += e.getValue();
+      deltaMap.put( e.getKey(), v );
+    }
+    return deltaMap;
+  }
+
+  public Double getDeltaBetween( Timepoint t1, Timepoint t2 ) {
+    return getValue(t2) - getValue(t1);
+  }
+  
   /**
    * @return the minCap
    */

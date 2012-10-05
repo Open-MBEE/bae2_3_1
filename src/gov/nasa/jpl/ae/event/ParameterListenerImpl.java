@@ -29,7 +29,7 @@ import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 /**
- * @author bclement
+ * A class that manages Parameters, Dependencies, and Constraints.
  *
  */
 public class ParameterListenerImpl implements Cloneable, Groundable,
