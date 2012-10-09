@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import junit.framework.Assert;
@@ -209,7 +210,7 @@ public class Expression< ResultType >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-		Set< Parameter<?> > set = new TreeSet< Parameter<?> >();
+		Set< Parameter<?> > set = new HashSet< Parameter<?> >();
 		if ( type == Type.Parameter ) {
 		  if ( expression != null ) {
 		    Parameter<?> p = (Parameter<?>) this.expression; 
@@ -244,9 +245,9 @@ public class Expression< ResultType >
   }
   
 	@Override
-	public boolean isGrounded() {
+	public boolean isGrounded(boolean deep, Set< Groundable > seen) {
 		if (expression instanceof Groundable) {
-			return ((Groundable)expression).isGrounded();
+			return ((Groundable)expression).isGrounded(deep, seen);
 		}
 		if ( expression == null ) {
 			return false;
@@ -269,9 +270,9 @@ public class Expression< ResultType >
 	}
 
 	@Override
-	public boolean ground() {
+	public boolean ground(boolean deep, Set< Groundable > seen) {
 		if (expression instanceof Groundable) {
-			return ((Groundable)expression).ground();
+			return ((Groundable)expression).ground(deep, seen);
 		}
 		if ( expression == null ) {
 			return false;
@@ -332,12 +333,12 @@ public class Expression< ResultType >
   }
 
   @Override
-  public boolean isSatisfied() {
+  public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     return HasParameters.Helper.isSatisfied( this, true, null );
   }
 
   @Override
-  public boolean satisfy() {
+  public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
     return HasParameters.Helper.satisfy( this, true, null );
   }
   

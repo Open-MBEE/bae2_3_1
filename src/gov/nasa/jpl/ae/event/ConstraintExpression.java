@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Constraint;
+import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 
@@ -67,7 +68,7 @@ public class ConstraintExpression extends Expression< Boolean >
    * @see event.Constraint#isSatisfied()
    */
   @Override
-  public boolean isSatisfied() {
+  public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = evaluate(false);
     if ( sat == null ) sat = new Boolean( false );
     if ( sat ) {
@@ -83,17 +84,17 @@ public class ConstraintExpression extends Expression< Boolean >
    * @see event.Constraint#satisfy()
    */
   @Override
-  public boolean satisfy() {
+  public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
     Debug.outln( "ConstraintExpression.satisfy() for " + this );
-    if ( isSatisfied() ) return true;
+    if ( isSatisfied(deep, seen) ) return true;
     HasParameters.Helper.satisfy( this, true, null );
-    if ( !isSatisfied() ) {
+    if ( !isSatisfied(deep, seen) ) {
       for ( Variable< ? > v : getVariables() ) {
         pickValue( v );
-        if ( isSatisfied() ) break;
+        if ( isSatisfied(deep, seen) ) break;
       }
     }
-    return isSatisfied();
+    return isSatisfied(deep, seen);
   }
 
   /**

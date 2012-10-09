@@ -21,10 +21,9 @@ import gov.nasa.jpl.ae.util.Utils;
 import org.junit.Assert;
 
 /**
- * @author bclement
  *
  */
-public abstract class AbstractRangeDomain< T  >
+public abstract class AbstractRangeDomain< T >
                         implements RangeDomain< T > {
 
   //protected static RangeDomain defaultDomain;
@@ -210,20 +209,34 @@ public abstract class AbstractRangeDomain< T  >
     return false;
   }
 
-  public Collection< Constraint > getConstraints( T t ) {
+  public Collection< Constraint > getConstraints( Variable< T > t ) {
     List< Constraint > cList= new ArrayList< Constraint >();
     Object args[] = null;
     Method method = null;
     if ( !lowerBound.equals( getTypeMinValue() ) ) {
-      args = new Object[] { lowerBound, t };
+      args = new Object[] { lowerBound, t.getValue() };
       method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
+      Expression< T > expr = 
+          new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
+                                                 (Object[])null ) );
+//      if ( t.getValue() instanceof Variable ) {
+//        expr = 
+//            new Expression< T >( new FunctionCall( null, Variable.class, "getValue",
+//                                                   (Object[])null, (FunctionCall)expr.expression ) );
+//      }
+      args = new Object[] { lowerBound, expr };
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                           args ) ) );
+                                                             args ) ) );
     }
     if ( !upperBound.equals( getTypeMaxValue() ) ) {
-      args = new Object[] { upperBound, t };
+      args = new Object[] { upperBound, t.getValue() };
       method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
+      Expression< T > expr = 
+        new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
+                                               (Object[])null ) );
+      args = new Object[] { upperBound, expr };
+
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                              args ) ) );
     }

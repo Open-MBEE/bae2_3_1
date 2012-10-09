@@ -47,13 +47,13 @@ public class ConstraintLoopSolver implements Solver {
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
         Debug.outln( "checking constraint " + c );
-        boolean thisSatisfied = c.isSatisfied();
+        boolean thisSatisfied = c.isSatisfied( true, null );
         if ( !thisSatisfied ) {
-          thisSatisfied = c.satisfy();
+          thisSatisfied = c.satisfy( true, null );
         }
-        thisSatisfied = c.isSatisfied();
+        thisSatisfied = c.isSatisfied( true, null );
         if ( !thisSatisfied ) {
-          thisSatisfied = satisfy( c );
+          thisSatisfied = satisfy( c, true, null );
         }
         if ( thisSatisfied ) {
           unsatisfiedConstraints.remove( i );
@@ -66,13 +66,14 @@ public class ConstraintLoopSolver implements Solver {
     return unsatisfiedConstraints.isEmpty();
   }
 
-  public static boolean satisfy( Constraint constraint ) {
-    Set<Variable<?>> vars = constraint.getVariables();
+  public static boolean satisfy( Constraint constraint,
+                                 boolean deep, Set< Satisfiable > seen ) {
+    Set<Variable<?>> vars = constraint.getVariables();//( deep, seen );
     Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
     for ( Variable<?> v : vars ) {
       if ( change( v ) ) {
-        if ( constraint.isSatisfied() ) {
+        if ( constraint.isSatisfied(deep, null) ) {
           satisfied = true;
           break;
         }
@@ -119,7 +120,7 @@ public class ConstraintLoopSolver implements Solver {
 
     // unsatisfiedConstraints.addAll( constraints );
     for ( Constraint c : constraints ) {
-      if ( !c.isSatisfied() ) {
+      if ( !c.isSatisfied( false, null ) ) {
         unsatisfiedConstraints.add( c );
       }
     }

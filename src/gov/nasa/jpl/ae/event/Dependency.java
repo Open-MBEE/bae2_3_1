@@ -73,40 +73,59 @@ public class Dependency< T >
     }
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#isSatisfied()
+   */
   @Override
-  public boolean isSatisfied() {
+  public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
     boolean sat;
     if ( constraint != null ) {
-      sat = constraint.isSatisfied();
-    } else if ( !parameter.isGrounded() ) {
+      sat = constraint.isSatisfied(deep, seen);
+      Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " + this );
+    } else if ( !parameter.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
-    } else if ( !expression.isGrounded() ) {
+      Debug.outln( "Dependency.isSatisfied(): parameter not grounded: " + this );
+    } else if ( !expression.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
-    } else if ( !parameter.isSatisfied() ) {
+      Debug.outln( "Dependency.isSatisfied(): expression not grounded: " + this );
+    } else if ( !parameter.isSatisfied(deep, null) ) {
       sat = false;
-    } else if ( !expression.isSatisfied() ) {
+      Debug.outln( "Dependency.isSatisfied(): parameter not satisfied: " + this );
+    } else if ( !expression.isSatisfied(deep, null) ) {
       sat = false;
+      Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " + this );
     } else {
       T value = expression.evaluate(false);
       T pValue = parameter.getValueNoPropagate();
-      sat = pValue == value || ( pValue != null && pValue.equals( value ) );
+      sat = Parameter.valuesEqual( pValue, value );//pValue == value || ( pValue != null && pValue.equals( value ) );
       if ( !sat ) {
         parameter.setStale( true );
+        Debug.outln( "Dependency.isSatisfied(): parameter value (" + pValue
+                     + ") not equal to evaluated expression (" + value + "): " + this );
       }
     }
     Debug.outln( "Dependency.isSatisfied() = " + sat + ": " + this );
     return sat;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy()
+   */
   @Override
-  public boolean satisfy() {
-    if ( isSatisfied() ) return true;
+  public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    if ( isSatisfied(deep, null) ) return true;
     Debug.outln("Dependency.satisfy() calling ground: " + this );
-    expression.ground();
-    expression.satisfy();
-    if ( expression.isGrounded() ) {
+    expression.ground(deep, null);
+    expression.satisfy(deep, seen);
+    if ( expression.isGrounded(deep, null) ) {
       Debug.outln("Dependency.satisfy() grounded, evaluating expression: " + this );
       T value = expression.evaluate(true);
       Debug.outln("Dependency.satisfy() evaluated expression, setting value to " + value + ": " + this );
@@ -114,7 +133,7 @@ public class Dependency< T >
       Debug.outln("Dependency.satisfy() set value: " + this );
       return ( value != null );
     } else {
-      parameter.satisfy();
+      parameter.satisfy(deep, seen);
     }
     return false;
   }
@@ -130,7 +149,7 @@ public class Dependency< T >
   }
   
   public boolean evaluate() {
-    return satisfy();
+    return satisfy( true, null );
   }
 
   @Override
@@ -159,7 +178,7 @@ public class Dependency< T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    HashSet< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     set.add( parameter );
     set.addAll( expression.getParameters( deep, seen ) );
     return set;
@@ -173,7 +192,7 @@ public class Dependency< T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    HashSet< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     set.addAll( expression.getParameters( deep, seen ) );
     return set;
   }
@@ -330,7 +349,7 @@ public class Dependency< T >
     if ( parameter == null ) {
       sb.append("null");
     } else {
-      sb.append( parameter.toString( true, false ) );
+      sb.append( parameter.toString( true, false, true, null ) );
     }
     sb.append( " <-- " + expression );
     sb.append(")");
@@ -398,7 +417,7 @@ public class Dependency< T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Constraint > set = new TreeSet< Constraint >();
+    Set< Constraint > set = new HashSet< Constraint >();
     set.add( this );
     if ( deep ) {
       Set< Constraint > pSet =

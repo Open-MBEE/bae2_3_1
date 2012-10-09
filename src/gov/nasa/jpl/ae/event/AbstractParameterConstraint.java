@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Constraint;
+import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 
 import java.util.Set;
@@ -86,13 +87,13 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    * @see gov.nasa.jpl.ae.solver.Satisfiable#isSatisfied()
    */
   @Override
-  public abstract boolean isSatisfied();
+  public abstract boolean isSatisfied(boolean deep, Set< Satisfiable > seen);
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy()
    */
   @Override
-  public abstract boolean satisfy();
+  public abstract boolean satisfy(boolean deep, Set< Satisfiable > seen);
 
   /* (non-Javadoc)
    * @see java.lang.Comparable#compareTo(java.lang.Object)

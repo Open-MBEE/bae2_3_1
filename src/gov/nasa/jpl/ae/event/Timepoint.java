@@ -160,7 +160,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   }
 
   public int timeSinceMidnight() {
-    if (!isGrounded()) return 0;
+    if ( !isGrounded( false, null ) ) return 0;
     double f = Units.conversionFactor( Units.milliseconds );
     long v =  (long)(getValue() * f + getEpoch().getTime());
     Date d = new Date( v );
@@ -208,7 +208,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	}
 	
 	public Date getDate() {
-	  if ( !isGrounded() ) return null;
+	  if ( !isGrounded( false, null ) ) return null;
 	  Date d = new Date( (long)(Units.conversionFactor( Units.milliseconds )
 	                            * getValue()) );
 	  return d;

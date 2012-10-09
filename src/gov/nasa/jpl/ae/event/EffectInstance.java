@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -61,7 +62,7 @@ public class EffectInstance implements HasParameters {
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     set.add( startTime );
     set.add( duration );
     if ( deep ) {

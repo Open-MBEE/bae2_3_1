@@ -301,7 +301,7 @@ public class FunctionCall implements HasParameters, Groundable {
   
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     // IllegalAccessException, InvocationTargetException {
-    if ( !ground() ) {
+    if ( !ground( propagate, null ) ) {
       return null;
     }
     Object evaluatedArgs[] = evaluateArgs( propagate );
@@ -391,7 +391,7 @@ public class FunctionCall implements HasParameters, Groundable {
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? >> set = new TreeSet< Parameter< ? >>();
+    Set< Parameter< ? >> set = new HashSet< Parameter< ? >>();
     if ( object instanceof Parameter< ? > ) {
       set.add( (Parameter< ? >)object );
     }
@@ -440,7 +440,7 @@ public class FunctionCall implements HasParameters, Groundable {
   
 
   @Override
-  public boolean isGrounded() {
+  public boolean isGrounded(boolean deep, Set< Groundable > seen) {
     if ( method == null ) return false;
     // Check types without throwing exception (like checkForTypeErrors().
     Class< ? >[] paramTypes = method.getParameterTypes();
@@ -452,19 +452,19 @@ public class FunctionCall implements HasParameters, Groundable {
     if ( arguments != null ) {
       for ( Object o : arguments ) {
         if ( o != null && o instanceof Groundable
-             && !( (Groundable)o ).isGrounded() ) {
+             && !( (Groundable)o ).isGrounded(deep, seen) ) {
           return false;
         }
       }
     }
     if ( nestedCall != null ) {
-      if ( !nestedCall.isGrounded() ) return false;
+      if ( !nestedCall.isGrounded(deep, seen) ) return false;
     }
     return true;
   }
 
   @Override
-  public boolean ground() {
+  public boolean ground(boolean deep, Set< Groundable > seen) {
     boolean grounded = true;
     if ( method == null ) return false;
     // Check types without throwing exception (like checkForTypeErrors().
@@ -477,13 +477,13 @@ public class FunctionCall implements HasParameters, Groundable {
     if ( arguments != null ) {
       for ( Object o : arguments ) {
         if ( o != null && o instanceof Groundable
-             && !( (Groundable)o ).ground() ) {
+             && !( (Groundable)o ).ground(deep, seen) ) {
           grounded = false;
         }
       }
     }
     if ( nestedCall != null ) {
-      if ( !nestedCall.ground() ) {
+      if ( !nestedCall.ground(deep, seen) ) {
         grounded = false;
       }
     }

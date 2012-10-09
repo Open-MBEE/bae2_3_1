@@ -209,7 +209,7 @@ public class Utils {
                                                       Set< T > seen ) {
     if ( seen != null && seen.contains( o ) ) {
 //      ++seenCt;
-      return new Pair< Boolean, Set< T > >( false, seen );
+      return new Pair< Boolean, Set< T > >( true, seen );
     }
 //    ++notSeenCt;
     if ( seen == null && recursive == true ) {

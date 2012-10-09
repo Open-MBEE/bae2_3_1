@@ -71,7 +71,7 @@ public class AssessDRCommitmentEvent extends DurativeEvent {
                                defaultDesiredLoadReduction, this );
       parameters.add( desiredLoadReduction );
     }
-    if ( force || elaborations.isEmpty() || getEvents( false ).isEmpty() ) {
+    if ( force || elaborations.isEmpty() || getEvents( false, null ).isEmpty() ) {
       // Create elaboration:
       //  if ( desiredLoadReduction - projectedLoadReductionBasedOnResponse <
       //       maximumMargin ) then

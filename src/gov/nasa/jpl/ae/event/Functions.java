@@ -392,10 +392,10 @@ public class Functions {
 
 
   private static boolean expressionsAreOkay( boolean complain,
-                                            Expression< ? >... exprs ) {
+                                             Expression< ? >... exprs ) {
     if ( exprs == null ) return true;
     for ( Expression<?> expr : exprs ) {
-      if ( expr == null || !expr.isGrounded() ) {
+      if ( expr == null || !expr.isGrounded( false, null ) ) {
         if ( complain ) {
           System.err.println( "Expression is not grounded! " + expr );
           

@@ -13,6 +13,7 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.Random;
+import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
@@ -60,7 +61,7 @@ public class Parameter< T > implements Cloneable, Groundable,
 //    }
     value = v;
     owner = o;
-    stale = !isGrounded();
+    stale = !isGrounded( true, null );
   }
 
   @SuppressWarnings( "unchecked" )
@@ -72,7 +73,7 @@ public class Parameter< T > implements Cloneable, Groundable,
       value = (T)fc.evaluate( propagate );
     }
     owner = o;
-    stale = !isGrounded();
+    stale = !isGrounded( true, null );
   }
 
 //  public Parameter( String n, Domain< T > d, Parameter<T> v, ParameterListener o ) {
@@ -84,7 +85,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     value = parameter.value;
     domain = parameter.domain;
     owner = parameter.owner;
-    stale = !isGrounded();
+    stale = !isGrounded( true, null );
   }
 
   /*
@@ -176,6 +177,28 @@ public class Parameter< T > implements Cloneable, Groundable,
     return value;
   }
 
+  /**
+   * @return the Parameter's value, the domain's lower bound, or null.
+   */
+  public T getValueOrMin() {
+    if ( value != null ) return value;
+    if ( domain instanceof RangeDomain ) {
+      return (T)((RangeDomain<T>)domain).getLowerBound();
+    }
+    return null;
+  }
+  
+  /**
+   * @return the Parameter's value, the domain's upper bound, or null.
+   */
+  public T getValueOrMax() {
+    if ( value != null ) return value;
+    if ( domain instanceof RangeDomain ) {
+      return (T)((RangeDomain<T>)domain).getUpperBound();
+    }
+    return null;
+  }
+  
   public Object getMember( String fieldName ) {
     T v = getValueNoPropagate();
     if ( v == null ) return null;
@@ -231,9 +254,12 @@ public class Parameter< T > implements Cloneable, Groundable,
   }
 
   @Override
-  public boolean isGrounded() {
-    if ( value instanceof Groundable ) {
-      return ( (Groundable)value ).isGrounded();
+  public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+    Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    if ( deep && value instanceof Groundable ) {
+      return ( (Groundable)value ).isGrounded(deep, seen);
     }
     return (domain == null || value != null );
   }
@@ -280,18 +306,21 @@ public class Parameter< T > implements Cloneable, Groundable,
   }
   
   @Override
-  public boolean ground() {
-    if ( isGrounded() ) return true;
+  public boolean ground(boolean deep, Set< Groundable > seen) {
+    Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    if ( isGrounded(deep, null) ) return true;
     if ( refresh() ) return true;
     T newValue = pickRandomValue();
     if ( newValue != null ) {
       setValue( newValue );
       return true;
     }
-    if ( value instanceof Groundable ) {
-      ((Groundable)value).ground();
+    if ( deep && value instanceof Groundable ) {
+      ((Groundable)value).ground(deep, seen);
     }
-    return isGrounded();
+    return isGrounded(deep, null);
   }
 
   @Override
@@ -304,12 +333,12 @@ public class Parameter< T > implements Cloneable, Groundable,
     // REVIEW -- TODO -- doing weird stuff here!!!
     if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
       Parameter<?> p = (Parameter)value;
-      if ( !p.isGrounded() ) return -1;
+      if ( !p.isGrounded( false, null ) ) return -1;
       return p.compareTo(o);
     }
     if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
       Parameter<?> p = (Parameter)o.value;
-      if ( !p.isGrounded() ) return 1;
+      if ( !p.isGrounded( false, null ) ) return 1;
       return compareTo(p);
     }
     if ( value != null && value.getClass().isAssignableFrom( o.value.getClass() ) ) {
@@ -352,41 +381,47 @@ public class Parameter< T > implements Cloneable, Groundable,
   }
   
   @Override
-  public boolean isSatisfied() {
+  public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
     boolean nullDomain = domain == null;
     if ( nullDomain ) return true;
     boolean emptyDomain = domain.size() == 0;
     if ( emptyDomain ) return true;
-    boolean grounded = isGrounded();
+    boolean grounded = isGrounded(deep, null);
     boolean stale = isStale();
     boolean inDom = inDomain();
     if (!(grounded && !stale && inDom)) return false;
     T v = getValueNoPropagate();
-    if ( v != null && v instanceof Satisfiable ) {
-      if ( !((Satisfiable)v).isSatisfied() ) return false;
+    if ( deep && v != null && v instanceof Satisfiable ) {
+      if ( !((Satisfiable)v).isSatisfied(deep, seen) ) return false;
     }
     return true;
   }
 
   @Override
-  public boolean satisfy() {
-    if ( isSatisfied() ) return true;
-    ground();
+  public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    if ( isSatisfied(deep, null) ) return true;
+    ground(deep, null);
     getValue();
-    if ( isSatisfied() ) return true;
+    if ( isSatisfied(deep, null) ) return true;
     refresh();
-    if ( isSatisfied() ) return true;
+    if ( isSatisfied(deep, null) ) return true;
     T newValue = pickRandomValue();
     if ( newValue != null ) {
       setValue( newValue, true );
     }
-    if ( isSatisfied() ) return true;
+    if ( isSatisfied(deep, null) ) return true;
     ownerPickValue();
-    if ( isSatisfied() ) return true;
-    if ( value instanceof Satisfiable ) {
-      ((Satisfiable)value).satisfy();
+    if ( isSatisfied(deep, null) ) return true;
+    if ( deep && value instanceof Satisfiable ) {
+      ((Satisfiable)value).satisfy(deep, seen);
     }
-    return isSatisfied();
+    return isSatisfied(deep, null);
   }
   
   protected boolean ownerPickValue() {
@@ -398,15 +433,20 @@ public class Parameter< T > implements Cloneable, Groundable,
 
   @Override
   public String toString() {
-    return toString( true, false );
+    return toString( true, false, true, null );
   }
   
-  public String toString( boolean withOwner, boolean withHash ) {
+  public String toString( boolean withOwner, boolean withHash, boolean deep, Set< Object > seen ) {
+    Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) deep = false;
+    seen = pair.second;
     StringBuffer sb  = new StringBuffer();
     if ( withOwner && getOwner() != null ) {
       sb.append( getOwner().getName() + ":");
     }
-    if ( isGrounded() ) {
+    if ( !deep ) {
+      sb.append( getName() );
+    } else if ( isGrounded(false, null) ) {
       sb.append( getName() + "=" + getValueNoPropagate() );
     } else if ( getDomain() != null ) {
       sb.append( getName() + "=" + getDomain() );
@@ -443,7 +483,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     Method method;
     if ( domain != null && domain instanceof AbstractRangeDomain
          && value instanceof Comparable ) {
-      constraintList.addAll( ( (AbstractRangeDomain)domain ).getConstraints( (Comparable)value ) );
+      constraintList.addAll( ( (AbstractRangeDomain<T>)domain ).getConstraints( this ) );
     } else {
       try {
         method = getClass().getMethod( "inDomain", (Class< ? >[])null );

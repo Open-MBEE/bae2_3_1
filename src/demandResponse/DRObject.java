@@ -65,7 +65,7 @@ public class DRObject extends DurativeEvent {
     return predictedLoadReduction( new Timepoint( "", (int)t, null ) );
   }
 	public double predictedLoadReduction( Timepoint t ) {
-	  if ( !t.isGrounded() || !isGrounded() ) return 0.0;
+	  if ( !t.isGrounded(false, null) || !isGrounded(false, null) ) return 0.0;
 	  if ( t.getValue() < startTime.getValue() || t.getValue() > endTime.getValue() ) {
 	    return 0.0;
 	  }

@@ -41,7 +41,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 10.0;
-  protected long numIterations = 20;
+  protected long numIterations = 10;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
@@ -60,8 +60,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       new Vector< Dependency< ? > >();
   protected Solver solver = new ConstraintLoopSolver();
 
-  protected SortedSet< TimeVarying< ? > > timeVaryingObjects =
-      new TreeSet< TimeVarying< ? > >();
+  protected Set< TimeVarying< ? > > timeVaryingObjects =
+      new HashSet< TimeVarying< ? > >();
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
@@ -166,14 +166,22 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
    */
   @Override
   public String toString() {
+    return toString( false, null );
+  }
+  public String toString( boolean deep, Set< Object > seen ) {
+    Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) deep = false;
+    seen = pair.second;
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() ); // super.toString() adds hash code
     Set< Parameter< ? > > allParams = getParameters( false, null );
-    for ( Object p : allParams ) {
-      if ( p instanceof Parameter ) {
-        sb.append( ", " + ((Parameter<?>)p).toString( false, false ) );
-      } else {
-        sb.append( ", " + p.toString() );
+    if ( deep ) {
+      for ( Object p : allParams ) {
+        if ( p instanceof Parameter ) {
+          sb.append( ", " + ((Parameter<?>)p).toString( false, false, deep, seen ) );
+        } else {
+          sb.append( ", " + p.toString() );
+        }
       }
     }
     return sb.toString();
@@ -216,37 +224,45 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
   
   @Override
-  public boolean isGrounded() {
+  public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+    Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
     for ( Parameter< ? > p : parameters ) {
-      if ( !p.isGrounded() ) return false;
+      if ( !p.isGrounded(deep, seen) ) return false;
     }
     return true;
   }
 
   @Override
-  public boolean ground() {
-    final double timeoutMilliseconds = 50.0;
-    double startTime = System.currentTimeMillis();
-    double curTime = startTime;
+  public boolean ground(boolean deep, Set< Groundable > seen) {
+    Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    //final double timeoutMilliseconds = 50.0;
+    //double startTime = System.currentTimeMillis();
+    //double curTime = startTime;
+    long numLoops = 0;
     
     boolean satisfied = false;
     boolean first = true;
-    while ( first
-            || ( !satisfied && ( ( curTime = System.currentTimeMillis() )
-                                 - startTime < timeoutMilliseconds ) ) ) {
+    while ( first && numLoops < this.numIterations ) {
+//            || ( !satisfied && ( ( curTime = System.currentTimeMillis() )
+//                                 - startTime < timeoutMilliseconds ) ) ) {
+      ++numLoops;
       satisfied = true;
       first = false;
       Collection< Parameter< ? > > freeParams = getFreeParameters( false, null );
       for ( Parameter< ? > p : freeParams ) {
-        if ( !p.isGrounded() ) {
-          if ( !p.ground() ) {
+        if ( !p.isGrounded(deep, null) ) {
+          if ( !p.ground(deep, seen) ) {
             satisfied = false;
           }
         }
       }
       for ( Dependency< ? > d : getDependencies() ) {
-        if ( !d.isSatisfied() ) {
-          if ( !d.satisfy() ) {
+        if ( !d.isSatisfied(false, null) ) {
+          if ( !d.satisfy(false, null) ) {
             satisfied = false;
           }
         }
@@ -258,7 +274,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public Vector< ConstraintExpression > getUnsatisfiedConstraints() {
     Vector< ConstraintExpression > v = new Vector< ConstraintExpression >();
     for ( ConstraintExpression c : constraintExpressions ) {
-      if ( !c.isSatisfied() ) {
+      if ( !c.isSatisfied(false, null) ) {
         v.add( c );
       }
     }
@@ -268,7 +284,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // TODO -- This is not finished. Need to get deep dependents.
   public Set< Parameter< ? > > getDependentParameters( boolean deep,
                                                        Set<HasParameters> seen ) {
-    TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     for ( Dependency< ? > d : dependencies ) {
       set.add( d.parameter );
     }
@@ -287,7 +303,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     set.addAll( getParameters() );
     if ( deep ) {
       for ( Parameter<?> p : getParameters() ) {
@@ -330,7 +346,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
    */
   public Set< Timepoint > getTimepoints( boolean deep,
                                          Set<HasParameters> seen ) {
-   Set< Timepoint > set = new TreeSet< Timepoint >();
+   Set< Timepoint > set = new HashSet< Timepoint >();
    for ( Parameter<?> p : getParameters( deep, seen ) ) {
      if ( p instanceof Timepoint ) {
        set.add((Timepoint)p);
@@ -362,9 +378,9 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
 
   @Override
-  public boolean isSatisfied() {
+  public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     for ( Constraint c : getConstraints( true, null ) ) {
-      if ( !c.isSatisfied() ) {
+      if ( !c.isSatisfied(deep, seen) ) {
         return false;
       }
     }
@@ -372,8 +388,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
 
   @Override
-  public boolean satisfy() {
-    if ( isSatisfied() ) return true;
+  public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    if ( isSatisfied(deep, null) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
     
@@ -387,9 +406,15 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     while ( !satisfied
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
             && ( !usingLoopLimit || numLoops < numIterations ) ) {
-      Debug.outln( this.getClass().getName() + " satisfy loop with "
-          + curTimeLeft + " milliseconds left" );
-      satisfied = tryToSatisfy();
+      if ( usingTimeLimit ) {
+        Debug.outln( this.getClass().getName() + " satisfy loop with "
+            + curTimeLeft + " milliseconds left" );
+      }
+      if ( usingLoopLimit ) {
+        Debug.outln( this.getClass().getName() + " satisfy loop with "
+            + (numIterations-numLoops) + " tries left left" );
+      }
+      satisfied = tryToSatisfy(deep, null);
       curTimeLeft =
           ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
       ++numLoops;
@@ -397,15 +422,16 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return satisfied;
   }
 
-  protected boolean tryToSatisfy() {
-    ground();
+  protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
+    ground(deep, null);
     Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
     
-    Collection< Constraint > allConstraints = getConstraints( true, null );
+    Collection< Constraint > allConstraints = getConstraints( deep, null );
     Debug.outln( this.getClass().getName() + " - " + getName() + ".tryToSatisfy() calling solve() with " + allConstraints.size() + " constraints" );
+    // REVIEW -- why not call satisfy() here and solve elsewhere??
     boolean satisfied = solver.solve( allConstraints );
     
-    satisfied = isSatisfied();
+    satisfied = isSatisfied(deep, null);
     Debug.outln( this.getClass().getName() + " - " + getName()
                  + ".tryToSatisfy() called solve(): satisfied = " + satisfied );
     return satisfied;
@@ -422,7 +448,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    Set< Constraint > set = new TreeSet< Constraint >();
+    Set< Constraint > set = new HashSet< Constraint >();
     set.addAll( HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
     set.addAll( HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
     set.addAll( HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
@@ -448,7 +474,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     s.addAll( timeVaryingObjects );
     // Rebuilding the set in case parameter values change. 
     for ( Parameter< ? > p : getParameters( false, null ) ) {
-      Object value = p.getValue();
+      Object value = p.getValueNoPropagate();
       if ( value != null ) {
         if ( value instanceof TimeVarying ) {
           s.add( (TimeVarying< ? >)value );

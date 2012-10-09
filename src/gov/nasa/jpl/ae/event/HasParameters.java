@@ -1,9 +1,11 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -76,7 +78,7 @@ public interface HasParameters extends LazyUpdate {
     public static Set< Parameter< ? > > getParameters( Object o, 
                                                        boolean deep,
                                                        Set< HasParameters > seen) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( o instanceof Parameter ) {
         set.add( (Parameter< ? >)o );
       }
@@ -92,7 +94,7 @@ public interface HasParameters extends LazyUpdate {
     public static Set< Parameter< ? > > getFreeParameters( Object o, 
                                                            boolean deep,
                                                            Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( o != null && o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) )
 //          return Utils.getEmptySet();
@@ -173,7 +175,7 @@ public interface HasParameters extends LazyUpdate {
     public static < K, V > Set< Parameter< ? > > getParameters( Map< K, V > map,
                                                                 boolean deep,
                                                                 Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       for ( Map.Entry< K, V > me : map.entrySet() ) {
         set.addAll( getParameters( me.getKey(), deep, seen ) );
         set.addAll( getParameters( me.getValue(), deep, seen ) );
@@ -260,7 +262,7 @@ public interface HasParameters extends LazyUpdate {
     public static < T > Set< Parameter< ? > > getParameters( Collection< T > c,
                                                              boolean deep,
                                                              Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       for ( T t : c ) {
         set.addAll( getParameters( t, deep, seen ) );
       }
@@ -338,7 +340,7 @@ public interface HasParameters extends LazyUpdate {
     public static Set< Parameter< ? > > getParameters( Object[] c,
                                                        boolean deep,
                                                        Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       for ( Object t : c ) {
         set.addAll( getParameters( t, deep, seen ) );
       }
@@ -395,7 +397,7 @@ public interface HasParameters extends LazyUpdate {
     public static < T1, T2 > Set< Parameter< ? > > getParameters( Pair< T1, T2 > p,
                                                                   boolean deep,
                                                                   Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       set.addAll( getParameters( p.first, deep, seen ) );
       set.addAll( getParameters( p.second, deep, seen ) );
       return set;
@@ -427,10 +429,11 @@ public interface HasParameters extends LazyUpdate {
     }
     
     public static boolean isSatisfied( Object o, boolean deep,
-                                       Set< HasParameters > seen ) {
+                                       Set< Satisfiable > seen ) {
       boolean sat = true;
-      for ( Parameter< ? > p : getParameters( o, deep, seen ) ) {
-        if ( !p.isSatisfied() ) {
+      // REVIEW -- can getParameters be shallow?
+      for ( Parameter< ? > p : getParameters( o, deep, null ) ) {
+        if ( !p.isSatisfied( deep, seen ) ) {
           sat = false;
           break;
         }
@@ -439,10 +442,11 @@ public interface HasParameters extends LazyUpdate {
     }
 
     public static boolean satisfy( Object o, boolean deep,
-                                   Set< HasParameters > seen ) {
+                                   Set< Satisfiable > seen ) {
       boolean sat = true;
-      for ( Parameter< ? > p : getParameters( o, deep, seen ) ) {
-        if ( !p.satisfy() ) {
+      // REVIEW -- can getParameters be shallow?
+      for ( Parameter< ? > p : getParameters( o, deep, null ) ) {
+        if ( !p.satisfy(deep, seen) ) {
           sat = false;
         }
       }

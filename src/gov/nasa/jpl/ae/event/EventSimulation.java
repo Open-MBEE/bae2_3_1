@@ -128,28 +128,32 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     if ( e != null ){
       Debug.outln( "Adding event to simulation: " + e.getName() );
     } else {
-      Assert.fail("Trying to add null event to simulation.");
+      Assert.fail("Tried to add null event to simulation.");
       return false;
     }
     
-    boolean existingEntry = !put( e.getStartTime().getValue(), e, EventType.start );
-    if ( !put( e.getEndTime().getValue(), e, EventType.end ) ) {
+    boolean ungroundedTiming =
+        ( e.getStartTime() == null
+          || e.getStartTime().getValueNoPropagate() == null
+          || e.getEndTime() == null || e.getEndTime().getValueNoPropagate() == null );
+//    if ( ungroundedTiming ) {
+//      Debug.errln( "Warning: trying to add ungrounded event to simulation: " + e.getName() );
+//    }
+    Integer startTime = e.getStartTime().getValueOrMin();
+    Integer endTime = e.getStartTime().getValueOrMax();
+    if ( startTime == null || endTime == null ) {
+      System.err.println( "Warning: can't add event to simulation: " + e.getName() );
+      return false;
+    } else if ( ungroundedTiming ) {
+      System.err.println( "Warning: adding event " + e.getName()
+                          + " to simulation with ungrounded time interval ["
+                          + startTime + ", " + endTime + "]" );
+    }
+    boolean existingEntry = !put( startTime, e, EventType.start );
+    if ( !put( endTime, e, EventType.end ) ) {
       existingEntry = true;
     }
 
-//    Map< Event, StartOrEnd > m = get( e.getStartTime().getValue() );
-//    if ( m == null ) {
-//      m = new TreeMap< Event, EventSimulation.StartOrEnd >();
-//      put( e.getStartTime().getValue(), m );
-//    }
-//    boolean existingEntry = ( m.put( e, StartOrEnd.start ) != null );
-//    
-//    m = get( e.getEndTime().getValue() );
-//    if ( m == null ) {
-//      m = new TreeMap< Event, EventSimulation.StartOrEnd >();
-//      put( e.getEndTime().getValue(), m );
-//    }
-//    existingEntry |= ( m.put( e, StartOrEnd.end ) != null );
     if ( existingEntry ) {
       Debug.outln( "Entry already exists!" );
     }
@@ -172,7 +176,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
                 ( e.getValue() != null && e.getValue().equals( lastValue ) ) ) {
         continue;
       }
-      if ( !put( e.getKey().getValue(), tv, e.getValue() ) ) {
+      if ( !put( e.getKey().getValueNoPropagate(), tv, e.getValue() ) ) {
         existingEntry = true;
       }
     }

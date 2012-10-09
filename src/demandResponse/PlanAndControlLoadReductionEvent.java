@@ -73,7 +73,7 @@ public class PlanAndControlLoadReductionEvent extends DurativeEvent {
 		if ( force || LoadReductionNeeded == null ) {
 			LoadReductionNeeded = new DoubleParameter("LoadReductionNeeded", this);
 		}
-		if ( force || elaborations.isEmpty() || getEvents( false ).isEmpty() ) {
+		if ( force || elaborations.isEmpty() || getEvents( false, null ).isEmpty() ) {
 		  elaborations.clear(); // TODO -- REVIEW -- memory leak??
 //		  Vector< EventInvocation > invocation = new Vector< EventInvocation >();
 		  Expression< ? >[] arguments = new Expression< ? >[1];

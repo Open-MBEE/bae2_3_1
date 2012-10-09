@@ -9,6 +9,7 @@ import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -303,7 +304,7 @@ public class EventInvocation implements HasParameters {
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
     for ( Object a : getArguments() ) {
       if ( a instanceof HasParameters )
       s.addAll( ((HasParameters)a).getFreeParameters( deep, seen ) );

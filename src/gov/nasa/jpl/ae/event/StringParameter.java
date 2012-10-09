@@ -7,7 +7,6 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 
 /**
- * @author bclement
  *
  */
 public class StringParameter extends Parameter<String> {
@@ -57,7 +56,7 @@ public class StringParameter extends Parameter<String> {
   @Override
   public String toString() {
     String s;
-    if ( isGrounded() ) {
+    if ( isGrounded( false, null ) ) {
       // TODO -- escapes? substitute \" and \n  for '"' and newline, etc.?
       s = getName() + "=\"" + getValueNoPropagate() + "\"";
     } else {

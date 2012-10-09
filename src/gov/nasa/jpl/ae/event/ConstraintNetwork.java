@@ -20,7 +20,6 @@ public class ConstraintNetwork {
     Parameter< ? > parameter = null;
     //Dependency< ? > dependency = null;
     protected Set< Edge > edges = new TreeSet< Edge >();
-
   }
   
   /*

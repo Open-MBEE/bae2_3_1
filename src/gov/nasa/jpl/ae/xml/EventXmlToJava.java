@@ -1660,6 +1660,7 @@ public class EventXmlToJava {
                                      String parameterTypeName,
                                      String constructorArgs ) {
     StringBuffer stmtsString = new StringBuffer();
+    stmtsString.append( "if ( " + name + " == null ) " );
     stmtsString.append( name + " = " );
     if ( constructorArgs == null ) {
       stmtsString.append( "null;" );

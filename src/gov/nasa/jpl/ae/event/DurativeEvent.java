@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,7 +64,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   protected List< Pair< Parameter< ? >, Set< Effect > > > effects =
       new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
   protected Map< ElaborationRule, Vector< Event > > elaborations =
-      new TreeMap< ElaborationRule, Vector< Event > >();
+      new HashMap< ElaborationRule, Vector< Event > >();
 
   protected Dependency startTimeDependency = null;
   
@@ -76,12 +77,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       new AbstractParameterConstraint() {
 
     @Override
-    public boolean satisfy() {
+    public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+      Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return true;
+      seen = pair.second;
       boolean satisfied = true;
-      if ( !DurativeEvent.this.startTime.isGrounded() ) return false;
+      if ( !DurativeEvent.this.startTime.isGrounded(deep, null) ) return false;
 
       // Don't elaborate outside the horizon.  Need startTime grounded to know.
-      if ( !startTime.isGrounded() ) return false;
+      if ( !startTime.isGrounded(deep, null) ) return false;
       if ( startTime.getValue() >= Timepoint.getHorizonDuration() ) {
         Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
                      + getName() );
@@ -110,9 +114,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     
     @Override
-    public boolean isSatisfied() {
+    public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
+      Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return true;
+      seen = pair.second;
       for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
-        if ( !startTime.isGrounded() ) return false;
+        if ( !startTime.isGrounded(deep, null) ) return false;
         if ( startTime.getValueNoPropagate() < Timepoint.getHorizonDuration() ) {
           if ( isElaborated( er ) != er.getKey().isConditionSatisfied() ) {
             return false;
@@ -156,39 +163,48 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
     protected boolean
       areEffectsOnTimeVaryingSatisfied( Parameter< ? > variable,
-                                        Set< Effect > effects ) {
-        if (variable.getName().contains("21")){
-        	System.out.println("Cactus");
-        }
-      if ( !variable.isGrounded() ) {
-        return false;
+                                        Set< Effect > effects,
+                                        boolean deep,
+                                        Set< Satisfiable > seen ) {
+      boolean deepGroundable = deep;
+      Set< Groundable > seenGroundable = null;
+      if (variable.getName().contains("21")){
+        System.out.println("Cactus");
       }
+      if ( !variable.isGrounded(deepGroundable, seenGroundable) ) return false;
+      if ( !variable.isSatisfied(deep, seen) ) return false;
       for ( Effect e : effects ) {
-        if ( !e.isApplied( variable ) || !variable.isGrounded() ) {
-            return false;
-          }
+        if ( !e.isApplied( variable )
+             || !variable.isGrounded( deepGroundable, seenGroundable ) ) {
+          return false;
+        }
       }
       return true;
     }
 
     protected boolean
         satisfyEffectsOnTimeVarying( Parameter< ? > variable,
-                                     Set< Effect > effects ) {
+                                     Set< Effect > effects,
+                                     boolean deep,
+                                     Set< Satisfiable > seen ) {
+      boolean deepGroundable = deep;
+      Set< Groundable > seenGroundable = null;
       boolean satisfied = true;
-      if ( !variable.isGrounded() ) {
-        variable.ground();
+      if ( !variable.isGrounded(deepGroundable, seenGroundable) ) {
+        variable.ground(deepGroundable, seenGroundable);
       }
-      if ( !variable.isSatisfied() ) {
-        variable.satisfy();
+      if ( !variable.isSatisfied(deep, null) ) {
+        variable.satisfy(deep, seen);
       }
       for ( Effect e : effects ) {
         if ( !e.isApplied( (Parameter< ? >)variable ) ) {
-          if ( !variable.isGrounded() ) {
+          if ( !variable.isGrounded(deepGroundable, seenGroundable) ) {
             satisfied = false;
           } else {
         	  Object value = variable.getValue();
         	  if ( (!(value instanceof TimeVarying )) && value instanceof Parameter) {
-        		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects); 
+        		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects,
+        		                                    deep, seen); 
         	  } else if (value instanceof TimeVarying) {
         		  e.applyTo( (TimeVarying<?>) variable.getValueNoPropagate(), true );
         	  }
@@ -199,7 +215,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     
     @Override
-    public boolean satisfy() {
+    public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+      Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return true;
+      seen = pair.second;
       boolean satisfied = true;
 //      List< Pair< Parameter< ? >, Set< Effect > > > list =
 //          new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
@@ -217,7 +236,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         if (variable.getName().contains("21")){
         	System.out.println("Blaah");
         }
-        if ( !satisfyEffectsOnTimeVarying( variable, set ) ) {
+        if ( !satisfyEffectsOnTimeVarying( variable, set, deep, seen ) ) {
           satisfied = false;
         }
         //effects.put( variable, set );
@@ -226,7 +245,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     
     @Override
-    public boolean isSatisfied() {
+    public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
+      Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return true;
+      seen = pair.second;
       for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
         Parameter< ? > variable = p.first;
         Set< Effect > set = p.second;
@@ -236,7 +258,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         if (variable.getName().contains("21")){
         	System.out.println("Blaah");
         }
-        if ( !areEffectsOnTimeVaryingSatisfied( variable, set ) ) {
+        if ( !areEffectsOnTimeVaryingSatisfied( variable, set, deep, seen ) ) {
           return false;
         }
       }
@@ -486,7 +508,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     allParams.addAll( restParams );
     for ( Object p : allParams ) {
       if ( p instanceof Parameter ) {
-        sb.append( ", " + ((Parameter<?>)p).toString( false, false ) );
+        sb.append( ", " + ((Parameter<?>)p).toString( false, false, true, null ) );
       } else {
         sb.append( ", " + p.toString() );
       }
@@ -511,7 +533,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public void execute() { // differentiate between execute for simulation and
     // execute in external environment?
     Debug.outln( getName() + ".execute()" );
-    boolean satisfied = satisfy();
+    boolean satisfied = satisfy( true, null );
     Debug.outln( getName() + ".execute() called satisfy() --> " + satisfied );
     if ( !satisfied ) {
       satisfied = solver.solve( getConstraints( true, null ) );
@@ -534,7 +556,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                             + unsatisfiedConstraints.size()
                             + " constraints for " + getName() + ":" );
         for ( Constraint c : unsatisfiedConstraints ) {
-          c.isSatisfied();
+          c.isSatisfied( false, null ); // can look shallow since constraints
+                                        // were gathered deep!
           System.err.println( c.toString() );
         }
       }
@@ -545,12 +568,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
 //          effects.entrySet() ) {
       TimeVarying< ? > tv = null;
-      if ( p.first.getValue() instanceof Parameter && !(p.first.getValue() instanceof TimeVarying ) ) {
+      if ( p.first.getValueNoPropagate() instanceof Parameter
+           && !(p.first.getValueNoPropagate() instanceof TimeVarying ) ) {
         // TODO -- This is weird!!
         Debug.errln("Warning! Parameter inside effect parameter! " + p.first );
-        tv = (TimeVarying< ? >)(((Parameter< ? >)p.first.getValue()).getValue());
+        tv = (TimeVarying< ? >)(((Parameter< ? >)p.first.getValueNoPropagate()).getValueNoPropagate());
       } else {
-        tv = (TimeVarying< ? >)p.first.getValue();
+        tv = (TimeVarying< ? >)p.first.getValueNoPropagate();
       }
       for ( Effect eff : p.second ) {
         eff.applyTo( tv, false ); //, startTime, duration );
@@ -567,7 +591,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
   
   public EventSimulation createEventSimulation() {
-    EventSimulation sim = new EventSimulation( getEvents( true ), 1.0e12 );
+    EventSimulation sim = new EventSimulation( getEvents( true, null ), 1.0e12 );
     sim.add( this );
     for ( TimeVarying< ? > tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof TimeVaryingMap ) {
@@ -694,7 +718,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effectsConstraint, deep, seen );
       HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborations, deep, seen );
       HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen );
-      for ( Event e : getEvents(false) ) {
+      for ( Event e : getEvents(deep, null) ) {
         if ( e instanceof HasTimeVaryingObjects ) {
           set.addAll( ((HasTimeVaryingObjects)e).getTimeVaryingObjects( deep, seen ) );
         }
@@ -718,7 +742,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       HasParameters.Helper.getParameters( effectsConstraint, deep, seen );
       HasParameters.Helper.getParameters( elaborations, deep, seen );
       HasParameters.Helper.getParameters( effects, deep, seen );
-      for ( Event e : getEvents(false) ) {
+      for ( Event e : getEvents(deep, null) ) {
         if ( e instanceof HasParameters ) {
           set.addAll( ((HasParameters)e).getParameters( deep, seen ) );
         }
@@ -728,8 +752,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   @Override
-  protected boolean tryToSatisfy() {
-    boolean satisfied = super.tryToSatisfy();
+  protected boolean tryToSatisfy( boolean deep, Set< Satisfiable > seen ) {
+    boolean satisfied = super.tryToSatisfy( deep, seen );
     // REVIEW -- Is it necessary to call satisfyElaborations given the
     // elaborationsConstraint?
     if ( satisfied ) {
@@ -741,7 +765,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set<HasConstraints> seen ) {
-    Collection< Constraint > set = new TreeSet<Constraint>();
+    Collection< Constraint > set = new HashSet<Constraint>();
     set.addAll( super.getConstraints( deep, seen ) );
     //if ( set.equals( Utils.getEmptySet() ) ) return set;
     set.add( elaborationsConstraint );
@@ -751,7 +775,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       HasConstraints.Helper.getConstraints( effectsConstraint, deep, seen );
       HasConstraints.Helper.getConstraints( elaborations, deep, seen );
       HasConstraints.Helper.getConstraints( effects, deep, seen );
-      for ( Event event : getEvents( deep ) ) {
+      for ( Event event : getEvents( deep, null ) ) {
         if ( event instanceof HasConstraints ) {
           set.addAll( ( (HasConstraints)event ).getConstraints( deep, seen ) );
         }
@@ -760,20 +784,31 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return set;
   }
 
-  // Gather any event instances contained by this event.
-  // NOTE: Uses reflection to dig events out of members, but does not look in
-  // arrays or collections other than elaborations, so this may need
-  // redefinition in subclasses.
+  /*
+   * Gather any event instances contained by this event.
+   * 
+   * NOTE: Uses reflection to dig events out of members, but does not look in
+   * arrays or collections other than elaborations, so this may need
+   * redefinition in subclasses. This enforces the idea that events do not occur
+   * unless elaborated.
+   * 
+   * (non-Javadoc)
+   * 
+   * @see gov.nasa.jpl.ae.event.HasEvents#getEvents(boolean)
+   */
   @Override
-  public Set< Event > getEvents( boolean deep ) {
-    Set< Event > set = new TreeSet< Event >();
+  public Set< Event > getEvents( boolean deep, Set< HasEvents > seen ) {
+    Pair< Boolean, Set< HasEvents > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    Set< Event > set = new HashSet< Event >();
     for ( Entry< ElaborationRule, Vector< Event > > e :
           elaborations.entrySet() ) {
       for ( Event event : e.getValue() ) {
         set.add( event );
         if ( deep ) {
           if ( event instanceof HasEvents )
-          set.addAll( ((HasEvents)event).getEvents( deep ) );
+          set.addAll( ((HasEvents)event).getEvents( deep, seen ) );
         }
       }
     }
@@ -787,7 +822,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public void elaborate( boolean force ) {
     if ( elaborations == null ) {
-      elaborations = new TreeMap< ElaborationRule, Vector< Event > >();
+      elaborations = new HashMap< ElaborationRule, Vector< Event > >();
     }
     for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
       Debug.outln( getName() + " trying to elaborate " + er );
@@ -824,7 +859,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     if ( !isElaborated( entry ) || force ) {
 
       // Don't elaborate outside the horizon.  Need startTime grounded to know.
-      if ( !startTime.isGrounded() ) return false;
+      if ( !startTime.isGrounded(false, null) ) return false;
       if ( startTime.getValue() >= Timepoint.getHorizonDuration() ) {
         Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
                      + getName() );
@@ -891,9 +926,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public String executionToString() {
     StringBuffer sb = new StringBuffer();
-    Set< Event > events = new TreeSet< Event >();
+    Set< Event > events = new HashSet< Event >();
     events.add( this );
-    events.addAll( getEvents( true ) );
+    events.addAll( getEvents( true, null ) );
     for ( Event e : events ) {
       sb.append( e.toString() + "\n" );
     }
@@ -1117,8 +1152,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // REVIEW -- code below is replicated in elaborate() and
     // elaborationsConstraint.
     // Don't elaborate outside the horizon.  Need startTime grounded to know.
-    if ( !startTime.isGrounded() ) startTime.ground();
-    if ( !startTime.isGrounded() ) return false;
+    boolean deep = true;
+    Set< Groundable > seenGroundable = null;
+    Set< Satisfiable > seenSatisfiable = null;
+    if ( !startTime.isGrounded(deep, seenGroundable) ) startTime.ground(deep, seenGroundable);
+    if ( !startTime.isGrounded(deep, seenGroundable) ) return false;
     if ( startTime.getValue() >= Timepoint.getHorizonDuration() ) {
       Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
                    + getName() );
@@ -1127,6 +1165,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     
     boolean satisfied = true;
     elaborate( true );
+    // REVIEW -- This vector doesn't necessarily avoid concurrent modification
+    // errors. Consider changing elaborations from a map into a list of pairs,
+    // like parameters and effects.
     Vector< Vector< Event > > elaboratedEvents = new Vector< Vector<Event> >();
     for ( Vector< Event > v : elaborations.values() ) {
       elaboratedEvents.add( new Vector< Event >( v ) );
@@ -1134,8 +1175,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( Vector< Event > v : elaboratedEvents ) {
       for ( Event e : v ) {
         if ( e instanceof Satisfiable ) {
-          if ( !( (Satisfiable)e ).isSatisfied() ) {
-            if ( !( (Satisfiable)e ).satisfy() ) {
+          if ( !( (Satisfiable)e ).isSatisfied(deep, seenSatisfiable) ) {
+            if ( !( (Satisfiable)e ).satisfy(deep, seenSatisfiable) ) {
               satisfied = false;
             }
           }
@@ -1153,7 +1194,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     boolean didRefresh = super.refresh( parameter );
     
     if ( !didRefresh ) {
-      for ( Event e : getEvents( false ) ) {
+      for ( Event e : getEvents( false, null ) ) {
         if ( e instanceof ParameterListener ) {
           if ( ((ParameterListener)e).refresh( parameter ) ) return true;
         }
@@ -1171,7 +1212,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // Alert affected dependencies.
     super.setStaleAnyReferencesTo( changedParameter );
 
-    for ( Event e : getEvents( false ) ) {
+    for ( Event e : getEvents( false, null ) ) {
       if ( e instanceof ParameterListener ) {
         ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter );
       }
