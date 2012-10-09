@@ -181,6 +181,7 @@ public class EventXmlToJava {
       throws ParserConfigurationException, SAXException, IOException {
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
+      System.out.println("package name = " + this.packageName );
     }
 
     // Translate XML to a DOM Document.
@@ -785,6 +786,7 @@ public class EventXmlToJava {
     // "generated."
     // + xmlFileName.substring( 0, xmlFileName.lastIndexOf( '.' ) )
     // .replaceAll( "[^A-Za-z0-9_]+", "_" );
+    Debug.outln("setting package for current compilation unit to " + packageName );
     currentCompilationUnit.setPackage( new PackageDeclaration( ASTHelper.createNameExpr( packageName ) ) );
   }
 
@@ -1749,6 +1751,12 @@ public class EventXmlToJava {
 //    } else if ( p.type.startsWith( "TimeVaryingMap" ) ) {
 //      args = "\"" + p.name + "\", this";
     }
+    
+    // HACK -- TODO
+    if ( args.contains(", new FunctionCall" ) ) {
+      args += ", true";
+    }
+    
     ret[ 0 ] = type;
     ret[ 1 ] = parameterTypes;
     ret[ 2 ] = args;
@@ -2809,6 +2817,7 @@ public class EventXmlToJava {
    * @param packageName the packageName to set
    */
   public void setPackageName( String packageName ) {
+    Debug.outln( "setting package name to " + packageName );
     this.packageName = packageName;
   }
 

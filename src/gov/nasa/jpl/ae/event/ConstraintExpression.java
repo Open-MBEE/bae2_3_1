@@ -71,7 +71,7 @@ public class ConstraintExpression extends Expression< Boolean >
     Boolean sat = evaluate(false);
     if ( sat == null ) sat = new Boolean( false );
     if ( sat ) {
-      sat = HasParameters.Helper.isSatisfied( this, true );
+      sat = HasParameters.Helper.isSatisfied( this, true, null );
     }
     Debug.outln( "ConstraintExpression.isSatisfied() = " + sat + ": " + this );
     return sat;
@@ -86,7 +86,7 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean satisfy() {
     Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied() ) return true;
-    HasParameters.Helper.satisfy( this, true );
+    HasParameters.Helper.satisfy( this, true, null );
     if ( !isSatisfied() ) {
       for ( Variable< ? > v : getVariables() ) {
         pickValue( v );
@@ -111,9 +111,12 @@ public class ConstraintExpression extends Expression< Boolean >
     this.freeParameters = freeParameters;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Constraint#getVariables()
+   */
   @Override
   public Set< Variable< ? > > getVariables() {
-    return ParameterConstraint.Helper.getVariables( this );
+    return ParameterConstraint.Helper.getVariables( this, false, null );
 //    Set< Variable< ? > > s = new HashSet< Variable< ? > >();
 //    s.addAll( getParameters( true ) );
 //    return s;
@@ -142,7 +145,7 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public < T > boolean isFree( Variable< T > v ) {
-    return ParameterConstraint.Helper.isFree( this, v );
+    return ParameterConstraint.Helper.isFree( this, v, false, null );
 //    if ( v instanceof Parameter<?> ) {
 //      return freeParameters.contains( v );
 //    }
@@ -151,13 +154,13 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public < T > boolean isDependent( Variable< T > v ) {
-    return ParameterConstraint.Helper.isDependent( this, v );
+    return ParameterConstraint.Helper.isDependent( this, v, false, null );
 //    return false;
   }
 
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    return ParameterConstraint.Helper.getFreeVariables( this );
+    return ParameterConstraint.Helper.getFreeVariables( this, false, null );
 //    Set< Variable< ? > > s = new HashSet< Variable< ? > >();
 //    s.addAll( getFreeParameters( true ) );
 //    return s;
@@ -165,7 +168,7 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public void setFreeVariables( Set< Variable< ? > > freeVariables ) {
-    ParameterConstraint.Helper.setFreeVariables( this, freeVariables );
+    ParameterConstraint.Helper.setFreeVariables( this, freeVariables, false, null );
 //    if ( freeParameters == null ) {
 //      freeParameters = new HashSet< Parameter< ? > >();
 //    }
@@ -184,7 +187,7 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public boolean isStale() {
-    return ParameterConstraint.Helper.isStale( this, false );
+    return ParameterConstraint.Helper.isStale( this, false, null );
     //return HasParameters.Helper.isStale( this, false );
 //    for ( Parameter< ? > p : getParameters( false ) ) {
 //      if ( p.isStale() ) return true;

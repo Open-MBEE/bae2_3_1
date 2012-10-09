@@ -1,6 +1,8 @@
 package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -179,7 +181,12 @@ public class Expression< ResultType >
 	}
 
 	@Override
-	public boolean substitute( Parameter<?> p1, Parameter<?> p2, boolean deep ) {
+	public boolean substitute( Parameter<?> p1, Parameter<?> p2, boolean deep,
+	                           Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
 		boolean subbed = false;
 		if ( type == Type.Parameter ) {
 			if ( p1 == expression ) {
@@ -190,13 +197,18 @@ public class Expression< ResultType >
 		if ( !subbed && ( expression instanceof HasParameters ) ) {
 			HasParameters gotParameters = (HasParameters) expression;
 			assert( gotParameters != null );
-			subbed = gotParameters.substitute( p1, p2, deep );
+			subbed = gotParameters.substitute( p1, p2, deep, seen );
 		}
 		return subbed;
 	}
 	
 	@Override
-	public Set< Parameter<?> > getParameters( boolean deep ) {
+	public Set< Parameter<?> > getParameters( boolean deep,
+	                                          Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
 		Set< Parameter<?> > set = new TreeSet< Parameter<?> >();
 		if ( type == Type.Parameter ) {
 		  if ( expression != null ) {
@@ -205,27 +217,29 @@ public class Expression< ResultType >
 		    if ( deep ) {
 		      Object v = p.getValueNoPropagate(); 
 		      if ( v != null && v instanceof HasParameters ) {
-		        set.addAll( ((HasParameters)v).getParameters( deep ) );
+		        set.addAll( ((HasParameters)v).getParameters( deep, seen ) );
 		      }
 		    }
 		  }
 		} else if ( expression instanceof HasParameters ) {
 			HasParameters gotParameters = (HasParameters) expression;
 			if ( gotParameters != null ) {
-				set.addAll( gotParameters.getParameters( deep ) );
+				set.addAll( gotParameters.getParameters( deep, seen ) );
 			}
 		}
 		return set;
 	}
 	
 	@Override
-	public Set<Parameter<?>> getFreeParameters(boolean deep) {
+	public Set<Parameter<?>> getFreeParameters( boolean deep,
+	                                            Set<HasParameters> seen ) {
 		Assert.assertFalse("This method should not be called since an Expression does not differentiate between free and dependent parameters.", true );
 		return null; //getParameters( deep );
 	}
 
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? > > freeParams, boolean deep,
+                                 Set<HasParameters> seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   
@@ -291,7 +305,7 @@ public class Expression< ResultType >
 
   @Override
   public boolean isStale() {
-    for ( Parameter< ? > p : getParameters( false ) ) {
+    for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) return true;
     }
     return false;
@@ -304,12 +318,14 @@ public class Expression< ResultType >
   }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set<HasParameters> seen ) {
+    return getParameters( deep, seen ).contains( parameter );
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set<HasParameters> seen ) {
     // REVIEW -- Should Expressions know which are free? Should it just be the
     // owner's job, in which case the Parameter can determine it itself?
     return false;
@@ -317,12 +333,12 @@ public class Expression< ResultType >
 
   @Override
   public boolean isSatisfied() {
-    return HasParameters.Helper.isSatisfied( this, true );
+    return HasParameters.Helper.isSatisfied( this, true, null );
   }
 
   @Override
   public boolean satisfy() {
-    return HasParameters.Helper.satisfy( this, true );
+    return HasParameters.Helper.satisfy( this, true, null );
   }
   
 }

@@ -95,38 +95,82 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   @Override
   public boolean isApplied( Effect effect ) {
-	  if (super.isApplied(effect)) {
-		  return true;
-	  }
-	return isApplied(effect, getSendMethod1(), getSendMethod2());
+    if ( isApplied(effect, getSendMethod1(), getSendMethod2() ) ) {
+      return true;
+    }
+	  return super.isApplied( effect );
   }
-  
+
+  @Override
+  public boolean isApplied( Effect effect, Method method1, Method method2 ) {
+    if ( !( effect instanceof EffectFunction ) ) {
+      return false;
+    }
+    EffectFunction effectFunction = (EffectFunction)effect;
+    boolean isMethod1 = effectFunction.getMethod().equals(method1);
+    boolean isMethod2 =  effectFunction.getMethod().equals( method2);
+    if ( isMethod1  || isMethod2 ) {
+      if ( effectFunction.getArguments() != null
+           && effectFunction.getArguments().size() >= 2 ) {
+        Object o = effectFunction.getArguments().get( 0 );
+        Object t = (Timepoint)effectFunction.getArguments().get( 1 );
+        Obj value = null;
+        try {
+          value = (Obj)o;
+        } catch( Exception e ) {
+          //e.printStackTrace();
+        }
+        if ( value != null ) {
+          if ( t instanceof Timepoint ) {
+            return hasValueAt( value, (Timepoint)t );
+          } if ( t instanceof Integer ) {
+            return hasValueAt( value, (Integer)t );
+          }
+        }
+//          if ( isMethod1 || t instanceof Timepoint ) {
+//            return hasValueAt( value, t );
+//            return value.equals( getValue( (Timepoint) t ) );
+//          }
+//          if ( t instanceof Integer ) {
+//            return value.equals(getValue((Integer) t));
+//          } else if ( t instanceof Parameter ) {
+//            Object v = ((Parameter<?>)t).getValueNoPropagate();
+//            if ( v instanceof Integer ) {
+//              return value.equals(getValue((Integer)v));
+//            }
+//          }
+//        }
+      }
+    }
+    return false;
+  }
+
 	public static Method getSendMethod1() {
-		if (setValueMethod1 == null) {
-			for (Method m : TimeVaryingMap.class.getMethods()) {
-				if (m.getName().equals("setValue")
+		if (sendMethod1 == null) {
+			for (Method m : ObjectFlow.class.getMethods()) {
+				if (m.getName().equals("send")
 						&& m.getParameterTypes() != null
 						&& m.getParameterTypes().length == 2
 						&& m.getParameterTypes()[1] == Timepoint.class) {
-					setValueMethod1 = m;
+					sendMethod1 = m;
 				}
 			}
 		}
-		return setValueMethod1;
+		return sendMethod1;
 	}
 
 	public static Method getSendMethod2() {
-		if (setValueMethod2 == null) {
-			for (Method m : TimeVaryingMap.class.getMethods()) {
-				if (m.getName().equals("setValue")
+		if (sendMethod2 == null) {
+			for (Method m : ObjectFlow.class.getMethods()) {
+				if (m.getName().equals("send")
 						&& m.getParameterTypes() != null
 						&& m.getParameterTypes().length == 2
 						&& m.getParameterTypes()[1] == Integer.class) {
-					setValueMethod2 = m;
+					sendMethod2 = m;
 				}
 			}
 		}
-		return setValueMethod2;
+		return sendMethod2;
 	}
 
 /**

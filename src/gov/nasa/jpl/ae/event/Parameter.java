@@ -16,6 +16,7 @@ import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 /**
@@ -37,7 +38,8 @@ public class Parameter< T > implements Cloneable, Groundable,
   private T value = null;
   protected ParameterListener owner = null; // REVIEW -- Only one listener!
   protected boolean stale;
-
+  protected List< Constraint > constraintList = new ArrayList< Constraint >();
+  
   public Parameter( String n, Domain< T > d, ParameterListener o ) {
     name = n;
     domain = d;
@@ -57,6 +59,18 @@ public class Parameter< T > implements Cloneable, Groundable,
 //      domain = new SingleValueDomain< T >(v);
 //    }
     value = v;
+    owner = o;
+    stale = !isGrounded();
+  }
+
+  @SuppressWarnings( "unchecked" )
+  public Parameter( String n, Domain< T > d, FunctionCall fc,
+                    ParameterListener o, boolean propagate ) {
+    name = n;
+    domain = d;
+    if ( fc != null ) {
+      value = (T)fc.evaluate( propagate );
+    }
     owner = o;
     stale = !isGrounded();
   }
@@ -189,6 +203,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     boolean changing = !valueEquals( value );
     if ( changing ) {
       this.value = value;
+      constraintList.clear();
       if ( owner != null ) {
         if ( propagateChange ) {
           owner.handleValueChangeEvent( this );
@@ -415,16 +430,24 @@ public class Parameter< T > implements Cloneable, Groundable,
     stale = staleness;
   }
 
-  public Collection< Constraint > getConstraints( boolean deep ) {
-    List< Constraint > cList= new ArrayList< Constraint >();
+  public Collection< Constraint > getConstraints( boolean deep,
+                                                  Set<HasConstraints> seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    if ( !Utils.isNullOrEmpty( constraintList ) ) return constraintList;
+    if ( constraintList == null ) {
+      constraintList = new ArrayList< Constraint >();
+    }
     Method method;
     if ( domain != null && domain instanceof AbstractRangeDomain
          && value instanceof Comparable ) {
-      cList.addAll( ( (AbstractRangeDomain)domain ).getConstraints( (Comparable)value ) );
+      constraintList.addAll( ( (AbstractRangeDomain)domain ).getConstraints( (Comparable)value ) );
     } else {
       try {
         method = getClass().getMethod( "inDomain", (Class< ? >[])null );
-        cList.add( new ConstraintExpression( new FunctionCall( this, method,
+        constraintList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                                (Object[])null ) ) );
       } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
@@ -441,19 +464,14 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( deep ) {
       T v = getValueNoPropagate(); 
       if ( v != null && 
-           v instanceof ParameterListenerImpl ) {
-        cList.addAll( ((ParameterListenerImpl)v).getConstraints( deep ) );
-      } else if ( v != null && 
+//           v instanceof ParameterListenerImpl ) {
+//        cList.addAll( ((ParameterListenerImpl)v).getConstraints( deep, seen ) );
+//      } else if ( v != null && 
                   v instanceof HasConstraints ) {
-        cList.addAll( ((HasConstraints)v).getConstraints() );
+        constraintList.addAll( ((HasConstraints)v).getConstraints( deep, seen ) );
       }
     }
-    return cList;
-  }
-
-  @Override
-  public Collection< Constraint > getConstraints() {
-    return getConstraints( true );
+    return constraintList;
   }
 
 }

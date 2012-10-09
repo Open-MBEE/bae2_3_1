@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.util.Debug;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -105,8 +106,8 @@ public class EffectFunction extends FunctionCall implements Effect {
 //  }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep, Set< HasParameters > seen ) {
+    return getParameters( deep, seen ).contains( parameter );
   }
   
   @Override

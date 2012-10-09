@@ -3,7 +3,6 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Formatter;
@@ -20,6 +19,7 @@ import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
+import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
@@ -35,13 +35,15 @@ import gov.nasa.jpl.ae.util.Utils;
 public class ParameterListenerImpl implements Cloneable, Groundable,
                                               Satisfiable,
                                               ParameterListener,
+                                              HasConstraints,
                                               HasTimeVaryingObjects,
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  final double timeoutSeconds = 10.0;
-  final long numIterations = 10;
-  final boolean timeOrLoopLimit = false;
+  protected double timeoutSeconds = 10.0;
+  protected long numIterations = 5;
+  protected boolean usingTimeLimit = false;
+  protected boolean usingLoopLimit = true;
 
   // Static members
   
@@ -50,8 +52,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Other Members
 
   protected String name = null;
-  protected SortedSet< Parameter< ? > > parameters =
-      new TreeSet< Parameter< ? > >();
+  protected List< Parameter< ? > > parameters =
+      new ArrayList< Parameter< ? > >();
   protected Vector< ConstraintExpression > constraintExpressions = new Vector< ConstraintExpression >();
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected Vector< Dependency< ? > > dependencies =
@@ -74,7 +76,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public ParameterListenerImpl( ParameterListenerImpl parameterListenerImpl ) {
     this( null, parameterListenerImpl );
   }
-  public ParameterListenerImpl( String name, ParameterListenerImpl parameterListenerImpl ) {
+  public ParameterListenerImpl( String name,
+                                ParameterListenerImpl parameterListenerImpl ) {
     setName( name );
 
     // copy containers after clearing
@@ -94,22 +97,34 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     List< Pair< Parameter< ? >, Parameter< ? > > > subList =
         buildSubstitutionList( parameterListenerImpl );
     for ( Pair< Parameter< ? >, Parameter< ? > > p : subList ) {
-      substitute( p.first, p.second, false );
+      substitute( p.first, p.second, false, null );
     }
   }
 
   @Override
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
+                             boolean deep,
+                             Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
-    for ( ConstraintExpression c : constraintExpressions ) {
-      boolean s = c.substitute( p1, p2, deep );
-      subbed = subbed || s;
-    }
-    for ( Dependency< ? > d : dependencies ) {
-      if ( d instanceof HasParameters ) {
-        ( (HasParameters)d ).substitute( p1, p2, deep );
-      }
-    }
+    boolean s = HasParameters.Helper.substitute( constraintExpressions, p1, p2,
+                                                 deep, seen );
+    subbed = subbed || s;
+    s = HasParameters.Helper.substitute( dependencies, p1, p2,
+                                         deep, seen );
+    subbed = subbed || s;
+//    for ( ConstraintExpression c : constraintExpressions ) {
+//      boolean s = c.substitute( p1, p2, deep, seen );
+//      subbed = subbed || s;
+//    }
+//    for ( Dependency< ? > d : dependencies ) {
+//      if ( d instanceof HasParameters ) {
+//        ( (HasParameters)d ).substitute( p1, p2, deep, seen );
+//      }
+//    }
     return subbed;
   }
 
@@ -126,7 +141,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     ArrayList< Pair< Parameter< ? >, Parameter< ? > > > subList =
         new ArrayList< Pair< Parameter< ? >, Parameter< ? > > >();
     Iterator< Parameter< ? > > i1 = parameters.iterator();
-    Iterator< Parameter< ? > > i2 = parameterListener.getParameters(false).iterator();
+    Iterator< Parameter< ? > > i2 = parameterListener.getParameters(false, null).iterator();
     while ( i1.hasNext() ) {
       subList.add( new Pair< Parameter< ? >, Parameter< ? > >( i1.next(),
                                                                i2.next() ) );
@@ -153,7 +168,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() ); // super.toString() adds hash code
-    Set< Parameter< ? > > allParams = getParameters( false );
+    Set< Parameter< ? > > allParams = getParameters( false, null );
     for ( Object p : allParams ) {
       if ( p instanceof Parameter ) {
         sb.append( ", " + ((Parameter<?>)p).toString( false, false ) );
@@ -221,7 +236,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
                                  - startTime < timeoutMilliseconds ) ) ) {
       satisfied = true;
       first = false;
-      for ( Parameter< ? > p : getFreeParameters( false ) ) {
+      Collection< Parameter< ? > > freeParams = getFreeParameters( false, null );
+      for ( Parameter< ? > p : freeParams ) {
         if ( !p.isGrounded() ) {
           if ( !p.ground() ) {
             satisfied = false;
@@ -250,7 +266,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
 
   // TODO -- This is not finished. Need to get deep dependents.
-  public Set< Parameter< ? > > getDependentParameters( boolean deep ) {
+  public Set< Parameter< ? > > getDependentParameters( boolean deep,
+                                                       Set<HasParameters> seen ) {
     TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     for ( Dependency< ? > d : dependencies ) {
       set.add( d.parameter );
@@ -259,14 +276,24 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
 
   // Gather any parameter instances contained by this event.
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean, java.util.Set)
+   */
+  @Override
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set<HasParameters> seen ) {
     // TODO
-    TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.addAll( getParameters() );
     if ( deep ) {
       for ( Parameter<?> p : getParameters() ) {
-        if ( p.getValueNoPropagate() != null && p.getValueNoPropagate() instanceof HasParameters ) {
-          set.addAll( ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep ) );
+        if ( p.getValueNoPropagate() != null && 
+             p.getValueNoPropagate() instanceof HasParameters ) {
+          set.addAll( ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep, seen ) );
         }
       }
       // TODO -- Get parameters from members that implement HasPaameters?
@@ -295,23 +322,48 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return set;
   }
 
-  // TODO -- This is not finished. Need to get deep dependents.
+  // TODO -- define this in HasParameters
+  /**
+   * @param deep
+   * @param seen
+   * @return parameters that are Timepoints
+   */
+  public Set< Timepoint > getTimepoints( boolean deep,
+                                         Set<HasParameters> seen ) {
+   Set< Timepoint > set = new TreeSet< Timepoint >();
+   for ( Parameter<?> p : getParameters( deep, seen ) ) {
+     if ( p instanceof Timepoint ) {
+       set.add((Timepoint)p);
+     }
+   }
+   return set;
+ }
+
+ // TODO -- This is not finished. Need to get deep dependents.
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set<HasParameters> seen ) {
     Assert.assertFalse( "This method does not yet support deep=true!", deep );
-    Set< Parameter< ? > > set = getParameters( deep );
-    Set< Parameter< ? > > dependents = getDependentParameters( deep );
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    Set< Parameter< ? > > set = getParameters( deep, seen );
+    Set< Parameter< ? > > dependents = getDependentParameters( deep, seen );
     set.removeAll( dependents );
     return set;
   }
+
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? > > freeParams,
+                                 boolean deep,
+                                 Set<HasParameters> seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
 
   @Override
   public boolean isSatisfied() {
-    for ( Constraint c : getConstraints( true ) ) {
+    for ( Constraint c : getConstraints( true, null ) ) {
       if ( !c.isSatisfied() ) {
         return false;
       }
@@ -333,10 +385,10 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     // into the problem)? Add all possible constraints as implied by conditions?
     // Treat each elaboration as a constraint?
     while ( !satisfied
-            && ( timeOrLoopLimit ? ( curTimeLeft > 0.0 )
-                                 : ( numLoops < numIterations ) ) ) {
+            && ( !usingTimeLimit || curTimeLeft > 0.0 )
+            && ( !usingLoopLimit || numLoops < numIterations ) ) {
       Debug.outln( this.getClass().getName() + " satisfy loop with "
-          + curTimeLeft + "milliseconds left" );
+          + curTimeLeft + " milliseconds left" );
       satisfied = tryToSatisfy();
       curTimeLeft =
           ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
@@ -349,25 +401,36 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     ground();
     Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
     
-    Collection< Constraint > allConstraints = getConstraints( true );
+    Collection< Constraint > allConstraints = getConstraints( true, null );
+    Debug.outln( this.getClass().getName() + " - " + getName() + ".tryToSatisfy() calling solve() with " + allConstraints.size() + " constraints" );
     boolean satisfied = solver.solve( allConstraints );
     
     satisfied = isSatisfied();
-    Debug.outln( this.getClass().getName()
+    Debug.outln( this.getClass().getName() + " - " + getName()
                  + ".tryToSatisfy() called solve(): satisfied = " + satisfied );
     return satisfied;
   }
-  public Collection< Constraint > getConstraints() {
-    return getConstraints( false );
-  }
 
-  public Collection< Constraint > getConstraints( boolean deep ) {
+//  @Override
+//  public Collection< Constraint > getConstraints() {
+//    return getConstraints( false, null );
+//  }
+
+  @Override
+  public Collection< Constraint > getConstraints( boolean deep,
+                                                  Set<HasConstraints> seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
     Set< Constraint > set = new TreeSet< Constraint >();
-    for ( Parameter< ? > p : getParameters( deep ) ) {
-      set.addAll( p.getConstraints( deep ) );
-    }
-    set.addAll( constraintExpressions );
-    set.addAll( dependencies );
+    set.addAll( HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
+    set.addAll( HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
+    set.addAll( HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
+//    for ( Parameter< ? > p : getParameters( false, null ) ) {
+//      set.addAll( p.getConstraints( deep, seen ) );
+//    }
+//    set.addAll( constraintExpressions );
+//    set.addAll( dependencies );
     return set;
   }
 
@@ -375,29 +438,35 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
    * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
    */
   @Override
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep ) {
+  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+                                                        Set<HasTimeVaryingObjects> seen ) {
+    Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
     // Rebuilding the set in case parameter values change. 
-    for ( Parameter< ? > p : getParameters( deep ) ) {
+    for ( Parameter< ? > p : getParameters( false, null ) ) {
       Object value = p.getValue();
       if ( value != null ) {
         if ( value instanceof TimeVarying ) {
           s.add( (TimeVarying< ? >)value );
         }
         if ( deep && value instanceof HasTimeVaryingObjects ) {
-          s.addAll( ( (HasTimeVaryingObjects)value ).getTimeVaryingObjects( deep ) );
+          s.addAll( ( (HasTimeVaryingObjects)value ).getTimeVaryingObjects( deep,
+                                                                            seen ) );
         }
       }
     }
     return s;
   }
 
-  public SortedSet< Parameter< ? > > getParameters() {
+  public List< Parameter< ? > > getParameters() {
     return parameters;
   }
 
-  public void setParameters( SortedSet< Parameter< ? >> parameters ) {
+  public void setParameters( List< Parameter< ? > > parameters ) {
     this.parameters = parameters;
   }
 
@@ -435,7 +504,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   public int compareTo( ParameterListenerImpl o ) {
     int compare = getClass().getName().compareTo( o.getClass().getName() );
     if ( compare != 0 ) return compare;
-    compare = Utils.compareSets( parameters, o.getParameters() );
+    compare = Utils.compareCollections( parameters, o.getParameters() );
     return compare;
   }
 
@@ -481,7 +550,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Try to remove others' references to this, possibly because it is being
   // deleted.
   public void detach() {
-    for ( Parameter< ? > p : getParameters( false ) ) {
+    for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.getOwner() == this ) {
         p.setOwner( null );
       }
@@ -534,13 +603,24 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    return getParameters( deep, seen ).contains( parameter );
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
-    return !getDependentParameters( deep ).contains( p );
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+
+    return !getDependentParameters( deep, seen ).contains( p );
   }
 
   @Override

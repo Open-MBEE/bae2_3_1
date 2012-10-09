@@ -9,7 +9,7 @@ package gov.nasa.jpl.ae.solver;
  */
 public class StringDomain extends AbstractRangeDomain<String> {
 	
-	public static final int maxStringSize = 1024;
+	public static final int maxStringSize = 8;
 	public static final String typeMaxValue = String.format("%0" + maxStringSize + "d", 0).replace( "0", "" + (char)( '\0' + 255 ) ); 
 	public static final String typeMinValue = "";
 	public static StringDomain defaultDomain = new StringDomain();

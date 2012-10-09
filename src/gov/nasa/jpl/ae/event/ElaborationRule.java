@@ -3,6 +3,10 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
+
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -40,6 +44,7 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
     if ( isNull ) return true;
     Boolean r = c.evaluate( true );
     if (r == null) return false;
+    Debug.outln( "isConditionSatisfied() = " + r  + " for " + this.getEventInvocations() );
     return r;//( condition == null || condition.evaluate(true) );
   }
   
@@ -47,6 +52,7 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
   public boolean attemptElaboration( Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan ) {
     
+    Debug.outln( "attemptElaboration(): " + this );
     // Find out if the rule is satisfied and elaborated.
     boolean conditionSatisfied = isConditionSatisfied();
     boolean elaborated = !elaboratedEvents.isEmpty();
@@ -123,44 +129,61 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
   }
 
   @Override
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
     if ( condition != null ) {
-      s.addAll( condition.getParameters( deep ) );
+      s.addAll( condition.getParameters( deep, seen ) );
     }
     for ( EventInvocation inv : eventInvocations ) {
-      s.addAll( inv.getParameters( deep ) );
+      s.addAll( inv.getParameters( deep, seen ) );
     }
     return s;
   }
 
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
     if ( condition != null ) {
-      s.addAll( condition.getFreeParameters( deep ) );
+      s.addAll( condition.getFreeParameters( deep, seen ) );
     }
     for ( EventInvocation inv : eventInvocations ) {
-      s.addAll( inv.getFreeParameters( deep ) );
+      s.addAll( inv.getFreeParameters( deep, seen ) );
     }
     return s;
   }
 
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? > > freeParams,
+                                 boolean deep,
+                                 Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   
   @Override
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                             Set< HasParameters > seen) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     if ( condition != null ) {
-      if ( condition.substitute( p1, p2, deep ) ) {
+      if ( condition.substitute( p1, p2, deep, seen ) ) {
         subbed = true;
       }
     }
     for ( EventInvocation inv : eventInvocations ) {
-      if ( inv.substitute( p1, p2, deep ) ) {
+      if ( inv.substitute( p1, p2, deep, seen ) ) {
         subbed = true;
       }
     }
@@ -212,7 +235,7 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
 
   @Override
   public boolean isStale() {
-    for ( Parameter< ? > p : getParameters( false ) ) {
+    for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) return true;
     }
     return false;
@@ -225,16 +248,18 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
   }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set<HasParameters> seen ) {
+    return getParameters( deep, seen ).contains( parameter );
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set<HasParameters> seen ) {
     // REVIEW -- Is this just done by Events? Maybe just return false or throw
     // assertion that this method id not supported for ElaborationRule.
     for ( EventInvocation inv : eventInvocations ) {
-      if ( inv.isFreeParameter( p, deep ) ) {
+      if ( inv.isFreeParameter( p, deep, seen ) ) {
         return true;
       }
     }

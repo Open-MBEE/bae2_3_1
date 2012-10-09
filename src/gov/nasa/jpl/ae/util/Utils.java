@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.solver.Variable;
 import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
@@ -19,14 +20,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
- * @author bclement
- *
+ * A set of miscellaneous utility functions.
  */
 public class Utils {
   
   public static ClassLoader loader = null;
+  @SuppressWarnings( "rawtypes" )
+  public static final Set<?> emptySet = new TreeSet();
+  public static <T> Set<T> getEmptySet() {
+    return (Set< T >)emptySet;
+  }  
+  @SuppressWarnings( "rawtypes" )
+  public static final Map<?,?> emptyMap = new TreeMap();
+  public static <T1,T2> Map<T1,T2> getEmptyMap() {
+    return (Map< T1, T2 >)emptyMap;
+  }
 
   public static String toString( Object[] arr ) {
     if (arr == null) return "null";
@@ -184,6 +195,30 @@ public class Utils {
     return null;
   }
 
+//  private static long notSeenCt = 0;
+//  private static long seenCt = 0;
+  
+  /**
+   * Manages a "seen" set for avoiding infinite recursion.
+   * @param o is the object visited
+   * @param recursive is whether infinite recursion is possible 
+   * @param seen is the set of objects already visited
+   * @return whether the object has already been visited
+   */
+  public static < T > Pair< Boolean, Set< T > > seen( T o, boolean recursive,
+                                                      Set< T > seen ) {
+    if ( seen != null && seen.contains( o ) ) {
+//      ++seenCt;
+      return new Pair< Boolean, Set< T > >( false, seen );
+    }
+//    ++notSeenCt;
+    if ( seen == null && recursive == true ) {
+      seen = new HashSet< T >();
+    }
+    if ( seen != null ) seen.add( o );
+    return new Pair< Boolean, Set< T > >( false, seen );
+  }
+  
   // Throws and catches an exception if any of the input objects are null.
   public static boolean errorOnNull( String msg, Object... a ) {
     return errorOnNull( true, msg, a );
@@ -206,8 +241,8 @@ public class Utils {
     return false;
   }
 
-  public static < T extends Comparable< T > > int compareSets( SortedSet< T > s1,
-                                                               SortedSet< T > s2 ) {
+  public static < T extends Comparable< T > > int compareCollections( Collection< T > s1,
+                                                                      Collection< T > s2 ) {
     Iterator< T > i1 = s1.iterator();
     Iterator< T > i2 = s2.iterator();
     int compare = 0;
@@ -564,6 +599,8 @@ public class Utils {
     if ( argTypes == null ) argTypes = new Class<?>[] {};
     Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
                  + callName + ", argTypes=" + toString( argTypes ) + " )" );
+    boolean debugWasOn = Debug.isOn();
+    Debug.turnOff();
     Method matchingMethod = null;
     boolean gotOkNumArgs = false;
     int mostMatchingArgs = 0;
@@ -636,6 +673,9 @@ public class Utils {
         }
       }
     }
+    }
+    if ( debugWasOn ) {
+      Debug.turnOn();
     }
     if ( matchingMethod != null && !allArgsMatched ) {
       System.err.println( "method returned (" + matchingMethod

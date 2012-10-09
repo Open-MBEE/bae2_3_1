@@ -2,10 +2,12 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.event.Expression.Type;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -17,7 +19,6 @@ import junit.framework.Assert;
  */
 
 /**
- * @author bclement
  * 
  */
 public class FunctionCall implements HasParameters, Groundable {
@@ -315,7 +316,12 @@ public class FunctionCall implements HasParameters, Groundable {
                      + ".isAssignableFrom( " + object.getClass().getName()
                      + " ) = " + ii1 );
         if ( io ) {
-          Object v = ( (Parameter< ? >)object ).getValue();
+          Object v = null;
+          if ( propagate ) {
+            v = ( (Parameter< ? >)object ).getValue();
+          } else {
+            v = ( (Parameter< ? >)object ).getValueNoPropagate();
+          }
           boolean ii2 = true;
           if ( v != null ) {
             ii2 = method.getDeclaringClass().isAssignableFrom( v.getClass() );
@@ -345,13 +351,18 @@ public class FunctionCall implements HasParameters, Groundable {
     return result;
   }
 
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                             Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     if ( p1 == object ) {
       object = p2;
       subbed = true;
     } else if ( object instanceof HasParameters ) {
-      subbed = ( (HasParameters)object ).substitute( p1, p2, deep );
+      subbed = ( (HasParameters)object ).substitute( p1, p2, deep, seen );
     }
     for ( int i = 0; i < arguments.size(); ++i ) {
       Object a = arguments.get( i );
@@ -359,26 +370,34 @@ public class FunctionCall implements HasParameters, Groundable {
         arguments.setElementAt( p2, i );
         subbed = true;
       } else if ( a instanceof HasParameters ) {
-        boolean s = ( (HasParameters)a ).substitute( p1, p2, deep );
+        boolean s = ( (HasParameters)a ).substitute( p1, p2, deep, seen );
         subbed = subbed || s;
       }
     }
     if ( nestedCall != null && nestedCall.getValue() != null ) {
-      boolean s = nestedCall.getValue().substitute( p1, p2, deep ); 
+      boolean s = nestedCall.getValue().substitute( p1, p2, deep, seen ); 
       subbed = subbed || s;
     }
     return subbed;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean)
+   */
   @Override
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? >> set = new TreeSet< Parameter< ? >>();
     if ( object instanceof Parameter< ? > ) {
       set.add( (Parameter< ? >)object );
     }
     if ( deep && object instanceof HasParameters ) {
       HasParameters gotParameters = (HasParameters)object;
-      set.addAll( gotParameters.getParameters( deep ) );
+      set.addAll( gotParameters.getParameters( deep, seen ) );
     }
     if ( arguments != null ) {
       for ( int i = 0; i < arguments.size(); ++i ) {
@@ -388,26 +407,29 @@ public class FunctionCall implements HasParameters, Groundable {
         }
         if ( deep && a instanceof HasParameters ) {
           HasParameters gotParameters = (HasParameters)a;
-          set.addAll( gotParameters.getParameters( deep ) );
+          set.addAll( gotParameters.getParameters( deep, seen ) );
         }
       }
     }
     if ( nestedCall != null && nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
-      set.addAll( nestedCall.getValue().getParameters( deep ) );
+      set.addAll( nestedCall.getValue().getParameters( deep, seen ) );
     }
     return set;
   }
 
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set< HasParameters > seen ) {
     Assert.assertFalse( "This method should not be called since a Function"
                         + " does not differentiate between free and dependent"
                         + " parameters.", true );
     return null;
   }
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? >> freeParams,
+                                 boolean deep,
+                                 Set< HasParameters > seen) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   
@@ -500,7 +522,7 @@ public class FunctionCall implements HasParameters, Groundable {
 
   @Override
   public boolean isStale() {
-    for ( Parameter< ? > p : getParameters( false ) ) {
+    for ( Parameter< ? > p : getParameters( false, new HashSet<HasParameters>() ) ) {
       if ( p.isStale() ) return true;
     }
     if ( nestedCall != null ) {
@@ -516,12 +538,14 @@ public class FunctionCall implements HasParameters, Groundable {
   }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set< HasParameters > seen ) {
+    return getParameters( deep, seen ).contains( parameter );
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set< HasParameters > seen ) {
     // REVIEW -- Is this just done by Events? Maybe throw
     // assertion that this method id not supported for ElaborationRule.
     return false;

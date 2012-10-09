@@ -43,7 +43,6 @@ src/gov/nasa/jpl/ae/event/Dependency.java -text
 src/gov/nasa/jpl/ae/event/DoubleParameter.java -text
 src/gov/nasa/jpl/ae/event/Duration.java -text
 src/gov/nasa/jpl/ae/event/DurativeEvent.java -text
-src/gov/nasa/jpl/ae/event/DurativeTimeVaryingMap.java -text
 src/gov/nasa/jpl/ae/event/Edge.java -text
 src/gov/nasa/jpl/ae/event/Effect.java -text
 src/gov/nasa/jpl/ae/event/EffectFunction.java -text
@@ -75,7 +74,6 @@ src/gov/nasa/jpl/ae/event/TimeDependentConstraintExpression.java -text
 src/gov/nasa/jpl/ae/event/TimeDomain.java -text
 src/gov/nasa/jpl/ae/event/TimeVarying.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text
-src/gov/nasa/jpl/ae/event/TimeVaryingMapWithEffects.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMap.java -text
 src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text

@@ -30,8 +30,11 @@ public class TestEventXmlToJava {
   public String directory = null;
   public String packageName = "generated";
   
-  public TestEventXmlToJava(String xmlFileName) {
+  public TestEventXmlToJava(String xmlFileName, String packageName ) {
     this.xmlFileName = xmlFileName;
+    if ( !Utils.isNullOrEmpty( packageName ) ) {
+      this.packageName = packageName;
+    }
     initialize();
   }
   
@@ -68,7 +71,7 @@ public class TestEventXmlToJava {
     // Now translate the XML file into Java Event class files.
     try {
       translator =
-          new EventXmlToJava( xmlFileName, "" );
+          new EventXmlToJava( xmlFileName, packageName );
     } catch ( Exception e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -85,6 +88,12 @@ public class TestEventXmlToJava {
       } else {
         targetDirectory = directory + File.separator + packageName;
       }
+      File targetDirectoryFile = new File( targetDirectory );
+      if ( !targetDirectoryFile.exists() ) {
+        if ( !targetDirectoryFile.mkdirs() );
+      } else {
+        assert targetDirectoryFile.isDirectory();
+      }
       try {
         translator.writeJavaFiles( targetDirectory );
       } catch ( IOException e ) {
@@ -98,18 +107,22 @@ public class TestEventXmlToJava {
    * @param args
    */
   public static void main( String[] args ) {
-    System.out.println("Started TestEventXmlToJava");
+    System.out.println("Started TestEventXmlToJava " + Utils.toString(args));
     // Try to find the XML file to read in.
     String xmlFileName = "exampleDRScenario.xml";
     
-    if ( args.length == 1 ) {
+    if ( args.length >= 1 ) {
       xmlFileName = args[0];
     } else {
 //      xmlFileName =
 //          "src" + File.separator + "xml" + File.separator
 //              + "exampleDRScenario.xml";
     }
-    TestEventXmlToJava textj = new TestEventXmlToJava( xmlFileName );
+    String pkgName = null;
+    if ( args.length >= 2 ) {
+      pkgName = args[1];
+    }
+    TestEventXmlToJava textj = new TestEventXmlToJava( xmlFileName, pkgName );
     EventXmlToJava translator = textj.translator;
 
     textj.writeFiles();

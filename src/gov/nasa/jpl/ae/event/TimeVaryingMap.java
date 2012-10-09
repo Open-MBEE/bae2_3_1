@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import junit.framework.Assert;
@@ -50,7 +51,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
     @Override
     public boolean isStale() {
-      return HasParameters.Helper.isStale( this, false );
+      return HasParameters.Helper.isStale( this, false, null );
     }
 
     @Override
@@ -59,36 +60,59 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     }
 
     @Override
-    public Set< Parameter< ? > > getParameters( boolean deep ) {
-      return HasParameters.Helper.getParameters( this, deep );
+    public Set< Parameter< ? > > getParameters( boolean deep,
+                                                Set< HasParameters > seen ) {
+      Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return Utils.getEmptySet();
+      seen = pair.second;
+      //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+      return HasParameters.Helper.getParameters( this, deep, null );
     }
 
     @Override
-    public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+    public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                    Set< HasParameters > seen ) {
       Assert.assertTrue( "This method is not supported!", false );
       return null;
     }
 
     @Override
-    public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+    public void setFreeParameters( Set< Parameter< ? > > freeParams,
+                                   boolean deep,
+                                   Set< HasParameters > seen ) {
       Assert.assertTrue( "This method is not supported!", false );
     }
     
     @Override
-    public boolean isFreeParameter( Parameter< ? > parameter, boolean deep ) {
+    public boolean isFreeParameter( Parameter< ? > parameter, boolean deep,
+                                    Set< HasParameters > seen ) {
       // TODO -- REVIEW -- not sure about this
-      return HasParameters.Helper.isFreeParameter( this, parameter, deep );
+      Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return false;
+      seen = pair.second;
+      //if ( Utils.seen( this, deep, seen ) ) return false;
+      return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen );
     }
 
     @Override
-    public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-      return HasParameters.Helper.hasParameter( this, parameter, deep );
+    public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                                 Set< HasParameters > seen ) {
+      Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return false;
+      seen = pair.second;
+      //if ( Utils.seen( this, deep, seen ) ) return false;
+      return HasParameters.Helper.hasParameter( this, parameter, deep, seen );
     }
 
     @Override
     public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
-                               boolean deep ) {
-      return HasParameters.Helper.substitute( this, p1, p2, deep );
+                               boolean deep,
+                               Set< HasParameters > seen ) {
+      Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+      if ( pair.first ) return false;
+      seen = pair.second;
+      //if ( Utils.seen( this, deep, seen ) ) return false;
+      return HasParameters.Helper.substitute( this, p1, p2, deep, seen );
     }
 
   }
@@ -163,7 +187,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
     for ( TimeValue e : floatingEffects ) {
-      if ( e.hasParameter( parameter, true ) ) {
+      if ( e.hasParameter( parameter, true, null ) ) {
         put( e.first, e.second );
         //e.applyTo( this );
         floatingEffects.remove( e );
@@ -234,36 +258,51 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   // Add startTimes, durations, values that are Parameters, and (if deep)
   // parameters of effects.
   @Override
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
-    return HasParameters.Helper.getParameters( this, deep );
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set< HasParameters > seen ) {
+    //return Utils.getEmptySet();
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    return HasParameters.Helper.getParameters( this, deep, seen );
   }
 
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
     return null;
   }
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? > > freeParams,
+                                 boolean deep,
+                                 Set< HasParameters > seen) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return HasParameters.Helper.hasParameter( this, parameter, deep );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    return HasParameters.Helper.hasParameter( this, parameter, deep, seen );
   }
 
   @Override
   public boolean
-      substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
-    return HasParameters.Helper.substitute( this, p1, p2, deep );
+      substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                  Set< HasParameters > seen ) {
+    return HasParameters.Helper.substitute( this, p1, p2, deep, seen );
   }
 
   @Override
   public boolean isStale() {
     if ( !floatingEffects.isEmpty() ) return true;
-    return ( HasParameters.Helper.isStale( this, false ) );
+    return ( HasParameters.Helper.isStale( this, false, null ) );
   }
 
   @Override
@@ -312,14 +351,69 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return null;
   }
 
+  public boolean hasValueAt( T value, Timepoint t ) {
+    if ( t == null ) return false;
+    T v = get( t ); //.first;
+    if ( v != null ) return value.equals( v );
+    // Saving this check until later in case a null time value is acceptable,
+    // and get(t) above works.
+    if ( t.getValue() == null ) return false;
+    return hasValueAt( value, t.getValueNoPropagate() );
+  }
+  
+  public Timepoint keyForValueAt( T value, Integer t ) {
+    Timepoint tp = new Timepoint( null, t, null );
+    Entry< Timepoint, T > e = this.floorEntry( tp );
+    Timepoint startKey = null;
+    if ( e != null ) {
+      startKey = e.getKey();
+    } else if ( !isEmpty() ) {
+      startKey = firstEntry().getKey();
+    } else {
+      return null;
+    }
+    NavigableMap< Timepoint, T > tailMap = this.tailMap( startKey, true );
+    for ( java.util.Map.Entry< Timepoint, T > te : tailMap.entrySet() ) {
+      Object mVal = te.getValue();
+      if ( Parameter.valuesEqual( value, mVal ) &&
+           t.equals( te.getKey().getValueNoPropagate() ) ) {
+        return te.getKey();
+      }
+      if ( te.getKey().getValueNoPropagate() > t ) break;
+    }
+//    } else if ( !isEmpty() ) {
+//      Object mVal = firstEntry().getValue();
+//      if ( ( ( value == null && mVal == null ) || ( value != null && value.equals( mVal ) ) ) &&
+//          t.equals( firstEntry().getKey().getValueNoPropagate() ) ) {
+//        return firstEntry().getKey();
+//      }
+//    }
+    return null;
+  }
+  
+  public boolean hasValueAt( T value, Integer t ) {
+    return keyForValueAt( value, t ) != null;
+  }
+
   public T setValue( Integer t, T value ) {
-    Timepoint tp = new Timepoint( "", t, null );
-    return setValue( tp, value );
+    Timepoint tp = keyForValueAt( value, t );
+    if ( tp == null ) {
+      tp = new Timepoint( "", t, null );
+      return put( tp, value );
+    }
+    return null;
   }
 
   @Override
   public T setValue( Timepoint t, T value ) {
-    return put( t, value );
+    Timepoint tp = keyForValueAt( value, t.getValue() );
+    if ( tp != null && tp != t ) {
+      remove( tp );
+    }
+    if ( tp != t ) {
+      return put( t, value );
+    }
+    return null;
 //    T oldValue = get( t );
 //    assert ( oldValue == null || oldValue.equals( value ) );
     /*
@@ -370,8 +464,13 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > parameter, boolean deep ) {
-    return HasParameters.Helper.isFreeParameter( this, parameter, deep );
+  public boolean isFreeParameter( Parameter< ? > parameter, boolean deep,
+                                  Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen );
   }
 
   @Override
@@ -384,7 +483,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public static Method getSetValueMethod1() {
     if ( setValueMethod1 == null ) {
       for ( Method m : TimeVaryingMap.class.getMethods() ) {
-        if ( m.getName().equals("setValue") && m.getParameterTypes() != null && m.getParameterTypes().length == 2 && m.getParameterTypes() [1] == Timepoint.class ) {
+        if ( m.getName().equals("setValue") && m.getParameterTypes() != null
+             && m.getParameterTypes().length == 2 
+             && m.getParameterTypes() [0] == Timepoint.class ) {
           setValueMethod1 = m;
         }
       }
@@ -395,7 +496,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public static Method getSetValueMethod2() {
     if ( setValueMethod2 == null ) {
       for ( Method m : TimeVaryingMap.class.getMethods() ) {
-        if (m.getName().equals("setValue") && m.getParameterTypes() != null && m.getParameterTypes().length == 2 && m.getParameterTypes() [1] == Integer.class) {
+        if ( m.getName().equals("setValue") && m.getParameterTypes() != null
+             && m.getParameterTypes().length == 2 
+             && m.getParameterTypes() [0] == Integer.class) {
           setValueMethod2 = m;
         }
       }
@@ -405,7 +508,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public boolean isApplied( Effect effect ) {
-	return isApplied(effect, getSetValueMethod1(), getSetValueMethod2());
+    return isApplied(effect, getSetValueMethod1(), getSetValueMethod2());
   }
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     if ( !( effect instanceof EffectFunction ) ) {
@@ -416,7 +519,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     boolean isMethod2 =  effectFunction.method.equals( method2);
     if ( isMethod1  || isMethod2 ) {
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
-        Object t = (Timepoint)effectFunction.arguments.get( 0 );
+        Object t = effectFunction.arguments.get( 0 );
         Object o = effectFunction.arguments.get( 1 );
         T value = null;
         try {
@@ -425,11 +528,25 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
           //e.printStackTrace();
         }
         if ( value != null ) {
-          if (isMethod1){
-        	return value.equals( getValue( (Timepoint) t ) );
+          if ( t instanceof Timepoint ) {
+            return hasValueAt( value, (Timepoint)t );
+          } if ( t instanceof Integer ) {
+            return hasValueAt( value, (Integer)t );
           }
-          return value.equals(getValue((Integer) t));
         }
+//          if ( isMethod1 || t instanceof Timepoint ) {
+//            return hasValueAt( value, t );
+//            return value.equals( getValue( (Timepoint) t ) );
+//          }
+//          if ( t instanceof Integer ) {
+//            return value.equals(getValue((Integer) t));
+//          } else if ( t instanceof Parameter ) {
+//            Object v = ((Parameter<?>)t).getValueNoPropagate();
+//            if ( v instanceof Integer ) {
+//              return value.equals(getValue((Integer)v));
+//            }
+//          }
+//        }
       }
     }
     return false;

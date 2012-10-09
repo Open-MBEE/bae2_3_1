@@ -31,7 +31,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public Set< Variable< ? > > getVariables() {
-    return ParameterConstraint.Helper.getVariables( this );
+    return ParameterConstraint.Helper.getVariables( this, false, null );
   }
 
   /* (non-Javadoc)
@@ -55,7 +55,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public < T > boolean isFree( Variable< T > v ) {
-    return ParameterConstraint.Helper.isFree( this, v );
+    return ParameterConstraint.Helper.isFree( this, v, false, null );
   }
 
   /* (non-Javadoc)
@@ -63,7 +63,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public < T > boolean isDependent( Variable< T > v ) {
-    return ParameterConstraint.Helper.isDependent( this, v );
+    return ParameterConstraint.Helper.isDependent( this, v, false, null );
   }
 
   /* (non-Javadoc)
@@ -71,7 +71,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    return ParameterConstraint.Helper.getFreeVariables( this );
+    return ParameterConstraint.Helper.getFreeVariables( this, false, null );
   }
 
   /* (non-Javadoc)
@@ -79,7 +79,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public void setFreeVariables( Set< Variable< ? >> freeVariables ) {
-    ParameterConstraint.Helper.setFreeVariables( this, freeVariables );
+    ParameterConstraint.Helper.setFreeVariables( this, freeVariables, false, null );
   }
 
   /* (non-Javadoc)
@@ -107,7 +107,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public boolean isStale() {
-    return ParameterConstraint.Helper.isStale( this, false );
+    return ParameterConstraint.Helper.isStale( this, false, null );
   }
 
   /* (non-Javadoc)
@@ -122,13 +122,15 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean)
    */
   @Override
-  public abstract Set< Parameter< ? >> getParameters( boolean deep );
+  public abstract Set< Parameter< ? >> getParameters( boolean deep,
+                                                      Set<HasParameters> seen);
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.HasParameters#getFreeParameters(boolean)
    */
   @Override
-  public Set< Parameter< ? >> getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? >> getFreeParameters( boolean deep,
+                                                 Set<HasParameters> seen ) {
     return freeParameters;
   }
 
@@ -144,17 +146,19 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    * @see gov.nasa.jpl.ae.event.HasParameters#isFreeParameter(gov.nasa.jpl.ae.event.Parameter, boolean)
    */
   @Override
-  public boolean isFreeParameter( Parameter< ? > parameter, boolean deep ) {
+  public boolean isFreeParameter( Parameter< ? > parameter, boolean deep,
+                                  Set<HasParameters> seen ) {
     //return ParameterConstraint.Helper.isFreeParameter( this, parameter, deep );
-    return getFreeParameters( deep ).contains( parameter);
+    return getFreeParameters( deep, seen ).contains( parameter);
   }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.HasParameters#hasParameter(gov.nasa.jpl.ae.event.Parameter, boolean)
    */
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return ParameterConstraint.Helper.hasParameter( this, parameter, deep );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set<HasParameters> seen ) {
+    return ParameterConstraint.Helper.hasParameter( this, parameter, deep, seen );
   }
 
   /* (non-Javadoc)
@@ -162,7 +166,8 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    */
   @Override
   public boolean
-      substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
+      substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                  Set<HasParameters> seen ) {
     Assert.assertTrue( "This method is not yet supported!", false );
     //return ParameterConstraint.Helper.substitute( this, p2, p2, deep );
     return false;

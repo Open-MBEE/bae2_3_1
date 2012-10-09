@@ -58,6 +58,7 @@ public class EventInvocation implements HasParameters {
   }
 
   public Event invoke() {
+    Debug.outln( "invoke(): " + this );
     Event event = constructEvent();
     event.setName( eventName );
     
@@ -286,33 +287,50 @@ public class EventInvocation implements HasParameters {
   }  
 
   @Override
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
-    return HasParameters.Helper.getParameters( getArguments(), deep );
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    return HasParameters.Helper.getParameters( getArguments(), deep, seen );
   }
 
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
     for ( Object a : getArguments() ) {
       if ( a instanceof HasParameters )
-      s.addAll( ((HasParameters)a).getFreeParameters( deep ) );
+      s.addAll( ((HasParameters)a).getFreeParameters( deep, seen ) );
     }
     return s;
   }
 
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? >> freeParams,
+                                 boolean deep,
+                                 Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   
   @Override
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep ) {
-    return HasParameters.Helper.substitute( getArguments(), p1, p2, deep );
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                             Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    return HasParameters.Helper.substitute( getArguments(), p1, p2, deep, seen );
   }
 
   @Override
   public boolean isStale() {
-    return HasParameters.Helper.isStale( getArguments(), false );
+    return HasParameters.Helper.isStale( getArguments(), false, null );
   }
 
   @Override
@@ -322,13 +340,15 @@ public class EventInvocation implements HasParameters {
   }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set< HasParameters > seen ) {
+    return getParameters( deep, seen ).contains( parameter );
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
-    return getFreeParameters( deep ).contains( p );
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set< HasParameters > seen ) {
+    return getFreeParameters( deep, seen ).contains( p );
 //    // REVIEW -- Is this just done by Events? Maybe throw
 //    // assertion that this method id not supported for ElaborationRule.
 //    return false;

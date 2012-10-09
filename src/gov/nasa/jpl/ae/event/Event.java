@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -64,13 +65,13 @@ public interface Event extends HasConstraints {
   /**
    * @return the parameters
    */
-  public SortedSet< Parameter< ? >> getParameters();
+  public List< Parameter< ? > > getParameters();
 
   /**
    * @param parameters
    *          the parameters to set
    */
-  public void setParameters( SortedSet< Parameter< ? >> parameters );
+  public void setParameters( List< Parameter< ? > > parameters );
 
   /**
    * @return the effects

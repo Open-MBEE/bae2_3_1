@@ -3,13 +3,16 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
+
 import java.util.Set;
 import java.util.TreeSet;
 
 import junit.framework.Assert;
 
 /**
- * @author bclement
  *
  */
 public class EffectInstance implements HasParameters {
@@ -45,47 +48,69 @@ public class EffectInstance implements HasParameters {
   public boolean isStale() {
     if ( startTime != null && startTime.isStale() ) return true;
     if ( duration != null && duration.isStale() ) return true;
-    return HasParameters.Helper.isStale( effect, false );
+    return HasParameters.Helper.isStale( effect, false, null );
   }
   @Override
   public void setStale( boolean staleness ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   @Override
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.add( startTime );
     set.add( duration );
     if ( deep ) {
-      set.addAll( HasParameters.Helper.getParameters( effect, deep ) );
+      set.addAll( HasParameters.Helper.getParameters( effect, deep, seen ) );
     }
     return set;
   }
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
     return null;
   }
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? >> freeParams,
+                                 boolean deep,
+                                 Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
-    if ( HasParameters.Helper.isFreeParameter( startTime, p, deep ) ) return true;
-    if ( HasParameters.Helper.isFreeParameter( duration, p, deep ) ) return true;
-    if ( HasParameters.Helper.isFreeParameter( effect, p, deep ) ) return true;
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    if ( HasParameters.Helper.isFreeParameter( startTime, p, deep, null ) ) return true;
+    if ( HasParameters.Helper.isFreeParameter( duration, p, deep, null ) ) return true;
+    if ( HasParameters.Helper.isFreeParameter( effect, p, deep, null ) ) return true;
     return false;
   }
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( startTime == parameter ) return true;
     if ( duration == parameter ) return true;
-    return HasParameters.Helper.hasParameter( effect, parameter, deep );
+    return HasParameters.Helper.hasParameter( effect, parameter, deep, null );
   }
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
-                             boolean deep ) {
+                             boolean deep, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     if ( startTime == p1 ) {
       startTime = (Timepoint)p2;
@@ -95,7 +120,7 @@ public class EffectInstance implements HasParameters {
       duration = (Duration)p2;
       subbed = true;
     }
-    if ( HasParameters.Helper.substitute( effect, p1, p2, deep ) ) {
+    if ( HasParameters.Helper.substitute( effect, p1, p2, deep, seen ) ) {
       subbed = true;
     }
     return subbed;

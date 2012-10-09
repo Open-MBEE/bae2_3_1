@@ -15,6 +15,7 @@ import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 
@@ -133,13 +134,18 @@ public class Dependency< T >
   }
 
   @Override
-  public boolean substitute( Parameter< ? > t1, Parameter< ? > t2, boolean deep ) {
+  public boolean substitute( Parameter< ? > t1, Parameter< ? > t2, boolean deep,
+                             Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     if ( parameter == t1 ) {
       parameter = (Parameter< T >)t2;
       subbed = true;
     }
-    if ( expression.substitute( t1, t2, deep ) ) {
+    if ( expression.substitute( t1, t2, deep, seen ) ) {
       subbed = true;
     }
     return subbed;
@@ -147,23 +153,34 @@ public class Dependency< T >
 
   // Gather the parameters of the expression and the dependent parameter.
   @Override
-  public Set< Parameter< ? > > getParameters( boolean deep ) {
+  public Set< Parameter< ? > > getParameters( boolean deep,
+                                              Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.add( parameter );
-    set.addAll( expression.getParameters( deep ) );
+    set.addAll( expression.getParameters( deep, seen ) );
     return set;
   }
 
   // Add all parameters except the dependent parameter.
   @Override
-  public Set< Parameter< ? > > getFreeParameters( boolean deep ) {
+  public Set< Parameter< ? > > getFreeParameters( boolean deep,
+                                                  Set< HasParameters > seen) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     TreeSet< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
-    set.addAll( expression.getParameters( deep ) );
+    set.addAll( expression.getParameters( deep, seen ) );
     return set;
   }
 
   @Override
-  public void setFreeParameters( Set< Parameter< ? >> freeParams ) {
+  public void setFreeParameters( Set< Parameter< ? >> freeParams, boolean deep,
+                                 Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
     // TODO Auto-generated method stub
   }
@@ -171,7 +188,7 @@ public class Dependency< T >
   @Override
   public Set< Variable< ? > > getVariables() {
     Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-    s.addAll( getParameters( true ) );
+    s.addAll( getParameters( true, null ) );
     return s;
   }
 
@@ -204,7 +221,7 @@ public class Dependency< T >
       return changedSomething;
     }
     if ( variable instanceof Parameter
-         && !hasParameter( (Parameter< T1 >)variable, false ) ) {
+         && !hasParameter( (Parameter< T1 >)variable, false, null ) ) {
       return false;
     }
     Constraint c = getConstraintExpression();
@@ -290,7 +307,7 @@ public class Dependency< T >
 
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( getParameters( true ).contains( parameter ) ) {
+    if ( getParameters( true, null ).contains( parameter ) ) {
       apply( false );
     }
   }
@@ -348,27 +365,53 @@ public class Dependency< T >
 
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
-    if ( expression.hasParameter( changedParameter, false ) ) {
+    if ( expression.hasParameter( changedParameter, false, null ) ) {
       parameter.setStale( true );
     }
   }
 
   @Override
-  public boolean hasParameter( Parameter< ? > parameter, boolean deep ) {
-    return getParameters( deep ).contains( parameter );
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    return getParameters( deep, seen ).contains( parameter );
   }
 
   @Override
-  public boolean isFreeParameter( Parameter< ? > p, boolean deep ) {
+  public boolean isFreeParameter( Parameter< ? > p, boolean deep,
+                                  Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( p == parameter ) return false;
-    return expression.isFreeParameter( p, deep );
+    return expression.isFreeParameter( p, deep, seen );
   }
 
   @Override
-  public Collection< Constraint > getConstraints() {
-    
-    // TODO Auto-generated method stub
-    return null;
+  public Collection< Constraint > getConstraints( boolean deep,
+                                                  Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    Set< Constraint > set = new TreeSet< Constraint >();
+    set.add( this );
+    if ( deep ) {
+      Set< Constraint > pSet =
+          HasConstraints.Helper.getConstraints( getParameters( false, null ),
+                                                deep, seen );
+      if ( pSet.size() > set.size() ) {
+        pSet.addAll( set );
+        set = pSet;
+      } else {
+        set.addAll( pSet );
+      }
+    }
+    return set;
   }
 
 //  /* (non-Javadoc)

@@ -248,7 +248,7 @@ public class Functions {
                     && !( ( (Expression)arg ).expression instanceof Parameter )
                     && variable instanceof Parameter ) {
           if ( ( (Expression< T1 >)arg ).hasParameter( (Parameter< T1 >)variable,
-                                                       false ) ) {
+                                                       false, null ) ) {
             newValue = variable.pickRandomValue();
           }
         } else if ( arg instanceof Variable ) {
@@ -594,7 +594,7 @@ public class Functions {
                   && !( ( (Expression)arg ).expression instanceof Parameter )
                   && variable instanceof Parameter ) {
         if ( ( (Expression< T1 >)arg ).hasParameter( (Parameter< T1 >)variable,
-                                                     false ) ) {
+                                                     false, null ) ) {
           newValue = variable.pickRandomValue();
         }
       } else if ( arg instanceof Variable ) {

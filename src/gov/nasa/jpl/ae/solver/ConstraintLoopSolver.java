@@ -30,13 +30,13 @@ public class ConstraintLoopSolver implements Solver {
   @Override
   public boolean solve( Collection< Constraint > constraints ) {
     Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
-    double startTime = System.currentTimeMillis();
+    //double startTime = System.currentTimeMillis();
     
     unsatisfiedConstraints.clear();
     
     unsatisfiedConstraints.addAll( constraints );
-    Debug.outln( "ConstraintLoopSolver.solve(" + constraints
-                 + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
+//    Debug.outln( "ConstraintLoopSolver.solve(" + constraints
+//                 + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
     int numConstrs = unsatisfiedConstraints.size();
     int lastSize = -1;
     while ( //System.currentTimeMillis() - startTime > timeOutMilliseconds
@@ -62,6 +62,7 @@ public class ConstraintLoopSolver implements Solver {
       }
       numConstrs = unsatisfiedConstraints.size();
     }
+    Debug.outln( "ConstraintLoopSolver.solve() returning with " + unsatisfiedConstraints.size() + " unsatisfied constraints: " + unsatisfiedConstraints );
     return unsatisfiedConstraints.isEmpty();
   }
 

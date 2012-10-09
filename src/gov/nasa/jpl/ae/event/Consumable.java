@@ -119,12 +119,12 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   public void initializeFromDeltaMap( TimeVaryingMap< Double > deltaMap ) {
     clear();
-    double summedValue = 0.0;
+//    double summedValue = 0.0;
     for ( java.util.Map.Entry< Timepoint, Double > e : deltaMap.entrySet() ) {
-      if ( e.getValue() != null && e.getValue() != 0 ) {
-        summedValue += e.getValue();
-      }
-      put( e.getKey(), summedValue );
+//      if ( e.getValue() != null && e.getValue() != 0 ) {
+//        summedValue += e.getValue();
+//      }
+      add( e.getKey(), e.getValue() ); //summedValue );
     }
   }
   
