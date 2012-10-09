@@ -60,8 +60,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public Timepoint endTime = new Timepoint( "endTime", this );
   // TODO -- REVIEW -- create TimeVariableParameter and EffectMap classes for
   // effects?
-  protected Map< Parameter< ? >, Set< Effect > > effects =
-      new TreeMap< Parameter< ? >, Set< Effect > >();
+  protected List< Pair< Parameter< ? >, Set< Effect > > > effects =
+      new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
   protected Map< ElaborationRule, Vector< Event > > elaborations =
       new TreeMap< ElaborationRule, Vector< Event > >();
 
@@ -201,24 +201,38 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     @Override
     public boolean satisfy() {
       boolean satisfied = true;
-      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
-        Set< Effect > set = entry.getValue();
-        Parameter< ? > variable = entry.getKey();
+//      List< Pair< Parameter< ? >, Set< Effect > > > list =
+//          new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
+//      for ( Entry< Parameter< ? >, Set< Effect > > er : effects.entrySet() ) {
+//        list.add( new Pair< Parameter< ? >, Set< Effect > >( er.getKey(),
+//                                                             er.getValue() ) );
+//      }
+//      effects.clear();
+      for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
+        Parameter< ? > variable = p.first;
+        Set< Effect > set = p.second;
+//      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
+//        Set< Effect > set = entry.getValue();
+//        Parameter< ? > variable = entry.getKey();
         if (variable.getName().contains("21")){
         	System.out.println("Blaah");
         }
         if ( !satisfyEffectsOnTimeVarying( variable, set ) ) {
           satisfied = false;
         }
+        //effects.put( variable, set );
       }
       return satisfied;
     }
     
     @Override
     public boolean isSatisfied() {
-      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
-        Set< Effect > set = entry.getValue();
-        Parameter< ? > variable = entry.getKey();
+      for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
+        Parameter< ? > variable = p.first;
+        Set< Effect > set = p.second;
+//      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
+//        Set< Effect > set = entry.getValue();
+//        Parameter< ? > variable = entry.getKey();
         if (variable.getName().contains("21")){
         	System.out.println("Blaah");
         }
@@ -230,14 +244,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     @Override
-    public Set< Parameter< ? >> getParameters( boolean deep,
+    public Set< Parameter< ? > > getParameters( boolean deep,
                                                Set<HasParameters> seen ) {
       Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
       if ( pair.first ) return Utils.getEmptySet();
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
       Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
-      for ( Set< Effect > set : getEffects().values() ) {
+      for ( Set< Effect > set : Pair.getSeconds( getEffects() ) ) {//.values() ) {
         for ( Effect e : set ) {
           if ( e instanceof HasParameters ) {
             s.addAll( ( (HasParameters)e ).getParameters( deep, seen ) );
@@ -305,11 +319,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       ConstraintExpression nc = new ConstraintExpression( c );
       constraintExpressions.add( nc );
     }
-    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
-          durativeEvent.effects.entrySet() ) {
+//    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
+//          durativeEvent.effects.entrySet() ) {
+    for ( Pair< Parameter< ? >, Set< Effect > > p : durativeEvent.effects ) {
       Set< Effect > ns = new HashSet< Effect >();
       try {
-        for ( Effect eff : e.getValue() ) {
+        for ( Effect eff : p.second ) {
           Effect ne = eff.clone();
           ns.add( ne );
         }
@@ -317,8 +332,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         // TODO Auto-generated catch block
         e1.printStackTrace();
       }
-      effects.put( (Parameter< ? >)e.getKey().clone(),
-                   ns );
+      effects.add( new Pair< Parameter< ? >, Set< Effect >>( (Parameter< ? >)p.first.clone(),
+                                                             ns ) );
     }
     for ( Dependency< ? > d : durativeEvent.dependencies ) {
       Dependency< ? > nd = new Dependency( d );
@@ -526,17 +541,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     
     // TODO -- REVIEW -- ???
-    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
-          effects.entrySet() ) {
+    for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
+//    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
+//          effects.entrySet() ) {
       TimeVarying< ? > tv = null;
-      if ( e.getKey().getValue() instanceof Parameter && !(e.getKey().getValue() instanceof TimeVarying ) ) {
+      if ( p.first.getValue() instanceof Parameter && !(p.first.getValue() instanceof TimeVarying ) ) {
         // TODO -- This is weird!!
-        Debug.errln("Warning! Parameter inside effect parameter! " + e.getKey() );
-        tv = (TimeVarying< ? >)(((Parameter)e.getKey().getValue()).getValue());
+        Debug.errln("Warning! Parameter inside effect parameter! " + p.first );
+        tv = (TimeVarying< ? >)(((Parameter< ? >)p.first.getValue()).getValue());
       } else {
-        tv = (TimeVarying< ? >)e.getKey().getValue();
+        tv = (TimeVarying< ? >)p.first.getValue();
       }
-      for ( Effect eff : e.getValue() ) {
+      for ( Effect eff : p.second ) {
         eff.applyTo( tv, false ); //, startTime, duration );
       }
     }
@@ -606,23 +622,54 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                                         enclosingInstance, null ),
                                eventClass, eventName, arguments );
   }
-    /* (non-Javadoc)
+  
+  /* (non-Javadoc)
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
   @Override
   public void addEffect( Parameter< ? > sv,
                          Object obj, Method effectFunction,
                          Vector< Object > arguments ) {
+    assert sv != null;
     Effect e = new EffectFunction( obj, effectFunction, arguments );
+    addEffect( sv, e );
+  }
+  
+  public void addEffect( Parameter< ? > sv, Effect e ) {
     Set< Effect > effectSet = null;
-    if ( effects.containsKey( sv ) ) {
-      effectSet = effects.get( sv );
+    //Pair< Parameter< ? >, Set< Effect >> p = null;
+    for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
+      if ( Parameter.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
+        //p = pp;
+        effectSet = pp.second;
+        break;
+      }
     }
+//    if ( p != null ) {
+////    if ( effects.containsKey( sv ) ) {
+//      effectSet = p.second; //effects.get( sv );
+//    }
     if ( effectSet == null ) {
       effectSet = new HashSet< Effect >();
-      effects.put( sv, effectSet );
+      effects.add( new Pair< Parameter< ? >, Set< Effect > >( sv, effectSet ) );
     }
     effectSet.add( e );
+  }
+
+  public void addEffects( Parameter< ? > sv, Set<Effect> set ) {
+    Set< Effect > effectSet = null;
+    for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
+      if ( Parameter.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
+        effectSet = pp.second;
+        break;
+      }
+    }
+    if ( effectSet == null ) {
+      effectSet = set;
+      effects.add( new Pair< Parameter< ? >, Set< Effect > >( sv, effectSet ) );
+    } else {
+      effectSet.addAll( set );
+    }
   }
 
   /* (non-Javadoc)
@@ -798,9 +845,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   public void detach() {
-    for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
-      Parameter< ? > tvp = entry.getKey();
-      for ( Effect e : entry.getValue() ) {
+    for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
+      Parameter< ? > tvp = p.first;
+      Set< Effect > set = p.second;
+//    for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
+//      Parameter< ? > tvp = entry.getKey();
+      for ( Effect e : set ) {
         // TODO -- Has unApplyTo() been implemented?
         if ( tvp.getValue() instanceof Parameter ) {
           e.unApplyTo( (TimeVarying< ? >)( (Parameter< ? >)tvp.getValue() ).getValue() );
@@ -907,7 +957,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see event.Event#getEffects()
    */
   @Override
-  public Map< Parameter< ? >, Set< Effect > > getEffects() {
+  public List< Pair< Parameter< ? >, Set< Effect > > > getEffects() {
     return effects;
   }
 
@@ -915,7 +965,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see event.Event#setEffects(java.util.SortedMap)
    */
   @Override
-  public void setEffects( SortedMap< Parameter< ? >, Set< Effect > > effects ) {
+  public void setEffects( List< Pair< Parameter< ? >, Set< Effect > > > effects ) {
     this.effects = effects;
   }
 
@@ -1003,22 +1053,22 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
 
-//    Iterator< Entry< Parameter< ? >, Set< Effect >>> i =  
-//        getEffects().entrySet().iterator();
-//    Map< Parameter< ? >, Set< Effect >> removedForReinserting =
-//        new TreeMap< Parameter< ? >, Set< Effect > >();
-    ArrayList< Pair< Parameter< ? >, Set< Effect > > > a =
-        new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
-    for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
-      a.add( new Pair< Parameter< ? >, Set< Effect > >( e.getKey(), e.getValue() ) );
-    }
-    getEffects().clear();
-//    while ( i.hasNext() ) {
-//      Entry< Parameter< ? >, Set< Effect > > e = i.next();
-//    //for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
-//      // Temporarily remove in case propagation in TimeVarying can corrupt entry keys.
-//      //getEffects().entrySet().remove( e );
-    for ( Pair< Parameter< ? >, Set< Effect > > p : a ) {
+////    Iterator< Entry< Parameter< ? >, Set< Effect >>> i =  
+////        getEffects().entrySet().iterator();
+////    Map< Parameter< ? >, Set< Effect >> removedForReinserting =
+////        new TreeMap< Parameter< ? >, Set< Effect > >();
+//    ArrayList< Pair< Parameter< ? >, Set< Effect > > > a =
+//        new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
+//    for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
+//      a.add( new Pair< Parameter< ? >, Set< Effect > >( e.getKey(), e.getValue() ) );
+//    }
+//    getEffects().clear();
+////    while ( i.hasNext() ) {
+////      Entry< Parameter< ? >, Set< Effect > > e = i.next();
+////    //for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
+////      // Temporarily remove in case propagation in TimeVarying can corrupt entry keys.
+////      //getEffects().entrySet().remove( e );
+    for ( Pair< Parameter< ? >, Set< Effect > > p : getEffects() ) {
       Parameter< ? > tlParam = p.first;
 //      Parameter< ? > tlParam = e.getKey();
       assert tlParam != null;
@@ -1051,7 +1101,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           effect.unApplyTo( timeline ); // , startTime, duration );
           effect.applyTo( timeline, true ); // , startTime, duration );
         }
-        getEffects().put( tlParam, effectSet );
+//        getEffects().put( tlParam, effectSet );
         //getEffects().put( e.getKey(), e.getValue() );
       }
     }

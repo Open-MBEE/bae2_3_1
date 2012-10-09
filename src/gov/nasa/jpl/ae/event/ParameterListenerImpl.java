@@ -41,7 +41,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 10.0;
-  protected long numIterations = 5;
+  protected long numIterations = 20;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 

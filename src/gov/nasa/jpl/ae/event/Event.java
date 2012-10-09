@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.util.Pair;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -76,13 +77,13 @@ public interface Event extends HasConstraints {
   /**
    * @return the effects
    */
-  public Map< Parameter< ? >, Set< Effect > > getEffects();
+  public List< Pair< Parameter< ? >, Set< Effect > > > getEffects();
 
   /**
    * @param effects
    *          the effects to set
    */
-  public void setEffects( SortedMap< Parameter< ? >, Set< Effect > > effects );
+  public void setEffects( List< Pair< Parameter< ? >, Set< Effect > > > effects );
 
   /**
    * @return the constraints

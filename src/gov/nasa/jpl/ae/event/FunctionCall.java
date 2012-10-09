@@ -404,6 +404,11 @@ public class FunctionCall implements HasParameters, Groundable {
         Object a = arguments.get( i );
         if ( a instanceof Parameter< ? > ) {
           set.add( (Parameter< ? >)a );
+        } else if ( !deep && a instanceof Expression ) {
+          Expression<?> e = (Expression<?>)a;
+          if ( e.type == Type.Parameter ) {
+            set.add( (Parameter< ? >)e.expression );
+          }
         }
         if ( deep && a instanceof HasParameters ) {
           HasParameters gotParameters = (HasParameters)a;

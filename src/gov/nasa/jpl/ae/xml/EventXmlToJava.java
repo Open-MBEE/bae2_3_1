@@ -1197,7 +1197,7 @@ public class EventXmlToJava {
     // TODO -- correct for effects?
     if ( effects != null ) {
       stmtList =  
-          createEffectStmtsFromFieldCollection( "effects.put( (Parameter< ? >)", effects, " );\n" );
+          createEffectStmtsFromFieldCollection( "addEffects( (Parameter< ? >)", effects, " );\n" );
     }
     addStmts( block, stmtList );
 
