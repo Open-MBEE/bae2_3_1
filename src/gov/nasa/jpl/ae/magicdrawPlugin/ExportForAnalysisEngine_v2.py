@@ -508,7 +508,7 @@ class actionEventClass(object):
 		classType = str(actionNode.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (actionNode.name,classType,actionNode.owner.name)
 		(self.invokeDict,self.invokedInvoker,self.invokedFlow,self.flowObject,self.invokerInvoked,self.invokerFlow,self.flowTypes,self.feet,self.allSignals,self.nexts,self.prevs) = dicts
-		gl.log("FEET: " + str(self.feet))
+		#gl.log("FEET: " + str(self.feet))
 		self.name = actionNode.name
 		gl.log("MY NAME IS: %s : %s [%s]" % (actionNode.name, actionNode.humanType,actionNode.getID()))
 		self.actionType = actionNode.humanType
@@ -901,7 +901,7 @@ class actionEventClass(object):
 			#self.effects.append(node.object.getID() + ".start()")
 			inc = node.object.incoming[0]
 			#gl.log(inc.getID())
-			flowThing = self.flowObject[node.object.incoming[0]]
+			flowThing = self.feet[inc]
 			if flowThing: 
 				if isinstance(flowThing,Element):
 					gl.log("ELABORATION= " + str(flowThing) + flowThing.name + node.name)
