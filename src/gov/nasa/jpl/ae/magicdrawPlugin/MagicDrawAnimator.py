@@ -56,8 +56,7 @@ class highlighterThread(Thread):
         mode = 0
         if mode == 0:
             mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
-            #filepath = "/Users/mjackson/Desktop/TinySim.txt"
-            filepath = "/Users/mjackson/Desktop/MedSim.txt"
+            filepath = "c:\\Users\\bclement\\Desktop\\foo.txt"
             #gl.log(filepath)
             f = open(filepath,"r")
             for line in f.readlines():
@@ -65,22 +64,22 @@ class highlighterThread(Thread):
                 x = re.search(" (\S*) -> (\S*)\s*(\S*) ==>",line)
                 if x: 
                     action=x.groups()[1]
-                    id = x.groups()[2]
-                    type = x.groups()[0]
+                    cid = x.groups()[2]
+                    ctype = x.groups()[0]
                 else: continue
-                gl.log("%s %s (%s)" % (action.upper(), id, type))
-                if any([x in id for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
+                gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
+                if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
                     gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap or ObjectFlow")
                     continue
-                if re.search("(_)?Activity(_.*)?(?!\S)",type): 
+                if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
                     gl.log("    ---> Skipping - can't animate the Activity object!")
                     continue
                 if "start" in action: 
                     gl.log("    ---> STARTING")
-                    mda.start(id)
+                    mda.start(cid)
                 elif "end" in action: 
                     gl.log("    ---> ENDING")
-                    mda.end(id)
+                    mda.end(cid)
                 time.sleep(1)
         
         elif mode == 1:

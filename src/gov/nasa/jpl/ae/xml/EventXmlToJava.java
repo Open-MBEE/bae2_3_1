@@ -35,6 +35,7 @@ import japa.parser.ast.type.Type;
 import japa.parser.ast.type.VoidType;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
@@ -51,6 +52,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
@@ -123,6 +126,9 @@ public class EventXmlToJava {
   // The source XML document.
   protected Document xmlDocDOM = null;
 
+  // The top level XML DOM node
+  Node scenarioNode = null;
+  
   // The long name of the class currently being processed.
   protected String currentClass = null;
 
@@ -158,6 +164,8 @@ public class EventXmlToJava {
   // written in {PROJECT}/src.
   protected String packageName = "generated";
   
+  String xmlFileName = "exampleDRScenario.xml";
+  
   // This is for handling class names outside Java syntax.
   protected NameTranslator nameTranslator = new NameTranslator();
 
@@ -168,21 +176,51 @@ public class EventXmlToJava {
   demandResponse.Customer c = new Customer( "stupid class loader" );
   ObjectFlow<Object> o = new ObjectFlow< Object >( "stupid class loader" );
 
-  protected JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-  protected StandardJavaFileManager fileManager =
-      ( compiler == null ? null : compiler.getStandardFileManager(null, null, null) );
+  protected JavaCompiler compiler = null;
+  protected StandardJavaFileManager fileManager = null;
+
+  public JavaCompiler getCompiler() {
+    if ( compiler == null ) {
+      compiler = ToolProvider.getSystemJavaCompiler();
+    }
+    return compiler;
+  }
+
+  public StandardJavaFileManager getFileManager() {
+    if ( fileManager == null ) {
+      fileManager = ( getCompiler() == null ? null : getCompiler().getStandardFileManager(null, null, null) );
+    }
+    return fileManager;
+  }
 
   protected ClassLoader loader = null;
   protected Class<?> mainClass = null;
 
   protected DurativeEvent mainInstance = null;
 
-  public EventXmlToJava( String xmlFileName, String pkgName )
-      throws ParserConfigurationException, SAXException, IOException {
+  public EventXmlToJava( String xmlFileName, String pkgName, boolean translate )
+    throws ParserConfigurationException, SAXException, IOException {
+    this.xmlFileName = xmlFileName;
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
       System.out.println("package name = " + this.packageName );
     }
+    init();
+    if ( translate ) {
+      translate();
+    }
+  }
+  public EventXmlToJava( String xmlFileName, String pkgName )
+      throws ParserConfigurationException, SAXException, IOException {
+    this.xmlFileName = xmlFileName;
+    if ( pkgName != null && !pkgName.equals( "" ) ) {
+      this.packageName = pkgName;
+      System.out.println("package name = " + this.packageName );
+    }
+    init();
+    translate();
+  }
+  public void init() throws ParserConfigurationException, SAXException, IOException {
 
     // Translate XML to a DOM Document.
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -199,7 +237,7 @@ public class EventXmlToJava {
                           + "Continuing anyway." );
     }
 
-    Node scenarioNode = XmlUtils.findNode( xmlDocDOM, "scenario" );
+    scenarioNode = XmlUtils.findNode( xmlDocDOM, "scenario" );
     Assert.assertNotNull( scenarioNode );
     
     // get units
@@ -233,7 +271,11 @@ public class EventXmlToJava {
     
     // build tables
     buildParamTable( xmlDocDOM, paramTable );
-    buildMethodTable( xmlDocDOM, methodTable );
+    buildMethodTable( xmlDocDOM, methodTable );  
+  }
+  
+  public void translate()
+      throws ParserConfigurationException, SAXException, IOException {
     
     // process classes first
     processClassDeclarations( scenarioNode, null, "classes", false );//, false );
@@ -2839,16 +2881,118 @@ public class EventXmlToJava {
     }
   }
 
+  public static List< String > getClassNamesFromJARFile( String jar,
+                                                         String packageName ) {
+    List< String > classNames = new ArrayList< String >();
+    List< Class< ? > > classes = getClassesFromJARFile( jar, packageName );
+    if ( !Utils.isNullOrEmpty( classes ) ) {
+      for ( Class< ? > c : classes ) {
+        classNames.add( c.getName() );
+      }
+    }
+    return classNames;
+  }
+
+  public static List<Class<?>>
+      getClassesFromJARFile( String jar, String packageName ) throws Error {
+    final List<Class<?>> classes = new ArrayList<Class<?>>();
+    JarInputStream jarFile = null;
+    try {
+      jarFile = new JarInputStream( new FileInputStream( jar ) );
+      JarEntry jarEntry = null;
+      do {
+        try {
+          jarEntry = jarFile.getNextJarEntry();
+        } catch ( IOException ioe ) {
+          System.err.println( "Unable to get next jar entry from jar file '"
+                              + jar + "' -- " +  ioe );
+        }
+        if ( jarEntry != null ) {
+          extractClassFromJar( jar, packageName, classes, jarEntry );
+        }
+      } while ( jarEntry != null );
+      closeJarFile( jarFile );
+    } catch ( IOException ioe ) {
+      System.err.println( "Unable to get Jar input stream from '" + jar
+                          + "' -- " + ioe );
+    } finally {
+      closeJarFile( jarFile );
+    }
+    return classes;
+  }
+
+  private static void
+      extractClassFromJar( final String jar, final String packageName,
+                           final List<Class<?>> classes, JarEntry jarEntry ) throws Error {
+    String className = jarEntry.getName();
+    if ( className.endsWith( ".class" ) ) {
+      className =
+          className.substring( 0, className.length() - ".class".length() );
+      if ( className.startsWith( packageName ) ) {
+        try {
+          classes.add( Class.forName( className.replace( '/', '.' ) ) );
+        } catch ( ClassNotFoundException cnfe ) {
+          System.err.println( "unable to find class named "
+                              + className.replace( '/', '.' )
+                              + "' within jar '" + jar + "' -- " + cnfe );
+        }
+      }
+    }
+  }
+
+  private static void closeJarFile( final JarInputStream jarFile ) {
+    if ( jarFile != null ) {
+      try {
+        jarFile.close();
+      } catch ( IOException ioe ) {
+        System.err.println( "Failed to close Jar input stream '" + jarFile
+                            + "' -- " + ioe );
+      }
+    }
+  }
+
+  public static File[] getJavaFileList( File path ) {
+    File[] fileArr = null;
+    assert path.exists();
+    fileArr = path.listFiles();
+    return fileArr;
+  }
+  
+  public static File[] getJavaFileList( String javaPath ) {
+    File[] fileArr = null;
+    File path = new File(javaPath);
+    return getJavaFileList( path );
+  }
+  
   public File[] getJavaFiles( String javaPath, boolean sourceOrClass,
                               boolean justCurrentClasses ) {
     File[] fileArr = null;
     File path = new File(javaPath);
-    assert path.exists();
     if ( javaPath == null ) {
-      javaPath = "src" + File.separator + this.packageName;
+      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + this.packageName;
+      File path2 = new File(javaPath);
+      if ( !path2.exists() && !sourceOrClass ) {
+        javaPath = "src" + File.separator + this.packageName;
+        path2 = new File(javaPath);
+      }
+      if ( path2.exists() ) {
+        path = path2;
+      }
     }
+    assert path.exists();
     if ( !justCurrentClasses ) {
-      fileArr = path.listFiles();
+      fileArr = getJavaFileList( path );
+      List<File> files = new ArrayList<File>();
+      for ( File f : fileArr ) {
+        if ( f.getName().endsWith( sourceOrClass ? ".java" : ".class" ) ) {
+          files.add( f );
+        }
+      }
+      fileArr = new File[ files.size() ];
+      int ctr = 0;
+      for ( File f : files ) {
+        fileArr[ ctr++ ] = f;
+      }
       return fileArr;
     }
 
@@ -2875,6 +3019,10 @@ public class EventXmlToJava {
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): about to get compilationUnits/java file objects for: "
                         + Utils.toString(fileArr) );
+    if ( getFileManager() == null ) {
+      System.err.println( "No StandardJavaFileManager to compile Java classes." );
+      return false;
+    }
     Iterable<? extends JavaFileObject> compilationUnits =
         fileManager.getJavaFileObjectsFromFiles(Arrays.asList(fileArr));
     System.out.println( "compileJavaFiles(" + javaPath
@@ -3010,8 +3158,20 @@ public class EventXmlToJava {
   }
 
   public DurativeEvent generateExecution() {
-    getMainInstance().execute();
-    return getMainInstance();
+    Debug.outln( "generateExecution(): begin()" );
+    DurativeEvent event = getMainInstance();
+    if ( event == null ) {
+      Debug.errln( "generateExecution(): null main instance! no execution!" );
+    } else {
+      try {
+        event.execute();
+      } catch ( Exception e ) {
+        Debug.errln( e.toString() );
+        e.printStackTrace();
+      }
+    }
+    Debug.outln( "generateExecution(): end()" );
+    return event;
   }
   
   public <T extends DurativeEvent> T generateExecution( Class<T> eventToExecute ) {

@@ -1,7 +1,6 @@
 '''
 Created on Sep 27, 2012
 
-@author: bclement
 '''
 
 from java.util import TreeSet as TreeSet
@@ -77,6 +76,7 @@ def doStuff():
     
 
 def main(argv=None):
+    print "Hello"
     if argv is None:
         argv = sys.argv
     retVal = processArgs(argv)

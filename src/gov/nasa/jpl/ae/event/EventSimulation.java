@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.SocketClient;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -19,8 +20,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import junit.framework.Assert;
 
@@ -28,7 +31,7 @@ import junit.framework.Assert;
  * @author bclement
  *
  */
-public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Object > > {
+public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Object, Object > > > {
 
   // Constants & Types
 
@@ -46,6 +49,25 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
 
     @Override
     public int compare( Object o1, Object o2 ) {
+      if ( o1 instanceof Pair && o2 instanceof Pair ) {
+        Pair< ?, ? > p1 = (Pair< ?, ? >)o1;
+        Pair< ?, ? > p2 = (Pair< ?, ? >)o2;
+        if ( Parameter.valuesEqual( p1.first, p2.first ) ) {
+          if ( Parameter.valuesEqual( p1.second, p2.second ) ) {
+            return 0;
+          }
+          if ( p1.second.toString().equals( "start" ) ) {
+            if ( p2.second.toString().equals( "end" ) ) {
+              return -1;
+            }
+          }
+          if ( p1.second.toString().equals( "end" ) ) {
+            if ( p2.second.toString().equals( "start" ) ) {
+              return 1;
+            }
+          }
+        }
+      }
       int compare = o1.toString().compareTo( o2.toString() );
       if ( compare != 0 ) return compare;
       return Utils.intCompare( o1.hashCode(), o2.hashCode() );
@@ -110,12 +132,22 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
   }
 
   protected boolean put( Integer time, Object variable, Object value ) {
-    Map< Object, Object > m = get( time );
+    Set< Pair< Object, Object > > m = get( time );
     if ( m == null ) {
-      m = new TreeMap< Object, Object >( new ObjectComparator() );
+      //m = new TreeMap< Object, Object >( new ObjectComparator() );
+      //m = new HashMap< Object, Object >();
+      m = new TreeSet< Pair< Object, Object > >( new ObjectComparator() );
       put( time, m );
     }
-    boolean existingEntry = ( m.put( variable, value ) != null );
+    Pair< Object, Object > p = new Pair< Object, Object >( variable, value );
+    //Object o = m.put( variable, value );
+    boolean existingEntry = m.contains( p );//( o != null );
+    m.add( p );
+    if ( existingEntry ) {
+      Debug.outln( "replaced existing entry: " + p );
+//    } else {
+//      Debug.outln( "did not replace entry" );
+    }
     return !existingEntry;
   }
   
@@ -212,8 +244,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
       //Debug.turnOff();
     }
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
-    for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
-      for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
+//    for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
+//      for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
+    for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e1 : entrySet() ) {
+      for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
         // Delay between events
         //Debug.outln("startClock = " + startClock );
@@ -244,8 +278,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
         
         // the event & value(s)
         int t = e1.getKey().intValue();
-        Object variable = e2.getKey();
-        Object value = e2.getValue();
+        Object variable = p.first; //e2.getKey();
+        Object value = p.second; //e2.getValue();
         if ( currentPlottableValues != null && currentPlottableValues.containsKey( variable ) ) {
           currentPlottableValues.put( variable, value );
         }
@@ -509,21 +543,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Map< Object, Ob
     // TODO Auto-generated constructor stub
   }
 
-  /**
-   * @param m
-   */
-  public EventSimulation( Map< ? extends Integer, ? extends Map< Object, Object > > m ) {
-    super( m );
-    // TODO Auto-generated constructor stub
-  }
-
-  /**
-   * @param m
-   */
-  public EventSimulation( SortedMap< Integer, ? extends Map< Object, Object > > m ) {
-    super( m );
-    // TODO Auto-generated constructor stub
-  }
+//  /**
+//   * @param m
+//   */
+//  public EventSimulation( Map< ? extends Integer, ? extends Map< Object, Object > > m ) {
+//    super( m );
+//    // TODO Auto-generated constructor stub
+//  }
+//
+//  /**
+//   * @param m
+//   */
+//  public EventSimulation( SortedMap< Integer, ? extends Map< Object, Object > > m ) {
+//    super( m );
+//    // TODO Auto-generated constructor stub
+//  }
 
 //  /**
 //   * @return the epochMillis

@@ -3,38 +3,96 @@ Created on Sep 5, 2012
 
 '''
 import os
-workspacePath = 'C:\\Users\\bclement\\workspace'
+workspacePath = 'C:\\Users\\bclement\\workspaceFresh'
 mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
 projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
-aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
-             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'LADWP'
-import sys
-sys.path.append(aePluginDir)
-sys.path.append(pluginSrcPath);
-sys.path.append(projectPath + os.sep + 'bin');
-sys.path.append(projectPath + os.sep + 'AE.jar');
+workspaceXmlPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
+                'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'xml'
+jpythonPath = mdPath + os.sep + 'plugins' + os.sep + \
+             'com.nomagic.magicdraw.jpython'
+jythonPath = jpythonPath + os.sep + "jython2.5.1"
+aePluginDir = jpythonPath + os.sep + 'scripts' + os.sep + 'LADWP'
+aeJar = projectPath + os.sep + 'AE.jar'
+jythonJar = jythonPath + os.sep + 'jython.jar'
+jpythonApiJar = jpythonPath + os.sep + 'jpython_api.jar'
 
-from gov.nasa.jpl.ae.tests import TestEventXmlToJava
+from com.nomagic.magicdraw.core import Application
+
+global gl
+#if gl == None:
+gl = Application.getInstance().getGUILog()
+    
+
+import sys
+
+
+def addToPath(s):
+    if not(s in sys.path):
+        sys.path.append(s)
+
+addToPath(aePluginDir)
+addToPath(pluginSrcPath);
+addToPath(projectPath + os.sep + 'bin');
+addToPath(aeJar);
+
+#from java.net import ClassLoader
+from java.lang import ClassLoader
+from java.net import URLClassLoader
+from java.net import URL
+from java.io import File
 from gov.nasa.jpl.ae.xml import EventXmlToJava
+reload(EventXmlToJava)
+from gov.nasa.jpl.ae.tests import TestEventXmlToJava
+reload(TestEventXmlToJava)
+#aeJarFile = File(aeJar)
+#jythonJarFile = File(jythonJar)
+#jpythonJarFile = File(jpythonApiJar)
+#gl.log("aeJarFile: " + aeJarFile.toString() + " exists = " + str(aeJarFile.exists()))
+#myJars = [ aeJarFile.toURL(), jythonJarFile.toURL(), jpythonJarFile.toURL() ] 
+#myclassloader = URLClassLoader(myJars, ClassLoader.getSystemClassLoader())
+#classNames1 = EventXmlToJava.getClassNamesFromJARFile(aeJar, 'gov')
+#classNames = classNames1
+#try:
+#    classNames2 = EventXmlToJava.getClassNamesFromJARFile(jythonJar, 'org')
+#    if classNames2 != None:
+#        classNames.addAll(classNames2)
+#    classNames3 = EventXmlToJava.getClassNamesFromJARFile(jpythonApiJar, 'org')
+#    if classNames3 != None:
+#        classNames.addAll(classNames3)
+#except:
+#    gl.log("couldn't get other classes from jars")
+#gl.log(str(classNames))
+#for n in classNames:
+#    gl.log("loading " + str(n))
+#    try:
+#        myclassloader.loadClass(n)
+#    except:
+#        gl.log(str(n) + " failed to load")
+#reload(EventXmlToJava)
+#reload(TestEventXmlToJava)
+#myclassloader = gov.nasa.jpl.ae.tests.TestEventXmlToJava.getClassLoader()
+from gov.nasa.jpl.ae.xml import EventXmlToJava
+reload(EventXmlToJava)
 from gov.nasa.jpl.ae.event import DurativeEvent
+reload(DurativeEvent)
 from gov.nasa.jpl.ae.event import EventSimulation
+reload(EventSimulation)
 ##TestEventXmlToJava as TestEventXmlToJava
 #from generated import TestEventXmlToJava as TestEventXmlToJava
 from gov.nasa.jpl.ae.util import Utils
+reload(Utils)
 
 #for testing jython link to java
 from java.util import TreeSet as TreeSet
 
 from threading import Thread
 
-#global gl
-#gl = Application.getInstance().getGUILog()
+class AE:#(Thread):
     
-class AE:
-    
-    xmlFileName = 'Scenario_latest.xml'
+    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_XML_2012-278T09.39.40.xml'
+    packageName = 'Scenario_XML_2012'
     timeScale = 1e12
     
     # Options for what to run
@@ -44,7 +102,7 @@ class AE:
 #    execute = True
 #    simulate = True
 #    animate = True
-    options = { 'sysMlToAeXml':False, 'xmlToJava':True, 'writeJavaFiles':False,
+    options = { 'sysMlToAeXml':False, 'xmlToJava':False, 'writeJavaFiles':False,
                 'compileAndLoad':True, 'execute':True, 'simulate':True,
                 'animate':False }
     
@@ -74,13 +132,17 @@ class AE:
         
     def run(self):
         print "AE run() start"
+        testJava()
+        print "AE run() start2"
         if self.options['sysMlToAeXml']:
             self.runSysMlToAeXml()
-        if self.options['xmlToJava']:
-            self.translatorTester = TestEventXmlToJava( self.xmlFileName )
-            if self.options['writeJavaFiles']:
-                self.translatorTester.writeFiles()
-            self.translator = self.translatorTester.translator
+        print "AE about to build tester"
+        self.translatorTester = TestEventXmlToJava( self.xmlFileName, self.packageName, self.options['xmlToJava'] )
+        print "AE built tester"
+        #self.translatorTester = TestEventXmlToJava( self.xmlFileName, self.packageName )
+        if self.options['writeJavaFiles']:
+            self.translatorTester.writeFiles()
+        self.translator = self.translatorTester.translator
         if self.options['compileAndLoad']:
             if self.translator == None:
                 print >>sys.stderr, "Trying to compile and load Java, but there's no translator to provide it!"
@@ -102,8 +164,9 @@ class AE:
                     print >>sys.stderr, "Trying to simulate with no simulator!"
                 else:
                     if self.options['animate']:
-                        from MagicDrawExecutor import MagicDrawExecutor
+                        import MagicDrawExecutor
                         reload(MagicDrawExecutor)
+                        from MagicDrawExecutor import MagicDrawExecutor
                         self.magicDrawExecutor = MagicDrawExecutor()
                         self.simulator.add( self.magicDrawExecutor )
                     t = Thread(target=self.simulate, args=None)
@@ -113,19 +176,23 @@ class AE:
 
 def run(system):
     ae = AE(system)
+    gl.log("constructed AE")
     #ae.options['sysMlToAeXml'] = True;
     #ae.options['writeJavaFiles'] = True;
     ae.options['animate'] = True;
     ae.run()
+    #ae.start()
 
 def testJava():
     print "Hello world!"
     foo = TreeSet()
-    foo.add("hello")
+    hello = 'hello'
+    foo.add(hello)
     foo.add("world")
     print foo
     print Utils.intCompare(3, 4)
     print "Goodbye world!"
+    print "sys.path = " + str(sys.path)
 
 import sys
 import getopt
