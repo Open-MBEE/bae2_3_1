@@ -13,7 +13,7 @@ from java.lang import String
 import traceback
 
 import os
-workspacePath = 'C:\\Users\\bclement\\workspace'
+workspacePath = 'C:\\Users\\bclement\\workspaceFresh'
 mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
 projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
@@ -25,8 +25,6 @@ sys.path.append(aePluginDir)
 sys.path.append(pluginSrcPath);
 sys.path.append(projectPath + os.sep + 'bin');
 sys.path.append(projectPath + os.sep + 'AE.jar');
-
-print 'AE sys.path = ' + sys.path
 
 class ExampleAction( MDAction ):
 	def __init__(self, name, s):
