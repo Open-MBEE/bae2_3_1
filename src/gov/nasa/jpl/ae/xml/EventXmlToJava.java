@@ -203,7 +203,6 @@ public class EventXmlToJava {
     this.xmlFileName = xmlFileName;
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
-      System.out.println("package name = " + this.packageName );
     }
     init();
     if ( translate ) {
@@ -215,12 +214,16 @@ public class EventXmlToJava {
     this.xmlFileName = xmlFileName;
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
-      System.out.println("package name = " + this.packageName );
     }
     init();
     translate();
   }
   public void init() throws ParserConfigurationException, SAXException, IOException {
+
+    System.out.println("xml file name = " + this.xmlFileName );
+    System.out.println("package name = " + this.packageName );
+    Debug.outln("xml file name = " + this.xmlFileName );
+    Debug.outln("package name = " + this.packageName );
 
     // Translate XML to a DOM Document.
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -1119,9 +1122,12 @@ public class EventXmlToJava {
 
   public static boolean equals( ConstructorDeclaration c1,
                                 ConstructorDeclaration c2 ) {
-    Debug.outln( "equals(c1 = " + c1.getName() + ", c2 = " + c2.getName() );
-    Debug.outln( "equals() for c1 = \n" + c1 );
-    Debug.outln( "and c2 = \n" + c2 );
+    boolean localDebug = false;
+    if ( localDebug ) {
+      Debug.outln( "equals(c1 = " + c1.getName() + ", c2 = " + c2.getName() );
+      Debug.outln( "equals() for c1 = \n" + c1 );
+      Debug.outln( "and c2 = \n" + c2 );
+    }
     boolean equals = false;
     List< japa.parser.ast.body.Parameter > params1 = c1.getParameters();
     List< japa.parser.ast.body.Parameter > params2 = c2.getParameters();
@@ -1134,21 +1140,27 @@ public class EventXmlToJava {
           japa.parser.ast.body.Parameter p1 = params1.get( i );
           japa.parser.ast.body.Parameter p2 = params2.get( i );
           if ( !p1.getType().toString().equals( p2.getType().toString()) ) {
-            Debug.outln( "constructors not equal; number " + i
-                         + " param types do not match: "
-                         + p1.getType().toString() + " != "
-                         + p2.getType().toString() );
+            if ( localDebug ) {
+              Debug.outln( "constructors not equal; number " + i
+                           + " param types do not match: "
+                           + p1.getType().toString() + " != "
+                           + p2.getType().toString() );
+            }
             equals = false;
             break;
           }
         }
       } else {
-        Debug.outln( "constructors not equal; different numbers of params: "
-                     + paramsSize1 + " != " + paramsSize2 );
+        if ( localDebug ) {
+          Debug.outln( "constructors not equal; different numbers of params: "
+                       + paramsSize1 + " != " + paramsSize2 );
+        }
       }
     } else {
-      Debug.outln( "constructors not equal; different names: "
-                   + c1.getName() + " != " + c2.getName() );
+      if ( localDebug ) {
+        Debug.outln( "constructors not equal; different names: "
+                     + c1.getName() + " != " + c2.getName() );
+      }
     }
     return equals;
   }
@@ -3013,8 +3025,8 @@ public class EventXmlToJava {
     File[] fileArr = getJavaFiles( javaPath, true, true );//path.listFiles();
     if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true, false );
     System.out.println( "java.home = " + System.getProperty( "java.home" ) );
-    System.setProperty( "java.home", "C:\\Program Files\\Java\\jdk1.6.0_35");
-    System.out.println( "java.home = " + System.getProperty( "java.home" ) );
+    //System.setProperty( "java.home", "C:\\Program Files\\Java\\jdk1.6.0_35");
+    //System.out.println( "java.home = " + System.getProperty( "java.home" ) );
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): about to get compilationUnits/java file objects for: "
@@ -3066,8 +3078,8 @@ public class EventXmlToJava {
     return succ;
   }
 
-  public boolean compileAndLoad( String projectPath ) {
-    boolean succ = true;
+  
+  public String getPackageSourcePath( String projectPath ) {
     if ( projectPath == null ) {
       projectPath = "";
     } else {
@@ -3075,14 +3087,35 @@ public class EventXmlToJava {
     }
     String packagePath = getPackageName().replace( '.', File.separatorChar );
     String srcPath = projectPath + "src" + File.separator + packagePath;
+    return srcPath;
+  }
+  
+  public String getPackageBinPath( String projectPath ) {
+    if ( projectPath == null ) {
+      projectPath = "";
+    } else {
+      projectPath += File.separator;
+    }
+    String packagePath = getPackageName().replace( '.', File.separatorChar );
     String binPath = projectPath + "bin" + File.separator + packagePath;
-    if (!compileJavaFiles( srcPath ) ) {
-      succ = false;
-    }
-    if (!loadClasses( binPath, getPackageName() ) ) {
-      succ = false;
-    }
+    return binPath;
+  }
+  
+  public boolean compileAndLoad( String projectPath ) {
+    boolean succCompile = compile( projectPath );
+    boolean succLoad = load( projectPath );
+    return succCompile && succLoad;
+  }
+
+  public boolean compile( String projectPath ) {
+    boolean succ = compileJavaFiles( getPackageSourcePath( projectPath ) );
     return succ;
+  }
+  
+  public boolean load( String projectPath ) {
+    boolean succLoad = loadClasses( getPackageBinPath( projectPath ),
+                                    getPackageName() );
+    return succLoad;
   }
   
   public boolean compileLoadAndRun( String projectPath ) {

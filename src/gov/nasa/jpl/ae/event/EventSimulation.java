@@ -172,7 +172,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //      Debug.errln( "Warning: trying to add ungrounded event to simulation: " + e.getName() );
 //    }
     Integer startTime = e.getStartTime().getValueOrMin();
-    Integer endTime = e.getStartTime().getValueOrMax();
+    Integer endTime = e.getEndTime().getValueOrMax();
     if ( startTime == null || endTime == null ) {
       System.err.println( "Warning: can't add event to simulation: " + e.getName() );
       return false;
@@ -226,7 +226,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   }
   
   public void simulate( double timeScale ) {
-    simulate( timeScale, System.out );
+    try {
+      simulate( timeScale, System.out );
+    } catch ( Exception e ) {
+      e.printStackTrace();
+    }
   }
   
   public void simulate( java.io.OutputStream os ) {
@@ -302,7 +306,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         // unleash the executors!
         for ( Executor exec : executors ) {
           exec.execute( nextEventTime, name, shortClassName, longClassName,
-                        value.toString() );
+                        ( value == null ? "null" : value.toString() ) );
         }
         
         // todo -- printing should be an Executor

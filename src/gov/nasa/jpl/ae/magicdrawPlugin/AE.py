@@ -91,8 +91,9 @@ from threading import Thread
 
 class AE:#(Thread):
     
-    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_XML_2012-278T09.39.40.xml'
-    packageName = 'Scenario_XML_2012'
+    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_latest.xml'
+    generatedXmlFileName = 'unspecified'
+    packageName = 'Scenario_latest'
     timeScale = 1e12
     
     # Options for what to run
@@ -103,7 +104,7 @@ class AE:#(Thread):
 #    simulate = True
 #    animate = True
     options = { 'sysMlToAeXml':False, 'xmlToJava':False, 'writeJavaFiles':False,
-                'compileAndLoad':True, 'execute':True, 'simulate':True,
+                'compile':False, 'load':True, 'execute':True, 'simulate':True,
                 'animate':False }
     
     # other members
@@ -124,7 +125,7 @@ class AE:#(Thread):
         import ExportForAnalysisEngine_v2
         reload(ExportForAnalysisEngine_v2)
         ExportForAnalysisEngine_v2.run(self.system)
-        self.xmlFileName = ExportForAnalysisEngine_v2.generatedXmlFileName
+        self.generatedXmlFileName = ExportForAnalysisEngine_v2.generatedXmlFileName
     
     def simulate( self ):
         if self.simulator != None:
@@ -134,36 +135,54 @@ class AE:#(Thread):
         print "AE run() start"
         testJava()
         print "AE run() start2"
+        gl.log( "running AE.py with options: " + str(self.options) )
         if self.options['sysMlToAeXml']:
+            gl.log("translating sysML to XML")
             self.runSysMlToAeXml()
+            gl.log("translated sysML to " + self.generatedXmlFileName)
         print "AE about to build tester"
+        if self.options['xmlToJava']:
+            self.xmlFileName = self.generatedXmlFileName
+            gl.log("translating " + str(self.xmlFileName) + " to Java in package " + str(self.packageName) )
         self.translatorTester = TestEventXmlToJava( self.xmlFileName, self.packageName, self.options['xmlToJava'] )
         print "AE built tester"
         #self.translatorTester = TestEventXmlToJava( self.xmlFileName, self.packageName )
         if self.options['writeJavaFiles']:
+            gl.log("writing Java")
             self.translatorTester.writeFiles()
         self.translator = self.translatorTester.translator
-        if self.options['compileAndLoad']:
+        if self.options['compile']:
             if self.translator == None:
-                print >>sys.stderr, "Trying to compile and load Java, but there's no translator to provide it!"
+                print >>sys.stderr, "Trying to compile, but there's no translator to provide it!"
             else:
+                gl.log("compiling Java")
                 os.chdir(projectPath)
-                self.translator.compileAndLoad( projectPath )
+                self.translator.compile( projectPath )
+        if self.options['load']:
+            if self.translator == None:
+                print >>sys.stderr, "Trying to load Java, but there's no translator to provide it!"
+            else:
+                gl.log("loading Java")
+                os.chdir(projectPath)
+                self.translator.load( projectPath )
         if self.options['execute']:
             if self.translator == None:
                 print >>sys.stderr, "Trying to execute event, but there's no translator to provide it!"
             else:
+                gl.log("executing Java")
                 self.mainEvent = self.translator.generateExecution()
         if self.options['simulate']:
             if self.mainEvent == None:
                 print >>sys.stderr, "Trying to simulate with no event to simulate!"
             else:
+                gl.log("simulating")
                 self.simulator = self.mainEvent.createEventSimulation()
                 if self.simulator == None:
                     #gl.log("")
                     print >>sys.stderr, "Trying to simulate with no simulator!"
                 else:
                     if self.options['animate']:
+                        gl.log("and animating")
                         import MagicDrawExecutor
                         reload(MagicDrawExecutor)
                         from MagicDrawExecutor import MagicDrawExecutor

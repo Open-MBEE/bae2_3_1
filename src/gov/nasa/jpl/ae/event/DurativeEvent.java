@@ -606,8 +606,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate( double timeScale, java.io.OutputStream os ) {
-    EventSimulation sim = createEventSimulation();
-    sim.simulate( timeScale, os );
+    try {
+      EventSimulation sim = createEventSimulation();
+      sim.simulate( timeScale, os );
+    } catch ( Exception e ) {
+      e.printStackTrace();
+    }
   }
 
   // Create an ElaborationRule for constructing an eventClass with

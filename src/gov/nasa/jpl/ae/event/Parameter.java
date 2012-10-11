@@ -376,8 +376,19 @@ public class Parameter< T > implements Cloneable, Groundable,
   }
 
   public boolean inDomain() {
-    return domain == null || domain.size() == 0
-           || ( value != null && domain.contains( value ) );
+    boolean inDom = false;
+    try {
+      inDom = domain == null || domain.size() == 0
+              || ( value != null && domain.contains( value ) );
+    } catch ( ClassCastException e ) {
+      Debug.errln( "Warning! Parameter value and domain types do not match! " + this );
+      if ( value instanceof Parameter ) {
+        Debug.errln( "Warning! Parameter inside Parameter! " + this );
+        T v = ((Parameter<T>)value).getValue();
+        inDom = ( v != null && domain.contains( v ) );
+      }
+    }
+    return inDom;
   }
   
   @Override

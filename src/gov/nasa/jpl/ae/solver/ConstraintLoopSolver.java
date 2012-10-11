@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.solver;
 
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +31,7 @@ public class ConstraintLoopSolver implements Solver {
   @Override
   public boolean solve( Collection< Constraint > constraints ) {
     Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
+    boolean deep = false;
     //double startTime = System.currentTimeMillis();
     
     unsatisfiedConstraints.clear();
@@ -47,13 +49,13 @@ public class ConstraintLoopSolver implements Solver {
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
         Debug.outln( "checking constraint " + c );
-        boolean thisSatisfied = c.isSatisfied( true, null );
+        boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
-          thisSatisfied = c.satisfy( true, null );
+          thisSatisfied = c.satisfy( deep, null );
         }
-        thisSatisfied = c.isSatisfied( true, null );
+        thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
-          thisSatisfied = satisfy( c, true, null );
+          thisSatisfied = satisfy( c, deep, null );
         }
         if ( thisSatisfied ) {
           unsatisfiedConstraints.remove( i );
@@ -71,7 +73,24 @@ public class ConstraintLoopSolver implements Solver {
     Set<Variable<?>> vars = constraint.getVariables();//( deep, seen );
     Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
-    for ( Variable<?> v : vars ) {
+    if ( Utils.isNullOrEmpty( vars ) ) return true;
+    Variable<?>[] a = new Variable<?>[vars.size()];
+    boolean[] b = new boolean[vars.size()];
+    vars.toArray( a );
+    for ( int i=0; i < vars.size(); ++i ) {
+      b[i] = false;
+    }
+    for ( int i=0; i < vars.size(); ++i ) {
+//    for ( Variable<?> v : vars ) {
+      int j = Random.global.nextInt( vars.size() - i );
+      int k = 0;
+      while ( j >= 0 ) {
+        if ( !b[k] ) --j;
+        ++k;
+      }
+      Variable<?> v = a[--k];
+      b[k] = true;
+      Debug.outln( "try to change variable " + k + ": " + v );
       if ( change( v ) ) {
         if ( constraint.isSatisfied(deep, null) ) {
           satisfied = true;

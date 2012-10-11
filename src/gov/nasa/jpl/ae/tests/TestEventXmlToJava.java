@@ -152,7 +152,7 @@ public class TestEventXmlToJava {
     if ( args.length >= 2 ) {
       pkgName = args[1];
     }
-    TestEventXmlToJava textj = new TestEventXmlToJava( xmlFileName, pkgName, false );
+    TestEventXmlToJava textj = new TestEventXmlToJava( xmlFileName, pkgName, true );
     EventXmlToJava translator = textj.translator;
 
     textj.writeFiles();

@@ -13,6 +13,7 @@ import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
+import gov.nasa.jpl.ae.util.Debug;
 
 /**
  * @author bclement
@@ -107,6 +108,12 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       return false;
     }
     EffectFunction effectFunction = (EffectFunction)effect;
+    if ( effectFunction == null || effectFunction.getMethod() == null ) {
+      Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+                   + effect + ", Method=" + method1 + ", Method=" + method2
+                   + ") called with no effect method! " + this );
+      return false;
+    }
     boolean isMethod1 = effectFunction.getMethod().equals(method1);
     boolean isMethod2 =  effectFunction.getMethod().equals( method2);
     if ( isMethod1  || isMethod2 ) {

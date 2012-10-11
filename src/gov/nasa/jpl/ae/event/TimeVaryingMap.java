@@ -515,8 +515,14 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       return false;
     }
     EffectFunction effectFunction = (EffectFunction)effect;
-    boolean isMethod1 = effectFunction.method.equals(method1);
-    boolean isMethod2 =  effectFunction.method.equals( method2);
+    if ( effectFunction == null || effectFunction.getMethod() == null ) {
+      Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+                   + effect + ", Method=" + method1 + ", Method=" + method2
+                   + ") called with no effect method! " + this );
+      return false;
+    }
+    boolean isMethod1 = effectFunction.getMethod().equals(method1);
+    boolean isMethod2 =  effectFunction.getMethod().equals( method2);
     if ( isMethod1  || isMethod2 ) {
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
         Object t = effectFunction.arguments.get( 0 );
