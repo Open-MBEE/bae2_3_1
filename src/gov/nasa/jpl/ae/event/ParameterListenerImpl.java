@@ -261,8 +261,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
         }
       }
       for ( Dependency< ? > d : getDependencies() ) {
-        if ( !d.isSatisfied(false, null) ) {
-          if ( !d.satisfy(false, null) ) {
+        if ( !d.isSatisfied(true, null) ) {
+          if ( !d.satisfy(true, null) ) {
             satisfied = false;
           }
         }
