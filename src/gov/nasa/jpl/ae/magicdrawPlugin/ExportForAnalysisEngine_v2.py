@@ -930,12 +930,12 @@ class actionEventClass(object):
 			if dif:
 				try: tname = self.flowTypes[dif].name
 				except:tname = "Object"
-				self.members[dif.getID()] = (tname,None,"Variable for DecisionInputFlow")
+				#self.members[dif.getID()] = (tname,None,"Variable for DecisionInputFlow")
 				#self.effects.append(dif.getID() + " = sig" + dif.getID() + ".receive(startTime - 1")
-				self.dependencies[dif.getID()] = (tname,"sig" + dif.getID() + ".receive(startTime - 1)")
+				#self.dependencies[dif.getID()] = (tname,"sig" + dif.getID() + ".receive(startTime - 1)")
 				for dName,(dType,dVal) in self.dependencies.items():
 					if dName.endswith("_exists"):
-						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()",dif.getID()))
+						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()","decisionInput"))
 		else:
 			self.dependencies["duration"] = ("Integer","1")
 				
