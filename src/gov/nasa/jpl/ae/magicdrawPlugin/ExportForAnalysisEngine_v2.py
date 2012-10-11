@@ -916,7 +916,9 @@ class actionEventClass(object):
 
 		elif myType =="Activity Parameter Node":
 			self.dependencies["duration"] = ("Integer","1")
-			if str(node.parameter.direction)=="out": self.dependencies["objectToPass"] = (node.parameter.type.name,node.parameter.getID())
+			if str(node.parameter.direction)=="in": 
+				self.dependencies["objectToPass"] = (node.parameter.type.name,node.parameter.getID())
+				self.members[node.parameter.getID()] = (node.parameter.type.name, None, "Initialize Activity Parameter Node receptacle for incoming value!")
 			else: self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
 			#if len(node.incoming) > 0: 
 			#	self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime)")
