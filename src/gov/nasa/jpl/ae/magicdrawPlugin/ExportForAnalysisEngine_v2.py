@@ -869,7 +869,7 @@ class actionEventClass(object):
 					if p.type: tname = p.type.name #parameter
 					else: tname = "Object"
 					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Argument Param: " + p.name)
-					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),p.parameter.getID())
+					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),p.getID())
 				for p in res:
 					if p.type: tname = p.type.name
 					else: tname = "Object"
@@ -1005,7 +1005,7 @@ class actionEventClass(object):
 				obtype = self.feet[f]
 				if isinstance(obtype,Property): obtype = obtype.type
 				self.dependencies[f.target.getID()] = (obtype.name,"sig" + f.getID() + ".receive(startTime)")
-				self.members[f.target.getID()] = (obtype.name,None,"NEW initialize output pin members")
+				self.members[f.target.getID()] = (obtype.name,None,"NEW initialize input pin members")
 			else:
 				nonPinInType = self.feet[f]
 				targetVar = "objectToPass"
@@ -1265,7 +1265,7 @@ def logAndExport(tabNum,tag,text):
 def writeScenario(top,classesToTranslate):
 	logAndExport(0,None,"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>")
 	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"eventSchema.xsd\">")
-	logAndExport(0,None,"<!--RUNNING ON: %s (owner: %s)-->" % (top.name,top.owner.name))
+	logAndExport(0,None,"<!--RUNNING ON: %s (owner: %s) at %s -->" % (top.name,top.owner.name,time.strftime("%B %d %Y %I:%M:%S %p", time.localtime())))
 	logAndExport(1,"epoch","2012-08-05T23:30:00-07:00")
 	logAndExport(1,"horizon","P1D")
 	logAndExport(1,"timeUnits","seconds")
