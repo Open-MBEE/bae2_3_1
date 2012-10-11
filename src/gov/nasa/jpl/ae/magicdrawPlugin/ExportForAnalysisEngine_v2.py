@@ -1052,7 +1052,8 @@ class actionEventClass(object):
 def setup():
 	#initialize the guiLog
 	gl = Application.getInstance().getGUILog()
-	gl.clearLog()
+	#gl.clearLog()
+	gl.log("===============================================================================")
 	debug = True
 	logDebug = False
 	global debug
@@ -1238,8 +1239,9 @@ def run(s):
 			print "Error creating latest directory!"
 	generatedXmlFileName = latestDir + os.sep + "Scenario_latest.xml"
 	shutil.copyfile(log_file_name, generatedXmlFileName)
+	gl.log("\nfrom " + os.curdir + " copied " + log_file_name + " to " + generatedXmlFileName )
 	
-	gl.log("INSPECTED:")
+	gl.log("\nINSPECTED:")
 	for thing in inspected:
 		gl.log("	+" + thing.name + " (" + thing.humanType + ")")
 		
@@ -1247,9 +1249,9 @@ def run(s):
 	for k,v in partsDict.items():
 		gl.log(k.name + " -- " + str(v))
 	
-	gl.log("The log file for this execution is located at: " + str(log_dir))
-	
-	return
+	gl.log("\nThe log file for this execution is located at: " + str(os.curdir) )
+	gl.log("The log file: " + generatedXmlFileName )
+	return generatedXmlFileName
 
 def logAndExport(tabNum,tag,text):
 	line = "	"*tabNum
@@ -1260,7 +1262,7 @@ def logAndExport(tabNum,tag,text):
 
 def writeScenario(top,classesToTranslate):
 	logAndExport(0,None,"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>")
-	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"/Users/mjackson/Documents/workspace-Helios/CS/src/gov/nasa/jpl/ae/xml/eventSchema.xsd\">")
+	logAndExport(0,None,"<scenario xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"eventSchema.xsd\">")
 	logAndExport(0,None,"<!--RUNNING ON: %s (owner: %s)-->" % (top.name,top.owner.name))
 	logAndExport(1,"epoch","2012-08-05T23:30:00-07:00")
 	logAndExport(1,"horizon","P1D")
