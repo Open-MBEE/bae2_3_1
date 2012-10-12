@@ -89,6 +89,7 @@ src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/main.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/script.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/testPython.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/whatsMyId.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/AbstractRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/BooleanDomain.java -text
