@@ -30,7 +30,14 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @param name
    */
   public TimeVaryingList( int maxSize ) {
-    this( "" );
+    this( "", maxSize );
+  }
+
+  /**
+   * @param name
+   */
+  public TimeVaryingList( String name, int maxSize ) {
+    this( name );
     this.maxSize = maxSize;
     // TODO Auto-generated constructor stub
   }
