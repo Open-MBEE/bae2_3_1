@@ -73,6 +73,7 @@ src/gov/nasa/jpl/ae/event/Suggester.java -text
 src/gov/nasa/jpl/ae/event/TimeDependentConstraintExpression.java -text
 src/gov/nasa/jpl/ae/event/TimeDomain.java -text
 src/gov/nasa/jpl/ae/event/TimeVarying.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingList.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMap.java -text
 src/gov/nasa/jpl/ae/event/Timepoint.java -text

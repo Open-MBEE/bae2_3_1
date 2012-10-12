@@ -195,11 +195,21 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 		super(name, defaultDomain, value, o);
 	}
 
+  /**
+   * @param value
+   */
+  public Timepoint( int value ) {
+    this( "", value, null );
+  }
+
+	/**
+	 * @param timepoint
+	 */
 	public Timepoint(Timepoint timepoint) {
 		super(timepoint);
 	}
 	
-	public static synchronized Timepoint fromString( String timestamp ) {
+  public static synchronized Timepoint fromString( String timestamp ) {
 	  return new Timepoint( "timepoint" + (counter ++), (int)fromTimestamp( timestamp ), null );
     // REVIEW -- other formats?
 	}

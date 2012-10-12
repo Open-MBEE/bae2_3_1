@@ -386,7 +386,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     Timepoint tp = new Timepoint( StringDomain.typeMaxValue, t, null );
     Entry< Timepoint, T > e = this.floorEntry( tp );
     if ( e != null ) return e.getValue();
-    if ( !isEmpty() ) {
+    if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
       return firstEntry().getValue();
     }
     return null;
