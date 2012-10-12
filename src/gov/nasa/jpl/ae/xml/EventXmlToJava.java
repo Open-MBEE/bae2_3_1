@@ -2429,9 +2429,12 @@ public class EventXmlToJava {
       stmtString.append( "Object " + timeVaryingName + "V = " + jffc.objectName + ";\n" );
       stmtString.append( timeVaryingName + " = new Parameter(\"" + timeVaryingName + "\", null, null, this);\n" );
       stmtString.append( "addDependency(" + timeVaryingName + ", new Expression(" + timeVaryingName + "V));\n" );
-      stmtString.append( effectName + " = new EffectFunction( " 
-                         + jffc.toNewFunctionCallString().replace( jffc.objectName,
-                                                                   timeVaryingName )
+      stmtString.append( effectName
+                         + " = new EffectFunction( "
+                         + jffc.toNewFunctionCallString()
+                               .replaceAll( "([^A-Za-z0-9_])" + jffc.objectName
+                                                + "([^A-Za-z0-9_])",
+                                            "\\1" + timeVaryingName + "\\2" )
                          + " );" );
       
       addStatements( initMembers.getBody(), stmtString.toString() );
