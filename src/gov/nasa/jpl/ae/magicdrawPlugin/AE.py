@@ -91,9 +91,9 @@ from threading import Thread
 
 class AE:#(Thread):
     
-    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_latest.xml'
+    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_medium.xml'
     generatedXmlFileName = 'unspecified'
-    packageName = 'Scenario_latest'
+    packageName = 'Scenario_medium'
     timeScale = 1e12
     
     # Options for what to run
@@ -199,7 +199,9 @@ def run(system):
     #ae.options['sysMlToAeXml'] = True;
     #ae.options['writeJavaFiles'] = True;
     ae.options['animate'] = True;
-    ae.run()
+    t = Thread(target=ae.run, args=None)
+    t.start()
+    ##ae.run()
     #ae.start()
 
 def testJava():

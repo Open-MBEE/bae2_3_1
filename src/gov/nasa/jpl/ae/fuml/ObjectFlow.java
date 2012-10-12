@@ -48,6 +48,12 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     this.type = type;
   }
 
+  protected void breakpoint() {
+    if ( getName() != null && getName().contains( "13675" ) ) {
+      return;
+    }
+  }
+  
   /**
    * Appends the specified ObjectFlow to the end of the list of listeners. 
    * @param objectFlow is the ObjectFlow to add.
@@ -57,6 +63,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
   
   public void send( Obj o, Timepoint t ) {
+    breakpoint();
     if ( type == null || type.isInstance( o ) ) {
       this.setValue( t, o );
       for ( ObjectFlow< Obj > f : listeners ) {
@@ -66,6 +73,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
   
   public void send( Obj o, Integer t ) {
+    breakpoint();
     if ( type == null || type.isInstance( o ) ) {
       this.setValue( t, o );
       for ( ObjectFlow< Obj > f : listeners ) {
@@ -75,27 +83,32 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
 
   public Obj receive( Timepoint t ) {
+    breakpoint();
     Obj o = this.getValue( t );
     this.setValue( t, null );
     return o;
   }
   
   public Obj receive( Integer t ) {
+    breakpoint();
     Obj o = this.getValue( t );
     this.setValue( t, null );
     return o;
   }
   
   public boolean hasStuff( Timepoint t ) {
+    breakpoint();
     return getValue( t ) != null;
   }
 
   public boolean hasStuff( Integer t ) {
+    breakpoint();
     return getValue( t ) != null;
   }
 
   @Override
   public boolean isApplied( Effect effect ) {
+    breakpoint();
     if ( isApplied(effect, getSendMethod1(), getSendMethod2() ) ) {
       return true;
     }
@@ -104,6 +117,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   @Override
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
+    breakpoint();
     if ( !( effect instanceof EffectFunction ) ) {
       return false;
     }
