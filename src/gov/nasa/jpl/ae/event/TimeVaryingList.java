@@ -16,7 +16,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   private static final long serialVersionUID = 5136649915412969932L;
   
-  public long maxSize = Long.MAX_VALUE;
+  public int maxSize = Integer.MAX_VALUE;
   
   /**
    * @param name
@@ -64,6 +64,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     // TODO Auto-generated constructor stub
   }
 
+  public int maxSize() { return maxSize; }
+  
   public boolean add( Timepoint t, T value ) {
     List< T > list = get( t );
     boolean changed = false;
