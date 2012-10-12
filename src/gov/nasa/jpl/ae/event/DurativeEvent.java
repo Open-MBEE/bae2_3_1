@@ -780,11 +780,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       HasConstraints.Helper.getConstraints( effectsConstraint, deep, seen );
       HasConstraints.Helper.getConstraints( elaborations, deep, seen );
       HasConstraints.Helper.getConstraints( effects, deep, seen );
-      for ( Event event : getEvents( deep, null ) ) {
-        if ( event instanceof HasConstraints ) {
-          set.addAll( ( (HasConstraints)event ).getConstraints( deep, seen ) );
-        }
-      }
+      Set< Event > events = getEvents( deep, null );
+      HasConstraints.Helper.getConstraints( events, deep, seen );
     }
     return set;
   }
