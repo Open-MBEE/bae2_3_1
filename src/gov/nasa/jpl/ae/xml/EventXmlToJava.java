@@ -2434,7 +2434,7 @@ public class EventXmlToJava {
                          + jffc.toNewFunctionCallString()
                                .replaceAll( "([^A-Za-z0-9_])" + jffc.objectName
                                                 + "([^A-Za-z0-9_])",
-                                            "\\1" + timeVaryingName + "\\2" )
+                                            "$1" + timeVaryingName + "$2" )
                          + " );" );
       
       addStatements( initMembers.getBody(), stmtString.toString() );
