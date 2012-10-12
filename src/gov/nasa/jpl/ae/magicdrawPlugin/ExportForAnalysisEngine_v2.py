@@ -238,6 +238,7 @@ class activityEventClass(object):
 		self.allSignals = {}
 		self.nexts = {}
 		self.prevs = {}
+		self.ranks = {}
 		
 		self.inspectComposition(activity)
 	
@@ -297,20 +298,6 @@ class activityEventClass(object):
 			try: d = str(p.getDefault())
 			except: d = None
 			self.members[p.getID()] = (p.type.name,d,"Initialize Activity Parameter Values (for transition through")
-		#inspect joins
-		'''for join in [j for j in activity.node if isinstance(j,JoinNode)]:
-			if all([isinstance(i,ControlFlow) for i in join.incoming]):
-				invokingThingSource = join.incoming[0].source
-				if isinstance(invokingThingSource,Pin): invokingThing = invokingThingSource.owner
-				else: invokingThing = invokingThingSource
-				
-				self.invokeDict[join] = invokingThing
-				
-				self.addToDictionaries(invokingThing, join, join.incoming[0])
-				
-				for inc in [z for z in join.incoming if z is not join.incoming[0]]:
-					signame = "sig" + str(inc.getID())
-					self.members[signame] = ("ObjectFlow&lt;Boolean&gt;",'new ObjectFlow("'+signame+'")',"member for object flow")'''
 		
 		#FINAL NODES
 		for final in [f for f in activity.node if isinstance(f,ActivityFinalNode)]:
@@ -322,22 +309,7 @@ class activityEventClass(object):
 			self.dependencies[final.getID() + "_exists"] = ("Boolean",s)
 		
 		#inspect edges...
-		for e in activity.edge:
-			'''next = self.getNext(e)
-			gl.log("NEXT: " + next.name)
-			if self.iShouldInvokeNext(e):
-				gl.log("I (%s) SHOULD INVOKE %s" % (self.getPrev(e).name,next.name))
-				if next not in self.invokedInvoker.keys() or isinstance(next,MergeNode): #join node will already be there
-					gl.log("I'm gonna add to dictionary...")
-					self.addToDictionaries(self.getPrev(e), next, e) 
-					self.invokeDict[next] = self.getPrev(e)
-			else: 
-				if self.isObjectFlow(e):
-					gl.log("	object flow for " + self.getPrev(e).name + " to " + next.name + ": " + str(self.getObject(e)) + " (" + e.getID() + ")")
-					obj = self.getObject(e)
-					self.flowObject[e] = obj 
-					self.objectFlows[e] = obj'''
-			
+		for e in activity.edge:		
 			#NEW
 			if self.isObjectFlow(e): 
 				flowType = self.getObject(e)
@@ -373,12 +345,25 @@ class activityEventClass(object):
 				gl.log("	next: %s" % self.getPrettyIdent(self.getNext(outFlow)))
 				
 			gl.log("prevs for %s" % self.getPrettyIdent(node))
+			thisRank = 1
+			l = len(self.allSignals[node]["in"])
 			for inFlow in self.allSignals[node]["in"]:
-				self.prevs[node][self.getPrev(inFlow)]=inFlow
-				gl.log("	prev: %s" % self.getPrettyIdent(self.getPrev(inFlow)))
+				prev = self.getPrev(inFlow)
+				self.prevs[node][prev]=inFlow
+				gl.log("	prev: %s" % self.getPrettyIdent(prev))
+				if l>1:
+					gl.log("	thisRank: " + str(thisRank))
+					decider = "myDeciderID_decider%s" % node.getID()
+					if prev in self.ranks.keys(): 
+						pd = self.ranks[prev]
+						pd[decider] = thisRank
+					else: self.ranks[prev] = {decider : thisRank}
+				thisRank+=1
+				
 			
-			if len(self.allSignals[node]["in"])>1:
-				self.members["decider%s" % node.getID()] = ("TimeVaryingMap&lt;Boolean&gt;",'new TimeVaryingMap("decider%s",false)' % node.getID(),"INTIALIZE DECIDER FOR %s" % self.getPrettyIdent(node))
+			l = len(self.allSignals[node]["in"])
+			if l>1:
+				self.members["decider%s" % node.getID()] = ("TimeVaryingList&lt;Integer&gt;",'new TimeVaryingList("decider%s",%s)' % (node.getID(),str(l)),"INTIALIZE DECIDER FOR %s with %s elements" % (self.getPrettyIdent(node),str(l)))
 			
 			if isinstance(node,InitialNode):
 				self.initial = node
@@ -423,7 +408,9 @@ class activityEventClass(object):
 			
 		for node in activity.node:	
 			dicts = (self.invokeDict,self.invokedInvoker,self.invokedFlow,self.flowObject,self.invokerInvoked,self.invokerFlow,self.objectFlows,self.flowTypes,self.allSignals, self.nexts,self.prevs)
-			self.classes.append(actionEventClass(node,dicts,self.id))
+			r = None
+			if node in self.ranks.keys(): r = self.ranks[node]
+			self.classes.append(actionEventClass(node,dicts,self.id,r))
 	
 	def findEventualTarget(self,edge):
 		for o in edge.target.outgoing:
@@ -448,17 +435,7 @@ class activityEventClass(object):
 			k = str("sig" + flow.getID())
 			t = "ObjectFlow&lt;%s&gt;" % typeName
 			self.members[k] = (t,'new ObjectFlow("'+k+'")',"NEWWWWW member for object flow signal")
-		
-		'''for edge,pinType in self.objectFlow.items():
-			pt = "Object"
-			if pinType: #need to make classes for these if they're more complicated than "Integer..."
-				#if not isinstance(pinType,DataType): #TODO: we need to inspect the object... new inspect method for structures...doesn't recursively analyze behavior..
-				if isinstance(pinType,Property) and pinType.type: pt = pinType.type.name
-				else: pt = pinType.name
-			else: pass #wasn't typed!!!
-			k = str("sig" + edge.getID())
-			t = "ObjectFlow&lt;%s&gt;" % pt
-			self.members[k] = (t,'new ObjectFlow("'+k+'")',"member for object flow signal")'''
+
 			
 	def iShouldInvokeNext(self,flow):
 		#object flows from anywhere to a pin
@@ -494,16 +471,9 @@ class activityEventClass(object):
 		if isinstance(flow.source,Pin): return flow.source.owner
 		else: return flow.source
 		
-		
-#not addressed yet:
-#pins/types/variables (should just be a parameter...)
-#signals
-#specifics of add structural feature, etc.
-#durations...
-#should allow signals to be passed in as parameters?
-#conditions? how actually set true? after elaboration/invoke event, condition is that i am active?		
+
 class actionEventClass(object):
-	def __init__(self,actionNode,dicts,encloserID):
+	def __init__(self,actionNode,dicts,encloserID,rankDict):
 		
 		classType = str(actionNode.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (actionNode.name,classType,actionNode.owner.name)
@@ -521,6 +491,7 @@ class actionEventClass(object):
 		self.effects = [] #expression
 		#self.invokeDict = joinDict
 		self.enclosingClass = encloserID + ".this"
+		self.decisionDict = rankDict #{myDeciderID_deciderX : rank}
 		
 		self.inspectMyself(actionNode)
 		self.inspectByType(actionNode)
@@ -537,32 +508,6 @@ class actionEventClass(object):
 		nextList = None
 		if actionNode in self.invokerInvoked.keys(): nextList = self.invokerInvoked[actionNode]
 		
-		'''try:
-			inpins = actionNode.input
-			for pin in inpins:
-				if pin.type: t = pin.type.name
-				else: t = "Object"
-				self.members[pin.getID()] = (t,None,"Initializing Input Pins")
-		except: gl.log("exception trying to acquire input pins")
-		try:
-			outpins = actionNode.output
-			for pin in outpins:
-				t = "Object"
-				if pin.type: t = pin.type.name
-				elif pin.outgoing[0] in self.flowTypes.keys(): 
-					t = self.flowTypes[pin.outgoing[0]].name #TODO - maybe need to check if it's a property?
-				elif isinstance(actionNode,ReadStructuralFeatureAction):
-					t = actionNode.structuralFeature.type.name
-				elif isinstance(actionNode,AcceptEventAction):
-					event = actionNode.trigger[0].event
-					if not isinstance(event,TimeEvent):
-						sig = event.signal
-						t = "Signal" + sig.name
-				elif isinstance(actionNode,ValueSpecificationAction):
-					t =  actionNode.value.type.name
-				self.members[pin.getID()] = (t,None,"Initializing Output Pins")
-		except: gl.log("exception trying to acquire output pins")'''
-		
 		#NEW
 		self.setUpSignalEffectsAndMembers(actionNode)
 		self.setUpBasicElaborationsAndDependencies(actionNode)
@@ -576,9 +521,6 @@ class actionEventClass(object):
 				invokingFlow = self.invokedFlow[actionNode][0]
 				object = self.flowObject[invokingFlow]
 				if isinstance(object,Property): object = self.safeConvertProperty(object)
-				'''if not isinstance(actionNode,ActivityFinalNode):
-					self.members[previous.getID() + "_endTime"] = ("Integer",None,"previous event end time: " + getPrettyIdent(previous))
-					self.constraints["startTime"].append("startTime &gt;" + str(previous.getID())+"_endTime")'''
 				
 				#members for object input receptions
 				if object != "Control": #control type
@@ -594,14 +536,10 @@ class actionEventClass(object):
 					if isinstance(invokingFlow.target,Pin): #should be a pin I own...
 						ip = invokingFlow.target
 						if isinstance(actionNode,CallBehaviorAction): ip = invokingFlow.target.parameter
-						#if ip:
-						#	self.members[ip.getID()] = (oname,None,"Parameter passed in by Object-Invoker (pin id or parameter id) %s" % ip.name)
 					elif isinstance(invokingFlow.target,ActivityParameterNode):
 						try: d = str(invokingFlow.target.parameter.getDefault())
 						except: d = None
-						#self.members[invokingFlow.target.parameter.getID()] = (oname,d,"Parameter passed in by Object-Invoker to ParamNode %s" % invokingFlow.target.parameter.name)
-					
-					#else: self.members["objectToPass"] = (oname,None,"Object that this control node passes along")
+
 				
 				#MEMBERS & EFFECTS - Non-Invoking Objects/Signals
 				if not isinstance(actionNode,ControlNode):
@@ -623,17 +561,8 @@ class actionEventClass(object):
 							if ip == None:
 							  gl.log("BADNESS 1")
 							else: pass
-							  #self.members[ip.getID()] = (tname,None,"Variable to store signal receipt from this pin (or parameter if it's a call behavior)")
-							  #self.effects.append(ip.getID() + " = sig" + flow.getID() + ".receive(startTime - 1)") #or should it be .setValue(flow.getID().receive(startTime))
-							  #self.dependencies[ip.getID()] = (tname,"sig" + flow.getID() + ".receive(startTime - 1)")
-				#DECISION NODE - NEED VARIABLE FOR DECISION INPUT
-				#elif isinstance(actionNode,DecisionNode): pass #SEPARATE
 					
-				#TODO - need otehr join node?
-					
-			else: #MERGE NODE - can be invoked by either one...
-				#self.members["invoker_endTime"] = ("Integer",None,"Invoke Time")
-				#self.constraints["startTime"].append("startTime &gt; invoker_endTime")
+			else: #MERGE NODE
 				prev0 = previousList[0]
 				invokingFlow0 = self.invokedFlow[actionNode][0]
 				#gl.log(str(previousList) + str(self.invokedFlow[previousList[0]]) + str(invokingFlow0))
@@ -644,11 +573,7 @@ class actionEventClass(object):
 				if object != "Control": #control type
 					if object: oname = object.name
 					else: oname = "Object"
-					#self.members["objectToPass"] = (oname,None,"Object that this control node passes along")	
 		else: #PARAM NODE OR INITIAL NODE
-			#self.members["invoke_time"]=("time",None,"Initial Node or Parameter Node's invoke time")
-			#self.constraints["startTime"]=["startTime==invoke_time"]
-			#start time for these is passed in directly from invoker
 			if isinstance(actionNode,ActivityParameterNode):
 				param = actionNode.parameter
 				default = None
@@ -656,7 +581,6 @@ class actionEventClass(object):
 				ptype = param.type
 				if ptype: tname = ptype.name
 				else: tname = "Object"
-				#self.members[actionNode.parameter.getID()] = (tname,default,"Parameter Node's parameter ID")
 
 		#----Role = INVOKER OF SOMETHING ELSE
 		myOutgoingSignalFlows=[]
@@ -677,17 +601,10 @@ class actionEventClass(object):
 				object = self.flowObject[invokingFlow]
 				if isinstance(object,Property): object = self.safeConvertProperty(object)
 				
-				#self.members[next.getID() + "_exists"] = ("Boolean","false","Initialize existence of " + getPrettyIdent(next) + " as false")
-				
-				
 				#basic elaboration:
 				elabVar = actionNode.getID() + "_endTime"
 				if isinstance(next,MergeNode): elabVar = "invoker_endTime"
-				#gl.log(self.enclosingClass)
-				#self.elaborations[next]={
-				#						"args": [(elabVar,"endTime","Integer"),("startTime","endTime+1","Integer")],
-				#						"conditions": {next:"endTime"},
-				#						"enclosingClass" : self.enclosingClass}
+
 				
 				#dependencies on "_exists"
 				dependencyString = False
@@ -722,7 +639,6 @@ class actionEventClass(object):
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 				if not dependencyString: dependencyString = "true"
-				#self.dependencies[next.getID() + "_exists"] = ("Boolean",str(dependencyString))
 				
 				#send invoke params to next if it's an object-invoker
 				src = "objectToPass"
@@ -734,14 +650,6 @@ class actionEventClass(object):
 					if isinstance(invokingFlow.target,Pin): #pin-pin - easy object-invoker
 						it = invokingFlow.target.getID()
 						if isinstance(invokingFlow.target.owner,CallBehaviorAction): it = invokingFlow.target.parameter.getID()
-						#self.elaborations[next]["args"].extend([(it,src,"Object")])
-						#self.elaborations[next]["enclosingClass"] = self.enclosingClass
-					#elif isinstance(invokingFlow.target,ControlNode):
-						#self.elaborations[next]["args"].extend([("objectToPass",src,"Object")])
-						#self.elaborations[next]["enclosingClass"] = self.enclosingClass
-					#elif isinstance(invokingFlow.target,ActivityParameterNode):
-						#self.elaborations[next]["args"].extend([(invokingFlow.target.parameter.getID(),src,"Object")])
-						#self.elaborations[next]["enclosingClass"] = self.enclosingClass
 				i+=1
 		else:
 			myOutgoingSignalFlows.extend([x for x in actionNode.outgoing])
@@ -751,20 +659,11 @@ class actionEventClass(object):
 
 		for outFlow in myOutgoingSignalFlows:
 			if isinstance(outFlow.source,Pin): #should handle pin --> decision input flow
-				#self.effects.append("sig" + outFlow.getID() + ".send(" + outFlow.source.getID()+",startTime)")
 				tname = "Object"
 				if outFlow in self.flowTypes.keys():
 					t = self.flowTypes[outFlow] #apparently there can be a key errror. wtf!?
 					if t: tname = t.name
 					if isinstance(t,Property): tname = t.type.name
-				#self.members[outFlow.source.getID()] = (tname,None,"Outgoing Signal Flow " + outFlow.source.name)
-			'''elif isinstance(actionNode,ActivityParameterNode):
-				self.effects.append("sig" + outFlow.getID() + ".send(" + actionNode.parameter.getID()+ ",startTime)")
-			elif outFlow in self.flowTypes.keys(): #should handle fork --> decision input flow
-				self.effects.append("sig" + outFlow.getID() + ".send(objectToPass,startTime)")
-			else:
-				self.effects.append("sig" + outFlow.getID() + ".send(true,startTime)") #for control signals...'''
-		
 
 	def inspectByType(self,node):
 		myType = node.humanType
@@ -893,8 +792,6 @@ class actionEventClass(object):
 					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),pin.parameter.type.name)])
 					self.dependencies[pin.getID()] = (pin.parameter.type.name,pin.getID())
 					self.members[pin.parameter.getID()] = (pin.parameter.type.name,None,"NEW - initialize output parameter storage value")
-					#self.dependencies[pin.getID()] = (tname,"sig" + pin.parameter.getID() + ".receive(endTime - 1)")
-					#self.elaborations[node.behavior]["args"].extend([("sig"+pin.parameter.getID(),"sig"+pin.parameter.getID(),"ObjectFlow"),("startTime","endTime+1","Integer")])
 
 		elif myType =="Start Object Behavior Action":
 			self.dependencies["duration"] = ("Integer","1")
@@ -930,9 +827,6 @@ class actionEventClass(object):
 			if dif:
 				try: tname = self.flowTypes[dif].name
 				except:tname = "Object"
-				#self.members[dif.getID()] = (tname,None,"Variable for DecisionInputFlow")
-				#self.effects.append(dif.getID() + " = sig" + dif.getID() + ".receive(startTime - 1")
-				#self.dependencies[dif.getID()] = (tname,"sig" + dif.getID() + ".receive(startTime - 1)")
 				for dName,(dType,dVal) in self.dependencies.items():
 					if dName.endswith("_exists"):
 						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()","decisionInput"))
@@ -951,13 +845,11 @@ class actionEventClass(object):
 				dependencyString = str(b)
 				
 			for otherPrev in self.prevs[n].keys(): #take out "my" flow??
-				otherSigFlow = self.prevs[n][otherPrev]
-				tm = "endTime"
-				#if otherPrev is node: tm = "endTime"
-				#else: tm = "endTime+1"
-				s = "sig" + str(otherSigFlow.getID()) + ".hasStuff(%s)" % tm
-				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
-				else: dependencyString = s
+				#otherSigFlow = self.prevs[n][otherPrev]
+				#tm = "endTime"
+				#s = "sig" + str(otherSigFlow.getID()) + ".hasStuff(%s)" % tm
+				#if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
+				#else: dependencyString = s
 				if isinstance(n,AcceptEventAction):
 					event = n.trigger[0].event
 					if not isinstance(event,TimeEvent):
@@ -966,12 +858,20 @@ class actionEventClass(object):
 						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime+1)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
+			if len(self.prevs[n].keys())>1:
+				rank = "None"
+				deciderVarName = "myDeciderID_decider%s" % n.getID()
+				try: rank = self.decisionDict[deciderVarName]
+				except: gl.log("CAN'T FIND MY RANK FOR DECIDING %s" % self.getPrettyIdent(n))
+				self.members[deciderVarName] = ("Integer",str(rank),"SETTING RANK FOR DECIDER")
+				self.dependencies[deciderVarName] = ("Integer",str(rank))
+				self.effects.append("decider" + n.getID()+".addIfNotContained(endTime,%s)" % deciderVarName)
+				deciderString = "decider%s.size(endTime) == decider%s.maxSize() &amp;&amp; decider%s.lastElement(endTime)==%s" % (n.getID(),n.getID(),n.getID(),deciderVarName)
+				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,deciderString])
+				else: dependencyString = deciderString
 			if not dependencyString: dependencyString = "true"
 			self.dependencies[n.getID() + "_exists"] = ("Boolean",str(dependencyString))
 			existscon = n.getID()+"_exists"
-			if len(self.prevs[n].keys())>1: 
-				existscon += " || decider" + n.getID() + ".getValue(endTime)"
-				self.effects.append("decider" + n.getID()+".setValue(endTime,true)")
 			self.elaborations[n]={
 						"args": [("startTime","endTime+2","Integer")],
 						"conditions": {"exists":existscon},
@@ -1357,6 +1257,7 @@ def translateClass(classThingy,l):
 	logAndExport(l+1,"import","java.util.LinkedList")
 	logAndExport(l+1,"import","gov.nasa.jpl.ae.event.Timepoint")
 	logAndExport(l+1,"import","gov.nasa.jpl.ae.fuml.ObjectFlow")
+	logAndExport(l+1,"import","gov.nasa.jpl.ae.event.TimeVaryingList")
 	writeMembers(classThingy,l+1)
 	writeConstructor(classThingy,l+1)
 	
