@@ -449,7 +449,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     Set< Constraint > set = new HashSet< Constraint >();
-    set.addAll( HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
+    set.addAll( HasConstraints.Helper.getConstraints( getParameters( deep, null ), deep, seen ) );
     set.addAll( HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
     set.addAll( HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
 //    for ( Parameter< ? > p : getParameters( false, null ) ) {
@@ -550,6 +550,12 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     for ( Dependency<?> d : getDependencies() ) {
       d.handleValueChangeEvent( parameter );
     }
+    // Alert affected timelines.
+    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+      if ( tv instanceof ParameterListener ) {
+        ((ParameterListener)tv).handleValueChangeEvent( parameter );
+      }
+    }
   }
 
   @Override
@@ -625,6 +631,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     // Alert affected dependencies.
     for ( Dependency<?> d : getDependencies() ) {
       d.setStaleAnyReferencesTo( changedParameter );
+    }
+    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+      if ( tv instanceof ParameterListener ) {
+        ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter );
+      }
     }
   }
 

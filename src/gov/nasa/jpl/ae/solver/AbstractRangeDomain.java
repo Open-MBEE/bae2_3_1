@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.text.AbstractDocument;
 
@@ -15,6 +16,7 @@ import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Functions.NotEquals;
+import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -32,6 +34,7 @@ public abstract class AbstractRangeDomain< T >
   //protected DomainListener owner;  // REVIEW ??
   //protected static Object typeMinValue;
   //protected static Object typeMaxValue;
+  protected static Method isGroundedMethod = getIsGroundedMethod();
 	
   public AbstractRangeDomain() {
 //    this( getTypeMinValue(), getTypeMaxValue() );
@@ -209,11 +212,28 @@ public abstract class AbstractRangeDomain< T >
     return false;
   }
 
+  public static Method getIsGroundedMethod() {
+    if ( isGroundedMethod == null ) {
+      try {
+        isGroundedMethod =
+            Groundable.class.getDeclaredMethod( "isGrounded",
+                                                new Class<?>[]{ boolean.class,
+                                                                Set.class } );
+      } catch ( SecurityException e ) {
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
+        e.printStackTrace();
+      }
+    }
+    return isGroundedMethod;
+  }
+  
   public Collection< Constraint > getConstraints( Variable< T > t ) {
     List< Constraint > cList= new ArrayList< Constraint >();
     Object args[] = null;
     Method method = null;
-    if ( !lowerBound.equals( getTypeMinValue() ) ) {
+    // lower bound constraint
+    if ( greater( lowerBound, getTypeMinValue() ) ) {
       args = new Object[] { lowerBound, t.getValue() };
       method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
@@ -229,7 +249,8 @@ public abstract class AbstractRangeDomain< T >
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                              args ) ) );
     }
-    if ( !upperBound.equals( getTypeMaxValue() ) ) {
+    // upper bound constraint
+    if ( less( upperBound, getTypeMaxValue() ) ) {
       args = new Object[] { upperBound, t.getValue() };
       method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
       Expression< T > expr = 
@@ -240,6 +261,18 @@ public abstract class AbstractRangeDomain< T >
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                              args ) ) );
     }
+    /*
+    // grounded constraint
+    if ( t instanceof Groundable ) {
+      Groundable g = (Groundable)t;
+      args = new Object[] { false, (Set< Groundable >)null };
+      if ( method != null ) {
+        method = getIsGroundedMethod();
+        cList.add( new ConstraintExpression( new FunctionCall( g, method, args ) ) );
+      }
+      //Utils.getMethodForArgs( Groundable.class, "isGrounded", args );
+    }
+    */
     return cList;
   }
 

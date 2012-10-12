@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,8 +33,6 @@ import junit.framework.Assert;
  * protect the data structure and reinserts the entry after the
  * {@link Timepoint} has changed.
  * 
- * @author bclement
- * 
  */
 public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
                                  implements TimeVarying< T >,
@@ -48,7 +47,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     public TimeValue( Timepoint t, T v ) {
       super( t, v );
     }
-
+    
     @Override
     public boolean isStale() {
       return HasParameters.Helper.isStale( this, false, null );
@@ -108,6 +107,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
                                boolean deep,
                                Set< HasParameters > seen ) {
+      breakpoint();
       Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
       if ( pair.first ) return false;
       seen = pair.second;
@@ -172,6 +172,8 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     }
   }
 
+  protected void breakpoint() {}
+
   public Timepoint getTimepointBefore( Timepoint t ) {
     return this.lowerKey( t );
   }
@@ -186,6 +188,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
+    breakpoint();
     for ( TimeValue e : floatingEffects ) {
       if ( e.hasParameter( parameter, true, null ) ) {
         put( e.first, e.second );
@@ -196,6 +199,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   protected void floatEffects( Timepoint t ) {
+    breakpoint();
     T value = get( t );
     floatingEffects.add( new TimeValue( t, value ) );
 //    if ( effects != null ) {
@@ -219,6 +223,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   protected void unfloatEffects( Timepoint t ) {
+    breakpoint();
     for ( TimeValue e : floatingEffects ) {
       if ( e.first.compareTo( t ) == 0 ) {
         put( e.first, e.second );
@@ -265,7 +270,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    return HasParameters.Helper.getParameters( this, deep, seen );
+    Set< Parameter< ? > > params = new HashSet< Parameter< ? > >();
+    params.addAll( HasParameters.Helper.getParameters( this, deep, seen ) );
+    params.addAll( HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
+    return params;
   }
 
   @Override
@@ -289,30 +297,54 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
-    return HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    if ( HasParameters.Helper.hasParameter( this, parameter, deep, seen ) ) {
+      return true;
+    }
+    if ( HasParameters.Helper.hasParameter( floatingEffects, parameter, deep, seen ) ) {
+      return true;
+    }
+    return false;
   }
 
   @Override
   public boolean
       substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
                   Set< HasParameters > seen ) {
-    return HasParameters.Helper.substitute( this, p1, p2, deep, seen );
+    breakpoint();
+    if ( HasParameters.Helper.substitute( this, p1, p2, deep, seen ) ) {
+      return true;
+    }
+    if ( HasParameters.Helper.substitute( floatingEffects, p1, p2, deep, seen ) ) {
+      return true;
+    }
+    return false;
+    
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.LazyUpdate#isStale()
+   */
   @Override
   public boolean isStale() {
     if ( !floatingEffects.isEmpty() ) return true;
     return ( HasParameters.Helper.isStale( this, false, null ) );
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.LazyUpdate#setStale(boolean)
+   */
   @Override
   public void setStale( boolean staleness ) {
     Debug.outln( "setStale(" + staleness + ") to " + this );
     Assert.assertTrue( "This method is not supported!", false );
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
+   */
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    breakpoint();
     if ( containsKey( changedParameter ) ) {
       floatEffects( (Timepoint)changedParameter );
     }
@@ -320,6 +352,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     // and set a stale flag in EffeectInstances?
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#refresh(gov.nasa.jpl.ae.event.Parameter)
+   */
   @Override
   public boolean refresh( Parameter< ? > parameter ) {
     // TODO -- REVIEW -- do nothing? owner's responsibility?
@@ -329,6 +364,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return false;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(gov.nasa.jpl.ae.event.Timepoint)
+   */
   @Override
   public T getValue( Timepoint t ) {
     if ( t == null ) return null;
@@ -340,6 +378,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return getValue( t.getValue() );
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(java.lang.Integer)
+   */
   @Override
   public T getValue( Integer t ){
     Timepoint tp = new Timepoint( StringDomain.typeMaxValue, t, null );
@@ -351,6 +392,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return null;
   }
 
+  /**
+   * @param value
+   * @param t
+   * @return
+   */
   public boolean hasValueAt( T value, Timepoint t ) {
     if ( t == null ) return false;
     T v = get( t ); //.first;
@@ -361,6 +407,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return hasValueAt( value, t.getValueNoPropagate() );
   }
   
+  /**
+   * @param value
+   * @param t
+   * @return
+   */
   public Timepoint keyForValueAt( T value, Integer t ) {
     Timepoint tp = new Timepoint( null, t, null );
     Entry< Timepoint, T > e = this.floorEntry( tp );
@@ -391,11 +442,22 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return null;
   }
   
+  /**
+   * @param value
+   * @param t
+   * @return
+   */
   public boolean hasValueAt( T value, Integer t ) {
     return keyForValueAt( value, t ) != null;
   }
 
+  /**
+   * @param t
+   * @param value
+   * @return
+   */
   public T setValue( Integer t, T value ) {
+    breakpoint();
     Timepoint tp = keyForValueAt( value, t );
     if ( tp == null ) {
       tp = new Timepoint( "", t, null );
@@ -404,8 +466,12 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return null;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.TimeVarying#setValue(gov.nasa.jpl.ae.event.Timepoint, java.lang.Object)
+   */
   @Override
   public T setValue( Timepoint t, T value ) {
+    breakpoint();
     Timepoint tp = keyForValueAt( value, t.getValue() );
     if ( tp != null && tp != t ) {
       remove( tp );
@@ -414,44 +480,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       return put( t, value );
     }
     return null;
-//    T oldValue = get( t );
-//    assert ( oldValue == null || oldValue.equals( value ) );
-    /*
-    TimeValue valueAndEffects = get( t );
-    if ( valueAndEffects == null ) {
-      valueAndEffects = new TimeValue( value, new HashSet< Effect >() );
-    } else {
-      // TODO -- REVIEW -- Are two different effects setting the value at the
-      // same time?!
-      oldValue = valueAndEffects.first;
-      valueAndEffects.first = value;
-    }
-    if ( valueAndEffects.second == null ) {
-      valueAndEffects.second = new HashSet< Effect >();
-    }
-    EffectFunction setEffect = null;
-    try {
-      Vector< Object > args = new Vector< Object >();
-      args.add( value );
-      Method m =
-          this.getClass().getMethod( "setValue",
-                                     new Class[] { Timepoint.class,
-                                                  value.getClass() } );
-      // FIXME -- There should either be no effect stored, or the effect should
-      // be passed as an argument.
-      setEffect = new EffectFunction( this, m, args );
-    } catch ( NoSuchMethodException | SecurityException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    valueAndEffects.second.add( setEffect );
-    return oldValue;
-    */
   }
 
   @Override
   public T unsetValue( Timepoint t, T value ) {
+    breakpoint();
     T oldValue = get( t );
 //    T oldValue = null;
 //    TimeValue valueAndEffects = get( t );
@@ -511,6 +544,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return isApplied(effect, getSetValueMethod1(), getSetValueMethod2());
   }
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
+    breakpoint();
     if ( !( effect instanceof EffectFunction ) ) {
       return false;
     }

@@ -225,15 +225,14 @@ public class Parameter< T > implements Cloneable, Groundable,
   public void setValue( T value, boolean propagateChange ) {
     boolean changing = !valueEquals( value );
     if ( changing ) {
+      if ( owner != null && propagateChange ) {
+        // lazy/passive updating
+        owner.setStaleAnyReferencesTo( this );
+      }
       this.value = value;
       constraintList.clear();
-      if ( owner != null ) {
-        if ( propagateChange ) {
+      if ( owner != null && propagateChange ) {
           owner.handleValueChangeEvent( this );
-        } else {
-          // lazy/passive updating
-          owner.setStaleAnyReferencesTo( this );
-        }
       }
     }
     setStale( false );
@@ -493,7 +492,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     }
     Method method;
     if ( domain != null && domain instanceof AbstractRangeDomain
-         && value instanceof Comparable ) {
+         && ( value == null || value instanceof Comparable ) ) {
       constraintList.addAll( ( (AbstractRangeDomain<T>)domain ).getConstraints( this ) );
     } else {
       try {

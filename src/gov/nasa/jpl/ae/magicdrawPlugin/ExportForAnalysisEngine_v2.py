@@ -1214,7 +1214,7 @@ def run(s):
 
 	homeDir = os.getenv('HOME')
 	if homeDir == None:
-		homeDir = os.curdir
+		homeDir = os.getcwd()
 	log_dir = os.path.join(homeDir,'LADWP_LOGS')
 	if not os.path.exists(log_dir):
 		try: os.mkdir(log_dir)
@@ -1241,7 +1241,7 @@ def run(s):
 			print "Error creating latest directory!"
 	generatedXmlFileName = latestDir + os.sep + "Scenario_latest.xml"
 	shutil.copyfile(log_file_name, generatedXmlFileName)
-	gl.log("\nfrom " + os.curdir + " copied " + log_file_name + " to " + generatedXmlFileName )
+	gl.log("\nfrom " + os.getcwd() + " copied " + log_file_name + " to " + generatedXmlFileName )
 	
 	gl.log("\nINSPECTED:")
 	for thing in inspected:
@@ -1251,7 +1251,7 @@ def run(s):
 	for k,v in partsDict.items():
 		gl.log(k.name + " -- " + str(v))
 	
-	gl.log("\nThe log file for this execution is located at: " + str(os.curdir) )
+	gl.log("\nThe log file for this execution is located at: " + str(os.getcwd()) )
 	gl.log("The log file: " + generatedXmlFileName )
 	return generatedXmlFileName
 

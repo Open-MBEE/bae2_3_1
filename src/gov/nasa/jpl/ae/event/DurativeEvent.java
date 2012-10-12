@@ -540,9 +540,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
     }
     Collection<Constraint> constraints = getConstraints( true, null );
-    Debug.outln("All constraints: ");
+    System.out.println("All constraints: ");
     for (Constraint c : constraints) {
-    	Debug.outln("Constraint: " + c);
+    	System.out.println("Constraint: " + c);
     }
     if ( satisfied ) {
       System.out.println( "All constraints were satisfied!" );
@@ -769,6 +769,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set<HasConstraints> seen ) {
+    if ( seen != null && seen.contains( this ) ) return Utils.getEmptySet();
     Collection< Constraint > set = new HashSet<Constraint>();
     set.addAll( super.getConstraints( deep, seen ) );
     //if ( set.equals( Utils.getEmptySet() ) ) return set;
@@ -1091,61 +1092,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         }
       }
     }
-
-////    Iterator< Entry< Parameter< ? >, Set< Effect >>> i =  
-////        getEffects().entrySet().iterator();
-////    Map< Parameter< ? >, Set< Effect >> removedForReinserting =
-////        new TreeMap< Parameter< ? >, Set< Effect > >();
-//    ArrayList< Pair< Parameter< ? >, Set< Effect > > > a =
-//        new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
-//    for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
-//      a.add( new Pair< Parameter< ? >, Set< Effect > >( e.getKey(), e.getValue() ) );
-//    }
-//    getEffects().clear();
-////    while ( i.hasNext() ) {
-////      Entry< Parameter< ? >, Set< Effect > > e = i.next();
-////    //for ( Entry< Parameter< ? >, Set< Effect > > e : getEffects().entrySet() ) {
-////      // Temporarily remove in case propagation in TimeVarying can corrupt entry keys.
-////      //getEffects().entrySet().remove( e );
-    for ( Pair< Parameter< ? >, Set< Effect > > p : getEffects() ) {
-      Parameter< ? > tlParam = p.first;
-//      Parameter< ? > tlParam = e.getKey();
-      assert tlParam != null;
-      Parameter< ? > tlParam2 = tlParam;
-      if ( tlParam.getValue() instanceof Parameter ) {
-        tlParam2 = (Parameter< ? >)tlParam.getValue();
-      }
-      if ( tlParam2.getValue() == null ) continue;
-      assert tlParam2.getValue() instanceof TimeVarying;
-      TimeVarying< ? > timeline = (TimeVarying< ? >)tlParam2.getValue();
-      Set< Effect > effectSet = p.second;
-//      Set< Effect > effectSet = e.getValue();
-//      //i.remove();
-      for (Effect effect : effectSet ) {
-        boolean hasParameter = false;
-        if ( timeline instanceof HasParameters ) {
-          if ( ( (HasParameters)timeline ).hasParameter( parameter, false, null ) ) {
-            hasParameter = true;
-            if ( timeline instanceof ParameterListener ) {
-              ( (ParameterListener)timeline ).handleValueChangeEvent( parameter );
-            }
-          }
-        }
-        if ( !hasParameter && effect instanceof HasParameters ) {
-          hasParameter =
-              ( (HasParameters)effect ).hasParameter( parameter, false, null );
-        }
-        if ( hasParameter && timeline != null ) {
-          // TODO -- REVIEW -- is this right?
-          effect.unApplyTo( timeline ); // , startTime, duration );
-          effect.applyTo( timeline, true ); // , startTime, duration );
-        }
-//        getEffects().put( tlParam, effectSet );
-        //getEffects().put( e.getKey(), e.getValue() );
-      }
-    }
-//    getEffects().putAll( removedForReinserting );
-
   }
 
   /**

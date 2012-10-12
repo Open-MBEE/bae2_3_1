@@ -289,7 +289,9 @@ public class FunctionCall implements HasParameters, Groundable {
             argObjects[i] = v;
           }
         }
-        if ( !c.isAssignableFrom( argObjects[i].getClass() ) &&
+
+        if ( argObjects[i] != null &&
+             !c.isAssignableFrom( argObjects[i].getClass() ) &&
              Utils.isSubclassOf( c, Expression.class ) ) {
           argObjects[i] = new Expression( argObjects[i] );
         }

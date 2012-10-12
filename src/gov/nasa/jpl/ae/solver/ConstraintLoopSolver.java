@@ -139,7 +139,7 @@ public class ConstraintLoopSolver implements Solver {
 
     // unsatisfiedConstraints.addAll( constraints );
     for ( Constraint c : constraints ) {
-      if ( !c.isSatisfied( false, null ) ) {
+      if ( !c.isSatisfied( true, null ) ) {
         unsatisfiedConstraints.add( c );
       }
     }
