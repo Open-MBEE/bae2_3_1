@@ -492,7 +492,13 @@ public class Functions {
     if ( r1 == null || r2 == null ) return false;
     boolean b = true;
     if ( r1 instanceof Comparable ) {
-      b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+      if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
+        return ((Parameter<T>)r1).valueEquals( r2 );
+      }
+      if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
+        return ((Parameter<T>)r2).valueEquals( r1 );
+      }
+      b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;  
     } else {
       b = r1.equals( r2 );
     }
