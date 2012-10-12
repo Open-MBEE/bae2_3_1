@@ -87,21 +87,29 @@ public class StringDomain extends AbstractRangeDomain<String> {
   // TODO
   @Override
   public boolean greater( String t1, String t2 ) {
+    if ( t1 == null ) return false;
+    if ( t2 == null ) return t1 != null;
     return t1.compareTo( t2 ) > 0;
   }
 
   @Override
   public boolean less( String t1, String t2 ) {
+    if ( t1 == null ) return t2 != null;
+    if ( t2 == null ) return false;
     return t1.compareTo( t2 ) < 0;
   }
 
   @Override
   public boolean greaterEquals( String t1, String t2 ) {
+    if ( t1 == null ) return t2 == null;
+    if ( t2 == null ) return true;
     return t1.compareTo( t2 ) >= 0;
   }
 
   @Override
   public boolean lessEquals( String t1, String t2 ) {
+    if ( t1 == null ) return true;
+    if ( t2 == null ) return t1 == null;
     return t1.compareTo( t2 ) <= 0;
   }
 

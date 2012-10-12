@@ -120,11 +120,15 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 
   @Override
   public boolean greater( Integer t1, Integer t2 ) {
+    if ( t1 == null ) return false;
+    if ( t2 == null ) return t1 != null;
     return t1 > t2;
   }
 
   @Override
   public boolean less( Integer t1, Integer t2 ) {
+    if ( t1 == null ) return t2 != null;
+    if ( t2 == null ) return false;
     return t1 < t2;
   }
 
@@ -135,11 +139,15 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 
   @Override
   public boolean greaterEquals( Integer t1, Integer t2 ) {
+    if ( t1 == null ) return t2 == null;
+    if ( t2 == null ) return true;
     return t1 >= t2;
   }
 
   @Override
   public boolean lessEquals( Integer t1, Integer t2 ) {
+    if ( t1 == null ) return true;
+    if ( t2 == null ) return t1 == null;
     return t1 <= t2;
   }
 

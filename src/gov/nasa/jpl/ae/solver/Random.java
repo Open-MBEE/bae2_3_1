@@ -4,7 +4,6 @@
 package gov.nasa.jpl.ae.solver;
 
 /**
- * @author bclement
  *
  */
 public final class Random {

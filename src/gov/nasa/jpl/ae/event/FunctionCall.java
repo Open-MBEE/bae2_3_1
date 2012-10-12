@@ -303,8 +303,14 @@ public class FunctionCall implements HasParameters, Groundable {
   
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     // IllegalAccessException, InvocationTargetException {
-    if ( !ground( propagate, null ) ) {
-      return null;
+    if ( propagate ) {
+      if ( !ground( propagate, null ) ) {
+        return null;
+      }
+    } else {
+      if ( !isGrounded( false, null ) ) {
+        return null;
+      }
     }
     Object evaluatedArgs[] = evaluateArgs( propagate );
     Object result = null;

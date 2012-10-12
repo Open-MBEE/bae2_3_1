@@ -3,8 +3,13 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.util.Collection;
+import java.util.Set;
+
 import gov.nasa.jpl.ae.solver.BooleanDomain;
+import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasConstraints;
 
 /**
  * @author bclement
@@ -55,4 +60,17 @@ public class BooleanParameter extends Parameter<Boolean> {
 		super(parameter);
 	}
 
+	@Override
+  public Collection< Constraint > getConstraints( boolean deep,
+                                                  Set<HasConstraints> seen ) {
+	  return super.getConstraints( deep, seen );
+  }	
+  @Override
+  public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+    return super.isGrounded( deep, seen );
+  } 
+  @Override
+  public boolean ground(boolean deep, Set< Groundable > seen) {
+    return super.ground( deep, seen );
+  } 
 }

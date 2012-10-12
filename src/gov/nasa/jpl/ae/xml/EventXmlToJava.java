@@ -94,7 +94,6 @@ public class EventXmlToJava {
   
   // not using this yet
   public static final String charactersAssumedNotInIdentifiers = "<>+*/.";
-  
  
   // A struct for packaging name, types, and values, which are used for many
   // purposes in the XML: parameters, args, dependencies, . . .
@@ -220,6 +219,9 @@ public class EventXmlToJava {
   }
   public void init() throws ParserConfigurationException, SAXException, IOException {
 
+    Debug.outln( "random double to test repeatability = "
+                 + Random.global.nextDouble() );
+    
     System.out.println("xml file name = " + this.xmlFileName );
     System.out.println("package name = " + this.packageName );
     Debug.outln("xml file name = " + this.xmlFileName );

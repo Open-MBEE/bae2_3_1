@@ -41,7 +41,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 5.0;
-  protected long numIterations = 5;
+  protected long numIterations = 20;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
@@ -379,7 +379,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   @Override
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
-    for ( Constraint c : getConstraints( true, null ) ) {
+    for ( Constraint c : getConstraints( true, null ) ) { // REVIEW -- why is true passed in?
       if ( !c.isSatisfied(deep, seen) ) {
         return false;
       }

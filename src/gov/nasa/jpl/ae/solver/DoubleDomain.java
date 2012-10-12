@@ -112,6 +112,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    */
   @Override
   public boolean greater( Double t1, Double t2 ) {
+    if ( t1 == null ) return false;
+    if ( t2 == null ) return t1 != null;
     return t1 > t2;
   }
 
@@ -120,6 +122,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    */
   @Override
   public boolean less( Double t1, Double t2 ) {
+    if ( t1 == null ) return t2 != null;
+    if ( t2 == null ) return false;
     return t1 < t2;
   }
 
@@ -136,6 +140,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    */
   @Override
   public boolean greaterEquals( Double t1, Double t2 ) {
+    if ( t1 == null ) return t2 == null;
+    if ( t2 == null ) return true;
     return t1 >= t2;
   }
 
@@ -144,6 +150,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    */
   @Override
   public boolean lessEquals( Double t1, Double t2 ) {
+    if ( t1 == null ) return true;
+    if ( t2 == null ) return t1 == null;
     return t1 <= t2;
   }
 

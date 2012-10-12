@@ -168,7 +168,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                         Set< Satisfiable > seen ) {
       boolean deepGroundable = deep;
       Set< Groundable > seenGroundable = null;
-      if (variable.getName().contains("21")){
+      if (variable.getName().contains("30")){
         System.out.println("Cactus");
       }
       if ( !variable.isGrounded(deepGroundable, seenGroundable) ) return false;
@@ -233,7 +233,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
 //        Set< Effect > set = entry.getValue();
 //        Parameter< ? > variable = entry.getKey();
-        if (variable.getName().contains("21")){
+        if (variable.getName().contains("30")){
         	System.out.println("Blaah");
         }
         if ( !satisfyEffectsOnTimeVarying( variable, set, deep, seen ) ) {
@@ -255,7 +255,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
 //        Set< Effect > set = entry.getValue();
 //        Parameter< ? > variable = entry.getKey();
-        if (variable.getName().contains("21")){
+        if (variable.getName().contains("30")){
         	System.out.println("Blaah");
         }
         if ( !areEffectsOnTimeVaryingSatisfied( variable, set, deep, seen ) ) {
@@ -535,10 +535,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Debug.outln( getName() + ".execute()" );
     boolean satisfied = satisfy( true, null );
     Debug.outln( getName() + ".execute() called satisfy() --> " + satisfied );
-    if ( !satisfied ) {
-      satisfied = solver.solve( getConstraints( true, null ) );
-      Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
-    }
+//    if ( !satisfied ) {
+//      satisfied = solver.solve( getConstraints( true, null ) );
+//      Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
+//    }
     Collection<Constraint> constraints = getConstraints( true, null );
     System.out.println("All constraints: ");
     for (Constraint c : constraints) {

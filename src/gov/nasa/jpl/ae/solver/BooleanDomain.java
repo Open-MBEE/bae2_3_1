@@ -55,7 +55,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	 */
 	@Override
 	public Boolean pickRandomValue() {
-		return Random.global.nextDouble() < 0.5;
+		return Random.global.nextBoolean();
 	}
 
 //	@Override
@@ -92,21 +92,29 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 
   @Override
   public boolean greater( Boolean t1, Boolean t2 ) {
+    if ( t1 == null ) return false;
+    if ( t2 == null ) return t1 != null;
     return t1 && !t2;
   }
 
   @Override
   public boolean less( Boolean t1, Boolean t2 ) {
+    if ( t1 == null ) return t2 != null;
+    if ( t2 == null ) return false;
     return !t1 && t2;
   }
 
   @Override
   public boolean greaterEquals( Boolean t1, Boolean t2 ) {
+    if ( t1 == null ) return t2 == null;
+    if ( t2 == null ) return true;
     return t1 || !t2;
   }
 
   @Override
   public boolean lessEquals( Boolean t1, Boolean t2 ) {
+    if ( t1 == null ) return true;
+    if ( t2 == null ) return t1 == null;
     return !t1 || t2;
   }
 

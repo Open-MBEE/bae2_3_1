@@ -43,6 +43,9 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 
   public static final String timestampFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
+  protected static IntegerDomain defaultDomain //= IntegerDomain.positiveDomain;
+                                                 = TimeDomain.horizonDomain;
+  
   public static enum Units { 
     days(24*3600*1e9), hours(3600*1e9), minutes(60*1e9),
     seconds(1e9), milliseconds(1e6), microseconds(1e3),
@@ -180,7 +183,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	 * @param o 
 	 */
 	public Timepoint(String name, ParameterListener o) {
-		super(name, TimeDomain.horizonDomain, o);
+		super(name, defaultDomain, o);
 	}
 
 	/**
@@ -189,7 +192,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	 * @param v
 	 */
 	public Timepoint(String name, Integer value, ParameterListener o) {
-		super(name, TimeDomain.horizonDomain, value, o);
+		super(name, defaultDomain, value, o);
 	}
 
 	public Timepoint(Timepoint timepoint) {
