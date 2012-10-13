@@ -49,6 +49,9 @@ public class ConstraintLoopSolver implements Solver {
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
         Debug.outln( "checking constraint " + c );
+        if ( c.toString().toLowerCase().contains("mydecid") ) {
+          Debug.outln( "" );
+        }
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
           thisSatisfied = c.satisfy( deep, null );

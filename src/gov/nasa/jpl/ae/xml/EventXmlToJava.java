@@ -1778,7 +1778,7 @@ public class EventXmlToJava {
     } else if ( p.type.toLowerCase().equals( "time" ) ) {
       type = "Timepoint";
       parameterTypes = null;
-      args = "\"" + p.name + "\", this";
+      //args = "\"" + p.name + "\", this";
     } else if ( p.type.toLowerCase().startsWith( "int" )
                 || p.type.toLowerCase().startsWith( "long" ) // TODO -- Need a
                                                              // LongParameter
@@ -1786,25 +1786,25 @@ public class EventXmlToJava {
                          .equals( "Parameter<Integer>" ) ) {
       type = "IntegerParameter";
       parameterTypes = null; // "Integer";
-      args = "\"" + p.name + "\", this";
+      //args = "\"" + p.name + "\", this";
     } else if ( p.type.toLowerCase().equals( "double" )
                 || p.type.trim().replaceAll( " ", "" )
                          .equals( "Parameter<Double>" ) ) {
       type = "DoubleParameter";
       parameterTypes = null;
-      args = "\"" + p.name + "\", this";
+      //args = "\"" + p.name + "\", this";
     } else if ( p.type.toLowerCase().equals( "boolean" )
                 || p.type.trim().replaceAll( " ", "" )
                          .equals( "Parameter<Boolean>" ) ) {
       type = "BooleanParameter";
       parameterTypes = null;
-      args = "\"" + p.name + "\", this";
+      //args = "\"" + p.name + "\", this";
     } else if ( p.type.equals( "String" )
                 || p.type.trim().replaceAll( " ", "" )
                          .equals( "Parameter<String>" ) ) {
       type = "StringParameter";
       parameterTypes = null;
-      args = "\"" + p.name + "\", this";
+      //args = "\"" + p.name + "\", this";
 //    } else if ( p.type.startsWith( "TimeVaryingMap" ) ) {
 //      args = "\"" + p.name + "\", this";
     }

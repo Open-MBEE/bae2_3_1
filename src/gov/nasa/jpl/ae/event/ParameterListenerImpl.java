@@ -445,8 +445,16 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   @Override
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set<HasConstraints> seen ) {
+    boolean mayHaveBeenPropagating = Parameter.mayPropagate; 
+    Parameter.mayPropagate = false;
+    boolean mayHaveBeenChanging = Parameter.mayChange; 
+    Parameter.mayChange = false;
     Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
-    if ( pair.first ) return Utils.getEmptySet();
+    if ( pair.first ) {
+      Parameter.mayPropagate = mayHaveBeenPropagating;
+      Parameter.mayChange = mayHaveBeenChanging;
+      return Utils.getEmptySet();
+    }
     seen = pair.second;
     Set< Constraint > set = new HashSet< Constraint >();
     set.addAll( HasConstraints.Helper.getConstraints( getParameters( deep, null ), deep, seen ) );
@@ -457,6 +465,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 //    }
 //    set.addAll( constraintExpressions );
 //    set.addAll( dependencies );
+    Parameter.mayPropagate = mayHaveBeenPropagating;
+    Parameter.mayChange = mayHaveBeenChanging;
     return set;
   }
 

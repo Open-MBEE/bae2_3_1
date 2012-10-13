@@ -33,6 +33,10 @@ public class Parameter< T > implements Cloneable, Groundable,
                             Variable< T >, LazyUpdate, HasConstraints {
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
+  
+  // These are for debug validation.
+  public static boolean mayPropagate = true;
+  public static boolean mayChange = true;
 
   protected String name = null;
   private Domain< T > domain = null;
@@ -164,6 +168,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   @Override
   public T getValue() {
     Debug.outln( "Parameter.getValue() start: " + this );
+    assert mayPropagate;
     if ( isStale() ) {
       if ( owner != null ) { 
         owner.refresh( this );
@@ -223,6 +228,8 @@ public class Parameter< T > implements Cloneable, Groundable,
   // setValue( value, false ) is lazy/passive updating
   // setValue( value, true ) is proactive updating
   public void setValue( T value, boolean propagateChange ) {
+    assert !propagateChange || mayPropagate;
+    assert mayChange ;
     boolean changing = !valueEquals( value );
     if ( changing ) {
       if ( owner != null && propagateChange ) {

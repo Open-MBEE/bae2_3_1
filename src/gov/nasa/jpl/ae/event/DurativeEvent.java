@@ -770,7 +770,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set<HasConstraints> seen ) {
-    if ( seen != null && seen.contains( this ) ) return Utils.getEmptySet();
+    boolean mayHaveBeenPropagating = Parameter.mayPropagate; 
+    Parameter.mayPropagate = false;
+    boolean mayHaveBeenChanging = Parameter.mayChange; 
+    Parameter.mayChange = false;
+    if ( seen != null && seen.contains( this ) ) {
+      Parameter.mayPropagate = mayHaveBeenPropagating;
+      Parameter.mayChange = mayHaveBeenChanging;
+      return Utils.getEmptySet();
+    }
     Collection< Constraint > set = new HashSet<Constraint>();
     set.addAll( super.getConstraints( deep, seen ) );
     //if ( set.equals( Utils.getEmptySet() ) ) return set;
@@ -784,6 +792,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Set< Event > events = getEvents( deep, null );
       set.addAll( HasConstraints.Helper.getConstraints( events, deep, seen ) );
     }
+    Parameter.mayPropagate = mayHaveBeenPropagating;
+    Parameter.mayChange = mayHaveBeenChanging;
     return set;
   }
 
