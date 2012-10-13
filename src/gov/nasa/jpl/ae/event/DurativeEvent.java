@@ -593,7 +593,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public EventSimulation createEventSimulation() {
     EventSimulation sim = new EventSimulation( getEvents( true, null ), 1.0e12 );
     sim.add( this );
-    for ( TimeVarying< ? > tv : getTimeVaryingObjects( true, null ) ) {
+    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, null );
+    for ( TimeVarying< ? > tv : tvs ) {
       if ( tv instanceof TimeVaryingMap ) {
         sim.add( (TimeVaryingMap< ? >)tv );
       }
@@ -718,10 +719,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set< TimeVarying< ? > > set = super.getTimeVaryingObjects( deep, seen );
     //Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
     if ( deep ) {
-      HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborationsConstraint, deep, seen );
-      HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effectsConstraint, deep, seen );
-      HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborations, deep, seen );
-      HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen );
+      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborationsConstraint, deep, seen ) );
+      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effectsConstraint, deep, seen ) );
+      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborations, deep, seen ) );
+      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen ) );
       for ( Event e : getEvents(deep, null) ) {
         if ( e instanceof HasTimeVaryingObjects ) {
           set.addAll( ((HasTimeVaryingObjects)e).getTimeVaryingObjects( deep, seen ) );
@@ -742,10 +743,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     if ( seen != null && seen.contains( this ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > set = super.getParameters( deep, seen );
     if ( deep ) {
-      HasParameters.Helper.getParameters( elaborationsConstraint, deep, seen );
-      HasParameters.Helper.getParameters( effectsConstraint, deep, seen );
-      HasParameters.Helper.getParameters( elaborations, deep, seen );
-      HasParameters.Helper.getParameters( effects, deep, seen );
+      set.addAll( HasParameters.Helper.getParameters( elaborationsConstraint, deep, seen ) );
+      set.addAll( HasParameters.Helper.getParameters( effectsConstraint, deep, seen ) );
+      set.addAll( HasParameters.Helper.getParameters( elaborations, deep, seen ) );
+      set.addAll( HasParameters.Helper.getParameters( effects, deep, seen ) );
       for ( Event e : getEvents(deep, null) ) {
         if ( e instanceof HasParameters ) {
           set.addAll( ((HasParameters)e).getParameters( deep, seen ) );
@@ -776,12 +777,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     set.add( elaborationsConstraint );
     set.add( effectsConstraint );
     if ( deep ) {
-      HasConstraints.Helper.getConstraints( elaborationsConstraint, deep, seen );
-      HasConstraints.Helper.getConstraints( effectsConstraint, deep, seen );
-      HasConstraints.Helper.getConstraints( elaborations, deep, seen );
-      HasConstraints.Helper.getConstraints( effects, deep, seen );
+      set.addAll( HasConstraints.Helper.getConstraints( elaborationsConstraint, deep, seen ) );
+      set.addAll( HasConstraints.Helper.getConstraints( effectsConstraint, deep, seen ) );
+      set.addAll( HasConstraints.Helper.getConstraints( elaborations, deep, seen ) );
+      set.addAll( HasConstraints.Helper.getConstraints( effects, deep, seen ) );
       Set< Event > events = getEvents( deep, null );
-      HasConstraints.Helper.getConstraints( events, deep, seen );
+      set.addAll( HasConstraints.Helper.getConstraints( events, deep, seen ) );
     }
     return set;
   }

@@ -41,7 +41,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 5.0;
-  protected long numIterations = 20;
+  protected long numIterations = 60;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
@@ -473,7 +473,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
     // Rebuilding the set in case parameter values change. 
-    for ( Parameter< ? > p : getParameters( false, null ) ) {
+    for ( Parameter< ? > p : getParameters( true, null ) ) {
       Object value = p.getValueNoPropagate();
       if ( value != null ) {
         if ( value instanceof TimeVarying ) {
