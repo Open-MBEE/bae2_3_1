@@ -38,6 +38,7 @@ def run(x):
     proceed = setup()
     if not proceed: return
     x = highlighterThread()
+    gl.log("Timescale: " + str(x.timeScale))
     x.start()
 
 class event(object):
@@ -68,8 +69,66 @@ class highlighterThread(Thread):
         gl.log("running MagicDrawAnimator")
         mode = 0
         if mode == 0:
-            filepath = "c:\\Users\\bclement\\Desktop\\foo.txt"
-            self.animateFromFile(filepath)
+            #filepath = "c:\\Users\\bclement\\Desktop\\foo.txt"
+            filepath = "/Users/mjackson/Desktop/MedSim.txt"
+            #self.animateFromFile(filepath)
+            
+            #self.loadEventsFromFile(filepath)
+            
+            self.events = []
+            f = open(filepath,"r")
+            for line in f.readlines():
+                #gl.log(line)
+                x = re.search("(\d*)[^0-9: \t\n\r\f\v]*\s*:\s*\S*\s*(\S*) -> (\S*)\s*(\S*) ==>",line)
+                if x: 
+                    eventTime=x.groups()[0]
+                    action=x.groups()[2]
+                    cid = x.groups()[3]
+                    ctype = x.groups()[1]
+                    gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
+                elif line.startswith("---"): 
+                    gl.log(line)
+                    continue
+                else: continue
+                #gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
+                if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
+                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap or ObjectFlow")
+                    continue
+                if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
+                    gl.log("    ---> Skipping - can't animate the Activity object!")
+                    continue
+                try:
+                    evt = event(eventTime,action,cid,ctype)
+                    try: self.events.append(evt)
+                    except: gl.log("NESTED ARGHHHHH")
+                except: gl.log("ARRGHHH")
+            
+            mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
+            
+            #self.playEvents(mda)
+            zeroTime = time.time()
+            elapsedTime = 0
+            gl.log(str(self.timeScale))
+            for evt in self.events:
+                gl.log("EVENT at " + str(evt.eventTime))
+                try: timeToNextEvent = (float(evt.eventTime) + 0.0) / self.timeScale
+                except: 
+                    exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+                    gl.log("*** EXCEPTION:")
+                    messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
+                    for message in messages:
+                        gl.log(message)
+                gl.log("1")
+                if timeToNextEvent > elapsedTime:
+                    time.sleep( timeToNextEvent - elapsedTime )
+                if "start" in evt.action: 
+                    gl.log("    ---> STARTING")
+                    mda.start(evt.componentId)
+                elif "end" in evt.action: 
+                    gl.log("    ---> ENDING")
+                    mda.end(evt.componentId)
+                elapsedTime = time.time() - zeroTime
+            gl.log("DONE")
         
         elif mode == 1:
             e = "_17_0_5_edc0357_1346893970422_843838_14398"
