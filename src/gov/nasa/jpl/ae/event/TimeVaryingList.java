@@ -173,6 +173,9 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       int sizeBefore = size( tpBefore );
       if ( sizeBefore == maxSize && num >= numBefore ) return true;
       if ( addMethod ) return false; // num <= numBefore is implied
+      if ( size < maxSize || sizeBefore < maxSize ) {
+        return num > 0;
+      }
     }
     return true;
   }
