@@ -64,7 +64,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
       Debug.errln("minCap=" + minCap + "; maxCap=" + maxCap );
       for ( int t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
         double value = (Double)deltaValueFunction.invoke( o, lastT, lastValue, t );
-        lastValue = add( new Timepoint( "", t, this ), value );
+        lastValue = add( makeTempTimepoint( t, false ), value );
         lastT = t;
       }
     } catch ( IllegalAccessException e ) {

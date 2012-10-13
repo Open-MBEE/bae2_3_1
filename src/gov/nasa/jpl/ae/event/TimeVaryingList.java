@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.Debug;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,11 @@ import junit.framework.Assert;
 
 /**
  *
+ */
+/**
+ * @author bclement
+ *
+ * @param <T>
  */
 public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
@@ -102,6 +109,23 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     }
     return false;
   }
+  
+  /**
+   * @param t
+   * @param value
+   * @return the number of occurrences of the value in the List at time t
+   */
+  public int occurrences( Timepoint t, T value ) {
+    int ct = 0;
+    List< T > list = getValue( t );
+    if ( list != null ) {
+      for ( T o : list ) {
+        if ( Parameter.valuesEqual( o, value ) ) ct++;
+      }
+    }
+    return ct;
+  }
+    
 
   public T get( Timepoint t, int index ) {
     List< T > list = getValue( t );
@@ -119,6 +143,55 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       return list.size();
     }
     return 0;
+  }
+
+  public boolean isAddApplied( EffectFunction effectFunction ) {
+    boolean addIfMethod = effectFunction.method.getName().contains( "addIfNotContained" );
+    boolean addMethod = !addIfMethod && effectFunction.method.getName().contains( "add" );
+    assert ( effectFunction.arguments != null &&
+             effectFunction.arguments.size() == 2 );
+    Object t = effectFunction.arguments.get( 0 );
+    Object o = effectFunction.arguments.get( 1 );
+    T value = null;
+    try {
+      value = (T)o;
+    } catch( Exception e ) {
+      //e.printStackTrace();
+    }
+    Timepoint tp = null;
+    if ( value != null ) {
+      if ( t instanceof Integer ) {
+        tp = new Timepoint( ((Integer)t).intValue() );
+      } else if ( t instanceof Timepoint ) {
+        tp = (Timepoint)t;
+      }
+      Timepoint tpBefore = getTimepointBefore( tp );
+      int num = occurrences( tp, value );
+      int numBefore = occurrences( tpBefore, value );
+      if ( num > numBefore ) return true;
+      int size = size( tp );
+      int sizeBefore = size( tpBefore );
+      if ( sizeBefore == maxSize && num >= numBefore ) return true;
+      if ( addMethod ) return false; // num <= numBefore is implied
+    }
+    return true;
+  }
+  
+  @Override
+  public boolean isApplied( Effect effect ) {
+    breakpoint();
+    if ( !( effect instanceof EffectFunction ) ) {
+      return false;
+    }
+    EffectFunction effectFunction = (EffectFunction)effect;
+    boolean addIfMethod = effectFunction.method.getName().contains( "addIfNotContained" );
+    boolean addMethod = !addIfMethod && effectFunction.method.getName().contains( "add" );
+    if ( addIfMethod || addMethod ) {
+      return isAddApplied( effectFunction );
+    } else {
+//    if ( effectFunction.method.getName().contains( "setValue" ) ) {
+      return super.isApplied( effect );
+    }
   }
   
   /**

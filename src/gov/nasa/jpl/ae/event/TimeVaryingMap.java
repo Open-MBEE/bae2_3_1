@@ -144,7 +144,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public TimeVaryingMap( String name, T defaultValue ) {
     super();
     this.name = name;
-    Timepoint t = new Timepoint(StringDomain.typeMinValue, 0, this);
+    Timepoint t = new Timepoint(null, 0, this);
     //System.out.println(name + " put(" + t + ", " + defaultValue + ")" );
     put( t, defaultValue );
   }
@@ -157,7 +157,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     samplePeriod = correctSamplePeriod( samplePeriod, horizonDuration );
     try {
       for ( int t = 0; t < horizonDuration; t += samplePeriod ) {
-        setValue( new Timepoint( "", t, this ),
+        // WARNING: creating Timepoint with no owner in order to avoid
+        // unnecessary overhead with constraint processing. If modified while in
+        // the map, it can corrupt the map.
+        setValue( makeTempTimepoint( t, false ),//new Timepoint( "", t, this ),
                   (T)initialValueFunction.invoke( o, t ) );
       }
     } catch ( IllegalAccessException e ) {
@@ -176,6 +179,12 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   public Timepoint getTimepointBefore( Timepoint t ) {
     return this.lowerKey( t );
+  }
+  
+  public Timepoint makeTempTimepoint( Integer t, boolean maxName ) {
+    String n = ( maxName ? StringDomain.typeMaxValue : null );
+    Timepoint tp = new Timepoint( n, t, null );
+    return tp;
   }
   
   protected static int correctSamplePeriod( int samplePeriod,
@@ -383,7 +392,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    */
   @Override
   public T getValue( Integer t ){
-    Timepoint tp = new Timepoint( StringDomain.typeMaxValue, t, null );
+    Timepoint tp = makeTempTimepoint( t, true );
     Entry< Timepoint, T > e = this.floorEntry( tp );
     if ( e != null ) return e.getValue();
     if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
@@ -413,7 +422,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    * @return
    */
   public Timepoint keyForValueAt( T value, Integer t ) {
-    Timepoint tp = new Timepoint( null, t, null );
+    Timepoint tp = makeTempTimepoint( t, false );//new Timepoint( null, t, null );
     Entry< Timepoint, T > e = this.floorEntry( tp );
     Timepoint startKey = null;
     if ( e != null ) {
@@ -460,7 +469,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     breakpoint();
     Timepoint tp = keyForValueAt( value, t );
     if ( tp == null ) {
-      tp = new Timepoint( "", t, null );
+      tp = makeTempTimepoint( t, false );//new Timepoint( "", t, null );
       return put( tp, value );
     }
     return null;

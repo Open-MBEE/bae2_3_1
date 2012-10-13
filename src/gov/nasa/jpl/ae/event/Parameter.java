@@ -322,6 +322,9 @@ public class Parameter< T > implements Cloneable, Groundable,
     return isGrounded(deep, null);
   }
 
+  /* (non-Javadoc)
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
   @Override
   public int compareTo( Parameter< ? > o ) {
     if ( this == o ) return 0;
