@@ -229,7 +229,7 @@ public class Dependency< T >
         }
       }
       Variable< ? > var = pickRandomFreeVariable();
-      if ( var == null ) var = pickRandomVariable();      
+      if ( var == null ) var = pickRandomVariable();
       if ( var == null ) return false;
       Constraint c = getConstraintExpression();
       boolean changedSomething = false;
@@ -329,7 +329,8 @@ public class Dependency< T >
 
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( getParameters( true, null ).contains( parameter ) ) {
+    if ( getParameters( true, null ).contains( parameter )
+         && this.parameter != parameter ) {
       apply( false );
     }
   }
