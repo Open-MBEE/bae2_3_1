@@ -41,7 +41,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 5.0;
-  protected long numIterations = 60;
+  protected long numIterations = 20;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
@@ -191,16 +191,17 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // HasDependencies?
   public < T > Dependency addDependency( Parameter< T > p, Expression< T > e ) {
     Dependency< T > d = new Dependency< T >( p, e );
-    if ( e.type == Expression.Type.Parameter ) {
-      Parameter< T > ep = (Parameter< T >)e.expression;
-      if ( ep.getDomain() instanceof AbstractRangeDomain &&
-          p.getDomain() instanceof AbstractRangeDomain ) {
-        AbstractRangeDomain< T > ard = (AbstractRangeDomain< T >)p.getDomain();
-        AbstractRangeDomain< T > eard = (AbstractRangeDomain< T >)ep.getDomain();
-        eard.intersectRestrict( ard );
-        ard.intersectRestrict( eard );
-      }
-    }
+// Default domains are shared.  The domains need to be cloned before intersecting them.
+//    if ( e.type == Expression.Type.Parameter ) {
+//      Parameter< T > ep = (Parameter< T >)e.expression;
+//      if ( ep.getDomain() instanceof AbstractRangeDomain &&
+//          p.getDomain() instanceof AbstractRangeDomain ) {
+//        AbstractRangeDomain< T > ard = (AbstractRangeDomain< T >)p.getDomain();
+//        AbstractRangeDomain< T > eard = (AbstractRangeDomain< T >)ep.getDomain();
+//        eard.intersectRestrict( ard );
+//        ard.intersectRestrict( eard );
+//      }
+//    }
     dependencies.add( d );
     return d;
   }
@@ -380,6 +381,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   @Override
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     for ( Constraint c : getConstraints( true, null ) ) { // REVIEW -- why is true passed in?
+      Debug.outln( "ParameterListenerImpl.isSatisfied(): checking " + c );
       if ( !c.isSatisfied(deep, seen) ) {
         return false;
       }

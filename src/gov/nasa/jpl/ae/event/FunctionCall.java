@@ -1,6 +1,9 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.event.Expression.Type;
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -21,7 +24,7 @@ import junit.framework.Assert;
 /**
  * 
  */
-public class FunctionCall implements HasParameters, Groundable {
+public class FunctionCall implements HasParameters, HasDomain, Groundable {
 
   protected Method method = null;
   protected Object object = null; // object from which method is invoked
@@ -302,6 +305,7 @@ public class FunctionCall implements HasParameters, Groundable {
   }
   
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
+    //Debug.turnOn();  // DELETE ME TODO
     // IllegalAccessException, InvocationTargetException {
     if ( propagate ) {
       if ( !ground( propagate, null ) ) {
@@ -313,6 +317,8 @@ public class FunctionCall implements HasParameters, Groundable {
       }
     }
     Object evaluatedArgs[] = evaluateArgs( propagate );
+    //System.out.println("evaluatedArgs = " + Utils.toString( evaluatedArgs ) );
+    //System.err.println("evaluatedArgs = " + Utils.toString( evaluatedArgs ) );
     Object result = null;
     try {
       Debug.outln( "About to invoke method from FunctionCall: " + this );
@@ -356,6 +362,8 @@ public class FunctionCall implements HasParameters, Groundable {
       nestedCall.getValue().object = result;
       result = nestedCall.getValue().evaluate( propagate );
     }
+    Debug.outln( "evaluate( ) returning " + result );
+    //Debug.turnOff();  // DELETE ME TODO
     return result;
   }
 
@@ -626,6 +634,12 @@ public class FunctionCall implements HasParameters, Groundable {
     } else {
       this.nestedCall.setValue( nestedCall );
     }
+  }
+
+  @Override
+  public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
+    // TODO Auto-generated method stub
+    return null;
   }
   
 }

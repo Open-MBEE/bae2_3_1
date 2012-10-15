@@ -1,11 +1,15 @@
 package gov.nasa.jpl.ae.solver;
 
-public interface Variable< T > {
+import java.util.Set;
+
+public interface Variable< T > extends HasDomain {
+  
+  //public Domain< T > getDomain( boolean propagate, Set< HasDomain > seen );
   public Domain< T > getDomain();
 
   public void setDomain( Domain< T > domain );
 
-  public T getValue();
+  public T getValue( boolean propagate );
 
   public void setValue( T value );
   

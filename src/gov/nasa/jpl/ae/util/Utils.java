@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Variable;
 import japa.parser.ast.body.Parameter;
 
@@ -722,6 +723,24 @@ public class Utils {
       sb.append( s );
     }
     return sb.toString();
+  }
+
+  public static <T> T[] scramble( T[] array ) {
+    for ( int i=0; i < array.length; ++i ) {
+      int j = Random.global.nextInt( array.length );
+      if ( j != i ) {
+        T tmp = array[i];
+        array[i] = array[j];
+        array[j] = tmp;
+      }
+    }
+    return array;
+  }
+  public static <T> T[] scramble( Collection< T > collection ) {
+    if ( Utils.isNullOrEmpty( collection ) ) return (T[])new Object[]{};
+    T[] a = (T[])new Object[collection.size()];
+    collection.toArray( a );
+    return scramble( a );
   }
   
 }

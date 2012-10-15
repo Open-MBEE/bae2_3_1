@@ -11,5 +11,13 @@ public interface RangeDomain< T > extends Domain< T > {
 
   public boolean setBounds( T lowerBound, T upperBound );
 
+  public boolean excludeLowerBound();
+  public boolean includeLowerBound();
+  public boolean isLowerBoundIncluded();
+
+  public boolean excludeUpperBound();
+  public boolean includeUpperBound();
+  public boolean isUpperBoundIncluded();
+
   public RangeDomain< T > clone();
 }

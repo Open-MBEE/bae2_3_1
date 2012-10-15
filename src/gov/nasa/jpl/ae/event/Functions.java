@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
+import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 
@@ -22,18 +24,27 @@ public class Functions {
   private static boolean complainAboutBadExpressions = true;
   
   // Abstract n-ary functions
+  public static class SuggestiveFunctionCall extends FunctionCall implements Suggester {
+    public SuggestiveFunctionCall( Object object, Method method,
+                                   Object[] arguments ) {
+      super( object, method, arguments );
+    }
 
+    @Override
+    public < T > T pickValue( Variable< T > variable ) {
+      return pickValueBF( this, variable );
+    }
+  }
+  
   public static class Binary< T , R >
                   extends Expression< R > {
+    public SuggestiveFunctionCall functionCall = null;
     public Binary( Expression< T > o1, Expression< T > o2,
                    String functionMethod ) {
-      super( new FunctionCall( (Object)null,
-                           getFunctionMethod( functionMethod ) ) );
-      FunctionCall f = (FunctionCall)this.expression;
-      Vector< Object > v = new Vector< Object >();
-      v.add( o1 );
-      v.add( o2 );
-      f.arguments = v;
+      super( new SuggestiveFunctionCall( (Object)null,
+                                         getFunctionMethod( functionMethod ),
+                                         new Object[]{ o1, o2 } ) );
+      functionCall = (SuggestiveFunctionCall)this.expression;
     }
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
@@ -52,7 +63,8 @@ public class Functions {
     }
   }
 
-  public static class BooleanBinary< T > extends Binary< T, Boolean > implements Suggester {
+  public static class BooleanBinary< T > extends Binary< T, Boolean >
+                                         implements Suggester {
 
     public BooleanBinary( Expression< T > o1, Expression< T > o2,
                           String functionMethod ) {
@@ -65,8 +77,7 @@ public class Functions {
     }
   }
     
-  public static class Unary< T , R >
-     extends Expression< R > {
+  public static class Unary< T , R > extends Expression< R > {
     public Unary( Expression< T > o, String functionMethod ) {
       super( new FunctionCall( (Object)null,
                            getFunctionMethod( functionMethod ) ) );
@@ -231,7 +242,7 @@ public class Functions {
     public EQ( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "equals" );
     }
-
+/*
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
       T1 newValue = null;
@@ -272,6 +283,7 @@ public class Functions {
       return newValue;
     }
     
+*/
   }
     
   public static class Equals< T > extends EQ< T > {
@@ -372,6 +384,30 @@ public class Functions {
   public static class Greater< T extends Comparable< ? super T > > extends GT< T > {
     public Greater( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
+    }
+    public boolean restrictDomains( boolean targetResult ) {
+      if ( functionCall.arguments.size() < 2 ) return false;
+      Expression<T> e1 = (Expression<T>)functionCall.arguments.get( 0 );
+      Expression<T> e2 = (Expression<T>)functionCall.arguments.get( 1 );
+      Domain<T> d1 = e1.getDomain(false, null); 
+      Domain<T> d2 = e2.getDomain(false, null); 
+      if ( d1 instanceof AbstractRangeDomain ) {
+        AbstractRangeDomain<T> ard1 = (AbstractRangeDomain< T >)d1; 
+        if ( e2.getDomain(false, null) instanceof AbstractRangeDomain ) {
+          AbstractRangeDomain<T> ard2 = (AbstractRangeDomain< T >)d2; 
+          if ( targetResult == true ) {
+            if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+              ard1.setLowerBound( ard2.getLowerBound() );
+              ard1.excludeLowerBound();
+            }
+            if ( ard2.greater( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+              ard2.setUpperBound( ard1.getUpperBound() );
+              ard2.excludeUpperBound();
+            }
+          }
+        }
+      }
+      return false;
     }
   }
 
@@ -586,30 +622,67 @@ public class Functions {
   }
 
   public static <T, T1> T1 pickValueBB( BooleanBinary< T > booleanBinary, Variable< T1 > variable ) {
+    T1 newValue = pickValueBF( booleanBinary.functionCall, variable );
+    return newValue;
+  }
+  public static <T1> T1 pickValueBF( FunctionCall f, Variable< T1 > variable ) {
+    boolean propagate = true;
     T1 newValue = null;
-    FunctionCall f = (FunctionCall)booleanBinary.expression;
-    Variable< T1 > otherArg = null;
+//    FunctionCall f = (FunctionCall)booleanBinary.expression;
+    //Variable< T1 > otherArg = null;
+    Object otherArg = null;
+    Variable<T1> otherVariable = null;
     boolean found = false;
     for ( Object arg : f.arguments ) {
       if ( variable == arg ) {
         found = true;
       } else if ( arg instanceof Expression
-                  && ( ( (Expression)arg ).expression == variable ) ) {
+                  && ( ( (Expression< ? >)arg ).expression == variable ) ) {
         found = true;
       } else if ( arg instanceof Expression
-                  && !( ( (Expression)arg ).expression instanceof Parameter )
+                  && !( ( (Expression< ? >)arg ).expression instanceof Parameter )
                   && variable instanceof Parameter ) {
-        if ( ( (Expression< T1 >)arg ).hasParameter( (Parameter< T1 >)variable,
+        if ( ( (Expression< ? >)arg ).hasParameter( (Parameter< T1 >)variable,
                                                      false, null ) ) {
           newValue = variable.pickRandomValue();
         }
-      } else if ( arg instanceof Variable ) {
+      } else {
+//        if ( arg instanceof Variable ) {
         if ( otherArg == null ) {
-          otherArg = (Variable< T1 >)arg;
+          otherArg = arg;// (Variable< T1 >)arg;
+          if ( otherArg instanceof Variable ) {
+            otherVariable = (Variable< T1 >)otherArg;
+          } else if ( otherArg instanceof Expression ) {
+            if ( ( (Expression< T1 >)otherArg ).type == Expression.Type.Parameter ) {
+              otherVariable =
+                  (Variable< T1 >)( (Expression< T1 >)otherArg ).expression;
+            }
+          }
         }
       }
     }
+    Object value = null;
     if ( otherArg != null && found ) {
+      if ( f.method.getName().equalsIgnoreCase( "equals" ) ) {
+        value = variable.getValue( propagate );
+        Object otherValue = null;
+        if ( otherArg instanceof Variable ) {
+          otherValue = ( (Variable<?>)otherArg ).getValue( propagate );
+        } else if ( otherArg instanceof Expression ) {
+          otherValue = ( (Expression<?>)otherArg ).evaluate( propagate );
+        }
+        if ( otherValue instanceof Variable ) {
+          if ( value != null
+               && !value.getClass().isInstance( otherValue )
+               && value.getClass()
+                       .isInstance( ( (Variable< ? >)otherValue ).getValue( propagate ) ) ) {
+            otherValue = ( (Variable< ? >)otherValue ).getValue( propagate );
+          }
+        }
+        Debug.outln( "suggesting other arg value " + otherValue + " to make "
+                     + f.getClass().getSimpleName() + " true" );
+        return (T1)otherValue;
+      }
       newValue = null;
       Boolean r = false;
       for ( int i=0; i < 5; ++i ) {
@@ -629,21 +702,24 @@ public class Functions {
         if ( r ) {
           if ( newValue == null ) {
             newValue = v;
-          } else if ( otherArg.getDomain() == null || otherArg.getDomain().contains( v ) ) {
-            Debug.outln( "suggesting value " + v + " to make "
-                         + booleanBinary.getClass().getSimpleName() + " true" );
+          } else if ( otherVariable != null && otherVariable.getDomain() == null || otherVariable.getDomain().contains( v ) ) {
+            Debug.outln( "suggesting value " + v + " to try make "
+                         + f.getClass().getSimpleName() + " true" );
             return v;
           }
         }
       }
     }
+    if ( value == null ) {
+      value = variable.getValue( propagate );
+    }
     if ( newValue == null ) {
-      Debug.outln( "suggesting same value " + variable.getValue() + " for "
-          + booleanBinary.getClass().getSimpleName() + " true" );
-      return variable.getValue();
+      Debug.outln( "suggesting same value " + value + " for "
+          + f.getClass().getSimpleName() + " true" );
+      return (T1)value;
     }
     Debug.outln( "suggesting value " + newValue + " for "
-        + booleanBinary.getClass().getSimpleName() + " true" );
+        + f.getClass().getSimpleName() + " true" );
     return newValue;
   }
 

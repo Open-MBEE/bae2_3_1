@@ -2042,15 +2042,15 @@ public class EventXmlToJava {
     /*** BinaryExpr ***/
     if ( expr.getClass() == BinaryExpr.class ) {
         BinaryExpr be = ( (BinaryExpr)expr );
-        // middle =
-        return "new Functions."
+        middle =
+          "(new Functions."
                + javaBinaryOpToEventFunctionName( be.getOperator() ) + "( "
                + astToAeExpr( be.getLeft(), convertFcnCallArgsToExprs,
                               lookOutsideXmlForTypes ) + ", "
                + astToAeExpr( be.getRight(), 
                               convertFcnCallArgsToExprs,
-                              lookOutsideXmlForTypes) + " )";
-    }
+                              lookOutsideXmlForTypes) + " )).functionCall";
+    } else
     /*** UnaryExpr ***/
     if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
@@ -2059,7 +2059,7 @@ public class EventXmlToJava {
                + astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
                + astToAeExpr( ue.getExpr(), type,
                               convertFcnCallArgsToExprs, lookOutsideXmlForTypes ) + " )";
-    }
+    } else
     /*** EnclosedExpr ***/
     if ( expr.getClass() == EnclosedExpr.class ) {
         middle =
@@ -2097,9 +2097,9 @@ public class EventXmlToJava {
           String parentString =
               astToAeExpr( fieldAccessExpr.getScope(), parentType, false,
                            lookOutsideXmlForTypes );
-//          middle = "((" + parentType + ")" + parentString + ".getValue())."
+//          middle = "((" + parentType + ")" + parentString + ".getValue(true))."
 //              + fieldAccessExpr.getField().toString()
-//              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue()"
+//              + ( ( p != null && !convertFcnCallArgsToExprs ) ? ".getValue(true)"
 //                                                              : "" );
           String obj = parentString;
 //          if ( !Utils.isNullOrEmpty( type ) ) {
@@ -2114,10 +2114,10 @@ public class EventXmlToJava {
           } else {
             // nesting function calls
             middle = "new FunctionCall(null, Parameter.class, \"getValue\", "
-                     + "(Object[])null, " + middle + ")";
+                     + "new Object[]{ true }, " + middle + ")";
 //            middle = "(((Parameter<?>)(" + parentString + ".getMember(\""
 //                     + fieldAccessExpr.getField().toString() + "\")"
-//                     + ")).getValue())";
+//                     + ")).getValue(true))";
           }
         }
       } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
@@ -2294,10 +2294,10 @@ public class EventXmlToJava {
          || applicableStartTime.isEmpty() || applicableEndTime.isEmpty() ) {
       // constructorArgs = "new Expression<Boolean>( \"" + expression +
       // "\", \"Java\" )";
-      constructorArgs = javaToAeExpr( expression, "Boolean", true );
+      constructorArgs = javaToAeExpr( expression, "Boolean", false );
       constraintType = "ConstraintExpression";
     } else {
-      constructorArgs = javaToAeExpr( expression, "Boolean", true )
+      constructorArgs = javaToAeExpr( expression, "Boolean", false )
       // "new Expression<Boolean>( \""
       // + expression + "\", \"Java\" ), "
                         + applicableStartTime + ", " + applicableEndTime;
@@ -2374,7 +2374,11 @@ public class EventXmlToJava {
     if ( initMembers == null ) {
       return createDependencyField( p );
     }
-    String name = p.name + "Dependency";
+    String scope = null;
+    if ( p.name.contains( "." ) ) {
+      scope = p.name.substring( 0, p.name.lastIndexOf( '.' ) );
+    }
+    String name = p.name.replace( '.', '_' ) + "Dependency";
     // TODO -- REVIEW -- Aren't we going to need to parse the expressions?
     String constructorArgs =
     // p.name + ", new Expression<" + p.type + ">( \"" + p.value
@@ -2524,7 +2528,7 @@ public class EventXmlToJava {
 ////        System.err.println( "Couldn't find member " + enclosingInstance + " in "
 ////                            + currentClass );
 ////      } else {
-////        enclosingInstance += ".getValue()";
+////        enclosingInstance += ".getValue(true)";
 ////      }
 ////    }
 

@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -56,10 +57,10 @@ public class ConstraintExpression extends Expression< Boolean >
   }
 
   /**
-   * @param function
+   * @param functionCall
    */
-  public ConstraintExpression( FunctionCall function ) {
-    super( function );
+  public ConstraintExpression( FunctionCall functionCall ) {
+    super( functionCall );
   }
 
   /*
@@ -85,16 +86,24 @@ public class ConstraintExpression extends Expression< Boolean >
    */
   @Override
   public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+    //boolean wasDebugOn = Debug.isOn();
+    boolean satisfied = true;
+    //Debug.turnOn();
     Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied(deep, seen) ) return true;
     HasParameters.Helper.satisfy( this, true, null );
     if ( !isSatisfied(deep, seen) ) {
-      for ( Variable< ? > v : getVariables() ) {
+      Set< Variable< ? > > vars = getVariables();
+      Variable<?>[] a = new Variable<?>[vars.size()];
+      vars.toArray( a );
+      for ( Variable< ? > v : Utils.scramble(a) ) {
         pickValue( v );
         if ( isSatisfied(deep, seen) ) break;
       }
     }
-    return isSatisfied(deep, seen);
+    satisfied = isSatisfied(deep, seen);
+    //if ( !wasDebugOn ) Debug.turnOff();
+    return satisfied;
   }
 
   /**
@@ -125,7 +134,7 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public < T > boolean pickValue( Variable< T > v ) {
-    if ( type.equals( Type.Function ) ) {
+//    if ( type.equals( Type.Function ) ) {
       if ( expression instanceof Suggester ) {
         T newValue = ((Suggester)expression).pickValue( v );
         if ( newValue != null ) {
@@ -133,7 +142,7 @@ public class ConstraintExpression extends Expression< Boolean >
           return true;
         }
       }
-    }
+//    }
     // TODO
 //    Set< Variable< ? > > vars = getVariables();
     return ParameterConstraint.Helper.pickValue( this, v );

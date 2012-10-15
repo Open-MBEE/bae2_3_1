@@ -12,6 +12,7 @@ import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
@@ -21,11 +22,6 @@ import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 /**
- * 
- */
-
-/**
- * @author bclement
  * 
  */
 public class Parameter< T > implements Cloneable, Groundable,
@@ -40,7 +36,7 @@ public class Parameter< T > implements Cloneable, Groundable,
 
   protected String name = null;
   private Domain< T > domain = null;
-  private T value = null;
+  protected T value = null;
   protected ParameterListener owner = null; // REVIEW -- Only one listener!
   protected boolean stale;
   protected List< Constraint > constraintList = new ArrayList< Constraint >();
@@ -136,8 +132,13 @@ public class Parameter< T > implements Cloneable, Groundable,
    * @return the domain
    */
   @Override
-  public Domain< T > getDomain() {
+  public Domain< T > getDomain( boolean propagate, Set< HasDomain > seen ) {
     return domain;
+  }
+
+  @Override
+  public Domain< T > getDomain() {
+    return getDomain( false, null );
   }
 
   /**
@@ -159,13 +160,13 @@ public class Parameter< T > implements Cloneable, Groundable,
   public T getValueNoPropagate() {
     return value;
   }
-
-  public Object getValue( boolean propagate ) {
+  
+  @Override
+  public T getValue( boolean propagate ) {
     if ( propagate ) return getValue();
     return getValueNoPropagate();
   }
 
-  @Override
   public T getValue() {
     Debug.outln( "Parameter.getValue() start: " + this );
     assert mayPropagate;
@@ -222,7 +223,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   @Override
   public void setValue( T value ) {
     Debug.outln( "Parameter.setValue(" + value + ") start: " + this );
-    setValue( value, false ); // TODO -- REVIEW -- use a global usingLazyUpdate?
+    setValue( value, true ); // TODO -- REVIEW -- use a global usingLazyUpdate?
     Debug.outln( "Parameter.setValue(" + value + ") finish: " + this );
   }
   // setValue( value, false ) is lazy/passive updating
@@ -232,6 +233,9 @@ public class Parameter< T > implements Cloneable, Groundable,
     assert mayChange ;
     boolean changing = !valueEquals( value );
     if ( changing ) {
+      if ( !propagateChange ) {
+        assert true;
+      }
       if ( owner != null && propagateChange ) {
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this );
@@ -341,11 +345,13 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( o.value == null && value != null ) return 1;
     // REVIEW -- TODO -- doing weird stuff here!!!
     if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
+      System.err.println("Parameters of parameters!");
       Parameter<?> p = (Parameter)value;
       if ( !p.isGrounded( false, null ) ) return -1;
       return p.compareTo(o);
     }
     if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
+      System.err.println("Parameters of parameters!");
       Parameter<?> p = (Parameter)o.value;
       if ( !p.isGrounded( false, null ) ) return 1;
       return compareTo(p);

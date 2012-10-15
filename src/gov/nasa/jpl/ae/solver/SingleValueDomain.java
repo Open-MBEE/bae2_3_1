@@ -4,11 +4,15 @@
 package gov.nasa.jpl.ae.solver;
 
 /**
- * @author bclement
  *
  */
 public class SingleValueDomain< T > extends Object implements Domain< T > {
 
+  protected static final SingleValueDomain<?> nullDomain = new SingleValueDomain<Object>( null );
+  public static <T1> SingleValueDomain<T1> getNullDomain() {
+    return (SingleValueDomain< T1 >)nullDomain;
+  }
+  
   protected T value = null;
   
   // REVIEW -- this won't work; two different types would share the same default.

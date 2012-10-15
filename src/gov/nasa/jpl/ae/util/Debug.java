@@ -11,8 +11,8 @@ import com.nomagic.magicdraw.core.GUILog;
  *
  */
 public class Debug {
-  protected static boolean on = false;
-  public static GUILog gl = getGuiLog();
+  protected static boolean on = true;
+  public static GUILog gl = null;//getGuiLog();
   public static StringBuffer glBuf = new StringBuffer(); 
   public static StringBuffer glErrBuf = new StringBuffer();
   

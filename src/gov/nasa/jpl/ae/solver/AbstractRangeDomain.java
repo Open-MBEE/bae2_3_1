@@ -31,10 +31,13 @@ public abstract class AbstractRangeDomain< T >
   //protected static RangeDomain defaultDomain;
   protected T lowerBound = null;
   protected T upperBound = null;
+  protected boolean lowerIncluded;
+  protected boolean upperIncluded;
   //protected DomainListener owner;  // REVIEW ??
   //protected static Object typeMinValue;
   //protected static Object typeMaxValue;
   protected static Method isGroundedMethod = getIsGroundedMethod();
+  
 	
   public AbstractRangeDomain() {
 //    this( getTypeMinValue(), getTypeMaxValue() );
@@ -137,6 +140,32 @@ public abstract class AbstractRangeDomain< T >
     }
     return this.size() != 0;
   }
+
+  public boolean excludeLowerBound() {
+    lowerIncluded = false;
+    return this.size() != 0;
+  }
+  public boolean includeLowerBound() {
+    lowerIncluded = true;
+    return this.size() != 0;
+  }
+  public boolean isLowerBoundIncluded() {
+    return lowerIncluded;
+  }
+
+  public boolean excludeUpperBound() {
+    upperIncluded = false;
+    return this.size() != 0;
+  }
+  public boolean includeUpperBound() {
+    upperIncluded = true;
+    return this.size() != 0;
+  }
+  public boolean isUpperBoundIncluded() {
+    return upperIncluded;
+  }
+
+
   
   public abstract T getTypeMaxValue();
 //  {
@@ -233,18 +262,19 @@ public abstract class AbstractRangeDomain< T >
     Object args[] = null;
     Method method = null;
     boolean gotBoundConstraint = false;
+    boolean propagate = false; // setting this to true can cause sets/maps of parameters/constraints to have problems
     // lower bound constraint
     if ( greater( lowerBound, getTypeMinValue() ) ) {
-      args = new Object[] { lowerBound, t.getValue() };
+      args = new Object[] { lowerBound, t.getValue( propagate ) };
       method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
       Expression< T > expr = 
           new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                                 (Object[])null ) );
+                                                 new Object[]{ propagate } ) );
 //      if ( t.getValue() instanceof Variable ) {
 //        expr = 
 //            new Expression< T >( new FunctionCall( null, Variable.class, "getValue",
-//                                                   (Object[])null, (FunctionCall)expr.expression ) );
+//                                                   new Object[]{ propagate }, (FunctionCall)expr.expression ) );
 //      }
       args = new Object[] { lowerBound, expr };
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
@@ -253,11 +283,11 @@ public abstract class AbstractRangeDomain< T >
     }
     // upper bound constraint
     if ( less( upperBound, getTypeMaxValue() ) ) {
-      args = new Object[] { upperBound, t.getValue() };
+      args = new Object[] { upperBound, t.getValue( propagate ) };
       method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
       Expression< T > expr = 
         new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                               (Object[])null ) );
+                                               new Object[]{ propagate } ) );
       args = new Object[] { upperBound, expr };
 
       cList.add( new ConstraintExpression( new FunctionCall( this, method,

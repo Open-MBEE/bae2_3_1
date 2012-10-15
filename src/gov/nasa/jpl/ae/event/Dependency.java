@@ -122,6 +122,9 @@ public class Dependency< T >
     if ( pair.first ) return true;
     seen = pair.second;
     if ( isSatisfied(deep, null) ) return true;
+//    if ( Random.global.nextDouble() < 0.2 ) {
+//      return getConstraintExpression().satisfy( deep, seen );
+//    }
     Debug.outln("Dependency.satisfy() calling ground: " + this );
     expression.ground(deep, null);
     expression.satisfy(deep, seen);
@@ -218,10 +221,10 @@ public class Dependency< T >
   public < T1 > boolean pickValue( Variable< T1 > variable ) {
     Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
-      Object value = variable.getValue();
+      Object value = variable.getValue( false ); // DON'T CHANGE false
       if ( refresh( this.parameter ) ) {
-        if ( !Parameter.valuesEqual( variable.getValue(), value ) ) {
-          Debug.outln( "Dependency.pickValue(" + variable + ") returns true on refresh" );
+        if ( !Parameter.valuesEqual( variable.getValue( true ), value ) ) { // DON'T CHANGE true
+          Debug.outln( "Dependency.pickValue(" + variable + ") returning refreshed value" );
           return true;
         }
       }

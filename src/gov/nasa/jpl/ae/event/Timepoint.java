@@ -209,7 +209,63 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 		super(timepoint);
 	}
 	
-  public static synchronized Timepoint fromString( String timestamp ) {
+/*  @Override
+  public int compareTo( Parameter< ? > o ) {
+    if ( !( o instanceof Timepoint ) ) {
+      return super.compareTo( o );
+    }
+    if ( this == o ) return 0;
+    if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
+    int compare = 0;
+    if ( value == null && o.value != null ) return -1;
+    if ( o.value == null && value != null ) return 1;
+//    // REVIEW -- TODO -- doing weird stuff here!!!
+//    if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
+//      Parameter<?> p = (Parameter)value;
+//      if ( !p.isGrounded( false, null ) ) return -1;
+//      return p.compareTo(o);
+//    }
+//    if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
+//      Parameter<?> p = (Parameter)o.value;
+//      if ( !p.isGrounded( false, null ) ) return 1;
+//      return compareTo(p);
+//    }
+    if ( value != null && value.getClass().isAssignableFrom( o.value.getClass() ) ) {
+      if ( value instanceof Comparable ) {
+        Integer oValue = (Integer)o.value;
+        compare = value.compareTo( oValue );
+      } else {
+        compare = value.toString().compareTo( o.value.toString() );
+      }
+      if ( compare != 0 ) return compare;
+    }
+    if ( name != o.name ) {
+      if ( name == null ) return -1;
+      if ( o.name == null ) return 1;
+      compare = this.name.compareToIgnoreCase( o.name );
+      if ( compare != 0 ) return compare;
+      compare = this.name.compareTo( o.name );
+      if ( compare != 0 ) return compare;
+    }
+    if ( compare != 0 ) return compare;
+    if ( value != null ) {
+      compare = value.getClass().getName().compareTo( o.value.getClass().getName() );
+      if ( compare != 0 ) return compare;
+    }
+    // TODO -- HACK -- Doing this so that timelines keyed with Timepoint can
+    // keep reservations separate for different Timepoints that occur at the
+    // same time. Correct thing to do would be to have unique names (maybe using
+    // scope).
+    if ( owner == null && o.owner != null ) return -1;
+    if ( owner != null && o.owner == null ) return 1;
+    if ( owner == null && o.owner == null ) {
+      return Utils.intCompare( hashCode(), o.hashCode() );
+    }
+    return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
+  }
+*/
+	
+	public static synchronized Timepoint fromString( String timestamp ) {
 	  return new Timepoint( "timepoint" + (counter ++), (int)fromTimestamp( timestamp ), null );
     // REVIEW -- other formats?
 	}

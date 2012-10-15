@@ -1,5 +1,8 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -29,7 +32,8 @@ import junit.framework.Assert;
  */
 public class Expression< ResultType >
                                     implements HasParameters, Groundable,
-                                               LazyUpdate, Satisfiable {//, Comparable< Expression< ? > > {
+                                               LazyUpdate, Satisfiable,
+                                               HasDomain {//, Comparable< Expression< ? > > {
 	public Object expression = null;
 	public Type type = Type.None;
 
@@ -340,6 +344,33 @@ public class Expression< ResultType >
   @Override
   public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
     return HasParameters.Helper.satisfy( this, true, null );
+  }
+
+  @Override
+  public Domain< ResultType > getDomain( boolean propagate, Set< HasDomain > seen ) {
+    if ( expression == null ) {
+      if ( type == Type.Value ) {
+        return SingleValueDomain.getNullDomain();
+      }
+      return null;
+    }
+    switch (type) {
+    case Value:
+//    case Method:
+      return new SingleValueDomain<ResultType>( (ResultType)expression ); // since expression is not null
+    case Parameter:
+      return ((Parameter<ResultType>)expression).getDomain( propagate, seen );
+    case Function:
+      return (Domain< ResultType >)((FunctionCall)expression).getDomain( propagate, seen );
+    case None:
+    default:
+      try {
+        throw new IllegalAccessException();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+      return null; // TODO -- REVIEW -- exit?
+    }
   }
   
 }

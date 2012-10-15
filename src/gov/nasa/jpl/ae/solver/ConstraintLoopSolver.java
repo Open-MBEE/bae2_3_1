@@ -41,6 +41,7 @@ public class ConstraintLoopSolver implements Solver {
 //                 + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
     int numConstrs = unsatisfiedConstraints.size();
     int lastSize = -1;
+    int ct = 0;
     while ( //System.currentTimeMillis() - startTime > timeOutMilliseconds
             numConstrs != lastSize
             && !unsatisfiedConstraints.isEmpty() ) {
@@ -48,7 +49,7 @@ public class ConstraintLoopSolver implements Solver {
       Debug.outln( numConstrs + " remaining constraints to satisfy: " + unsatisfiedConstraints );
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
-        Debug.outln( "checking constraint " + c );
+        Debug.outln( "checking constraint " + i + ": " + c );
         if ( c.toString().toLowerCase().contains("mydecid") ) {
           Debug.outln( "" );
         }
@@ -73,29 +74,33 @@ public class ConstraintLoopSolver implements Solver {
 
   public static boolean satisfy( Constraint constraint,
                                  boolean deep, Set< Satisfiable > seen ) {
-    Set<Variable<?>> vars = constraint.getVariables();//( deep, seen );
+    Set< Variable< ? > > vars = constraint.getVariables();// ( deep, seen );
     Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
     if ( Utils.isNullOrEmpty( vars ) ) return true;
+//    Variable<?>[] a = new Variable<?>[vars.size()];
+//    boolean[] b = new boolean[vars.size()];
+//    vars.toArray( a );
+//    for ( int i=0; i < vars.size(); ++i ) {
+//      b[i] = false;
+//    }
+//    for ( int i=0; i < vars.size(); ++i ) {
+////    for ( Variable<?> v : vars ) {
+//      int j = Random.global.nextInt( vars.size() - i );
+//      int k = 0;
+//      while ( j >= 0 ) {
+//        if ( !b[k] ) --j;
+//        ++k;
+//      }
+//      Variable<?> v = a[--k];
+//      b[k] = true;
     Variable<?>[] a = new Variable<?>[vars.size()];
-    boolean[] b = new boolean[vars.size()];
     vars.toArray( a );
-    for ( int i=0; i < vars.size(); ++i ) {
-      b[i] = false;
-    }
-    for ( int i=0; i < vars.size(); ++i ) {
-//    for ( Variable<?> v : vars ) {
-      int j = Random.global.nextInt( vars.size() - i );
-      int k = 0;
-      while ( j >= 0 ) {
-        if ( !b[k] ) --j;
-        ++k;
-      }
-      Variable<?> v = a[--k];
-      b[k] = true;
-      Debug.outln( "try to change variable " + k + ": " + v );
+    for ( Variable< ? > v : Utils.scramble(a) ) {
+//    for ( Variable<?> v : Utils.scramble( vars ) ) {
+      Debug.outln( "try to change variable " + v );
       if ( change( v ) ) {
-        if ( constraint.isSatisfied(deep, null) ) {
+        if ( constraint.isSatisfied( deep, null ) ) {
           satisfied = true;
           break;
         }
@@ -106,7 +111,7 @@ public class ConstraintLoopSolver implements Solver {
 
   public static <T> boolean change( Variable< T > v ) {
     Debug.outln( "begin change(" + v + ")" );
-    T value = v.getValue();
+    T value = v.getValue(true);
     Domain<T> d = v.getDomain();
     boolean gotNewValue = false;
     if ( d != null && d.size() > 1 ) {
