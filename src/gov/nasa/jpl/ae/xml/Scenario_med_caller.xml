@@ -186,7 +186,7 @@
 						<constraints/>
 						<dependencies>
 							<dependency>
-								<name>caller.endTime</name>
+								<name>caller.getValue().endTime</name>
 								<type>Integer</type>
 								<value>finalNode_endTime</value>
 							</dependency>
@@ -825,6 +825,11 @@
 							</dependency>
 							<dependency>
 								<name>endTime</name>
+								<type>Integer</type>
+								<value>finalNode_endTime</value>
+							</dependency>
+							<dependency>
+								<name>caller.getValue().endTime</name>
 								<type>Integer</type>
 								<value>finalNode_endTime</value>
 							</dependency>
