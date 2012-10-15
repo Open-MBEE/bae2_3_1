@@ -753,6 +753,7 @@ class actionEventClass(object):
 				t = node.value.type
 				if t: tname = node.value.type.name
 			self.members[node.result.getID()] = (tname,str(v),"value specification VALUE")
+			self.dependencies[node.result.getID()] = (tname,str(v))
 			self.dependencies["duration"] = ("Integer","1")
 		
 		elif myType =="Opaque Action" :
@@ -835,6 +836,7 @@ class actionEventClass(object):
 				
 	def setUpBasicElaborationsAndDependencies(self,node):
 		for n in self.nexts[node].keys():
+			if isinstance(n,ActivityFinalNode) or isinstance(n,ActivityParameterNode): continue #TODO - put dependency stuff on the elaborator (the ACTIVITY)
 			nFlow = self.nexts[node][n]
 			dependencyString = False
 			self.members[n.getID()+"_exists"] = ("Boolean","false","NEW - initialize nexts to false")
