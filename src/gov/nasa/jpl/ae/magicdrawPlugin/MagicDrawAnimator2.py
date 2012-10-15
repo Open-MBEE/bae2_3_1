@@ -69,22 +69,31 @@ class highlighterThread(Thread):
         gl.log("running MagicDrawAnimator")
         mode = 0
         if mode == 0:
-            #filepath = "c:\\Users\\bclement\\Desktop\\foo.txt"
-            filepath = "/Users/mjackson/Desktop/MedSim.txt"
+            filepath = "c:\\Users\\bclement\\Desktop\\foo12.txt"
+            #filepath = "/Users/mjackson/Desktop/MedSim.txt"
             #self.animateFromFile(filepath)
             
             #self.loadEventsFromFile(filepath)
             
             self.events = []
             f = open(filepath,"r")
+            lastTime = 0
             for line in f.readlines():
                 #gl.log(line)
                 x = re.search("(\d*)[^0-9: \t\n\r\f\v]*\s*:\s*\S*\s*(\S*) -> (\S*)\s*(\S*) ==>",line)
+                y = re.search("(\S*) -> (\S*)\s*(\S*) ==>",line)
                 if x: 
                     eventTime=x.groups()[0]
+                    lastTime = eventTime
                     action=x.groups()[2]
                     cid = x.groups()[3]
                     ctype = x.groups()[1]
+                    gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
+                elif y:
+                    eventTime=lastTime
+                    action=y.groups()[1]
+                    cid = y.groups()[2]
+                    ctype = y.groups()[0]
                     gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 elif line.startswith("---"): 
                     gl.log(line)
@@ -154,14 +163,22 @@ class highlighterThread(Thread):
     def loadEventsFromFile(self, filepath):
         self.events = []
         f = open(filepath,"r")
+        lastTime = 0
         for line in f.readlines():
             #gl.log(line)
             x = re.search("(\d*)[^0-9: \t\n\r\f\v]*\s*:\s*\S*\s*(\S*) -> (\S*)\s*(\S*) ==>",line)
+            y = re.search("\s*\S*\s*(\S*) -> (\S*)\s*(\S*) ==>",line)
             if x: 
                 eventTime=x.groups()[0]
+                lastTime = eventTime
                 action=x.groups()[2]
                 cid = x.groups()[3]
                 ctype = x.groups()[1]
+            elif y:
+                eventTime=lastTime
+                action=y.groups()[1]
+                cid = y.groups()[2]
+                ctype = y.groups()[0]
             else: continue
             gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
             if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
