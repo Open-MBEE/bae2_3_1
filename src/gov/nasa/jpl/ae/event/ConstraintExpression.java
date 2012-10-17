@@ -24,10 +24,6 @@ public class ConstraintExpression extends Expression< Boolean >
                                                           // ParameterListener
                                                           // {
 
-  // freeParameters if not null specifies which parameters can be reassigned
-  // values for satisfy().
-  protected Set< Parameter< ? > > freeParameters = null;
-
   /**
    * @param value
    */
@@ -104,21 +100,6 @@ public class ConstraintExpression extends Expression< Boolean >
     satisfied = isSatisfied(deep, seen);
     //if ( !wasDebugOn ) Debug.turnOff();
     return satisfied;
-  }
-
-  /**
-   * @return the freeParameters
-   */
-  public Set< Parameter< ? > > getFreeParameters() {
-    return freeParameters;
-  }
-
-  /**
-   * @param freeParameters
-   *          the freeParameters to set
-   */
-  public void setFreeParameters( Set< Parameter< ? > > freeParameters ) {
-    this.freeParameters = freeParameters;
   }
 
   /* (non-Javadoc)

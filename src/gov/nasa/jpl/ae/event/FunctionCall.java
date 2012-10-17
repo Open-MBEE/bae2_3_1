@@ -1,22 +1,16 @@
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.event.Expression.Type;
-import gov.nasa.jpl.ae.solver.Domain;
-import gov.nasa.jpl.ae.solver.HasDomain;
-import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import junit.framework.Assert;
-
 /**
  * 
  */
@@ -24,16 +18,16 @@ import junit.framework.Assert;
 /**
  * 
  */
-public class FunctionCall implements HasParameters, HasDomain, Groundable {
+public class FunctionCall extends Call {
 
   protected Method method = null;
-  protected Object object = null; // object from which method is invoked
-  protected Vector< Object > arguments = null; // arguments to method
+  //protected Object object = null; // object from which method is invoked
+  //protected Vector< Object > arguments = null; // arguments to method
 
   /**
    * A function call on the result of this function call.
    */
-  protected Parameter<FunctionCall> nestedCall = null;
+//  protected Parameter<FunctionCall> nestedCall = null;
   
   /**
    * Construct a call to a static method.
@@ -103,9 +97,9 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
    * @param nestedCall
    */
   public FunctionCall( Object object, Method method, Vector< Object > arguments,
-                       FunctionCall nestedCall ) {
+                       Call nestedCall ) {
     this(object, method, arguments);
-    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+    this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
 
   /**
@@ -115,7 +109,7 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
    * @param nestedCall
    */
   public FunctionCall( Object object, Method method, Vector< Object > arguments,
-                       Parameter<FunctionCall> nestedCall ) {
+                       Parameter<Call> nestedCall ) {
     this(object, method, arguments);
     
     this.nestedCall = nestedCall;
@@ -130,14 +124,14 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
    */
   public FunctionCall( Object object, Class<?> cls, String methodName,
                        Vector< Object > arguments,
-                       FunctionCall nestedCall ) {
+                       Call nestedCall ) {
     this(object, cls, methodName, arguments);
-    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+    this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
 
   public FunctionCall( Object object, Class<?> cls, String methodName,
                        Vector< Object > arguments,
-                       Parameter<FunctionCall> nestedCall ) {
+                       Parameter<Call> nestedCall ) {
     this(object, cls, methodName, arguments);
     this.nestedCall = nestedCall;
   }
@@ -165,7 +159,8 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
    * @param methodName
    * @param argumentsA
    */
-  public FunctionCall( Object object, Class<?> cls, String methodName, Object argumentsA[] ) {
+  public FunctionCall( Object object, Class<?> cls, String methodName,
+                       Object argumentsA[] ) {
     this.object = object;
     this.method = Utils.getMethodForArgs( cls, methodName, argumentsA );
     this.arguments = new Vector<Object>();
@@ -196,7 +191,7 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
 //  }
 
   public FunctionCall( Object object, Method method, Object argumentsA[],
-                       FunctionCall nestedCall ) {
+                       Call nestedCall ) {
     this.object = object;
     this.method = method;
     this.arguments = new Vector<Object>();
@@ -205,12 +200,12 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
         this.arguments.add( o );
       }
     }
-    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+    this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
     hasTypeErrors();
   }
 
   public FunctionCall( Object object, Method method, Object argumentsA[],
-                       Parameter<FunctionCall> nestedCall ) {
+                       Parameter<Call> nestedCall ) {
     this.object = object;
     this.method = method;
     this.arguments = new Vector<Object>();
@@ -224,12 +219,12 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
   }
 
   public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Object argumentsA[], FunctionCall nestedCall ) {
+                       Object argumentsA[], Call nestedCall ) {
     this( object, cls, methodName, argumentsA );
-    this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
+    this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
   public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Object argumentsA[], Parameter<FunctionCall> nestedCall ) {
+                       Object argumentsA[], Parameter<Call> nestedCall ) {
     this( object, cls, methodName, argumentsA );
     this.nestedCall = nestedCall;
   }
@@ -251,7 +246,28 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
     hasTypeErrors();
   }
 
-  private Boolean hasTypeErrors() {
+  @Override
+  public Class<?>[] getParameterTypes() {
+    return method.getParameterTypes();
+  }
+  
+  @Override
+  public Member getMember() {
+    return method;
+  }
+
+  @Override
+  public boolean isVarArgs() {
+    return method.isVarArgs();
+  }
+  
+  @Override
+  public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    Object result = method.invoke( object, evaluatedArgs ); 
+    return result;
+  }
+  
+/*  private Boolean hasTypeErrors() {
     if ( method == null ) return true;
     Class< ? >[] paramTypes = method.getParameterTypes();
     Assert.assertEquals( arguments.size(), paramTypes.length );
@@ -263,8 +279,15 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
 //    }
     return false;
   }
-
+*/
+  // TODO -- delete this when version is stable -- the same implementation is in Call
   // Try to match arguments to parameters by evaluating or creating expressions.
+  protected Object[] evaluateArgs( boolean propagate ) {
+    Class< ? >[] paramTypes = method.getParameterTypes();
+    return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs() );
+  }
+
+/*  // Try to match arguments to parameters by evaluating or creating expressions.
   protected Object[] evaluateArgs( boolean propagate ) {
     Class< ? >[] paramTypes = method.getParameterTypes();
     assert ( arguments.size() == paramTypes.length || 
@@ -303,7 +326,6 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
     }
     return argObjects;
   }
-  
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     //Debug.turnOn();  // DELETE ME TODO
     // IllegalAccessException, InvocationTargetException {
@@ -397,9 +419,6 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
     return subbed;
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean)
-   */
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {
@@ -572,6 +591,7 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
     return false;
   }
 
+*/  
   
   // Getters and setters 
   
@@ -590,56 +610,4 @@ public class FunctionCall implements HasParameters, HasDomain, Groundable {
     this.method = method;
   }
 
-  /**
-   * @return the object
-   */
-  public Object getObject() {
-    return object;
-  }
-
-  /**
-   * @param object the object to set
-   */
-  public void setObject( Object object ) {
-    this.object = object;
-  }
-
-  /**
-   * @return the arguments
-   */
-  public Vector< Object > getArguments() {
-    return arguments;
-  }
-
-  /**
-   * @param arguments the arguments to set
-   */
-  public void setArguments( Vector< Object > arguments ) {
-    this.arguments = arguments;
-  }
-
-  /**
-   * @return the nestedCall
-   */
-  public FunctionCall getNestedCall() {
-    return (nestedCall == null ? null : nestedCall.getValue() );
-  }
-
-  /**
-   * @param nestedCall the nestedCall to set
-   */
-  public void setNestedCall( FunctionCall nestedCall ) {
-    if ( this.nestedCall == null ) {
-      this.nestedCall = new Parameter<FunctionCall>("", null, nestedCall, null );
-    } else {
-      this.nestedCall.setValue( nestedCall );
-    }
-  }
-
-  @Override
-  public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-  
 }

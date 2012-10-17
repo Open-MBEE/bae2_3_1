@@ -36,12 +36,17 @@ public class Expression< ResultType >
                                                HasDomain {//, Comparable< Expression< ? > > {
 	public Object expression = null;
 	public Type type = Type.None;
+  // freeParameters if not null specifies which parameters can be reassigned
+  // values for satisfy().
+  protected Set< Parameter< ? > > freeParameters = null;
+
 
 	public enum Type {
 		None(null), Value(Object.class),
 		Parameter(Parameter.class),
 		//Method(Method.class),
-		Function(FunctionCall.class);
+		Function(FunctionCall.class),
+    Constructor(ConstructorCall.class);
 		
 		private Class<?> myClass;
 		Type( Class<?> c ) {
@@ -93,6 +98,14 @@ public class Expression< ResultType >
 		type = Type.Function;
 	}
 	
+  /**
+   * @param constructor
+   */
+  public Expression( ConstructorCall constructor ) {
+    this.expression = constructor;
+    type = Type.Constructor;
+  }
+  
 //	public Expression( Expression<ResultType> e ) {
 //		this.expression = e.expression;
 //		this.type = e.type;
@@ -112,6 +125,9 @@ public class Expression< ResultType >
 			case Function:
 				expression = (Object) new FunctionCall((FunctionCall)e.expression);
 				break;
+      case Constructor:
+        expression = (Object) new ConstructorCall((ConstructorCall)e.expression);
+        break;
 //			case Parameter:
 //				expression = (Object) new Parameter<ResultType>((Parameter<ResultType>)e.expression);
 //				break;
@@ -148,8 +164,10 @@ public class Expression< ResultType >
       return ((Parameter<ResultType>)expression).getValueNoPropagate();
 //		case Method:
 //			return (ResultType)((Method)expression).invoke(null, (Object[])null);
-		case Function:
-			return (ResultType)((FunctionCall)expression).evaluate( propagate );
+		case Constructor:
+			return (ResultType)((ConstructorCall)expression).evaluate( propagate );
+    case Function:
+      return (ResultType)((FunctionCall)expression).evaluate( propagate );
 		default:
 			return null;
 		}
@@ -178,8 +196,9 @@ public class Expression< ResultType >
 		case Parameter:
 //		case Method:
 		case Function:
-		  if ( expression == null ) return "null";
-			return expression.toString();
+    case Constructor:
+      if ( expression == null ) return "null";
+      return expression.toString();
 		default:
 			return null;
 		}
@@ -235,17 +254,44 @@ public class Expression< ResultType >
 		return set;
 	}
 	
-	@Override
+  /**
+   * @return the freeParameters
+   */
+  public Set< Parameter< ? > > getFreeParameters() {
+    // REVIEW -- this assumes that the parameters of the constraint and their
+    // freedom never change.
+    if ( freeParameters == null ) {
+      freeParameters = new HashSet< Parameter< ? > >();
+      for ( Parameter< ? > p : getParameters( false, null ) ) {
+        if ( p.getOwner() != null && 
+             p.getOwner().isFreeParameter( p, false, null ) ) {
+          freeParameters.add( p );
+        }
+      }
+    }
+    return freeParameters;
+  }
+
+  /**
+   * @param freeParameters
+   *          the freeParameters to set
+   */
+  public void setFreeParameters( Set< Parameter< ? > > freeParameters ) {
+    this.freeParameters = freeParameters;
+  }
+
 	public Set<Parameter<?>> getFreeParameters( boolean deep,
 	                                            Set<HasParameters> seen ) {
-		Assert.assertFalse("This method should not be called since an Expression does not differentiate between free and dependent parameters.", true );
-		return null; //getParameters( deep );
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+	  return getFreeParameters();
 	}
 
   @Override
   public void setFreeParameters( Set< Parameter< ? > > freeParams, boolean deep,
                                  Set<HasParameters> seen ) {
-    Assert.assertTrue( "This method is not supported!", false );
+    setFreeParameters( freeParams );
   }
   
 	@Override
@@ -262,6 +308,7 @@ public class Expression< ResultType >
 			return true; // since expression is not null
 		case Parameter:
 		case Function:
+    case Constructor:
 		case None:
 		default:
 			try {
@@ -288,6 +335,7 @@ public class Expression< ResultType >
 //			return true; // since expression is not null
 		case Parameter:
 		case Function:
+    case Constructor:
 		case None:
 		default:
 			try {
@@ -361,6 +409,7 @@ public class Expression< ResultType >
     case Parameter:
       return ((Parameter<ResultType>)expression).getDomain( propagate, seen );
     case Function:
+    case Constructor:
       return (Domain< ResultType >)((FunctionCall)expression).getDomain( propagate, seen );
     case None:
     default:

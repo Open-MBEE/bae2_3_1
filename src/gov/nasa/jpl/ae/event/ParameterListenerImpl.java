@@ -41,7 +41,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 5.0;
-  protected long numIterations = 20;
+  protected long numIterations = 40;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
@@ -56,8 +56,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       new ArrayList< Parameter< ? > >();
   protected Vector< ConstraintExpression > constraintExpressions = new Vector< ConstraintExpression >();
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
-  protected Vector< Dependency< ? > > dependencies =
-      new Vector< Dependency< ? > >();
+  protected ArrayList< Dependency< ? > > dependencies =
+      new ArrayList< Dependency< ? > >();
   protected Solver solver = new ConstraintLoopSolver();
 
   protected Set< TimeVarying< ? > > timeVaryingObjects =
@@ -189,7 +189,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T > Dependency addDependency( Parameter< T > p, Expression< T > e ) {
+  public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e ) {
+    removeDependenciesForParameter( p );
     Dependency< T > d = new Dependency< T >( p, e );
 // Default domains are shared.  The domains need to be cloned before intersecting them.
 //    if ( e.type == Expression.Type.Parameter ) {
@@ -206,24 +207,51 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return d;
   }
 
-  public < T > Dependency addDependency( Parameter< T > p, Parameter< T > source ) {
+  public < T > Dependency< ? > addDependency( Parameter< T > p, Parameter< T > source ) {
     return addDependency( p, new Expression< T >( source ) );
   }
 
   public < T > boolean
-      removeDependency( Parameter< T > p ) {
+      removeDependenciesForParameter( Parameter< T > p ) {
     boolean removed = false;
-    Iterator< Dependency< ? > > i = dependencies.iterator();
-    while ( i.hasNext() ) {
-      Dependency< ? > d = i.next();
-      if ( d.parameter == p ) {
-        i.remove();
+    int ct = dependencies.size() - 1;
+    while ( ct >= 0 ) {
+      Dependency< ? > d = dependencies.get( ct );
+      if ( //d != null && 
+           d.parameter == p ) {
+        dependencies.remove( ct );
         removed = true;
       }
+      --ct;
     }
     return removed;
   }
   
+//  public void deleteme() {
+//    dependencies.remove( 0 );
+//    dependencies.remove( new Dependency(null) );
+//    dependencies.iterator();
+//    dependencies.listIterator();
+//    dependencies.listIterator(2);
+//    dependencies.removeAll( dependencies );
+//    dependencies.retainAll( dependencies );
+//    dependencies.set( 0, null );
+//    dependencies.toArray( null );
+//  }
+  
+  public < T > Dependency< ? > getDependency( Parameter< T > p ) {
+//    Iterator< Dependency< ? > > i = dependencies.iterator();
+//    while ( i.hasNext() ) {
+      for ( Dependency< ? > d : dependencies ) {
+//      Dependency< ? > d = i.next();
+      if ( //d != null && 
+           d.parameter == p ) {
+        return d;
+      }
+    }
+    return null;
+  }
+
   @Override
   public boolean isGrounded(boolean deep, Set< Groundable > seen) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
@@ -299,7 +327,6 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set<HasParameters> seen ) {
-    // TODO
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -414,7 +441,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       }
       if ( usingLoopLimit ) {
         Debug.outln( this.getClass().getName() + " satisfy loop with "
-            + (numIterations-numLoops) + " tries left left" );
+            + (numIterations-numLoops) + " tries left" );
       }
       satisfied = tryToSatisfy(deep, null);
       curTimeLeft =
@@ -530,12 +557,12 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     this.constraintExpressions = constraints;
   }
 
-  public Vector< Dependency< ? > > getDependencies() {
+  public Collection< Dependency< ? > > getDependencies() {
     return dependencies;
   }
 
-  public void setDependencies( Vector< Dependency< ? > > dependencies ) {
-    this.dependencies = dependencies;
+  public void setDependencies( Collection< Dependency< ? > > dependencies ) {
+    this.dependencies = new ArrayList< Dependency< ? > >( dependencies );
   }
   
   @Override

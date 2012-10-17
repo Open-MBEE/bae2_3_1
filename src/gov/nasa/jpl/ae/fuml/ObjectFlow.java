@@ -75,44 +75,49 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
   }
   
-  public void send( Obj o, Integer t ) {
-    breakpoint();
-    if ( type == null || type.isInstance( o ) ) {
-      this.setValue( t, o );
-      for ( ObjectFlow< Obj > f : listeners ) {
-        f.send( o, t );
-      }
-    }
-  }
+//  public void send( Obj o, Integer t ) {
+//    breakpoint();
+//    if ( type == null || type.isInstance( o ) ) {
+//      this.setValue( t, o );
+//      for ( ObjectFlow< Obj > f : listeners ) {
+//        f.send( o, t );
+//      }
+//    }
+//  }
 
   public Obj receive( Timepoint t ) {
     breakpoint();
+    if ( t == null ) return null;
     Obj o = this.getValue( t );
     this.setValue( t, null );
     return o;
   }
   
-  public Obj receive( Integer t ) {
-    breakpoint();
-    Obj o = this.getValue( t );
-    this.setValue( t, null );
-    return o;
-  }
+//  public Obj receive( Integer t ) {
+//    breakpoint();
+//    Obj o = this.getValue( t );
+//    this.setValue( t, null );
+//    return o;
+//  }
   
   public boolean hasStuff( Timepoint t ) {
     breakpoint();
+    if ( t == null ) return false;
     return getValue( t ) != null;
   }
 
   public boolean hasStuff( Integer t ) {
     breakpoint();
+    if ( t == null ) return false;
     return getValue( t ) != null;
   }
 
   @Override
   public boolean isApplied( Effect effect ) {
     breakpoint();
-    if ( isApplied(effect, getSendMethod1(), getSendMethod2() ) ) {
+    if ( effect == null ) return false;
+    if ( isApplied(effect, getSendMethod1(), getSendMethod1()//getSendMethod2()
+                   ) ) {
       return true;
     }
 	  return super.isApplied( effect );

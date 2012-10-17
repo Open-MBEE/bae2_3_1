@@ -128,8 +128,14 @@ public interface ParameterConstraint extends Constraint, HasParameters {
       Pair< Boolean, Set< HasParameters > > pair = Utils.seen( o, deep, seen );
       if ( pair.first ) return Utils.getEmptySet();
       seen = pair.second;
-      Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-      s.addAll( o.getFreeParameters( deep, seen ) );
+      Set< Variable< ? > > s = null;
+      Set< Parameter< ? > > oSet = o.getFreeParameters( deep, seen );
+      if ( oSet != null ) {
+        s = new HashSet< Variable< ? > >();
+        s.addAll( oSet );
+      } else {
+        s = Utils.getEmptySet();
+      }
       return s;
     }
 

@@ -16,14 +16,8 @@ import java.util.Set;
  */
 public class ConstraintLoopSolver implements Solver {
 
-  private double timeOutMilliseconds = 5000.0;
-  
   protected ArrayList< Constraint > unsatisfiedConstraints =
       new ArrayList< Constraint >();
-
-  public ConstraintLoopSolver( double timeOutMilliseconds ) {
-    this.timeOutMilliseconds = timeOutMilliseconds;
-  }
 
   public ConstraintLoopSolver() {
   }
@@ -72,7 +66,7 @@ public class ConstraintLoopSolver implements Solver {
 
   public static boolean satisfy( Constraint constraint,
                                  boolean deep, Set< Satisfiable > seen ) {
-    Set< Variable< ? > > vars = constraint.getVariables();// ( deep, seen );
+    Set< Variable< ? > > vars = constraint.getFreeVariables();// ( deep, seen );
     Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
     if ( Utils.isNullOrEmpty( vars ) ) return true;

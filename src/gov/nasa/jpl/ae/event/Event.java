@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.util.Pair;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,13 +100,13 @@ public interface Event extends HasConstraints {
   /**
    * @return the dependencies
    */
-  public Vector< Dependency< ? >> getDependencies();
+  public Collection< Dependency< ? > > getDependencies();
 
   /**
    * @param dependencies
    *          the dependencies to set
    */
-  public void setDependencies( Vector< Dependency< ? >> dependencies );
+  public void setDependencies( Collection< Dependency< ? >> dependencies );
 
   /**
    * @return the elaborations

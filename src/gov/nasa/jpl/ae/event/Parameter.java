@@ -316,7 +316,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   }
   
   @Override
-  public boolean ground(boolean deep, Set< Groundable > seen) {
+  public boolean ground( boolean deep, Set< Groundable > seen ) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;

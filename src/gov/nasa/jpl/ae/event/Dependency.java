@@ -188,15 +188,18 @@ public class Dependency< T >
   }
 
   // Add all parameters except the dependent parameter.
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasParameters#getFreeParameters(boolean, java.util.Set)
+   */
   @Override
   public Set< Parameter< ? > > getFreeParameters( boolean deep,
                                                   Set< HasParameters > seen) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    HashSet< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-    set.addAll( expression.getParameters( deep, seen ) );
+
+    Set< Parameter< ? > > set = getConstraintExpression().getFreeParameters();
+    set.remove( parameter );
     return set;
   }
 
@@ -274,6 +277,9 @@ public class Dependency< T >
     return null;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Constraint#restrictDomain(gov.nasa.jpl.ae.solver.Variable)
+   */
   @Override
   public < T1 > boolean restrictDomain( Variable< T1 > v ) {
     if ( v == parameter ) {
@@ -287,31 +293,35 @@ public class Dependency< T >
     return v.getDomain() != null && v.getDomain().size() > 0; 
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Constraint#isFree(gov.nasa.jpl.ae.solver.Variable)
+   */
   @Override
   public < T1 > boolean isFree( Variable< T1 > v ) {
     return ( v != parameter );
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Constraint#isDependent(gov.nasa.jpl.ae.solver.Variable)
+   */
   @Override
   public < T1 > boolean isDependent( Variable< T1 > v ) {
     return ( v == parameter );
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Constraint#getFreeVariables()
+   */
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    Set< Variable< ? > > set = getVariables();
-    set.remove( parameter );
+    Set< Variable< ? > > set = getConstraintExpression().getFreeVariables();
+    set.remove( parameter ); 
     return set;
   }
 
   @Override
   public void setFreeVariables( Set< Variable< ? > > freeVariables ) {
-    try {
-      throw new Exception( "Dependency.setFreeVariables() is not supported." );
-    } catch ( Exception e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    getConstraintExpression().setFreeVariables( freeVariables );
   }
 
   @Override
@@ -329,7 +339,7 @@ public class Dependency< T >
 
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( getParameters( true, null ).contains( parameter )
+    if ( hasParameter( parameter, true, null )
          && this.parameter != parameter ) {
       apply( false );
     }

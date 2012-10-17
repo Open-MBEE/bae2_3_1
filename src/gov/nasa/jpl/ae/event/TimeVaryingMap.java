@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
@@ -178,10 +179,12 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   protected void breakpoint() {}
 
   public Timepoint getTimepointBefore( Timepoint t ) {
+    if ( t == null ) return null;
     return this.lowerKey( t );
   }
   
   public Timepoint makeTempTimepoint( Integer t, boolean maxName ) {
+    //if ( t == null ) return null;
     String n = ( maxName ? StringDomain.typeMaxValue : null );
     Timepoint tp = new Timepoint( n, t, null );
     return tp;
@@ -198,6 +201,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
     breakpoint();
+    if ( parameter == null ) return;
     for ( TimeValue e : floatingEffects ) {
       if ( e.hasParameter( parameter, true, null ) ) {
         put( e.first, e.second );
@@ -209,6 +213,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   protected void floatEffects( Timepoint t ) {
     breakpoint();
+    if ( t == null ) return;
     T value = get( t );
     floatingEffects.add( new TimeValue( t, value ) );
 //    if ( effects != null ) {
@@ -233,6 +238,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   protected void unfloatEffects( Timepoint t ) {
     breakpoint();
+    if ( t == null ) return;
     for ( TimeValue e : floatingEffects ) {
       if ( e.first.compareTo( t ) == 0 ) {
         put( e.first, e.second );
@@ -354,6 +360,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
     breakpoint();
+    if ( changedParameter == null ) return;
     if ( containsKey( changedParameter ) ) {
       floatEffects( (Timepoint)changedParameter );
     }
@@ -391,12 +398,20 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(java.lang.Integer)
    */
   @Override
-  public T getValue( Integer t ){
+  public T getValue( Integer t ) {
+    if ( t == null ) return null;
     Timepoint tp = makeTempTimepoint( t, true );
     Entry< Timepoint, T > e = this.floorEntry( tp );
     if ( e != null ) return e.getValue();
-    if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
-      return firstEntry().getValue();
+//  if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
+//    return firstEntry().getValue();
+//  }
+    if ( !isEmpty() ) {
+      Entry< Timepoint, T > f = firstEntry(); 
+      Timepoint k = f.getKey();
+      if ( IntegerDomain.defaultDomain.lessEquals( k.getValue(), t ) ) {
+        return f.getValue();
+      }
     }
     return null;
   }
@@ -422,6 +437,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    * @return
    */
   public Timepoint keyForValueAt( T value, Integer t ) {
+    if ( t == null ) return null;
     Timepoint tp = makeTempTimepoint( t, false );//new Timepoint( null, t, null );
     Entry< Timepoint, T > e = this.floorEntry( tp );
     Timepoint startKey = null;
@@ -436,10 +452,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     for ( java.util.Map.Entry< Timepoint, T > te : tailMap.entrySet() ) {
       Object mVal = te.getValue();
       if ( Parameter.valuesEqual( value, mVal ) &&
-           t.equals( te.getKey().getValueNoPropagate() ) ) {
+          TimeDomain.defaultDomain.equals( t, te.getKey().getValueNoPropagate() ) ) {
         return te.getKey();
       }
-      if ( te.getKey().getValueNoPropagate() > t ) break;
+      if ( TimeDomain.defaultDomain.greater( te.getKey().getValueNoPropagate(), t ) ) break;
     }
 //    } else if ( !isEmpty() ) {
 //      Object mVal = firstEntry().getValue();
@@ -460,20 +476,21 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return keyForValueAt( value, t ) != null;
   }
 
-  /**
-   * @param t
-   * @param value
-   * @return
-   */
-  public T setValue( Integer t, T value ) {
-    breakpoint();
-    Timepoint tp = keyForValueAt( value, t );
-    if ( tp == null ) {
-      tp = makeTempTimepoint( t, false );//new Timepoint( "", t, null );
-      return put( tp, value );
-    }
-    return null;
-  }
+//  /**
+//   * @param t
+//   * @param value
+//   * @return
+//   */
+//  public T setValue( Integer t, T value ) {
+//    breakpoint();
+//    if ( t == null ) return null;
+//    Timepoint tp = keyForValueAt( value, t );
+//    if ( tp == null ) {
+//      tp = makeTempTimepoint( t, false );//new Timepoint( "", t, null );
+//      return put( tp, value );
+//    }
+//    return null;
+//  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.TimeVarying#setValue(gov.nasa.jpl.ae.event.Timepoint, java.lang.Object)
@@ -481,6 +498,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public T setValue( Timepoint t, T value ) {
     breakpoint();
+    if ( t == null ) return null;
     Timepoint tp = keyForValueAt( value, t.getValue() );
     if ( tp != null && tp != t ) {
       remove( tp );
@@ -494,6 +512,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public T unsetValue( Timepoint t, T value ) {
     breakpoint();
+    if ( t == null ) return null;
     T oldValue = get( t );
 //    T oldValue = null;
 //    TimeValue valueAndEffects = get( t );
@@ -550,7 +569,8 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public boolean isApplied( Effect effect ) {
-    return isApplied(effect, getSetValueMethod1(), getSetValueMethod2());
+    return isApplied(effect, getSetValueMethod1(), getSetValueMethod1()//getSetValueMethod2()
+                     );
   }
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();

@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.util;
 
+import generated.Generator;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -18,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -40,10 +42,112 @@ public class Utils {
     return (Map< T1, T2 >)emptyMap;
   }
 
+  /**
+   * Compare argument types to determine how well a function call matches.
+   */
+  public static class ArgTypeCompare< T > {
+
+    //public Class<?>[] candidateArgTypes = null;
+    public Class<?>[] referenceArgTypes = null;
+//    public boolean isVarArgs = false;
+
+    public int numMatching = 0;
+    public int numDeps = 0;
+    public boolean okNumArgs = false;
+
+    public T best = null;
+    public boolean gotOkNumArgs = false;
+    public int mostMatchingArgs = 0;
+    public int mostDeps = 0;
+    public boolean allArgsMatched = false;
+    public double bestScore = Double.MAX_VALUE;
+
+    /**
+     * @param argTypes1
+     * @param argTypes2
+     * @param isVarArgs
+     */
+    public ArgTypeCompare( Class< ? >[] referenceArgTypes ) {
+      super();
+      this.referenceArgTypes = referenceArgTypes;
+    }
+
+    public void compare( T o, Class<?>[] candidateArgTypes,
+                         boolean isVarArgs ) {
+      numMatching = 0;
+      numDeps = 0;
+//      double score = numArgsCost + argMismatchCost * argTypes.length;
+      int candidateArgsLength =
+          candidateArgTypes == null ? 0 : candidateArgTypes.length;
+      int referenceArgsLength =
+          referenceArgTypes == null ? 0 : referenceArgTypes.length;
+      okNumArgs =
+          ( candidateArgsLength == referenceArgsLength )
+            || ( isVarArgs
+                 && ( candidateArgsLength < referenceArgsLength 
+                      || candidateArgsLength == 1 ) );
+      Debug.outln( "okNumArgs = " + okNumArgs );
+//      if ( okNumArgs ) score -= numArgsCost;
+      for ( int i = 0; i < Math.min( candidateArgsLength,
+                                     referenceArgsLength ); ++i ) {
+        if ( referenceArgTypes[ i ] == null ) {
+          Debug.outln( "null arg[ " + i + " ]" );
+          continue;
+        }
+        if ( candidateArgTypes[ i ] == null ) {
+          Debug.outln( "null arg for args[ " + i
+              + " ].getClass()=" + referenceArgTypes[ i ] );
+          ++numDeps;
+        } else if ( candidateArgTypes[ i ].isAssignableFrom( referenceArgTypes[ i ] ) ) {
+            Debug.outln( "argTypes1[ " + i + " ]="
+                         + candidateArgTypes[ i ] + " matches args[ " + i
+                         + " ].getClass()=" + referenceArgTypes[ i ] );
+          ++numMatching;
+        } else if ( Parameter.class.isAssignableFrom( candidateArgTypes[ i ] ) &&
+                    Expression.class.isAssignableFrom( referenceArgTypes[ i ] ) ) {
+            Debug.outln( "argTypes1[ " + i + " ]="
+                         + candidateArgTypes[ i ]
+                         + " could be made dependent on args[ " + i
+                         + " ].getClass()=" + referenceArgTypes[ i ] );
+          ++numDeps;
+        } else {
+            Debug.outln( "argTypes1[ " + i + " ]="
+                         + candidateArgTypes[ i ]
+                         + " does not match args[ " + i + " ].getClass()="
+                         + referenceArgTypes[ i ] );
+        }
+      }
+      if ( ( best == null )
+          || ( !gotOkNumArgs && okNumArgs )
+          || ( ( gotOkNumArgs == okNumArgs )
+               && ( ( numMatching > mostMatchingArgs )
+                    || ( ( numMatching == mostMatchingArgs ) 
+                         && ( numDeps > mostDeps ) ) ) ) ) {
+       best = o;
+       gotOkNumArgs = okNumArgs;
+       mostMatchingArgs = numMatching;
+       mostDeps = numDeps;
+       allArgsMatched = ( numMatching >= candidateArgsLength );
+         Debug.outln( "new match " + o + ", mostMatchingArgs="
+                      + mostMatchingArgs + ",  allArgsMatched = "
+                      + allArgsMatched + " = numMatching(" + numMatching
+                      + ") >= candidateArgTypes.length("
+                      + candidateArgsLength + "), numDeps=" + numDeps );
+     }
+    }
+  }
+
   public static String toString( Object[] arr ) {
+    return toString( arr, true );
+  }
+  public static String toString( Object[] arr, boolean square ) {
     if (arr == null) return "null";
     StringBuffer sb = new StringBuffer();
-    sb.append( "[" );
+    if ( square ) {
+      sb.append( "[" );
+    } else {
+      sb.append( "(" );
+    }
     for ( int i = 0; i < arr.length; ++i ) {//Object o : arr ) {
       if ( i > 0 ) sb.append( "," );
       if ( arr[i] == null ) {
@@ -52,7 +156,12 @@ public class Utils {
         sb.append( arr[i].toString() );
       }
     }
-    sb.append( "]" );
+    if ( square ) {
+      sb.append( "]" );
+    } else {
+      sb.append( ")" );
+    }
+
     return sb.toString();
   }
 
@@ -466,15 +575,40 @@ public class Utils {
     return getConstructorForArgs( classForName, args );
   }
 
+  public static Constructor< ? > getConstructorForArgTypes( String className,
+                                                            Class<?>[] argTypes,
+                                                            String preferredPackage ) {
+    Class< ? > classForName = getClassForName( className, preferredPackage, false );
+    if ( classForName == null ) {
+      System.err.println( "Couldn't find the class " + className
+                          + " to get constructor with args=" + toString( argTypes ) );
+      return null;
+    }
+    return getConstructorForArgTypes( classForName, argTypes );
+  }
+
   public static Constructor< ? > getConstructorForArgs( Class< ? > cls,
                                                         Object[] args ) {
     Debug.outln( "getConstructorForArgs( " + cls.getName() + ", "
                  + toString( args ) );
-    //Method matchingMethod = null;
+    Class< ? > argTypes[] = null;
+    if ( args != null ) {
+      argTypes = new Class< ? >[ args.length ];
+      for ( int i = 0; i < args.length; ++i ) {
+        if ( args[ i ] == null ) {
+          argTypes[ i ] = null;
+        } else {
+          argTypes[ i ] = args[ i ].getClass();
+        }
+      }
+    }
+    return getConstructorForArgTypes( cls, argTypes );
+/*    //Method matchingMethod = null;
     boolean gotOkNumArgs = false;
     int mostMatchingArgs = 0;
     boolean allArgsMatched = false;
     Constructor< ? > ctor = null;
+    
     for ( Constructor< ? > aCtor : cls.getConstructors() ) {
         int numMatching = 0;
         boolean okNumArgs =
@@ -507,7 +641,7 @@ public class Utils {
                           + " not found" );
     }
     return ctor;
-  }
+*/  }
 
   public static Pair< Constructor< ? >, Object[] >
       getConstructorForArgs( Class< ? > eventClass, Object[] arguments,
@@ -527,6 +661,83 @@ public class Utils {
         Utils.getConstructorForArgs( eventClass, newArgs );
     return new Pair< Constructor< ? >, Object[] >(constructor, newArgs );
   }
+
+  public static < T > T getBestArgTypes( Map< T, Pair< Class< ? >[], Boolean > > candidates,
+                                         // ConstructorDeclaration[] ctors,
+                                         Class< ? >... argTypes ) {
+    ArgTypeCompare< T > atc =
+        new ArgTypeCompare< T >( argTypes );
+    for ( Entry< T, Pair< Class< ? >[], Boolean > > e : candidates.entrySet() ) {
+      atc.compare( e.getKey(), e.getValue().first, e.getValue().second );
+    }
+    if ( atc.best != null && !atc.allArgsMatched ) {
+      System.err.println( "constructor returned (" + atc.best
+                          + ") only matches " + atc.mostMatchingArgs
+                          + " args: " + toString( argTypes, false ) );
+    } else if ( atc.best == null ) {
+      System.err.println( "best args not found in " + candidates );
+    }
+    return atc.best;
+  }
+
+  public static Constructor< ? > getConstructorForArgTypes( Constructor<?>[] ctors,
+                                                            Class< ? >... argTypes ) {
+    //Constructor< ? >[] ctors = null;
+    ArgTypeCompare< Constructor< ? > > atc =
+        new ArgTypeCompare< Constructor< ? > >( argTypes );
+    for ( Constructor< ? > aCtor : ctors) {
+      atc.compare( aCtor, aCtor.getParameterTypes(), aCtor.isVarArgs() );
+    }
+    if ( atc.best != null && !atc.allArgsMatched ) {
+      System.err.println( "constructor returned (" + atc.best
+                          + ") only matches " + atc.mostMatchingArgs
+                          + " args: " + toString( argTypes, false ) );
+    } else if ( atc.best == null ) {
+      System.err.println( "constructor not found in " + ctors );
+//                          cls.getSimpleName()
+//                          + toString( argTypes, false ) + " not found for "
+//                          + cls.getSimpleName() );
+    }
+    return atc.best;
+  }
+  
+  public static Constructor< ? > getConstructorForArgTypes( Class< ? > cls,
+                                                            Class< ? >... argTypes ) {
+    if ( argTypes == null ) argTypes = new Class< ? >[] {};
+    Debug.outln( "getConstructorForArgTypes( cls=" + cls.getName()
+                 + ", argTypes=" + toString( argTypes ) + " )" );
+    return getConstructorForArgTypes( cls.getConstructors(), argTypes );
+/*    ArgTypeCompare atc = new ArgTypeCompare( argTypes );
+    for ( Constructor< ? > aCtor : cls.getConstructors() ) {
+      atc.compare( aCtor, aCtor.getParameterTypes(), aCtor.isVarArgs() );
+    }
+    if ( atc.best != null && !atc.allArgsMatched ) {
+      System.err.println( "constructor returned (" + atc.best
+                          + ") only matches " + atc.mostMatchingArgs
+                          + " args: " + toString( argTypes, false ) );
+    } else if ( atc.best == null ) {
+      System.err.println( "constructor " + cls.getSimpleName()
+                          + toString( argTypes, false ) + " not found for "
+                          + cls.getSimpleName() );
+    }
+    return (Constructor< ? >)atc.best;
+*/  }
+  public static Constructor< ? >
+    getConstructorForArgTypes( Class< ? > cls, String packageName ) {
+    Pair< Constructor< ? >, Object[] > p = 
+        getConstructorForArgs(cls, new Object[]{}, packageName );
+    if ( p == null ) return null;
+    return p.first;
+  }
+
+//  public static Constructor< ? >
+//      getConstructorForArgTypes( Class< ? > cls, String packageName,
+//                                 Class< ? >... argTypes ) {
+//    // Pair< Constructor< ? >, Object[] > p =
+//    return getConstructorForArgTypes( cls, argTypes );
+//    // if ( p == null ) return null;
+//    // return p.first;
+//  }
 
   public static boolean isInnerClass( Class< ? > eventClass ) {
     return ( !Modifier.isStatic( eventClass.getModifiers() )
@@ -600,14 +811,14 @@ public class Utils {
     if ( argTypes == null ) argTypes = new Class<?>[] {};
     Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
                  + callName + ", argTypes=" + toString( argTypes ) + " )" );
+//    Method matchingMethod = null;
+//    boolean gotOkNumArgs = false;
+//    int mostMatchingArgs = 0;
+//    int mostDeps = 0;
+//    boolean allArgsMatched = false;
+//    double bestScore = Double.MAX_VALUE;
     boolean debugWasOn = Debug.isOn();
-    Debug.turnOff();
-    Method matchingMethod = null;
-    boolean gotOkNumArgs = false;
-    int mostMatchingArgs = 0;
-    int mostDeps = 0;
-    boolean allArgsMatched = false;
-    double bestScore = Double.MAX_VALUE;
+    //Debug.turnOff();
     Method[] methods = null;
     Debug.outln( "calling getMethods() on class " + cls.getName() );
     try {
@@ -617,9 +828,12 @@ public class Utils {
                           + ".getMethod(): " + e.getMessage() );
     }
     Debug.outln( "--> got methods: " + toString( methods ) );
+    ArgTypeCompare atc = new ArgTypeCompare( argTypes );
     if ( methods != null ) {
     for ( Method m : methods ) {
       if ( m.getName().equals( callName ) ) {
+        atc.compare( m, m.getParameterTypes(), m.isVarArgs() );
+/*
 //        double score = numArgsCost + argMismatchCost * argTypes.length;
         int numMatching = 0;
         int numDeps = 0;
@@ -655,38 +869,39 @@ public class Utils {
                            + argTypes[ i ] );
           }
         }
-        if ( ( matchingMethod == null )
-             || ( !gotOkNumArgs && okNumArgs )
-             || ( ( gotOkNumArgs == okNumArgs )
-                  && ( ( numMatching > mostMatchingArgs )
-                       || ( ( numMatching == mostMatchingArgs ) 
-                            && ( numDeps > mostDeps ) ) ) ) ) {
+*/
+/*        if ( ( matchingMethod == null )
+             || ( !gotOkNumArgs && atc.okNumArgs )
+             || ( ( gotOkNumArgs == atc.okNumArgs )
+                  && ( ( atc.numMatching > mostMatchingArgs )
+                       || ( ( atc.numMatching == mostMatchingArgs ) 
+                            && ( atc.numDeps > mostDeps ) ) ) ) ) {
           matchingMethod = m;
-          gotOkNumArgs = okNumArgs;
-          mostMatchingArgs = numMatching;
-          mostDeps = numDeps;
-          allArgsMatched = ( numMatching >= m.getParameterTypes().length );
+          gotOkNumArgs = atc.okNumArgs;
+          mostMatchingArgs = atc.numMatching;
+          mostDeps = atc.numDeps;
+          allArgsMatched = ( atc.numMatching >= m.getParameterTypes().length );
             Debug.outln( "new match " + m + ", mostMatchingArgs="
                          + mostMatchingArgs + ",  allArgsMatched = "
-                         + allArgsMatched + " = numMatching(" + numMatching
+                         + allArgsMatched + " = numMatching(" + atc.numMatching
                          + ") >= m.getParameterTypes().length("
-                         + m.getParameterTypes().length + "), numDeps=" + numDeps );
+                         + m.getParameterTypes().length + "), numDeps=" + atc.numDeps );
         }
-      }
+*/      }
     }
     }
     if ( debugWasOn ) {
       Debug.turnOn();
     }
-    if ( matchingMethod != null && !allArgsMatched ) {
-      System.err.println( "method returned (" + matchingMethod
-                          + ") only matches " + mostMatchingArgs
+    if ( atc.best != null && !atc.allArgsMatched ) {
+      System.err.println( "method returned (" + atc.best
+                          + ") only matches " + atc.mostMatchingArgs
                           + " args: " + toString( argTypes ) );
-    } else if ( matchingMethod == null ) {
-      System.err.println( "method " + callName + toString( argTypes )
+    } else if ( atc.best == null ) {
+      System.err.println( "method " + callName + "(" + toString( argTypes ) + ")"
                           + " not found for " + cls.getSimpleName() );
     }
-    return matchingMethod;
+    return (Method)atc.best;
   }
   
   public static Object getFieldValue( Object o, String fieldName ) {
@@ -724,7 +939,6 @@ public class Utils {
     }
     return sb.toString();
   }
-
   public static <T> T[] scramble( T[] array ) {
     for ( int i=0; i < array.length; ++i ) {
       int j = Random.global.nextInt( array.length );

@@ -156,7 +156,11 @@ public class TestEventXmlToJava {
     EventXmlToJava translator = textj.translator;
 
     textj.writeFiles();
-    translator.compileLoadAndRun(null);
+    if ( translator == null ) {
+      System.out.println("Can't compile and run without instance of translator!");
+    } else {
+      translator.compileLoadAndRun(null);
+    }
 //    translator.compileJavaFiles( "src" + File.separator + translator.getPackageName() );
 //    translator.loadClasses( "bin" + File.separator
 //                                  + translator.getPackageName()
