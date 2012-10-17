@@ -185,13 +185,15 @@ class ClassifierClass(object):
 					self.constructors.append(constructortext)
 					#((ObjectFlow) ss_17_0_5_edc0357_1345510113562_98635_13780_changeLoadValue.getValue()).addListener(((ObjectFlow) ((Power) p.getValue()).q_Power_changeLoadValue.getValue()));
 						
-			
 			#build signals
 			for s in signalsToBuild:
 				self.MDsignalClasses.append(ClassifierClass(s))
 			gl.log("Signal Classes: " + str(self.MDsignalClasses))
+			
 			#fill events
-			for act in system.ownedBehavior: self.events.append(activityEventClass(act)) #will assume that you can't reference outside activities yet...
+			for act in system.ownedBehavior: 
+				self.events.append(activityEventClass(act)) #will assume that you can't reference outside activities yet...
+				#self.members[act.getID()+"_endTime"] = ("Integer",None,"endTime var for %s " % act.name)
 			
 			#queues
 			#self.members[system.getID() + "_queue"] = ("Queue","new LinkedList&lt;Object&gt;()","Queue for " + system.name)
@@ -239,6 +241,10 @@ class activityEventClass(object):
 		self.nexts = {}
 		self.prevs = {}
 		self.ranks = {}
+
+		owner = activity.owner
+		self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
+		self.members["caller"] = ("DurativeEvent",None,"Initialize variable for cba that called this")
 		
 		self.inspectComposition(activity)
 	
@@ -371,8 +377,12 @@ class activityEventClass(object):
 										"args":[("startTime","startTime","Integer")],
 										"enclosingClass" : self.enclosingClass}
 			if isinstance (node,ActivityFinalNode):
+				self.members["finalNode_endTime"] = ("Integer",None,"variable for final node's end time!")
+				self.dependencies["endTime"] = ("Integer","finalNode_endTime")	
+				self.members["finalNode_startTime"]=("Integer",None,"variable for final node's start time!")
 				self.elaborations[node] = {
-										"args":[("endTime","endTime","Integer")],
+										#"args":[("endTime","endTime","Integer"),("startTime",node.getID()+"_startTime","Integer")],
+										"args":[("startTime","finalNode_startTime","Integer")], #try not passing in the end time as a ref
 										"conditions": {"exists":node.getID()+"_exists"},
 										"enclosingClass" : self.enclosingClass}
 			
@@ -384,7 +394,7 @@ class activityEventClass(object):
 				#gl.log("PARAM DIRECTION: " + str(node.parameter.direction))
 				#if str(node.parameter.direction)=="out": 
 				#	self.members["sig"+p_id]=("ObjectFlow&lt;%s&gt;" % node.parameter.type.name,None,"Initialize passed-in object flow!")
-					
+				self.members[node.getID()+"_startTime"]=("Integer",None,"variable for act param node's start time!")
 				if len(node.outgoing)>0: self.elaborations[node] = {
 																"args": [("startTime","startTime","Integer"),(p_id,p_id,tname)],
 																"enclosingClass" : self.enclosingClass}
@@ -395,7 +405,8 @@ class activityEventClass(object):
 					sig = event.signal #TOTALLY could be not a "trigger event", should make this more robust.
 					signame = "sig" + str(sig.getID())
 					self.members[signame] = ("ObjectFlow&lt;Signal%s&gt;" % sig.name,'new ObjectFlow("'+signame+'")',"object flow for signal") #do we need this??
-			if isinstance(node,CallBehaviorAction):
+			
+			if isinstance(node,CallBehaviorAction):	
 				for op in node.output:
 					param = op.parameter
 					pt = "Object"
@@ -777,8 +788,12 @@ class actionEventClass(object):
 					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),node.behavior.body[0].split("=")[1])
 					if p.parameter: self.dependencies[p.getID()] = (str(tname),p.parameter.name)
 			else:
+				behav = node.behavior
+				owner = behav.owner
+				#self.dependencies["endTime"] = ("Integer","finalNode_endTime")
 				self.elaborations[node.behavior]={
-												"args": [("endTime","endTime","Integer"),("startTime","startTime","Integer")],
+												#"args": [("endTime","endTime","Integer"),("startTime","startTime","Integer")],
+												"args": [("startTime","startTime","Integer"),("caller","this","DurativeEvent")],
 												"enclosingClass" : node.behavior.owner.name+".this"}
 				for pin in node.input:
 					if pin.type: tname = pin.type.name
@@ -817,7 +832,9 @@ class actionEventClass(object):
 			if str(node.parameter.direction)=="in": 
 				self.dependencies["objectToPass"] = (node.parameter.type.name,node.parameter.getID())
 				self.members[node.parameter.getID()] = (node.parameter.type.name, None, "Initialize Activity Parameter Node receptacle for incoming value!")
-			else: self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
+			else: 
+				#self.dependencies["endTime"] = ("Integer","startTime+duration")
+				self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
 			#if len(node.incoming) > 0: 
 			#	self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime)")
 		
@@ -831,12 +848,18 @@ class actionEventClass(object):
 				for dName,(dType,dVal) in self.dependencies.items():
 					if dName.endswith("_exists"):
 						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()","decisionInput"))
+		elif myType == "Activity Final Node":
+			self.dependencies["endTime"] = ("Integer","startTime+duration")
+			self.dependencies["duration"] = ("Integer","1")
+			self.dependencies["finalNode_endTime"] = ("Integer","endTime")
 		else:
 			self.dependencies["duration"] = ("Integer","1")
 				
 	def setUpBasicElaborationsAndDependencies(self,node):
 		for n in self.nexts[node].keys():
-			if isinstance(n,ActivityFinalNode) or isinstance(n,ActivityParameterNode): continue #TODO - put dependency stuff on the elaborator (the ACTIVITY)
+			if isinstance(n,ActivityFinalNode): #TODO - activity parameter nodes?
+				self.dependencies["finalNode_startTime"] = ("Integer","endTime+2")
+				continue #TODO - put dependency stuff on the elaborator (the ACTIVITY)
 			nFlow = self.nexts[node][n]
 			dependencyString = False
 			self.members[n.getID()+"_exists"] = ("Boolean","false","NEW - initialize nexts to false")
@@ -1198,11 +1221,11 @@ def writeScenarioRunner(e):
 	logAndExport(5,None,"<eventInvocation>")
 	logAndExport(6,"enclosingInstance","Bob")
 	logAndExport(6,"eventType",e.name + "." + cb.getID())
-	logAndExport(6,"eventName","Activity")
+	logAndExport(6,"eventName","%s_%s_%s" % (cb.name,"Activity",cb.owner.name))
 	logAndExport(6,None,"<arguments>")
 	logAndExport(7,None,"<parameter>")
-	logAndExport(8,"name","endTime")
-	logAndExport(8,"value","endTime")
+	logAndExport(8,"name","caller")
+	logAndExport(8,"value","this")
 	logAndExport(7,None,"</parameter>")
 	logAndExport(7,None,"<parameter>")
 	logAndExport(8,"name","startTime")
