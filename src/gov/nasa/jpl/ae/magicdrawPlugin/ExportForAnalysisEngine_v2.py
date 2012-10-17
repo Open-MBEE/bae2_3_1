@@ -243,8 +243,9 @@ class activityEventClass(object):
 		self.ranks = {}
 
 		owner = activity.owner
-		self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
-		self.members["caller"] = ("DurativeEvent",None,"Initialize variable for cba that called this")
+		if activity is not owner.classifierBehavior:
+			self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
+			self.members["caller"] = ("DurativeEvent",None,"Initialize variable for cba that called this")
 		
 		self.inspectComposition(activity)
 	
@@ -441,6 +442,7 @@ class activityEventClass(object):
 			typeName = "Object"
 			if type is not "Control": 
 				if isinstance(type,Property) and type.type: typeName = type.type.name
+				elif isinstance(type,Signal): typeName = "Signal"+type.name
 				else: typeName = type.name
 			else: typeName = "Boolean"
 			k = str("sig" + flow.getID())
@@ -902,45 +904,45 @@ class actionEventClass(object):
 						"conditions": {"exists":existscon},
 						"enclosingClass" : self.enclosingClass}
 			
-						
+	def getObtypeName(self,f,node):					
+		obtype = self.feet[f]
+		obtypename = ""
+		if isinstance(obtype,Signal):
+			context = node.context
+			try: 
+				ct = constructorArgs[context]
+				prepend=ct.name+"."
+			except: prepend = ""
+			obtypename = "%sSignal%s" % (prepend,obtype.name)
+		elif obtype is "Control": obtypename = "Boolean"
+		elif isinstance(obtype,Property): obtypename = obtype.type.name
+		else: obtypename = obtype.name
+		return(obtype,obtypename)
+	
 	def setUpSignalEffectsAndMembers(self,node):
-		nonPinOutType = None
-		nonPinInType = None
 		gl.log("SETTING UP SIGNALS FOR %s" % self.getPrettyIdent(node))
 		for f in self.allSignals[node]["out"]:
+			(obtype,obtypename) = self.getObtypeName(f,node)
 			if isinstance(f.source,Pin):
-				obtype = self.feet[f] 
-				if isinstance(obtype,Property): obtype = obtype.type #???
 				self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % f.source.getID())
-				self.members[f.source.getID()] = (obtype.name,None,"NEW initialize output pin members")
+				self.members[f.source.getID()] = (obtypename,None,"NEW initialize output pin members")
 			else:
 				self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % "objectToPass")
-				nonPinOutType = self.feet[f]
-				if nonPinOutType:
-					if nonPinOutType is "Control": 
-						obtypename = "Boolean"
-						self.dependencies["objectToPass"]=("Boolean","true")
-					elif isinstance(nonPinOutType,Property): obtypename = nonPinOutType.type.name
-					else: obtypename = nonPinOutType.name
-					self.members["objectToPass"] = (obtypename,None,"NEW initialize objectToPass")
-				else: gl.log("===> HAS NO FLOW TYPE")
+				if obtype is "Control":	self.dependencies["objectToPass"]=("Boolean","true")
+				self.members["objectToPass"] = (obtypename,None,"NEW initialize objectToPass")
+				if not obtype: gl.log("===> HAS NO FLOW TYPE")
 		
 		for f in self.allSignals[node]["in"]:
+			(obtype,obtypename) = self.getObtypeName(f,node)
 			if isinstance(f.target,Pin):
-				obtype = self.feet[f]
-				if isinstance(obtype,Property): obtype = obtype.type
-				self.dependencies[f.target.getID()] = (obtype.name,"sig" + f.getID() + ".receive(startTime)")
-				self.members[f.target.getID()] = (obtype.name,None,"NEW initialize input pin members")
+				self.dependencies[f.target.getID()] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
+				self.members[f.target.getID()] = (obtypename,None,"NEW initialize input pin members")
 			else:
-				nonPinInType = self.feet[f]
 				targetVar = "objectToPass"
-				if nonPinInType is "Control": obtypename = "Boolean"
-				elif isinstance(nonPinInType,Property): obtypename = nonPinInType.type.name
-				else: obtypename = nonPinInType.name
 				if isinstance(node,DecisionNode) and node.getDecisionInputFlow() is f: 
 					targetVar = "decisionInput"
 					self.members["decisionInput"] = (obtypename,None,"NEW Var for DecisionInputValue")
-				if nonPinInType is not "Control": self.dependencies[targetVar] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
+				if obtype is not "Control": self.dependencies[targetVar] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
 				if not "objectToPass" in self.members.keys(): self.members["objectToPass"] = (obtypename,None,"NEW - INTIALIZE OBJECT TO PASS (if not there already)")
 	
 	def getPrettyIdent(self,node):
@@ -1223,10 +1225,10 @@ def writeScenarioRunner(e):
 	logAndExport(6,"eventType",e.name + "." + cb.getID())
 	logAndExport(6,"eventName","%s_%s_%s" % (cb.name,"Activity",cb.owner.name))
 	logAndExport(6,None,"<arguments>")
-	logAndExport(7,None,"<parameter>")
-	logAndExport(8,"name","caller")
-	logAndExport(8,"value","this")
-	logAndExport(7,None,"</parameter>")
+	#logAndExport(7,None,"<parameter>")
+	#logAndExport(8,"name","caller")
+	#logAndExport(8,"value","this")
+	#logAndExport(7,None,"</parameter>")
 	logAndExport(7,None,"<parameter>")
 	logAndExport(8,"name","startTime")
 	logAndExport(8,"value","startTime")
