@@ -69,7 +69,7 @@ public class ConstraintLoopSolver implements Solver {
     Set< Variable< ? > > vars = constraint.getFreeVariables();// ( deep, seen );
     Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
-    if ( Utils.isNullOrEmpty( vars ) ) return true;
+    if ( Utils.isNullOrEmpty( vars ) ) return constraint.isSatisfied( deep, null );
 //    Variable<?>[] a = new Variable<?>[vars.size()];
 //    boolean[] b = new boolean[vars.size()];
 //    vars.toArray( a );

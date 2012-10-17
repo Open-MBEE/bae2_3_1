@@ -424,6 +424,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public boolean hasValueAt( T value, Timepoint t ) {
     if ( t == null ) return false;
     T v = get( t ); //.first;
+    if ( value == v ) return true;
     if ( v != null ) return value.equals( v );
     // Saving this check until later in case a null time value is acceptable,
     // and get(t) above works.
@@ -535,10 +536,27 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   @Override
+  public boolean equals( Object o ) {
+    if ( this == o ) return true;
+    if ( o instanceof TimeVarying ) {
+      return ( compareTo( (TimeVarying< T >)o ) == 0 );
+    }
+    return false;
+  }
+  
+  @Override
   public int compareTo( TimeVarying< T > o ) {
-    return Utils.intCompare( this.hashCode(), o.hashCode() );
-    // TODO -- REVIEW -- Need this for DurativeEvents.effects map. Hash code
-    // could cause a problem with small probability.
+    if ( o == null ) return 1;
+    int compare = 0;
+    if ( o instanceof TimeVaryingMap ) {
+      TimeVaryingMap<?> otvm = (TimeVaryingMap)o;
+      compare = getName().compareTo( otvm.getName() );
+      if ( compare != 0 ) return compare;
+    }
+    compare = getClass().getName().compareTo( o.getClass().getName() );
+    if ( compare != 0 ) return compare;
+    compare = Utils.intCompare( this.hashCode(), o.hashCode() );
+    return compare;
   }
   
   public static Method getSetValueMethod1() {

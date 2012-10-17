@@ -116,8 +116,13 @@ public class Parameter< T > implements Cloneable, Groundable,
 
   @Override
   public boolean equals( Object val ) {
-    if ( value == null ) return val == null;
-    return value.equals( val );
+    if ( this == val ) return true;
+    if ( value == val ) return true;
+    if ( value == null ) return false;
+    if ( val == null ) return false;
+    if ( val instanceof Parameter && ( (Parameter)val ).valueEquals( value ) ) return true;
+    if ( value.equals( val ) ) return true;
+    return false;
   }
   
   public String getName() {
@@ -212,11 +217,11 @@ public class Parameter< T > implements Cloneable, Groundable,
     return null;
   }
   
-  public boolean valueEquals( T otherValue ) {
+  public <T1> boolean valueEquals( T1 otherValue ) {
     return value == otherValue || ( value != null && value.equals( otherValue ) );
   }
   
-  public static <T1> boolean valuesEqual( T1 v1, T1 v2 ) {
+  public static <T1, T2> boolean valuesEqual( T1 v1, T2 v2 ) {
     return v1 == v2 || ( v1 != null && v1.equals( v2 ) );
   }
   

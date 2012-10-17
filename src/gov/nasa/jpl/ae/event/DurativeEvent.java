@@ -694,10 +694,29 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
     if ( effectSet == null ) {
-      effectSet = set;
+      effectSet = new HashSet< Effect >();//set;
       effects.add( new Pair< Parameter< ? >, Set< Effect > >( sv, effectSet ) );
-    } else {
+    }
+    if ( set != null ) {
       effectSet.addAll( set );
+    }
+    if ( Debug.isOn() ) {
+      for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
+        if ( Parameter.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
+          effectSet = pp.second;
+          for ( Effect effect : effectSet ) {
+            if ( effect instanceof EffectFunction ) {
+              EffectFunction ef = (EffectFunction)effect;
+              if ( ef.object != null && !pp.first.equals( ef.object ) ) {
+                System.err.println( "Error! effect variable ("
+                                    + pp.first
+                                    + ") does not match that of EffectFunction! ("
+                                    + ef + ")" );
+              }
+            }
+          }
+        }
+      }
     }
   }
 
