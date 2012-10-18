@@ -40,10 +40,16 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  protected double timeoutSeconds = 5.0;
-  protected long numIterations = 40;
+  protected double timeoutSeconds = 1800.0;
+  protected long numIterations = 20;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
+  // TODO -- features for variables below not yet implemented
+  protected boolean snapshotSimulationDuringSolve = true;
+  protected boolean snapshotToSameFile = false;
+  protected String baseSnapshotFileName = "simulationSnapshot.txt";
+  protected boolean amTopEventToSimulate = false;
+  
 
   // Static members
   
@@ -421,6 +427,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
+    
     if ( isSatisfied(deep, null) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
@@ -444,6 +451,9 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
             + (numIterations-numLoops) + " tries left" );
       }
       satisfied = tryToSatisfy(deep, null);
+      if ( snapshotSimulationDuringSolve  && this.amTopEventToSimulate ) {
+        doSnapshotSimulation();
+      }
       curTimeLeft =
           ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
       ++numLoops;
@@ -451,6 +461,9 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return satisfied;
   }
 
+  public void doSnapshotSimulation() {
+    // override!
+  }
   protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
     ground(deep, null);
     Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );

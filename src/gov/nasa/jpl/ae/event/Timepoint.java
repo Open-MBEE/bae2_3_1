@@ -42,6 +42,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   private final static Timepoint epochTimepoint = new Timepoint( "", 0, null );
 
   public static final String timestampFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+  public static final String fileTimestampFormat = "yyyy-MM-dd'T'HH.mm.ss.SSSZ";
 
   protected static IntegerDomain defaultDomain //= IntegerDomain.positiveDomain;
                                                  = TimeDomain.horizonDomain;
@@ -342,6 +343,16 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     return timeString;
   }
 
+  // Converts time offset to a date-time String in Timepoint.timestamp format.
+  // Assumes t is an offset from Timepoint.epoch in Timepoint.units. 
+  public static String timestampForFile() {
+    String timeString =
+        new SimpleDateFormat( fileTimestampFormat ).format( System.currentTimeMillis() );
+    return timeString;
+  }
+
+	
+	
   public String toTimestamp() {
     return toTimestamp( getValue() );
 //    Double cf = Units.conversionFactor( Units.milliseconds );

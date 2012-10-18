@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.util;
 
 import generated.Generator;
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Variable;
 import japa.parser.ast.body.Parameter;
@@ -908,23 +909,27 @@ public class Utils {
     if ( o == null || isNullOrEmpty( fieldName ) ) {
       return null;
     }
+    Exception ex = null;
     Field f = null;
     try {
       f = o.getClass().getField( fieldName );
-      if ( f == null ) return null;
       return f.get( o );
     } catch ( NoSuchFieldException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      ex = e;
     } catch ( SecurityException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      ex = e;
     } catch ( IllegalArgumentException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      ex = e;
     } catch ( IllegalAccessException e ) {
+      ex = e;
+    }
+    if ( f == null && o instanceof gov.nasa.jpl.ae.event.Parameter ) {
+        return getFieldValue( ( (gov.nasa.jpl.ae.event.Parameter)o ).getValueNoPropagate(),
+                              fieldName );
+    }
+    if ( f == null && ex != null ) {
       // TODO Auto-generated catch block
-      e.printStackTrace();
+      ex.printStackTrace();
     }
     return null;
   }
@@ -955,6 +960,18 @@ public class Utils {
     T[] a = (T[])new Object[collection.size()];
     collection.toArray( a );
     return scramble( a );
+  }
+  
+  public static String addTimestampToFilename( String fileName ) {
+    int pos = fileName.lastIndexOf( '.' );
+    String prefix = fileName;
+    String suffix = "";
+    if ( pos != -1 ) {
+      prefix = fileName.substring( 0, pos );
+      suffix = fileName.substring( pos );
+    }
+    String newFileName = prefix + Timepoint.timestampForFile() + suffix;
+    return newFileName;
   }
   
 }

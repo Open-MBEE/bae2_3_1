@@ -235,7 +235,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   // setValue( value, true ) is proactive updating
   public void setValue( T value, boolean propagateChange ) {
     assert !propagateChange || mayPropagate;
-    assert mayChange ;
+    assert mayChange;
     boolean changing = !valueEquals( value );
     if ( changing ) {
       if ( !propagateChange ) {
@@ -404,8 +404,7 @@ public class Parameter< T > implements Cloneable, Groundable,
       Debug.errln( "Warning! Parameter value and domain types do not match! " + this );
       if ( value instanceof Parameter ) {
         Debug.errln( "Warning! Parameter inside Parameter! " + this );
-        T v = ((Parameter<T>)value).getValue();
-        inDom = ( v != null && domain.contains( v ) );
+        inDom = ( (Parameter<?>)value ).inDomain();
       }
     }
     return inDom;

@@ -116,7 +116,7 @@ public class EffectFunction extends FunctionCall implements Effect {
     // TODO Auto-generated method stub
     return null;
   }
-
+  
   @Override
   public boolean isApplied( Parameter< ? > variable ) {
     if ( variable == null ) return false;

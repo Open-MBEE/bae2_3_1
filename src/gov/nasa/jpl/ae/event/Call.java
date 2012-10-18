@@ -146,10 +146,18 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
           }
         } else if ( unevaluatedArg instanceof Parameter ) {
           Parameter<?> p = (Parameter<?>)unevaluatedArg;
-          Object v = p.getValue( propagate );
-          if ( v == null
-               && c.isAssignableFrom( v.getClass() ) ) {
-            argObjects[i] = v;
+          while ( true ) {
+            Object v = p.getValue( propagate );
+            if ( v != null
+                 && c.isAssignableFrom( v.getClass() ) ) {
+              argObjects[i] = v;
+              break;
+            }
+            if ( v instanceof Parameter ) {
+              p = (Parameter< ? >)v;
+            } else {
+              break;
+            }
           }
         }
         if ( argObjects[i] != null && 

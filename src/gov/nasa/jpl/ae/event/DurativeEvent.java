@@ -11,6 +11,11 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -535,9 +540,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
   
   public void executeAndSimulate( double timeScale ) {
+    amTopEventToSimulate = true;
     execute();
     System.out.println("execution:\n" + executionToString());
     simulate(timeScale);
+    amTopEventToSimulate = false;
   }
   
   /* (non-Javadoc)
@@ -629,6 +636,40 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
   }
 
+  @Override
+  public void doSnapshotSimulation() {
+    boolean fileWriteFailed = true;
+    String fileName = this.baseSnapshotFileName;
+    if ( fileName != null ) {
+    if ( !snapshotToSameFile ) {
+      fileName = Utils.addTimestampToFilename( fileName );      
+    }
+    File file = new File( fileName );
+    System.out.println("writing simulaton snapshot to " + file.getAbsolutePath() );
+    try {
+      System.out.println("  which is the same as " + file.getCanonicalPath() );
+    } catch ( IOException e1 ) {
+      // ignore
+    }
+    FileOutputStream os;
+    try {
+      os = new FileOutputStream( file );
+      simulate( 1e15, os );
+      fileWriteFailed = false;
+      os.close();
+    } catch ( FileNotFoundException e ) {
+      System.err.println( "Writing simulation output to file " + file.getAbsolutePath() + " failed" );
+      e.printStackTrace();
+    } catch ( IOException e ) {
+      System.err.println( "Trouble closing output file " + file.getAbsolutePath() );
+      e.printStackTrace();
+    }
+    }
+    if ( fileWriteFailed ) {
+      simulate( 1e15, System.out );
+    }
+  }
+  
   // Create an ElaborationRule for constructing an eventClass with
   // constructorParamTypes.
   // This method assumes that there is a constructor whose parameters match the
