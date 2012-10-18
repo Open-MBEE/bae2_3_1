@@ -358,7 +358,7 @@ class activityEventClass(object):
 				prev = self.getPrev(inFlow)
 				self.prevs[node][prev]=inFlow
 				gl.log("	prev: %s" % self.getPrettyIdent(prev))
-				if l>1:
+				if l>1 and not isinstance(node,MergeNode):
 					gl.log("	thisRank: " + str(thisRank))
 					decider = "myDeciderID_decider%s" % node.getID()
 					if prev in self.ranks.keys(): 
@@ -369,7 +369,7 @@ class activityEventClass(object):
 				
 			
 			l = len(self.allSignals[node]["in"])
-			if l>1:
+			if l>1 and not isinstance(node,MergeNode):
 				self.members["decider%s" % node.getID()] = ("TimeVaryingList&lt;Integer&gt;",'new TimeVaryingList("decider%s",%s)' % (node.getID(),str(l)),"INTIALIZE DECIDER FOR %s with %s elements" % (self.getPrettyIdent(node),str(l)))
 			
 			if isinstance(node,InitialNode):
@@ -885,7 +885,7 @@ class actionEventClass(object):
 						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime+1)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
-			if len(self.prevs[n].keys())>1:
+			if len(self.prevs[n].keys())>1 and not isinstance(n,MergeNode):
 				rank = "None"
 				deciderVarName = "myDeciderID_decider%s" % n.getID()
 				try: rank = self.decisionDict[deciderVarName]
