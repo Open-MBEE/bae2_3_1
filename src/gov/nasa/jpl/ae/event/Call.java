@@ -29,11 +29,16 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
   abstract public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
   
-  protected Boolean hasTypeErrors() {
+  public Boolean hasTypeErrors() {
     if ( getMember() == null ) return true;
     Class< ? >[] paramTypes = getParameterTypes();
     if ( !isVarArgs() ) {
-      Assert.assertEquals( arguments.size(), paramTypes.length );
+      //Assert.assertEquals( arguments.size(), paramTypes.length );
+      if ( arguments.size() != paramTypes.length ) {
+        return true;
+      }
+    } else if ( arguments.size() < paramTypes.length - 1 ) {
+      return true;
     }
     // Code below is not right! The arguments may be expressions, the results of
     // whose evaluations may match, but they cannot be checked without evaluating.

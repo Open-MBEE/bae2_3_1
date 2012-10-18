@@ -182,7 +182,17 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( t == null ) return null;
     return this.lowerKey( t );
   }
+
+  public T getValueBefore( Timepoint t ) {
+    Timepoint justBeforeTime = getTimepointBefore( t );
+    T valBefore = null;
+    if ( justBeforeTime != null ) {
+      valBefore = get( justBeforeTime );
+    }
+    return valBefore;
+  }
   
+
   public Timepoint makeTempTimepoint( Integer t, boolean maxName ) {
     //if ( t == null ) return null;
     String n = ( maxName ? StringDomain.typeMaxValue : null );

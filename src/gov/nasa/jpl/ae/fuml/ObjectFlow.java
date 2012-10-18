@@ -26,6 +26,8 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 	   */
 	  protected static Method sendMethod1 = getSendMethod1();
 	  protected static Method sendMethod2 = getSendMethod2();
+	  
+	  protected static final boolean receiveSetsEvenIfNull = false;
 
 	  protected List< ObjectFlow< Obj > > listeners =
       new ArrayList< ObjectFlow< Obj > >();
@@ -86,11 +88,27 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 //  }
 
   public Obj receive( Timepoint t ) {
+    return receive( t, false, !receiveSetsEvenIfNull );
+    
+  }
+  protected Obj receive( Timepoint t, boolean noSetValue,
+                         boolean noSetIfNull ) {
     breakpoint();
     if ( t == null ) return null;
-    Obj o = this.getValue( t );
-    this.setValue( t, null );
+    Obj o = getValueBefore( t );
+    boolean noSet = noSetValue || ( noSetIfNull && o == null ); 
+    if ( !noSet ) {
+      this.setValue( t, null );
+    }
     return o;
+  }
+ 
+  public boolean isReceiveApplied( Timepoint t ) {
+    if ( receive( t, true, true ) == null ) {
+      if ( !receiveSetsEvenIfNull ) return true;
+    }
+    if ( getValue( t ) == null ) return true;
+    return false;
   }
   
 //  public Obj receive( Integer t ) {
@@ -123,6 +141,8 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 	  return super.isApplied( effect );
   }
 
+  // TODO -- Most of this looks like it would work generically in TimeVaryingMap.
+  // TODO -- Move it there.
   @Override
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();
@@ -136,44 +156,51 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
                    + ") called with no effect method! " + this );
       return false;
     }
+    if ( effectFunction.hasTypeErrors() ) {
+      Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+          + effect + ", Method=" + method1 + ", Method=" + method2
+          + "): inconsistent EffectFuncion arguments! " + this );
+      return false;
+    }
+
+    // Is setValue() applied?
     boolean isMethod1 = effectFunction.getMethod().equals(method1);
     boolean isMethod2 =  effectFunction.getMethod().equals( method2);
     if ( isMethod1  || isMethod2 ) {
-      if ( effectFunction.getArguments() != null
-           && effectFunction.getArguments().size() >= 2 ) {
-        Object o = effectFunction.getArguments().get( 0 );
-        Object t = (Timepoint)effectFunction.getArguments().get( 1 );
-        Obj value = null;
-        try {
-          value = (Obj)o;
-        } catch( Exception e ) {
-          //e.printStackTrace();
-        }
-        if ( value != null ) {
-          if ( t instanceof Timepoint ) {
-            return hasValueAt( value, (Timepoint)t );
-          } if ( t instanceof Integer ) {
-            return hasValueAt( value, (Integer)t );
-          }
-        }
-//          if ( isMethod1 || t instanceof Timepoint ) {
-//            return hasValueAt( value, t );
-//            return value.equals( getValue( (Timepoint) t ) );
-//          }
-//          if ( t instanceof Integer ) {
-//            return value.equals(getValue((Integer) t));
-//          } else if ( t instanceof Parameter ) {
-//            Object v = ((Parameter<?>)t).getValueNoPropagate();
-//            if ( v instanceof Integer ) {
-//              return value.equals(getValue((Integer)v));
-//            }
-//          }
-//        }
-      }
+      return isSetValueApplied( effectFunction );
+    }
+    
+    // Is setValue() applied
+    if ( effectFunction.getMethod().getName().equals("receive") ) {
+      return isReceiveApplied( (Timepoint)effectFunction.getArguments().get( 0 ) );
     }
     return false;
   }
 
+  // TODO -- This looks like it would work generically in TimeVaryingMap.
+  // TODO -- Move it there.
+  public boolean isSetValueApplied( EffectFunction effectFunction ) {
+    if ( effectFunction.getArguments() != null
+         && effectFunction.getArguments().size() >= 2 ) {
+     Object o = effectFunction.getArguments().get( 0 );
+     Object t = (Timepoint)effectFunction.getArguments().get( 1 );
+     Obj value = null;
+     try {
+       value = (Obj)o;
+     } catch( Exception e ) {
+       //e.printStackTrace();
+     }
+     if ( value != null ) {
+       if ( t instanceof Timepoint ) {
+         return hasValueAt( value, (Timepoint)t );
+       } if ( t instanceof Integer ) {
+         return hasValueAt( value, (Integer)t );
+       }
+     }
+    }
+    return false;
+  }
+  
 	public static Method getSendMethod1() {
 		if (sendMethod1 == null) {
 			for (Method m : ObjectFlow.class.getMethods()) {
