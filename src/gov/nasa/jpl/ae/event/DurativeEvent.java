@@ -373,6 +373,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void fixTimeDependencies() {
+  }
+  public void fixTimeDependencies1() {
     boolean gotStart = false, gotEnd = false, gotDur = false;
     boolean stillHaveStart = false, stillHaveEnd = false, stillHaveDur = false;
     int numGot = 0;
@@ -381,27 +383,39 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( Dependency< ? > d : getDependencies() ) {
       if ( d.parameter == startTime ) { 
         if ( d == startTimeDependency ) {
-          stillHaveStart = true;
-          ++numHave;
+          if ( !stillHaveStart ) {
+            ++numHave;
+            stillHaveStart = true;
+          }
         } else {
-          gotStart = true;
-          ++numGot;
+          if ( !gotStart ) {
+            gotStart = true;
+            ++numGot;
+          }
         }
       } else if ( d.parameter == endTime ) {
         if ( d == endTimeDependency ) {
-          stillHaveEnd = true;
-          ++numHave;
+          if ( !stillHaveEnd ) {
+            stillHaveEnd = true;
+            ++numHave;
+          }
         } else {
-          gotEnd = true;
-          ++numGot;
+          if ( !gotEnd ) {
+            gotEnd = true;
+            ++numGot;
+          }
         }
       } else if ( d.parameter == duration ) {
         if ( d == durationDependency ) {
-          stillHaveDur = true;
-          ++numHave;
+          if ( !stillHaveDur ) {
+            stillHaveDur = true;
+            ++numHave;
+          }
         } else {
-          gotDur = true;
-          ++numGot;
+          if ( !gotDur ) {
+            gotDur = true;
+            ++numGot;
+          }
         }
       }
     }

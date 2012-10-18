@@ -502,6 +502,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
   }
 
+  /**
+   * Send the time and the values of all plottable variables at that time.
+   * @param time the time, typically used as the x-axis of the plot.
+   */
   protected void plotValues( double time ) {
     if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
@@ -511,8 +515,16 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     doubleArray[0] = Timepoint.Units.conversionFactor( this.timeUnits ) * time;
     int cnt = 1;
     for ( Object v : currentPlottableValues.values() ) {
-      assert v instanceof Double || v instanceof Integer;
-      doubleArray[ cnt++ ] = ((Double)v).doubleValue();
+      assert v instanceof Double || v instanceof Integer || v instanceof Parameter;
+      while ( v instanceof Parameter ) {
+        v = ( (Parameter<?>)v ).getValue();
+      }
+      if ( v instanceof Integer ) {
+        v = ( (Integer)v ).doubleValue();
+      }
+      if ( Double.class.isInstance( v ) ) {
+        doubleArray[ cnt++ ] = ((Double)v).doubleValue();
+      }
     }
     try {
       plotSocket.send( doubleArray );
