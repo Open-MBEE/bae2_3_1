@@ -3544,8 +3544,16 @@ public class EventXmlToJava {
         Class<?> cls = getLoader().loadClass( className );
         System.out.println( "loadClasses(" + javaPath + ", " + packageName +
                             "): loaded class: " + cls.getName() );
-        if ( cls.getName().equals( packageName + ".Main" ) ) {
-          mainClass = cls;
+        try {
+          final Object[] a = new Object[]{};
+          if ( cls != null
+               && ( cls.getName().equals( packageName + ".Main" )
+                    || ( mainClass == null
+                         && cls.getMethod( "main", a.getClass() ) != null ) ) ) {
+            mainClass = cls;
+          }
+        } catch ( SecurityException e ) {
+        } catch ( NoSuchMethodException e ) {
         }
       } catch ( ClassNotFoundException e ) {
         System.err.println( "Couldn't load class: " + className );
@@ -3601,8 +3609,7 @@ public class EventXmlToJava {
     if ( !succ ) return false;
     return runMain(); 
   }
-  
-  
+
   public Class<?> getMainClass() {
     if ( mainClass == null ) {
       try {
