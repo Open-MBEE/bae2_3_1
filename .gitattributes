@@ -140,12 +140,6 @@ src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml -text
 src/gov/nasa/jpl/ae/xml/exampleDRScenarioMultipleCustomers.xml -text
 src/gov/nasa/jpl/ae/xml/iterationExample.xml -text
 src/gov/nasa/jpl/ae/xml/stateChartExample.xml -text
-src/latest/BobCreator.java -text
-src/latest/Customer.java -text
-src/latest/LADWP.java -text
-src/latest/Main.java -text
-src/latest/Power.java -text
-src/latest/Power_System.java -text
 thirdParty/douglascrockford-JSON-java-d15e776/README -text
 thirdParty/douglascrockford-JSON-java-d15e776/org/json/CDL.java -text
 thirdParty/douglascrockford-JSON-java-d15e776/org/json/Cookie.java -text
