@@ -18,6 +18,7 @@ import japa.parser.ast.body.VariableDeclaratorId;
 import japa.parser.ast.expr.ArrayCreationExpr;
 import japa.parser.ast.expr.AssignExpr;
 import japa.parser.ast.expr.BinaryExpr;
+import japa.parser.ast.expr.ClassExpr;
 import japa.parser.ast.expr.ConditionalExpr;
 import japa.parser.ast.expr.EnclosedExpr;
 import japa.parser.ast.expr.Expression;
@@ -571,10 +572,9 @@ public class EventXmlToJava {
                                 complainIfNotFound && lookOutsideXml );
       }
     }
+    Class<?> classForName = null;
     if ( p == null && lookOutsideXml ) {
-      Class<?> classForName = Utils.getClassForName( className,
-                                                     this.packageName,
-                                                     false );//, getClass().getClassLoader(), Package.getPackages() );
+      classForName = Utils.getClassForName( className, this.packageName, false );//, getClass().getClassLoader(), Package.getPackages() );
       if ( classForName != null ) {
         Field field = null;
         try {
@@ -2135,6 +2135,19 @@ public class EventXmlToJava {
     } else if ( expr.getClass() == ObjectCreationExpr.class ) {
       ObjectCreationExpr oce = (ObjectCreationExpr)expr;
       result = oce.getType().toString();
+    } else if ( expr.getClass() == ClassExpr.class ) {
+      ClassExpr ce = (ClassExpr)expr;
+      //String pType = astToAeExprType( ce.getType(), lookOutsideXml, complainIfNotFound );
+      String c = getClassNameWithScope( ce.getType().toString(), true );
+      if ( Utils.isNullOrEmpty( c ) ) {
+        Class<?> cc = Utils.getClassForName( ce.getType().toString(), packageName, false );
+        if ( cc != null ) {
+          c = cc.getName();
+        } else {
+          c = "?";
+        }
+      }
+      result = "Class<" + c + ">";
     } else {
         if ( className.endsWith( "LiteralExpr" ) ) {
           // get the part before "LiteralExpr"

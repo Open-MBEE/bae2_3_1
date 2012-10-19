@@ -13,6 +13,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,6 +24,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
+import org.python.core.util.StringUtil;
 
 /**
  * A set of miscellaneous utility functions.
@@ -678,22 +684,49 @@ public class Utils {
     }
     return getConstructorForArgTypes( classForName, argTypes );
   }
+  
+  public static Class<?>[] getClasses( Object[] objects ) {
+    return ClassUtils.toClass( objects );
+//    Class< ? > argTypes[] = null;
+//    if ( objects != null ) {
+//      argTypes = new Class< ? >[ objects.length ];
+//      for ( int i = 0; i < objects.length; ++i ) {
+//        if ( objects[ i ] == null ) {
+//          argTypes[ i ] = null;
+//        } else {
+//          argTypes[ i ] = objects[ i ].getClass();
+//        }
+//      }
+//    }
+//    return argTypes;
+  }
 
+  /**
+   * Determines whether the array contain only Class<?> objects possibly with
+   * some (but not all nulls).
+   * 
+   * @param objects
+   * @return
+   */
+  public static boolean areClasses( Object[] objects ) {
+    boolean someClass = false;
+    boolean someNotClass = false;
+    for ( Object o : objects ) {
+      if ( o == null ) continue;
+      if ( o instanceof Class ) {
+        someClass = true;
+      } else {
+        someNotClass = true;
+      }
+    }
+    return !someNotClass && someClass;
+  }
+  
   public static Constructor< ? > getConstructorForArgs( Class< ? > cls,
                                                         Object[] args ) {
     Debug.outln( "getConstructorForArgs( " + cls.getName() + ", "
                  + toString( args ) );
-    Class< ? > argTypes[] = null;
-    if ( args != null ) {
-      argTypes = new Class< ? >[ args.length ];
-      for ( int i = 0; i < args.length; ++i ) {
-        if ( args[ i ] == null ) {
-          argTypes[ i ] = null;
-        } else {
-          argTypes[ i ] = args[ i ].getClass();
-        }
-      }
-    }
+    Class< ? > argTypes[] = getClasses( args );
     return getConstructorForArgTypes( cls, argTypes );
 /*    //Method matchingMethod = null;
     boolean gotOkNumArgs = false;
@@ -846,6 +879,58 @@ public class Utils {
     return classList.get( 0 );
   }
   
+  public static Method getJavaMethodForCommonFunction( String functionName,
+                                                       List<Object> args ) {
+    return getJavaMethodForCommonFunction( functionName, args.toArray() );
+  }
+  // TODO -- feed this through ArgTypeCompare to avoid mismatches
+  public static Method getJavaMethodForCommonFunction( String functionName,
+                                                       Object[] args ) {
+    // REVIEW -- Could use external Reflections library to get all classes in a
+    // package:
+    //   Reflections reflections = new Reflections("my.project.prefix");
+    //   Set<Class<? extends Object>> allClasses = 
+    //      reflections.getSubTypesOf(Object.class);
+    //   use on:
+    //     java.lang
+    //     org.apache.commons.lang.
+    //     java.util?
+    Class< ? >[] classes =
+        new Class< ? >[] { Math.class, StringUtils.class, Integer.class,
+                          Double.class, Character.class, Boolean.class,
+                          String.class,
+                          org.apache.commons.lang.ArrayUtils.class,
+                          Arrays.class };
+    boolean alreadyClass = areClasses( args );
+    Class<?>[] argTypes = null;
+    if ( alreadyClass ) {
+      argTypes = new Class<?>[args.length];
+      boolean ok = toArrayOfType( args, argTypes, Class.class );
+      assert ok;
+    } else {
+      argTypes = getClasses(args); 
+    }
+    for ( Class<?> c : classes ) {
+      Method m = getMethodForArgs( c, functionName, args );
+      if ( m != null ) return m;
+    }
+    return null;
+  }
+  
+  public static <T1, T2> boolean toArrayOfType( T1[] source, T2[] target,
+                                                Class< T2 > newType ) {
+    boolean succ = true;
+    for ( int i=0; i < source.length; ++i ) {
+      try {
+        target[i] = newType.cast( source[i] );
+      } catch ( ClassCastException e ) {
+        succ = false;
+        target[i] = null;
+      }
+    }
+    return succ;
+  }
+
   public static Method getMethodForArgs( String className,
                                          String preferredPackage,
                                          String callName,
@@ -881,14 +966,27 @@ public class Utils {
                                              String preferredPackage,
                                              String callName,
                                              Class<?>... argTypes ) {
+    return getMethodForArgTypes( className, preferredPackage, callName,
+                                 argTypes, true );
+  }
+  public static Method getMethodForArgTypes( String className,
+                                             String preferredPackage,
+                                             String callName,
+                                             Class<?>[] argTypes,
+                                             boolean complainIfNotFound ) {
     Class< ? > classForName = getClassForName( className, preferredPackage, false );
-    if ( errorOnNull( "Couldn't find the class " + className + " for method "
-                          + callName
-                          + ( argTypes == null ? "" : toString( argTypes ) ),
-                      classForName ) ) {
+    if ( classForName == null ) {
+      if ( complainIfNotFound ) {
+        System.err.println( "Couldn't find the class " + className + " for method "
+                     + callName
+                     + ( argTypes == null ? "" : toString( argTypes ) ) );
+      }
       return null;
     }
-    return getMethodForArgTypes( classForName, callName, argTypes );
+    Method m = getMethodForArgTypes( classForName, callName, argTypes );
+    errorOnNull( "getMethodForArgTypes(" + className + "." + callName
+                 + toString( argTypes, false ) + "): Could not find method!", m );
+    return m;
   }
 
   public static Method getMethodForArgTypes( Class< ? > cls, String callName,

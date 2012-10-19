@@ -189,11 +189,16 @@ public class JavaForFunctionCall {
                                + ".class" );
         }
       } else { // if ( !classMethods.isEmpty() ) {
-        matchingMethod  = null;
         // Try using reflection to find the method, but class may not exist.
+        matchingMethod  = null;
         matchingMethod =
             Utils.getMethodForArgTypes( className, preferredPackageName,
-                                        callName, argTypesArr );
+                                        callName, argTypesArr, false );
+        if ( matchingMethod == null && className.equals( xmlToJava.currentClass ) ) {
+          matchingMethod = Utils.getJavaMethodForCommonFunction( callName,
+                                                                 argTypesArr );
+
+        }
         if ( matchingMethod != null && matchingMethod.getParameterTypes() != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
             methodJavaSb.append( ", " );
