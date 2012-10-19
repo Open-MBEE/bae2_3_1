@@ -50,13 +50,13 @@ class MagicDrawAnimator(object):
         5. toggle it on (it's set to off initially)
         '''
         sym = self.findSymbolToHighlight(componentId)
-        gl.log("Debug: symbol: " + str(sym))
+        #gl.log("Debug: symbol: " + str(sym))
         #gl.log("Debug: found symbol...")
         if componentId not in self.defaults.keys(): self.setDefaults(componentId)
         #gl.log("Debug: symbol: " + str(sym))
         if sym != None:
             diagram = sym.getDiagramPresentationElement()
-            gl.log("Debug: found diagram")
+            #gl.log("Debug: found diagram")
             diagram.open()
             #gl.log("Debug: opened diagram")
             self.activeDiagrams.append(diagram)
@@ -89,7 +89,7 @@ class MagicDrawAnimator(object):
         else:
             element = self.project.getElementByID(componentId)
             symbols = self.SEM.getAllPresentationElements(element)
-            gl.log("Debug: symbols found for id=" + componentId + ": " + str(symbols))
+            #gl.log("Debug: symbols found for id=" + componentId + ": " + str(symbols))
             if symbols:
                 if len(symbols)>1:
                     for s in symbols:
@@ -109,10 +109,10 @@ class MagicDrawAnimator(object):
         1. Get the symbol
         2. If we haven't already done this, set the default line and pen color
         '''
-        gl.log("setDefaults()" )
-        print "checking for component id: " + str(cid)
-        gl.log("checking for component id: " + str(cid) )
-        gl.log("in knownComponents: " + str(self.knownComponents) )
+        #gl.log("setDefaults()" )
+        #print "checking for component id: " + str(cid)
+        #gl.log("checking for component id: " + str(cid) )
+        #gl.log("in knownComponents: " + str(self.knownComponents) )
         isKnown = False
         if self.knownComponents != None:
             isKnown = (cid in self.knownComponents)
@@ -120,7 +120,7 @@ class MagicDrawAnimator(object):
             sym = self.knownComponents[cid]
         else:
             sym = None
-            gl.log("component id (" + str(cid) + ") is not in knownComponents: " + str(self.knownComponents) )
+            #gl.log("component id (" + str(cid) + ") is not in knownComponents: " + str(self.knownComponents) )
         if sym != None and sym not in self.defaults.keys():
             pm = sym.getPropertyManager()
             if pm:
@@ -130,7 +130,7 @@ class MagicDrawAnimator(object):
                     fcolor = None
                 lcolor = pm.getPropertyByName("Pen Color").getColor()
                 self.defaults[sym]=(fcolor,lcolor)
-                gl.log("Debug: defaults: " + str(fcolor) + " & " + str(lcolor))
+                #gl.log("Debug: defaults: " + str(fcolor) + " & " + str(lcolor))
 
 
 class AwesomePaintAction(NMAction):
@@ -171,7 +171,7 @@ class AwesomePaintAction(NMAction):
             PresentationElementsManager.getInstance().setPresentationElementProperties(self.element, newPM)
             self.on = not self.on
             SessionManager.getInstance().closeSession()
-            gl.log("Debug: actionPerformed")
+            #gl.log("Debug: actionPerformed")
         except:
             SessionManager.getInstance().cancelSession()
             exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
