@@ -628,8 +628,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate( double timeScale, java.io.OutputStream os ) {
+    simulate( timeScale, os, true );
+  }
+  
+  public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
     try {
       EventSimulation sim = createEventSimulation();
+      sim.tryToPlot = runPlotter;
       sim.simulate( timeScale, os );
     } catch ( Exception e ) {
       e.printStackTrace();
@@ -666,7 +671,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       FileOutputStream os;
       try {
         os = new FileOutputStream( file );
-        simulate( 1e15, os );
+        simulate( 1e15, os, false );
         didntWriteFile = false;
         os.close();
       } catch ( FileNotFoundException e ) {
@@ -680,7 +685,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
     if ( didntWriteFile ) {
-      simulate( 1e15, System.out );
+      simulate( 1e15, System.out, false );
     }
   }
   
