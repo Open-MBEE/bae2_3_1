@@ -310,8 +310,8 @@ public class FunctionCall extends Call {
         } else if ( unevaluatedArg instanceof Parameter ) {
           Parameter<?> p = (Parameter<?>)unevaluatedArg;
           Object v = p.getValue( propagate );
-          if ( v != null
-               && c.isAssignableFrom( v.getClass() ) ) {
+          if ( v == null
+               || c.isAssignableFrom( v.getClass() ) ) {
             argObjects[i] = v;
           }
         }
@@ -384,7 +384,7 @@ public class FunctionCall extends Call {
       nestedCall.getValue().object = result;
       result = nestedCall.getValue().evaluate( propagate );
     }
-    Debug.outln( "evaluate( ) returning " + result );
+    Debug.outln( "evaluate() returning " + result );
     //Debug.turnOff();  // DELETE ME TODO
     return result;
   }
@@ -476,6 +476,9 @@ public class FunctionCall extends Call {
 
   @Override
   public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+    Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
     if ( method == null ) return false;
     // Check types without throwing exception (like checkForTypeErrors().
     Class< ? >[] paramTypes = method.getParameterTypes();
@@ -500,6 +503,9 @@ public class FunctionCall extends Call {
 
   @Override
   public boolean ground(boolean deep, Set< Groundable > seen) {
+    Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
     boolean grounded = true;
     if ( method == null ) return false;
     // Check types without throwing exception (like checkForTypeErrors().

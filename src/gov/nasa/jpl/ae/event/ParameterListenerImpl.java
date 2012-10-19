@@ -46,7 +46,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   protected boolean usingLoopLimit = true;
   // TODO -- features for variables below not yet implemented
   protected boolean snapshotSimulationDuringSolve = true;
-  protected boolean snapshotToSameFile = false;
+  protected boolean snapshotToSameFile = true;
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
   

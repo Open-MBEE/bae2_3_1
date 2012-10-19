@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.xml;
 
+import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
@@ -119,7 +120,7 @@ public class JavaForFunctionCall {
     // Get object from scope
     Expression scope = getScope();
     object = this.xmlToJava.getObjectFromScope( scope );
-    String objectType = this.xmlToJava.astToAeExprType( scope, true );
+    String objectType = this.xmlToJava.astToAeExprType( scope, true, true );
     if ( objectType != null ) {
       className = objectType;
     }
@@ -152,7 +153,7 @@ public class JavaForFunctionCall {
       for ( int i = 0; i < args.size(); ++i ) {
         argTypesArr[ i ] =
             Utils.getClassForName( xmlToJava.astToAeExprType( args.get( i ),
-                                                              true ),
+                                                              true, true ),
                                                               preferredPackageName,
                                                               false );
       }
@@ -196,7 +197,9 @@ public class JavaForFunctionCall {
         if ( matchingMethod != null && matchingMethod.getParameterTypes() != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
             methodJavaSb.append( ", " );
-            methodJavaSb.append( Utils.noParameterName( type.getName() )
+            String typeName = type.getName();
+            if ( typeName != null ) typeName = typeName.replace( '$', '.' );
+            methodJavaSb.append( Utils.noParameterName( typeName )
                                  + ".class" );
           }
         }
@@ -239,7 +242,9 @@ public class JavaForFunctionCall {
         if ( matchingConstructor != null ) {
           for ( Class< ? > type : matchingConstructor.getParameterTypes() ) {
             methodJavaSb.append( ", " );
-            methodJavaSb.append( Utils.noParameterName( type.getName() ) 
+            String typeName = type.getName();
+            if ( typeName != null ) typeName = typeName.replace( '$', '.' );
+            methodJavaSb.append( Utils.noParameterName( typeName ) 
                                  + ".class" );
           }
         }
@@ -276,36 +281,7 @@ public class JavaForFunctionCall {
     argumentArraySb.append( " } " );
     argumentArrayJava = argumentArraySb.toString();
   }
-/*
-  public ConstructorDeclaration
-      getBestConstructorArgTypes( Set< ConstructorDeclaration > ctors,
-                                  Class< ? >[] argTypesArr,
-                                  String preferredPackageName ) {
-    Map< ConstructorDeclaration, Pair< Class< ? >[], Boolean > > candidates =
-        new HashMap< ConstructorDeclaration, Pair< Class< ? >[], Boolean > >();
-    for ( ConstructorDeclaration cd : ctors ) {
-      List< Parameter > params = cd.getParameters();
-      Class< ? >[] ctorArgTypes = new Class< ? >[ params.size() ];
-      int ct = 0;
-      boolean isVarArgs = false;
-      if ( !Utils.isNullOrEmpty( params ) ) {
-        isVarArgs = params.get( params.size() - 1 ).isVarArgs();
-        for ( Parameter param : params ) {
-          Class< ? > c =
-              Utils.getClassForName( param.getType().toString(),
-                                     preferredPackageName, true );
-          ctorArgTypes[ ct++ ] = c;
-        }
-      }
-      candidates.put( cd, new Pair< Class< ? >[], Boolean >( ctorArgTypes,
-                                                             isVarArgs ) );
-    }
-    ConstructorDeclaration constructorDecl =
-        Utils.getBestArgTypes( candidates, argTypesArr );
-    return constructorDecl;
-  }
-*/
-  // REVIEW -- The only reason the method above wasn't com
+
   public <T> T getBestArgTypes( Set< T > declarations,
                                 Class< ? >[] argTypesArr,
                                 String preferredPackageName ) {
@@ -339,35 +315,7 @@ public class JavaForFunctionCall {
     T decl = Utils.getBestArgTypes( candidates, argTypesArr );
     return decl;
   }
-/*
-  public MethodDeclaration
-      getBestMethodArgTypes( Set< MethodDeclaration > methods,
-                             Class< ? >[] argTypesArr,
-                             String preferredPackageName ) {
-    Map< MethodDeclaration, Pair< Class< ? >[], Boolean > > candidates =
-        new HashMap< MethodDeclaration, Pair< Class< ? >[], Boolean > >();
-    for ( MethodDeclaration cd : methods ) {
-      List< Parameter > params = cd.getParameters();
-      Class< ? >[] ctorArgTypes = new Class< ? >[ params.size() ];
-      int ct = 0;
-      boolean isVarArgs = false;
-      if ( !Utils.isNullOrEmpty( params ) ) {
-        isVarArgs = params.get( params.size() - 1 ).isVarArgs();
-        for ( Parameter param : params ) {
-          Class< ? > c =
-              Utils.getClassForName( param.getType().toString(),
-                                     preferredPackageName, true );
-          ctorArgTypes[ ct++ ] = c;
-        }
-      }
-      candidates.put( cd, new Pair< Class< ? >[], Boolean >( ctorArgTypes,
-                                                             isVarArgs ) );
-    }
-    MethodDeclaration methodDecl =
-        Utils.getBestArgTypes( candidates, argTypesArr );
-    return methodDecl;
-  }
-*/
+
   public Expression getScope() {
     if ( methodCallExpr != null ) {
       return methodCallExpr.getScope();

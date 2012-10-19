@@ -127,6 +127,8 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
                                        Class< ? >[] paramTypes,
                                        Vector< Object > args,
                                        boolean isVarArgs ) {
+    boolean wasDebugOn = Debug.isOn();
+    Debug.turnOff();
     // Class< ? >[] paramTypes = constructor.getParameterTypes();
     assert ( args.size() == paramTypes.length
              || ( isVarArgs && ( args.size() > paramTypes.length
@@ -134,23 +136,42 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     Object argObjects[] = new Object[args.size()];
     for ( int i = 0; i < args.size(); ++i ) {
       Object unevaluatedArg = args.get( i );
+      Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
       Class< ? > c = paramTypes[ i ];
       argObjects[i] = unevaluatedArg;
-      if ( !c.isInstance( unevaluatedArg ) ) {
+      Debug.outln("Call.evaluateArgs(): parameter type = " + c.getName() );
+      if ( c.isInstance( unevaluatedArg ) ) {
+        Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("
+            + unevaluatedArg + ") = true" );
+      } else {
+        Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("
+                     + unevaluatedArg + ") = false" );
         if ( unevaluatedArg instanceof Expression ) {
+          Debug.outln( "Call.evaluateArgs(): " + unevaluatedArg
+                       + " is instance of Expression" );
           Expression< ? > expr = (Expression<?>)unevaluatedArg;
           if ( c.isInstance( expr.expression ) ) {
             argObjects[i] = expr.expression;
+            Debug.outln( "Call.evaluateArgs(): evaluated arg = Expression.expression = "
+                         + argObjects[ i ] );
           } else {
             argObjects[i] = expr.evaluate( propagate );
+            Debug.outln( "Call.evaluateArgs(): evaluated arg = Expression.evaluate("
+                         + propagate + ") = " + argObjects[ i ] );
           }
         } else if ( unevaluatedArg instanceof Parameter ) {
+          Debug.outln( "Call.evaluateArgs(): " + unevaluatedArg
+                       + " is instance of Parameter" );
           Parameter<?> p = (Parameter<?>)unevaluatedArg;
           while ( true ) {
             Object v = p.getValue( propagate );
             if ( v != null
-                 && c.isAssignableFrom( v.getClass() ) ) {
+                 && ( c.isAssignableFrom( v.getClass() ) ||
+                      ( c.isPrimitive() &&
+                        Utils.classForPrimitive( c ).isAssignableFrom( v.getClass() ) ) ) ) {
               argObjects[i] = v;
+              Debug.outln( "Call.evaluateArgs(): evaluated arg = Parameter.getValue("
+                           + propagate + ") = " + argObjects[ i ] );
               break;
             }
             if ( v instanceof Parameter ) {
@@ -164,10 +185,15 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
              !c.isAssignableFrom( argObjects[i].getClass() ) &&
              Utils.isSubclassOf( c, Expression.class ) ) {
           argObjects[i] = new Expression< Object >( argObjects[i] );
+          Debug.outln( "Call.evaluateArgs(): evaluated arg wrapped in expression: "
+                       + argObjects[ i ] );
         }
       }
       assert( argObjects[i] == null || c.isInstance( argObjects[i] ) );
     }
+    if ( wasDebugOn ) Debug.turnOn();
+    Debug.outln( "Call.evaluateArgs(" + args + ") = "
+                 + Utils.toString( argObjects ) );
     return argObjects;
   }
   

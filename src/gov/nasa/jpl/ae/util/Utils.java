@@ -3,11 +3,9 @@
  */
 package gov.nasa.jpl.ae.util;
 
-import generated.Generator;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.solver.Random;
-import gov.nasa.jpl.ae.solver.Variable;
 import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -104,6 +101,12 @@ public class Utils {
                          + candidateArgTypes[ i ] + " matches args[ " + i
                          + " ].getClass()=" + referenceArgTypes[ i ] );
           ++numMatching;
+        } else if ( candidateArgTypes[ i ].isPrimitive() &&
+                    classForPrimitive(candidateArgTypes[ i ]).isAssignableFrom( referenceArgTypes[ i ] ) ) {
+          Debug.outln( "argTypes1[ " + i + " ]="
+                       + candidateArgTypes[ i ] + " matches args[ " + i
+                       + " ].getClass()=" + referenceArgTypes[ i ] );
+          ++numMatching;
         } else if ( Parameter.class.isAssignableFrom( candidateArgTypes[ i ] ) &&
                     Expression.class.isAssignableFrom( referenceArgTypes[ i ] ) ) {
             Debug.outln( "argTypes1[ " + i + " ]="
@@ -134,8 +137,38 @@ public class Utils {
                       + allArgsMatched + " = numMatching(" + numMatching
                       + ") >= candidateArgTypes.length("
                       + candidateArgsLength + "), numDeps=" + numDeps );
-     }
+      }
     }
+  }
+
+  // boolean, byte, char, short, int, long, float, and double
+  public static Class< ? > classForPrimitive( Class< ? > primClass ) {
+    if ( !primClass.isPrimitive() ) return null;
+    if ( primClass == int.class ) {
+      return Integer.class;
+    }
+    if ( primClass == double.class ) {
+      return Double.class;
+    }
+    if ( primClass == boolean.class ) {
+      return Boolean.class;
+    }
+    if ( primClass == long.class ) {
+      return Long.class;
+    }
+    if ( primClass == float.class ) {
+      return Float.class;
+    }
+    if ( primClass == char.class ) {
+      return Character.class;
+    }
+    if ( primClass == short.class ) {
+      return Short.class;
+    }
+    if ( primClass == byte.class ) {
+      return Byte.class;
+    }
+    return null;
   }
 
   public static String toString( Object[] arr ) {
@@ -402,10 +435,68 @@ public class Utils {
     } catch ( NoClassDefFoundError e) {
       // ignore
     }
+    if ( classForName == null ) {
+      classForName = getClassOfClass( className, "", initialize );
+    }
     Debug.outln( "tryClassForName( " + className + " ) = " + classForName );
     return classForName;
   }
 
+  public static Class<?> getClassOfClass( String clsOfClsName,
+                                          String preferredPackageName,
+                                          boolean initialize ) {
+    Class< ? > classOfClass = null;
+    int pos = clsOfClsName.lastIndexOf( '.' );
+    if ( pos >= 0 ) {
+      classOfClass = getClassOfClass( clsOfClsName.substring( 0, pos ),
+                                      clsOfClsName.substring( pos+1 ),
+                                      preferredPackageName, initialize );
+    }
+    return classOfClass;
+  }
+  public static Class<?> getClassOfClass( String className,
+                                          String clsOfClsName,
+                                          String preferredPackageName,
+                                          boolean initialize ) {
+    Class< ? > classOfClass = null;
+    Class< ? > classForName =
+        getClassForName( className, preferredPackageName, initialize );
+    if ( classForName == null ) {
+      classForName =
+          getClassOfClass( className, preferredPackageName, initialize );
+    }
+    if ( classForName != null ) {
+      classOfClass = getClassOfClass( classForName, clsOfClsName );
+    }
+    return classOfClass;
+  }
+  
+  public static Class<?> getClassOfClass( Class<?> cls,
+                                          String clsOfClsName ) {
+    if ( cls != null ) {
+      Class< ? >[] classes = cls.getClasses();
+      if ( classes != null ) {
+        String clsName = cls.getName(); 
+        String clsSimpleName = cls.getSimpleName();
+        String longName = clsName + "." + clsOfClsName;
+        String shorterName = clsSimpleName + "." + clsOfClsName;
+        for ( int i = 0; i < classes.length; ++i ) {
+          String n = classes[ i ].getName();
+          String sn = classes[ i ].getSimpleName();
+          if ( n.equals( longName )
+               || n.equals( shorterName )
+               || sn.equals( clsOfClsName )
+//               || n.endsWith( "." + longName )
+//               || n.endsWith( "." + shorterName )
+               || n.endsWith( "." + clsOfClsName ) ) {
+            return classes[ i ];
+          }
+        }
+      }
+    }
+    return null;
+  }
+  
   public static Class<?> getClassForName( String className,
                                           String preferredPackage,
                                           boolean initialize ) {
@@ -425,10 +516,10 @@ public class Utils {
 //    return getClassFromClasses( getClassesForName( className, initialize ) );
 //  }
   
-  public static List< Class< ? >> getClassesForName( String className,
-                                            boolean initialize ) {
-//                                            ClassLoader loader,
-//                                            Package[] packages) {
+  public static List< Class< ? > > getClassesForName( String className,
+                                                      boolean initialize ) {
+//                                                    ClassLoader loader,
+//                                                    Package[] packages) {
     List< Class< ? > > classList = new ArrayList< Class< ? > >();
     if ( Utils.isNullOrEmpty( className ) ) return null;
 //    ClassLoader loader = Utils.class.getClassLoader();

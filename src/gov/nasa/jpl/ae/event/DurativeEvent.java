@@ -638,34 +638,48 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   @Override
   public void doSnapshotSimulation() {
-    boolean fileWriteFailed = true;
+    boolean didntWriteFile = true;
+
+    // augment file name
     String fileName = this.baseSnapshotFileName;
     if ( fileName != null ) {
-    if ( !snapshotToSameFile ) {
-      fileName = Utils.addTimestampToFilename( fileName );      
+      int pos = fileName.lastIndexOf( '.' );
+      String pkg = getClass().getPackage().getName();
+      if ( pkg != null ) {
+        if ( pos == -1 ) pos = fileName.length();
+        fileName =
+            fileName.substring( 0, pos ) + "." + pkg + fileName.substring( pos );
+      }
+      if ( !snapshotToSameFile ) {
+        fileName = Utils.addTimestampToFilename( fileName );
+      }
+      File file = new File( fileName );
+
+      // write out simulation to file
+      System.out.println( "writing simulaton snapshot to "
+                          + file.getAbsolutePath() );
+      try {
+        System.out.println( "  which is the same as " + file.getCanonicalPath() );
+      } catch ( IOException e1 ) {
+        // ignore
+      }
+      FileOutputStream os;
+      try {
+        os = new FileOutputStream( file );
+        simulate( 1e15, os );
+        didntWriteFile = false;
+        os.close();
+      } catch ( FileNotFoundException e ) {
+        System.err.println( "Writing simulation output to file "
+                            + file.getAbsolutePath() + " failed" );
+        e.printStackTrace();
+      } catch ( IOException e ) {
+        System.err.println( "Trouble closing output file "
+                            + file.getAbsolutePath() );
+        e.printStackTrace();
+      }
     }
-    File file = new File( fileName );
-    System.out.println("writing simulaton snapshot to " + file.getAbsolutePath() );
-    try {
-      System.out.println("  which is the same as " + file.getCanonicalPath() );
-    } catch ( IOException e1 ) {
-      // ignore
-    }
-    FileOutputStream os;
-    try {
-      os = new FileOutputStream( file );
-      simulate( 1e15, os );
-      fileWriteFailed = false;
-      os.close();
-    } catch ( FileNotFoundException e ) {
-      System.err.println( "Writing simulation output to file " + file.getAbsolutePath() + " failed" );
-      e.printStackTrace();
-    } catch ( IOException e ) {
-      System.err.println( "Trouble closing output file " + file.getAbsolutePath() );
-      e.printStackTrace();
-    }
-    }
-    if ( fileWriteFailed ) {
+    if ( didntWriteFile ) {
       simulate( 1e15, System.out );
     }
   }
