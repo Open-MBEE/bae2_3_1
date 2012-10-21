@@ -686,19 +686,19 @@ public class Utils {
   }
   
   public static Class<?>[] getClasses( Object[] objects ) {
-    return ClassUtils.toClass( objects );
-//    Class< ? > argTypes[] = null;
-//    if ( objects != null ) {
-//      argTypes = new Class< ? >[ objects.length ];
-//      for ( int i = 0; i < objects.length; ++i ) {
-//        if ( objects[ i ] == null ) {
-//          argTypes[ i ] = null;
-//        } else {
-//          argTypes[ i ] = objects[ i ].getClass();
-//        }
-//      }
-//    }
-//    return argTypes;
+    //return ClassUtils.toClass( objects );
+    Class< ? > argTypes[] = null;
+    if ( objects != null ) {
+      argTypes = new Class< ? >[ objects.length ];
+      for ( int i = 0; i < objects.length; ++i ) {
+        if ( objects[ i ] == null ) {
+          argTypes[ i ] = null;
+        } else {
+          argTypes[ i ] = objects[ i ].getClass();
+        }
+      }
+    }
+    return argTypes;
   }
 
   /**
@@ -886,6 +886,19 @@ public class Utils {
   // TODO -- feed this through ArgTypeCompare to avoid mismatches
   public static Method getJavaMethodForCommonFunction( String functionName,
                                                        Object[] args ) {
+//    boolean alreadyClass = areClasses( args );
+    Class<?>[] argTypes = null;
+//    if ( alreadyClass ) {
+//      argTypes = new Class<?>[args.length];
+//      boolean ok = toArrayOfType( args, argTypes, Class.class );
+//      assert ok;
+//    } else {
+      argTypes = getClasses(args); 
+//    }
+    return getJavaMethodForCommonFunction( functionName, argTypes );
+  }
+  public static Method getJavaMethodForCommonFunction( String functionName,
+                                                       Class[] argTypes ) {
     // REVIEW -- Could use external Reflections library to get all classes in a
     // package:
     //   Reflections reflections = new Reflections("my.project.prefix");
@@ -901,17 +914,8 @@ public class Utils {
                           String.class,
                           org.apache.commons.lang.ArrayUtils.class,
                           Arrays.class };
-    boolean alreadyClass = areClasses( args );
-    Class<?>[] argTypes = null;
-    if ( alreadyClass ) {
-      argTypes = new Class<?>[args.length];
-      boolean ok = toArrayOfType( args, argTypes, Class.class );
-      assert ok;
-    } else {
-      argTypes = getClasses(args); 
-    }
     for ( Class<?> c : classes ) {
-      Method m = getMethodForArgs( c, functionName, args );
+      Method m = getMethodForArgTypes( c, functionName, argTypes );
       if ( m != null ) return m;
     }
     return null;
@@ -949,16 +953,14 @@ public class Utils {
     Debug.outln( "getMethodForArgs( cls=" + cls.getName() + ", callName="
         + callName + ", args=" + toString( args ) + " )" );
     Class< ? > argTypes[] = null;
-    if ( args != null ) {
-      argTypes = new Class< ? >[ args.length ];
-      for ( int i = 0; i < args.length; ++i ) {
-        if ( args[ i ] == null ) {
-          argTypes[ i ] = null;
-        } else {
-          argTypes[ i ] = args[ i ].getClass();
-        }
-      }
-    }
+//    boolean allClasses = areClasses( args ); 
+//    if ( allClasses ) {
+//      //argTypes = (Class< ? >[])args;
+//      boolean ok = toArrayOfType( args, argTypes, Class.class );
+//      assert ok;
+//    } else {
+      argTypes = getClasses( args );
+//    }
     return getMethodForArgTypes( cls, callName, argTypes );
   }
 
@@ -1084,9 +1086,8 @@ public class Utils {
       Debug.turnOn();
     }
     if ( atc.best != null && !atc.allArgsMatched ) {
-      System.err.println( "method returned (" + atc.best
-                          + ") only matches " + atc.mostMatchingArgs
-                          + " args: " + toString( argTypes ) );
+      Debug.errln( "method returned (" + atc.best + ") only matches "
+                   + atc.mostMatchingArgs + " args: " + toString( argTypes ) );
     } else if ( atc.best == null ) {
       System.err.println( "method " + callName + "(" + toString( argTypes ) + ")"
                           + " not found for " + cls.getSimpleName() );

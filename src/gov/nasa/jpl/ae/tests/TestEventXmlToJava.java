@@ -137,7 +137,8 @@ public class TestEventXmlToJava {
    * @param args
    */
   public static void main( String[] args ) {
-    System.out.println("Started TestEventXmlToJava " + Utils.toString(args));
+    System.out.println("Started TestEventXmlToJava " + Utils.toString( args, false ) + ": starting timer");
+    //gov.nasa.jpl.ae.util.Timer timer = new Timer();
     // Try to find the XML file to read in.
     String xmlFileName = "exampleDRScenario.xml";
     

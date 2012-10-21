@@ -61,16 +61,48 @@ public class Dependency< T >
     expression = new Expression< T >( d.expression, true );
   }
 
-  public void apply() {
-    apply( true );
+  public boolean apply() {
+    return apply( true );
   }
-  public void apply( boolean propagate ) {
+  /**
+   * @param propagate
+   * @return whether the value was set to the evaluated expression
+   */
+  public boolean apply2( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
     Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     T val = expression.evaluate(propagate);
     if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
       parameter.setValue( val, propagate );
+      return true;
     }
+    Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
+    return false;
+  }
+
+  /**
+   * @param propagate
+   * @return whether the value was set to the evaluated expression
+   */
+  public boolean apply( boolean propagate ) {
+    // TODO -- REVIEW -- if ( isStale() ) ??
+    Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
+    T value = expression.evaluate(propagate);
+    // Avoid setting to bad value.  How can we know if it's bad? Is null always bad?
+    if ( value == null
+        && parameter.isSatisfied( false, null )
+        && ( parameter.getDomain() == null ||
+             !parameter.getDomain().contains( null ) ) ) {
+      Debug.outln( "not applying dependency resulting in null value" );
+      return false;
+    }
+    if ( parameter.isStale() || value != parameter.getValueNoPropagate() ) {
+      Debug.outln( "Setting the dependent parameter to the evaluation of expression = " + value );
+      parameter.setValue( value, propagate );
+      return true;
+    }
+    Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
+    return false;
   }
 
   /* (non-Javadoc)
@@ -129,16 +161,23 @@ public class Dependency< T >
     expression.ground(deep, null);
     expression.satisfy(deep, seen);
     if ( expression.isGrounded(deep, null) ) {
-      Debug.outln("Dependency.satisfy() grounded, evaluating expression: " + this );
-      T value = expression.evaluate(true);
-      Debug.outln("Dependency.satisfy() evaluated expression, setting value to " + value + ": " + this );
-      parameter.setValue( value );
-      Debug.outln("Dependency.satisfy() set value: " + this );
-      return ( value != null );
+      boolean applied = apply( true );
+//      Debug.outln("Dependency.satisfy() grounded, evaluating expression: " + this );
+//      T value = expression.evaluate(true);
+//      if ( value == null
+//           && parameter.isSatisfied( false, null )
+//           && ( parameter.getDomain() == null ||
+//                !parameter.getDomain().contains( null ) ) ) {
+//        Debug.outln( "not applying dependency resulting in null value" );
+//        return false;
+//      }
+//      Debug.outln("Dependency.satisfy() evaluated expression, setting value to " + value + ": " + this );
+//      parameter.setValue( value );
+//      Debug.outln("Dependency.satisfy() set value: " + this );
     } else {
       parameter.satisfy(deep, seen);
     }
-    return false;
+    return isSatisfied( false, null );
   }
 
   public ConstraintExpression getConstraintExpression() {
