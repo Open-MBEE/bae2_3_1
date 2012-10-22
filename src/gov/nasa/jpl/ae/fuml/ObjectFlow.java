@@ -6,8 +6,7 @@ package gov.nasa.jpl.ae.fuml;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.Assert;
+import java.util.SortedMap;
 
 import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
@@ -128,6 +127,33 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     breakpoint();
     if ( t == null ) return false;
     return getValue( t ) != null;
+  }
+
+  public int nextTimeHasStuff( Integer t ) {
+    breakpoint();
+    if ( t == null ) {
+      return Timepoint.getHorizonDuration();
+    }
+    Timepoint tp = makeTempTimepoint( t, false );
+    return nextTimeHasStuff( tp );
+  }
+
+  public int nextTimeHasStuff( Timepoint t ) {
+    breakpoint();
+    if ( t == null || t.getValueNoPropagate() == null ) {
+      return Timepoint.getHorizonDuration();
+    }
+    SortedMap< Timepoint, Obj > map = tailMap( t, true );
+    for ( java.util.Map.Entry< Timepoint, Obj > e : map.entrySet() ) {
+      if ( e.getValue() != null ) {
+        t = e.getKey();
+        if ( t == null || t.getValueNoPropagate() == null ) {
+          break;
+        }
+        return t.getValueNoPropagate();
+      }
+    }
+    return Timepoint.getHorizonDuration();
   }
 
   @Override
