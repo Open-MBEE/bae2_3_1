@@ -5,12 +5,12 @@ package gov.nasa.jpl.ae.solver;
 
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * 
@@ -30,6 +30,19 @@ public interface HasConstraints {
     public static Set< Constraint > getConstraints( Object o, 
                                                     boolean deep,
                                                     Set< HasConstraints > seen) {
+      if ( o == null ) return Utils.getEmptySet();
+      if ( !( o instanceof Constraint ) && !( o instanceof HasConstraints ) ) {
+        if ( o instanceof Object[] ) {
+          return getConstraints( (Object[])o, deep, seen );
+        } else if ( o instanceof Map ) {
+          return getConstraints( (Map< ?, ? >)o, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return getConstraints( (Collection< ? >)o, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return getConstraints( (Pair< ?, ? >)o, deep, seen );
+        }
+      }
+
       Set< Constraint > set = new HashSet< Constraint >();
       if ( o instanceof Constraint ) {
         set.add( (Constraint)o );

@@ -239,7 +239,7 @@ public class XmlUtils {
 
   public static boolean validateXML( String xmlFileName, String xsdFileName )
                           throws SAXException, IOException {
-    Debug.outln( "validateXML(" + xmlFileName + ", " + xsdFileName 
+    if ( Debug.isOn() ) Debug.outln( "validateXML(" + xmlFileName + ", " + xsdFileName 
                         + ")" );
     Source schemaFile = new StreamSource( new File( xsdFileName ) );
     Source xmlFile = new StreamSource( new File( xmlFileName ) );

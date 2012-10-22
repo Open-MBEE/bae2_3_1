@@ -85,7 +85,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       PyObject someFunc = interpreter.get( "animatePlot.main" );
       PyObject result = someFunc.__call__();
       String realResult = (String)result.__tojava__( String.class );
-      Debug.outln( realResult );
+      if ( Debug.isOn() ) Debug.outln( realResult );
     }
 
     @Override
@@ -144,9 +144,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     boolean existingEntry = m.contains( p );//( o != null );
     m.add( p );
     if ( existingEntry ) {
-      Debug.outln( "replaced existing entry: " + p );
-//    } else {
-//      Debug.outln( "did not replace entry" );
+      if ( Debug.isOn() ) Debug.outln( "replaced existing entry: " + p );
     }
     return !existingEntry;
   }
@@ -158,7 +156,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   public boolean add( Event e ) {
     
     if ( e != null ){
-      Debug.outln( "Adding event to simulation: " + e.getName() );
+      if ( Debug.isOn() ) Debug.outln( "Adding event to simulation: " + e.getName() );
     } else {
       Assert.fail("Tried to add null event to simulation.");
       return false;
@@ -169,7 +167,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           || e.getStartTime().getValueNoPropagate() == null
           || e.getEndTime() == null || e.getEndTime().getValueNoPropagate() == null );
 //    if ( ungroundedTiming ) {
-//      Debug.errln( "Warning: trying to add ungrounded event to simulation: " + e.getName() );
+//      if ( Debug.isOn() ) Debug.errln( "Warning: trying to add ungrounded event to simulation: " + e.getName() );
 //    }
     Integer startTime = e.getStartTime().getValueOrMin();
     Integer endTime = e.getEndTime().getValueOrMax();
@@ -187,9 +185,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
 
     if ( existingEntry ) {
-      Debug.outln( "Entry already exists!" );
+      if ( Debug.isOn() ) Debug.outln( "Entry already exists!" );
     }
-//    Debug.outln( "Simulation after addition:\n" + this );
+//    if ( Debug.isOn() ) Debug.outln( "Simulation after addition:\n" + this );
     return !existingEntry;
   }
   
@@ -198,7 +196,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Assert.fail("Trying to add null event to simulation.");
       return false;
     }
-    Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
+    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
     boolean existingEntry = false;
     Object lastValue = null;
     boolean first = true;
@@ -248,13 +246,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       //Debug.turnOff();
     }
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
-//    for ( Map.Entry< Integer, Map< Object, Object > > e1 : entrySet() ) {
-//      for ( Map.Entry< Object, Object > e2 : e1.getValue().entrySet() ) {
     for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e1 : entrySet() ) {
       for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
         // Delay between events
-        //Debug.outln("startClock = " + startClock );
+        //if ( Debug.isOn() ) Debug.outln("startClock = " + startClock );
         double nextEventTime = 0.0;
         if (startClock == -1) {
           startClock = System.currentTimeMillis();
@@ -265,10 +261,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           long waitMillis =
               (long)Math.min( (double)Long.MAX_VALUE / 2,
                               ( nextEventTimeScaled - timePassed  ) );
-//          Debug.outln("timePassed = " + timePassed );
-//          Debug.outln("nextEventTime = " + nextEventTime );
-//          Debug.outln("nextEventTimeScaled = " + nextEventTimeScaled );
-//          Debug.outln("waitMillis = " + waitMillis );
+//          if ( Debug.isOn() ) Debug.outln("timePassed = " + timePassed );
+//          if ( Debug.isOn() ) Debug.outln("nextEventTime = " + nextEventTime );
+//          if ( Debug.isOn() ) Debug.outln("nextEventTimeScaled = " + nextEventTimeScaled );
+//          if ( Debug.isOn() ) Debug.outln("waitMillis = " + waitMillis );
           if ( waitMillis > 0 ) {
             try {
               Thread.sleep( waitMillis );
@@ -278,7 +274,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
             }
           }
         }
-//        Debug.outln("current millis = " + System.currentTimeMillis() );
+//        if ( Debug.isOn() ) Debug.outln("current millis = " + System.currentTimeMillis() );
         
         // the event & value(s)
         int t = e1.getKey().intValue();
@@ -339,21 +335,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   protected void getPlotProcessOutput() {
     if ( plotProcess != null ) {
-      Debug.outln( "Plot process stdout" );
+      if ( Debug.isOn() ) Debug.outln( "Plot process stdout" );
       InputStreamReader reader =
           new InputStreamReader( plotProcess.getInputStream() );
       char buf[] = new char[10000];
       try {
         reader.read( buf, 0, 10000 );
-        Debug.outln( new String( buf ) );
+        if ( Debug.isOn() ) Debug.outln( new String( buf ) );
       } catch ( IOException e ) {
         e.printStackTrace();
       }
-      Debug.outln( "Plot process stderr" );
+      if ( Debug.isOn() ) Debug.outln( "Plot process stderr" );
       reader = new InputStreamReader( plotProcess.getInputStream() );
       try {
         reader.read( buf, 0, 10000 );
-        Debug.outln( new String( buf ) );
+        if ( Debug.isOn() ) Debug.outln( new String( buf ) );
       } catch ( IOException e ) {
         e.printStackTrace();
       }
@@ -371,11 +367,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   protected void initiatePlot() {
     //Map< Object, Integer > varIndices = null;
     if ( Utils.isNullOrEmpty( currentPlottableValues ) ) {
-      Debug.outln( "No plottable values." );
+      if ( Debug.isOn() ) Debug.outln( "No plottable values." );
       tryToPlot = false;
       return;
     }
-    Debug.outln( "initiatePlot()" );
+    if ( Debug.isOn() ) Debug.outln( "initiatePlot()" );
     try {
       // Run the python plot program as a system command.
       java.lang.Runtime rt = java.lang.Runtime.getRuntime();
@@ -386,8 +382,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       String curDir = System.getProperty("user.dir");
       Map< String, String > env = System.getenv();
       String pythonPath = env.get( "PYTHONPATH" );
-      Debug.outln("System.getProperty(\"user.dir\") = " + curDir );
-//      //Debug.outln("System.getenv()[PYTHONPATH] = " + pythonPath );
+      if ( Debug.isOn() ) Debug.outln("System.getProperty(\"user.dir\") = " + curDir );
+//      //if ( Debug.isOn() ) Debug.outln("System.getenv()[PYTHONPATH] = " + pythonPath );
 //      //File curPath = new File(curDir);
 //      //Arrays.asList( curPath.listFiles() );
 //      String[] pythonPaths = pythonPath.split( File.pathSeparator );

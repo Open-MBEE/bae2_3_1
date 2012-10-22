@@ -59,7 +59,7 @@ public class EventInvocation implements HasParameters {
   }
 
   public Event invoke() {
-    Debug.outln( "invoke(): " + this );
+    if ( Debug.isOn() ) Debug.outln( "invoke(): " + this );
     Event event = constructEvent();
     event.setName( eventName );
     
@@ -91,7 +91,7 @@ public class EventInvocation implements HasParameters {
         return event;
     }
 
-    Debug.outln("About to call newInstance on constructor=" + constructor + " with arguments=" + Utils.toString(arguments) );
+    if ( Debug.isOn() ) Debug.outln("About to call newInstance on constructor=" + constructor + " with arguments=" + Utils.toString(arguments) );
     try {
       return constructor.newInstance( (Object[])ctorAndArgs.second );
     } catch ( InstantiationException e ) {

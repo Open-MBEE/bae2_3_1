@@ -42,10 +42,23 @@ public interface HasParameters extends LazyUpdate {
     // WARNING! don't call this from o.isStale() -- infinite loop
     public static boolean isStale( Object o, boolean deep,
                                    Set< HasParameters > seen ) {
+      if ( o == null ) return false;
+      if ( !( o instanceof LazyUpdate )
+           && !( o instanceof HasParameters ) ) {
+        if ( o instanceof Object[] ) {
+          return isStale( (Object[])o, deep, seen );
+        } else if ( o instanceof Map ) {
+          return isStale( (Map< ?, ? >)o, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return isStale( (Collection< ? >)o, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return isStale( (Pair< ?, ? >)o, deep, seen );
+        }
+      }
       if ( o instanceof LazyUpdate ) {
         return ((LazyUpdate)o).isStale();  // the potential infinite loop
       }
-      if ( o != null && o instanceof HasParameters ) {
+      if ( o instanceof HasParameters ) {
         //if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
         for ( Parameter< ? > p : ((HasParameters)o).getParameters( deep, seen ) ) {
           if ( p.isStale() ) return true;
@@ -56,8 +69,19 @@ public interface HasParameters extends LazyUpdate {
     
     // WARNING! don't call this from o.setStale() -- infinite loop
     public static void setStale( Object o, boolean staleness ) {
+      if ( o == null ) return;
       if ( o instanceof LazyUpdate ) {
         ((LazyUpdate)o).setStale( staleness );  // the potential infinite loop
+      } else {
+        if ( o instanceof Object[] ) {
+          setStale( (Object[])o, staleness );
+        } else if ( o instanceof Map ) {
+          setStale( (Map< ?, ? >)o, staleness );
+        } else if ( o instanceof Collection ) {
+          setStale( (Collection< ? >)o, staleness );
+        } else if ( o instanceof Pair ) {
+          setStale( (Pair< ?, ? >)o, staleness );
+        }
       }
     }
     
@@ -65,10 +89,21 @@ public interface HasParameters extends LazyUpdate {
     public static boolean hasParameter( Object o, Parameter< ? > p,
                                         boolean deep, Set< HasParameters > seen ) {
       if ( o == p ) return true;
-      if ( o != null && o instanceof HasParameters ) {
+      if ( o == null ) return false;
+      if ( o instanceof HasParameters ) {
         //if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
         if ( ((HasParameters)o).hasParameter( p, deep, seen ) ) {
           return true;
+        }
+      } else {
+        if ( o instanceof Object[] ) {
+          return hasParameter( (Object[])o, p, deep, seen );
+        } else if ( o instanceof Map ) {
+          return hasParameter( (Map< ?, ? >)o, p, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return hasParameter( (Collection< ? >)o, p, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return hasParameter( (Pair< ?, ? >)o, p, deep, seen );
         }
       }
       return false;
@@ -78,14 +113,25 @@ public interface HasParameters extends LazyUpdate {
     public static Set< Parameter< ? > > getParameters( Object o, 
                                                        boolean deep,
                                                        Set< HasParameters > seen) {
+      if ( o == null ) return Utils.getEmptySet();
       Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( o instanceof Parameter ) {
         set.add( (Parameter< ? >)o );
       }
-      if ( o != null && o instanceof HasParameters ) {
+      if ( o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) )
 //          return Utils.getEmptySet();
         set.addAll( ((HasParameters)o).getParameters( deep, seen ) );
+      } else {
+        if ( o instanceof Object[] ) {
+          return getParameters( (Object[])o, deep, seen );
+        } else if ( o instanceof Map ) {
+          return getParameters( (Map< ?, ? >)o, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return getParameters( (Collection< ? >)o, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return getParameters( (Pair< ?, ? >)o, deep, seen );
+        }
       }
       return set;
     }
@@ -94,14 +140,25 @@ public interface HasParameters extends LazyUpdate {
     public static Set< Parameter< ? > > getFreeParameters( Object o, 
                                                            boolean deep,
                                                            Set< HasParameters > seen ) {
+      if ( o == null ) return Utils.getEmptySet();
       Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-      if ( o != null && o instanceof HasParameters ) {
+      if ( o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) )
 //          return Utils.getEmptySet();
         for ( Parameter< ? > p : ( (HasParameters)o ).getParameters( deep, seen ) ) {
           if ( ( (HasParameters)o ).isFreeParameter( p, true, seen ) ) {
             set.add( p );
           }
+        }
+      } else {
+        if ( o instanceof Object[] ) {
+          return getFreeParameters( (Object[])o, deep, seen );
+        } else if ( o instanceof Map ) {
+          return getFreeParameters( (Map< ?, ? >)o, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return getFreeParameters( (Collection< ? >)o, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return getFreeParameters( (Pair< ?, ? >)o, deep, seen );
         }
       }
       return set;
@@ -115,10 +172,21 @@ public interface HasParameters extends LazyUpdate {
         if ( p.getOwner() != null )
           return p.getOwner().isFreeParameter( p, deep, seen );
       }
-      if ( o != null && o instanceof HasParameters ) {
+      if ( o == null ) return false;
+      if ( o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
         if ( ((HasParameters)o).isFreeParameter( p, deep, seen ) ) {
           return true;
+        }
+      } else {
+        if ( o instanceof Object[] ) {
+          return isFreeParameter( (Object[])o, p, deep, seen );
+        } else if ( o instanceof Map ) {
+          return isFreeParameter( (Map< ?, ? >)o, p, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return isFreeParameter( (Collection< ? >)o, p, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return isFreeParameter( (Pair< ?, ? >)o, p, deep, seen );
         }
       }
       return false;
@@ -132,9 +200,20 @@ public interface HasParameters extends LazyUpdate {
                                       Set< HasParameters > seen ) {
       if ( p1 == null ) return false;
       if ( p1 == p2 ) return true;
+      if ( o == null ) return false;
       if ( o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
         return ((HasParameters)o).substitute( p1, p2, deep, seen );
+      } else {
+        if ( o instanceof Object[] ) {
+          return substitute( (Object[])o, p1, p2, deep, seen );
+        } else if ( o instanceof Map ) {
+          return substitute( (Map< ?, ? >)o, p1, p2, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return substitute( (Collection< ? >)o, p1, p2, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return substitute( (Pair< ?, ? >)o, p1, p2, deep, seen );
+        }
       }
       return false;
     }

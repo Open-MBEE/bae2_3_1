@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,9 +24,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
-import org.python.core.util.StringUtil;
 
 /**
  * A set of miscellaneous utility functions.
@@ -90,38 +87,38 @@ public class Utils {
             || ( isVarArgs
                  && ( candidateArgsLength < referenceArgsLength 
                       || candidateArgsLength == 1 ) );
-      Debug.outln( "okNumArgs = " + okNumArgs );
+      if ( Debug.isOn() ) Debug.outln( "okNumArgs = " + okNumArgs );
 //      if ( okNumArgs ) score -= numArgsCost;
       for ( int i = 0; i < Math.min( candidateArgsLength,
                                      referenceArgsLength ); ++i ) {
         if ( referenceArgTypes[ i ] == null ) {
-          Debug.outln( "null arg[ " + i + " ]" );
+          if ( Debug.isOn() ) Debug.outln( "null arg[ " + i + " ]" );
           continue;
         }
         if ( candidateArgTypes[ i ] == null ) {
-          Debug.outln( "null arg for args[ " + i
+          if ( Debug.isOn() ) Debug.outln( "null arg for args[ " + i
               + " ].getClass()=" + referenceArgTypes[ i ] );
           ++numDeps;
         } else if ( candidateArgTypes[ i ].isAssignableFrom( referenceArgTypes[ i ] ) ) {
-            Debug.outln( "argTypes1[ " + i + " ]="
+            if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
                          + candidateArgTypes[ i ] + " matches args[ " + i
                          + " ].getClass()=" + referenceArgTypes[ i ] );
           ++numMatching;
         } else if ( candidateArgTypes[ i ].isPrimitive() &&
                     classForPrimitive(candidateArgTypes[ i ]).isAssignableFrom( referenceArgTypes[ i ] ) ) {
-          Debug.outln( "argTypes1[ " + i + " ]="
+          if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
                        + candidateArgTypes[ i ] + " matches args[ " + i
                        + " ].getClass()=" + referenceArgTypes[ i ] );
           ++numMatching;
         } else if ( Parameter.class.isAssignableFrom( candidateArgTypes[ i ] ) &&
                     Expression.class.isAssignableFrom( referenceArgTypes[ i ] ) ) {
-            Debug.outln( "argTypes1[ " + i + " ]="
+            if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
                          + candidateArgTypes[ i ]
                          + " could be made dependent on args[ " + i
                          + " ].getClass()=" + referenceArgTypes[ i ] );
           ++numDeps;
         } else {
-            Debug.outln( "argTypes1[ " + i + " ]="
+            if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
                          + candidateArgTypes[ i ]
                          + " does not match args[ " + i + " ].getClass()="
                          + referenceArgTypes[ i ] );
@@ -138,7 +135,7 @@ public class Utils {
        mostMatchingArgs = numMatching;
        mostDeps = numDeps;
        allArgsMatched = ( numMatching >= candidateArgsLength );
-         Debug.outln( "new match " + o + ", mostMatchingArgs="
+         if ( Debug.isOn() ) Debug.outln( "new match " + o + ", mostMatchingArgs="
                       + mostMatchingArgs + ",  allArgsMatched = "
                       + allArgsMatched + " = numMatching(" + numMatching
                       + ") >= candidateArgTypes.length("
@@ -293,7 +290,7 @@ public class Utils {
 
   // generic map<X, map<Y, Z> >.put(x, y, z)
   public static <T1 extends Comparable<T1>, T2 extends Comparable<T2>, T3 > T3 put( Map< T1, Map< T2, T3 > > map, T1 t1, T2 t2, T3 t3 ) {
-    if ( Utils.errorOnNull( "Error! Called Utils.put() with null argument!",
+    if ( Debug.errorOnNull( "Error! Called Utils.put() with null argument!",
                             map, t1, t2, t3 ) ) {
       return null;
     }
@@ -307,7 +304,7 @@ public class Utils {
 
   // generic map<X, map<Y, Z> >.get(x, y) --> z
   public static <T1 extends Comparable<T1>, T2 extends Comparable<T2>, T3 > T3 get( Map< T1, Map< T2, T3 > > map, T1 t1, T2 t2 ) {
-    if ( Utils.errorOnNull( "Error! Called Utils.get() with null argument!",
+    if ( Debug.errorOnNull( "Error! Called Utils.get() with null argument!",
                             map, t1, t2 ) ) {
       return null;
     }
@@ -320,7 +317,7 @@ public class Utils {
 
   // generic map< W, map<X, map<Y, Z> >.put(w, x, y, z)
   public static <T1 extends Comparable<T1>, T2 extends Comparable<T2>, T3 extends Comparable<T3>, T4 > T4 put( Map< T1, Map< T2, Map< T3, T4 > > > map, T1 t1, T2 t2, T3 t3, T4 t4 ) {
-    if ( Utils.errorOnNull( "Error! Called Utils.put() with null argument!",
+    if ( Debug.errorOnNull( "Error! Called Utils.put() with null argument!",
                             map, t1, t2, t3, t4 ) ) {
       return null;
     }
@@ -334,7 +331,7 @@ public class Utils {
 
   // generic map< W, map<X, map<Y, Z> >.get(w, x, y) --> z
   public static <T1 extends Comparable<T1>, T2 extends Comparable<T2>, T3 extends Comparable<T3>, T4 > T4 get( Map< T1, Map< T2, Map< T3, T4 > > > map, T1 t1, T2 t2, T3 t3 ) {
-    if ( Utils.errorOnNull( "Error! Called Utils.get() with null argument!",
+    if ( Debug.errorOnNull( "Error! Called Utils.get() with null argument!",
                             map, t1, t2, t3 ) ) {
       return null;
     }
@@ -369,28 +366,6 @@ public class Utils {
     return new Pair< Boolean, Set< T > >( false, seen );
   }
   
-  // Throws and catches an exception if any of the input objects are null.
-  public static boolean errorOnNull( String msg, Object... a ) {
-    return errorOnNull( true, msg, a );
-  }
-  public static boolean errorOnNull( boolean stackTrace, String msg,
-                                     Object... a ) {
-    try {
-      for ( Object o : a ) {
-        if ( o == null ) {
-          throw new Exception();
-        } 
-      }
-    } catch ( Exception e ) {
-      System.err.println( msg );
-      if ( stackTrace ) {
-        e.printStackTrace();
-      }
-      return true;
-    }
-    return false;
-  }
-
   public static < T extends Comparable< T > > int compareCollections( Collection< T > s1,
                                                                       Collection< T > s2 ) {
     Iterator< T > i1 = s1.iterator();
@@ -426,7 +401,7 @@ public class Utils {
   public static Class< ? > tryClassForName( String className, 
                                             boolean initialize,
                                             ClassLoader myLoader ) {
-    Debug.outln( "trying tryClassForName( " + className + " )");
+    if ( Debug.isOn() ) Debug.outln( "trying tryClassForName( " + className + " )");
     Class< ? > classForName = null;
     if ( myLoader == null ) myLoader = loader; 
     if ( myLoader == null ) myLoader = gov.nasa.jpl.ae.event.Expression.class.getClassLoader(); 
@@ -444,7 +419,7 @@ public class Utils {
     if ( classForName == null ) {
       classForName = getClassOfClass( className, "", initialize );
     }
-    Debug.outln( "tryClassForName( " + className + " ) = " + classForName );
+    if ( Debug.isOn() ) Debug.outln( "tryClassForName( " + className + " ) = " + classForName );
     return classForName;
   }
 
@@ -510,7 +485,7 @@ public class Utils {
     if ( !isNullOrEmpty( classList ) ) {
       for ( Class< ? > c : classList ) {
         if ( c.getPackage().getName().equals( preferredPackage ) ) {
-          Debug.errln("Found preferred package! " + preferredPackage );
+          if ( Debug.isOn() ) Debug.errln("Found preferred package! " + preferredPackage );
           return c;
         }
       }
@@ -542,11 +517,11 @@ public class Utils {
 //        }
 //      }
 //    }
-    Debug.outln( "getClassForName( " + className + " )" );
+    if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " )" );
     Class< ? > classForName = tryClassForName( className, initialize );//, loader );
     if ( classForName != null ) classList.add( classForName );
     String strippedClassName = noParameterName( className );
-    Debug.outln( "getClassForName( " + className + " ): strippedClassName = "
+    if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): strippedClassName = "
                  + strippedClassName );
     boolean strippedWorthTrying = false;
     if ( !Utils.isNullOrEmpty( strippedClassName ) ) {
@@ -557,7 +532,7 @@ public class Utils {
       }
     }
     List<String> FQNs = getFullyQualifiedNames( className );//, packages );
-    Debug.outln( "getClassForName( " + className + " ): fully qualified names = "
+    if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): fully qualified names = "
         + FQNs );
     if ( FQNs.isEmpty() && strippedWorthTrying ) {
       FQNs = getFullyQualifiedNames( strippedClassName );//, packages );
@@ -645,7 +620,7 @@ public class Utils {
     Collection<String> packageStrings = getPackageStrings( packages );
 
     List<String> fqns = new ArrayList<String>();
-    Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
+    if ( Debug.isOn() ) Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
                  + " ): packages = " + packageStrings );
     for (String aPackage : packageStrings) {
         try {
@@ -656,7 +631,7 @@ public class Utils {
             // Ignore
         }
     }
-    Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
+    if ( Debug.isOn() ) Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
                  + " ): returning " + fqns );
     return fqns;
   }
@@ -724,7 +699,7 @@ public class Utils {
   
   public static Constructor< ? > getConstructorForArgs( Class< ? > cls,
                                                         Object[] args ) {
-    Debug.outln( "getConstructorForArgs( " + cls.getName() + ", "
+    if ( Debug.isOn() ) Debug.outln( "getConstructorForArgs( " + cls.getName() + ", "
                  + toString( args ) );
     Class< ? > argTypes[] = getClasses( args );
     return getConstructorForArgTypes( cls, argTypes );
@@ -772,7 +747,7 @@ public class Utils {
       getConstructorForArgs( Class< ? > eventClass, Object[] arguments,
                              Object enclosingInstance ) {
     boolean nonStaticInnerClass = Utils.isInnerClass( eventClass );
-    Debug.outln( eventClass.getName() + ": nonStaticInnerClass = " + nonStaticInnerClass );
+    if ( Debug.isOn() ) Debug.outln( eventClass.getName() + ": nonStaticInnerClass = " + nonStaticInnerClass );
     Object newArgs[] = arguments;
     if ( nonStaticInnerClass ) {
       newArgs = new Object[ arguments.length + 1 ];
@@ -829,7 +804,7 @@ public class Utils {
   public static Constructor< ? > getConstructorForArgTypes( Class< ? > cls,
                                                             Class< ? >... argTypes ) {
     if ( argTypes == null ) argTypes = new Class< ? >[] {};
-    Debug.outln( "getConstructorForArgTypes( cls=" + cls.getName()
+    if ( Debug.isOn() ) Debug.outln( "getConstructorForArgTypes( cls=" + cls.getName()
                  + ", argTypes=" + toString( argTypes ) + " )" );
     return getConstructorForArgTypes( cls.getConstructors(), argTypes );
 /*    ArgTypeCompare atc = new ArgTypeCompare( argTypes );
@@ -940,7 +915,7 @@ public class Utils {
                                          String callName,
                                          Object... args ) {
     Class< ? > classForName = getClassForName( className, preferredPackage, false );
-    if ( errorOnNull( "Couldn't find the class " + className + " for method "
+    if ( Debug.errorOnNull( "Couldn't find the class " + className + " for method "
                       + callName + ( args == null ? "" : toString( args ) ),
                       classForName ) ) {
       return null;
@@ -950,7 +925,7 @@ public class Utils {
 
   public static Method getMethodForArgs( Class< ? > cls, String callName,
                                          Object... args ) {
-    Debug.outln( "getMethodForArgs( cls=" + cls.getName() + ", callName="
+    if ( Debug.isOn() ) Debug.outln( "getMethodForArgs( cls=" + cls.getName() + ", callName="
         + callName + ", args=" + toString( args ) + " )" );
     Class< ? > argTypes[] = null;
 //    boolean allClasses = areClasses( args ); 
@@ -986,7 +961,7 @@ public class Utils {
       return null;
     }
     Method m = getMethodForArgTypes( classForName, callName, argTypes );
-    errorOnNull( "getMethodForArgTypes(" + className + "." + callName
+    if ( Debug.isOn() ) Debug.errorOnNull( "getMethodForArgTypes(" + className + "." + callName
                  + toString( argTypes, false ) + "): Could not find method!", m );
     return m;
   }
@@ -1001,7 +976,7 @@ public class Utils {
 //                                             double argMismatchCost,
 //                                             Map< Class< ? >, Map< Class< ? >, Double > > transformCost ) {
     if ( argTypes == null ) argTypes = new Class<?>[] {};
-    Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
+    if ( Debug.isOn() ) Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
                  + callName + ", argTypes=" + toString( argTypes ) + " )" );
 //    Method matchingMethod = null;
 //    boolean gotOkNumArgs = false;
@@ -1012,81 +987,27 @@ public class Utils {
     boolean debugWasOn = Debug.isOn();
     //Debug.turnOff();
     Method[] methods = null;
-    Debug.outln( "calling getMethods() on class " + cls.getName() );
+    if ( Debug.isOn() ) Debug.outln( "calling getMethods() on class " + cls.getName() );
     try {
       methods = cls.getMethods();
     } catch ( Exception e ) {
       System.err.println( "Got exception calling " + cls.getName()
                           + ".getMethod(): " + e.getMessage() );
     }
-    Debug.outln( "--> got methods: " + toString( methods ) );
+    if ( Debug.isOn() ) Debug.outln( "--> got methods: " + toString( methods ) );
     ArgTypeCompare atc = new ArgTypeCompare( argTypes );
     if ( methods != null ) {
-    for ( Method m : methods ) {
-      if ( m.getName().equals( callName ) ) {
-        atc.compare( m, m.getParameterTypes(), m.isVarArgs() );
-/*
-//        double score = numArgsCost + argMismatchCost * argTypes.length;
-        int numMatching = 0;
-        int numDeps = 0;
-        boolean okNumArgs =
-            ( m.getParameterTypes().length == argTypes.length )
-              || ( m.isVarArgs()
-                   && ( m.getParameterTypes().length < argTypes.length 
-                        || m.getParameterTypes().length == 1 ) );
-        Debug.outln( "okNumArgs = " + okNumArgs );
-//        if ( okNumArgs ) score -= numArgsCost;
-        for ( int i = 0; i < Math.min( m.getParameterTypes().length,
-                                       argTypes.length ); ++i ) {
-          if ( argTypes[ i ] == null ) {
-            Debug.outln( "null arg[ " + i + " ]" );
-            continue;
-          }
-          if ( m.getParameterTypes()[ i ].isAssignableFrom( argTypes[ i ] ) ) {
-              Debug.outln( "m.getParameterTypes()[ " + i + " ]="
-                           + m.getParameterTypes()[ i ] + " matches args[ " + i
-                           + " ].getClass()=" + argTypes[ i ] );
-            ++numMatching;
-          } else if ( Parameter.class.isAssignableFrom( m.getParameterTypes()[ i ] ) &&
-                      Expression.class.isAssignableFrom( argTypes[ i ] ) ) {
-              Debug.outln( "m.getParameterTypes()[ " + i + " ]="
-                           + m.getParameterTypes()[ i ]
-                           + " could be made dependent on args[ " + i
-                           + " ].getClass()=" + argTypes[ i ] );
-            ++numDeps;
-          } else {
-              Debug.outln( "m.getParameterTypes()[ " + i + " ]="
-                           + m.getParameterTypes()[ i ]
-                           + " does not match args[ " + i + " ].getClass()="
-                           + argTypes[ i ] );
-          }
+      for ( Method m : methods ) {
+        if ( m.getName().equals( callName ) ) {
+          atc.compare( m, m.getParameterTypes(), m.isVarArgs() );
         }
-*/
-/*        if ( ( matchingMethod == null )
-             || ( !gotOkNumArgs && atc.okNumArgs )
-             || ( ( gotOkNumArgs == atc.okNumArgs )
-                  && ( ( atc.numMatching > mostMatchingArgs )
-                       || ( ( atc.numMatching == mostMatchingArgs ) 
-                            && ( atc.numDeps > mostDeps ) ) ) ) ) {
-          matchingMethod = m;
-          gotOkNumArgs = atc.okNumArgs;
-          mostMatchingArgs = atc.numMatching;
-          mostDeps = atc.numDeps;
-          allArgsMatched = ( atc.numMatching >= m.getParameterTypes().length );
-            Debug.outln( "new match " + m + ", mostMatchingArgs="
-                         + mostMatchingArgs + ",  allArgsMatched = "
-                         + allArgsMatched + " = numMatching(" + atc.numMatching
-                         + ") >= m.getParameterTypes().length("
-                         + m.getParameterTypes().length + "), numDeps=" + atc.numDeps );
-        }
-*/      }
-    }
+      }
     }
     if ( debugWasOn ) {
       Debug.turnOn();
     }
     if ( atc.best != null && !atc.allArgsMatched ) {
-      Debug.errln( "method returned (" + atc.best + ") only matches "
+      if ( Debug.isOn() ) Debug.errln( "method returned (" + atc.best + ") only matches "
                    + atc.mostMatchingArgs + " args: " + toString( argTypes ) );
     } else if ( atc.best == null ) {
       System.err.println( "method " + callName + "(" + toString( argTypes ) + ")"

@@ -135,7 +135,7 @@ public class Customer extends ParameterListenerImpl {
                        + getMaxLoad(timeSecs,includeAnyDrEvent) * ( 1 - minLoadFraction )
                          * ( 0.5 + 0.5 * Math.sin( 2 * Math.PI 
                                                    * ( t / ( 24 * 3600.0 ) - 0.4 ) ) ) );
-    Debug.outln("summerLoadProfile(" + timeSecs + ") = " + kWatts );
+    if ( Debug.isOn() ) Debug.outln("summerLoadProfile(" + timeSecs + ") = " + kWatts );
     return kWatts;
   }
   
@@ -146,7 +146,7 @@ public class Customer extends ParameterListenerImpl {
         summerLoadProfile( timeSecs, true )
             * ( 1 + g * varianceFactor );
 //          * ( 1 + Math.pow( d, 1 / varianceFactor ) );
-    Debug.outln("summerLoad(" + timeSecs + ") = " + kWatts );
+    if ( Debug.isOn() ) Debug.outln("summerLoad(" + timeSecs + ") = " + kWatts );
     return kWatts;
   }
   
@@ -162,7 +162,7 @@ public class Customer extends ParameterListenerImpl {
     kWattsDelta = change ? ( kWattsVariedNext - kWattsPredictedBefore 
                              - kWattsOffNominal * correctionFactor )
                          : 0;
-//    Debug.outln( "summerLoadDelta(timeSecsBefore=" + timeSecsBefore
+//    if ( Debug.isOn() ) Debug.outln( "summerLoadDelta(timeSecsBefore=" + timeSecsBefore
 //                        + ", kWattsBefore=" + kWattsBefore + ", timeSecsAfter="
 //                        + timeSecsNext + "): kWattsPredictedBefore="
 //                        + kWattsPredictedBefore + "; kWattsPredictedNext="
@@ -170,7 +170,7 @@ public class Customer extends ParameterListenerImpl {
 //                        + kWattsVariedNext + "; kWattsOffNominal="
 //                        + kWattsOffNominal + "; change=" + change
 //                        + "; kWattsDelta=" + kWattsDelta );
-    Debug.out( String.format( "summerLoadDelta(timeSecsBefore=%6d, kWattsBefore=%.2f"
+    if ( Debug.isOn() ) Debug.out( String.format( "summerLoadDelta(timeSecsBefore=%6d, kWattsBefore=%.2f"
                            + ", timeSecsAfter=%6d): kWattsPredictedBefore=%.2f"
                            + "; kWattsPredictedNext=%.2f; kWattsVariedNext=%.2f"
                            + "; kWattsOffNominal=%.2f; change=%b"

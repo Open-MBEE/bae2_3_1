@@ -83,6 +83,7 @@ import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Timer;
 import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 
@@ -209,6 +210,11 @@ public class EventXmlToJava {
 
   public EventXmlToJava( String xmlFileName, String pkgName, boolean translate )
     throws ParserConfigurationException, SAXException, IOException {
+    System.out.println( "\nEventXmlToJava(xmlFileName=" + xmlFileName
+                        + ", packageName=" + pkgName + ", translate="
+                        + translate + "): starting stats timer\n" );
+    Timer timer = new Timer();
+    
     this.xmlFileName = xmlFileName;
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
@@ -217,6 +223,10 @@ public class EventXmlToJava {
     if ( translate ) {
       translate();
     }
+    System.out.println( "\nEventXmlToJava(xmlFileName=" + xmlFileName
+                        + ", packageName=" + pkgName + ", translate="
+                        + translate + "): finished\n" + timer + "\n" );
+    
   }
   public EventXmlToJava( String xmlFileName, String pkgName )
       throws ParserConfigurationException, SAXException, IOException {
@@ -229,13 +239,13 @@ public class EventXmlToJava {
   }
   public void init() throws ParserConfigurationException, SAXException, IOException {
 
-    Debug.outln( "random double to test repeatability = "
+    if ( Debug.isOn() ) Debug.outln( "random double to test repeatability = "
                  + Random.global.nextDouble() );
     
     System.out.println("xml file name = " + this.xmlFileName );
     System.out.println("package name = " + this.packageName );
-    Debug.outln("xml file name = " + this.xmlFileName );
-    Debug.outln("package name = " + this.packageName );
+    if ( Debug.isOn() ) Debug.outln("xml file name = " + this.xmlFileName );
+    if ( Debug.isOn() ) Debug.outln("package name = " + this.packageName );
 
     // Translate XML to a DOM Document.
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -246,7 +256,7 @@ public class EventXmlToJava {
     xmlDocDOM = builder.parse( xmlFileName );
 
     if ( !XmlUtils.validateXML( xmlFileName, xmlDocDOM ) ) {
-      Debug.outln( "Warning! XML file "
+      if ( Debug.isOn() ) Debug.outln( "Warning! XML file "
                           + xmlFileName
                           + " does not validate against its schema definition.  "
                           + "Continuing anyway." );
@@ -258,7 +268,7 @@ public class EventXmlToJava {
     // get units
     String timeUnits = XmlUtils.getChildElementText( scenarioNode, "timeUnits" );
     if ( timeUnits == null || timeUnits.isEmpty() ) {
-      Debug.outln( "no units specified; using default" );
+      if ( Debug.isOn() ) Debug.outln( "no units specified; using default" );
     } else {
       Timepoint.setUnits( timeUnits );
     }
@@ -267,7 +277,7 @@ public class EventXmlToJava {
     // get epoch
     String epochString = XmlUtils.getChildElementText( scenarioNode, "epoch" );
     if ( epochString == null || epochString.isEmpty() ) {
-      Debug.outln( "no epoch specified; using default" );
+      if ( Debug.isOn() ) Debug.outln( "no epoch specified; using default" );
     } else {
       Timepoint.setEpoch( epochString );
     }
@@ -276,7 +286,7 @@ public class EventXmlToJava {
     // get horizon duration
     String durationString = XmlUtils.getChildElementText( scenarioNode, "horizon" );
     if ( durationString == null || durationString.isEmpty() ) {
-      Debug.errln( "no duration specified; using default" );
+      if ( Debug.isOn() ) Debug.errln( "no duration specified; using default" );
     } else {
       int secs = XmlUtils.getDurationInSeconds( durationString );
       Timepoint.setHorizonDuration( (int)(secs / Units.conversionFactor( Units.seconds )) );
@@ -339,7 +349,7 @@ public class EventXmlToJava {
     //String lastText = "";
     while ( matcher.find() ) {
       String text = name.substring( pos, matcher.start() );
-      //Debug.outln( "text = name.substring( " + pos + ", "
+      //if ( Debug.isOn() ) Debug.outln( "text = name.substring( " + pos + ", "
       //                    + matcher.start() + " ) = \"" + text + "\"" );
       pos = matcher.start();
 //boolean textNotAllWhitespace = false;
@@ -355,7 +365,7 @@ public class EventXmlToJava {
     }
     // Get any trailing non-words
     sb.append( name.substring( pos ) );
-    Debug.outln("fixName(\"" + name + "\") = \"" + sb.toString() + "\"" );
+    if ( Debug.isOn() ) Debug.outln("fixName(\"" + name + "\") = \"" + sb.toString() + "\"" );
     return sb.toString();
 */  }
   
@@ -377,7 +387,7 @@ public class EventXmlToJava {
     // TODO -- REVIEW -- Do we need to sweep though and get names first before values?
 //    for ( Map.Entry e : classes.entrySet() ) {
 //    }
-    //Debug.outln("fixSimpleName(\"" + name + "\") = \"" + javaName + "\"" );
+    //if ( Debug.isOn() ) Debug.outln("fixSimpleName(\"" + name + "\") = \"" + javaName + "\"" );
     return javaName;
 */  }
 
@@ -395,7 +405,7 @@ public class EventXmlToJava {
 /*    if ( value == null ) return null;
     //String javaValue = nameTranslator.substitute( value, "xml", "java" );
     String javaValue = fixName( value );
-    //Debug.outln("fixName(\"" + value + "\") = \"" + javaValue + "\"" );
+    //if ( Debug.isOn() ) Debug.outln("fixName(\"" + value + "\") = \"" + javaValue + "\"" );
     return javaValue;
 */  }
   
@@ -426,7 +436,7 @@ public class EventXmlToJava {
     if ( className == null ) return null;
     String enclosingClassName = nestedToEnclosingClassNames.get( className ); 
     if ( !Utils.isNullOrEmpty( enclosingClassName ) ) {
-      Debug.outln( "getEnclosingClassName(" + className + ") = "
+      if ( Debug.isOn() ) Debug.outln( "getEnclosingClassName(" + className + ") = "
                    + enclosingClassName );
       return enclosingClassName;
     }
@@ -437,7 +447,7 @@ public class EventXmlToJava {
 //        return true;
 //      }
     }
-    Debug.outln( "getEnclosingClassName(" + className + ") = "
+    if ( Debug.isOn() ) Debug.outln( "getEnclosingClassName(" + className + ") = "
                  + enclosingClassName );
     return enclosingClassName;
 //    if ( className == null ) return null;
@@ -537,8 +547,8 @@ public class EventXmlToJava {
   protected Param lookupMemberByName( String className, String paramName,
                                       boolean lookOutsideXml,
                                       boolean complainIfNotFound ) {
-    if ( Utils.errorOnNull( "Passing null in lookupMemberByName(" + className + ", " + paramName + ")",
-                       className, paramName) ) {
+    if ( Debug.errorOnNull( "Passing null in lookupMemberByName(" + className
+                            + ", " + paramName + ")", className, paramName ) ) {
       return null;
     }
     if ( className.equals( "this" ) ) {
@@ -552,7 +562,7 @@ public class EventXmlToJava {
       classNameWithScope = getClassNameWithScope( className );
       if ( classNameWithScope != null ||
            ( !lookOutsideXml && complainIfNotFound &&
-             !Utils.errorOnNull( false, "Error! Could not find a class definition for " 
+             !Debug.errorOnNull( false, "Error! Could not find a class definition for " 
                                  + className
                                  + " when looking for member " + paramName + ".",
                                  classNameWithScope ) ) ) {
@@ -591,10 +601,10 @@ public class EventXmlToJava {
         }
       }
     }
-    Debug.outln( "lookupMemberByName( className=" + className + ", paramName=" + paramName
+    if ( Debug.isOn() ) Debug.outln( "lookupMemberByName( className=" + className + ", paramName=" + paramName
                  + ") returning " + p );
     if ( p == null && complainIfNotFound ) {
-      Utils.errorOnNull( false, "lookupMemberByName(" + className + ", "
+      Debug.errorOnNull( false, "lookupMemberByName(" + className + ", "
                                 + paramName + "): no parameter found\n  paramTable =\n"
                                 + paramTable + "\n  enclosingClasses =\n"
                                 + nestedToEnclosingClassNames, p );
@@ -638,14 +648,14 @@ public class EventXmlToJava {
   public boolean isInnerClass( String className ) {
     // TODO -- should have a ClassDeclaration stub class to collect this info.
     boolean is = !isClassStatic( className ) && isNested( className );
-    Debug.outln( "isInnerClass( " + className + ") = " + is );
+    if ( Debug.isOn() ) Debug.outln( "isInnerClass( " + className + ") = " + is );
     return is;
   }
 
   public boolean isNested( String className ) {
     String ecn = getEnclosingClassName( className );
     boolean is = !Utils.isNullOrEmpty( ecn );
-    Debug.outln( "isNested( " + className + ") = " + is + ": "
+    if ( Debug.isOn() ) Debug.outln( "isNested( " + className + ") = " + is + ": "
                  + ( is ? ecn : "" ) );
     return is;
   }
@@ -715,7 +725,7 @@ public class EventXmlToJava {
         Node classNode = i.next(); // nList.get( i );
         String className = getClassName( classNode );
         boolean classIsStatic = isNodeOfDeclarationStatic( classNode );
-        Debug.outln( className + " is " + ( classIsStatic ? "" : "not" )
+        if ( Debug.isOn() ) Debug.outln( className + " is " + ( classIsStatic ? "" : "not" )
                      + " static" );
         isStaticMap.put( className, classIsStatic );
         String superClass =
@@ -783,30 +793,6 @@ public class EventXmlToJava {
         i.remove();
       }
     }
-    
-//    // if an inner class, add enclosing class's parameters
-//    nList = XmlUtils.findNodes( doc, "class" );
-//    for ( Node classNode : nList ) {
-//      String className = getClassName( classNode );
-//      Map< String, Param > params = paramTable.get( className );
-//      if ( params == null ) {
-//        params 
-//      }
-//      Node parentNode = classNode.getParentNode();
-//      while ( parentNode != null ) {
-//        if ( parentNode.getLocalName().equals( "class" ) ) {
-//          String parentClassName = getClassName( parentNode );
-//          Map< String, Param > parentParams = paramTable.get( parentClassName );
-//          if ( parentParams != null ) {
-//            for ( Map.Entry e : parentParams.entrySet() ) {
-//              
-//            }
-//          }
-//        }
-//        parentNode = parentNode.getParentNode();
-//      }
-//      boolean isEvent = parentNode.getLocalName().equals( "event" );
-//    }
   }
 
   public boolean isNodeOfDeclarationStatic( Node classNode ) {
@@ -886,7 +872,7 @@ public class EventXmlToJava {
     // "generated."
     // + xmlFileName.substring( 0, xmlFileName.lastIndexOf( '.' ) )
     // .replaceAll( "[^A-Za-z0-9_]+", "_" );
-    Debug.outln("setting package for current compilation unit to " + packageName );
+    if ( Debug.isOn() ) Debug.outln("setting package for current compilation unit to " + packageName );
     currentCompilationUnit.setPackage( new PackageDeclaration( ASTHelper.createNameExpr( packageName ) ) );
   }
 
@@ -1030,41 +1016,19 @@ public class EventXmlToJava {
     // Need to add a statement that will certainly need all of these exceptions;
     // otherwise, we'll get a compile error for trying to catch something that
     // can't be thrown.  Test code commented out below.
-//    try {
-//      Method m = Class.forName( this.getClass().getName() ).getMethod( initMembers.getName(), MethodDeclaration.class );      
-//    } catch ( NoSuchMethodException | SecurityException
-//              | ClassNotFoundException e1 ) {
-//      e1.printStackTrace();
-//    }
     String pkg = packageName + ".";
     if ( pkg.length() == 1 ) {
       pkg = "";
     }
-    // TODO -- REVIEW -- Why are we creating a Method referring to the method
-    // it's in???  I guess this was a test.
-//    addStatements( initMembers.getBody(),
-//                   "java.lang.reflect.Method m = Class.forName( \""
-//                       + pkg + currentClass + "\" ).getMethod( \""
-//                       + initMembers.getName() + "\", (Class<?>[])null );" );
     
     String tryCatchString =
         "try{\n" + ";\n" + "} catch ( Exception e ) {\n"
             + "  // TODO Auto-generated catch block\n"
             + "  e.printStackTrace();\n"
             + "}\n";
-//        "try{\n" + ";\n" + "} catch ( SecurityException e ) {\n"
-//            + "  // TODO Auto-generated catch block\n"
-//            + "  e.printStackTrace();\n"
-//            + "} catch ( NoSuchMethodException e ) {\n"
-//            + "  // TODO Auto-generated catch block\n"
-//            + "  e.printStackTrace();\n"
-//            + "} catch ( ClassNotFoundException e ) {\n"
-//            + "  // TODO Auto-generated catch block\n"
-//            + "  e.printStackTrace();\n"
-//            + "}\n";
 
     List< Statement > stmts = new ArrayList< Statement >();
-    Debug.outln( "trying to parse \"" + stmts + "\"" );
+    if ( Debug.isOn() ) Debug.outln( "trying to parse \"" + stmts + "\"" );
 
     ASTParser parser = new ASTParser( new StringReader( tryCatchString ) );
     try {
@@ -1109,7 +1073,7 @@ public class EventXmlToJava {
     //    new ArrayList< ConstructorDeclaration >();
 
     //Debug.turnOn();
-    Debug.outln( "existing constructors: " + ctors );
+    if ( Debug.isOn() ) Debug.outln( "existing constructors: " + ctors );
     //Debug.turnOff();
     List< Node > invocations = 
         XmlUtils.findNodes( top, "eventToBeExecuted" );
@@ -1122,7 +1086,7 @@ public class EventXmlToJava {
         ConstructorDeclaration ctor =
             new ConstructorDeclaration( ModifierSet.PUBLIC,
                                         Utils.simpleName(eventType) );
-        Debug.outln("ctor ctord as " + ctor.getName() );
+        if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< Param > arguments = new ArrayList< Param >();
         if ( argumentsNode != null ) {
@@ -1138,7 +1102,7 @@ public class EventXmlToJava {
             if ( p.type == null ) {
               Param memberDecl = lookupMemberByName( eventType, p.name,
                                                      true, false );
-              if ( !Utils.errorOnNull( "Error! Can't find member " + p.name
+              if ( !Debug.errorOnNull( "Error! Can't find member " + p.name
                                            + " for event class " + eventType
                                            + "!",
                                        memberDecl ) ) {
@@ -1161,7 +1125,7 @@ public class EventXmlToJava {
         //Debug.turnOn();
         for ( ConstructorDeclaration c : ctors ) {
           if ( equals( c, ctor ) ) {
-            Debug.outln( "constructor already created: " + ctor );
+            if ( Debug.isOn() ) Debug.outln( "constructor already created: " + ctor );
             alreadyCreated = true;
             break;
           }
@@ -1181,9 +1145,9 @@ public class EventXmlToJava {
                                 ConstructorDeclaration c2 ) {
     boolean localDebug = false;
     if ( localDebug ) {
-      Debug.outln( "equals(c1 = " + c1.getName() + ", c2 = " + c2.getName() );
-      Debug.outln( "equals() for c1 = \n" + c1 );
-      Debug.outln( "and c2 = \n" + c2 );
+      if ( Debug.isOn() ) Debug.outln( "equals(c1 = " + c1.getName() + ", c2 = " + c2.getName() );
+      if ( Debug.isOn() ) Debug.outln( "equals() for c1 = \n" + c1 );
+      if ( Debug.isOn() ) Debug.outln( "and c2 = \n" + c2 );
     }
     boolean equals = false;
     List< japa.parser.ast.body.Parameter > params1 = c1.getParameters();
@@ -1198,7 +1162,7 @@ public class EventXmlToJava {
           japa.parser.ast.body.Parameter p2 = params2.get( i );
           if ( !p1.getType().toString().equals( p2.getType().toString()) ) {
             if ( localDebug ) {
-              Debug.outln( "constructors not equal; number " + i
+              if ( Debug.isOn() ) Debug.outln( "constructors not equal; number " + i
                            + " param types do not match: "
                            + p1.getType().toString() + " != "
                            + p2.getType().toString() );
@@ -1209,13 +1173,13 @@ public class EventXmlToJava {
         }
       } else {
         if ( localDebug ) {
-          Debug.outln( "constructors not equal; different numbers of params: "
+          if ( Debug.isOn() ) Debug.outln( "constructors not equal; different numbers of params: "
                        + paramsSize1 + " != " + paramsSize2 );
         }
       }
     } else {
       if ( localDebug ) {
-        Debug.outln( "constructors not equal; different names: "
+        if ( Debug.isOn() ) Debug.outln( "constructors not equal; different names: "
                      + c1.getName() + " != " + c2.getName() );
       }
     }
@@ -1244,7 +1208,7 @@ public class EventXmlToJava {
       stmtList.append( "init" + ctor.getName() + "Elaborations();\n" );
       stmtList.append( "fixTimeDependencies();\n" );
     }
-    Debug.outln( "adding statements to block: " + stmtList.toString() );
+    if ( Debug.isOn() ) Debug.outln( "adding statements to block: " + stmtList.toString() );
     addStatements( block, stmtList.toString() );
     ctor.setBlock( block );
     // ctor.setBlock( createBlock( stmtList.toString() ) );
@@ -1267,7 +1231,7 @@ public class EventXmlToJava {
   }
 
   public static void addStatements( BlockStmt block, String stmts ) {
-    Debug.outln( "trying to parse \"" + stmts + "\"" );
+    if ( Debug.isOn() ) Debug.outln( "trying to parse \"" + stmts + "\"" );
     List< Statement > list = stringToStatementList( stmts );
     addStmts( block, list );
   }
@@ -1317,7 +1281,7 @@ public class EventXmlToJava {
   }
 
   public static List< Statement > stringToStatementList( String s ) {
-    Debug.outln( "trying to parse Java statements \"" + s + "\"" );
+    if ( Debug.isOn() ) Debug.outln( "trying to parse Java statements \"" + s + "\"" );
     ASTParser parser = new ASTParser( new StringReader( s ) );
     List< Statement > stmtList = null;
     try {
@@ -1457,8 +1421,8 @@ public class EventXmlToJava {
     // Get class name.
     currentClass = getClassName( clsNode );
     
-    if ( justClassDeclarations ) Debug.out( "pre-" );
-    Debug.outln( "processing class " + currentClass );
+    if ( justClassDeclarations ) if ( Debug.isOn() ) Debug.out( "pre-" );
+    if ( Debug.isOn() ) Debug.outln( "processing class " + currentClass );
     if ( !isNested ) { 
       if ( justClassDeclarations ) {
         currentCompilationUnit = initClassCompilationUnit( currentClass );
@@ -1659,11 +1623,11 @@ public class EventXmlToJava {
             if ( isNested ) {
               if ( justClassDeclarations ) {
                 nestedToEnclosingClassNames.put( childClassName, parentClassName );
-                Debug.outln( "nestedToEnclosingClassNames.put( "
+                if ( Debug.isOn() ) Debug.outln( "nestedToEnclosingClassNames.put( "
                              + childClassName + ", " + parentClassName + " )" );
               }
             } else {
-              Debug.outln( childClassName + " is not a nested class of "
+              if ( Debug.isOn() ) Debug.outln( childClassName + " is not a nested class of "
                            + parentClassName );
             }
             if ( isEvent ) {
@@ -1817,7 +1781,7 @@ public class EventXmlToJava {
       stmtsString.append( "( " + constructorArgs + " );" );
     }
 
-    Debug.outln( "Trying to parse assignment with ASTParser.BlockStatement(): \""
+    if ( Debug.isOn() ) Debug.outln( "Trying to parse assignment with ASTParser.BlockStatement(): \""
                         + stmtsString.toString() + "\"" );
     ASTParser parser =
         new ASTParser( new StringReader( stmtsString.toString() ) );
@@ -1967,7 +1931,7 @@ public class EventXmlToJava {
       n = classOrInterfaceName;
     }
     n = n + typeParameters;
-    Debug.outln( "getFullyQualifiedName(" + classOrInterfaceName + ", "
+    if ( Debug.isOn() ) Debug.outln( "getFullyQualifiedName(" + classOrInterfaceName + ", "
                  + doTypeParameters + ") = " + n );
     return n;
   }
@@ -2058,7 +2022,7 @@ public class EventXmlToJava {
     if ( expr == null ) return null;
     String className = expr.getClass().getSimpleName();
     // Inefficient string compare.
-    Debug.outln( "starting astToAeExprType(" + className + ":" + expr + ")" );
+    if ( Debug.isOn() ) Debug.outln( "starting astToAeExprType(" + className + ":" + expr + ")" );
     if ( expr.getClass() == ConditionalExpr.class ) {
         ConditionalExpr ce = ( (ConditionalExpr)expr );
 
@@ -2084,7 +2048,7 @@ public class EventXmlToJava {
     } else if ( expr.getClass() == MethodCallExpr.class ) {
       // don't worry about it--special purpose code is called later for this
       result = "null";
-      Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result
+      if ( Debug.isOn() ) Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result
                    + "; ok for MethodCallExpr!" );
       complainIfNotFound = false;
     } else if ( expr.getClass() == NameExpr.class ) {
@@ -2129,7 +2093,7 @@ public class EventXmlToJava {
       }
       if ( result == null ) {
         // REVIEW -- This probably won't work! What case is this?
-        Debug.err( "Can't determine type from FieldAccessExpr: " + expr );
+        if ( Debug.isOn() ) Debug.err( "Can't determine type from FieldAccessExpr: " + expr );
         name = expr.toString();
       }
     } else if ( expr.getClass() == ObjectCreationExpr.class ) {
@@ -2172,8 +2136,8 @@ public class EventXmlToJava {
       }
     }
     if ( complainIfNotFound && Utils.isNullOrEmpty( result ) ) // delete this line -- just for setting breakpoint
-      Utils.errorOnNull( "Error! null type for expression " + expr + "!", result );
-    Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result );
+      Debug.errorOnNull( "Error! null type for expression " + expr + "!", result );
+    if ( Debug.isOn() ) Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result );
     // Nested type cannot be referenced by its binary name.
     if ( result != null ) result = result.replace( '$', '.' );
     return result;
@@ -2248,12 +2212,6 @@ public class EventXmlToJava {
                             wrapInFunction, evaluateCall, !wrapInFunction,
                             propagate );
         }
-//        Param parentParam = 
-//            lookupCurrentClassMember( fieldAccessExpr.getScope().toString(),
-//                                      false, false );
-//        if ( parentParam != null ) {
-//          parentString =
-//        }
         if ( wrapInFunction ) {
           aeString =
               "new FunctionCall(" + parentString + ", Parameter.class, \"getMember\", "
@@ -2635,7 +2593,7 @@ public class EventXmlToJava {
   }
 
   public Expression parseExpression( String exprString ) {
-    Debug.outln( "trying to parse Java expression \"" + exprString + "\"" );
+    if ( Debug.isOn() ) Debug.outln( "trying to parse Java expression \"" + exprString + "\"" );
     ASTParser parser = new ASTParser( new StringReader( exprString ) );
     Expression expr = null;
     try {
@@ -2786,7 +2744,7 @@ public class EventXmlToJava {
     String effectText = fixValue( effectNode.getTextContent() );
 
     // parse the effect text as a MethodCallExpr
-    Debug.outln( "trying to parse effect as Java expression\"" + effectText
+    if ( Debug.isOn() ) Debug.outln( "trying to parse effect as Java expression\"" + effectText
                         + "\"" );
     Expression expr = parseExpression( effectText );
 
@@ -3223,7 +3181,7 @@ public class EventXmlToJava {
 
   public Set< MethodDeclaration > getClassMethodsWithName( String methodName,
                                                            String className ) {
-    if ( Utils.errorOnNull( false,
+    if ( Debug.errorOnNull( false,
                             "Passed null to getClassMethodsWithName( methodName="
                                 + methodName + ", className=" + className + ")",
                             methodName, className ) ) {
@@ -3246,7 +3204,7 @@ public class EventXmlToJava {
       methodSet = getClassMethodsWithName( methodName, getEnclosingClassName( className ) );
     }
     if ( Utils.isNullOrEmpty( methodSet ) && classMethods == null ) {
-      Debug.outln( "getClassMethodsWithName(" + methodName + ", " + className
+      if ( Debug.isOn() ) Debug.outln( "getClassMethodsWithName(" + methodName + ", " + className
                    + ") couldn't find class!\nmethodTable="
                    + methodTable.toString() );
       return methodSet;
@@ -3255,14 +3213,14 @@ public class EventXmlToJava {
       methodSet = classMethods.get( methodName );
     }
     if ( Utils.isNullOrEmpty( methodSet ) ) {
-      Debug.outln( "getClassMethodsWithName(" + methodName + ", " + className
+      if ( Debug.isOn() ) Debug.outln( "getClassMethodsWithName(" + methodName + ", " + className
                    + ") = null\nmethodTable=" + methodTable.toString() );
     }
     return methodSet;
   }
 
   public static MethodDeclaration parseMethodDeclaration( String methodText ) {
-    Debug.outln( "About to parse \"" + methodText + "\"");
+    if ( Debug.isOn() ) Debug.outln( "About to parse \"" + methodText + "\"");
     ASTParser parser = new ASTParser( new StringReader( methodText ) );
     try {
       BodyDeclaration md = parser.ClassOrInterfaceBodyDeclaration( false );
@@ -3278,7 +3236,7 @@ public class EventXmlToJava {
   }
   
   public static ConstructorDeclaration parseConstructorDeclaration( String ctorText ) {
-    Debug.outln( "About to parse \"" + ctorText + "\"");
+    if ( Debug.isOn() ) Debug.outln( "About to parse \"" + ctorText + "\"");
     ASTParser parser = new ASTParser( new StringReader( ctorText ) );
     try {
       BodyDeclaration cd = parser.ClassOrInterfaceBodyDeclaration( false );
@@ -3349,7 +3307,7 @@ public class EventXmlToJava {
    * @param packageName the packageName to set
    */
   public void setPackageName( String packageName ) {
-    Debug.outln( "setting package name to " + packageName );
+    if ( Debug.isOn() ) Debug.outln( "setting package name to " + packageName );
     this.packageName = packageName;
   }
 
@@ -3367,7 +3325,7 @@ public class EventXmlToJava {
       String fileName =
           ( javaPath.trim() + File.separator + e.getKey() + ".java" );
       writeJavaFile( fileName );
-      Debug.outln( "wrote compilation unit to file " + fileName );
+      if ( Debug.isOn() ) Debug.outln( "wrote compilation unit to file " + fileName );
     }
   }
 
@@ -3619,7 +3577,7 @@ public class EventXmlToJava {
         e.printStackTrace();
       }
       if ( mainClass != null ) {
-        Debug.outln( "loaded class: " + mainClass.getName() );
+        if ( Debug.isOn() ) Debug.outln( "loaded class: " + mainClass.getName() );
       }
     }
     return mainClass;
@@ -3676,19 +3634,19 @@ public class EventXmlToJava {
   }
 
   public DurativeEvent generateExecution() {
-    Debug.outln( "generateExecution(): begin()" );
+    if ( Debug.isOn() ) Debug.outln( "generateExecution(): begin()" );
     DurativeEvent event = getMainInstance();
     if ( event == null ) {
-      Debug.errln( "generateExecution(): null main instance! no execution!" );
+      if ( Debug.isOn() ) Debug.errln( "generateExecution(): null main instance! no execution!" );
     } else {
       try {
         event.execute();
       } catch ( Exception e ) {
-        Debug.errln( e.toString() );
+        if ( Debug.isOn() ) Debug.errln( e.toString() );
         e.printStackTrace();
       }
     }
-    Debug.outln( "generateExecution(): end()" );
+    if ( Debug.isOn() ) Debug.outln( "generateExecution(): end()" );
     return event;
   }
   

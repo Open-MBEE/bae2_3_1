@@ -3,8 +3,6 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.util.Debug;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +77,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     if ( maxSize == 0 || ( list != null && list.size() >= maxSize ) ) {
       return false;
     }
+    boolean newList = false;
     if ( list == null ) {
       list = getValue( t.getValue() );
       if ( list == null ) {
@@ -86,10 +85,12 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       } else {
         list = new ArrayList<T>( list );
       }
-      setValue( t, list );
+      newList = true;
+    }
+    if ( list.add( value ) ) {
+      if ( newList ) setValue( t, list );
       changed = true;
     }
-    if ( list.add( value ) ) changed = true;
     return changed;
   }
   

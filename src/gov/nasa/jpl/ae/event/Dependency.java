@@ -3,8 +3,6 @@ package gov.nasa.jpl.ae.event;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
-
 import junit.framework.Assert;
 
 import gov.nasa.jpl.ae.event.Functions.Equals;
@@ -70,13 +68,13 @@ public class Dependency< T >
    */
   public boolean apply2( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
-    Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
+    if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     T val = expression.evaluate(propagate);
     if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
       parameter.setValue( val, propagate );
       return true;
     }
-    Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
+    if ( Debug.isOn() ) Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
     return false;
   }
 
@@ -86,22 +84,22 @@ public class Dependency< T >
    */
   public boolean apply( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
-    Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
+    if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     T value = expression.evaluate(propagate);
     // Avoid setting to bad value.  How can we know if it's bad? Is null always bad?
     if ( value == null
         && parameter.isSatisfied( false, null )
         && ( parameter.getDomain() == null ||
              !parameter.getDomain().contains( null ) ) ) {
-      Debug.outln( "not applying dependency resulting in null value" );
+      if ( Debug.isOn() ) Debug.outln( "not applying dependency resulting in null value" );
       return false;
     }
     if ( parameter.isStale() || value != parameter.getValueNoPropagate() ) {
-      Debug.outln( "Setting the dependent parameter to the evaluation of expression = " + value );
+      if ( Debug.isOn() ) Debug.outln( "Setting the dependent parameter to the evaluation of expression = " + value );
       parameter.setValue( value, propagate );
       return true;
     }
-    Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
+    if ( Debug.isOn() ) Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
     return false;
   }
 
@@ -116,32 +114,32 @@ public class Dependency< T >
     boolean sat;
     if ( constraint != null ) {
       sat = constraint.isSatisfied(deep, seen);
-      Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " );// + this );
+      if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " );// + this );
     } else if ( !parameter.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
-      Debug.outln( "Dependency.isSatisfied(): parameter not grounded: " );// + this );
+      if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter not grounded: " );// + this );
     } else if ( !expression.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
-      Debug.outln( "Dependency.isSatisfied(): expression not grounded: " );// + this );
+      if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not grounded: " );// + this );
     } else if ( !parameter.isSatisfied(deep, null) ) {
       sat = false;
-      Debug.outln( "Dependency.isSatisfied(): parameter not satisfied: " );// + this );
+      if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter not satisfied: " );// + this );
     } else if ( !expression.isSatisfied(deep, null) ) {
       sat = false;
-      Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " );// + this );
+      if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " );// + this );
     } else {
       T value = expression.evaluate(false);
       T pValue = parameter.getValueNoPropagate();
       sat = Parameter.valuesEqual( pValue, value );//pValue == value || ( pValue != null && pValue.equals( value ) );
       if ( !sat ) {
         parameter.setStale( true );
-        Debug.outln( "Dependency.isSatisfied(): parameter value (" + pValue
+        if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter value (" + pValue
                      + ") not equal to evaluated expression (" + value + "): " ); // + this );
       }
     }
-    Debug.outln( "Dependency.isSatisfied() = " + sat + ": " + this );
+    if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied() = " + sat + ": " + this );
     return sat;
   }
 
@@ -157,23 +155,11 @@ public class Dependency< T >
 //    if ( Random.global.nextDouble() < 0.2 ) {
 //      return getConstraintExpression().satisfy( deep, seen );
 //    }
-    Debug.outln("Dependency.satisfy() calling ground: " + this );
+    if ( Debug.isOn() ) Debug.outln("Dependency.satisfy() calling ground: " + this );
     expression.ground(deep, null);
     expression.satisfy(deep, seen);
     if ( expression.isGrounded(deep, null) ) {
       boolean applied = apply( true );
-//      Debug.outln("Dependency.satisfy() grounded, evaluating expression: " + this );
-//      T value = expression.evaluate(true);
-//      if ( value == null
-//           && parameter.isSatisfied( false, null )
-//           && ( parameter.getDomain() == null ||
-//                !parameter.getDomain().contains( null ) ) ) {
-//        Debug.outln( "not applying dependency resulting in null value" );
-//        return false;
-//      }
-//      Debug.outln("Dependency.satisfy() evaluated expression, setting value to " + value + ": " + this );
-//      parameter.setValue( value );
-//      Debug.outln("Dependency.satisfy() set value: " + this );
     } else {
       parameter.satisfy(deep, seen);
     }
@@ -261,12 +247,12 @@ public class Dependency< T >
    */
   @Override
   public < T1 > boolean pickValue( Variable< T1 > variable ) {
-    Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
+    if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
       Object value = variable.getValue( false ); // DON'T CHANGE false
       if ( refresh( this.parameter ) ) {
         if ( !Parameter.valuesEqual( variable.getValue( true ), value ) ) { // DON'T CHANGE true
-          Debug.outln( "Dependency.pickValue(" + variable + ") returning refreshed value" );
+          if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") returning refreshed value" );
           return true;
         }
       }
@@ -280,7 +266,7 @@ public class Dependency< T >
       } else {
         if ( var.pickValue() ) changedSomething = true;
       }
-      Debug.outln( "Dependency.pickValue(" + variable + ") returns "
+      if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") returns "
                    + changedSomething + " for target/sink param" );
       return changedSomething;
     }
@@ -418,7 +404,7 @@ public class Dependency< T >
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.outln( "setStale(" + staleness + ") to " + this );
+    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     parameter.setStale( staleness );
   }
 
@@ -486,12 +472,10 @@ public class Dependency< T >
     return set;
   }
 
-//  /* (non-Javadoc)
-//   * @see gov.nasa.jpl.ae.event.ParameterListener#pickValue(gov.nasa.jpl.ae.event.Parameter)
-//   */
-//  @Override
-//  public boolean pickValue( Parameter< ? > parameter ) {
-//    return pickValue((Variable< ? >) parameter);
-//  }
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    // REVIEW -- nothing to do here, right?  The dependency gets detached from
+    // the ParameterListener that has the dependency.
+  }
 
 }

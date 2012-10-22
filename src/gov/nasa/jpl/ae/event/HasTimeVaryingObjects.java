@@ -1,12 +1,12 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 public interface HasTimeVaryingObjects {
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
@@ -23,11 +23,24 @@ public interface HasTimeVaryingObjects {
     public static Set< TimeVarying< ? > >
         getTimeVaryingObjects( Object o, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
+      if ( o == null ) return Utils.getEmptySet();
+      if ( !( o instanceof TimeVarying )
+           && !( o instanceof HasTimeVaryingObjects ) ) {
+        if ( o instanceof Object[] ) {
+          return getTimeVaryingObjects( (Object[])o, deep, seen );
+        } else if ( o instanceof Map ) {
+          return getTimeVaryingObjects( (Map< ?, ? >)o, deep, seen );
+        } else if ( o instanceof Collection ) {
+          return getTimeVaryingObjects( (Collection< ? >)o, deep, seen );
+        } else if ( o instanceof Pair ) {
+          return getTimeVaryingObjects( (Pair< ?, ? >)o, deep, seen );
+        }
+      }
       Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       if ( o instanceof TimeVarying< ? > ) {
         set.add( (TimeVarying< ? >)o );
       }
-      if ( o != null && o instanceof HasTimeVaryingObjects ) {
+      if ( o instanceof HasTimeVaryingObjects ) {
         // if ( Utils.seen( (HasTimeVaryingObjects)o, deep, seen ) )
         // return Utils.getEmptySet();
         Collection< TimeVarying< ? > > oSet =
@@ -57,7 +70,7 @@ public interface HasTimeVaryingObjects {
                                Set< HasTimeVaryingObjects > seen ) {
       Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       for ( T t : c ) {
-        set.addAll( getTimeVaryingObjects( t, deep, seen ) );
+        set.addAll( getTimeVaryingObjects( t, deep, (Set<HasTimeVaryingObjects>)seen ) );
       }
       return set;
     }

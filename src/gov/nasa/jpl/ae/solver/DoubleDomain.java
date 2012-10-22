@@ -181,7 +181,7 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   
   public static void main( String args[] ) {
     DoubleDomain d = new DoubleDomain();
-    Debug.outln( " new d = " + d );
+    if ( Debug.isOn() ) Debug.outln( " new d = " + d );
     
   }
 

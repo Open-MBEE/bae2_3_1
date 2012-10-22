@@ -89,13 +89,13 @@ public interface Event extends HasConstraints {
   /**
    * @return the constraints
    */
-  public Vector< ConstraintExpression > getConstraintExpressions();
+  public List< ConstraintExpression > getConstraintExpressions();
 
   /**
    * @param constraints
    *          the constraints to set
    */
-  public void setConstraintExpressions( Vector< ConstraintExpression > constraints );
+  public void setConstraintExpressions( List< ConstraintExpression > constraints );
 
   /**
    * @return the dependencies

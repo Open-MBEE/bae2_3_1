@@ -195,12 +195,6 @@ public class ConstructorCall extends Call {
     this.nestedCall = nestedCall;
   }
 
-//  public FunctionCall( Object object, Class<?> cls, String constructorName,
-//                       Class<?> argumentTypesA[], FunctionCall nestedCall ) {
-//    this( object, cls, constructorName, argumentTypesA );
-//    this.nestedCall = nestedCall;
-//  }
-
   /**
    * @param constructorCall
    */
@@ -233,13 +227,6 @@ public class ConstructorCall extends Call {
     return newObject;
   }
   
-//  // Try to match arguments to parameters by evaluating or creating expressions.
-//  protected Object[] evaluateArgs( boolean propagate ) {
-//    Class< ? >[] paramTypes = constructor.getParameterTypes();
-//    return FunctionCall.evaluateArgs( propagate, paramTypes, arguments,
-//                                      constructor.isVarArgs() );
-//  }
-
   @Override
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
@@ -248,63 +235,6 @@ public class ConstructorCall extends Call {
     newObject = null;
     return super.evaluate( propagate );
   }
-
-/*
-  // TODO -- this overlaps a lot with FunctionCall.evaluate()
-  // TODO -- consider an abstract Call class
-  public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
-    // IllegalAccessException, InvocationTargetException {
-    if ( !ground() ) {
-      newObject = null;
-      return null;
-    }
-    if ( !isStale() && newObject != null ) {
-      return newObject;
-    }
-    Object evaluatedArgs[] = evaluateArgs( propagate );
-    try {
-      Debug.outln( "About to invoke constructor from ConstructorCall: " + this );
-      if ( object != null ) {
-        boolean io = object instanceof Parameter;
-        boolean ii1 = constructor.getDeclaringClass().isAssignableFrom( object.getClass() );
-        Debug.outln( object + " instanceof Parameter = " + io );
-        Debug.outln( "constructor.getDeclaringClass()=" + constructor.getDeclaringClass()
-                     + ".isAssignableFrom( " + object.getClass().getName()
-                     + " ) = " + ii1 );
-        if ( io ) {
-          Object v = ( (Parameter< ? >)object ).getValue();
-          boolean ii2 = true;
-          if ( v != null ) {
-            ii2 = constructor.getDeclaringClass().isAssignableFrom( v.getClass() );
-            Debug.outln( "constructor.getDeclaringClass()=" + constructor.getDeclaringClass()
-                         + ".isAssignableFrom( " + v.getClass() + " ) = " + ii2 );
-          }
-          if ( !ii1 && ii2 ) {
-            object = v;
-          }
-        }
-      }
-      newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
-    } catch ( IllegalAccessException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( IllegalArgumentException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( InvocationTargetException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( InstantiationException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    if ( newObject != null && nestedCall != null && nestedCall.getValue() != null ) {
-      nestedCall.getValue().object = newObject;
-      newObject = nestedCall.getValue().evaluate( propagate );
-    }
-    return newObject;
-  }
-*/
   
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,

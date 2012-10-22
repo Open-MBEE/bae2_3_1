@@ -80,4 +80,65 @@ public class Debug {
   public static boolean isOn() {
     return on;
   }
+
+  /**
+   * Throws and catches an exception and prints a supplied message and stack
+   * trace to stderr if any of the input objects are null.
+   * 
+   * @param msg
+   * @param maybeNullObjects
+   *          variable number of Objects to check if null
+   * @return
+   */
+  public static boolean errorOnNull( String msg, Object... maybeNullObjects ) {
+    return errorOnNull( true, msg, maybeNullObjects );
+  }
+
+  /**
+   * Throws and catches an exception if any of the input objects are null. It
+   * prints a supplied message and, optionally, a stack trace to stderr.
+   * 
+   * @param msg
+   * @param maybeNullObjects
+   *          variable number of Objects to check if null
+   * @return
+   */
+  public static boolean errorOnNull( boolean stackTrace, String msg,
+                                     Object... maybeNullObjects ) {
+    try {
+      if ( maybeNullObjects == null ) throw new Exception();
+      for ( Object o : maybeNullObjects ) {
+        if ( o == null ) {
+          throw new Exception();
+        } 
+      }
+    } catch ( Exception e ) {
+      System.err.println( msg );
+      if ( stackTrace ) {
+        e.printStackTrace();
+        if ( Debug.isOn() ) Debug.err( "" ); // good place for a breakpoint
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Writes to stderr and throws and catches an exception printing a stack trace.
+   * 
+   * @param msg
+   */
+  public static void error( String msg ) {
+    error( true, msg );
+  }
+
+  /**
+   * Writes to stderr and throws and catches an exception, optionally printing a
+   * stack trace.
+   * 
+   * @param msg
+   */
+  public static void error( boolean stackTrace, String msg ) {
+    errorOnNull( stackTrace, msg, (Object[])null );
+  }
 }

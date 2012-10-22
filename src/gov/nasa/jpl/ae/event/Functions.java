@@ -171,7 +171,7 @@ public class Functions {
         e.printStackTrace();
       }
     }
-    Debug.outln( r1 + " + " + r2 + " = " + result );
+    if ( Debug.isOn() ) Debug.outln( r1 + " + " + r2 + " = " + result );
     return result;
   }
   
@@ -211,7 +211,7 @@ public class Functions {
         e.printStackTrace();
       }
     }
-    Debug.outln( r1 + " - " + r2 + " = " + result );
+    if ( Debug.isOn() ) Debug.outln( r1 + " - " + r2 + " = " + result );
     return result;
   }
 
@@ -230,7 +230,7 @@ public class Functions {
     } else if ( r.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       result = ((Integer)r) * -1;
     }
-    Debug.outln( "-" + o + " = " + result );
+    if ( Debug.isOn() ) Debug.outln( "-" + o + " = " + result );
     return result;
   }
 
@@ -269,16 +269,16 @@ public class Functions {
         }
       }
       if ( otherArg != null && found ) {
-        Debug.outln( "suggesting value " + otherArg.getValue() + " to make "
+        if ( Debug.isOn() ) Debug.outln( "suggesting value " + otherArg.getValue() + " to make "
                      + getClass().getSimpleName() + " true" );
         return otherArg.getValue();
       }
       if ( newValue == null ) {
-        Debug.outln( "suggesting same value " + variable.getValue() + " for "
+        if ( Debug.isOn() ) Debug.outln( "suggesting same value " + variable.getValue() + " for "
             + getClass().getSimpleName() + " true" );
         return variable.getValue();
       }
-      Debug.outln( "suggesting value " + newValue + " for "
+      if ( Debug.isOn() ) Debug.outln( "suggesting value " + newValue + " for "
                    + getClass().getSimpleName() + " true" );
       return newValue;
     }
@@ -457,7 +457,7 @@ public class Functions {
     if ( r1 == r2 ) return false;
     if ( r1 == null || r2 == null ) return (r2 != null);
     boolean b = r1.compareTo( r2 ) < 0;
-    Debug.outln( o1 + " < " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " < " + o2 + " = " + b );
     return b;
   }
 
@@ -476,7 +476,7 @@ public class Functions {
     if ( r1 == r2 ) return true;
     if ( r1 == null || r2 == null ) return (r1 == null);
     boolean b = r1.compareTo( r2 ) <= 0;
-    Debug.outln( o1 + " <= " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " <= " + o2 + " = " + b );
     return b;
   }
 
@@ -495,7 +495,7 @@ public class Functions {
     if ( r1 == r2 ) return false;
     if ( r1 == null || r2 == null ) return (r1 != null);
     boolean b = r1.compareTo( r2 ) > 0;
-    Debug.outln( o1 + " > " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " > " + o2 + " = " + b );
     return b;
   }
 
@@ -514,7 +514,7 @@ public class Functions {
     if ( r1 == r2 ) return true;
     if ( r1 == null || r2 == null ) return (r2 == null);
     boolean b = r1.compareTo( r2 ) >= 0;
-    Debug.outln( o1 + " >= " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " >= " + o2 + " = " + b );
     return b;
   }
 
@@ -538,7 +538,7 @@ public class Functions {
     } else {
       b = r1.equals( r2 );
     }
-    Debug.outln( o1 + " == " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " == " + o2 + " = " + b );
     return b;
   }
   public static < T > Boolean
@@ -555,7 +555,7 @@ public class Functions {
 //    } else {
 //      b = !r1.equals( r2 );
 //    }
-    Debug.outln( o1 + " != " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " != " + o2 + " = " + b );
     return b;
   }
 
@@ -572,7 +572,7 @@ public class Functions {
     Boolean r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     boolean b = r1 && r2;
-    Debug.outln( o1 + " && " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " && " + o2 + " = " + b );
     return b;
   }
 
@@ -587,7 +587,7 @@ public class Functions {
     Boolean r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     boolean b = r1 || r2;
-    Debug.outln( o1 + " || " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " || " + o2 + " = " + b );
     return b;
   }
 
@@ -603,7 +603,7 @@ public class Functions {
     Boolean r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     boolean b = ( r1 ^ r2 );
-    Debug.outln( o1 + " ^ " + o2 + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( o1 + " ^ " + o2 + " = " + b );
     return b;
   }
 
@@ -617,7 +617,7 @@ public class Functions {
     Boolean r = o.evaluate( false );
     if ( r == null ) return null;
     boolean b = !r;
-    Debug.outln( "!" + o + " = " + b );
+    if ( Debug.isOn() ) Debug.outln( "!" + o + " = " + b );
     return b;
   }
 
@@ -679,7 +679,7 @@ public class Functions {
             otherValue = ( (Variable< ? >)otherValue ).getValue( propagate );
           }
         }
-        Debug.outln( "suggesting other arg value " + otherValue + " to make "
+        if ( Debug.isOn() ) Debug.outln( "suggesting other arg value " + otherValue + " to make "
                      + f.getClass().getSimpleName() + " true" );
         return (T1)otherValue;
       }
@@ -703,7 +703,7 @@ public class Functions {
           if ( newValue == null ) {
             newValue = v;
           } else if ( otherVariable != null && otherVariable.getDomain() == null || otherVariable.getDomain().contains( v ) ) {
-            Debug.outln( "suggesting value " + v + " to try make "
+            if ( Debug.isOn() ) Debug.outln( "suggesting value " + v + " to try make "
                          + f.getClass().getSimpleName() + " true" );
             return v;
           }
@@ -714,11 +714,11 @@ public class Functions {
       value = variable.getValue( propagate );
     }
     if ( newValue == null ) {
-      Debug.outln( "suggesting same value " + value + " for "
+      if ( Debug.isOn() ) Debug.outln( "suggesting same value " + value + " for "
           + f.getClass().getSimpleName() + " true" );
       return (T1)value;
     }
-    Debug.outln( "suggesting value " + newValue + " for "
+    if ( Debug.isOn() ) Debug.outln( "suggesting value " + newValue + " for "
         + f.getClass().getSimpleName() + " true" );
     return newValue;
   }

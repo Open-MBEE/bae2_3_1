@@ -45,7 +45,7 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
     if ( isNull ) return true;
     Boolean r = c.evaluate( true );
     if (r == null) return false;
-    Debug.outln( "isConditionSatisfied() = " + r  + " for " + this.getEventInvocations() );
+    if ( Debug.isOn() ) Debug.outln( "isConditionSatisfied() = " + r  + " for " + this.getEventInvocations() );
     return r;//( condition == null || condition.evaluate(true) );
   }
   
@@ -53,7 +53,7 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
   public boolean attemptElaboration( Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan ) {
     
-    Debug.outln( "attemptElaboration(): " + this );
+    if ( Debug.isOn() ) Debug.outln( "attemptElaboration(): " + this );
     // Find out if the rule is satisfied and elaborated.
     boolean conditionSatisfied = isConditionSatisfied();
     boolean elaborated = !elaboratedEvents.isEmpty();

@@ -168,44 +168,20 @@ public abstract class AbstractRangeDomain< T >
 
   
   public abstract T getTypeMaxValue();
-//  {
-//    //Debug.outln("abstract max = " + typeMaxValue );
-//    Assert.fail("Need to override getTypeMaxValue in subclass of AbstractRangeDomain");
-//    return null;//typeMaxValue;
-//  }
-////  public static synchronized void setTypeMaxValue( Object max ) {
-////    typeMaxValue = max;
-////  }
 
   public abstract T getTypeMinValue();
-//  public static synchronized Object getTypeMinValue() {
-//    Assert.fail("Need to override getTypeMaxValue in subclass of AbstractRangeDomain");
-//    return null;
-//    //return typeMinValue;
-//  }
-////  public static synchronized void setTypeMinValue( Object min ) {
-////    typeMinValue = min;
-////  }
   
   /**
    * @return the domain
    */
   @Override
   public abstract RangeDomain<T> getDefaultDomain();
-//  {
-//    return defaultDomain;
-//  }
 
   /**
    * @param domain the domain to set
    */
   @Override
   public abstract void setDefaultDomain( Domain< T > domain );
-//  {
-//    AbstractRangeDomain.defaultDomain = domain;
-//  }
-
-
 
   
   @Override

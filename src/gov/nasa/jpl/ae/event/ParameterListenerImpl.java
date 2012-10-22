@@ -5,18 +5,15 @@ package gov.nasa.jpl.ae.event;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Formatter;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.Vector;
 import junit.framework.Assert;
 
-import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
@@ -45,7 +42,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
   // TODO -- features for variables below not yet implemented
-  protected boolean snapshotSimulationDuringSolve = true;
+  protected boolean snapshotSimulationDuringSolve = false;
   protected boolean snapshotToSameFile = true;
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
@@ -60,7 +57,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   protected String name = null;
   protected List< Parameter< ? > > parameters =
       new ArrayList< Parameter< ? > >();
-  protected Vector< ConstraintExpression > constraintExpressions = new Vector< ConstraintExpression >();
+  protected List< ConstraintExpression > constraintExpressions =
+      new ArrayList< ConstraintExpression >();
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected ArrayList< Dependency< ? > > dependencies =
       new ArrayList< Dependency< ? > >();
@@ -122,15 +120,6 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     s = HasParameters.Helper.substitute( dependencies, p1, p2,
                                          deep, seen );
     subbed = subbed || s;
-//    for ( ConstraintExpression c : constraintExpressions ) {
-//      boolean s = c.substitute( p1, p2, deep, seen );
-//      subbed = subbed || s;
-//    }
-//    for ( Dependency< ? > d : dependencies ) {
-//      if ( d instanceof HasParameters ) {
-//        ( (HasParameters)d ).substitute( p1, p2, deep, seen );
-//      }
-//    }
     return subbed;
   }
 
@@ -306,14 +295,14 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return satisfied;
   }
 
-  public Vector< ConstraintExpression > getUnsatisfiedConstraints() {
-    Vector< ConstraintExpression > v = new Vector< ConstraintExpression >();
+  public List< ConstraintExpression > getUnsatisfiedConstraints() {
+    List< ConstraintExpression > list = new ArrayList< ConstraintExpression >();
     for ( ConstraintExpression c : constraintExpressions ) {
       if ( !c.isSatisfied(false, null) ) {
-        v.add( c );
+        list.add( c );
       }
     }
-    return v;
+    return list;
   }
 
   // TODO -- This is not finished. Need to get deep dependents.
@@ -414,7 +403,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   @Override
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     for ( Constraint c : getConstraints( true, null ) ) { // REVIEW -- why is true passed in?
-      Debug.outln( "ParameterListenerImpl.isSatisfied(): checking " + c );
+      if ( Debug.isOn() ) Debug.outln( "ParameterListenerImpl.isSatisfied(): checking " + c );
       if ( !c.isSatisfied(deep, seen) ) {
         return false;
       }
@@ -443,12 +432,16 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
             && ( !usingLoopLimit || numLoops < numIterations ) ) {
       if ( usingTimeLimit ) {
-        Debug.outln( this.getClass().getName() + " satisfy loop with "
-            + curTimeLeft + " milliseconds left" );
+        if ( Debug.isOn() || this.amTopEventToSimulate ) {
+          Debug.outln( this.getClass().getName() + " satisfy loop with "
+                       + curTimeLeft + " milliseconds left" );
+        }
       }
       if ( usingLoopLimit ) {
-        Debug.outln( this.getClass().getName() + " satisfy loop with "
-            + (numIterations-numLoops) + " tries left" );
+        if ( Debug.isOn() || this.amTopEventToSimulate ) {
+          System.out.println( this.getClass().getName() + " satisfy loop round "
+              + (numLoops+1) + " out of " + numIterations );
+        }
       }
       satisfied = tryToSatisfy(deep, null);
       if ( snapshotSimulationDuringSolve  && this.amTopEventToSimulate ) {
@@ -466,16 +459,29 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   }
   protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
     ground(deep, null);
-    Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
+    if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
     
     Collection< Constraint > allConstraints = getConstraints( deep, null );
-    Debug.outln( this.getClass().getName() + " - " + getName() + ".tryToSatisfy() calling solve() with " + allConstraints.size() + " constraints" );
+    if ( Debug.isOn() || amTopEventToSimulate ) {
+      System.out.println( this.getClass().getName() + " - " + getName()
+                          + ".tryToSatisfy() calling solve() with "
+                          + allConstraints.size() + " constraints" );
+    }
     // REVIEW -- why not call satisfy() here and solve elsewhere??
     boolean satisfied = solver.solve( allConstraints );
-    
+    if ( Debug.isOn() || amTopEventToSimulate ) {
+      System.out.println( this.getClass().getName() + " - " + getName()
+                          + ".tryToSatisfy() called solve(): failed to resolve "
+                          + +solver.getUnsatisfiedConstraints().size()
+                          + " constraints" );
+    }
+
     satisfied = isSatisfied(deep, null);
-    Debug.outln( this.getClass().getName() + " - " + getName()
-                 + ".tryToSatisfy() called solve(): satisfied = " + satisfied );
+    if ( Debug.isOn() || amTopEventToSimulate ) {
+      System.out.println( this.getClass().getName() + " - " + getName()
+                          + ".tryToSatisfy() called solve(): satisfied = "
+                          + satisfied );
+    }
     return satisfied;
   }
 
@@ -499,7 +505,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     }
     seen = pair.second;
     Set< Constraint > set = new HashSet< Constraint >();
-    set.addAll( HasConstraints.Helper.getConstraints( getParameters( deep, null ), deep, seen ) );
+    set.addAll( HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
     set.addAll( HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
     set.addAll( HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
 //    for ( Parameter< ? > p : getParameters( false, null ) ) {
@@ -524,19 +530,9 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
-    // Rebuilding the set in case parameter values change. 
-    for ( Parameter< ? > p : getParameters( true, null ) ) {
-      Object value = p.getValueNoPropagate();
-      if ( value != null ) {
-        if ( value instanceof TimeVarying ) {
-          s.add( (TimeVarying< ? >)value );
-        }
-        if ( deep && value instanceof HasTimeVaryingObjects ) {
-          s.addAll( ( (HasTimeVaryingObjects)value ).getTimeVaryingObjects( deep,
-                                                                            seen ) );
-        }
-      }
-    }
+    s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( true,
+                                                                                 null ),
+                                                                  deep, seen ) );
     return s;
   }
 
@@ -562,11 +558,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     this.solver = solver;
   }
 
-  public Vector< ConstraintExpression > getConstraintExpressions() {
+  public List< ConstraintExpression > getConstraintExpressions() {
     return constraintExpressions;
   }
 
-  public void setConstraintExpressions( Vector< ConstraintExpression > constraints ) {
+  public void setConstraintExpressions( List< ConstraintExpression > constraints ) {
     this.constraintExpressions = constraints;
   }
 
@@ -631,12 +627,54 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     this.name = newName;
   }
   
-  // Try to remove others' references to this, possibly because it is being
-  // deleted.
+  /**
+   * Try to remove others' references to this, possibly because it is being
+   * deleted.
+   */
   public void detach() {
     for ( Parameter< ? > p : getParameters( false, null ) ) {
+      if ( p.getOwner() != null ) {
+        p.getOwner().detach( p );
+      }
       if ( p.getOwner() == this ) {
         p.setOwner( null );
+      }
+    }
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#detach(gov.nasa.jpl.ae.event.Parameter)
+   */
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    // Remove local dependencies referencing the parameter.
+    ArrayList< Dependency< ? > > dependenciesCopy =
+        new ArrayList< Dependency< ? > >( getDependencies() );
+    Collections.reverse( dependenciesCopy );
+    int i = dependenciesCopy.size() - 1;
+    for ( Dependency<?> d : dependenciesCopy ) {
+      boolean hasParam = d.hasParameter( parameter, false, null );
+      d.detach( parameter );
+      if ( hasParam ) {
+        getDependencies().remove( i );
+      }
+      --i;
+    }
+    // Detach from constraints.
+    ArrayList< ConstraintExpression > constraints =
+        new ArrayList< ConstraintExpression >( getConstraintExpressions() );
+    Collections.reverse( constraints );
+    i = constraints.size() - 1;
+    for ( ConstraintExpression c : constraints ) {
+      if ( c.hasParameter( parameter, false, null ) ) {
+        getConstraintExpressions().remove( i );
+      }
+      --i;
+    }
+    // Detach from timelines.
+    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+      if ( tv instanceof ParameterListener ) {
+        ((ParameterListener)tv).detach( parameter );
       }
     }
   }

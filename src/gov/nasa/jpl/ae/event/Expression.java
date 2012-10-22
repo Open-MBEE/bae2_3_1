@@ -366,7 +366,7 @@ public class Expression< ResultType >
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.outln( "setStale(" + staleness + ") to " + this );
+    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     // TODO -- REVIEW -- Do nothing?
   }
 

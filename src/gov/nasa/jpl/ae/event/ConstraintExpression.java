@@ -71,7 +71,7 @@ public class ConstraintExpression extends Expression< Boolean >
     if ( sat ) {
       sat = HasParameters.Helper.isSatisfied( this, true, null );
     }
-    Debug.outln( "ConstraintExpression.isSatisfied() = " + sat + ": " + this );
+    if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.isSatisfied() = " + sat + ": " + this );
     return sat;
   }
 
@@ -85,7 +85,7 @@ public class ConstraintExpression extends Expression< Boolean >
     //boolean wasDebugOn = Debug.isOn();
     boolean satisfied = true;
     //Debug.turnOn();
-    Debug.outln( "ConstraintExpression.satisfy() for " + this );
+    if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied(deep, seen) ) return true;
     HasParameters.Helper.satisfy( this, true, null );
     if ( !isSatisfied(deep, seen) ) {
@@ -188,7 +188,7 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.outln( "setStale(" + staleness + ") to " + this );
+    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     ParameterConstraint.Helper.setStale( this, staleness );
   }
   

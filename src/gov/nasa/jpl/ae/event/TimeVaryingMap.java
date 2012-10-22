@@ -148,6 +148,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     Timepoint t = new Timepoint(null, 0, this);
     //System.out.println(name + " put(" + t + ", " + defaultValue + ")" );
     put( t, defaultValue );
+    if ( Debug.isOn() ) isConsistent();
   }
 
   @SuppressWarnings( "unchecked" )
@@ -174,6 +175,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+    if ( Debug.isOn() ) isConsistent();
   }
 
   protected void breakpoint() {}
@@ -212,19 +214,18 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
     breakpoint();
     if ( parameter == null ) return;
-    for ( TimeValue e : floatingEffects ) {
-      if ( e.hasParameter( parameter, true, null ) ) {
-        put( e.first, e.second );
-        //e.applyTo( this );
-        floatingEffects.remove( e );
-      }
+    if ( parameter instanceof Timepoint ) {
+      unfloatEffects( (Timepoint)parameter );
     }
   }
 
   protected void floatEffects( Timepoint t ) {
     breakpoint();
     if ( t == null ) return;
+    assert t.getValueNoPropagate() != null;
+    if ( !containsKey( t ) ) return;
     T value = get( t );
+    if ( Debug.isOn() ) Debug.out( getName() + ": floating effect, (" + t + ", " + value + ")" );
     floatingEffects.add( new TimeValue( t, value ) );
 //    if ( effects != null ) {
 //      if ( effects.second != null ) {
@@ -244,17 +245,24 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 //      }
 //    }
     remove( t );
+    if ( Debug.isOn() ) isConsistent();
   }
 
   protected void unfloatEffects( Timepoint t ) {
     breakpoint();
     if ( t == null ) return;
-    for ( TimeValue e : floatingEffects ) {
-      if ( e.first.compareTo( t ) == 0 ) {
+    if ( t.getValueNoPropagate() == null ) return;
+    ArrayList<TimeValue> copy = new ArrayList<TimeValue>( floatingEffects );
+    for ( TimeValue e : copy ) {
+      if ( e.first.compareTo( t ) == 0 ) { // REVIEW -- Do we need to use
+                                           // compareTo instead of equals
+                                           // elsewhere?
         put( e.first, e.second );
+        if ( Debug.isOn() ) Debug.out( getName() + ": unfloated effect, " + e );
       }
       floatingEffects.remove( e );
     }
+    if ( Debug.isOn() ) isConsistent();
 //    for ( EffectInstance effectInstance : floatingEffects ) {
 //      assert effectInstance.startTime != null;
 //      if ( effectInstance.startTime.compareTo( t ) == 0 ) {
@@ -267,8 +275,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   @Override
   public void handleDomainChangeEvent( Parameter< ? > parameter ) {
-    // TODO Auto-generated method stub
-    Assert.assertTrue( "Not yet implemented!", false );
+    if ( parameter instanceof Timepoint ) {
+      unfloatEffects( (Timepoint)parameter );
+    }
   }
 
   @Override
@@ -337,9 +346,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
                   Set< HasParameters > seen ) {
     breakpoint();
     if ( HasParameters.Helper.substitute( this, p1, p2, deep, seen ) ) {
+      if ( Debug.isOn() ) isConsistent();
       return true;
     }
     if ( HasParameters.Helper.substitute( floatingEffects, p1, p2, deep, seen ) ) {
+      if ( Debug.isOn() ) isConsistent();
       return true;
     }
     return false;
@@ -360,7 +371,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    */
   @Override
   public void setStale( boolean staleness ) {
-    Debug.outln( "setStale(" + staleness + ") to " + this );
+    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     Assert.assertTrue( "This method is not supported!", false );
   }
 
@@ -370,10 +381,15 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
     breakpoint();
+    if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + ")" );
     if ( changedParameter == null ) return;
     if ( containsKey( changedParameter ) ) {
+      if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + "): does contain" );
       floatEffects( (Timepoint)changedParameter );
+    } else {
+      if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + "): does not contain" );
     }
+    if ( Debug.isOn() ) isConsistent();
     // TODO -- REVIEW -- should we float EffectInstances that have the parameter
     // and set a stale flag in EffeectInstances?
   }
@@ -397,6 +413,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public T getValue( Timepoint t ) {
     if ( t == null ) return null;
     T v = get( t ); //.first;
+    if ( Debug.isOn() ) isConsistent();
     if ( v != null ) return v;
     // Saving this check until later in case a null time value is acceptable,
     // and get(t) above works.
@@ -412,6 +429,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( t == null ) return null;
     Timepoint tp = makeTempTimepoint( t, true );
     Entry< Timepoint, T > e = this.floorEntry( tp );
+    if ( Debug.isOn() ) isConsistent();
     if ( e != null ) return e.getValue();
 //  if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
 //    return firstEntry().getValue();
@@ -427,25 +445,37 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   /**
+   * Return the timepoint1 for an entry (timepoint1, value1) such that
+   * timepoint1.value equals tp.value, and value1 equals value.
+   * 
    * @param value
-   * @param t
-   * @return
+   *          the value to match with a value in the map
+   * @param tp
+   *          the time value required for the returned key
+   * @return a Timepoint key in the map, whose time value equals tp's value and
+   *         whose map entry equals value or null if there is no such Timepoint.
    */
-  public boolean hasValueAt( T value, Timepoint t ) {
-    if ( t == null ) return false;
-    T v = get( t ); //.first;
+  public boolean hasValueAt( T value, Timepoint tp ) {
+    if ( tp == null ) return false;
+    T v = get( tp ); //.first;
     if ( value == v ) return true;
     if ( v != null ) return value.equals( v );
     // Saving this check until later in case a null time value is acceptable,
     // and get(t) above works.
-    if ( t.getValue() == null ) return false;
-    return hasValueAt( value, t.getValueNoPropagate() );
+    if ( tp.getValue() == null ) return false;
+    return hasValueAt( value, tp.getValueNoPropagate() );
   }
   
   /**
+   * Return the timepoint1 for an entry (timepoint1, value1) such that
+   * timepoint1.value equals t, and value1 equals value.
+   * 
    * @param value
+   *          the value to match with a value in the map
    * @param t
-   * @return
+   *          the time value required for the returned key
+   * @return a Timepoint key in the map, whose time value equals t and whose map
+   *         entry equals value or null if there is no such Timepoint.
    */
   public Timepoint keyForValueAt( T value, Integer t ) {
     if ( t == null ) return null;
@@ -488,19 +518,26 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
 //  /**
+//   * Inserts the value in the map if there is not 
 //   * @param t
 //   * @param value
 //   * @return
 //   */
 //  public T setValue( Integer t, T value ) {
 //    breakpoint();
-//    if ( t == null ) return null;
+//    if ( t == null ) {
+//      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint into the map" );
+//      return null;
+//    }
+//    T oldValue = null;
 //    Timepoint tp = keyForValueAt( value, t );
+//    if ( Debug.isOn() ) isConsistent();
 //    if ( tp == null ) {
 //      tp = makeTempTimepoint( t, false );//new Timepoint( "", t, null );
-//      return put( tp, value );
+//      oldValue = put( tp, value );
+//      if ( Debug.isOn() ) isConsistent();
 //    }
-//    return null;
+//    return oldValue;
 //  }
 
   /* (non-Javadoc)
@@ -509,31 +546,170 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public T setValue( Timepoint t, T value ) {
     breakpoint();
-    if ( t == null ) return null;
+    if ( t == null ) {
+      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint into the map" );
+      return null;
+    }
+    T oldValue = null;
     Timepoint tp = keyForValueAt( value, t.getValue() );
+    if ( Debug.isOn() ) isConsistent();
     if ( tp != null && tp != t ) {
       remove( tp );
     }
     if ( tp != t ) {
-      return put( t, value );
+      oldValue = put( t, value );
     }
-    return null;
+    if ( Debug.isOn() ) isConsistent();
+    return oldValue;
   }
 
+  /**
+   * Validate the consistency of the map for individual and adjacent entries.
+   * @return whether or not the entries in the map make sense.
+   */
+  public boolean isConsistent() {
+    Timepoint lastTp = null;
+    int lastTime = -1;
+    T lastValue = null;
+    boolean ok = true;
+    ArrayList<T> valuesAtSameTime = new ArrayList< T >();
+    boolean firstEntry = true;
+    for ( Map.Entry< Timepoint, T >  e : entrySet() ) {
+      Timepoint tp = e.getKey();
+      T value = e.getValue();
+      int time = -1;
+      boolean timepointValueChanged = true;
+      boolean valueChanged = true;
+      boolean duplicateValueAtTime = false;
+      // Check for problems with the key.
+      // No null keys.
+      if ( tp == null ) {
+        if ( Debug.isOn() ) Debug.errorOnNull( true, "Error! null key in TimeVaryingMap " + getName(),
+                           tp );
+        ok = false;
+      } else if ( tp.getValueNoPropagate() == null ) {
+        // No null values for Timepoint key.  
+        if ( Debug.isOn() ) Debug.errorOnNull( true, "Error! null timepoint value in TimeVaryingMap "
+                                 + getName(), tp.getValueNoPropagate() );
+        ok = false;
+      } else {
+        timepointValueChanged = !tp.getValueNoPropagate().equals( lastTime );
+        if ( !firstEntry && tp.getValueNoPropagate() < lastTime ) {
+          // Time cannot decrease.
+          if ( Debug.isOn() ) Debug.error( true, "Error! time value for entry " + e
+                             + " should be >= " + lastTime
+                             + " in TimeVaryingMap " + getName() );
+          ok = false;
+        } else {
+          lastTime = tp.getValueNoPropagate();
+        }
+      }
+      if ( timepointValueChanged ) {
+        valuesAtSameTime.clear();
+      }
+      duplicateValueAtTime = valuesAtSameTime.contains( value );
+      valueChanged = value != lastValue; 
+      if ( tp != null && tp == lastTp ) {
+        // A key should have only one entry.
+        if ( Debug.isOn() ) Debug.error( true, "Error! Timepoint has duplicate entry " + e
+                     + " in TimeVaryingMap " + getName() );
+        ok = false;
+      }
+      
+      // Check for problems with the value.
+      if ( !firstEntry && duplicateValueAtTime ) {
+        if ( Debug.isOn() ) Debug.error( true, "Error! duplicate entry of value " + value
+                     + " at time " + tp + " with value set "
+                     + valuesAtSameTime + " for TimeVaryingMap "
+                     + getName() );
+        ok = false;
+      } else if ( !firstEntry && !valueChanged ) {
+        if ( Debug.isOn() ) Debug.error( false, "Warning! value " + value
+                           + " repeated for adjacent entry " + e + " at time "
+                           + tp + " for TimeVaryingMap " + this );
+      }
+      lastTp = tp;
+      lastValue = value;
+      if ( !duplicateValueAtTime ) {
+        valuesAtSameTime.add( value );
+      }
+      firstEntry = false;
+    }
+    if ( ok ) {
+      if ( Debug.isOn() ) Debug.outln( getName() + " is consistent" );
+    } else {
+      if ( Debug.isOn() ) Debug.outln( getName() + " is not consistent: " + this );
+    }
+    return ok;
+  }
+  
   @Override
   public T unsetValue( Timepoint t, T value ) {
     breakpoint();
-    if ( t == null ) return null;
-    T oldValue = get( t );
-//    T oldValue = null;
-//    TimeValue valueAndEffects = get( t );
-//    assert valueAndEffects != null;
-//    oldValue = valueAndEffects.first;
-    assert oldValue == value;
-//    assert ( valueAndEffects.second == null || valueAndEffects.second.isEmpty() || valueAndEffects.second.size() == 1 );
-    remove( t );
+    if ( t == null ) {
+      if ( Debug.isOn() ) Debug.error( false, "Warning! unsetValue(" + t + ", " + value
+                          + "): Null Timepoint key for TimeVaryingMap " + this );
+      return null;
+    }
+    if ( t.getValueNoPropagate() == null ) {
+      if ( Debug.isOn() ) Debug.error( false,
+                   "Warning! unsetValue(" + t + ", " + value
+                       + "): Null value for Timepoint key for TimeVaryingMap "
+                       + this );
+      return null;
+    }
+    T oldValue = null;
+    Timepoint tpInMap = keyForValueAt( value, t.getValueNoPropagate() );
+    if ( tpInMap != t ) {
+      if ( Debug.isOn() ) Debug.error( false, "Warning! unsetValue(" + t + ", " + value 
+                          + "): Timepoint key is not in the map for TimeVaryingMap "
+                          + this );
+    }
+    if ( tpInMap == null ) {
+      if ( Debug.isOn() ) Debug.error( false, "Warning! unsetValue(" + t + ", " + value
+                          + "): no matching entry in TimeVaryingMap " + this );
+    } else {
+      oldValue = get( tpInMap );
+      if ( Debug.isOn() ) Debug.outln( "unsetValue(" + t + ", " + value + "): removing entry ("
+                   + tpInMap + ", " + oldValue + ") in " + this );
+      remove( tpInMap );
+    }
+    if ( Debug.isOn() ) isConsistent();
     return oldValue;
   }
+
+  public void unapply( Effect effect ) {
+    Pair< Object, T > p = 
+        getTimeAndValueOfEffect( effect,
+                                 getSetValueMethod1(), getSetValueMethod1() );
+    if ( p == null ) {
+      if ( Debug.isOn() ) Debug.error( false, "Warning! unapply( effect=" + effect 
+                          + " ): failed for TimeVaryingMap " + this );
+    }
+    Timepoint t = null;
+    if ( p.first instanceof Timepoint ) {
+      t = (Timepoint)p.first;
+    } else {
+      t = makeTempTimepoint( (Integer)p.first, true );
+    }
+    unsetValue( t, p.second );
+  }
+  
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    if ( parameter instanceof Timepoint ) {
+      remove( (Timepoint)parameter );
+    }
+    for ( Entry< Timepoint, T > e : ( (TimeVaryingMap< T >)this.clone() ).entrySet() ) {
+      if ( e.getValue() instanceof HasParameters ) {
+        if ( ( (HasParameters)e.getValue() ).hasParameter( parameter, false,
+                                                           null ) ) {
+          remove( e.getKey() );
+        }
+      }
+    }
+  }
+
 
   @Override
   public boolean isFreeParameter( Parameter< ? > parameter, boolean deep,
@@ -595,22 +771,18 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return setValueMethod2;
   }
 
-  @Override
-  public boolean isApplied( Effect effect ) {
-    return isApplied(effect, getSetValueMethod1(), getSetValueMethod1()//getSetValueMethod2()
-                     );
-  }
-  public boolean isApplied( Effect effect, Method method1, Method method2 ) {
-    breakpoint();
+  public Pair< Object, T > getTimeAndValueOfEffect( Effect effect,
+                                                    Method method1,
+                                                    Method method2 ) {
     if ( !( effect instanceof EffectFunction ) ) {
-      return false;
+      return null;
     }
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction == null || effectFunction.getMethod() == null ) {
-      Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+      if ( Debug.isOn() ) Debug.errln( getName() + ".getTimeAndValueOfEffect(Effect="
                    + effect + ", Method=" + method1 + ", Method=" + method2
                    + ") called with no effect method! " + this );
-      return false;
+      return null;
     }
     boolean isMethod1 = effectFunction.getMethod().equals(method1);
     boolean isMethod2 =  effectFunction.getMethod().equals( method2);
@@ -624,26 +796,29 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
         } catch( Exception e ) {
           //e.printStackTrace();
         }
-        if ( value != null ) {
-          if ( t instanceof Timepoint ) {
-            return hasValueAt( value, (Timepoint)t );
-          } if ( t instanceof Integer ) {
-            return hasValueAt( value, (Integer)t );
-          }
-        }
-//          if ( isMethod1 || t instanceof Timepoint ) {
-//            return hasValueAt( value, t );
-//            return value.equals( getValue( (Timepoint) t ) );
-//          }
-//          if ( t instanceof Integer ) {
-//            return value.equals(getValue((Integer) t));
-//          } else if ( t instanceof Parameter ) {
-//            Object v = ((Parameter<?>)t).getValueNoPropagate();
-//            if ( v instanceof Integer ) {
-//              return value.equals(getValue((Integer)v));
-//            }
-//          }
-//        }
+        return new Pair< Object, T >( t, value ); 
+      }
+    }
+    return null;
+  }
+  
+  @Override
+  public boolean isApplied( Effect effect ) {
+    return isApplied(effect, getSetValueMethod1(), getSetValueMethod1()//getSetValueMethod2()
+                     );
+  }
+  public boolean isApplied( Effect effect, Method method1, Method method2 ) {
+    breakpoint();
+    if ( Debug.isOn() ) isConsistent();
+    Pair< Object, T > p = getTimeAndValueOfEffect( effect, method1, method2 );
+    if ( p == null ) return false;
+    Object t = p.first;
+    T value = p.second;
+    if ( value != null ) {
+      if ( t instanceof Timepoint ) {
+        return hasValueAt( value, (Timepoint)t );
+      } if ( t instanceof Integer ) {
+        return hasValueAt( value, (Integer)t );
       }
     }
     return false;
@@ -654,15 +829,6 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     StringBuffer sb = new StringBuffer();
     sb.append( this.getName() );
     sb.append( super.toString() );
-//    boolean first = true;
-//    for ( Map.Entry< Timepoint, T > e : this.entrySet() ) {
-//      if ( first ) {
-//        first = false;
-//      } else {
-//        sb.append( ", " );
-//      }
-//      sb.append( e );
-//    }
     return sb.toString();
   }
 

@@ -151,13 +151,13 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction == null || effectFunction.getMethod() == null ) {
-      Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+      if ( Debug.isOn() ) Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
                    + effect + ", Method=" + method1 + ", Method=" + method2
                    + ") called with no effect method! " + this );
       return false;
     }
     if ( effectFunction.hasTypeErrors() ) {
-      Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+      if ( Debug.isOn() ) Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
           + effect + ", Method=" + method1 + ", Method=" + method2
           + "): inconsistent EffectFuncion arguments! " + this );
       return false;

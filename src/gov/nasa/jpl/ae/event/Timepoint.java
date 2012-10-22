@@ -2,8 +2,6 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
-import gov.nasa.jpl.ae.util.Utils;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,7 +58,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     
     public static double conversionFactor( Units fromUnits, Units toUnits) {
       double f = ((double)fromUnits.factor)/toUnits.factor;
-//      Debug.outln( "conversionFactor(" + fromUnits + ", " + toUnits
+//      if ( Debug.isOn() ) Debug.outln( "conversionFactor(" + fromUnits + ", " + toUnits
 //                          + ") = " + fromUnits.factor + " / " + toUnits.factor
 //                          + " = " + f );
       return f;

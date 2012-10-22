@@ -173,18 +173,18 @@ public class Parameter< T > implements Cloneable, Groundable,
   }
 
   public T getValue() {
-    Debug.outln( "Parameter.getValue() start: " + this );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() start: " + this );
     assert mayPropagate;
     if ( isStale() ) {
       if ( owner != null ) { 
         owner.refresh( this );
-        Debug.outln( "Parameter.getValue() refreshed: " + this );
+        if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() refreshed: " + this );
       } else {
         setStale( false );
-        Debug.outln( "Parameter.getValue() no owner for " + this );        
+        if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() no owner for " + this );        
       }
     }
-    Debug.outln( "Parameter.getValue() finish: " + this );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() finish: " + this );
     return value;
   }
 
@@ -227,13 +227,12 @@ public class Parameter< T > implements Cloneable, Groundable,
   
   @Override
   public void setValue( T value ) {
-    Debug.outln( "Parameter.setValue(" + value + ") start: " + this );
     setValue( value, true ); // TODO -- REVIEW -- use a global usingLazyUpdate?
-    Debug.outln( "Parameter.setValue(" + value + ") finish: " + this );
   }
   // setValue( value, false ) is lazy/passive updating
   // setValue( value, true ) is proactive updating
-  public void setValue( T value, boolean propagateChange ) {
+  protected void setValue( T value, boolean propagateChange ) {
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + value + ") start: " + this );
     assert !propagateChange || mayPropagate;
     assert mayChange;
     boolean changing = !valueEquals( value );
@@ -241,17 +240,23 @@ public class Parameter< T > implements Cloneable, Groundable,
       if ( !propagateChange ) {
         assert true;
       }
-      if ( owner != null && propagateChange ) {
+      if ( getOwner() != null && getOwner().getName().contains("addstructUsage")
+          && getName() != null && getName().contains("startTime")
+          || ( value != null && value.equals( 84051 ) ) ) {
+        if ( Debug.isOn() ) Debug.out( "" );
+      }
+       if ( owner != null ) {//&& propagateChange ) {
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this );
       }
-      this.value = value;
+     this.value = value;
       constraintList.clear();
-      if ( owner != null && propagateChange ) {
+      if ( owner != null ) {//&& propagateChange ) {
           owner.handleValueChangeEvent( this );
       }
     }
     setStale( false );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + value + ") finish: " + this );
   }
 
   /**
@@ -314,7 +319,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     }
     T newValue = domain.pickRandomValue();
     String ownerStr = (owner == null) ? "?" : owner.getName(); 
-    Debug.outln( "Picking random value for " + ownerStr + "."
+    if ( Debug.isOn() ) Debug.outln( "Picking random value for " + ownerStr + "."
                         + this.name + " from " + this.domain + " --> "
                         + newValue );
     return newValue;
@@ -401,9 +406,9 @@ public class Parameter< T > implements Cloneable, Groundable,
       inDom = domain == null || domain.size() == 0
               || ( value != null && domain.contains( value ) );
     } catch ( ClassCastException e ) {
-      Debug.errln( "Warning! Parameter value and domain types do not match! " + this );
+      if ( Debug.isOn() ) Debug.errln( "Warning! Parameter value and domain types do not match! " + this );
       if ( value instanceof Parameter ) {
-        Debug.errln( "Warning! Parameter inside Parameter! " + this );
+        if ( Debug.isOn() ) Debug.errln( "Warning! Parameter inside Parameter! " + this );
         inDom = ( (Parameter<?>)value ).inDomain();
       }
     }
@@ -496,7 +501,7 @@ public class Parameter< T > implements Cloneable, Groundable,
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.outln( "setStale(" + staleness + ") to " + this );
+    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     stale = staleness;
   }
 

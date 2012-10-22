@@ -43,6 +43,13 @@ public interface ParameterListener extends HasParameters {
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter );
 
   /**
+   * Remove any references to the parameter.  
+   * 
+   * @param parameter the parameter that is being detached
+   */
+  public void detach( Parameter< ? > parameter );
+  
+  /**
    * Update this parameter's value or domain so that it does not depend on stale
    * information.
    * 
@@ -60,7 +67,7 @@ public interface ParameterListener extends HasParameters {
   public <T> boolean pickValue( Variable< T > variable );
 
   /**
-   * The initial motivation for {@code getName()} was for debug output.  As of 2012-08-05, 
+   * The initial motivation for {@code getName()} was for if ( Debug.isOn() ) Debug.output.  As of 2012-08-05, 
    *
    * @return a name
    */

@@ -1,11 +1,11 @@
 package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.Vector;
-
-import junit.framework.Assert;
 
 /**
  * 
@@ -15,7 +15,7 @@ import junit.framework.Assert;
  * @author bclement
  *
  */
-public class EffectFunction extends FunctionCall implements Effect {
+public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryingObjects {
 
 	/**
 	 * @param method
@@ -110,11 +110,18 @@ public class EffectFunction extends FunctionCall implements Effect {
     return getParameters( deep, seen ).contains( parameter );
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Effect#unApplyTo(gov.nasa.jpl.ae.event.TimeVarying)
+   */
   @Override
   public < T > TimeVarying< T > unApplyTo( TimeVarying< T > tv ) {//, Timepoint t,
                                            //Duration d ) {
-    // TODO Auto-generated method stub
-    return null;
+    if ( tv instanceof TimeVaryingMap ) { 
+      ((TimeVaryingMap< T >)tv).unapply( this );
+    } else {
+      assert false;
+    }
+    return tv;
   }
   
   @Override
@@ -126,10 +133,22 @@ public class EffectFunction extends FunctionCall implements Effect {
       return isApplied( (Parameter< ? >)value );
     }
     if ( !(value instanceof TimeVarying) ) {
-      Debug.errln( "Effect variable is not TimeVarying! " + variable );
+      if ( Debug.isOn() ) Debug.errln( "Effect variable is not TimeVarying! " + variable );
       return false;
     }
     return ((TimeVarying<?>)value).isApplied( this );
+  }
+
+  @Override
+  public Set< TimeVarying< ? >>
+      getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
+    Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    if ( object instanceof TimeVarying ) {
+      return HasTimeVaryingObjects.Helper.getTimeVaryingObjects( object, deep, seen );
+    }
+    return Utils.getEmptySet();
   }
 
 }
