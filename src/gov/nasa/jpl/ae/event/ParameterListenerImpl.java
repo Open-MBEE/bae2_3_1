@@ -38,11 +38,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 1800.0;
-  protected long numIterations = 20;
+  protected long maxPassesAtConstraints = 100;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
   // TODO -- features for variables below not yet implemented
-  protected boolean snapshotSimulationDuringSolve = false;
+  protected boolean snapshotSimulationDuringSolve = true;
   protected boolean snapshotToSameFile = true;
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
@@ -270,7 +270,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     
     boolean satisfied = false;
     boolean first = true;
-    while ( first && numLoops < this.numIterations ) {
+    while ( first && numLoops < this.maxPassesAtConstraints ) {
 //            || ( !satisfied && ( ( curTime = System.currentTimeMillis() )
 //                                 - startTime < timeoutMilliseconds ) ) ) {
       ++numLoops;
@@ -405,14 +405,18 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     if ( isSatisfied(deep, null) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
+    int mostResolvedConstraints = 0;
+    int maxLoopsWithNoProgress = 6;
+    int numLoopsWithNoProgress = 0;
     
     boolean satisfied = false;
     double curTimeLeft =
         ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
     
     while ( !satisfied
+            && numLoopsWithNoProgress < maxLoopsWithNoProgress
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
-            && ( !usingLoopLimit || numLoops < numIterations ) ) {
+            && ( !usingLoopLimit || numLoops < maxPassesAtConstraints ) ) {
       if ( usingTimeLimit ) {
         if ( Debug.isOn() || this.amTopEventToSimulate ) {
           Debug.outln( this.getClass().getName() + " satisfy loop with "
@@ -422,15 +426,29 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       if ( usingLoopLimit ) {
         if ( Debug.isOn() || this.amTopEventToSimulate ) {
           System.out.println( this.getClass().getName() + " satisfy loop round "
-              + (numLoops+1) + " out of " + numIterations );
+              + (numLoops+1) + " out of " + maxPassesAtConstraints );
         }
       }
       satisfied = tryToSatisfy(deep, null);
       // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
-      // move it out of this class and into DurativeEvent.
+      // move it out of this class and into DurativeEvent since Events simulate.
       if ( snapshotSimulationDuringSolve  && this.amTopEventToSimulate ) {
         doSnapshotSimulation();
       }
+      
+      int numResolvedConstraints = solver.getConstraints().size() - solver.getUnsatisfiedConstraints().size(); 
+      if ( !satisfied && numResolvedConstraints <= mostResolvedConstraints ) {
+        ++numLoopsWithNoProgress;
+        if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
+             && ( Debug.isOn() || amTopEventToSimulate ) ) {
+          System.out.println( "Plateaued at " + mostResolvedConstraints + " constraints satisfied." );
+          System.out.println( "Unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+        }
+      } else {
+        mostResolvedConstraints = numResolvedConstraints;
+        numLoopsWithNoProgress = 0;
+      }
+      
       curTimeLeft =
           ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
       ++numLoops;

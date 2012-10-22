@@ -161,9 +161,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                         Set< Satisfiable > seen ) {
       boolean deepGroundable = deep;
       Set< Groundable > seenGroundable = null;
-      if (variable.getName().contains("30")){
-        System.out.println("Cactus");
-      }
       if ( !variable.isGrounded(deepGroundable, seenGroundable) ) return false;
       if ( !variable.isSatisfied(deep, seen) ) return false;
       for ( Effect e : effects ) {
@@ -213,26 +210,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( pair.first ) return true;
       seen = pair.second;
       boolean satisfied = true;
-//      List< Pair< Parameter< ? >, Set< Effect > > > list =
-//          new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
-//      for ( Entry< Parameter< ? >, Set< Effect > > er : effects.entrySet() ) {
-//        list.add( new Pair< Parameter< ? >, Set< Effect > >( er.getKey(),
-//                                                             er.getValue() ) );
-//      }
-//      effects.clear();
       for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
         Parameter< ? > variable = p.first;
         Set< Effect > set = p.second;
-//      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
-//        Set< Effect > set = entry.getValue();
-//        Parameter< ? > variable = entry.getKey();
-        if (variable.getName().contains("30")){
-        	System.out.println("Blaah");
-        }
         if ( !satisfyEffectsOnTimeVarying( variable, set, deep, seen ) ) {
           satisfied = false;
         }
-        //effects.put( variable, set );
       }
       return satisfied;
     }
@@ -245,12 +228,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
         Parameter< ? > variable = p.first;
         Set< Effect > set = p.second;
-//      for ( Entry< Parameter< ? >, Set< Effect > > entry : getEffects().entrySet() ) {
-//        Set< Effect > set = entry.getValue();
-//        Parameter< ? > variable = entry.getKey();
-        if (variable.getName().contains("30")){
-        	System.out.println("Blaah");
-        }
         if ( !areEffectsOnTimeVaryingSatisfied( variable, set, deep, seen ) ) {
           return false;
         }

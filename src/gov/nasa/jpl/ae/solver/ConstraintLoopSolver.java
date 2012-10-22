@@ -16,16 +16,19 @@ import java.util.Set;
  */
 public class ConstraintLoopSolver implements Solver {
 
-  public int maxTimesWithNoProgress = 1;
+  public int maxTriesWithNoProgress = 1;
   
   protected ArrayList< Constraint > unsatisfiedConstraints =
       new ArrayList< Constraint >();
 
+  protected Collection< Constraint > constraints = null;
+  
   public ConstraintLoopSolver() {
   }
 
   @Override
-  public boolean solve( Collection< Constraint > constraints ) {
+  public boolean solve( Collection< Constraint > newConstraints ) {
+    this.constraints = newConstraints;
     if ( Debug.isOn() ) Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
     boolean deep = false;
     //double startTime = System.currentTimeMillis();
@@ -38,7 +41,7 @@ public class ConstraintLoopSolver implements Solver {
     int lastSize = -1;
     int numTimesWithNoProgress = 0;
     while ( //System.currentTimeMillis() - startTime > timeOutMilliseconds
-            numTimesWithNoProgress < maxTimesWithNoProgress
+            numTimesWithNoProgress < maxTriesWithNoProgress
             && !unsatisfiedConstraints.isEmpty() ) {
       lastSize = numConstrs;
       if ( Debug.isOn() ) Debug.outln( numConstrs + " remaining constraints to satisfy: " + unsatisfiedConstraints );
@@ -151,6 +154,11 @@ public class ConstraintLoopSolver implements Solver {
       }
     }
     return unsatisfiedConstraints;
+  }
+
+  @Override
+  public Collection< Constraint > getConstraints() {
+    return constraints;
   }
   
 }
