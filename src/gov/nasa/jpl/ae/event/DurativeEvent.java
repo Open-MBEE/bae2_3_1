@@ -796,7 +796,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
-    if ( seen != null && seen.contains( this ) ) return Utils.getEmptySet();
+    Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
     Set< TimeVarying< ? > > set = super.getTimeVaryingObjects( deep, seen );
     //Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
     set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen ) );
@@ -821,7 +824,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set<HasParameters> seen ) {
-    if ( seen != null && seen.contains( this ) ) return Utils.getEmptySet();
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
     Set< Parameter< ? > > set = super.getParameters( deep, seen );
     if ( deep ) {
       set.addAll( HasParameters.Helper.getParameters( elaborationsConstraint, deep, seen ) );
@@ -855,11 +861,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Parameter.mayPropagate = false;
     boolean mayHaveBeenChanging = Parameter.mayChange; 
     Parameter.mayChange = false;
-    if ( seen != null && seen.contains( this ) ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) {
       Parameter.mayPropagate = mayHaveBeenPropagating;
       Parameter.mayChange = mayHaveBeenChanging;
       return Utils.getEmptySet();
     }
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
     Collection< Constraint > set = new HashSet<Constraint>();
     set.addAll( super.getConstraints( deep, seen ) );
     //if ( set.equals( Utils.getEmptySet() ) ) return set;

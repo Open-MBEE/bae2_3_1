@@ -327,36 +327,21 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-    set.addAll( getParameters() );
+//    set.addAll( getParameters() );
+//    if ( deep ) {
+//      for ( Parameter<?> p : getParameters() ) {
+//        if ( p.getValueNoPropagate() != null && 
+//             p.getValueNoPropagate() instanceof HasParameters ) {
+//          set.addAll( ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep, seen ) );
+//        }
+//      }
+//    }
+    set.addAll( HasParameters.Helper.getParameters( getParameters(), deep, seen ) );
     if ( deep ) {
-      for ( Parameter<?> p : getParameters() ) {
-        if ( p.getValueNoPropagate() != null && 
-             p.getValueNoPropagate() instanceof HasParameters ) {
-          set.addAll( ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep, seen ) );
-        }
-      }
-      // TODO -- Get parameters from members that implement HasPaameters?
-      /*
-      for ( Field f : this.getClass().getFields() ) {
-        try {
-          Object o = f.get( this );
-          if ( o != null && o != this.parameters ) {
-            if ( o instanceof Parameter< ? > ) {
-              set.add( (Parameter< ? >)o );
-            }
-            if ( o instanceof HasParameters ) {
-              set.addAll( ( (HasParameters)o ).getParameters( deep ) );
-            }
-          }
-        } catch ( IllegalArgumentException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( IllegalAccessException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-      */
+      set.addAll( HasParameters.Helper.getParameters( getDependencies(),
+                                                      deep, seen ) );
+      set.addAll( HasParameters.Helper.getParameters( getConstraintExpressions(),
+                                                      deep, seen ) );
     }
     return set;
   }
@@ -425,9 +410,6 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     double curTimeLeft =
         ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
     
-    // TODO -- REVIEW -- How do we get elaborations (conditional constraints
-    // into the problem)? Add all possible constraints as implied by conditions?
-    // Treat each elaboration as a constraint?
     while ( !satisfied
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
             && ( !usingLoopLimit || numLoops < numIterations ) ) {
@@ -444,6 +426,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
         }
       }
       satisfied = tryToSatisfy(deep, null);
+      // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
+      // move it out of this class and into DurativeEvent.
       if ( snapshotSimulationDuringSolve  && this.amTopEventToSimulate ) {
         doSnapshotSimulation();
       }
@@ -454,6 +438,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     return satisfied;
   }
 
+  // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
+  // move it out of this class and into DurativeEvent.
   public void doSnapshotSimulation() {
     // override!
   }

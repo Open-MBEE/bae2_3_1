@@ -117,6 +117,10 @@ public interface HasParameters extends LazyUpdate {
       Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( o instanceof Parameter ) {
         set.add( (Parameter< ? >)o );
+        Object value = ( (Parameter< ? >)o ).getValueNoPropagate();
+        if ( deep || value instanceof Parameter ) {
+          set.addAll( getParameters( value, deep, seen ) );
+        }
       }
       if ( o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) )
