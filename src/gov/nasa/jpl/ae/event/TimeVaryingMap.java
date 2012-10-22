@@ -185,6 +185,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return this.lowerKey( t );
   }
 
+  public Timepoint getTimepointAfter( Timepoint t ) {
+    if ( t == null ) return null;
+    return this.higherKey( t );
+  }
+
   public T getValueBefore( Timepoint t ) {
     Timepoint justBeforeTime = getTimepointBefore( t );
     T valBefore = null;
@@ -685,6 +690,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( p == null ) {
       if ( Debug.isOn() ) Debug.error( false, "Warning! unapply( effect=" + effect 
                           + " ): failed for TimeVaryingMap " + this );
+      return;
     }
     Timepoint t = null;
     if ( p.first instanceof Timepoint ) {

@@ -3,8 +3,6 @@
  */
 package gov.nasa.jpl.ae.util;
 
-import java.lang.reflect.InvocationTargetException;
-
 import com.nomagic.magicdraw.core.Application;
 import com.nomagic.magicdraw.core.GUILog;
 /**
@@ -39,40 +37,36 @@ public class Debug {
   }
   public static void out( String s ) {
     if (on) {
-      if ( gl == null ) {
-        System.out.print( s );
-      } else {
+      if ( gl != null ) {
         glBuf.append( s );
       }
+      System.out.print( s );
     }
   }
   public static void outln( String s ) {
     if (on) {
-      if ( gl == null ) {
-        System.out.println( s );
-      } else {
+      if ( gl != null ) {
         gl.log( glBuf.toString() + s );
       }
+      System.out.println( s );
       glBuf = new StringBuffer();
     }
   }
   public static void err( String s ) {
     if (on) {
-      if ( gl == null ) {
-        System.err.print( s );
-      } else {
+      if ( gl != null ) {
         glBuf.append( s );
       }
+      System.err.print( s );
     }
     //if (on) System.err.print( s );
   }
   public static void errln( String s ) {
     if (on) {
-      if ( gl == null ) {
-        System.err.println( s );
-      } else {
+      if ( gl != null ) {
         gl.log( "ERR: " + glErrBuf.toString() + s );
       }
+      System.err.println( s );
       glErrBuf = new StringBuffer();
     }
     //if (on) System.err.println( s );

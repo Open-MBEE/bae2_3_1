@@ -188,6 +188,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       return false;
     }
     EffectFunction effectFunction = (EffectFunction)effect;
+    if ( effectFunction == null || effectFunction.method == null ) return false;
     boolean addIfMethod = effectFunction.method.getName().contains( "addIfNotContained" );
     boolean addMethod = !addIfMethod && effectFunction.method.getName().contains( "add" );
     if ( addIfMethod || addMethod ) {

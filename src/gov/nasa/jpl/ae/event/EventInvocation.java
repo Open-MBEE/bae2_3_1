@@ -61,9 +61,9 @@ public class EventInvocation implements HasParameters {
   public Event invoke() {
     if ( Debug.isOn() ) Debug.outln( "invoke(): " + this );
     Event event = constructEvent();
-    event.setName( eventName );
     
     if ( event != null ) {
+      event.setName( eventName );
       assignMembers( event );
     }
 

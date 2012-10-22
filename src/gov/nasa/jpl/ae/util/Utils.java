@@ -403,8 +403,7 @@ public class Utils {
                                             ClassLoader myLoader ) {
     if ( Debug.isOn() ) Debug.outln( "trying tryClassForName( " + className + " )");
     Class< ? > classForName = null;
-    if ( myLoader == null ) myLoader = loader; 
-    if ( myLoader == null ) myLoader = gov.nasa.jpl.ae.event.Expression.class.getClassLoader(); 
+    if ( myLoader == null ) myLoader = getLoader(); 
     try {
       if ( myLoader == null ) {
         classForName = Class.forName( className );
@@ -423,6 +422,24 @@ public class Utils {
     return classForName;
   }
 
+  /**
+   * @return the loader
+   */
+  public static ClassLoader getLoader() {
+    if ( loader == null ) {
+      loader = gov.nasa.jpl.ae.util.Utils.class.getClassLoader();//fileManager.getClassLoader(null);
+    }
+    if ( loader == null ) {
+      loader = ClassLoader.getSystemClassLoader();
+    }
+    return loader;
+  }
+
+  public static Package getPackage( String packageName ) {
+    Package pkg = Package.getPackage( packageName );
+    return pkg;
+  }
+  
   public static Class<?> getClassOfClass( String clsOfClsName,
                                           String preferredPackageName,
                                           boolean initialize ) {
@@ -477,11 +494,27 @@ public class Utils {
     }
     return null;
   }
+
+  public static List<Package> getPackagesForNames( Collection< String > packageNames ) {
+    ArrayList<Package> packages = new ArrayList< Package >();
+    for ( String pkgName : packageNames ) {
+      Package pkg = getPackage( pkgName );
+      if ( pkg != null ) packages.add( pkg );
+    }
+    return packages;
+  }
   
   public static Class<?> getClassForName( String className,
                                           String preferredPackage,
                                           boolean initialize ) {
-    List< Class<?>> classList = getClassesForName( className, initialize );
+    String[] packageNames = new String[] { preferredPackage, "gov.jpl.nasa.ae" };
+    List<Package> packages = getPackagesForNames( Arrays.asList( packageNames ) );
+    Package pkg = gov.nasa.jpl.ae.util.Utils.class.getPackage();
+    packages.add( pkg );
+    Package[] pkgArray = new Package[packages.size()];
+    toArrayOfType( packages.toArray(), pkgArray, Package.class );
+    List< Class<?>> classList = getClassesForName( className, initialize, getLoader(),
+                                                   pkgArray );
     if ( !isNullOrEmpty( classList ) ) {
       for ( Class< ? > c : classList ) {
         if ( c.getPackage().getName().equals( preferredPackage ) ) {
@@ -498,9 +531,9 @@ public class Utils {
 //  }
   
   public static List< Class< ? > > getClassesForName( String className,
-                                                      boolean initialize ) {
-//                                                    ClassLoader loader,
-//                                                    Package[] packages) {
+                                                      boolean initialize,// ) {
+                                                      ClassLoader loader,
+                                                      Package[] packages) {
     List< Class< ? > > classList = new ArrayList< Class< ? > >();
     if ( Utils.isNullOrEmpty( className ) ) return null;
 //    ClassLoader loader = Utils.class.getClassLoader();
@@ -518,7 +551,7 @@ public class Utils {
 //      }
 //    }
     if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " )" );
-    Class< ? > classForName = tryClassForName( className, initialize );//, loader );
+    Class< ? > classForName = tryClassForName( className, initialize, loader );
     if ( classForName != null ) classList.add( classForName );
     String strippedClassName = noParameterName( className );
     if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): strippedClassName = "
@@ -527,19 +560,19 @@ public class Utils {
     if ( !Utils.isNullOrEmpty( strippedClassName ) ) {
       strippedWorthTrying = !strippedClassName.equals( className ); 
       if ( strippedWorthTrying ) {
-        classForName = tryClassForName( strippedClassName, initialize );//, loader );
+        classForName = tryClassForName( strippedClassName, initialize, loader );
         if ( classForName != null ) classList.add( classForName );
       }
     }
-    List<String> FQNs = getFullyQualifiedNames( className );//, packages );
+    List<String> FQNs = getFullyQualifiedNames( className, packages );
     if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): fully qualified names = "
         + FQNs );
     if ( FQNs.isEmpty() && strippedWorthTrying ) {
-      FQNs = getFullyQualifiedNames( strippedClassName );//, packages );
+      FQNs = getFullyQualifiedNames( strippedClassName, packages );
     }
     if ( !FQNs.isEmpty() ) {
       for ( String fqn : FQNs ) {
-        classForName = tryClassForName( fqn, initialize );//, loader );
+        classForName = tryClassForName( fqn, initialize, loader );
         if ( classForName != null ) classList.add( classForName );
       }
     }
@@ -547,13 +580,32 @@ public class Utils {
   }
   
   public static Collection<String> getPackageStrings(Package[] packages) {
-    Set<String> packageStrings = new HashSet<String>();
-    if ( isNullOrEmpty( packages ) ) {
-      packages = Package.getPackages();
+    List<String> packageStrings = new ArrayList<String>();
+    if ( !isNullOrEmpty( packages ) ) {
     }
-    for (Package aPackage : packages ) {
-      packageStrings.add(aPackage.getName());
+    if ( !isNullOrEmpty( packages ) ) {
+      for (Package aPackage : packages ) {
+        if ( aPackage != null ) {
+          if ( !packageStrings.contains( aPackage.getName() ) ) {
+            packageStrings.add(aPackage.getName());
+          }
+        }
+      }
     }
+    packages = Package.getPackages();
+    if ( !isNullOrEmpty( packages ) ) {
+      for (Package aPackage : packages ) {
+        if ( aPackage != null ) {
+          if ( !packageStrings.contains( aPackage.getName() ) ) {
+            packageStrings.add(aPackage.getName());
+          }
+        }
+      }
+    }
+
+    if ( Debug.isOn() ) Debug.out( "getPackageStrings("
+                                   + toString( packages, false ) + ") = "
+                                   + packageStrings );
     return packageStrings;
   }
   
