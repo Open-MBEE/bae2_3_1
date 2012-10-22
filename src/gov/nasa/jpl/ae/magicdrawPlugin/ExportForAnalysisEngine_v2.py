@@ -37,6 +37,10 @@
 #c,l,v ---> classes
 
 
+#if next is accept event-
+#dependecy: endTime = Math.min(objectflow.nextTimeNotNull(starttime+1),activityfinalnodeendtime)
+
+
 
 from com.nomagic.magicdraw.core import Application
 from com.nomagic.magicdraw.core import Project
@@ -680,24 +684,27 @@ class actionEventClass(object):
 
 	def inspectByType(self,node):
 		myType = node.humanType
+		canHaveDuration = True
+		nextAccepts = [x for x in self.nexts[node] if isinstance(x,AcceptEventAction)]
+		if len(nextAccepts)>0:
+			if any([not isinstance(x.trigger[0].event,TimeEvent) for x in nextAccepts]): canHaveDuration = False
+		if isinstance(node,AcceptEventAction) and not isinstance(node.trigger[0].event,TimeEvent): canHaveDuration = False
+		if isinstance(node,CallBehaviorAction) and not node.behavior.humanType == "Opaque Behavior": canHaveDuration = False
+		if canHaveDuration: self.dependencies["duration"] = ("Integer","1")
 		
 		if myType == "Read Self Action":
-			self.dependencies["duration"] = ("Integer","1")
-			#add: member for out-pin?
 			objectFlowOut = node.result.outgoing[0]
 			try: itemname = node.result.type.name
 			except: itemname = node.owner.owner.name
 			self.members[node.result.getID()] = (itemname,itemname+".this","Instance of whoever is operating this activity")
 		
 		elif myType =="Add Structural Feature Value Action" :
-			self.dependencies["duration"] = ("Integer","1")
 			sf = node.structuralFeature
 			objectFlowIn = node.object.incoming[0]
 			valueFlowIn = node.value.incoming[0]
 			self.effects.append(sf.name + "_" + sf.getID() + ".setValue(startTime,"+ node.value.getID() + ")")
 		
 		elif myType =="Read Structural Feature Action" :
-			self.dependencies["duration"] = ("Integer","1")
 			sf = node.structuralFeature
 			objectIn = node.object
 			objectOut = node.result
@@ -708,7 +715,6 @@ class actionEventClass(object):
 			else: self.dependencies[objectOut.getID()] = (tname,node.object.getID() + "." + sf.name)
 		
 		elif myType =="Send Signal Action" :
-			self.dependencies["duration"] = ("Integer","1")
 			sig = node.signal
 			port = node.onPort
 			structSig = "x.ss" + port.getID() + "_" + sig.name
@@ -730,7 +736,6 @@ class actionEventClass(object):
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
 			if not isinstance(event,TimeEvent):
-				self.dependencies["duration"] = ("Integer","1")
 				sig = event.signal
 				context = node.context
 				try: 
@@ -767,7 +772,6 @@ class actionEventClass(object):
 				if t: tname = node.value.type.name
 			self.members[node.result.getID()] = (tname,str(v),"value specification VALUE")
 			self.dependencies[node.result.getID()] = (tname,str(v))
-			self.dependencies["duration"] = ("Integer","1")
 		
 		elif myType =="Opaque Action" :
 			self.effects.append("result = " + str(node.body))
@@ -812,10 +816,7 @@ class actionEventClass(object):
 					self.members[pin.parameter.getID()] = (pin.parameter.type.name,None,"NEW - initialize output parameter storage value")
 
 		elif myType =="Start Object Behavior Action":
-			self.dependencies["duration"] = ("Integer","1")
-			#self.effects.append(node.object.getID() + ".start()")
 			inc = node.object.incoming[0]
-			#gl.log(inc.getID())
 			flowThing = self.feet[inc]
 			if flowThing: 
 				if isinstance(flowThing,Element):
@@ -830,18 +831,12 @@ class actionEventClass(object):
 			else: gl.log("*****ERROR -- CANNOT ELABORATE TO NONE FROM START OBJECT BEHAVIOR!!")
 
 		elif myType =="Activity Parameter Node":
-			self.dependencies["duration"] = ("Integer","1")
 			if str(node.parameter.direction)=="in": 
 				self.dependencies["objectToPass"] = (node.parameter.type.name,node.parameter.getID())
 				self.members[node.parameter.getID()] = (node.parameter.type.name, None, "Initialize Activity Parameter Node receptacle for incoming value!")
-			else: 
-				#self.dependencies["endTime"] = ("Integer","startTime+duration")
-				self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
-			#if len(node.incoming) > 0: 
-			#	self.effects.append("sig" + node.parameter.getID()+".send("+ node.parameter.getID() + ",endTime)")
+			else: self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
 		
 		elif myType =="Decision Node":
-			self.dependencies["duration"] = ("Integer","1")
 			gl.log("Special Decision Node Guard Handling...")
 			dif = node.decisionInputFlow
 			if dif:
@@ -852,10 +847,7 @@ class actionEventClass(object):
 						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()","decisionInput"))
 		elif myType == "Activity Final Node":
 			self.dependencies["endTime"] = ("Integer","startTime+duration")
-			self.dependencies["duration"] = ("Integer","1")
 			self.dependencies["finalNode_endTime"] = ("Integer","endTime")
-		else:
-			self.dependencies["duration"] = ("Integer","1")
 				
 	def setUpBasicElaborationsAndDependencies(self,node):
 		for n in self.nexts[node].keys():
@@ -872,17 +864,14 @@ class actionEventClass(object):
 				dependencyString = str(b)
 				
 			for otherPrev in self.prevs[n].keys(): #take out "my" flow??
-				#otherSigFlow = self.prevs[n][otherPrev]
-				#tm = "endTime"
-				#s = "sig" + str(otherSigFlow.getID()) + ".hasStuff(%s)" % tm
-				#if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
-				#else: dependencyString = s
 				if isinstance(n,AcceptEventAction):
 					event = n.trigger[0].event
 					if not isinstance(event,TimeEvent):
 						sig = event.signal
 						context = n.context
-						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime+1)"
+						qname = "q_" + context.name + "_" + sig.name
+						self.dependencies["endTime"] = ("Integer","Math.min(%s.nextTimeHasStuff(startTime),finalNode_endTime)" % qname)
+						s = qname + ".hasStuff(endTime+1)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 			if len(self.prevs[n].keys())>1 and not isinstance(n,MergeNode):
