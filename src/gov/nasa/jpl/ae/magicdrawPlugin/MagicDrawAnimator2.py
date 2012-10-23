@@ -12,7 +12,7 @@ from com.nomagic.magicdraw.core import Application #this seems to want its own i
 #threading, etc.
 from java.lang import *
 
-usingDialogs = False
+usingDialogs = True
 if usingDialogs:
     from javax.swing import JOptionPane
     from javax.swing import JDialog
@@ -55,9 +55,6 @@ class event(object):
         self.action = a
         self.componentId = cid
         self.componentType = ctype
-        self.frame = None
-        if usingDialogs:
-            self.frame = Application.getInstance().getMainFrame();
 
         
     def str(self):
@@ -78,6 +75,9 @@ class highlighterThread(Thread):
     def __init__(self):
         self.events = []
         self.timeScale = float(3.0) #animation time is sped up by this factor
+        self.frame = None
+        if usingDialogs:
+            self.frame = Application.getInstance().getMainFrame();
 
     def run(self):
         gl.log("running MagicDrawAnimator2")
