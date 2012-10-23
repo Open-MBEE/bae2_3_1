@@ -80,6 +80,9 @@ class highlighterThread(Thread):
                     gl.log(line)
                     continue
                 else: continue
+                if eventTime != lastTime:
+                    mda.doThePaint()
+                    lastTime = eventTime
                 gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
                     gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap or ObjectFlow")
@@ -93,8 +96,6 @@ class highlighterThread(Thread):
                 elif "end" in action: 
                     gl.log("    ---> ENDING")
                     mda.end(cid)
-                if eventTime != lastTime:
-                    mda.doThePaint()
                 time.sleep(self.timeStep)
         
         elif mode == 1:
