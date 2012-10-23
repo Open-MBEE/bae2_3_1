@@ -13,8 +13,8 @@ from com.nomagic.magicdraw.core import Application #this seems to want its own i
 from java.lang import *
 
 #this is where the actual animator class lives
-import MagicDrawAnimatorUtils
-reload (MagicDrawAnimatorUtils)
+import MagicDrawAnimatorUtils2
+reload (MagicDrawAnimatorUtils2)
 
 global gl
 gl = Application.getInstance().getGUILog()
@@ -51,21 +51,34 @@ class highlighterThread(Thread):
     want to simulate.
     '''
     def __init__(self):
-        pass
+        self.timeStep = 1.0
+        
     def run(self):
         mode = 0
         if mode == 0:
-            mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
-            filepath = "c:\\Users\\bclement\\Desktop\\foo.txt"
-            #gl.log(filepath)
+            mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
+            filepath = "c:\\Users\\bclement\\Desktop\\foo12.txt"
+            gl.log("reading events from " + filepath)
             f = open(filepath,"r")
+            lastTime = 0
             for line in f.readlines():
-                #gl.log(line)
-                x = re.search(" (\S*) -> (\S*)\s*(\S*) ==>",line)
-                if x: 
-                    action=x.groups()[1]
-                    cid = x.groups()[2]
-                    ctype = x.groups()[0]
+                #gl.log("read line = " + line)
+                #x = re.search(" (\S*) -> (\S*)\s*(\S*) ==>",line)
+                x = re.search("(\d*)[^0-9: \t\n\r\f\v]*\s*:\s*\S*\s*(\S*) -> (\S*)\s*(\S*) ==>",line)
+                y = re.search("(\S*) -> (\S*)\s*(\S*) ==>",line)
+                if x:
+                    eventTime=x.groups()[0]
+                    action=x.groups()[2]
+                    cid = x.groups()[3]
+                    ctype = x.groups()[1]
+                elif y:
+                    eventTime=lastTime
+                    action=y.groups()[1]
+                    cid = y.groups()[2]
+                    ctype = y.groups()[0]
+                elif line.startswith("---"): 
+                    gl.log(line)
+                    continue
                 else: continue
                 gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
@@ -80,11 +93,13 @@ class highlighterThread(Thread):
                 elif "end" in action: 
                     gl.log("    ---> ENDING")
                     mda.end(cid)
-                time.sleep(1)
+                if eventTime != lastTime:
+                    mda.doThePaint()
+                time.sleep(self.timeStep)
         
         elif mode == 1:
             e = "_17_0_5_edc0357_1346893970422_843838_14398"
-            mda = MagicDrawAnimatorUtils.MagicDrawAnimator()
+            mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
             gl.log("Starting e (%s)" % e)
             mda.start(e)
         
@@ -92,7 +107,8 @@ class highlighterThread(Thread):
             while i > 0:
                 i-=1
                 gl.log(".")
-                time.sleep(1)
+                time.sleep(self.timeStep)
             
             gl.log("ending e")
             mda.end(e)
+            mda.doThePaint()

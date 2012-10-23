@@ -87,6 +87,7 @@ src/gov/nasa/jpl/ae/magicdrawPlugin/InterpolatedMap.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator2.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils2.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawExecutor.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/OneWaySocket.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
