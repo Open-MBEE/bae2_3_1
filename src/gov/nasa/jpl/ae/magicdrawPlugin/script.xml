@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <script
 	id="example 1"
-	name="Simple menu item"
+	name="LADWP Plugin"
 	version="1.0"
 	provider-name="No Magic"
 	script-file="main.py"
