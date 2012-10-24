@@ -51,13 +51,13 @@ class highlighterThread(Thread):
     want to simulate.
     '''
     def __init__(self):
-        self.timeStep = 1.0
+        self.timeStep = 0.3
         
     def run(self):
         mode = 0
         if mode == 0:
             mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
-            filepath = "c:\\Users\\bclement\\Desktop\\foo12.txt"
+            filepath = "c:\\Users\\bclement\\Desktop\\medium2.txt"
             gl.log("reading events from " + filepath)
             f = open(filepath,"r")
             lastTime = 0

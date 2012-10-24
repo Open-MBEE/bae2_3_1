@@ -49,6 +49,7 @@ class MagicDrawAnimator(object):
         4. create a highlight listener ("Awesome Paint Action") for the symbol
         5. toggle it on (it's set to off initially)
         '''
+        #gl.log("start: " + str(componentId))
         sym = self.findSymbolToHighlight(componentId)
         #gl.log("Debug: symbol: " + str(sym))
         #gl.log("Debug: found symbol...")
@@ -71,9 +72,10 @@ class MagicDrawAnimator(object):
         3. Highlight it!
         '''
         sym = self.findSymbolToHighlight(componentId)
-        if sym:
+        if sym and sym in self.paintEvents:
             p = self.paintEvents[sym]
-            p.actionPerformed(None)
+            if p:
+                p.actionPerformed(None)
 
         
     def findSymbolToHighlight(self,componentId):
@@ -180,4 +182,4 @@ class AwesomePaintAction(NMAction):
                 gl.log(message)
             gl.log("***ERROR PAINTING!!")
             return
-        self.diagram.getDiagramSurface().repaint()
+        #self.diagram.getDiagramSurface().repaint()
