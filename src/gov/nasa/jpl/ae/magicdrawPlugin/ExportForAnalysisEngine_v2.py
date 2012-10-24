@@ -921,18 +921,29 @@ class actionEventClass(object):
 				self.members["objectToPass"] = (obtypename,None,"NEW initialize objectToPass")
 				if not obtype: gl.log("===> HAS NO FLOW TYPE")
 		
+		targetVar = "objectToPass"
+		oTargetVar = "objectToPass"
+		c=1
 		for f in self.allSignals[node]["in"]:
+			gl.log("	INPUT SIGNAL - need a receive")
 			(obtype,obtypename) = self.getObtypeName(f,node)
 			if isinstance(f.target,Pin):
 				self.dependencies[f.target.getID()] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
 				self.members[f.target.getID()] = (obtypename,None,"NEW initialize input pin members")
 			else:
-				targetVar = "objectToPass"
 				if isinstance(node,DecisionNode) and node.getDecisionInputFlow() is f: 
 					targetVar = "decisionInput"
 					self.members["decisionInput"] = (obtypename,None,"NEW Var for DecisionInputValue")
+					gl.log("		-set up decision input member")
+				else: 
+					oTargetVar = oTargetVar + str(c)
+					c+=1
 				self.dependencies[targetVar] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
-				if not "objectToPass" in self.members.keys(): self.members["objectToPass"] = (obtypename,None,"NEW - INTIALIZE OBJECT TO PASS (if not there already)")
+				gl.log("		-set up receive dependency for %s" % targetVar)
+				if not targetVar in self.members.keys(): self.members[targetVar] = (obtypename,None,"NEW - INTIALIZE TARGETVAR (if not there already)")
+				targetVar = oTargetVar
+				
+				
 	
 	def getPrettyIdent(self,node):
 		return node.name + " (" + str(node.getClassType()).split(".")[-1].strip("'>") + ")"		
