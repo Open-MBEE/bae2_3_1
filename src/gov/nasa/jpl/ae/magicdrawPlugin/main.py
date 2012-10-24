@@ -15,6 +15,9 @@ import traceback
 import os
 workspacePath = 'C:\\Users\\bclement\\workspaceFresh'
 mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
+if os.getenv('HOME') == '/Users/mjackson': 
+    workspacePath = '/Users/mjackson/Documents/workspace-Helios/'
+    mdpath = '/Applications/OpsRevMD1702-20120818/'
 projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
