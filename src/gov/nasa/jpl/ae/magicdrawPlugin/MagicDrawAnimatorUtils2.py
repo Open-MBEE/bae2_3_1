@@ -8,6 +8,7 @@ import time,sys,traceback
 from com.nomagic.magicdraw.core import * #application, project...
 from com.nomagic.magicdraw.core import Application
 from com.nomagic.magicdraw.uml.symbols.shapes import *
+from com.nomagic.magicdraw.uml.symbols.paths import *
 from com.nomagic.magicdraw.ui import DiagramSurfacePainter
 from com.nomagic.magicdraw.openapi.uml import * #?
 from com.nomagic.magicdraw.properties import *
@@ -176,7 +177,10 @@ class AwesomePaintAction2(NMAction):
                 if not paintEvent.on: 
                     lc = Color.GREEN
                     fc = Color.GREEN
-                    if paintEvent.defaultFillColor: lc = Color.BLACK
+                    if paintEvent.defaultFillColor and not isinstance(paintEvent.element,PathElement): 
+                        gl.log("I'm not a path element!")
+                        lc = Color.BLACK
+                        
                 if paintEvent.defaultFillColor: newPM.addProperty(ColorProperty(PropertyID.FILL_COLOR,fc))
                 newPM.addProperty(ColorProperty(PropertyID.PEN_COLOR,lc))
                 PresentationElementsManager.getInstance().setPresentationElementProperties(paintEvent.element, newPM)
