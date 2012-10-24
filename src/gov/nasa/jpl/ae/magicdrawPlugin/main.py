@@ -15,14 +15,18 @@ import traceback
 import os
 workspacePath = 'C:\\Users\\bclement\\workspaceFresh'
 mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
-if os.getenv('HOME') == '/Users/mjackson': 
-    workspacePath = '/Users/mjackson/Documents/workspace-Helios/'
-    mdpath = '/Applications/OpsRevMD1702-20120818/'
+
 projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
 aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
              'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'LADWP'
+
+if os.getenv('HOME') == '/Users/mjackson': 
+    workspacePath = '/Users/mjackson/Documents/workspace-Helios/'
+    mdpath = '/Applications/OpsRevMD1702-20120818/'
+    aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
+             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'magicdrawPlugin'
 import sys
 sys.path.append(aePluginDir)
 sys.path.append(pluginSrcPath);
@@ -101,7 +105,7 @@ class DiagramConfigurator(DiagramContextAMConfigurator):
         active = False
     	try:
 			if active:
-				category=MDActionsCategory("LADWP_Utils","LADWP_Utils")
+				category=MDActionsCategory("LADWP","LADWP")
 				category.setNested(True)
 				#category.addAction(ExampleAction("SpacePorts",selected))
 				#category.addAction(ExampleAction("Align",selected))
@@ -140,7 +144,7 @@ class ActDiagramConfigurator(DiagramContextAMConfigurator):
 class BrowserContextAMConfigurator(BrowserContextAMConfigurator):
     def configure (self,manager,tree):
         try:
-			category=MDActionsCategory("LADWP_Utils","LADWP_Utils")
+			category=MDActionsCategory("LADWP","LADWP")
 			category.setNested(True)
 			#category.addAction(ExampleAction("MassRefactor",None))
 			#category.addAction(ExampleAction("ExportForAnalysisEngine",None))
