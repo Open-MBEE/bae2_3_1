@@ -931,7 +931,7 @@ class actionEventClass(object):
 				if isinstance(node,DecisionNode) and node.getDecisionInputFlow() is f: 
 					targetVar = "decisionInput"
 					self.members["decisionInput"] = (obtypename,None,"NEW Var for DecisionInputValue")
-				if obtype is not "Control": self.dependencies[targetVar] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
+				self.dependencies[targetVar] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
 				if not "objectToPass" in self.members.keys(): self.members["objectToPass"] = (obtypename,None,"NEW - INTIALIZE OBJECT TO PASS (if not there already)")
 	
 	def getPrettyIdent(self,node):

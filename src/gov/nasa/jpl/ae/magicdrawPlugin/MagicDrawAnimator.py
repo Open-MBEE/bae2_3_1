@@ -57,10 +57,12 @@ class highlighterThread(Thread):
         mode = 0
         if mode == 0:
             mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
-            filepath = "c:\\Users\\bclement\\Desktop\\medium2.txt"
+            #filepath = "c:\\Users\\bclement\\Desktop\\medium2.txt"
+            filepath = "/Users/mjackson/Desktop/MedSim.txt"
             gl.log("reading events from " + filepath)
             f = open(filepath,"r")
             lastTime = 0
+            signals = []
             for line in f.readlines():
                 #gl.log("read line = " + line)
                 #x = re.search(" (\S*) -> (\S*)\s*(\S*) ==>",line)
@@ -84,20 +86,33 @@ class highlighterThread(Thread):
                     mda.doThePaint()
                     lastTime = eventTime
                 gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
-                if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
-                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap or ObjectFlow")
+                if any([x in cid for x in ["Main","TimeVaryingMap"]]): 
+                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap")
                     continue
                 if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
                     gl.log("    ---> Skipping - can't animate the Activity object!")
                     continue
-                if "start" in action: 
+                if ctype.startswith("sig") and "ObjectFlow" in cid:
+                    sid = ctype.strip("sig")
+                    if "null" in action and sid in signals:
+                        gl.log("    ---> ENDING SIGNAL %s" % sid)
+                        mda.end(sid)
+                        signals.remove(sid)
+                    elif "null" not in action: 
+                        gl.log("    ---> STARTING SIGNAL %s" % sid)
+                        mda.start(sid)
+                        if sid not in signals: signals.append(sid)
+                elif "start" in action: 
                     gl.log("    ---> STARTING")
                     mda.start(cid)
                 elif "end" in action: 
                     gl.log("    ---> ENDING")
                     mda.end(cid)
                 time.sleep(self.timeStep)
-        
+            for sig in signals:
+                gl.log("ending signal %s " % sig)
+                mda.end(sig)
+                
         elif mode == 1:
             e = "_17_0_5_edc0357_1346893970422_843838_14398"
             mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
