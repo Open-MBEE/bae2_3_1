@@ -201,11 +201,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     Object lastValue = null;
     boolean first = true;
     for ( Map.Entry< Timepoint, V > e : tv.entrySet() ) {
-      if ( first ) first = false;
-      else if ( lastValue == e.getValue() ||
-                ( e.getValue() != null && e.getValue().equals( lastValue ) ) ) {
-        continue;
-      }
+//      if ( first ) first = false;
+//      else if ( lastValue == e.getValue() ||
+//                ( e.getValue() != null && e.getValue().equals( lastValue ) ) ) {
+//        continue;
+//      }
       if ( !put( e.getKey().getValueNoPropagate(), tv, e.getValue() ) ) {
         existingEntry = true;
       }
