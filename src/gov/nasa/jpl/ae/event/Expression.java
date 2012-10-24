@@ -206,8 +206,12 @@ public class Expression< ResultType >
               } else if ( o instanceof Expression ) {
                 return ( (Expression<ResultType>)o ).evaluate( propagate );
               } else {
-                Debug.error( false, "Could not cast result of expression evaluation to ResultType: " + this );
-                cce.printStackTrace();
+                Debug.error( false,
+                             "Could not cast result of expression evaluation to ResultType: "
+                                 + ( resultType != null ? "" : "(" + resultType
+                                                               + ") " ) + this );
+                //cce.printStackTrace();
+                return (ResultType)o;
               }
             }
           }
