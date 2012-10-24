@@ -8,7 +8,7 @@ from javax.swing import JOptionPane
 from com.nomagic.actions import *
 from com.nomagic.magicdraw.core import Application
 
-from com.nomagic.magicdraw.uml import *
+#from com.nomagic.magicdraw.uml import *
 from java.lang import String
 import traceback
 
@@ -57,24 +57,27 @@ class ExampleAction( MDAction ):
 	
 # Configurator adds new menu item to First menu in main menu
 class MainMenuConfigurator( AMConfigurator):
-	def configure( self,manager ):
-		active = True
-		try:
-			if active:
-				category=MDActionsCategory("LADWP","LADWP")
-				category.setNested(True)
-				category.addAction(ExampleAction("MagicDrawAnimator",None))
-				manager.addCategory(category)
-			else: pass
-		except:
-			gl.log("exception")
-			exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
-			gl.log("*** EXCEPTION:")
-			messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
-			for message in messages:
-				gl.log(message)
-	def getPriority(self):
-		return AMConfigurator.LOW_PRIORITY
+    def configure( self,manager ):
+        gl.log("configuring main menu!")
+        active = True
+        try:
+            if active:
+                gl.log("active - configurating categories!")
+                category=MDActionsCategory("LADWP_Animations","LADWP_Animations")
+                category.setNested(True)
+                category.addAction(ExampleAction("MagicDrawAnimator",None))
+                category.addAction(ExampleAction("MagicDrawAnimator2",None))
+                manager.addCategory(category)
+                gl.log("done adding categories!")
+            else: pass
+        except:
+            exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+            gl.log("*** EXCEPTION:")
+            messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
+            for message in messages:
+                gl.log(message)
+    def getPriority(self):
+        return AMConfigurator.LOW_PRIORITY
 
 class DiagramConfiguratorIBD(DiagramContextAMConfigurator):
     def configure(self,manager,diagram,selected,requestor):
@@ -167,7 +170,7 @@ class BrowserContextAMConfigurator(BrowserContextAMConfigurator):
        
 # Script starts here
 gl = Application.getInstance().getGUILog()
-#print "Starting script, descriptor", pluginDescriptor
+print "Starting script, descriptor", pluginDescriptor
 #JOptionPane.showMessageDialog(None,"HIIII")
 ActionsConfiguratorsManager.getInstance().addMainMenuConfigurator( MainMenuConfigurator() )
 ActionsConfiguratorsManager.getInstance().addContainmentBrowserContextConfigurator(BrowserContextAMConfigurator())
