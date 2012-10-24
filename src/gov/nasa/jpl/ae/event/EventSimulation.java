@@ -52,8 +52,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( o1 instanceof Pair && o2 instanceof Pair ) {
         Pair< ?, ? > p1 = (Pair< ?, ? >)o1;
         Pair< ?, ? > p2 = (Pair< ?, ? >)o2;
-        if ( Parameter.valuesEqual( p1.first, p2.first ) ) {
-          if ( Parameter.valuesEqual( p1.second, p2.second ) ) {
+        if ( Utils.valuesEqual( p1.first, p2.first ) ) {
+          if ( Utils.valuesEqual( p1.second, p2.second ) ) {
             return 0;
           }
           if ( p1.second.toString().equals( "start" ) ) {

@@ -497,7 +497,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     NavigableMap< Timepoint, T > tailMap = this.tailMap( startKey, true );
     for ( java.util.Map.Entry< Timepoint, T > te : tailMap.entrySet() ) {
       Object mVal = te.getValue();
-      if ( Parameter.valuesEqual( value, mVal ) &&
+      if ( Utils.valuesEqual( value, mVal ) &&
           TimeDomain.defaultDomain.equals( t, te.getKey().getValueNoPropagate() ) ) {
         return te.getKey();
       }
@@ -579,9 +579,18 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     boolean ok = true;
     ArrayList<T> valuesAtSameTime = new ArrayList< T >();
     boolean firstEntry = true;
-    for ( Map.Entry< Timepoint, T >  e : entrySet() ) {
-      Timepoint tp = e.getKey();
-      T value = e.getValue();
+    for ( Map.Entry< Timepoint, T >  entry : entrySet() ) {
+      Timepoint tp = entry.getKey();
+      T value = null;
+      try {
+        value = entry.getValue();
+      } catch ( ClassCastException cce ) {
+        ok = false;
+        System.err.println( "Error! Value " + entry.getValue() 
+                            + " has the wrong type in TimeVaryingMap! "
+                            + this );
+        cce.printStackTrace();
+      }
       int time = -1;
       boolean timepointValueChanged = true;
       boolean valueChanged = true;
@@ -589,8 +598,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       // Check for problems with the key.
       // No null keys.
       if ( tp == null ) {
-        if ( Debug.isOn() ) Debug.errorOnNull( true, "Error! null key in TimeVaryingMap " + getName(),
-                           tp );
+        if ( Debug.isOn() ) {
+          Debug.error( true, "Error! null key in TimeVaryingMap " + getName() );
+        }
         ok = false;
       } else if ( tp.getValueNoPropagate() == null ) {
         // No null values for Timepoint key.  
@@ -601,7 +611,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
         timepointValueChanged = !tp.getValueNoPropagate().equals( lastTime );
         if ( !firstEntry && tp.getValueNoPropagate() < lastTime ) {
           // Time cannot decrease.
-          if ( Debug.isOn() ) Debug.error( true, "Error! time value for entry " + e
+          if ( Debug.isOn() ) Debug.error( true, "Error! time value for entry " + entry
                              + " should be >= " + lastTime
                              + " in TimeVaryingMap " + getName() );
           ok = false;
@@ -616,7 +626,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       valueChanged = value != lastValue; 
       if ( tp != null && tp == lastTp ) {
         // A key should have only one entry.
-        if ( Debug.isOn() ) Debug.error( true, "Error! Timepoint has duplicate entry " + e
+        if ( Debug.isOn() ) Debug.error( true, "Error! Timepoint has duplicate entry " + entry
                      + " in TimeVaryingMap " + getName() );
         ok = false;
       }
@@ -630,7 +640,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
         ok = false;
       } else if ( !firstEntry && !valueChanged ) {
         if ( Debug.isOn() ) Debug.error( false, "Warning! value " + value
-                           + " repeated for adjacent entry " + e + " at time "
+                           + " repeated for adjacent entry " + entry + " at time "
                            + tp + " for TimeVaryingMap " + this );
       }
       lastTp = tp;
@@ -684,21 +694,13 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   public void unapply( Effect effect ) {
-    Pair< Object, T > p = 
-        getTimeAndValueOfEffect( effect,
-                                 getSetValueMethod1(), getSetValueMethod1() );
-    if ( p == null ) {
-      if ( Debug.isOn() ) Debug.error( false, "Warning! unapply( effect=" + effect 
-                          + " ): failed for TimeVaryingMap " + this );
-      return;
+    Pair< Timepoint, T > p = 
+        getTimepointAndValueOfEffect( effect,
+                                      getSetValueMethod1(),
+                                      getSetValueMethod1() );
+    if ( p != null ) {
+      unsetValue( p.first, p.second );
     }
-    Timepoint t = null;
-    if ( p.first instanceof Timepoint ) {
-      t = (Timepoint)p.first;
-    } else {
-      t = makeTempTimepoint( (Integer)p.first, true );
-    }
-    unsetValue( t, p.second );
   }
   
   @Override
@@ -710,7 +712,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( e.getValue() instanceof HasParameters ) {
         if ( ( (HasParameters)e.getValue() ).hasParameter( parameter, false,
                                                            null ) ) {
-          remove( e.getKey() );
+          detach( e.getKey() );
         }
       }
     }
@@ -777,9 +779,29 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return setValueMethod2;
   }
 
-  public Pair< Object, T > getTimeAndValueOfEffect( Effect effect,
-                                                    Method method1,
-                                                    Method method2 ) {
+  public <TT> Pair< Timepoint, TT > getTimepointAndValueOfEffect( Effect effect,
+                                                                  Method method1,
+                                                                  Method method2 ) {
+    Pair< Object, TT > p1 = getTimeAndValueOfEffect( effect, method1, method2 );
+    if ( p1 == null ) return null;
+    Object t = p1.first;//effectFunction.arguments.get( 0 );
+    TT value = p1.second;
+    Timepoint tp = null;
+    if ( t instanceof Integer ) {
+      tp = makeTempTimepoint( (Integer)t, true );
+    } else if ( t instanceof Timepoint ) {
+      tp = (Timepoint)t;
+    } else {
+      System.err.println( "Effect(" + effect + ") has wrong arguments to "
+                          + method1.getName() + " for " + this );
+      return null;
+    }
+    Pair< Timepoint, TT > p2 = new Pair( tp, value );
+    return p2;
+  }
+  public <TT> Pair< Object, TT > getTimeAndValueOfEffect( Effect effect,
+                                                          Method method1,
+                                                          Method method2 ) {
     if ( !( effect instanceof EffectFunction ) ) {
       return null;
     }
@@ -796,13 +818,13 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
         Object t = effectFunction.arguments.get( 0 );
         Object o = effectFunction.arguments.get( 1 );
-        T value = null;
+        TT value = null;
         try {
-          value = (T)o;
+          value = (TT)o;
         } catch( Exception e ) {
           //e.printStackTrace();
         }
-        return new Pair< Object, T >( t, value ); 
+        return new Pair< Object, TT >( t, value ); 
       }
     }
     return null;

@@ -137,6 +137,11 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     for ( int i = 0; i < args.size(); ++i ) {
       Object unevaluatedArg = args.get( i );
       if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
+//      if ( paramTypes.length == 0 ) {
+//        System.err.println("evaluateArgs() " + args + " don't match parameters " + Utils.toString(paramTypes, false) );
+//        break;
+//      }
+//      Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
       Class< ? > c = paramTypes[ i ];
       argObjects[i] = unevaluatedArg;
       if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): parameter type = " + c.getName() );
@@ -204,6 +209,7 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     if ( pair.first ) return false;
     seen = pair.second;
     
+    // TODO -- use HasParameters.Helper!!
     boolean subbed = false;
     if ( p1 == object ) {
       object = p2;
@@ -234,34 +240,37 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    Set< Parameter< ? >> set = new HashSet< Parameter< ? >>();
-    if ( object instanceof Parameter< ? > ) {
-      set.add( (Parameter< ? >)object );
-    }
-    if ( deep && object instanceof HasParameters ) {
-      HasParameters gotParameters = (HasParameters)object;
-      set.addAll( gotParameters.getParameters( deep, seen ) );
-    }
-    if ( arguments != null ) {
-      for ( int i = 0; i < arguments.size(); ++i  ) {
-        Object a = arguments.get( i );
-        if ( a instanceof Parameter< ? > ) {
-          set.add( (Parameter< ? >)a );
-        } else if ( !deep && a instanceof Expression ) {
-          Expression<?> e = (Expression<?>)a;
-          if ( e.type == Expression.Type.Parameter ) {
-            set.add( (Parameter< ? >)e.expression );
-          }
-        }
-        if ( deep && a instanceof HasParameters ) {
-          HasParameters gotParameters = (HasParameters)a;
-          set.addAll( gotParameters.getParameters( deep, seen ) );
-        }
-      }
-    }
-    if ( nestedCall != null && nestedCall.getValue() != null ) {
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
+    set.addAll( HasParameters.Helper.getParameters( object, deep, seen ) );
+//    if ( object instanceof Parameter< ? > ) {
+//      set.add( (Parameter< ? >)object );
+//    }
+//    if ( deep && object instanceof HasParameters ) {
+//      HasParameters gotParameters = (HasParameters)object;
+//      set.addAll( gotParameters.getParameters( deep, seen ) );
+//    }
+    set.addAll( HasParameters.Helper.getParameters( arguments, deep, seen ) );
+//    if ( arguments != null ) {
+//      for ( int i = 0; i < arguments.size(); ++i  ) {
+//        Object a = arguments.get( i );
+//        if ( a instanceof Parameter< ? > ) {
+//          set.add( (Parameter< ? >)a );
+//        } else if ( !deep && a instanceof Expression ) {
+//          Expression<?> e = (Expression<?>)a;
+//          if ( e.type == Expression.Type.Parameter ) {
+//            set.add( (Parameter< ? >)e.expression );
+//          }
+//        }
+//        if ( deep && a instanceof HasParameters ) {
+//          HasParameters gotParameters = (HasParameters)a;
+//          set.addAll( gotParameters.getParameters( deep, seen ) );
+//        }
+//      }
+//    }
+    if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
-      set.addAll( nestedCall.getValue().getParameters( deep, seen ) );
+      set.addAll( HasParameters.Helper.getParameters( nestedCall, deep, seen ) );
+//      set.addAll( nestedCall.getValue().getParameters( deep, seen ) );
     }
     return set;
   }

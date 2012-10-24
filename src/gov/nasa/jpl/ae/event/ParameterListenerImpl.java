@@ -534,9 +534,15 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
-    s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( true,
+    s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( deep,
                                                                                  null ),
                                                                   deep, seen ) );
+    if ( deep ) {
+      s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
+                                                                    deep, seen ) );
+      s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
+                                                                    deep, seen ) );
+    }
     return s;
   }
 

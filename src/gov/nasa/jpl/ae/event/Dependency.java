@@ -41,7 +41,7 @@ import gov.nasa.jpl.ae.util.Utils;
 // constraints (& effects)?
 public class Dependency< T > 
              implements HasParameters, ParameterListener, Constraint,
-                        LazyUpdate, HasConstraints {
+                        LazyUpdate, HasConstraints, HasTimeVaryingObjects {
 
   protected Parameter< T > parameter;
   protected Expression< T > expression;
@@ -132,7 +132,7 @@ public class Dependency< T >
     } else {
       T value = expression.evaluate(false);
       T pValue = parameter.getValueNoPropagate();
-      sat = Parameter.valuesEqual( pValue, value );//pValue == value || ( pValue != null && pValue.equals( value ) );
+      sat = Utils.valuesEqual( pValue, value );//pValue == value || ( pValue != null && pValue.equals( value ) );
       if ( !sat ) {
         parameter.setStale( true );
         if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter value (" + pValue
@@ -251,7 +251,7 @@ public class Dependency< T >
     if ( variable == this.parameter ) {
       Object value = variable.getValue( false ); // DON'T CHANGE false
       if ( refresh( this.parameter ) ) {
-        if ( !Parameter.valuesEqual( variable.getValue( true ), value ) ) { // DON'T CHANGE true
+        if ( !Utils.valuesEqual( variable.getValue( true ), value ) ) { // DON'T CHANGE true
           if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") returning refreshed value" );
           return true;
         }
@@ -423,7 +423,7 @@ public class Dependency< T >
 
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
-    if ( expression.hasParameter( changedParameter, false, null ) ) {
+    if ( expression.hasParameter( changedParameter, true, null ) ) {
       parameter.setStale( true );
     }
   }
@@ -469,6 +469,19 @@ public class Dependency< T >
         set.addAll( pSet );
       }
     }
+    return set;
+  }
+
+  @Override
+  public Set< TimeVarying< ? > >
+      getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
+    Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+    set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
+    set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     return set;
   }
 

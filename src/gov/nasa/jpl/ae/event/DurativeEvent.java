@@ -707,7 +707,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set< Effect > effectSet = null;
     //Pair< Parameter< ? >, Set< Effect >> p = null;
     for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
-      if ( Parameter.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
+      if ( Utils.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
         //p = pp;
         effectSet = pp.second;
         break;
@@ -727,7 +727,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public void addEffects( Parameter< ? > sv, Set<Effect> set ) {
     Set< Effect > effectSet = null;
     for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
-      if ( Parameter.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
+      if ( Utils.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
         effectSet = pp.second;
         break;
       }
@@ -741,7 +741,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     if ( Debug.isOn() ) {
       for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
-        if ( Parameter.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
+        if ( Utils.valuesEqual( pp.first.getValue(), sv.getValue() ) ) {
           effectSet = pp.second;
           for ( Effect effect : effectSet ) {
             if ( effect instanceof EffectFunction ) {

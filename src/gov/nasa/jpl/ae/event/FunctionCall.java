@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.util.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -239,6 +240,10 @@ public class FunctionCall extends Call {
   
   @Override
   public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    if ( !Modifier.isStatic( method.getModifiers() )  && object == null ) {
+      System.err.println("Warning! Tried to invoke a non-static method without an instance! " + this );
+      return null;
+    }
     Object result = method.invoke( object, evaluatedArgs ); 
     return result;
   }

@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
@@ -33,9 +35,10 @@ import junit.framework.Assert;
 public class Expression< ResultType >
                                     implements HasParameters, Groundable,
                                                LazyUpdate, Satisfiable,
-                                               HasDomain {//, Comparable< Expression< ? > > {
+                                               HasDomain, HasTimeVaryingObjects {//, Comparable< Expression< ? > > {
 	public Object expression = null;
-	public Type type = Type.None;
+  public Type type = Type.None;
+	public Class<? extends ResultType> resultType = null;//Type.None;
   // freeParameters if not null specifies which parameters can be reassigned
   // values for satisfy().
   protected Set< Parameter< ? > > freeParameters = null;
@@ -71,6 +74,9 @@ public class Expression< ResultType >
 	 */
 	public Expression( ResultType value ) {
 		this.expression = value;
+		if ( value != null ) {
+		  resultType = (Class< ? extends ResultType >)value.getClass();
+		}
 		type = Type.Value;
 	}
 
@@ -79,6 +85,9 @@ public class Expression< ResultType >
 	 */
 	public Expression( Parameter< ResultType > parameter ) {
 		this.expression = parameter;
+		if ( parameter != null && parameter.getValueNoPropagate() != null ) {
+		  resultType = (Class< ? extends ResultType >)parameter.getValueNoPropagate().getClass();
+		}
 		type = Type.Parameter;
 	}
 
@@ -95,6 +104,9 @@ public class Expression< ResultType >
 	 */
 	public Expression( FunctionCall function ) {
 		this.expression = function;
+		if ( function != null && function.method != null ) {
+		  resultType = (Class< ? extends ResultType >)function.method.getReturnType();
+		}
 		type = Type.Function;
 	}
 	
@@ -103,6 +115,9 @@ public class Expression< ResultType >
    */
   public Expression( ConstructorCall constructor ) {
     this.expression = constructor;
+    if ( constructor != null ) {
+      resultType = (Class< ? extends ResultType >)constructor.thisClass;
+    }
     type = Type.Constructor;
   }
   
@@ -112,6 +127,7 @@ public class Expression< ResultType >
 //	}
 	public Expression( Expression<ResultType> e, boolean deep ) {
 		this.type = e.type;
+		this.resultType = e.resultType;
 		if ( !deep ) {
 		  expression = e.expression;
 		} else {
@@ -139,10 +155,10 @@ public class Expression< ResultType >
 	
 	// default shallow
   public Expression( Expression<ResultType> e ) {
-    this.expression = e.expression;
-    this.type = e.type;
+    this(e, false);
   }
-  
+
+  // REVIEW -- What if resultType == Expression.class?
 	public ResultType evaluate( boolean propagate ) {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	  if ( type == null || ( type != Type.None && expression == null ) ) {
 	    return null;
@@ -159,15 +175,48 @@ public class Expression< ResultType >
 		case Value:
 			return (ResultType)expression;
 		case Parameter:
-		  if ( propagate )
-		    return ((Parameter<ResultType>)expression).getValue();
-      return ((Parameter<ResultType>)expression).getValueNoPropagate();
-//		case Method:
-//			return (ResultType)((Method)expression).invoke(null, (Object[])null);
+          Parameter< ? > p = (Parameter< ? >)expression;
+          while ( p != null ) {
+            Object o = null;
+            ResultType r = null;
+            if ( propagate ) {
+              o = p.getValue();
+            } else {
+              o = p.getValueNoPropagate();
+            }
+            try {
+              if ( resultType != null ) {
+                if ( resultType.isInstance( o ) ) {
+                  return (ResultType)o;
+                } else {
+                  throw new ClassCastException();
+                }
+              }
+              if ( o instanceof Parameter ) {
+                p = (Parameter< ? >)o;
+              } else if ( o instanceof Expression ) {
+                return ( (Expression<ResultType>)o ).evaluate( propagate );
+              } else {
+                r = (ResultType)o;
+                return r;
+              }
+            } catch ( ClassCastException cce ) {
+              if ( o instanceof Parameter ) {
+                p = (Parameter< ? >)o;
+              } else if ( o instanceof Expression ) {
+                return ( (Expression<ResultType>)o ).evaluate( propagate );
+              } else {
+                Debug.error( false, "Could not cast result of expression evaluation to ResultType: " + this );
+                cce.printStackTrace();
+              }
+            }
+          }
+//		    return ((Parameter<ResultType>)expression).getValueNoPropagate();
+////		case Method:
+////			return (ResultType)((Method)expression).invoke(null, (Object[])null);
 		case Constructor:
-			return (ResultType)((ConstructorCall)expression).evaluate( propagate );
     case Function:
-      return (ResultType)((FunctionCall)expression).evaluate( propagate );
+			return (ResultType)((Call)expression).evaluate( propagate );
 		default:
 			return null;
 		}
@@ -420,6 +469,28 @@ public class Expression< ResultType >
       }
       return null; // TODO -- REVIEW -- exit?
     }
+  }
+
+  @Override
+  public Set< TimeVarying< ? >>
+      getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
+    // TODO -- use HasParameters.Helper!!
+    Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    Set< TimeVarying<?> > set = new HashSet< TimeVarying<?> >();
+    set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
+    // REVIEW -- We could make Call extend HasTimeVaryingObject, but it seems
+    // like everybody has to know about everybody!
+    // What about a general Has that has a get( Class<?> c, deep, seen )?
+    // Consider again using reflection to go through members?
+    if ( deep && ( type == Type.Function || type == Type.Constructor ) ) {
+      Call call = (Call)expression;
+      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getObject(), deep, seen ) );
+      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getArguments(), deep, seen ) );
+    }
+    return set;
   }
   
 }

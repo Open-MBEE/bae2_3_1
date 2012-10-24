@@ -221,10 +221,6 @@ public class Parameter< T > implements Cloneable, Groundable,
     return value == otherValue || ( value != null && value.equals( otherValue ) );
   }
   
-  public static <T1, T2> boolean valuesEqual( T1 v1, T2 v2 ) {
-    return v1 == v2 || ( v1 != null && v1.equals( v2 ) );
-  }
-  
   @Override
   public void setValue( T value ) {
     setValue( value, true ); // TODO -- REVIEW -- use a global usingLazyUpdate?

@@ -24,21 +24,35 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.ListUtils;
+
+//import org.apache.commons.lang.StringUtils;
 
 /**
  * A set of miscellaneous utility functions.
  */
 public class Utils {
   
+  // static members
+  
   public static ClassLoader loader = null;
+  
+  // empty collection constants
+  @SuppressWarnings( "rawtypes" )
+  public static final List<?> emptyList = new ArrayList( 0 );
+  @SuppressWarnings( "unchecked" )
+  public static <T> List<T> getEmptyList() {
+    return (List< T >)emptyList;
+  }  
   @SuppressWarnings( "rawtypes" )
   public static final Set<?> emptySet = new TreeSet();
+  @SuppressWarnings( "unchecked" )
   public static <T> Set<T> getEmptySet() {
     return (Set< T >)emptySet;
   }  
   @SuppressWarnings( "rawtypes" )
   public static final Map<?,?> emptyMap = new TreeMap();
+  @SuppressWarnings( "unchecked" )
   public static <T1,T2> Map<T1,T2> getEmptyMap() {
     return (Map< T1, T2 >)emptyMap;
   }
@@ -403,7 +417,8 @@ public class Utils {
                                             ClassLoader myLoader ) {
     if ( Debug.isOn() ) Debug.outln( "trying tryClassForName( " + className + " )");
     Class< ? > classForName = null;
-    if ( myLoader == null ) myLoader = getLoader(); 
+    if ( myLoader == null ) myLoader = loader; 
+    if ( myLoader == null ) myLoader = gov.nasa.jpl.ae.event.Expression.class.getClassLoader(); 
     try {
       if ( myLoader == null ) {
         classForName = Class.forName( className );
@@ -422,24 +437,6 @@ public class Utils {
     return classForName;
   }
 
-  /**
-   * @return the loader
-   */
-  public static ClassLoader getLoader() {
-    if ( loader == null ) {
-      loader = gov.nasa.jpl.ae.util.Utils.class.getClassLoader();//fileManager.getClassLoader(null);
-    }
-    if ( loader == null ) {
-      loader = ClassLoader.getSystemClassLoader();
-    }
-    return loader;
-  }
-
-  public static Package getPackage( String packageName ) {
-    Package pkg = Package.getPackage( packageName );
-    return pkg;
-  }
-  
   public static Class<?> getClassOfClass( String clsOfClsName,
                                           String preferredPackageName,
                                           boolean initialize ) {
@@ -494,27 +491,11 @@ public class Utils {
     }
     return null;
   }
-
-  public static List<Package> getPackagesForNames( Collection< String > packageNames ) {
-    ArrayList<Package> packages = new ArrayList< Package >();
-    for ( String pkgName : packageNames ) {
-      Package pkg = getPackage( pkgName );
-      if ( pkg != null ) packages.add( pkg );
-    }
-    return packages;
-  }
   
   public static Class<?> getClassForName( String className,
                                           String preferredPackage,
                                           boolean initialize ) {
-    String[] packageNames = new String[] { preferredPackage, "gov.jpl.nasa.ae" };
-    List<Package> packages = getPackagesForNames( Arrays.asList( packageNames ) );
-    Package pkg = gov.nasa.jpl.ae.util.Utils.class.getPackage();
-    packages.add( pkg );
-    Package[] pkgArray = new Package[packages.size()];
-    toArrayOfType( packages.toArray(), pkgArray, Package.class );
-    List< Class<?>> classList = getClassesForName( className, initialize, getLoader(),
-                                                   pkgArray );
+    List< Class<?>> classList = getClassesForName( className, initialize );
     if ( !isNullOrEmpty( classList ) ) {
       for ( Class< ? > c : classList ) {
         if ( c.getPackage().getName().equals( preferredPackage ) ) {
@@ -531,9 +512,9 @@ public class Utils {
 //  }
   
   public static List< Class< ? > > getClassesForName( String className,
-                                                      boolean initialize,// ) {
-                                                      ClassLoader loader,
-                                                      Package[] packages) {
+                                                      boolean initialize ) {
+//                                                    ClassLoader loader,
+//                                                    Package[] packages) {
     List< Class< ? > > classList = new ArrayList< Class< ? > >();
     if ( Utils.isNullOrEmpty( className ) ) return null;
 //    ClassLoader loader = Utils.class.getClassLoader();
@@ -551,7 +532,7 @@ public class Utils {
 //      }
 //    }
     if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " )" );
-    Class< ? > classForName = tryClassForName( className, initialize, loader );
+    Class< ? > classForName = tryClassForName( className, initialize );//, loader );
     if ( classForName != null ) classList.add( classForName );
     String strippedClassName = noParameterName( className );
     if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): strippedClassName = "
@@ -560,19 +541,19 @@ public class Utils {
     if ( !Utils.isNullOrEmpty( strippedClassName ) ) {
       strippedWorthTrying = !strippedClassName.equals( className ); 
       if ( strippedWorthTrying ) {
-        classForName = tryClassForName( strippedClassName, initialize, loader );
+        classForName = tryClassForName( strippedClassName, initialize );//, loader );
         if ( classForName != null ) classList.add( classForName );
       }
     }
-    List<String> FQNs = getFullyQualifiedNames( className, packages );
+    List<String> FQNs = getFullyQualifiedNames( className );//, packages );
     if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): fully qualified names = "
         + FQNs );
     if ( FQNs.isEmpty() && strippedWorthTrying ) {
-      FQNs = getFullyQualifiedNames( strippedClassName, packages );
+      FQNs = getFullyQualifiedNames( strippedClassName );//, packages );
     }
     if ( !FQNs.isEmpty() ) {
       for ( String fqn : FQNs ) {
-        classForName = tryClassForName( fqn, initialize, loader );
+        classForName = tryClassForName( fqn, initialize );//, loader );
         if ( classForName != null ) classList.add( classForName );
       }
     }
@@ -580,32 +561,13 @@ public class Utils {
   }
   
   public static Collection<String> getPackageStrings(Package[] packages) {
-    List<String> packageStrings = new ArrayList<String>();
-    if ( !isNullOrEmpty( packages ) ) {
+    Set<String> packageStrings = new HashSet<String>();
+    if ( isNullOrEmpty( packages ) ) {
+      packages = Package.getPackages();
     }
-    if ( !isNullOrEmpty( packages ) ) {
-      for (Package aPackage : packages ) {
-        if ( aPackage != null ) {
-          if ( !packageStrings.contains( aPackage.getName() ) ) {
-            packageStrings.add(aPackage.getName());
-          }
-        }
-      }
+    for (Package aPackage : packages ) {
+      packageStrings.add(aPackage.getName());
     }
-    packages = Package.getPackages();
-    if ( !isNullOrEmpty( packages ) ) {
-      for (Package aPackage : packages ) {
-        if ( aPackage != null ) {
-          if ( !packageStrings.contains( aPackage.getName() ) ) {
-            packageStrings.add(aPackage.getName());
-          }
-        }
-      }
-    }
-
-    if ( Debug.isOn() ) Debug.out( "getPackageStrings("
-                                   + toString( packages, false ) + ") = "
-                                   + packageStrings );
     return packageStrings;
   }
   
@@ -936,11 +898,12 @@ public class Utils {
     //     org.apache.commons.lang.
     //     java.util?
     Class< ? >[] classes =
-        new Class< ? >[] { Math.class, StringUtils.class, Integer.class,
-                          Double.class, Character.class, Boolean.class,
-                          String.class,
-                          org.apache.commons.lang.ArrayUtils.class,
-                          Arrays.class };
+        new Class< ? >[] { Math.class, //StringUtils.class,
+                           Integer.class,
+                           Double.class, Character.class, Boolean.class,
+                           String.class,
+                           //org.apache.commons.lang.ArrayUtils.class,
+                           Arrays.class };
     for ( Class<?> c : classes ) {
       Method m = getMethodForArgTypes( c, functionName, argTypes );
       if ( m != null ) return m;
@@ -1124,6 +1087,20 @@ public class Utils {
     collection.toArray( a );
     return scramble( a );
   }
+
+  /**
+   * @param o
+   * @param T
+   * @return the number of occurrences of o in the Collection c
+   */
+  public static < T > int occurrences( T value, Collection< T > c ) {
+    if ( c == null ) return 0;
+    int ct = 0;
+    for ( T o : c ) {
+      if ( valuesEqual( o, value ) ) ct++;
+    }
+    return ct;
+  }
   
   public static String addTimestampToFilename( String fileName ) {
     int pos = fileName.lastIndexOf( '.' );
@@ -1136,5 +1113,9 @@ public class Utils {
     String newFileName = prefix + Timepoint.timestampForFile() + suffix;
     return newFileName;
   }
-  
+
+  public static <T1, T2> boolean valuesEqual( T1 v1, T2 v2 ) {
+    return v1 == v2 || ( v1 != null && v1.equals( v2 ) );
+  }
+
 }
