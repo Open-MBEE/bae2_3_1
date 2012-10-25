@@ -835,6 +835,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return isApplied(effect, getSetValueMethod1(), getSetValueMethod1()//getSetValueMethod2()
                      );
   }
+  // FIXME -- TODO -- should check to see if value matches!!!
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();
     if ( Debug.isOn() ) isConsistent();

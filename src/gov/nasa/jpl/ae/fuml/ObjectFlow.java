@@ -10,6 +10,8 @@ import java.util.SortedMap;
 
 import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
+import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.util.Debug;
@@ -64,6 +66,14 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
    */
   public void addListener( ObjectFlow< Obj > objectFlow ) {
     getListeners().add( objectFlow );
+  }
+  
+  public void sendIf( Obj o, Timepoint t, boolean doSend ) {
+    if ( doSend ) {
+      send( o, t );
+    } else if ( isSetValueApplied(o, t) ) {
+      unsetValue(t, o);
+    }
   }
   
   public void send( Obj o, Timepoint t ) {
@@ -160,6 +170,16 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public boolean isApplied( Effect effect ) {
     breakpoint();
     if ( effect == null ) return false;
+//    EffectFunction effectFunction = null;
+//    if ( effect instanceof EffectFunction ) {
+//      effectFunction = (EffectFunction)effect;
+//    }
+    //HERE!!! TODO!!
+//    if ( effectFunction.getMethod() != null && effectFunction.getMethod().getName() != null
+//        && effectFunction.getMethod().getName().equals("sendIf") ) {
+//      Expression<Boolean> = new Expression<Boolean>(effectFunction.getArguments().get( 2 ));
+//      if ( effectFunction.getArguments().size() == 3 ) && .  
+//    }
     if ( isApplied(effect, getSendMethod1(), getSendMethod1()//getSendMethod2()
                    ) ) {
       return true;
@@ -189,14 +209,19 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       return false;
     }
 
-    // Is setValue() applied?
+    // Is sendIf() applied
+    if ( effectFunction.getMethod().getName().equals("sendIf") ) {
+      return isSendIfApplied( effectFunction );
+    }
+
+    // Is method (send()?) applied?
     boolean isMethod1 = effectFunction.getMethod().equals(method1);
     boolean isMethod2 =  effectFunction.getMethod().equals( method2);
     if ( isMethod1  || isMethod2 ) {
       return isSetValueApplied( effectFunction );
     }
     
-    // Is setValue() applied
+    // Is receive() applied
     if ( effectFunction.getMethod().getName().equals("receive") ) {
       return isReceiveApplied( (Timepoint)effectFunction.getArguments().get( 0 ) );
     }
@@ -205,24 +230,59 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   // TODO -- This looks like it would work generically in TimeVaryingMap.
   // TODO -- Move it there.
+  public boolean isSendIfApplied( EffectFunction effectFunction ) {
+    if ( effectFunction.getArguments() != null
+         && effectFunction.getArguments().size() >= 3 ) {
+//     Object o = effectFunction.getArguments().get( 0 );
+//     Object t = (Timepoint)effectFunction.getArguments().get( 1 );
+     Object b = (Timepoint)effectFunction.getArguments().get( 2 );
+     Boolean doSend = new Boolean( true );
+      // TODO -- need to treat all arguments like this -- need a static
+      // Expression.evaluateArg(Class<?>, arg)
+     while ( !( b == null || b instanceof Boolean || b.getClass() == boolean.class ) ) {
+       if ( b instanceof Parameter ) {
+         b = ((Parameter<?>)b).getValue();
+       }
+       if ( b instanceof Expression ) {
+         b = ((Expression)b).evaluate( false );
+       }
+     }
+     if ( b == null ) return false;
+     if ( b instanceof Boolean || b.getClass() == boolean.class ) {
+       doSend = (Boolean)b;
+     } else {
+       return false;
+     }
+     if ( !doSend ) return true;
+     return isSetValueApplied( effectFunction );
+    }
+    return false;
+  }
+  
+  public boolean isSetValueApplied( Object v, Object timepoint ) {
+    Obj value = null;
+    try {
+      value = (Obj)v;
+    } catch( Exception e ) {
+      //e.printStackTrace();
+    }
+    if ( value != null ) {
+      if ( timepoint instanceof Timepoint ) {
+        return hasValueAt( value, (Timepoint)timepoint );
+      } if ( timepoint instanceof Integer ) {
+        return hasValueAt( value, (Integer)timepoint );
+      }
+    }
+    return false;
+  }
+  // TODO -- This looks like it would work generically in TimeVaryingMap.
+  // TODO -- Move it out of here.
   public boolean isSetValueApplied( EffectFunction effectFunction ) {
     if ( effectFunction.getArguments() != null
          && effectFunction.getArguments().size() >= 2 ) {
      Object o = effectFunction.getArguments().get( 0 );
      Object t = (Timepoint)effectFunction.getArguments().get( 1 );
-     Obj value = null;
-     try {
-       value = (Obj)o;
-     } catch( Exception e ) {
-       //e.printStackTrace();
-     }
-     if ( value != null ) {
-       if ( t instanceof Timepoint ) {
-         return hasValueAt( value, (Timepoint)t );
-       } if ( t instanceof Integer ) {
-         return hasValueAt( value, (Integer)t );
-       }
-     }
+     return isSetValueApplied( o, t );
     }
     return false;
   }
