@@ -231,17 +231,20 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + value + ") start: " + this );
     assert !propagateChange || mayPropagate;
     assert mayChange;
+    if ( value instanceof Parameter && domain != null && !domain.getType().isInstance( value ) ) {
+      Object valVal = ((Parameter<?>)value).getValue(propagateChange);
+      T castVal = null;
+      try {
+        castVal = (T)valVal;
+        setValue( castVal, propagateChange );
+      } catch ( ClassCastException cce ) {
+        cce.printStackTrace();
+      }
+      return;
+    }
     boolean changing = !valueEquals( value );
     if ( changing ) {
-      if ( !propagateChange ) {
-        assert true;
-      }
-      if ( getOwner() != null && getOwner().getName().contains("addstructUsage")
-          && getName() != null && getName().contains("startTime")
-          || ( value != null && value.equals( 84051 ) ) ) {
-        if ( Debug.isOn() ) Debug.out( "" );
-      }
-       if ( owner != null ) {//&& propagateChange ) {
+      if ( owner != null ) {//&& propagateChange ) {
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this );
       }
