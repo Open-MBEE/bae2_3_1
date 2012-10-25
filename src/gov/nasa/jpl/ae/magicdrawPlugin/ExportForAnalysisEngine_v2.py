@@ -924,11 +924,13 @@ class actionEventClass(object):
 		gl.log("SETTING UP SIGNALS FOR %s" % self.getPrettyIdent(node))
 		for f in self.allSignals[node]["out"]:
 			(obtype,obtypename) = self.getObtypeName(f,node)
+			next = self.getNext(f)
 			if isinstance(f.source,Pin):
 				self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % f.source.getID())
 				self.members[f.source.getID()] = (obtypename,None,"NEW initialize output pin members")
 			else:
-				self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % "objectToPass")
+				if isinstance(node,DecisionNode): self.effects.append("sig" + f.getID() + ".sendIf(%s,endTime,%s_exists)" % ("objectToPass",next.getID()))
+				else: self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % "objectToPass")
 				if obtype is "Control":	self.dependencies["objectToPass"]=("Boolean","true")
 				self.members["objectToPass"] = (obtypename,None,"NEW initialize objectToPass")
 				if not obtype: gl.log("===> HAS NO FLOW TYPE")
@@ -1304,6 +1306,7 @@ def translateClass(classThingy,l):
 	logAndExport(l+1,"import","gov.nasa.jpl.ae.event.Timepoint")
 	logAndExport(l+1,"import","gov.nasa.jpl.ae.fuml.ObjectFlow")
 	logAndExport(l+1,"import","gov.nasa.jpl.ae.event.TimeVaryingList")
+	logAndExport(l+1,"import","java.lang.Math")
 	writeMembers(classThingy,l+1)
 	writeConstructor(classThingy,l+1)
 	
