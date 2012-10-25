@@ -848,6 +848,16 @@ class actionEventClass(object):
 		elif myType == "Activity Final Node":
 			self.dependencies["endTime"] = ("Integer","startTime+duration")
 			self.dependencies["finalNode_endTime"] = ("Integer","endTime")
+		
+		elif myType == "Merge Node": 
+			tname = "Object"
+			try:
+				nextkey = self.nexts[node].keys()[0]
+				nextFlow = self.nexts[node][nextkey]
+				(t,tname) = self.getObtypeName(nextFlow, node)
+			except: gl.log('ARRGHAHGHAHGHAHG')
+			self.members["receiveThis"] = ("ObjectFlow&lt;%s&gt;" % tname,None,"Anonymous receive for invoker!")
+			
 				
 	def setUpBasicElaborationsAndDependencies(self,node):
 		for n in self.nexts[node].keys():
@@ -892,6 +902,8 @@ class actionEventClass(object):
 						"args": [("startTime","endTime+2","Integer")],
 						"conditions": {"exists":existscon},
 						"enclosingClass" : self.enclosingClass}
+			if isinstance(n,MergeNode):
+				self.elaborations[n]["args"].append(("receiveThis","sig%s" % nFlow.getID(),"ObjectFlow"))
 			
 	def getObtypeName(self,f,node):					
 		obtype = self.feet[f]
@@ -927,6 +939,7 @@ class actionEventClass(object):
 		for f in self.allSignals[node]["in"]:
 			gl.log("	INPUT SIGNAL - need a receive")
 			(obtype,obtypename) = self.getObtypeName(f,node)
+			if isinstance(node,MergeNode): continue
 			if isinstance(f.target,Pin):
 				self.dependencies[f.target.getID()] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
 				self.members[f.target.getID()] = (obtypename,None,"NEW initialize input pin members")
@@ -942,6 +955,10 @@ class actionEventClass(object):
 				gl.log("		-set up receive dependency for %s" % targetVar)
 				if not targetVar in self.members.keys(): self.members[targetVar] = (obtypename,None,"NEW - INTIALIZE TARGETVAR (if not there already)")
 				targetVar = oTargetVar
+		if isinstance(node,MergeNode):
+			self.members["objectToPass"] = (obtypename,None,"ObjectToPass-mergenode")
+			self.dependencies["objectToPass"] = (obtypename,"receiveThis.receive(startTime)")
+			self.members["receiveThis"] = ("ObjectFlow",None,"anonymous object flow for merge nodes")
 				
 				
 	
