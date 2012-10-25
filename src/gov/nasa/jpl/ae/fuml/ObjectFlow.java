@@ -235,7 +235,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
          && effectFunction.getArguments().size() >= 3 ) {
 //     Object o = effectFunction.getArguments().get( 0 );
 //     Object t = (Timepoint)effectFunction.getArguments().get( 1 );
-     Object b = (Timepoint)effectFunction.getArguments().get( 2 );
+     Object b = effectFunction.getArguments().get( 2 );
      Boolean doSend = new Boolean( true );
       // TODO -- need to treat all arguments like this -- need a static
       // Expression.evaluateArg(Class<?>, arg)
