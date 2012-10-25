@@ -1159,7 +1159,9 @@ def run(s):
 	homeDir = os.getenv('HOME')
 	if homeDir == None:
 		homeDir = os.getcwd()
-	log_dir = os.path.join(homeDir,'LADWP_LOGS')
+	log_dir = homeDir
+	if 'LADWP_LOGS' not in homeDir:
+		log_dir = os.path.join(homeDir,'LADWP_LOGS')
 	if not os.path.exists(log_dir):
 		try: os.mkdir(log_dir)
 		except: #this won't do much if you're running in batch mode...
@@ -1178,7 +1180,7 @@ def run(s):
 		log_file.close
 	#data=inspectClassifier(firstSelected,None,data)
 	log_file.close()
-	latestDir = "latest"
+	latestDir = str(os.getcwd()) + os.sep + "latest"
 	if not os.path.exists(latestDir):
 		try: os.mkdir(latestDir)
 		except: #this won't do much if you're running in batch mode...

@@ -49,7 +49,6 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     return false;
   }
 
-  // TODO -- this overlaps a lot with FunctionCall.evaluate()
   // TODO -- consider an abstract Call class
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     // IllegalAccessException, InvocationTargetException {
@@ -63,7 +62,18 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
       }
     }
     Object result = null;
+    
+    // evaluate the arguments before invoking the method on them
     Object evaluatedArgs[] = evaluateArgs( propagate );
+    
+    // evaluate the object, whose method will be invoked from a nested call
+    if ( nestedCall != null && nestedCall.getValue() != null ) {
+      // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
+      // making this a dependency.  Cached newObject of constructor is similar.
+//    if ( propagate || object == null ) {
+      object = nestedCall.getValue().evaluate( propagate );
+//      }
+    }
     try {
       if ( Debug.isOn() ) Debug.outln( "About to invoke a " + getClass().getSimpleName() + ": " + this );
       if ( object != null ) {
@@ -106,10 +116,10 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    if ( result != null && nestedCall != null && nestedCall.getValue() != null ) {
-      nestedCall.getValue().object = result;
-      result = nestedCall.getValue().evaluate( propagate );
-    }
+//    if ( result != null && nestedCall != null && nestedCall.getValue() != null ) {
+//      nestedCall.getValue().object = result;
+//      result = nestedCall.getValue().evaluate( propagate );
+//    }
     if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + result );
     return result;
   }
@@ -313,6 +323,7 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
       }
     }
     if ( nestedCall != null ) {
+      if ( object == null ) return false;
       if ( !nestedCall.isGrounded( deep, seen ) ) return false;
     }
     return true;
@@ -343,6 +354,13 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     if ( nestedCall != null ) {
       if ( !nestedCall.ground( deep, seen ) ) {
         grounded = false;
+      } else if ( object == null ) {
+        if ( nestedCall.getValue() == null ) {
+          grounded = false;
+        } else {
+          object = nestedCall.getValue().evaluate( deep );
+          if ( object == null ) grounded = false;
+        }
       }
     }
     return grounded;
@@ -351,6 +369,15 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
   @Override
   public String toString() {
     StringBuffer sb = new StringBuffer();
+    if ( nestedCall != null ) {
+      sb.append( //"nested::" + 
+                 nestedCall.toString() );
+      if ( object != null ) {
+        sb.append( "-->");
+      } else {
+        sb.append( "." );
+      }
+    }
     if ( object != null ) {
       if ( object instanceof DurativeEvent ) {
         sb.append( ((DurativeEvent)object).getName() + "." );
@@ -377,9 +404,9 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
       }
       sb.append( ")" );
     }
-    if ( nestedCall != null ) {
-      sb.append( "." + nestedCall.toString() );
-    }
+//    if ( nestedCall != null ) {
+//      sb.append( "." + nestedCall.toString() );
+//    }
     return sb.toString();
   }
 

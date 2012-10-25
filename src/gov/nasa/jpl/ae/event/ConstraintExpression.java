@@ -126,7 +126,7 @@ public class ConstraintExpression extends Expression< Boolean >
 //    }
     // TODO
 //    Set< Variable< ? > > vars = getVariables();
-    return ParameterConstraint.Helper.pickValue( this, v );
+    return false;//ParameterConstraint.Helper.pickValue( this, v );
   }
 
   @Override

@@ -41,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.Math;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -288,7 +289,9 @@ public class EventXmlToJava {
     if ( durationString == null || durationString.isEmpty() ) {
       if ( Debug.isOn() ) Debug.errln( "no duration specified; using default" );
     } else {
-      int secs = XmlUtils.getDurationInSeconds( durationString );
+      int secs = Math.max( 0, 1 );  // stupid class loader
+      secs = XmlUtils.getDurationInSeconds( durationString ) ;
+      
       Timepoint.setHorizonDuration( (int)(secs / Units.conversionFactor( Units.seconds )) );
     }
     System.out.println( "horizon duration = " + Timepoint.getHorizonDuration()

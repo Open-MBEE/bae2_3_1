@@ -87,8 +87,8 @@ public class TestEventXmlToJava {
     if ( pos == -1 ) {
       pos = 1;
     } else {
-      pos += 3;
-      directory = directory.substring( 0, pos ) + "src";
+      pos += 2;
+      directory = directory.substring( 0, pos ) + File.separator + "src";
     }
     if ( Debug.isOn() ) Debug.outln( "file \"" + xmlFileName + "\"" );
     if ( Debug.isOn() ) Debug.outln( "directory \"" + directory + "\"" );

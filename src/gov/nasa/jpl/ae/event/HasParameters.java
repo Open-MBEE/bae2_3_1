@@ -109,6 +109,8 @@ public interface HasParameters extends LazyUpdate {
       return false;
     }
     
+    static int dbgCt = 0;
+    
     // WARNING! Do not call from o.getParameters() -- infinite loop
     public static Set< Parameter< ? > > getParameters( Object o, 
                                                        boolean deep,
@@ -119,6 +121,13 @@ public interface HasParameters extends LazyUpdate {
         set.add( (Parameter< ? >)o );
         Object value = ( (Parameter< ? >)o ).getValueNoPropagate();
         if ( deep || value instanceof Parameter ) {
+          
+          if ( ++dbgCt % 100 == 0 ) {
+            Exception exception = new Exception();
+            if ( exception.getStackTrace().length > 180 ) {
+              System.out.print("");
+            }
+          }
           set.addAll( getParameters( value, deep, seen ) );
         }
       }

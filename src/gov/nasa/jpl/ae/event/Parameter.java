@@ -351,13 +351,13 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( o.value == null && value != null ) return 1;
     // REVIEW -- TODO -- doing weird stuff here!!!
     if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
-      System.err.println("Parameters of parameters!");
+      Debug.errln("Parameters of parameters!");
       Parameter<?> p = (Parameter)value;
       if ( !p.isGrounded( false, null ) ) return -1;
       return p.compareTo(o);
     }
     if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
-      System.err.println("Parameters of parameters!");
+      Debug.errln("Parameters of parameters!");
       Parameter<?> p = (Parameter)o.value;
       if ( !p.isGrounded( false, null ) ) return 1;
       return compareTo(p);
