@@ -629,7 +629,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       File file = new File( fileName );
 
       // write out simulation to file
-      System.out.println( "writing simulaton snapshot to "
+      System.out.println( "writing simulation snapshot to "
                           + file.getAbsolutePath() );
       try {
         System.out.println( "  which is the same as " + file.getCanonicalPath() );
@@ -1129,10 +1129,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public int compareTo( ParameterListenerImpl o ) {
     int compare = 0;//super.compareTo( o );
-    if ( compare != 0 ) return compare;
+    //if ( compare != 0 ) return compare;
     compare = getClass().getName().compareTo( o.getClass().getName() );
     if ( compare != 0 ) return compare;
-    if ( o instanceof DurativeEvent && this instanceof DurativeEvent) {
+    compare = Utils.compareTo( getName(), o.getName() );
+    if ( compare != 0 ) return compare;
+    if ( o instanceof DurativeEvent ) {
       Event oe = (DurativeEvent)o;
       compare = startTime.compareTo( oe.getStartTime() );
       if ( compare != 0 ) return compare;

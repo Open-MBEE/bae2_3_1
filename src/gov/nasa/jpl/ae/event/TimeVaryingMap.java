@@ -744,12 +744,12 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     int compare = 0;
     if ( o instanceof TimeVaryingMap ) {
       TimeVaryingMap<?> otvm = (TimeVaryingMap)o;
-      compare = getName().compareTo( otvm.getName() );
+      compare = Utils.compareTo( getName(), otvm.getName() );
       if ( compare != 0 ) return compare;
     }
-    compare = getClass().getName().compareTo( o.getClass().getName() );
+    Debug.err( "Warning: TimeVaryingMap.compareTo() may compare values, which, if changed while this is in a map, can corrupt the map." );
+    compare = Utils.compareTo( this, o ); // WARNING: values change!!!
     if ( compare != 0 ) return compare;
-    compare = Utils.intCompare( this.hashCode(), o.hashCode() );
     return compare;
   }
   

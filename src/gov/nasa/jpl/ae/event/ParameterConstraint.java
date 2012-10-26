@@ -140,18 +140,9 @@ public interface ParameterConstraint extends Constraint, HasParameters {
     }
 
    public static int compareTo( Object o, Constraint c ) {
-//     int compare = Utils.intCompare( o.hashCode(), c.hashCode() );
-//     if ( compare != 0 ) return compare;
-//     if ( o == c ) {
-//       return 0;
-//     }
-//     System.err.println("hash codes same but " + o + " != " + c );
-     return o.toString().compareTo( c.toString() );
-//   if ( o instanceof ConstraintExpression ) {
-//   ConstraintExpression oc = (ConstraintExpression)o;
-//   return this.toString().compareTo( oc.toString() );
-// }
-// return ((Object)this).getClass().getName().compareTo( o.getClass().getName() );
+     int compare = Utils.compareTo( o, c );
+     //if ( compare != 0 ) return compare;
+     return compare;
    }
    
   }

@@ -403,10 +403,16 @@ public class Expression< ResultType >
 
   // Not overriding since a superclass needs to implement a difft comparable,
   // and Java won't allow implementation of two difft Comparables!
+	// NOTE: Don't use hashCode() unless overridden -- default may vary between runs!
   //@Override
   public int compareTo( Expression< ? > o ) {
-    // TODO -- REVIEW -- Is this lame?
-    return toString().compareTo( o.toString() );
+    if ( this == o ) return 0;
+    if ( expression == o.expression ) return 0;
+    int compare = Utils.intCompare( type.ordinal(), o.type.ordinal() );
+    if ( compare != 0 ) return compare;
+    compare = Utils.compareTo( expression, o.expression, true );
+    if ( compare != 0 ) return compare;
+    return compare;
   }
 
   @Override
@@ -498,7 +504,7 @@ public class Expression< ResultType >
   }
 
   /**
-   * Evaluate or dig out the object of the given type cls from the object o,
+   * Evaluate/dig or wrap the object of the given type cls from the object o,
    * which may be a Parameter or an Expression.
    * 
    * @param object
@@ -510,23 +516,42 @@ public class Expression< ResultType >
    */
   public static <TT> TT evaluate( Object object, Class< TT > cls,
                                   boolean propagate ) throws ClassCastException {
+    return evaluate( object, cls, propagate, false );
+  }
+  public static <TT> TT evaluate( Object object, Class< TT > cls,
+                                  boolean propagate, boolean allowWrapping ) throws ClassCastException {
     if ( object == null ) return null;
-    if ( cls.isInstance( object ) ) {
+    // Check if object is already what we want.
+    if ( cls != null && cls.isInstance( object ) ) {
       return (TT)object;
     }
+    
+    // Try to evaluate object or dig inside to get the object of the right type. 
+    Object value = null;
     if ( object instanceof Parameter ) {
-      Object value = ( (Parameter)object ).getValue( propagate );
+      value = ( (Parameter)object ).getValue( propagate );
       return evaluate( value, cls, propagate );
-    }
-    if ( object instanceof Expression ) {
-      Object value = ( (Expression<?>)object ).evaluate( propagate );
+    } else if ( object instanceof Expression ) {
+      Expression< ? > expr = (Expression<?>)object;
+      if ( cls.isInstance( expr.expression ) ) {
+        return (TT)expr.expression;
+      }
+      value = expr.evaluate( propagate );
       return evaluate( value, cls, propagate );
+      
+    } else if ( allowWrapping ){
+      // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
+      if ( cls.isAssignableFrom( Parameter.class ) ) {
+        return (TT)( new Parameter( null, null, object, null ) );
+      } else if ( cls.isAssignableFrom( Expression.class ) ) {
+        return (TT)( new Expression( object ) );
+      }
     }
     TT r = null;
     try {
       r = (TT)object;
     } catch ( ClassCastException cce ) {
-      Debug.errln( "Warning! " );
+      Debug.errln( "Warning! No evaluation of " + object + " with type " + cls.getName() + "!" );
       throw cce;
     }
     return r;

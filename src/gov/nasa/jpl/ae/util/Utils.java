@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.Timepoint;
+import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Random;
 import japa.parser.ast.body.Parameter;
 
@@ -23,8 +24,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import org.apache.commons.collections.ListUtils;
 
 //import org.apache.commons.lang.StringUtils;
 
@@ -572,10 +571,24 @@ public class Utils {
   }
   
   public static String simpleName( String longName ) {
-    int pos = longName.lastIndexOf( '.' );
+    int pos = longName.lastIndexOf( "." );
     return longName.substring( pos+1 ); // pos is -1 if no '.'
   }
 
+  /**
+   * Replace the last occurrence of the substring in s with the replacement. 
+   * @param s
+   * @param replacement
+   * @return the result of the replacement
+   */
+  public static String replaceLast( String s, String substring,
+                                    String replacement ) {
+    int pos = s.lastIndexOf(substring);
+    if ( pos == -1 ) return s;
+    return s.substring( 0, pos ) + replacement
+           + s.substring( pos + substring.length() );
+  }
+  
   public static String noParameterName( String longName ) {
     if ( longName == null ) return null;
     int pos = longName.indexOf( '<' );
@@ -1118,4 +1131,34 @@ public class Utils {
     return v1 == v2 || ( v1 != null && v1.equals( v2 ) );
   }
 
+  public static String toStringNoHash( Object o ) {
+    return o.toString().replace( Integer.toHexString(o.hashCode()), "" );
+  }
+
+  public static int compareToStringNoHash( Object o1, Object o2 ) {
+    int compare = Utils.toStringNoHash(o1).compareTo( Utils.toStringNoHash(o2) );
+    return compare;
+  }
+
+  public static <T1, T2> int compareTo( T1 o1, T2 o2, boolean checkComparable ) {
+    if ( o1 == o2 ) return 0;
+    if ( o1 == null ) return -1;
+    if ( o2 == null ) return 1;
+    int compare = o1.getClass().getName().compareTo( o2.getClass().getName() );
+    if ( compare != 0 ) return compare;
+    if ( checkComparable ) {
+      if ( o1 instanceof Comparable ) {
+        return ((Comparable<T2>)o1).compareTo( o2 ); 
+      }
+    }
+    compare = Utils.compareToStringNoHash( o1, o2 );
+    if ( compare != 0 ) return compare;
+    return compare;
+  }
+  public static int compareTo( Object o1, Object o2 ) {
+    return compareTo( o1, o2, false );  // default false to avoid infinite recursion
+  }
+  
+
+  
 }

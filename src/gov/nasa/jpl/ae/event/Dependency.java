@@ -351,15 +351,16 @@ public class Dependency< T >
 
   @Override
   public int compareTo( Constraint o ) {
-    if ( o instanceof Dependency ) {
-      Dependency< ? > od = (Dependency< ? >)o;
-      int compare = parameter.compareTo( od.parameter );
-      if ( compare != 0 ) return compare;
-      compare = expression.compareTo( od.expression );
-      if ( compare != 0 ) return compare;
-      return this.toString().compareTo( od.toString() );
-    }
-    return ((Object)this).getClass().getName().compareTo( o.getClass().getName() );
+    return getConstraintExpression().compareTo( o );
+//    if ( o instanceof Dependency ) {
+//      Dependency< ? > od = (Dependency< ? >)o;
+//      int compare = parameter.compareTo( od.parameter );
+//      if ( compare != 0 ) return compare;
+//      compare = expression.compareTo( od.expression );
+//      if ( compare != 0 ) return compare;
+//      return this.toString().compareTo( od.toString() );
+//    }
+//    return ((Object)this).getClass().getName().compareTo( o.getClass().getName() );
   }
 
   @Override

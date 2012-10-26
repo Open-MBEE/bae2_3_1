@@ -49,6 +49,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
     @Override
     public int compare( Object o1, Object o2 ) {
+      o1.toString();
       if ( o1 instanceof Pair && o2 instanceof Pair ) {
         Pair< ?, ? > p1 = (Pair< ?, ? >)o1;
         Pair< ?, ? > p2 = (Pair< ?, ? >)o2;
@@ -68,11 +69,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           }
         }
       }
-      int compare = o1.toString().compareTo( o2.toString() );
+      int compare = Utils.compareTo( o1, o2 );
       if ( compare != 0 ) return compare;
-      return Utils.intCompare( o1.hashCode(), o2.hashCode() );
+      return compare;
     }
-    
+
   }
 
 /* Running python from Java using PythonInterpreter, available from jython. 

@@ -121,6 +121,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( value == null ) return false;
     if ( val == null ) return false;
     if ( val instanceof Parameter && ( (Parameter)val ).valueEquals( value ) ) return true;
+    //if ( val instanceof Parameter ) return ( compareTo( (Parameter<?>)val ) == 0 );
     if ( value.equals( val ) ) return true;
     return false;
   }
@@ -221,41 +222,58 @@ public class Parameter< T > implements Cloneable, Groundable,
     return value == otherValue || ( value != null && value.equals( otherValue ) );
   }
   
+  public Class< ? > getType() {
+    if ( domain != null && domain.getType() != null ) {
+      return domain.getType();
+    }
+    if ( value != null ) {
+      return value.getClass();
+    }
+    return null;
+  }
+  
   @Override
   public void setValue( T value ) {
     setValue( value, true ); // TODO -- REVIEW -- use a global usingLazyUpdate?
   }
   // setValue( value, false ) is lazy/passive updating
   // setValue( value, true ) is proactive updating
-  protected void setValue( T value, boolean propagateChange ) {
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + value + ") start: " + this );
+  protected void setValue( T val, boolean propagateChange ) {
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val + ") start: " + this );
     assert !propagateChange || mayPropagate;
     assert mayChange;
-    if ( value instanceof Parameter && domain != null && !domain.getType().isInstance( value ) ) {
-      Object valVal = ((Parameter<?>)value).getValue(propagateChange);
-      T castVal = null;
-      try {
-        castVal = (T)valVal;
-        setValue( castVal, propagateChange );
-      } catch ( ClassCastException cce ) {
-        cce.printStackTrace();
-      }
-      return;
+    T castVal = null;
+    try {
+      castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
+      val = castVal;
+    } catch ( ClassCastException cce ) {
+      cce.printStackTrace();
     }
-    boolean changing = !valueEquals( value );
+//    if ( val instanceof Parameter && getType() != null && !getType().isInstance( val ) ) {
+//      Object valVal = ( (Parameter< ? >)val ).getValue( propagateChange );
+//      T castVal = null;
+//      try {
+//        castVal = (T)valVal;
+//        setValue( castVal, propagateChange );
+//      } catch ( ClassCastException cce ) {
+//        cce.printStackTrace();
+//      }
+//      return;
+//    }
+    boolean changing = !valueEquals( val );
     if ( changing ) {
       if ( owner != null ) {//&& propagateChange ) {
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this );
       }
-     this.value = value;
+     this.value = val;
       constraintList.clear();
       if ( owner != null ) {//&& propagateChange ) {
           owner.handleValueChangeEvent( this );
       }
     }
     setStale( false );
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + value + ") finish: " + this );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val + ") finish: " + this );
   }
 
   /**
@@ -349,54 +367,62 @@ public class Parameter< T > implements Cloneable, Groundable,
   public int compareTo( Parameter< ? > o ) {
     if ( this == o ) return 0;
     if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
+//    if ( Timepoint.isComparableToTimepoint( o ) ) {
+//      return super.compareTo( o );
+//    }
+
     int compare = 0;
-    if ( value == null && o.value != null ) return -1;
-    if ( o.value == null && value != null ) return 1;
-    // REVIEW -- TODO -- doing weird stuff here!!!
-    if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
-      Debug.errln("Parameters of parameters!");
-      Parameter<?> p = (Parameter)value;
-      if ( !p.isGrounded( false, null ) ) return -1;
-      return p.compareTo(o);
-    }
-    if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
-      Debug.errln("Parameters of parameters!");
-      Parameter<?> p = (Parameter)o.value;
-      if ( !p.isGrounded( false, null ) ) return 1;
-      return compareTo(p);
-    }
-    if ( value != null && value.getClass().isAssignableFrom( o.value.getClass() ) ) {
-      if ( value instanceof Comparable ) {
-        T oValue = (T)o.value;
-        compare = ((Comparable<T>)value).compareTo( oValue );
-      } else {
-        compare = value.toString().compareTo( o.value.toString() );
-      }
-      if ( compare != 0 ) return compare;
-    }
-    if ( name != o.name ) {
-      if ( name == null ) return -1;
-      if ( o.name == null ) return 1;
-      compare = this.name.compareToIgnoreCase( o.name );
-      if ( compare != 0 ) return compare;
-      compare = this.name.compareTo( o.name );
-      if ( compare != 0 ) return compare;
-    }
+//    if ( value == null && o.value != null ) return -1;
+//    if ( o.value == null && value != null ) return 1;
+//    // REVIEW -- TODO -- doing weird stuff here!!!
+//    if ( value instanceof Parameter && !( o.value instanceof Parameter ) ) {
+//      Debug.errln("Parameters of parameters!");
+//      Parameter<?> p = (Parameter)value;
+//      if ( !p.isGrounded( false, null ) ) return -1;
+//      return p.compareTo(o);
+//    }
+//    if ( !(value instanceof Parameter) && o.value instanceof Parameter ) {
+//      Debug.errln("Parameters of parameters!");
+//      Parameter<?> p = (Parameter)o.value;
+//      if ( !p.isGrounded( false, null ) ) return 1;
+//      return compareTo(p);
+//    }
+//    if ( value != null && value.getClass().isAssignableFrom( o.value.getClass() ) ) {
+//      if ( value instanceof Comparable ) {
+//        T oValue = (T)o.value;
+//        compare = ((Comparable<T>)value).compareTo( oValue );
+//      } else {
+//        compare = value.toString().compareTo( o.value.toString() );
+//      }
+//      if ( compare != 0 ) return compare;
+//    }
+    compare = Utils.compareTo( name, o.name );
     if ( compare != 0 ) return compare;
-    if ( value != null ) {
-      compare = value.getClass().getName().compareTo( o.value.getClass().getName() );
-      if ( compare != 0 ) return compare;
-    }
-    // TODO -- HACK -- Doing this so that timelines keyed with Timepoint can
-    // keep reservations separate for different Timepoints that occur at the
-    // same time. Correct thing to do would be to have unique names (maybe using
-    // scope).
-    if ( owner == null && o.owner != null ) return -1;
-    if ( owner != null && o.owner == null ) return 1;
-    if ( owner == null && o.owner == null ) {
-      return Utils.intCompare( hashCode(), o.hashCode() );
-    }
-    return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
+    compare = Utils.compareTo( getDomain(), o.getDomain() );
+    if ( compare != 0 ) return compare;
+    compare = Utils.compareTo( getType(), o.getType() );
+    if ( compare != 0 ) return compare;
+    compare = Utils.compareTo( this, o );
+    if ( compare != 0 ) return compare;
+
+//    // this assumes domains do not change
+//    if ( domain != null && o.domain != null && domain.getType() != null
+//         && o.domain.getType() != null ) {
+//      compare = domain.getType().getName().compareTo( o.domain.getType().getName() );
+//      if ( compare != 0 ) return compare;
+//    }
+//    // TODO -- HACK -- Doing this so that timelines keyed with Timepoint can
+//    // keep reservations separate for different Timepoints that occur at the
+//    // same time. Correct thing to do would be to have unique names (maybe using
+//    // scope).
+//    if ( owner == null && o.owner != null ) return -1;
+//    if ( owner != null && o.owner == null ) return 1;
+//    if ( owner == null && o.owner == null ) {
+//      return Utils.intCompare( hashCode(), o.hashCode() );
+//    }
+//    return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
+//    System.err.println("compareTo() getting two different parameters with the same names and hash codes seems very unlikely. p1=" + this + ", p2=" + o );
+    return 0; 
   }
 
   public boolean inDomain() {

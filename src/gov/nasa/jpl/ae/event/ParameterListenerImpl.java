@@ -441,7 +441,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
         ++numLoopsWithNoProgress;
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
-          System.out.println( "Plateaued at " + mostResolvedConstraints + " constraints satisfied." );
+          System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
           System.out.println( "Unresolved constraints = " + solver.getUnsatisfiedConstraints() );
         }
       } else {
@@ -586,7 +586,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   
   @Override
   public int compareTo( ParameterListenerImpl o ) {
+    if ( this == o ) return 0;
+    if ( o == null ) return 1;
     int compare = getClass().getName().compareTo( o.getClass().getName() );
+    if ( compare != 0 ) return compare;
+    compare = getName().compareTo( o.getName() );
     if ( compare != 0 ) return compare;
     compare = Utils.compareCollections( parameters, o.getParameters() );
     return compare;

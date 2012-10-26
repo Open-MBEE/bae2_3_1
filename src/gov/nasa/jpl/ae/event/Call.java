@@ -83,7 +83,7 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
                                        + this );
       // Make sure we have the right object from which to invoke the member.  
       object = Expression.evaluate( object, getMember().getDeclaringClass(),
-                                    propagate );
+                                    propagate, true );
 //      if ( object != null ) {
 //        boolean io = object instanceof Parameter;
 //        boolean ii1 = getMember().getDeclaringClass().isAssignableFrom( object.getClass() );
@@ -161,57 +161,57 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
       }
       Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
       //Class< ? > c = paramTypes[ i ];
-      argObjects[i] = unevaluatedArg;
-      if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): parameter type = " + c.getName() );
-      if ( c.isInstance( unevaluatedArg ) ) {
-        if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("
-            + unevaluatedArg + ") = true" );
-      } else {
-        if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("
-                     + unevaluatedArg + ") = false" );
-        if ( unevaluatedArg instanceof Expression ) {
-          if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + unevaluatedArg
-                       + " is instance of Expression" );
-          Expression< ? > expr = (Expression<?>)unevaluatedArg;
-          if ( c.isInstance( expr.expression ) ) {
-            argObjects[i] = expr.expression;
-            if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg = Expression.expression = "
-                         + argObjects[ i ] );
-          } else {
-            argObjects[i] = expr.evaluate( propagate );
-            if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg = Expression.evaluate("
-                         + propagate + ") = " + argObjects[ i ] );
-          }
-        } else if ( unevaluatedArg instanceof Parameter ) {
-          if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + unevaluatedArg
-                       + " is instance of Parameter" );
-          Parameter<?> p = (Parameter<?>)unevaluatedArg;
-          while ( true ) {
-            Object v = p.getValue( propagate );
-            if ( v != null
-                 && ( c.isAssignableFrom( v.getClass() ) ||
-                      ( c.isPrimitive() &&
-                        Utils.classForPrimitive( c ).isAssignableFrom( v.getClass() ) ) ) ) {
-              argObjects[i] = v;
-              if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg = Parameter.getValue("
-                           + propagate + ") = " + argObjects[ i ] );
-              break;
-            }
-            if ( v instanceof Parameter ) {
-              p = (Parameter< ? >)v;
-            } else {
-              break;
-            }
-          }
-        }
-        if ( argObjects[i] != null && 
-             !c.isAssignableFrom( argObjects[i].getClass() ) &&
-             Utils.isSubclassOf( c, Expression.class ) ) {
-          argObjects[i] = new Expression< Object >( argObjects[i] );
-          if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg wrapped in expression: "
-                       + argObjects[ i ] );
-        }
-      }
+      argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate );
+//      if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): parameter type = " + c.getName() );
+//      if ( c.isInstance( unevaluatedArg ) ) {
+//        if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("
+//            + unevaluatedArg + ") = true" );
+//      } else {
+//        if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("
+//                     + unevaluatedArg + ") = false" );
+//        if ( unevaluatedArg instanceof Expression ) {
+//          if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + unevaluatedArg
+//                       + " is instance of Expression" );
+//          Expression< ? > expr = (Expression<?>)unevaluatedArg;
+//          if ( c.isInstance( expr.expression ) ) {
+//            argObjects[i] = expr.expression;
+//            if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg = Expression.expression = "
+//                         + argObjects[ i ] );
+//          } else {
+//            argObjects[i] = expr.evaluate( propagate );
+//            if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg = Expression.evaluate("
+//                         + propagate + ") = " + argObjects[ i ] );
+//          }
+//        } else if ( unevaluatedArg instanceof Parameter ) {
+//          if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + unevaluatedArg
+//                       + " is instance of Parameter" );
+//          Parameter<?> p = (Parameter<?>)unevaluatedArg;
+//          while ( true ) {
+//            Object v = p.getValue( propagate );
+//            if ( v != null
+//                 && ( c.isAssignableFrom( v.getClass() ) ||
+//                      ( c.isPrimitive() &&
+//                        Utils.classForPrimitive( c ).isAssignableFrom( v.getClass() ) ) ) ) {
+//              argObjects[i] = v;
+//              if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg = Parameter.getValue("
+//                           + propagate + ") = " + argObjects[ i ] );
+//              break;
+//            }
+//            if ( v instanceof Parameter ) {
+//              p = (Parameter< ? >)v;
+//            } else {
+//              break;
+//            }
+//          }
+//        }
+//        if ( argObjects[i] != null && 
+//             !c.isAssignableFrom( argObjects[i].getClass() ) &&
+//             Utils.isSubclassOf( c, Expression.class ) ) {
+//          argObjects[i] = new Expression< Object >( argObjects[i] );
+//          if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): evaluated arg wrapped in expression: "
+//                       + argObjects[ i ] );
+//        }
+//      }
       assert( argObjects[i] == null || c.isInstance( argObjects[i] ) );
     }
     if ( wasDebugOn ) Debug.turnOn();

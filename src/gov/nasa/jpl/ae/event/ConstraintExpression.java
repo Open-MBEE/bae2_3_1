@@ -172,6 +172,11 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public int compareTo( Constraint o ) {
+    if ( this == o ) return 0;
+    if ( o instanceof Expression ) {
+      int compare = super.compareTo( (Expression< ? >)o );
+      if ( compare != 0 ) return compare;
+    }
     return ParameterConstraint.Helper.compareTo( this, o );
 //    return this.toString().compareTo( o.toString() );
   }
