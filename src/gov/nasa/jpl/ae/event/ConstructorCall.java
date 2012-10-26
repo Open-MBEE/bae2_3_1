@@ -42,7 +42,7 @@ public class ConstructorCall extends Call {
    */
   public ConstructorCall( Class<?> cls ) {
     thisClass = cls;
-    this.constructor = Utils.getConstructorForArgTypes( cls, (Class<?>[])null ); 
+    setConstructor( Utils.getConstructorForArgTypes( cls, (Class<?>[])null ) ); 
   }
 
   /**
@@ -81,6 +81,7 @@ public class ConstructorCall extends Call {
   public ConstructorCall( Object object, Class<?> cls,
                           Vector< Object > arguments ) {
     this.object = object;
+    this.thisClass = cls;
     this.arguments = arguments;
     this.constructor = getConstructor();
     hasTypeErrors();
@@ -200,6 +201,7 @@ public class ConstructorCall extends Call {
    */
   public ConstructorCall( ConstructorCall constructorCall ) {
     this.object = constructorCall.object;
+    this.thisClass = constructorCall.thisClass;
     this.constructor = constructorCall.constructor;
     this.arguments = constructorCall.arguments;
     this.nestedCall = constructorCall.nestedCall;
@@ -254,6 +256,13 @@ public class ConstructorCall extends Call {
     if ( isGrounded( deep, null ) ) return true;
     this.newObject = null;
     return super.ground( deep, seen );
+  }
+  
+  @Override
+  public Boolean hasTypeErrors() {
+    if ( super.hasTypeErrors() ) return true;
+    if ( thisClass != getReturnType() ) return true;
+    return false;
   }
   
   @Override
@@ -342,6 +351,14 @@ public class ConstructorCall extends Call {
   public void setNestedCall( Call nestedCall ) {
     super.setNestedCall( nestedCall );
     this.newObject = null;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#getReturnType()
+   */
+  @Override
+  public Class< ? > getReturnType() {
+    return thisClass;
   }
   
 }

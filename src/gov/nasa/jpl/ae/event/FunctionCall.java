@@ -271,4 +271,12 @@ public class FunctionCall extends Call {
     this.method = method;
   }
 
+  @Override
+  public Class< ? > getReturnType() {
+    if ( getMember() != null ) {
+      return getMethod().getReturnType();
+    }
+    return null;
+  }
+
 }

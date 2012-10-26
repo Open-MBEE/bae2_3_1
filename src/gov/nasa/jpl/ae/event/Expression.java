@@ -496,5 +496,40 @@ public class Expression< ResultType >
     }
     return set;
   }
+
+  /**
+   * Evaluate or dig out the object of the given type cls from the object o,
+   * which may be a Parameter or an Expression.
+   * 
+   * @param object
+   *          the object to evaluate
+   * @param cls
+   *          the type of the object to find
+   * @return o if o is of type cls, an object of type cls that is an evaluation
+   *         of o, or null otherwise.
+   */
+  public static <TT> TT evaluate( Object object, Class< TT > cls,
+                                  boolean propagate ) throws ClassCastException {
+    if ( object == null ) return null;
+    if ( cls.isInstance( object ) ) {
+      return (TT)object;
+    }
+    if ( object instanceof Parameter ) {
+      Object value = ( (Parameter)object ).getValue( propagate );
+      return evaluate( value, cls, propagate );
+    }
+    if ( object instanceof Expression ) {
+      Object value = ( (Expression<?>)object ).evaluate( propagate );
+      return evaluate( value, cls, propagate );
+    }
+    TT r = null;
+    try {
+      r = (TT)object;
+    } catch ( ClassCastException cce ) {
+      Debug.errln( "Warning! " );
+      throw cce;
+    }
+    return r;
+  }
   
 }

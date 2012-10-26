@@ -505,11 +505,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
   
   public void executeAndSimulate( double timeScale ) {
+    Timer timer = new Timer();
     amTopEventToSimulate = true;
     execute();
     System.out.println("execution:\n" + executionToString());
     simulate(timeScale);
     amTopEventToSimulate = false;
+    System.out.println("Finished executing and simulating:");
+    System.out.println( timer.toString() );
   }
   
   /* (non-Javadoc)
@@ -592,8 +595,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
   
   public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
-    System.out.println( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
-                        + runPlotter + " ): starting stop watch\n" );
+    Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
+                 + runPlotter + " ): starting stop watch\n" );
     Timer timer = new Timer();
     try {
       EventSimulation sim = createEventSimulation();
@@ -602,7 +605,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     } catch ( Exception e ) {
       e.printStackTrace();
     }
-    System.out.println( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
+    Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
         + runPlotter + " ): completed\n" + timer + "\n" );
   }
 
@@ -966,14 +969,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // Detach effects.
     for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
       Parameter< ? > tvp = p.first;
+      if ( tvp == null ) return;
+      if ( tvp.getValueNoPropagate() == null ) return;
       Set< Effect > set = p.second;
+      if ( set == null ) return;
+      TimeVarying<?> tv = Expression.evaluate( (Object)tvp, TimeVarying.class, false );
       for ( Effect e : set ) {
         // TODO -- Has unApplyTo() been implemented?
-        if ( tvp.getValue() instanceof Parameter ) {
-          e.unApplyTo( (TimeVarying< ? >)( (Parameter< ? >)tvp.getValue() ).getValue() );
-        } else {
-          e.unApplyTo( (TimeVarying< ? >)tvp.getValue() );
-        }
+        e.unApplyTo( tv );
       }
     }
 

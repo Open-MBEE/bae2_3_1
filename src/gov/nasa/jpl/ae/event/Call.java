@@ -23,7 +23,9 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
   protected Vector< Object > arguments = null; // arguments to constructor
+  protected Vector< Object > evaluatedArguments = null; // arguments to constructor
 
+  abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
   abstract public Member getMember();
   abstract public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
@@ -49,6 +51,7 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     return false;
   }
 
+  
   // TODO -- consider an abstract Call class
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     // IllegalAccessException, InvocationTargetException {
@@ -75,32 +78,37 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
 //      }
     }
     try {
-      if ( Debug.isOn() ) Debug.outln( "About to invoke a " + getClass().getSimpleName() + ": " + this );
-      if ( object != null ) {
-        boolean io = object instanceof Parameter;
-        boolean ii1 = getMember().getDeclaringClass().isAssignableFrom( object.getClass() );
-        if ( Debug.isOn() ) Debug.outln( object + " instanceof Parameter = " + io );
-        if ( Debug.isOn() ) Debug.outln( "getDeclaringClass()=" + getMember().getDeclaringClass()
-                     + ".isAssignableFrom( " + object.getClass().getName()
-                     + " ) = " + ii1 );
-        if ( io ) {
-          Object v = null;
-          if ( propagate ) {
-            v = ( (Parameter< ? >)object ).getValue();
-          } else {
-            v = ( (Parameter< ? >)object ).getValueNoPropagate();
-          }
-          boolean ii2 = true;
-          if ( v != null ) {
-            ii2 = getMember().getDeclaringClass().isAssignableFrom( v.getClass() );
-            if ( Debug.isOn() ) Debug.outln( "getDeclaringClass()=" + getMember().getDeclaringClass()
-                         + ".isAssignableFrom( " + v.getClass() + " ) = " + ii2 );
-          }
-          if ( !ii1 && ii2 ) {
-            object = v;
-          }
-        }
-      }
+      if ( Debug.isOn() ) Debug.outln( "About to invoke a "
+                                       + getClass().getSimpleName() + ": "
+                                       + this );
+      // Make sure we have the right object from which to invoke the member.  
+      object = Expression.evaluate( object, getMember().getDeclaringClass(),
+                                    propagate );
+//      if ( object != null ) {
+//        boolean io = object instanceof Parameter;
+//        boolean ii1 = getMember().getDeclaringClass().isAssignableFrom( object.getClass() );
+//        if ( Debug.isOn() ) Debug.outln( object + " instanceof Parameter = " + io );
+//        if ( Debug.isOn() ) Debug.outln( "getDeclaringClass()=" + getMember().getDeclaringClass()
+//                     + ".isAssignableFrom( " + object.getClass().getName()
+//                     + " ) = " + ii1 );
+//        if ( io ) {
+//          Object v = null;
+//          if ( propagate ) {
+//            v = ( (Parameter< ? >)object ).getValue();
+//          } else {
+//            v = ( (Parameter< ? >)object ).getValueNoPropagate();
+//          }
+//          boolean ii2 = true;
+//          if ( v != null ) {
+//            ii2 = getMember().getDeclaringClass().isAssignableFrom( v.getClass() );
+//            if ( Debug.isOn() ) Debug.outln( "getDeclaringClass()=" + getMember().getDeclaringClass()
+//                         + ".isAssignableFrom( " + v.getClass() + " ) = " + ii2 );
+//          }
+//          if ( !ii1 && ii2 ) {
+//            object = v;
+//          }
+//        }
+//      }
       result = invoke( evaluatedArgs );// arguments.toArray() );
       //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
     } catch ( IllegalAccessException e ) {
@@ -147,12 +155,12 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     for ( int i = 0; i < args.size(); ++i ) {
       Object unevaluatedArg = args.get( i );
       if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
-//      if ( paramTypes.length == 0 ) {
-//        System.err.println("evaluateArgs() " + args + " don't match parameters " + Utils.toString(paramTypes, false) );
-//        break;
-//      }
-//      Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
-      Class< ? > c = paramTypes[ i ];
+      if ( paramTypes.length == 0 ) {
+        System.err.println("evaluateArgs() " + args + " don't match parameters " + Utils.toString(paramTypes, false) );
+        break;
+      }
+      Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
+      //Class< ? > c = paramTypes[ i ];
       argObjects[i] = unevaluatedArg;
       if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): parameter type = " + c.getName() );
       if ( c.isInstance( unevaluatedArg ) ) {
@@ -455,6 +463,13 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
    */
   public void setObject( Object object ) {
     this.object = object;
+  }
+
+  /**
+   * @return the arguments
+   */
+  public Vector< Object > getEvaluatedArguments() {
+    return evaluatedArguments;
   }
 
   /**

@@ -107,18 +107,47 @@ public class TestEventXmlToJava {
   
   public void writeFiles() {
     if ( translator != null ) {
+      // Figure out where to write the files
       String targetDirectory = null;
       if ( directory == null ) {
         targetDirectory = packageName;
       } else {
         targetDirectory = directory + File.separator + packageName;
       }
+      
+      // Create the directory for the package where the files will be written
+      // and see if the directory exists.
       File targetDirectoryFile = new File( targetDirectory );
       if ( !targetDirectoryFile.exists() ) {
-        if ( !targetDirectoryFile.mkdirs() );
+        if ( !targetDirectoryFile.mkdirs() ) {
+          System.err.println( "Error! Unable to make package directory: "
+                              + targetDirectoryFile.getAbsolutePath() );
+        }
       } else {
         assert targetDirectoryFile.isDirectory();
       }
+
+      // Delete old Java and class files.
+      File[] files = EventXmlToJava.getJavaFileList( targetDirectoryFile );
+      Debug.outln( "Deleting old .java files in "
+                   + targetDirectoryFile.getAbsolutePath() + ": "
+                   + Utils.toString( files ) );
+      EventXmlToJava.deleteFiles( files );
+      files = translator.getJavaFiles( targetDirectory, false, false );
+      Debug.outln( "Deleting old .class files in "
+          + targetDirectoryFile.getAbsolutePath() + ": "
+          + Utils.toString( files ) );
+      EventXmlToJava.deleteFiles( files );
+      String binDir =
+          targetDirectoryFile.getAbsolutePath()
+                             .replaceFirst( "([^a-zA-Z])src([^a-zA-Z])",
+                                            "\\1bin\\2" );
+      files = translator.getJavaFiles( binDir, false, false );
+      Debug.outln( "Deleting old .class files in "
+          + binDir + ": " + Utils.toString( files ) );
+      EventXmlToJava.deleteFiles( files );
+
+      // Now write the files.
       try {
         translator.writeJavaFiles( targetDirectory );
       } catch ( IOException e ) {

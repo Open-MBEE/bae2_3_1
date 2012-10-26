@@ -3402,6 +3402,17 @@ public class EventXmlToJava {
     }
   }
 
+  public static boolean deleteFiles( File[] files ) {
+    if ( files == null ) return false;
+    boolean succ = true;
+    for ( File f : files ) {
+      if ( !f.delete() ) {
+        succ = false;
+      }
+    }
+    return succ;
+  }
+  
   public static File[] getJavaFileList( File path ) {
     File[] fileArr = null;
     assert path.exists();
@@ -3433,16 +3444,18 @@ public class EventXmlToJava {
     assert path.exists();
     if ( !justCurrentClasses ) {
       fileArr = getJavaFileList( path );
-      List<File> files = new ArrayList<File>();
-      for ( File f : fileArr ) {
-        if ( f.getName().endsWith( sourceOrClass ? ".java" : ".class" ) ) {
-          files.add( f );
+      if ( fileArr != null ) {
+        List< File > files = new ArrayList< File >();
+        for ( File f : fileArr ) {
+          if ( f.getName().endsWith( sourceOrClass ? ".java" : ".class" ) ) {
+            files.add( f );
+          }
         }
-      }
-      fileArr = new File[ files.size() ];
-      int ctr = 0;
-      for ( File f : files ) {
-        fileArr[ ctr++ ] = f;
+        fileArr = new File[ files.size() ];
+        int ctr = 0;
+        for ( File f : files ) {
+          fileArr[ ctr++ ] = f;
+        }
       }
       return fileArr;
     }

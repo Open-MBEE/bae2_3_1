@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -121,19 +122,18 @@ public interface HasParameters extends LazyUpdate {
         set.add( (Parameter< ? >)o );
         Object value = ( (Parameter< ? >)o ).getValueNoPropagate();
         if ( deep || value instanceof Parameter ) {
-          
-          if ( ++dbgCt % 100 == 0 ) {
-            Exception exception = new Exception();
-            if ( exception.getStackTrace().length > 180 ) {
-              System.out.print("");
-            }
-          }
+//          if ( Debug.isOn() ) {
+//            if ( ++dbgCt % 100 == 0 ) {
+//              Exception exception = new Exception();
+//              if ( exception.getStackTrace().length > 400 ) {
+//                System.out.print( "" ); // breakpoint here
+//              }
+//            }
+//          }
           set.addAll( getParameters( value, deep, seen ) );
         }
       }
       if ( o instanceof HasParameters ) {
-//        if ( Utils.seen( (HasParameters)o, deep, seen ) )
-//          return Utils.getEmptySet();
         set.addAll( ((HasParameters)o).getParameters( deep, seen ) );
       } else {
         if ( o instanceof Object[] ) {
