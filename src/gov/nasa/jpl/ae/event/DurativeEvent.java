@@ -610,9 +610,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   @Override
-  public void doSnapshotSimulation() {
+  public void doSnapshotSimulation( boolean improved ) {
     boolean didntWriteFile = true;
-
     // augment file name
     String fileName = this.baseSnapshotFileName;
     if ( fileName != null ) {
@@ -623,6 +622,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         fileName =
             fileName.substring( 0, pos ) + "." + pkg + fileName.substring( pos );
       }
+      String bestFileName = "best_" + fileName;
       if ( !snapshotToSameFile ) {
         fileName = Utils.addTimestampToFilename( fileName );
       }
@@ -640,6 +640,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       try {
         os = new FileOutputStream( file );
         simulate( 1e15, os, false );
+        if ( improved ) {
+          os = new FileOutputStream( bestFileName );
+          simulate( 1e15, os, false );
+        }
         didntWriteFile = false;
         os.close();
       } catch ( FileNotFoundException e ) {

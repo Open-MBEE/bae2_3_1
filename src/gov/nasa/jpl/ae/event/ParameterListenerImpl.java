@@ -430,19 +430,21 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
         }
       }
       satisfied = tryToSatisfy(deep, null);
+
+      int numResolvedConstraints = solver.getConstraints().size() - solver.getUnsatisfiedConstraints().size();
+      boolean improved = numResolvedConstraints > mostResolvedConstraints; 
       // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
       // move it out of this class and into DurativeEvent since Events simulate.
-      if ( snapshotSimulationDuringSolve  && this.amTopEventToSimulate ) {
-        doSnapshotSimulation();
+      if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate ) {
+        doSnapshotSimulation( improved );
       }
       
-      int numResolvedConstraints = solver.getConstraints().size() - solver.getUnsatisfiedConstraints().size(); 
-      if ( !satisfied && numResolvedConstraints <= mostResolvedConstraints ) {
+      if ( !satisfied && !improved ) {
         ++numLoopsWithNoProgress;
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
           System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
-          System.out.println( "Unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+          System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
         }
       } else {
         mostResolvedConstraints = numResolvedConstraints;
@@ -459,6 +461,9 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
   // move it out of this class and into DurativeEvent.
   public void doSnapshotSimulation() {
+    doSnapshotSimulation( false );
+  }
+  public void doSnapshotSimulation( boolean improved ) {
     // override!
   }
   protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
@@ -475,8 +480,11 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     boolean satisfied = solver.solve( allConstraints );
     if ( Debug.isOn() || amTopEventToSimulate ) {
       System.out.println( this.getClass().getName() + " - " + getName()
-                          + ".tryToSatisfy() called solve(): failed to resolve "
-                          + +solver.getUnsatisfiedConstraints().size()
+                          + ".tryToSatisfy() called solve(): satisfied "
+                          + ( allConstraints.size() -
+                              solver.getUnsatisfiedConstraints().size() )
+                          + " constraints; failed to resolve "
+                          + solver.getUnsatisfiedConstraints().size()
                           + " constraints" );
     }
 
