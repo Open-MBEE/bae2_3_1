@@ -6,7 +6,6 @@ import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 
-import java.util.HashSet;
 import java.util.Set;
 
 
@@ -108,7 +107,7 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public Set< Variable< ? > > getVariables() {
     return ParameterConstraint.Helper.getVariables( this, false, null );
-//    Set< Variable< ? > > s = new HashSet< Variable< ? > >();
+//    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
 //    s.addAll( getParameters( true ) );
 //    return s;
   }
@@ -152,7 +151,7 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public Set< Variable< ? > > getFreeVariables() {
     return ParameterConstraint.Helper.getFreeVariables( this, false, null );
-//    Set< Variable< ? > > s = new HashSet< Variable< ? > >();
+//    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
 //    s.addAll( getFreeParameters( true ) );
 //    return s;
   }
@@ -161,7 +160,7 @@ public class ConstraintExpression extends Expression< Boolean >
   public void setFreeVariables( Set< Variable< ? > > freeVariables ) {
     ParameterConstraint.Helper.setFreeVariables( this, freeVariables, false, null );
 //    if ( freeParameters == null ) {
-//      freeParameters = new HashSet< Parameter< ? > >();
+//      freeParameters = new TreeSet< Parameter< ? > >();
 //    }
 //    for ( Variable< ? > v : freeVariables ) {
 //      if ( v instanceof Parameter< ? > ) {
@@ -173,6 +172,7 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public int compareTo( Constraint o ) {
     if ( this == o ) return 0;
+    if ( o == null ) return -1;
     if ( o instanceof Expression ) {
       int compare = super.compareTo( (Expression< ? >)o );
       if ( compare != 0 ) return compare;

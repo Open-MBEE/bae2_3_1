@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * 
@@ -43,7 +44,7 @@ public interface HasConstraints {
         }
       }
 
-      Set< Constraint > set = new HashSet< Constraint >();
+      Set< Constraint > set = new TreeSet< Constraint >();
       if ( o instanceof Constraint ) {
         set.add( (Constraint)o );
       }
@@ -54,7 +55,7 @@ public interface HasConstraints {
         set.addAll( oSet );
       }
       if ( o instanceof Parameter ) {
-        set.addAll( getConstraints(((Parameter)o).getValueNoPropagate(), deep, seen ) );
+        set = Utils.addAll( set, getConstraints(((Parameter)o).getValueNoPropagate(), deep, seen ) );
       }
       return set;
     }
@@ -62,10 +63,10 @@ public interface HasConstraints {
     public static < K, V > Set< Constraint > getConstraints( Map< K, V > map,
                                                              boolean deep,
                                                              Set< HasConstraints > seen ) {
-      Set< Constraint > set = new HashSet< Constraint >();
+      Set< Constraint > set = new TreeSet< Constraint >();
       for ( Map.Entry< K, V > me : map.entrySet() ) {
-        set.addAll( getConstraints( me.getKey(), deep, seen ) );
-        set.addAll( getConstraints( me.getValue(), deep, seen ) );
+        set = Utils.addAll( set, getConstraints( me.getKey(), deep, seen ) );
+        set = Utils.addAll( set, getConstraints( me.getValue(), deep, seen ) );
       }
       return set;
     }
@@ -73,9 +74,9 @@ public interface HasConstraints {
     public static < T > Set< Constraint > getConstraints( Collection< T > c,
                                                           boolean deep,
                                                           Set< HasConstraints > seen ) {
-      Set< Constraint > set = new HashSet< Constraint >();
+      Set< Constraint > set = new TreeSet< Constraint >();
       for ( T t : c ) {
-        set.addAll( getConstraints( t, deep, seen ) );
+        set = Utils.addAll( set, getConstraints( t, deep, seen ) );
       }
       return set;
     }
@@ -83,9 +84,9 @@ public interface HasConstraints {
     public static Set< Constraint > getConstraints( Object[] c,
                                                        boolean deep,
                                                        Set< HasConstraints > seen ) {
-      Set< Constraint > set = new HashSet< Constraint >();
+      Set< Constraint > set = new TreeSet< Constraint >();
       for ( Object t : c ) {
-        set.addAll( getConstraints( t, deep, seen ) );
+        set = Utils.addAll( set, getConstraints( t, deep, seen ) );
       }
       return set;
     }
@@ -95,9 +96,9 @@ public interface HasConstraints {
     public static < T1, T2 > Set< Constraint > getConstraints( Pair< T1, T2 > p,
                                                                   boolean deep,
                                                                   Set< HasConstraints > seen ) {
-      Set< Constraint > set = new HashSet< Constraint >();
-      set.addAll( getConstraints( p.first, deep, seen ) );
-      set.addAll( getConstraints( p.second, deep, seen ) );
+      Set< Constraint > set = new TreeSet< Constraint >();
+      set = Utils.addAll( set, getConstraints( p.first, deep, seen ) );
+      set = Utils.addAll( set, getConstraints( p.second, deep, seen ) );
       return set;
     }
     

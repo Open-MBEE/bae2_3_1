@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeSet;
+
 import junit.framework.Assert;
 
 import gov.nasa.jpl.ae.solver.Constraint;
@@ -21,6 +23,7 @@ import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -65,7 +68,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   protected Solver solver = new ConstraintLoopSolver();
 
   protected Set< TimeVarying< ? > > timeVaryingObjects =
-      new HashSet< TimeVarying< ? > >();
+      new TreeSet< TimeVarying< ? > >();
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
@@ -308,7 +311,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // TODO -- This is not finished. Need to get deep dependents.
   public Set< Parameter< ? > > getDependentParameters( boolean deep,
                                                        Set<HasParameters> seen ) {
-    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     for ( Dependency< ? > d : dependencies ) {
       set.add( d.parameter );
     }
@@ -326,21 +329,21 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
 //    set.addAll( getParameters() );
 //    if ( deep ) {
 //      for ( Parameter<?> p : getParameters() ) {
 //        if ( p.getValueNoPropagate() != null && 
 //             p.getValueNoPropagate() instanceof HasParameters ) {
-//          set.addAll( ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep, seen ) );
+//          set = Utils.addAll( set, ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep, seen ) );
 //        }
 //      }
 //    }
-    set.addAll( HasParameters.Helper.getParameters( getParameters(), deep, seen ) );
+    set = Utils.addAll( set, HasParameters.Helper.getParameters( getParameters(), deep, seen ) );
     if ( deep ) {
-      set.addAll( HasParameters.Helper.getParameters( getDependencies(),
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( getDependencies(),
                                                       deep, seen ) );
-      set.addAll( HasParameters.Helper.getParameters( getConstraintExpressions(),
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( getConstraintExpressions(),
                                                       deep, seen ) );
     }
     return set;
@@ -354,7 +357,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
    */
   public Set< Timepoint > getTimepoints( boolean deep,
                                          Set<HasParameters> seen ) {
-   Set< Timepoint > set = new HashSet< Timepoint >();
+   Set< Timepoint > set = new TreeSet< Timepoint >();
    for ( Parameter<?> p : getParameters( deep, seen ) ) {
      if ( p instanceof Timepoint ) {
        set.add((Timepoint)p);
@@ -516,15 +519,15 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       return Utils.getEmptySet();
     }
     seen = pair.second;
-    Set< Constraint > set = new HashSet< Constraint >();
-    set.addAll( HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
-    set.addAll( HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
-    set.addAll( HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
+    Set< Constraint > set = new TreeSet< Constraint >();
+    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
+    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
+    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
 //    for ( Parameter< ? > p : getParameters( false, null ) ) {
-//      set.addAll( p.getConstraints( deep, seen ) );
+//      set = Utils.addAll( set, p.getConstraints( deep, seen ) );
 //    }
-//    set.addAll( constraintExpressions );
-//    set.addAll( dependencies );
+//    set = Utils.addAll( set, constraintExpressions );
+//    set = Utils.addAll( set, dependencies );
     Parameter.mayPropagate = mayHaveBeenPropagating;
     Parameter.mayChange = mayHaveBeenChanging;
     return set;
@@ -540,15 +543,15 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
+    Set< TimeVarying< ? > > s = new TreeSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
-    s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( deep,
+    s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( deep,
                                                                                  null ),
                                                                   deep, seen ) );
     if ( deep ) {
-      s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
+      s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
                                                                     deep, seen ) );
-      s.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
+      s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
                                                                     deep, seen ) );
     }
     return s;
@@ -600,7 +603,16 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     if ( compare != 0 ) return compare;
     compare = getName().compareTo( o.getName() );
     if ( compare != 0 ) return compare;
-    compare = Utils.compareCollections( parameters, o.getParameters() );
+    Debug.errln("ParameterListenerImpl.compareTo() potentially accessing value information");
+    compare = CompareUtils.compareCollections( parameters, o.getParameters(), true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareCollections( dependencies, o.dependencies, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareCollections( constraintExpressions,
+                                        o.constraintExpressions, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( this, o, false );
+    if ( compare != 0 ) return compare;
     return compare;
   }
 

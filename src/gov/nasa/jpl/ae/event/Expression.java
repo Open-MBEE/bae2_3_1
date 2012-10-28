@@ -5,6 +5,7 @@ import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -286,7 +287,7 @@ public class Expression< ResultType >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-		Set< Parameter<?> > set = new HashSet< Parameter<?> >();
+		Set< Parameter<?> > set = new TreeSet< Parameter<?> >();
 		if ( type == Type.Parameter ) {
 		  if ( expression != null ) {
 		    Parameter<?> p = (Parameter<?>) this.expression; 
@@ -294,14 +295,14 @@ public class Expression< ResultType >
 		    if ( deep ) {
 		      Object v = p.getValueNoPropagate(); 
 		      if ( v != null && v instanceof HasParameters ) {
-		        set.addAll( ((HasParameters)v).getParameters( deep, seen ) );
+		        set = Utils.addAll( set, ((HasParameters)v).getParameters( deep, seen ) );
 		      }
 		    }
 		  }
 		} else if ( expression instanceof HasParameters ) {
 			HasParameters gotParameters = (HasParameters) expression;
 			if ( gotParameters != null ) {
-				set.addAll( gotParameters.getParameters( deep, seen ) );
+				set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
 			}
 		}
 		return set;
@@ -314,7 +315,7 @@ public class Expression< ResultType >
     // REVIEW -- this assumes that the parameters of the constraint and their
     // freedom never change.
     if ( freeParameters == null ) {
-      freeParameters = new HashSet< Parameter< ? > >();
+      freeParameters = new TreeSet< Parameter< ? > >();
       for ( Parameter< ? > p : getParameters( false, null ) ) {
         if ( p.getOwner() != null && 
              p.getOwner().isFreeParameter( p, false, null ) ) {
@@ -401,16 +402,16 @@ public class Expression< ResultType >
 		//return grounded;
 	}
 
-  // Not overriding since a superclass needs to implement a difft comparable,
-  // and Java won't allow implementation of two difft Comparables!
 	// NOTE: Don't use hashCode() unless overridden -- default may vary between runs!
   //@Override
   public int compareTo( Expression< ? > o ) {
     if ( this == o ) return 0;
-    if ( expression == o.expression ) return 0;
+    if ( o == null ) return 1;
     int compare = Utils.intCompare( type.ordinal(), o.type.ordinal() );
     if ( compare != 0 ) return compare;
-    compare = Utils.compareTo( expression, o.expression, true );
+    compare = CompareUtils.compareTo( expression, o.expression, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( this, o, false );
     if ( compare != 0 ) return compare;
     return compare;
   }
@@ -489,16 +490,16 @@ public class Expression< ResultType >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying<?> > set = new HashSet< TimeVarying<?> >();
-    set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
+    Set< TimeVarying<?> > set = new TreeSet< TimeVarying<?> >();
+    set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     // REVIEW -- We could make Call extend HasTimeVaryingObject, but it seems
     // like everybody has to know about everybody!
     // What about a general Has that has a get( Class<?> c, deep, seen )?
     // Consider again using reflection to go through members?
     if ( deep && ( type == Type.Function || type == Type.Constructor ) ) {
       Call call = (Call)expression;
-      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getObject(), deep, seen ) );
-      set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getArguments(), deep, seen ) );
+      set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getObject(), deep, seen ) );
+      set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getArguments(), deep, seen ) );
     }
     return set;
   }

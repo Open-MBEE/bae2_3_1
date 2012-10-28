@@ -121,6 +121,8 @@ src/gov/nasa/jpl/ae/tests/TestEventXmlToJava.java -text
 src/gov/nasa/jpl/ae/tests/TestExecute.java -text
 src/gov/nasa/jpl/ae/tests/TestJavaparser.java -text
 src/gov/nasa/jpl/ae/tests/TestJythonAdder.java -text
+src/gov/nasa/jpl/ae/util/ClassUtils.java -text
+src/gov/nasa/jpl/ae/util/CompareUtils.java -text
 src/gov/nasa/jpl/ae/util/Debug.java -text
 src/gov/nasa/jpl/ae/util/FileUtils.java -text
 src/gov/nasa/jpl/ae/util/Pair.java -text

@@ -17,8 +17,8 @@ import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Functions.NotEquals;
 import gov.nasa.jpl.ae.event.Groundable;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Utils;
 
 import org.junit.Assert;
 
@@ -242,7 +242,7 @@ public abstract class AbstractRangeDomain< T >
     // lower bound constraint
     if ( greater( lowerBound, getTypeMinValue() ) ) {
       args = new Object[] { lowerBound, t.getValue( propagate ) };
-      method = Utils.getMethodForArgs( getClass(), "lessEquals", args );
+      method = ClassUtils.getMethodForArgs( getClass(), "lessEquals", args );
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
       Expression< T > expr = 
           new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
@@ -260,7 +260,7 @@ public abstract class AbstractRangeDomain< T >
     // upper bound constraint
     if ( less( upperBound, getTypeMaxValue() ) ) {
       args = new Object[] { upperBound, t.getValue( propagate ) };
-      method = Utils.getMethodForArgs( getClass(), "greaterEquals", args );
+      method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
       Expression< T > expr = 
         new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
                                                new Object[]{ propagate } ) );

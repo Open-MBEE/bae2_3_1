@@ -2,7 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.ae.util.CompareUtils;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -228,41 +228,14 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   public int compareTo( Parameter< ? > o ) {
     if ( this == o ) return 0;
     if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
-    if ( !( o instanceof Timepoint ) ) {
-      return super.compareTo( o );
-    }
     int compare = 0;
-    Integer v1 = Expression.evaluate( this, Integer.class, false );
-    Integer v2 = Expression.evaluate( o, Integer.class, false );
-    compare = Utils.compareTo( v1, v2 );
-    if ( compare != 0 ) return compare;
-//    if ( v1 == null && v2 != null ) return -1;
-//    if ( v2 == null && v1 != null ) return 1;
-//    compare = v1.compareTo( v2 );
-//    if ( compare != 0 ) return compare;
-    compare = Utils.compareTo( name, o.name );
-    if ( compare != 0 ) return compare;
-    compare = Utils.compareTo( getDomain(), o.getDomain() );
-    if ( compare != 0 ) return compare;
-//    compare = Utils.compareTo( name.toLowerCase(), o.name.toLowerCase() );
-//    if ( compare != 0 ) return compare;
-      // TODO -- switch start/end order?
-      //String n1 = Utils.replaceLast( name, "start", "" )
-//    compare = v1.getClass().getName().compareTo( v2.getClass().getName() );
-//    if ( compare != 0 ) return compare;
-    // TODO -- HACK -- Doing this so that timelines keyed with Timepoint can
-    // keep reservations separate for different Timepoints that occur at the
-    // same time. Correct thing to do would be to have unique names (maybe using
-    // scope).
-    compare = Utils.compareTo( owner, o.owner, true );
-    if ( compare != 0 ) return compare;
-    compare = Utils.compareToStringNoHash( this, o );
-    if ( compare != 0 ) return compare;
-    return compare;
-//    if ( owner == null && o.owner == null ) {
-//      return Utils.intCompare( hashCode(), o.hashCode() );
-//    }
-//    return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
+    if ( o instanceof Timepoint ) {
+      Integer v1 = Expression.evaluate( this, Integer.class, false );
+      Integer v2 = Expression.evaluate( o, Integer.class, false );
+      compare = CompareUtils.compareTo( v1, v2, true );
+      if ( compare != 0 ) return compare;
+    }
+    return super.compareTo( o );
   }
 /*  @Override
   public int compareTo( Parameter< ? > o ) {

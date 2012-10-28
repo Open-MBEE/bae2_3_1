@@ -117,7 +117,7 @@ public interface HasParameters extends LazyUpdate {
                                                        boolean deep,
                                                        Set< HasParameters > seen) {
       if ( o == null ) return Utils.getEmptySet();
-      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
       if ( o instanceof Parameter ) {
         set.add( (Parameter< ? >)o );
         Object value = ( (Parameter< ? >)o ).getValueNoPropagate();
@@ -130,11 +130,11 @@ public interface HasParameters extends LazyUpdate {
 //              }
 //            }
 //          }
-          set.addAll( getParameters( value, deep, seen ) );
+          set = Utils.addAll( set, getParameters( value, deep, seen ) );
         }
       }
       if ( o instanceof HasParameters ) {
-        set.addAll( ((HasParameters)o).getParameters( deep, seen ) );
+        set = Utils.addAll( set, ((HasParameters)o).getParameters( deep, seen ) );
       } else {
         if ( o instanceof Object[] ) {
           return getParameters( (Object[])o, deep, seen );
@@ -154,7 +154,7 @@ public interface HasParameters extends LazyUpdate {
                                                            boolean deep,
                                                            Set< HasParameters > seen ) {
       if ( o == null ) return Utils.getEmptySet();
-      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
       if ( o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) )
 //          return Utils.getEmptySet();
@@ -267,10 +267,10 @@ public interface HasParameters extends LazyUpdate {
     public static < K, V > Set< Parameter< ? > > getParameters( Map< K, V > map,
                                                                 boolean deep,
                                                                 Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
       for ( Map.Entry< K, V > me : map.entrySet() ) {
-        set.addAll( getParameters( me.getKey(), deep, seen ) );
-        set.addAll( getParameters( me.getValue(), deep, seen ) );
+        set = Utils.addAll( set, getParameters( me.getKey(), deep, seen ) );
+        set = Utils.addAll( set, getParameters( me.getValue(), deep, seen ) );
       }
       return set;
     }
@@ -354,9 +354,9 @@ public interface HasParameters extends LazyUpdate {
     public static < T > Set< Parameter< ? > > getParameters( Collection< T > c,
                                                              boolean deep,
                                                              Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
       for ( T t : c ) {
-        set.addAll( getParameters( t, deep, seen ) );
+        set = Utils.addAll( set, getParameters( t, deep, seen ) );
       }
       return set;
     }
@@ -432,9 +432,9 @@ public interface HasParameters extends LazyUpdate {
     public static Set< Parameter< ? > > getParameters( Object[] c,
                                                        boolean deep,
                                                        Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
       for ( Object t : c ) {
-        set.addAll( getParameters( t, deep, seen ) );
+        set = Utils.addAll( set, getParameters( t, deep, seen ) );
       }
       return set;
     }
@@ -489,9 +489,9 @@ public interface HasParameters extends LazyUpdate {
     public static < T1, T2 > Set< Parameter< ? > > getParameters( Pair< T1, T2 > p,
                                                                   boolean deep,
                                                                   Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-      set.addAll( getParameters( p.first, deep, seen ) );
-      set.addAll( getParameters( p.second, deep, seen ) );
+      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      set = Utils.addAll( set, getParameters( p.first, deep, seen ) );
+      set = Utils.addAll( set, getParameters( p.second, deep, seen ) );
       return set;
     }
     

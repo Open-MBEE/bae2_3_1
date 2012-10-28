@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -42,7 +43,7 @@ public class ConstructorCall extends Call {
    */
   public ConstructorCall( Class<?> cls ) {
     thisClass = cls;
-    setConstructor( Utils.getConstructorForArgTypes( cls, (Class<?>[])null ) ); 
+    setConstructor( ClassUtils.getConstructorForArgTypes( cls, (Class<?>[])null ) ); 
   }
 
   /**
@@ -312,7 +313,7 @@ public class ConstructorCall extends Call {
       argArr = arguments.toArray();
     }
     Pair< Constructor< ? >, Object[] > p =
-        Utils.getConstructorForArgs( thisClass, argArr, object );
+        ClassUtils.getConstructorForArgs( thisClass, argArr, object );
     this.constructor = p.first;
     return this.constructor;
   }

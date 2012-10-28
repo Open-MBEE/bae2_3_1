@@ -8,12 +8,7 @@ import java.util.Set;
 import java.util.Vector;
 
 /**
- * 
- */
-
-/**
- * @author bclement
- *
+ * An Effect on a TimeVarying object that is performed via a function call. 
  */
 public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryingObjects {
 

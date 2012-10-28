@@ -2,20 +2,20 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
 import junit.framework.Assert;
 
-public abstract class Call implements HasParameters, HasDomain, Groundable {
+public abstract class Call implements HasParameters, HasDomain, Groundable, Comparable< Call > {
 
   /**
    * A function call on the result of this function call.
@@ -40,6 +40,7 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
         return true;
       }
     } else if ( arguments.size() < paramTypes.length - 1 ) {
+      this.compareTo( this );
       return true;
     }
     // Code below is not right! The arguments may be expressions, the results of
@@ -51,6 +52,29 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     return false;
   }
 
+  @Override
+  public int compareTo( Call o ) {
+    if ( this == o ) return 0;
+    if ( o == null ) return -1;
+    int compare = 0;//super.compareTo( o );
+    compare = CompareUtils.compareTo( getMember(), o.getMember(), true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( getParameterTypes(), o.getParameterTypes(), true );
+    if ( compare != 0 ) return compare;
+//    compare = Utils.compareTo( getReturnType(), o.getReturnType(), true );
+//    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( getClass().getName(), o.getClass().getName() );
+    if ( compare != 0 ) return compare;
+    // TODO -- would like to skip this since it changes.
+    Debug.errln( "Call.compareTo comparing value information." );
+    compare = CompareUtils.compareTo( arguments, o.arguments, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( object, o.object, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( this, o );
+    if ( compare != 0 ) return compare;
+    return compare;    
+  }
   
   // TODO -- consider an abstract Call class
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
@@ -258,16 +282,16 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
-    set.addAll( HasParameters.Helper.getParameters( object, deep, seen ) );
+    Set< Parameter< ? > > set = new TreeSet< Parameter< ? >>();
+    set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen ) );
 //    if ( object instanceof Parameter< ? > ) {
 //      set.add( (Parameter< ? >)object );
 //    }
 //    if ( deep && object instanceof HasParameters ) {
 //      HasParameters gotParameters = (HasParameters)object;
-//      set.addAll( gotParameters.getParameters( deep, seen ) );
+//      set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
 //    }
-    set.addAll( HasParameters.Helper.getParameters( arguments, deep, seen ) );
+    set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen ) );
 //    if ( arguments != null ) {
 //      for ( int i = 0; i < arguments.size(); ++i  ) {
 //        Object a = arguments.get( i );
@@ -281,14 +305,14 @@ public abstract class Call implements HasParameters, HasDomain, Groundable {
 //        }
 //        if ( deep && a instanceof HasParameters ) {
 //          HasParameters gotParameters = (HasParameters)a;
-//          set.addAll( gotParameters.getParameters( deep, seen ) );
+//          set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
 //        }
 //      }
 //    }
     if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
-      set.addAll( HasParameters.Helper.getParameters( nestedCall, deep, seen ) );
-//      set.addAll( nestedCall.getValue().getParameters( deep, seen ) );
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen ) );
+//      set = Utils.addAll( set, nestedCall.getValue().getParameters( deep, seen ) );
     }
     return set;
   }

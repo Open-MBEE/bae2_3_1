@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.xml;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -20,18 +22,17 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.Vector;
 
 public class JavaForFunctionCall {
   /**
    * 
    */
-  private final EventXmlToJava xmlToJava;
+  private final EventXmlToJava xmlToJava; // hash
   public MethodCallExpr methodCallExpr = null;
   public ObjectCreationExpr objectCreationExpr = null;
   public boolean methodOrConstructor = true; 
@@ -150,14 +151,14 @@ public class JavaForFunctionCall {
       argTypesArr = new Class< ? >[ args.size() ];
       for ( int i = 0; i < args.size(); ++i ) {
         argTypesArr[ i ] =
-            Utils.getClassForName( xmlToJava.astToAeExprType( args.get( i ),
+            ClassUtils.getClassForName( xmlToJava.astToAeExprType( args.get( i ),
                                                               true, true ),
                                                               preferredPackageName,
                                                               false );
       }
     }
     if ( methodOrConstructor ) {
-      methodJavaSb.append( "Utils.getMethodForArgTypes(\"" + className
+      methodJavaSb.append( "ClassUtils.getMethodForArgTypes(\"" + className
                            + "\", \"" + preferredPackageName + "\", \""
                            + callName + "\"" );
 
@@ -183,17 +184,17 @@ public class JavaForFunctionCall {
         assert ( methodDecl != null );
         for ( japa.parser.ast.body.Parameter parameter : methodDecl.getParameters() ) {
           methodJavaSb.append( ", " );
-          methodJavaSb.append( Utils.noParameterName( parameter.getType().toString() )
+          methodJavaSb.append( ClassUtils.noParameterName( parameter.getType().toString() )
                                + ".class" );
         }
       } else { // if ( !classMethods.isEmpty() ) {
         // Try using reflection to find the method, but class may not exist.
         matchingMethod  = null;
         matchingMethod =
-            Utils.getMethodForArgTypes( className, preferredPackageName,
+            ClassUtils.getMethodForArgTypes( className, preferredPackageName,
                                         callName, argTypesArr, false );
         if ( matchingMethod == null && className.equals( xmlToJava.currentClass ) ) {
-          matchingMethod = Utils.getJavaMethodForCommonFunction( callName,
+          matchingMethod = ClassUtils.getJavaMethodForCommonFunction( callName,
                                                                  argTypesArr );
 
         }
@@ -202,14 +203,14 @@ public class JavaForFunctionCall {
             methodJavaSb.append( ", " );
             String typeName = type.getName();
             if ( typeName != null ) typeName = typeName.replace( '$', '.' );
-            methodJavaSb.append( Utils.noParameterName( typeName )
+            methodJavaSb.append( ClassUtils.noParameterName( typeName )
                                  + ".class" );
           }
         }
       }
     } else {
-      methodJavaSb.append( "Utils.getConstructorForArgTypes(" 
-                           + Utils.noParameterName( callName )
+      methodJavaSb.append( "ClassUtils.getConstructorForArgTypes(" 
+                           + ClassUtils.noParameterName( callName )
                            + ".class" );
       // Find the right MethodDeclaration if it exists.
       Set< ConstructorDeclaration > ctors =
@@ -232,7 +233,7 @@ public class JavaForFunctionCall {
           for ( japa.parser.ast.body.Parameter parameter : 
             constructorDecl.getParameters() ) {
             methodJavaSb.append( ", " );
-            methodJavaSb.append( Utils.noParameterName( parameter.getType().toString() )
+            methodJavaSb.append( ClassUtils.noParameterName( parameter.getType().toString() )
                                  + ".class" );
           }
         }
@@ -240,14 +241,14 @@ public class JavaForFunctionCall {
       if ( constructorDecl == null ) {
         // Try using reflection to find the method, but class may not exist.
         matchingConstructor  =
-            Utils.getConstructorForArgTypes( callName, argTypesArr,
+            ClassUtils.getConstructorForArgTypes( callName, argTypesArr,
                                              preferredPackageName );
         if ( matchingConstructor != null ) {
           for ( Class< ? > type : matchingConstructor.getParameterTypes() ) {
             methodJavaSb.append( ", " );
             String typeName = type.getName();
             if ( typeName != null ) typeName = typeName.replace( '$', '.' );
-            methodJavaSb.append( Utils.noParameterName( typeName ) 
+            methodJavaSb.append( ClassUtils.noParameterName( typeName ) 
                                  + ".class" );
           }
         }
@@ -289,7 +290,7 @@ public class JavaForFunctionCall {
                                 Class< ? >[] argTypesArr,
                                 String preferredPackageName ) {
     Map< T, Pair< Class< ? >[], Boolean > > candidates =
-        new HashMap< T, Pair< Class< ? >[], Boolean > >();
+        new TreeMap< T, Pair< Class< ? >[], Boolean > >(new CompareUtils.GenericComparator< T >());
     for ( T cd : declarations ) {
       
       List< Parameter > params = null;
@@ -307,7 +308,7 @@ public class JavaForFunctionCall {
         isVarArgs = params.get( size - 1 ).isVarArgs();
         for ( Parameter param : params ) {
           Class< ? > c =
-              Utils.getClassForName( param.getType().toString(),
+              ClassUtils.getClassForName( param.getType().toString(),
                                      preferredPackageName, true );
           ctorArgTypes[ ct++ ] = c;
         }
@@ -315,7 +316,7 @@ public class JavaForFunctionCall {
       candidates.put( cd, new Pair< Class< ? >[], Boolean >( ctorArgTypes,
                                                              isVarArgs ) );
     }
-    T decl = Utils.getBestArgTypes( candidates, argTypesArr );
+    T decl = ClassUtils.getBestArgTypes( candidates, argTypesArr );
     return decl;
   }
 

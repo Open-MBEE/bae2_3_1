@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -44,7 +45,7 @@ public class FunctionCall extends Call {
    * @param methodName
    */
   public FunctionCall( Class<?> cls, String methodName ) {
-    this.method = Utils.getMethodForArgTypes( cls, methodName, (Class<?>[])null ); 
+    this.method = ClassUtils.getMethodForArgTypes( cls, methodName, (Class<?>[])null ); 
   }
 
   /**
@@ -86,7 +87,7 @@ public class FunctionCall extends Call {
     if ( !Utils.isNullOrEmpty( arguments ) ) {
       argArr = arguments.toArray();
     }
-    this.method = Utils.getMethodForArgs( cls, methodName, argArr );
+    this.method = ClassUtils.getMethodForArgs( cls, methodName, argArr );
     this.arguments = arguments;
     hasTypeErrors();
   }
@@ -163,7 +164,7 @@ public class FunctionCall extends Call {
   public FunctionCall( Object object, Class<?> cls, String methodName,
                        Object argumentsA[] ) {
     this.object = object;
-    this.method = Utils.getMethodForArgs( cls, methodName, argumentsA );
+    this.method = ClassUtils.getMethodForArgs( cls, methodName, argumentsA );
     this.arguments = new Vector<Object>();
     if ( argumentsA != null ) {
       for ( Object o : argumentsA ) {

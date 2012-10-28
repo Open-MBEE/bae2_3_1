@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.SocketClient;
@@ -69,7 +70,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           }
         }
       }
-      int compare = Utils.compareTo( o1, o2 );
+      int compare = CompareUtils.compareTo( o1, o2 );
       if ( compare != 0 ) return compare;
       return compare;
     }
@@ -105,7 +106,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   Timepoint.Units timeUnits = Timepoint.Units.hours;
   double timeScale;
   
-  Map< Object, Object > currentPlottableValues = new HashMap< Object, Object >();
+  Map< Object, Object > currentPlottableValues = new TreeMap< Object, Object >();
 
   SocketClient plotSocket = null;
   Process plotProcess = null;
@@ -136,7 +137,6 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     Set< Pair< Object, Object > > m = get( time );
     if ( m == null ) {
       //m = new TreeMap< Object, Object >( new ObjectComparator() );
-      //m = new HashMap< Object, Object >();
       m = new TreeSet< Pair< Object, Object > >( new ObjectComparator() );
       put( time, m );
     }
@@ -202,6 +202,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     Object lastValue = null;
     boolean first = true;
     for ( Map.Entry< Timepoint, V > e : tv.entrySet() ) {
+      if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
+        System.err.println( "Warning: adding time varying map entry with null time key "
+                            + " to simulation " + e );
+        continue;
+      }
 //      if ( first ) first = false;
 //      else if ( lastValue == e.getValue() ||
 //                ( e.getValue() != null && e.getValue().equals( lastValue ) ) ) {

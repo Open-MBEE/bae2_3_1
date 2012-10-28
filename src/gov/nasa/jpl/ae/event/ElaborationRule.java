@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -106,26 +107,16 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
 
   @Override
   public int compareTo( ElaborationRule o ) {
-    int compare = 0;
-    if ( condition == null && o.condition != null ) return -1;
-    if ( condition != null && o.condition == null ) return 1;
-    if ( condition != null ) {
-      compare = condition.toString().compareTo( o.condition.toString() );
-      if ( compare != 0 ) return compare;
-    }
-    
-    if ( eventInvocations == null && o.eventInvocations != null ) return -1;
-    if ( eventInvocations != null && o.eventInvocations == null ) return 1;
-    if ( eventInvocations != null ) {
-      compare = eventInvocations.toString().compareTo( o.eventInvocations.toString() );
-      if ( compare != 0 ) return compare;
-    }
-    if ( constraintsToAdd == null && o.constraintsToAdd != null ) return -1;
-    if ( constraintsToAdd != null && o.constraintsToAdd == null ) return 1;
-    if ( constraintsToAdd != null ) { 
-      compare = constraintsToAdd.toString().compareTo( o.constraintsToAdd.toString() );
-      if ( compare != 0 ) return compare;
-    }
+    if ( this == o ) return 0;
+    if ( o == null ) return -1;
+    int compare = CompareUtils.compareTo( condition, o.condition, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareCollections( eventInvocations, o.eventInvocations,
+                                        true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareCollections( constraintsToAdd, o.constraintsToAdd,
+                                        true );
+    if ( compare != 0 ) return compare;
     return 0;
   }
 
@@ -136,12 +127,12 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
     if ( condition != null ) {
-      s.addAll( condition.getParameters( deep, seen ) );
+      s = Utils.addAll( s, condition.getParameters( deep, seen ) );
     }
     for ( EventInvocation inv : eventInvocations ) {
-      s.addAll( inv.getParameters( deep, seen ) );
+      s = Utils.addAll( s, inv.getParameters( deep, seen ) );
     }
     return s;
   }
@@ -153,12 +144,12 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
     if ( condition != null ) {
-      s.addAll( condition.getFreeParameters( deep, seen ) );
+      s = Utils.addAll( s, condition.getFreeParameters( deep, seen ) );
     }
     for ( EventInvocation inv : eventInvocations ) {
-      s.addAll( inv.getFreeParameters( deep, seen ) );
+      s = Utils.addAll( s, inv.getFreeParameters( deep, seen ) );
     }
     return s;
   }

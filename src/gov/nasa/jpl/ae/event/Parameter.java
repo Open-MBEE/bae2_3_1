@@ -17,6 +17,8 @@ import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -120,7 +122,9 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( value == val ) return true;
     if ( value == null ) return false;
     if ( val == null ) return false;
-    if ( val instanceof Parameter && ( (Parameter)val ).valueEquals( value ) ) return true;
+    if ( val instanceof Parameter && ( (Parameter)val ).valueEquals( value ) ) {
+      return true;
+    }
     //if ( val instanceof Parameter ) return ( compareTo( (Parameter<?>)val ) == 0 );
     if ( value.equals( val ) ) return true;
     return false;
@@ -214,7 +218,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   public Object getMember( String fieldName ) {
     T v = getValueNoPropagate();
     if ( v == null ) return null;
-    Object f = Utils.getFieldValue( v, fieldName );
+    Object f = ClassUtils.getFieldValue( v, fieldName );
     return null;
   }
   
@@ -396,13 +400,14 @@ public class Parameter< T > implements Cloneable, Groundable,
 //      }
 //      if ( compare != 0 ) return compare;
 //    }
-    compare = Utils.compareTo( name, o.name );
+    compare = CompareUtils.compareTo( name, o.name, true );
     if ( compare != 0 ) return compare;
-    compare = Utils.compareTo( getDomain(), o.getDomain() );
+    compare = CompareUtils.compareTo( getDomain(), o.getDomain(), true );
     if ( compare != 0 ) return compare;
-    compare = Utils.compareTo( getType(), o.getType() );
+    compare = CompareUtils.compareTo( getType(), o.getType(), true );
     if ( compare != 0 ) return compare;
-    compare = Utils.compareTo( this, o );
+    Debug.errln("Parameter.compareTo() potentially accessing value information");
+    compare = CompareUtils.compareTo( this, o, false );
     if ( compare != 0 ) return compare;
 
 //    // this assumes domains do not change
@@ -422,7 +427,7 @@ public class Parameter< T > implements Cloneable, Groundable,
 //    }
 //    return Utils.intCompare( owner.hashCode(), o.owner.hashCode() );
 //    System.err.println("compareTo() getting two different parameters with the same names and hash codes seems very unlikely. p1=" + this + ", p2=" + o );
-    return 0; 
+    return compare; 
   }
 
   public boolean inDomain() {
@@ -536,10 +541,14 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    
+    // check for cached constraints
     if ( !Utils.isNullOrEmpty( constraintList ) ) return constraintList;
     if ( constraintList == null ) {
       constraintList = new ArrayList< Constraint >();
     }
+    
+    // get domain constraints
     Method method;
     if ( domain != null && domain instanceof AbstractRangeDomain
          && ( value == null || value instanceof Comparable ) ) {
@@ -561,6 +570,8 @@ public class Parameter< T > implements Cloneable, Groundable,
 //        new Functions.NotEquals< T >( new Expression< T >( value ),
 //                                      new Expression< T >( (T)null ) );
 //    cList.add( new ConstraintExpression( f ) );
+
+    // get constraints in the value
     if ( deep ) {
       T v = getValueNoPropagate(); 
       if ( v != null && 

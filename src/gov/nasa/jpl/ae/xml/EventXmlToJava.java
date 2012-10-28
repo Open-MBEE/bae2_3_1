@@ -48,13 +48,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -82,6 +82,8 @@ import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
+import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Timer;
@@ -587,7 +589,7 @@ public class EventXmlToJava {
     }
     Class<?> classForName = null;
     if ( p == null && lookOutsideXml ) {
-      classForName = Utils.getClassForName( className, this.packageName, false );//, getClass().getClassLoader(), Package.getPackages() );
+      classForName = ClassUtils.getClassForName( className, this.packageName, false );//, getClass().getClassLoader(), Package.getPackages() );
       if ( classForName != null ) {
         Field field = null;
         try {
@@ -830,7 +832,7 @@ public class EventXmlToJava {
   // Recursively look for a type declaration with the given name.
   protected TypeDeclaration getTypeDeclarationFrom( String name,
                                                     TypeDeclaration typeDecl ) {
-    String simpleName = Utils.simpleName( name );
+    String simpleName = ClassUtils.simpleName( name );
     if ( typeDecl.getName().equals( simpleName ) ) {
       return typeDecl;
     }
@@ -847,7 +849,7 @@ public class EventXmlToJava {
   // Look in the compilation units in the map, classes, to find the class
   // declaration of name.
   protected TypeDeclaration getTypeDeclaration( String name ) {
-    String simpleName = Utils.simpleName( name );
+    String simpleName = ClassUtils.simpleName( name );
     if ( name == null ) return null;
     CompilationUnit cu = this.classes.get( simpleName );
     if ( cu != null ) {
@@ -1088,7 +1090,7 @@ public class EventXmlToJava {
                                                                   "eventType" ) );
         ConstructorDeclaration ctor =
             new ConstructorDeclaration( ModifierSet.PUBLIC,
-                                        Utils.simpleName(eventType) );
+                                        ClassUtils.simpleName(eventType) );
         if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< Param > arguments = new ArrayList< Param >();
@@ -1336,7 +1338,7 @@ public class EventXmlToJava {
       if ( !p.second.getType().toString().equals( "Effect" ) ) continue;
       Set< FieldDeclaration > set = map.get( p.first );
       if ( set == null ) {
-        set = new HashSet< FieldDeclaration >();
+        set = new TreeSet< FieldDeclaration >(new CompareUtils.GenericComparator< FieldDeclaration >());
         map.put( p.first, set );
       }
       set.add( p.second );
@@ -1346,7 +1348,7 @@ public class EventXmlToJava {
     StringBuilder sb = new StringBuilder();
     for ( Map.Entry< String, Set< FieldDeclaration > > e : map.entrySet() ) {
       String effectSetName = "effectsFor" + e.getKey();
-      sb.append( "Set<Effect> " + effectSetName + " = new HashSet<Effect>();\n" );
+      sb.append( "Set<Effect> " + effectSetName + " = new TreeSet<Effect>();\n" );
       madeSet = true;
       for ( FieldDeclaration f : e.getValue() ) {
         sb.append( effectSetName + ".add( " + f.getVariables().get( 0 ).getId() + " );\n" );
@@ -1355,7 +1357,7 @@ public class EventXmlToJava {
     }
     if ( madeSet ) {
       addImport("java.util.Set");
-      addImport("java.util.HashSet");
+      addImport("java.util.TreeSet");
       addImport("gov.nasa.jpl.ae.event.EffectFunction");
     }
     return stringToStatementList( sb.toString() );
@@ -1438,12 +1440,12 @@ public class EventXmlToJava {
     if ( justClassDeclarations ) {
       newClassDecl =
           new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, 
-                                           Utils.simpleName( currentClass ) );
+                                           ClassUtils.simpleName( currentClass ) );
       if ( isClassStatic( currentClass ) ) {
         makeStatic( newClassDecl );
       }
     } else {
-      newClassDecl = getClassDeclaration( Utils.simpleName( currentClass ) );
+      newClassDecl = getClassDeclaration( ClassUtils.simpleName( currentClass ) );
     }
     
     if ( justClassDeclarations ) {
@@ -1649,13 +1651,13 @@ public class EventXmlToJava {
 
   private CompilationUnit initCompilationUnit( String name ) {
     currentCompilationUnit = new CompilationUnit();
-    classes.put( Utils.simpleName(name), currentCompilationUnit );
+    classes.put( ClassUtils.simpleName(name), currentCompilationUnit );
     setPackage();
     return currentCompilationUnit;
   }
   
   private CompilationUnit initClassCompilationUnit( String name ) {
-    currentCompilationUnit = initCompilationUnit( Utils.simpleName(name) );
+    currentCompilationUnit = initCompilationUnit( ClassUtils.simpleName(name) );
     // REVIEW -- How can we access eclipse's ability to auto-remove unused
     // imports?
     //addImport( "gov.nasa.jpl.ae.event.*" );
@@ -1683,6 +1685,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingMap" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMap" );
     addImport( "gov.nasa.jpl.ae.util.Utils" );
+    addImport( "gov.nasa.jpl.ae.util.ClassUtils" );
     addImport( "java.util.Vector" );
     addImport( "java.util.Map" );
     return currentCompilationUnit;
@@ -1923,12 +1926,12 @@ public class EventXmlToJava {
       classOrInterfaceName =
           classOrInterfaceName.substring( 0, classOrInterfaceName.indexOf( '<' ) );
     }
-    String n = Utils.getFullyQualifiedName( classOrInterfaceName, false );
+    String n = ClassUtils.getFullyQualifiedName( classOrInterfaceName, false );
     if ( Utils.isNullOrEmpty( n ) || n.equals( classOrInterfaceName ) ) {
       n = getClassNameWithScope( classOrInterfaceName );
     }
     if ( Utils.isNullOrEmpty( n ) || n.equals( classOrInterfaceName ) ) {
-      n = getClassNameWithScope( Utils.simpleName( classOrInterfaceName ) );
+      n = getClassNameWithScope( ClassUtils.simpleName( classOrInterfaceName ) );
     }
     if ( Utils.isNullOrEmpty( n ) || n.equals( classOrInterfaceName ) ) {
       n = classOrInterfaceName;
@@ -2087,7 +2090,7 @@ public class EventXmlToJava {
           parentType = fieldAccessExpr.getScope().toString();
         }
         Class< ? > classForName =
-            Utils.getClassOfClass( parentType,
+            ClassUtils.getClassOfClass( parentType,
                                    fieldAccessExpr.getField().toString(),
                                    packageName, false );
         if ( classForName != null ) {
@@ -2107,7 +2110,7 @@ public class EventXmlToJava {
       //String pType = astToAeExprType( ce.getType(), lookOutsideXml, complainIfNotFound );
       String c = getClassNameWithScope( ce.getType().toString(), true );
       if ( Utils.isNullOrEmpty( c ) ) {
-        Class<?> cc = Utils.getClassForName( ce.getType().toString(), packageName, false );
+        Class<?> cc = ClassUtils.getClassForName( ce.getType().toString(), packageName, false );
         if ( cc != null ) {
           c = cc.getName();
         } else {
@@ -2892,7 +2895,7 @@ public class EventXmlToJava {
 //    }
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "
                         + enclosingInstance + ", "
-                        + Utils.noParameterName( getClassNameWithScope( eventType ) )
+                        + ClassUtils.noParameterName( getClassNameWithScope( eventType ) )
                         + ".class, "
                         + ( Utils.isNullOrEmpty( eventName ) ? "null" : "\"" 
                             + eventName + "\"" )
@@ -3069,7 +3072,7 @@ public class EventXmlToJava {
         Set< MethodDeclaration > methodSet =
             classMethods.get( methodDecl.getName() );
         if ( methodSet == null ) {
-          methodSet = new HashSet<MethodDeclaration>();
+          methodSet = new TreeSet<MethodDeclaration>(new CompareUtils.GenericComparator< MethodDeclaration >());
           classMethods.put( methodDecl.getName(), methodSet );
         }
         methodSet.add( methodDecl );
@@ -3078,13 +3081,13 @@ public class EventXmlToJava {
   }
   
   public static final Set< MethodDeclaration > emptyMethodDeclarationSet =
-      new HashSet< MethodDeclaration >();
+      new TreeSet<MethodDeclaration>(new CompareUtils.GenericComparator< MethodDeclaration >());
 
   public Set< MethodDeclaration > getMethodsForClass( String className ) {
     Map< String, Set< MethodDeclaration > > classMethods =
         methodTable.get( className );
     if ( classMethods == null ) return emptyMethodDeclarationSet;
-    Set< MethodDeclaration > methodsForClass = new HashSet< MethodDeclaration >();
+    Set< MethodDeclaration > methodsForClass = new TreeSet<MethodDeclaration>(new CompareUtils.GenericComparator< MethodDeclaration >());
     for ( Set< MethodDeclaration > methodsByName : classMethods.values() ) {
       methodsForClass.addAll( methodsByName );
     }
@@ -3104,7 +3107,7 @@ public class EventXmlToJava {
     ClassOrInterfaceDeclaration classDecl = getClassDeclaration( className );
     if ( classDecl == null ) return null;
     if ( classDecl.getMembers() == null ) return null;
-    Set< ConstructorDeclaration > s = new HashSet< ConstructorDeclaration >();
+    Set< ConstructorDeclaration > s = new TreeSet<ConstructorDeclaration>(new CompareUtils.GenericComparator< ConstructorDeclaration >());
     for ( BodyDeclaration m : classDecl.getMembers() ) {
       if ( m instanceof ConstructorDeclaration ) {
         s.add( (ConstructorDeclaration)m );
@@ -3154,7 +3157,7 @@ public class EventXmlToJava {
   }
   
   public ClassOrInterfaceDeclaration getClassDeclaration( String className ) {
-    className = Utils.simpleName( className );
+    className = ClassUtils.simpleName( className );
     ClassOrInterfaceDeclaration classDecl = null;
     CompilationUnit cu = classes.get( className );
     if ( cu == null ) {
@@ -3194,7 +3197,7 @@ public class EventXmlToJava {
     Map< String, Set< MethodDeclaration > > classMethods =
         methodTable.get( className );
     if ( classMethods == null ) {
-      classMethods = methodTable.get( Utils.simpleName( className ) );
+      classMethods = methodTable.get( ClassUtils.simpleName( className ) );
     }
     if ( classMethods == null ) {
       String scopedName = getClassNameWithScope( className );
@@ -3635,7 +3638,7 @@ public class EventXmlToJava {
 //        }
     String args[] = new String[] { null };
     Utils.loader = getLoader();
-    Method m = Utils.getMethodForArgTypes( getMainClass(), "main", args.getClass() );
+    Method m = ClassUtils.getMethodForArgTypes( getMainClass(), "main", args.getClass() );
     try {
       m.invoke( null, (Object[])args );
       succ = true;

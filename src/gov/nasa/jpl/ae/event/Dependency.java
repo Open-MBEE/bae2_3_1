@@ -1,8 +1,9 @@
 package gov.nasa.jpl.ae.event;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
+
 import junit.framework.Assert;
 
 import gov.nasa.jpl.ae.event.Functions.Equals;
@@ -12,6 +13,7 @@ import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -206,9 +208,9 @@ public class Dependency< T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    HashSet< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.add( parameter );
-    set.addAll( expression.getParameters( deep, seen ) );
+    set = Utils.addAll( set, expression.getParameters( deep, seen ) );
     return set;
   }
 
@@ -237,8 +239,8 @@ public class Dependency< T >
   
   @Override
   public Set< Variable< ? > > getVariables() {
-    Set< Variable< ? > > s = new HashSet< Variable< ? > >();
-    s.addAll( getParameters( false, null ) );
+    Set< Variable< ? > > s =
+        new TreeSet< Variable< ? > >( getParameters( false, null ) );
     return s;
   }
 
@@ -351,7 +353,13 @@ public class Dependency< T >
 
   @Override
   public int compareTo( Constraint o ) {
-    return getConstraintExpression().compareTo( o );
+    if ( this == o ) return 0;
+    if ( o == null ) return -1;
+    int compare = getConstraintExpression().compareTo( o );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( this, o, false );
+    if ( compare != 0 ) return compare;
+    return compare;
 //    if ( o instanceof Dependency ) {
 //      Dependency< ? > od = (Dependency< ? >)o;
 //      int compare = parameter.compareTo( od.parameter );
@@ -457,18 +465,13 @@ public class Dependency< T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Constraint > set = new HashSet< Constraint >();
+    Set< Constraint > set = new TreeSet< Constraint >();
     set.add( this );
     if ( deep ) {
       Set< Constraint > pSet =
           HasConstraints.Helper.getConstraints( getParameters( false, null ),
                                                 deep, seen );
-      if ( pSet.size() > set.size() ) {
-        pSet.addAll( set );
-        set = pSet;
-      } else {
-        set.addAll( pSet );
-      }
+      set = Utils.addAll( set, pSet );
     }
     return set;
   }
@@ -480,9 +483,9 @@ public class Dependency< T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
-    set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
-    set.addAll( HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
+    Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+    set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
+    set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     return set;
   }
 

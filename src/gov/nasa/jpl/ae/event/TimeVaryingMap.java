@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -14,7 +15,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Formatter;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
+
 import junit.framework.Assert;
 
 /**
@@ -292,7 +294,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   }
 
   public void setName( String newName ) {
-    if ( newName == null || newName.isEmpty() ) {
+    if ( Utils.isNullOrEmpty( newName ) ) {
       Formatter formatter = new Formatter(Locale.US);
       newName = getClass().getSimpleName();
     }
@@ -309,9 +311,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > params = new HashSet< Parameter< ? > >();
-    params.addAll( HasParameters.Helper.getParameters( this, deep, seen ) );
-    params.addAll( HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
+    Set< Parameter< ? > > params = new TreeSet< Parameter< ? > >();
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( this, deep, seen ) );
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
     return params;
   }
 
@@ -573,6 +575,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    * @return whether or not the entries in the map make sense.
    */
   public boolean isConsistent() {
+    return true;
+  }
+  public boolean isConsistent2() {    
     Timepoint lastTp = null;
     int lastTime = -1;
     T lastValue = null;
@@ -744,11 +749,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     int compare = 0;
     if ( o instanceof TimeVaryingMap ) {
       TimeVaryingMap<?> otvm = (TimeVaryingMap)o;
-      compare = Utils.compareTo( getName(), otvm.getName() );
+      compare = CompareUtils.compareTo( getName(), otvm.getName(), true );
       if ( compare != 0 ) return compare;
     }
-    Debug.err( "Warning: TimeVaryingMap.compareTo() may compare values, which, if changed while this is in a map, can corrupt the map." );
-    compare = Utils.compareTo( this, o ); // WARNING: values change!!!
+    Debug.err( "TimeVaryingMap.compareTo() may compare values, which, if changed while this is in a map, can corrupt the map." );
+    compare = CompareUtils.compareTo( this, o ); // WARNING: values change!!!
     if ( compare != 0 ) return compare;
     return compare;
   }

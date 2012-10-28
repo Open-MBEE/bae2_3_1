@@ -62,11 +62,11 @@ public class EffectInstance implements HasParameters {
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
     set.add( startTime );
     set.add( duration );
     if ( deep ) {
-      set.addAll( HasParameters.Helper.getParameters( effect, deep, seen ) );
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( effect, deep, seen ) );
     }
     return set;
   }

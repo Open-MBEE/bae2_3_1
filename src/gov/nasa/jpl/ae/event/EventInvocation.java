@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -23,8 +25,11 @@ import junit.framework.Assert;
  *         TODO -- This class is not done and may need to be scrapped in favor
  *         of expressions with references (pointers to members of objects that
  *         may not yet be instantiated).
+ * 
+ *         REVIEW -- Consider using ConstructorCall as a replacement for
+ *         EventInvocation.
  */
-public class EventInvocation implements HasParameters {
+public class EventInvocation implements HasParameters, Comparable< EventInvocation >{
   protected Class< ? extends Event > eventClass = null;
   protected String eventName = null;
   protected Object[] arguments = null;
@@ -74,7 +79,7 @@ public class EventInvocation implements HasParameters {
     Event event = null;
     Pair< Constructor< ? >, Object[] > ctorAndArgs =
         // makeConstructor();
-        Utils.getConstructorForArgs( eventClass, arguments,
+        ClassUtils.getConstructorForArgs( eventClass, arguments,
                                      ( enclosingInstance == null ) ? null
                                      : enclosingInstance.getValue() );
     constructor = (Constructor< ? extends Event >)ctorAndArgs.first;
@@ -156,7 +161,7 @@ public class EventInvocation implements HasParameters {
     }
     */
     constructor =
-        (Constructor< ? extends Event >)(Utils.getConstructorForArgs( eventClass,
+        (Constructor< ? extends Event >)(ClassUtils.getConstructorForArgs( eventClass,
                                                                      arguments,
                                                                      enclosingInstance.getValue() )).first;
     return constructor;
@@ -304,10 +309,10 @@ public class EventInvocation implements HasParameters {
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
+    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
     for ( Object a : getArguments() ) {
       if ( a instanceof HasParameters )
-      s.addAll( ((HasParameters)a).getFreeParameters( deep, seen ) );
+      s = Utils.addAll( s, ((HasParameters)a).getFreeParameters( deep, seen ) );
     }
     return s;
   }
@@ -353,6 +358,19 @@ public class EventInvocation implements HasParameters {
 //    // REVIEW -- Is this just done by Events? Maybe throw
 //    // assertion that this method id not supported for ElaborationRule.
 //    return false;
+  }
+
+  @Override
+  public int compareTo( EventInvocation o ) {
+    if ( this == o ) return 0;
+    if ( o == null ) return -1;
+    int compare = CompareUtils.compareTo( eventName, o.eventName );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( arguments, o.arguments, true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compareTo( this, o );
+    if ( compare != 0 ) return compare;
+    return 0;
   }
   
 }
