@@ -58,11 +58,13 @@ class highlighterThread(Thread):
         if mode == 0:
             mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
             #filepath = "c:\\Users\\bclement\\Desktop\\medium2.txt"
-            filepath = "/Users/mjackson/Desktop/MedSim.txt"
+            filepath = "c:\\Users\\bclement\\workspace\\CS\\simulationSnapshot.Scenario_Smaller_2012.txt"
+            #filepath = "c:\\Users\\bclement\\workspace\\CS\\Smaller2012_2.console.txt"
+            #filepath = "/Users/mjackson/Desktop/MedSim.txt"
             gl.log("reading events from " + filepath)
             f = open(filepath,"r")
             lastTime = 0
-            signals = []
+            elementsNotEnded = []
             for line in f.readlines():
                 #gl.log("read line = " + line)
                 #x = re.search(" (\S*) -> (\S*)\s*(\S*) ==>",line)
@@ -85,6 +87,7 @@ class highlighterThread(Thread):
                 if eventTime != lastTime:
                     mda.doThePaint()
                     lastTime = eventTime
+                    time.sleep(self.timeStep)
                 gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 if any([x in cid for x in ["Main","TimeVaryingMap"]]): 
                     gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap")
@@ -94,24 +97,30 @@ class highlighterThread(Thread):
                     continue
                 if ctype.startswith("sig") and "ObjectFlow" in cid:
                     sid = ctype.strip("sig")
-                    if "null" in action and sid in signals:
+                    if "null" in action and sid in elementsNotEnded:
                         gl.log("    ---> ENDING SIGNAL %s" % sid)
                         mda.end(sid)
-                        signals.remove(sid)
+                        elementsNotEnded.remove(sid)
                     elif "null" not in action: 
                         gl.log("    ---> STARTING SIGNAL %s" % sid)
                         mda.start(sid)
-                        if sid not in signals: signals.append(sid)
+                        if sid not in elementsNotEnded: elementsNotEnded.append(sid)
                 elif "start" in action: 
                     gl.log("    ---> STARTING")
                     mda.start(cid)
+                    if cid not in elementsNotEnded: elementsNotEnded.append(cid)
                 elif "end" in action: 
                     gl.log("    ---> ENDING")
                     mda.end(cid)
-                time.sleep(self.timeStep)
-            for sig in signals:
-                gl.log("ending signal %s " % sig)
+                    if cid in elementsNotEnded: elementsNotEnded.remove(cid)
+            time.sleep(self.timeStep)
+            mda.doThePaint()
+            gl.log("sleeping 3 seconds before reset")
+            time.sleep(3)
+            for sig in elementsNotEnded:
+                gl.log("ending %s " % sig)
                 mda.end(sig)
+            mda.doThePaint()
                 
         elif mode == 1:
             e = "_17_0_5_edc0357_1346893970422_843838_14398"
