@@ -250,6 +250,8 @@ class activityEventClass(object):
 		if activity is not owner.classifierBehavior:
 			self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
 			self.members["caller"] = ("DurativeEvent",None,"Initialize variable for cba that called this")
+			self.members["duration"] = ("Integer","60","fake duration?")
+			#self.members["endTime"] = ("Integer","300","fake end time")
 		
 		self.inspectComposition(activity)
 	
@@ -316,7 +318,7 @@ class activityEventClass(object):
 			for inc in final.incoming:
 				signame = "sig" + str(inc.getID())
 				self.members[signame] = ("ObjectFlow&lt;Boolean&gt;",'new ObjectFlow("'+signame+'")',"member for FINAL NODE object flow")
-			s = "sig" + str(inc.getID()) + ".hasStuff(endTime)" #WAS +1
+			s = "sig" + str(inc.getID()) + ".hasStuff(finalNode_startTime - 1)" #WAS +1
 			self.dependencies[final.getID() + "_exists"] = ("Boolean",s)
 		
 		#inspect edges...
@@ -796,6 +798,7 @@ class actionEventClass(object):
 			else:
 				behav = node.behavior
 				owner = behav.owner
+				self.members["duration"] = ("Integer","45","fake duration")
 				#self.dependencies["endTime"] = ("Integer","finalNode_endTime")
 				self.elaborations[node.behavior]={
 												#"args": [("endTime","endTime","Integer"),("startTime","startTime","Integer")],
