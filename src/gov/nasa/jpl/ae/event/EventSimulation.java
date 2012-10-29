@@ -15,14 +15,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -106,7 +103,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   Timepoint.Units timeUnits = Timepoint.Units.hours;
   double timeScale;
   
-  Map< Object, Object > currentPlottableValues = new TreeMap< Object, Object >();
+  Map< Object, Object > currentPlottableValues =
+      new TreeMap< Object, Object >( new CompareUtils.GenericComparator< Object >() );
 
   SocketClient plotSocket = null;
   Process plotProcess = null;

@@ -59,6 +59,8 @@ public class ClassUtils {
                            boolean isVarArgs ) {
         numMatching = 0;
         numDeps = 0;
+        boolean debugWasOn = Debug.isOn();
+        Debug.turnOff();
   //      double score = numArgsCost + argMismatchCost * argTypes.length;
         int candidateArgsLength =
             candidateArgTypes == null ? 0 : candidateArgTypes.length;
@@ -123,6 +125,7 @@ public class ClassUtils {
                         + ") >= candidateArgTypes.length("
                         + candidateArgsLength + "), numDeps=" + numDeps );
         }
+        if ( debugWasOn ) Debug.turnOn();
       }
     }
 

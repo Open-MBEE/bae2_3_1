@@ -306,7 +306,8 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {
-    //return Utils.getEmptySet();
+    return Utils.getEmptySet();
+    /*
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -315,6 +316,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     params = Utils.addAll( params, HasParameters.Helper.getParameters( this, deep, seen ) );
     params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
     return params;
+    */
   }
 
   @Override
@@ -574,10 +576,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
    * Validate the consistency of the map for individual and adjacent entries.
    * @return whether or not the entries in the map make sense.
    */
-  public boolean isConsistent() {
+  public boolean isConsistent2() {
     return true;
   }
-  public boolean isConsistent2() {    
+  public boolean isConsistent() {    
     Timepoint lastTp = null;
     int lastTime = -1;
     T lastValue = null;
@@ -643,10 +645,10 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
                      + valuesAtSameTime + " for TimeVaryingMap "
                      + getName() );
         ok = false;
-      } else if ( !firstEntry && !valueChanged ) {
-        if ( Debug.isOn() ) Debug.error( false, "Warning! value " + value
-                           + " repeated for adjacent entry " + entry + " at time "
-                           + tp + " for TimeVaryingMap " + this );
+//      } else if ( !firstEntry && !valueChanged ) {
+//        if ( Debug.isOn() ) Debug.error( false, "Warning! value " + value
+//                           + " repeated for adjacent entry " + entry + " at time "
+//                           + tp + " for TimeVaryingMap " + this );
       }
       lastTp = tp;
       lastValue = value;

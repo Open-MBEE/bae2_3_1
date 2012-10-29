@@ -1,12 +1,10 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Satisfiable;
-import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -236,7 +234,10 @@ public interface HasParameters extends LazyUpdate {
     public static < K, V > boolean isStale( Map< K, V > map,
                                             boolean deep,
                                             Set< HasParameters > seen ) {
-      for ( Map.Entry< K, V > me : map.entrySet() ) {
+      if ( map instanceof LazyUpdate ) {
+        return ((LazyUpdate)map).isStale();  // the potential infinite loop
+      }
+     for ( Map.Entry< K, V > me : map.entrySet() ) {
         if ( isStale( me.getKey(), deep, seen ) ) return true;
         if ( isStale( me.getValue(), deep, seen ) ) return true;
       }
@@ -255,6 +256,9 @@ public interface HasParameters extends LazyUpdate {
                                                  Parameter< ? > parameter,
                                                  boolean deep,
                                                  Set< HasParameters > seen ) {
+      if ( map instanceof HasParameters ) {
+        return ((HasParameters)map ).hasParameter( parameter, deep, seen );
+      }
       for ( Map.Entry< K, V > me : map.entrySet() ) {
         if ( hasParameter( me.getKey(), parameter, deep, seen ) ||
              hasParameter( me.getValue(), parameter, deep, seen ) ) {
@@ -268,9 +272,13 @@ public interface HasParameters extends LazyUpdate {
                                                                 boolean deep,
                                                                 Set< HasParameters > seen ) {
       Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
-      for ( Map.Entry< K, V > me : map.entrySet() ) {
-        set = Utils.addAll( set, getParameters( me.getKey(), deep, seen ) );
-        set = Utils.addAll( set, getParameters( me.getValue(), deep, seen ) );
+      if ( map instanceof HasParameters ) {
+        set.addAll( ((HasParameters)map ).getParameters( deep, seen ) );
+      } else {
+        for ( Map.Entry< K, V > me : map.entrySet() ) {
+          set = Utils.addAll( set, getParameters( me.getKey(), deep, seen ) );
+          set = Utils.addAll( set, getParameters( me.getValue(), deep, seen ) );
+        }
       }
       return set;
     }
@@ -279,6 +287,9 @@ public interface HasParameters extends LazyUpdate {
                                                     Parameter< ? > parameter,
                                                     boolean deep,
                                                     Set< HasParameters > seen ) {
+      if ( map instanceof HasParameters ) {
+        return ((HasParameters)map).isFreeParameter( parameter, deep, seen );
+      }
       for ( Map.Entry< K, V > me : map.entrySet() ) {
         if ( isFreeParameter( me.getKey(), parameter, deep, seen ) ||
              isFreeParameter( me.getValue(), parameter, deep, seen ) ) {
@@ -294,6 +305,9 @@ public interface HasParameters extends LazyUpdate {
                                                Parameter< ? > p2,
                                                boolean deep,
                                                Set< HasParameters > seen ) {
+      if ( map instanceof HasParameters ) {
+        return ((HasParameters)map).substitute( p1, p2, deep, seen );
+      }
       if ( p1 == null ) return false;
       if ( p1 == p2 ) return true;
       boolean subbed = false;
@@ -325,6 +339,9 @@ public interface HasParameters extends LazyUpdate {
     
     public static < T > boolean isStale( Collection< T > c, boolean deep,
                                          Set< HasParameters > seen ) {
+      if ( c instanceof LazyUpdate ) {
+        return ((LazyUpdate)c).isStale();  // potential infinite loop
+      }
       for ( T t : c ) {
         if ( isStale( t, deep, seen ) ) return true;
       }
@@ -343,6 +360,9 @@ public interface HasParameters extends LazyUpdate {
                                               Parameter< ? > parameter,
                                               boolean deep,
                                               Set< HasParameters > seen ) {
+      if ( c instanceof HasParameters ) {
+        return ((HasParameters)c ).hasParameter( parameter, deep, seen );
+      }
       for ( T t : c ) {
         if ( hasParameter( t, parameter, deep, seen ) ) {
           return true;
@@ -355,8 +375,12 @@ public interface HasParameters extends LazyUpdate {
                                                              boolean deep,
                                                              Set< HasParameters > seen ) {
       Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
-      for ( T t : c ) {
-        set = Utils.addAll( set, getParameters( t, deep, seen ) );
+      if ( c instanceof HasParameters ) {
+        set = Utils.addAll( set, ((HasParameters)c).getParameters( deep, seen ) );
+      } else {
+        for ( T t : c ) {
+          set = Utils.addAll( set, getParameters( t, deep, seen ) );
+        }
       }
       return set;
     }
@@ -367,6 +391,9 @@ public interface HasParameters extends LazyUpdate {
                                                  Parameter< ? > parameter,
                                                  boolean deep,
                                                  Set< HasParameters > seen ) {
+      if ( c instanceof HasParameters ) {
+        return ((HasParameters)c).isFreeParameter( parameter, deep, seen );
+      }
       for ( T t : c ) {
         if ( isFreeParameter( t, parameter, deep, seen ) ) {
           return true;
@@ -381,6 +408,9 @@ public interface HasParameters extends LazyUpdate {
                                             Parameter< ? > p2,
                                             boolean deep,
                                             Set< HasParameters > seen ) {
+      if ( c instanceof HasParameters ) {
+        return ((HasParameters)c).substitute( p1, p2, deep, seen );
+      }
       if ( p1 == null ) return false;
       if ( p1 == p2 ) return true;
       boolean subbed = false;
@@ -472,6 +502,9 @@ public interface HasParameters extends LazyUpdate {
     
     public static < T1, T2 > boolean isStale( Pair< T1, T2 > p, boolean deep,
                                               Set< HasParameters > seen ) {
+      if ( p instanceof LazyUpdate ) {
+        return ((LazyUpdate)p).isStale();  // the potential infinite loop
+      }
       if ( isStale( p.first, deep, seen ) ) return true;
       if ( isStale( p.second, deep, seen ) ) return true;
       return false;
@@ -481,6 +514,9 @@ public interface HasParameters extends LazyUpdate {
                                                    Parameter< ? > parameter,
                                                    boolean deep,
                                                    Set< HasParameters > seen ) {
+      if ( p instanceof HasParameters ) {
+        return ((HasParameters)p).hasParameter( parameter, deep, seen );
+      }
       if ( hasParameter( p.first, parameter, deep, seen ) ) return true;
       if ( hasParameter( p.second, parameter, deep, seen ) ) return true;
       return false;
@@ -490,8 +526,12 @@ public interface HasParameters extends LazyUpdate {
                                                                   boolean deep,
                                                                   Set< HasParameters > seen ) {
       Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
-      set = Utils.addAll( set, getParameters( p.first, deep, seen ) );
-      set = Utils.addAll( set, getParameters( p.second, deep, seen ) );
+      if ( p instanceof HasParameters ) {
+        set.addAll( ((HasParameters)p ).getParameters( deep, seen ) );
+      } else {
+        set = Utils.addAll( set, getParameters( p.first, deep, seen ) );
+        set = Utils.addAll( set, getParameters( p.second, deep, seen ) );
+      }
       return set;
     }
     
@@ -501,6 +541,9 @@ public interface HasParameters extends LazyUpdate {
                                                  Parameter< ? > parameter,
                                                  boolean deep,
                                                  Set< HasParameters > seen ) {
+      if ( p instanceof HasParameters ) {
+        return ((HasParameters)p).isFreeParameter( parameter, deep, seen );
+      }
       if ( isFreeParameter( p.first, parameter, deep, seen ) ) return true;
       if ( isFreeParameter( p.second, parameter, deep, seen ) ) return true;
       return false;
@@ -512,6 +555,9 @@ public interface HasParameters extends LazyUpdate {
                                             Parameter< ? > p2,
                                             boolean deep,
                                             Set< HasParameters > seen ) {
+      if ( p instanceof HasParameters ) {
+        return ((HasParameters)p).substitute( p1, p2, deep, seen );
+      }
       if ( p1 == null ) return false;
       if ( p1 == p2 ) return true;
       boolean subbed = false;

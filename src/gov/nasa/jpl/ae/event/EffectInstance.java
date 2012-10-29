@@ -3,11 +3,9 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 

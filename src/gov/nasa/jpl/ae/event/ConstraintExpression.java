@@ -67,8 +67,8 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = evaluate(false);
     if ( sat == null ) sat = new Boolean( false );
-    if ( sat ) {
-      sat = HasParameters.Helper.isSatisfied( this, true, null );
+    if ( deep & sat ) {
+      sat = HasParameters.Helper.isSatisfied( this, false, null );
     }
     if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.isSatisfied() = " + sat + ": " + this );
     return sat;

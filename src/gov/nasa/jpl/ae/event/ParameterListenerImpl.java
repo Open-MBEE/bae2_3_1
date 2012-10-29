@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Formatter;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -188,6 +187,16 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
   public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e ) {
+    Debug.errorOnNull( "try to add a dependency on null", p );
+    
+    // Check if p is in enclosing class and call the enclosing class's addDependency() 
+    if ( p.getOwner() != null && p.getOwner() != this ) {
+      if ( p.getOwner() instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pli = (ParameterListenerImpl)p.getOwner();
+        return pli.addDependency( p, e );
+      }
+      Debug.error(getName() + " adding a dependency on a parameter it doesn't own.");
+    }
     removeDependenciesForParameter( p );
     Dependency< T > d = new Dependency< T >( p, e );
 // Default domains are shared.  The domains need to be cloned before intersecting them.
@@ -211,6 +220,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
 
   public < T > boolean
       removeDependenciesForParameter( Parameter< T > p ) {
+    //assert p.getOwner() == null || p.getOwner() == this;
     boolean removed = false;
     int ct = dependencies.size() - 1;
     while ( ct >= 0 ) {

@@ -406,7 +406,7 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compareTo( getType(), o.getType(), true );
     if ( compare != 0 ) return compare;
-    Debug.errln("Parameter.compareTo() potentially accessing value information");
+//    Debug.errln("Parameter.compareTo() potentially accessing value information");
     compare = CompareUtils.compareTo( this, o, false );
     if ( compare != 0 ) return compare;
 
@@ -532,6 +532,9 @@ public class Parameter< T > implements Cloneable, Groundable,
   @Override
   public void setStale( boolean staleness ) {
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
+    if ( name.equals( "increaseGeneration" ) || name.equals( "amountToIncrease" ) ) {
+      Debug.out( "" );
+    }
     stale = staleness;
   }
 

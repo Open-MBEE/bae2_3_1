@@ -68,8 +68,9 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     getListeners().add( objectFlow );
   }
   
-  public void sendIf( Obj o, Timepoint t, boolean doSend ) {
-    if ( doSend ) {
+  public void sendIf( Obj o, Timepoint t, Boolean doSend ) {
+    if ( doSend == null ) return;
+    if ( doSend.booleanValue() ) {
       send( o, t );
     } else if ( isSetValueApplied(o, t) ) {
       unsetValue(t, o);
@@ -197,15 +198,17 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction == null || effectFunction.getMethod() == null ) {
-      if ( Debug.isOn() ) Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+      if ( Debug.isOn() )
+        Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
                    + effect + ", Method=" + method1 + ", Method=" + method2
                    + ") called with no effect method! " + this );
       return false;
     }
     if ( effectFunction.hasTypeErrors() ) {
-      if ( Debug.isOn() ) Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
+      if ( Debug.isOn() )
+        Debug.errln( this.getClass().getSimpleName() + ".isApplied(Effect="
           + effect + ", Method=" + method1 + ", Method=" + method2
-          + "): inconsistent EffectFuncion arguments! " + this );
+          + "): inconsistent EffectFunction arguments! " + this );
       return false;
     }
 

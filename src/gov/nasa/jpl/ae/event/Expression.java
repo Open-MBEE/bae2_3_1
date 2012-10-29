@@ -1,7 +1,5 @@
 package gov.nasa.jpl.ae.event;
-import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
-import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
@@ -10,7 +8,6 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import junit.framework.Assert;
@@ -185,6 +182,7 @@ public class Expression< ResultType >
             } else {
               o = p.getValueNoPropagate();
             }
+            if ( o == null ) return null;
             try {
               if ( resultType != null ) {
                 if ( resultType.isInstance( o ) ) {

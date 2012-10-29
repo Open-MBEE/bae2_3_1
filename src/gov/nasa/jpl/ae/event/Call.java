@@ -9,6 +9,7 @@ import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -354,8 +355,10 @@ public abstract class Call implements HasParameters, HasDomain, Groundable, Comp
         }
       }
     }
-    if ( nestedCall != null ) {
-      if ( object == null ) return false;
+    if ( nestedCall == null ) {
+//      if ( !Modifier.isStatic( getMember().getModifiers() ) &&
+//           object == null ) return false;
+    } else {
       if ( !nestedCall.isGrounded( deep, seen ) ) return false;
     }
     return true;

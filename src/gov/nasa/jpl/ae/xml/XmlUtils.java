@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -360,7 +359,7 @@ public class XmlUtils {
     NodeList nodeList = root.getChildNodes();
     for ( int i = 0; i < nodeList.getLength(); i++ ) {
       Node childNode = nodeList.item( i );
-      nodes.addAll( findNodes( childNode, tag ) );
+      nodes = Utils.addAll( nodes, findNodes( childNode, tag ) );
     }
     return nodes;
   }

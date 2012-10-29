@@ -116,7 +116,7 @@ public class Dependency< T >
     boolean sat;
     if ( constraint != null ) {
       sat = constraint.isSatisfied(deep, seen);
-      if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " );// + this );
+      if ( Debug.isOn() && !sat ) Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " );// + this );
     } else if ( !parameter.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );

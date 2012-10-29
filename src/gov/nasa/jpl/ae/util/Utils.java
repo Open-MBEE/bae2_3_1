@@ -236,7 +236,8 @@ public class Utils {
     }
 //    ++notSeenCt;
     if ( seen == null && recursive == true ) {
-      seen = new HashSet< T >();
+      seen = new HashSet< T >(); // ok to use hash here since we never iterate
+                                 // over the contents
     }
     if ( seen != null ) seen.add( o );
     return new Pair< Boolean, Set< T > >( false, seen );

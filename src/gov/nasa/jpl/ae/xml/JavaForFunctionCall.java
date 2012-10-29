@@ -32,7 +32,7 @@ public class JavaForFunctionCall {
   /**
    * 
    */
-  private final EventXmlToJava xmlToJava; // hash
+  private final EventXmlToJava xmlToJava;
   public MethodCallExpr methodCallExpr = null;
   public ObjectCreationExpr objectCreationExpr = null;
   public boolean methodOrConstructor = true; 
