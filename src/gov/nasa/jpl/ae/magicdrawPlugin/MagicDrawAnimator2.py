@@ -120,8 +120,8 @@ class highlighterThread(Thread):
                     continue
                 else: continue
                 #gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
-                if any([x in cid for x in ["Main","TimeVaryingMap","ObjectFlow"]]): 
-                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap or ObjectFlow")
+                if any([x in cid for x in ["Main","TimeVaryingMap"]]): 
+                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap")
                     continue
                 if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
                     gl.log("    ---> Skipping - can't animate the Activity object!")
@@ -138,6 +138,8 @@ class highlighterThread(Thread):
             
             print( "MagicDrawAnimator2: finished loading events from " + str(filepath) )
             gl.log( "MagicDrawAnimator2: finished loading events from " + str(filepath) )
+            
+            elementsNotEnded = []
             try:
                 mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
                 #self.playEvents(mda)
@@ -188,6 +190,17 @@ class highlighterThread(Thread):
                            + ") - elapsed sim time(" + str(elapsedSimTime) + ") = " \
                            + str(timeOfNextEvent - elapsedSimTime) + " seconds")
                     time.sleep( timeOfNextEvent - elapsedSimTime )
+                if evt.ctype.startswith("sig") and "ObjectFlow" in evt.cid:
+                    sid = evt.ctype.strip("sig")
+                    if "null" in action and sid in elementsNotEnded:
+                        gl.log("    ---> ENDING SIGNAL %s" % sid)
+                        mda.end(sid)
+                        elementsNotEnded.remove(sid)
+                    elif "null" not in evt.action: 
+                        gl.log("    ---> STARTING SIGNAL %s" % sid)
+                        mda.start(sid)
+                        if sid not in elementsNotEnded: elementsNotEnded.append(sid)
+                
                 if "start" in evt.action: 
                     gl.log("    ---> STARTING")
                     mda.start(evt.componentId)
