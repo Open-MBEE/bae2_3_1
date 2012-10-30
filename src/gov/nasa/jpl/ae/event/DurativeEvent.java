@@ -1004,7 +1004,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( tvp.getValueNoPropagate() == null ) return;
       Set< Effect > set = p.second;
       if ( set == null ) return;
-      TimeVarying<?> tv = Expression.evaluate( (Object)tvp, TimeVarying.class, false );
+      TimeVarying< ? > tv =
+          Expression.evaluate( (Object)tvp, TimeVarying.class, false );
       for ( Effect e : set ) {
         // TODO -- Has unApplyTo() been implemented?
         e.unApplyTo( tv );
@@ -1017,8 +1018,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set<Timepoint> timepoints = getTimepoints( false, null );
     for ( TimeVarying< ? > tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof TimeVaryingMap ) {
-        ( (TimeVaryingMap<?>)tv ).keySet().removeAll( timepoints );
-        ( (TimeVaryingMap<?>)tv ).isConsistent();
+        for ( Parameter<?> p : timepoints ) {
+          ( (TimeVaryingMap<?>)tv ).detach( p );
+        }
+//        ( (TimeVaryingMap<?>)tv ).keySet().removeAll( timepoints );
+//        ( (TimeVaryingMap<?>)tv ).isConsistent();
       }
     }
     

@@ -267,6 +267,16 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     }
     return changed;
   }
+  
+  protected void breakpoint() {
+    if ( getName() != null && getName().contains( "13608" ) ) {
+      return;
+    }
+    if ( getName() != null && getName().contains( "14272" ) ) {
+      return;
+    }
+  }
+  
   /**
    * Append value to the end of the list at Timepoint t unless the list already contains the value or has reached its maximum size.
    * @param t
