@@ -406,9 +406,13 @@ public class Parameter< T > implements Cloneable, Groundable,
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compareTo( getType(), o.getType(), true );
     if ( compare != 0 ) return compare;
-//    Debug.errln("Parameter.compareTo() potentially accessing value information");
-    compare = CompareUtils.compareTo( this, o, false );
+    compare = CompareUtils.compareTo( getOwner(), o.getOwner(), true );
     if ( compare != 0 ) return compare;
+//    Debug.errln("Parameter.compareTo() potentially accessing value information");
+    compare = CompareUtils.compareTo( getValue(), o.getValue(), true );
+    if ( compare != 0 ) return compare;
+//    compare = CompareUtils.compareTo( this, o, false );
+//    if ( compare != 0 ) return compare;
 
 //    // this assumes domains do not change
 //    if ( domain != null && o.domain != null && domain.getType() != null

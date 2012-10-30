@@ -24,26 +24,24 @@ public class CompareUtils {
     if ( o1 == o2 ) return 0;
     if ( o1 == null ) return -1;
     if ( o2 == null ) return 1;
-    if ( checkComparable ) {
-      if (o1 instanceof Collection && o2 instanceof Collection ) {
-        return CompareUtils.compareCollections( (Collection)o1, (Collection)o2,
-                                   checkComparable );
-      }
-      if (o1 instanceof Object[] && o2 instanceof Object[] ) {
-        return CompareUtils.compareCollections( (Object[])o1, (Object[])o2,
-                                   checkComparable );
-      }
-      if (o1 instanceof Map && o2 instanceof Map ) {
-        return CompareUtils.compareCollections( (Map)o1, (Map)o2,
-                                   checkComparable );
-      }
-    }
     int compare = o1.getClass().getName().compareTo( o2.getClass().getName() );
     if ( compare != 0 ) return compare;
     if ( checkComparable ) {
       if ( o1 instanceof Comparable ) {
         return ((Comparable<T2>)o1).compareTo( o2 ); 
       }
+    }
+    if (o1 instanceof Collection && o2 instanceof Collection ) {
+      return CompareUtils.compareCollections( (Collection)o1, (Collection)o2,
+                                 checkComparable );
+    }
+    if (o1 instanceof Object[] && o2 instanceof Object[] ) {
+      return CompareUtils.compareCollections( (Object[])o1, (Object[])o2,
+                                 checkComparable );
+    }
+    if (o1 instanceof Map && o2 instanceof Map ) {
+      return CompareUtils.compareCollections( (Map)o1, (Map)o2,
+                                 checkComparable );
     }
     compare = CompareUtils.compareToStringNoHash( o1, o2 );
     if ( compare != 0 ) return compare;

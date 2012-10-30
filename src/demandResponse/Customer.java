@@ -70,7 +70,7 @@ public class Customer extends ParameterListenerImpl {
   }
   
   void init() {
-    this.numGen = new Random(seed);
+    //this.numGen = gov.nasa.jpl.ae.solver.Random.global;
     double defaultValue = summerLoad(0);
     load = new TimeVaryingMap< Double >( "load", getSummerLoadMethod(), this,
                                                   samplePeriod, loadHorizon );

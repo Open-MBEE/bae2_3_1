@@ -444,7 +444,8 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
       }
       satisfied = tryToSatisfy(deep, null);
 
-      int numResolvedConstraints = solver.getConstraints().size() - solver.getUnsatisfiedConstraints().size();
+      int numResolvedConstraints = solver.getConstraints().size() -
+                                   solver.getUnsatisfiedConstraints().size();
       boolean improved = numResolvedConstraints > mostResolvedConstraints; 
       // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
       // move it out of this class and into DurativeEvent since Events simulate.
