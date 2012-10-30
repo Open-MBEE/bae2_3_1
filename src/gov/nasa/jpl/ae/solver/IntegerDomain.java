@@ -137,6 +137,9 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 //    return t1 >= t2;
 //  }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain#greaterEquals(java.lang.Comparable, java.lang.Comparable)
+   */
   @Override
   public boolean greaterEquals( Integer t1, Integer t2 ) {
     if ( t1 == null ) return t2 == null;

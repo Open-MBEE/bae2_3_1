@@ -68,7 +68,9 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( pair.first ) return Utils.getEmptySet();
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-      return HasParameters.Helper.getParameters( this, deep, null );
+      Set< Parameter< ? > > set = HasParameters.Helper.getParameters( first, deep, null );
+      set.addAll(HasParameters.Helper.getParameters( first, deep, null ));
+      return set; 
     }
 
     @Override
@@ -306,17 +308,18 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {
-    return Utils.getEmptySet();
-    /*
+    //return Utils.getEmptySet();
+    
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    
     Set< Parameter< ? > > params = new TreeSet< Parameter< ? > >();
-    params = Utils.addAll( params, HasParameters.Helper.getParameters( this, deep, seen ) );
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( keySet(), deep, seen ) );
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( values(), deep, seen ) ); 
     params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
     return params;
-    */
   }
 
   @Override

@@ -520,6 +520,12 @@ public class Expression< ResultType >
   public static <TT> TT evaluate( Object object, Class< TT > cls,
                                   boolean propagate, boolean allowWrapping ) throws ClassCastException {
     if ( object == null ) return null;
+    Debug.outln("BeforeBreakpoint");
+    if ( object instanceof Call) {
+      Debug.outln("Breakpoint");
+      //blah
+    }
+    Debug.outln("AfterBreakpoint");
     // Check if object is already what we want.
     if ( cls != null && cls.isInstance( object ) ) {
       return (TT)object;
@@ -529,16 +535,21 @@ public class Expression< ResultType >
     Object value = null;
     if ( object instanceof Parameter ) {
       value = ( (Parameter)object ).getValue( propagate );
-      return evaluate( value, cls, propagate );
-    } else if ( object instanceof Expression ) {
+      return evaluate( value, cls, propagate );  
+    } 
+    else if ( object instanceof Expression ) {
       Expression< ? > expr = (Expression<?>)object;
-      if ( cls.isInstance( expr.expression ) ) {
+      if ( cls.isInstance( expr.expression ) && expr.type != Type.Function) {
         return (TT)expr.expression;
       }
       value = expr.evaluate( propagate );
-      return evaluate( value, cls, propagate );
-      
-    } else if ( allowWrapping ){
+      return evaluate( value, cls, propagate );  
+    }
+    else if ( object instanceof Call) {
+      value = ( (Call)object ).evaluate( propagate );
+      return evaluate( value, cls, propagate );  
+    }
+    else if ( allowWrapping ){
       // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
       if ( cls.isAssignableFrom( Parameter.class ) ) {
         return (TT)( new Parameter( null, null, object, null ) );
