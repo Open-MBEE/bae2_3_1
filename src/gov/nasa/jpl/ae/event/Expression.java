@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.util.CompareUtils;
@@ -30,7 +31,7 @@ import junit.framework.Assert;
  *         TODO -- Consider using Ptolemy's expression parser.
  * 
  */
-public class Expression< ResultType >
+public class Expression< ResultType > extends HasIdImpl
                                     implements HasParameters, Groundable,
                                                LazyUpdate, Satisfiable,
                                                HasDomain, HasTimeVaryingObjects {//, Comparable< Expression< ? > > {
@@ -405,11 +406,11 @@ public class Expression< ResultType >
   public int compareTo( Expression< ? > o ) {
     if ( this == o ) return 0;
     if ( o == null ) return 1;
-    int compare = Utils.intCompare( type.ordinal(), o.type.ordinal() );
+    int compare = CompareUtils.compare( type.ordinal(), o.type.ordinal() );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( expression, o.expression, true );
+    compare = CompareUtils.compare( expression, o.expression, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( this, o, false );
+    compare = CompareUtils.compare( this, o, false );
     if ( compare != 0 ) return compare;
     return compare;
   }
@@ -518,14 +519,9 @@ public class Expression< ResultType >
     return evaluate( object, cls, propagate, false );
   }
   public static <TT> TT evaluate( Object object, Class< TT > cls,
-                                  boolean propagate, boolean allowWrapping ) throws ClassCastException {
+                                  boolean propagate,
+                                  boolean allowWrapping ) throws ClassCastException {
     if ( object == null ) return null;
-    Debug.outln("BeforeBreakpoint");
-    if ( object instanceof Call) {
-      Debug.outln("Breakpoint");
-      //blah
-    }
-    Debug.outln("AfterBreakpoint");
     // Check if object is already what we want.
     if ( cls != null && cls.isInstance( object ) ) {
       return (TT)object;
@@ -539,7 +535,8 @@ public class Expression< ResultType >
     } 
     else if ( object instanceof Expression ) {
       Expression< ? > expr = (Expression<?>)object;
-      if ( cls.isInstance( expr.expression ) && expr.type != Type.Function) {
+      if ( cls != null && cls.isInstance( expr.expression ) &&
+           expr.type != Type.Function) {
         return (TT)expr.expression;
       }
       value = expr.evaluate( propagate );
@@ -549,7 +546,7 @@ public class Expression< ResultType >
       value = ( (Call)object ).evaluate( propagate );
       return evaluate( value, cls, propagate );  
     }
-    else if ( allowWrapping ){
+    else if ( allowWrapping && cls != null ){
       // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
       if ( cls.isAssignableFrom( Parameter.class ) ) {
         return (TT)( new Parameter( null, null, object, null ) );
@@ -567,4 +564,25 @@ public class Expression< ResultType >
     return r;
   }
   
+  /**
+   * Determine whether the values of two objects are equal by evaluating them. 
+   * @param o1
+   * @param o2
+   * @return whether the evaluations of o1 and o2 are equal.
+   * @throws ClassCastException
+   */
+  public static boolean valuesEqual( Object o1, Object o2 ) throws ClassCastException {
+    return valuesEqual( o1, o2, null, false, false );
+  }
+  public static boolean valuesEqual( Object o1, Object o2, Class<?> cls ) throws ClassCastException {
+    return valuesEqual( o1, o2, cls, false, false );
+  }
+  public static boolean valuesEqual( Object o1, Object o2, Class<?> cls,
+                                     boolean propagate,
+                                     boolean allowWrapping ) throws ClassCastException {
+    if ( o1 == o2 ) return true;
+    Object v1 = evaluate( o1, cls, propagate, allowWrapping );
+    Object v2 = evaluate( o2, cls, propagate, allowWrapping );
+    return Utils.valuesEqual( v1, v2 );
+  }
 }

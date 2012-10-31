@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -72,6 +73,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   protected Constraint elaborationsConstraint = 
       new AbstractParameterConstraint() {
 
+    protected final int id = HasIdImpl.getNext();
+    
     @Override
     public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
       Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
@@ -151,11 +154,22 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Assert.assertFalse( "setFreeParameters() not supported!", true );
       //if ( Utils.seen( this, deep, seen ) ) return;
     }
+
+    @Override
+    public int getId() {
+      return id;
+    }
+    @Override
+    public int hashCode() {
+      return id;
+    }
     
   };  // end of elaborationsConstraint
   
   // TODO -- consider breaking effects into separate constraints
   protected Constraint effectsConstraint = new AbstractParameterConstraint() {
+
+    protected final int id = HasIdImpl.getNext();
 
     protected boolean
       areEffectsOnTimeVaryingSatisfied( Parameter< ? > variable,
@@ -267,6 +281,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                    boolean deep, Set< HasParameters > seen ) {
       Assert.assertFalse( "setFreeParameters() is not supported!", true );
     }
+
+    @Override
+    public int getId() {
+      return id;
+    }
+    @Override
+    public int hashCode() {
+      return id;
+    }
+    
   };  // end of effectsConstraint
 
   
@@ -558,9 +582,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                             + unsatisfiedConstraints.size()
                             + " constraints for " + getName() + ":" );
         for ( Constraint c : unsatisfiedConstraints ) {
-          c.isSatisfied( false, null ); // can look shallow since constraints
-                                        // were gathered deep!
           System.err.println( c.toString() );
+          c.isSatisfied( true, null ); // REVIEW -- can look shallow since constraints
+                                       // were gathered deep?!
         }
       }
     }
@@ -1163,9 +1187,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   public int compareTo( ParameterListenerImpl o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( ParameterListenerImpl o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
-    int compare = super.compareTo( o );
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
+    int compare = super.compareTo( o, checkId );
     if ( compare != 0 ) return compare;
 //    compare = Utils.compareTo( getClass().getName(), o.getClass().getName() );
 //    if ( compare != 0 ) return compare;
@@ -1177,14 +1205,17 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( compare != 0 ) return compare;
       compare = endTime.compareTo( oe.getEndTime() );
       if ( compare != 0 ) return compare;
-      compare = CompareUtils.compareCollections( effects, oe.effects, true );
+      compare = CompareUtils.compareCollections( effects, oe.effects, true,
+                                                 checkId );
       if ( compare != 0 ) return compare;
-      compare = CompareUtils.compareCollections( elaborations, oe.elaborations, true );
+      compare = CompareUtils.compareCollections( elaborations, oe.elaborations,
+                                                 true, checkId );
       if ( compare != 0 ) return compare;
     }
-    compare = CompareUtils.compareCollections( parameters, o.getParameters(), true );
+    compare = CompareUtils.compareCollections( parameters, o.getParameters(),
+                                               true, checkId );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( this, o, false );
+    compare = CompareUtils.compare( this, o, false, checkId );
     if ( compare != 0 ) return compare;
     return compare;
   }

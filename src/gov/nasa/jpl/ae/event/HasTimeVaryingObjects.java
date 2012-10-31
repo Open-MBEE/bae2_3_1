@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasId;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -8,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public interface HasTimeVaryingObjects {
+public interface HasTimeVaryingObjects extends HasId {
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen );
 

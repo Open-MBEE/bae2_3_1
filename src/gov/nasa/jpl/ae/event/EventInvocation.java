@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -28,7 +29,7 @@ import junit.framework.Assert;
  *         REVIEW -- Consider using ConstructorCall as a replacement for
  *         EventInvocation.
  */
-public class EventInvocation implements HasParameters, Comparable< EventInvocation >{
+public class EventInvocation extends HasIdImpl implements HasParameters, Comparable< EventInvocation >{
   protected Class< ? extends Event > eventClass = null;
   protected String eventName = null;
   protected Object[] arguments = null;
@@ -361,13 +362,17 @@ public class EventInvocation implements HasParameters, Comparable< EventInvocati
 
   @Override
   public int compareTo( EventInvocation o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( EventInvocation o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
-    int compare = CompareUtils.compareTo( eventName, o.eventName );
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
+    int compare = CompareUtils.compare( eventName, o.eventName );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( arguments, o.arguments, true );
+    compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( this, o );
+    compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
     return 0;
   }

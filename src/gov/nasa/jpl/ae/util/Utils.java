@@ -78,12 +78,6 @@ public class Utils {
     return sb.toString();
   }
 
-  public static int intCompare( int i1, int i2 ) {
-    if ( i1 < i2 ) return -1;
-    if ( i1 > i2 ) return 1;
-    return 0;
-  }
-  
   // Translate a string to an integer.  Return null if not an integer. 
   /**
    * Translate a string s to an Integer.

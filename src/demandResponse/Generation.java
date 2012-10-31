@@ -3,9 +3,7 @@
  */
 package demandResponse;
 
-import gov.nasa.jpl.ae.event.Consumable;
 import gov.nasa.jpl.ae.event.LinearTimeline;
-import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
 
@@ -74,7 +72,7 @@ public class Generation extends LinearTimeline {
                       nightGenerationLevel );
     profile.setValue( new Timepoint( "", (int)( 24.0 * conversionFactor ), null ),
                       nightGenerationLevel );
-    return null;
+    return profile;
   }
 
   /**
@@ -82,7 +80,7 @@ public class Generation extends LinearTimeline {
    */
   public Generation( String name ) {
     super( name );
-    // TODO Auto-generated constructor stub
+    init();
   }
 
   /**
@@ -91,7 +89,7 @@ public class Generation extends LinearTimeline {
    */
   public Generation( String name, Double defaultValue ) {
     super( name, defaultValue );
-    // TODO Auto-generated constructor stub
+    init();
   }
 
   /**

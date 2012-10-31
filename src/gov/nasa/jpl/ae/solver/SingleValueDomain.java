@@ -6,7 +6,7 @@ package gov.nasa.jpl.ae.solver;
 /**
  *
  */
-public class SingleValueDomain< T > extends Object implements Domain< T > {
+public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
 
   protected static final SingleValueDomain<?> nullDomain = new SingleValueDomain<Object>( null );
   public static <T1> SingleValueDomain<T1> getNullDomain() {

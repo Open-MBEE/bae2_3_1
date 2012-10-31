@@ -106,6 +106,8 @@ src/gov/nasa/jpl/ae/solver/Domain.java -text
 src/gov/nasa/jpl/ae/solver/DoubleDomain.java -text
 src/gov/nasa/jpl/ae/solver/HasConstraints.java -text
 src/gov/nasa/jpl/ae/solver/HasDomain.java -text
+src/gov/nasa/jpl/ae/solver/HasId.java -text
+src/gov/nasa/jpl/ae/solver/HasIdImpl.java -text
 src/gov/nasa/jpl/ae/solver/IntegerDomain.java -text
 src/gov/nasa/jpl/ae/solver/Random.java -text
 src/gov/nasa/jpl/ae/solver/RangeDomain.java -text

@@ -50,16 +50,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( o1 == o2 ) return 0;
       if ( o1 == null ) return -1;
       if ( o2 == null ) return 1;
-      if ( o1 instanceof Pair && o2 instanceof Pair ) {
-        Pair< ?, ? > p1 = (Pair< ?, ? >)o1;
-        Pair< ?, ? > p2 = (Pair< ?, ? >)o2;
-        int compare = CompareUtils.compareTo( p1.first, p2.first, true );
-        if ( compare != 0 ) return compare; 
-        return CompareUtils.compareTo( p1.second, p2.second, true );
-      }
-      int compare = CompareUtils.compareTo( o1, o2 );
-      if ( compare != 0 ) return compare;
-      return compare;
+      return CompareUtils.compare( o1, o2, true, true );
     }
 
   }

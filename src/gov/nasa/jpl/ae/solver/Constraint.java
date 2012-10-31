@@ -5,7 +5,7 @@ import gov.nasa.jpl.ae.event.LazyUpdate;
 import java.util.Set;
 
 public interface Constraint extends Satisfiable, Comparable< Constraint >,
-                                    LazyUpdate {
+                                    LazyUpdate, HasId {
   public Set< Variable< ? > > getVariables();
 
   public < T > boolean pickValue( Variable< T > v ); // not implemented

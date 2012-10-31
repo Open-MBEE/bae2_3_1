@@ -15,7 +15,7 @@ import java.util.TreeSet;
 /**
  * 
  */
-public interface HasConstraints {
+public interface HasConstraints extends HasId {
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set< HasConstraints > seen );
 

@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -43,9 +44,13 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
                                             //Comparable< TimeVaryingMap< T > > {
 
   private static final long serialVersionUID = -2428504938515591538L;
+  
+  protected final int id = HasIdImpl.getNext();
 
   public class TimeValue extends Pair< Timepoint, T >
                                implements HasParameters {
+
+    protected final int id = HasIdImpl.getNext();
 
     public TimeValue( Timepoint t, T v ) {
       super( t, v );
@@ -118,6 +123,15 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return false;
       return HasParameters.Helper.substitute( this, p1, p2, deep, seen );
+    }
+
+    @Override
+    public int getId() {
+      return id;
+    }
+    @Override
+    public int hashCode() {
+      return id;
     }
 
   }
@@ -559,7 +573,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public T setValue( Timepoint t, T value ) {
     breakpoint();
     if ( t == null ) {
-      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint into the map" );
+      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint into the map!" );
+      return null;
+    }
+    if ( t.getValueNoPropagate() == null ) {
+      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint value into the map!" );
       return null;
     }
     T oldValue = null;
@@ -748,17 +766,24 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     return false;
   }
   
+  /* (non-Javadoc)
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
   @Override
   public int compareTo( TimeVarying< T > o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( TimeVarying< T > o, boolean checkId ) {
     if ( o == null ) return 1;
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     int compare = 0;
     if ( o instanceof TimeVaryingMap ) {
       TimeVaryingMap<?> otvm = (TimeVaryingMap)o;
-      compare = CompareUtils.compareTo( getName(), otvm.getName(), true );
+      compare = CompareUtils.compare( getName(), otvm.getName(), true );
       if ( compare != 0 ) return compare;
     }
     Debug.err( "TimeVaryingMap.compareTo() may compare values, which, if changed while this is in a map, can corrupt the map." );
-    compare = CompareUtils.compareTo( this, o ); // WARNING: values change!!!
+    compare = CompareUtils.compare( this, o ); // WARNING: values change!!!
     if ( compare != 0 ) return compare;
     return compare;
   }
@@ -875,6 +900,15 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public < T > boolean pickValue( Variable< T > variable ) {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public int getId() {
+    return id;
+  }
+  @Override
+  public int hashCode() {
+    return id;
   }
 
 }

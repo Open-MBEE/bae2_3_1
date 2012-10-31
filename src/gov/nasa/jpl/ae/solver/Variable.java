@@ -2,7 +2,7 @@ package gov.nasa.jpl.ae.solver;
 
 import java.util.Set;
 
-public interface Variable< T > extends HasDomain {
+public interface Variable< T > extends HasDomain, HasId {
   
   //public Domain< T > getDomain( boolean propagate, Set< HasDomain > seen );
   public Domain< T > getDomain();

@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
@@ -16,7 +17,7 @@ import java.util.Vector;
 
 import junit.framework.Assert;
 
-public abstract class Call implements HasParameters, HasDomain, Groundable, Comparable< Call > {
+public abstract class Call extends HasIdImpl implements HasParameters, HasDomain, Groundable, Comparable< Call > {
 
   /**
    * A function call on the result of this function call.
@@ -55,24 +56,28 @@ public abstract class Call implements HasParameters, HasDomain, Groundable, Comp
 
   @Override
   public int compareTo( Call o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( Call o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     int compare = 0;//super.compareTo( o );
-    compare = CompareUtils.compareTo( getMember(), o.getMember(), true );
+    compare = CompareUtils.compare( getMember(), o.getMember(), true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( getParameterTypes(), o.getParameterTypes(), true );
+    compare = CompareUtils.compare( getParameterTypes(), o.getParameterTypes(), true );
     if ( compare != 0 ) return compare;
 //    compare = Utils.compareTo( getReturnType(), o.getReturnType(), true );
 //    if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( getClass().getName(), o.getClass().getName() );
+    compare = CompareUtils.compare( getClass().getName(), o.getClass().getName() );
     if ( compare != 0 ) return compare;
     // TODO -- would like to skip this since it changes.
     Debug.errln( "Call.compareTo comparing value information." );
-    compare = CompareUtils.compareTo( arguments, o.arguments, true );
+    compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( object, o.object, true );
+    compare = CompareUtils.compare( object, o.object, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( this, o );
+    compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
     return compare;    
   }

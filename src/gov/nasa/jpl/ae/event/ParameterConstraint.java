@@ -140,7 +140,7 @@ public interface ParameterConstraint extends Constraint, HasParameters {
     }
 
    public static int compareTo( Object o, Constraint c ) {
-     int compare = CompareUtils.compareTo( o, c, false );
+     int compare = CompareUtils.compare( o, c, true, true );
      //if ( compare != 0 ) return compare;
      return compare;
    }

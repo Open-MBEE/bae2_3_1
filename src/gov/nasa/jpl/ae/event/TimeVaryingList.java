@@ -157,10 +157,16 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       return false;
     }
     boolean changed = false;
-    if ( noEntry && ( !onlyifNotContained ||
-                      list == null || !list.contains( value ) ) ) {
-      addEntry( t, null, value, onlyifNotContained, onlyIfBelowMaxSize );
-    }
+//    if ( noEntry || list == null ) {
+      if ( !onlyifNotContained || list == null || !list.contains( value ) ) {
+        if ( addEntry( t, list, value, onlyifNotContained, onlyIfBelowMaxSize ) ) {
+          changed = true;
+        }
+      }
+//    } else if ( !onlyifNotContained || !list.contains( value ) ) {
+//      list.add( value );
+//      changed = true;
+//    }
     if ( monotonically ) {
       NavigableMap< Timepoint, List< T > > tail = tailMap(t, false);
       for ( Map.Entry< Timepoint, List< T > > e : tail.entrySet() ) {

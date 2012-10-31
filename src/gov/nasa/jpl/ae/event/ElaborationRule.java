@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
@@ -18,7 +19,7 @@ import junit.framework.Assert;
  * @author bclement
  * 
  */
-public class ElaborationRule implements Comparable<ElaborationRule>, HasParameters { //, ParameterListener {
+public class ElaborationRule extends HasIdImpl implements Comparable<ElaborationRule>, HasParameters { //, ParameterListener {
   protected Expression< Boolean > condition = null;
   protected Vector< EventInvocation > eventInvocations = null;
   protected Vector< ConstraintInvocation > constraintsToAdd = null;
@@ -106,15 +107,21 @@ public class ElaborationRule implements Comparable<ElaborationRule>, HasParamete
 
   @Override
   public int compareTo( ElaborationRule o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( ElaborationRule o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
-    int compare = CompareUtils.compareTo( condition, o.condition, true );
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
+    int compare = CompareUtils.compare( condition, o.condition, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareCollections( eventInvocations, o.eventInvocations,
-                                        true );
+    compare = CompareUtils.compareCollections( eventInvocations,
+                                               o.eventInvocations,
+                                               true, checkId );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareCollections( constraintsToAdd, o.constraintsToAdd,
-                                        true );
+    compare = CompareUtils.compareCollections( constraintsToAdd,
+                                               o.constraintsToAdd,
+                                               true, checkId );
     if ( compare != 0 ) return compare;
     return 0;
   }

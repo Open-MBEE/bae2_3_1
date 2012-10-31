@@ -79,6 +79,9 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
   public void send( Obj o, Timepoint t ) {
     breakpoint();
+    if ( t.getValue() != null && t.getValue().equals(112032)) {
+      Debug.out( "" );
+    }
     if ( type == null || type.isInstance( o ) ) {
       this.setValue( t, o );
       for ( ObjectFlow< Obj > f : listeners ) {

@@ -10,6 +10,7 @@ import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -41,7 +42,7 @@ import gov.nasa.jpl.ae.util.Utils;
 
 // TODO -- REVIEW -- Should dependencies be applicable to a time period, like
 // constraints (& effects)?
-public class Dependency< T > 
+public class Dependency< T > extends HasIdImpl
              implements HasParameters, ParameterListener, Constraint,
                         LazyUpdate, HasConstraints, HasTimeVaryingObjects {
 
@@ -125,24 +126,34 @@ public class Dependency< T >
       sat = false;
       parameter.setStale( true );
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not grounded: " );// + this );
-    } else if ( !parameter.isSatisfied(deep, null) ) {
+    } else if ( false && deep && !parameter.isSatisfied(deep, null) ) {
       sat = false;
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter not satisfied: " );// + this );
-    } else if ( !expression.isSatisfied(deep, null) ) {
+    } else if ( false && deep && !expression.isSatisfied(deep, null) ) {
       sat = false;
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " );// + this );
     } else {
-      T value = expression.evaluate(false);
-      T pValue = parameter.getValueNoPropagate();
-      sat = Utils.valuesEqual( pValue, value );//pValue == value || ( pValue != null && pValue.equals( value ) );
+      sat = Expression.valuesEqual( parameter, expression, getType() );
       if ( !sat ) {
         parameter.setStale( true );
-        if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter value (" + pValue
-                     + ") not equal to evaluated expression (" + value + "): " ); // + this );
+        if ( Debug.isOn() && parameter != null && expression != null) {
+          Debug.outln( "Dependency.isSatisfied(): parameter value (" + parameter.getValueNoPropagate()
+                       + ") not equal to evaluated expression (" + expression.evaluate( false ) + ") " ); // + this );
+        }
       }
     }
     if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied() = " + sat + ": " + this );
     return sat;
+  }
+
+  public Class< T > getType() {
+    if ( parameter != null ) {
+      return (Class< T >)parameter.getType();
+    }
+    if ( expression != null ) {
+      return (Class< T >)expression.resultType;
+    }
+    return null;
   }
 
   /* (non-Javadoc)
@@ -353,11 +364,17 @@ public class Dependency< T >
 
   @Override
   public int compareTo( Constraint o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( Constraint o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
-    int compare = getConstraintExpression().compareTo( o );
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
+    // If checkId==true, this is a little weird since this Dependency and it's
+    // constraintExpression have different ids.
+    int compare = getConstraintExpression().compareTo( o, checkId );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( this, o, false );
+    compare = CompareUtils.compare( this, o, false, checkId );
     if ( compare != 0 ) return compare;
     return compare;
 //    if ( o instanceof Dependency ) {
@@ -461,6 +478,9 @@ public class Dependency< T >
   @Override
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set< HasConstraints > seen ) {
+    if ( parameter.owner == null ) {
+      Debug.out( "" );
+    }
     Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;

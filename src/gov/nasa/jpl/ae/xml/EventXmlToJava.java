@@ -511,12 +511,15 @@ public class EventXmlToJava {
     if ( paramTable.keySet().contains( classNameWithScope ) ) {
       return classNameWithScope;
     }
+    
     // Loop through existing class names and find those that end with the input
     // name. Pick the one that seems to be "best" and print a warning if not
     // sure.
     String otherClassName = null;
     for ( String n : paramTable.keySet() ) {
-      if ( n.endsWith( className ) ) { 
+      if ( n.endsWith( className ) &&
+           ( n.length() == className.length() || 
+             n.charAt( n.lastIndexOf( className ) - 1 ) == '.' ) ) {
         if ( otherClassName != null && otherClassName.endsWith( className ) ) {
           if ( n.endsWith( classNameWithScope ) ) {
             if ( otherClassName.endsWith( classNameWithScope ) ) {
@@ -541,6 +544,10 @@ public class EventXmlToJava {
         }
       }
     }
+
+//    if ( Utils.isNullOrEmpty( otherClassName ) ) {
+//      otherClassName = ClassUtils.getFullyQualifiedName( className, false );
+//    }
     return otherClassName;
   }
 
@@ -1822,6 +1829,10 @@ public class EventXmlToJava {
     }
     String type = "Parameter";
     String parameterTypes = p.type;
+    
+    if ( p.type.equals( "Generation" ) ) {
+      Debug.out( "" );
+    }
     
     //parameterTypes = getFullyQualifiedName( parameterTypes, true );
     parameterTypes = getClassNameWithScope( parameterTypes, true );

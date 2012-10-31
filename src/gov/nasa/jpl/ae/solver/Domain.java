@@ -1,6 +1,6 @@
 package gov.nasa.jpl.ae.solver;
 
-public interface Domain< T > extends Cloneable {
+public interface Domain< T > extends Cloneable, HasId {
 
   public Domain< T > clone();
 

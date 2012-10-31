@@ -215,16 +215,19 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
    */
   @Override
   public int compareTo( Parameter< ? > o ) {
+    return compareTo( o, false, true );
+  }
+  public int compareTo( Parameter< ? > o, boolean propagate, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
     int compare = 0;
     if ( o instanceof Timepoint ) {
-      Integer v1 = Expression.evaluate( this, Integer.class, false );
-      Integer v2 = Expression.evaluate( o, Integer.class, false );
-      compare = CompareUtils.compareTo( v1, v2, true );
+      Integer v1 = Expression.evaluate( this, Integer.class, propagate );
+      Integer v2 = Expression.evaluate( o, Integer.class, propagate );
+      compare = CompareUtils.compare( v1, v2, true );
       if ( compare != 0 ) return compare;
     }
-    return super.compareTo( o );
+    return super.compareTo( o, checkId );
   }
 	
 	public static synchronized Timepoint fromString( String timestamp ) {

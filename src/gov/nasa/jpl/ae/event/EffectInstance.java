@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -14,7 +15,7 @@ import junit.framework.Assert;
 /**
  *
  */
-public class EffectInstance implements HasParameters {
+public class EffectInstance extends HasIdImpl implements HasParameters {
   public Timepoint startTime;
   public Duration duration;
   public Effect effect;

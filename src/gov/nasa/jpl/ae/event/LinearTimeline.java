@@ -14,7 +14,7 @@ import java.util.Map.Entry;
  * and is, thus, a step function.
  * 
  */
-public class LinearTimeline extends TimeVaryingMap< Double > {
+public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
 
   /**
    * 
@@ -60,10 +60,22 @@ public class LinearTimeline extends TimeVaryingMap< Double > {
     if ( eAfter == null ) return eBefore.getValue();
     int timeDiff = eAfter.getKey().getValue() - eBefore.getKey().getValue();
     assert timeDiff >= 0.0;
-    double valueDiff = eAfter.getValue() - eBefore.getValue();
-    double interpolatedValue =
-        eBefore.getValue() + valueDiff * ( t - eBefore.getKey().getValue() )
-            / timeDiff;
+    double valueDiff = 0.0;
+    if ( eAfter.getValue() != null ) {
+      if ( eBefore.getValue() == null ) {
+        valueDiff = eAfter.getValue();
+      } else {
+        valueDiff = eAfter.getValue() - eBefore.getValue();
+      }
+    }
+    double interpolatedValue = 0.0;
+    if ( eBefore.getValue() == null ) {
+      interpolatedValue = valueDiff; 
+    } else {
+      interpolatedValue =
+        eBefore.getValue() + 
+        valueDiff * ( t - eBefore.getKey().getValue() ) / timeDiff;
+    }
     return interpolatedValue;
   }
 

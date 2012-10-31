@@ -18,6 +18,7 @@ import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
@@ -31,7 +32,8 @@ import gov.nasa.jpl.ae.util.Utils;
  * A class that manages Parameters, Dependencies, and Constraints.
  *
  */
-public class ParameterListenerImpl implements Cloneable, Groundable,
+public class ParameterListenerImpl extends HasIdImpl
+                                   implements Cloneable, Groundable,
                                               Satisfiable,
                                               ParameterListener,
                                               HasConstraints,
@@ -40,6 +42,7 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   // Constants
   
   protected double timeoutSeconds = 1800.0;
+  protected int maxLoopsWithNoProgress = 8;
   protected long maxPassesAtConstraints = 100;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
@@ -419,7 +422,6 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
     int mostResolvedConstraints = 0;
-    int maxLoopsWithNoProgress = 6;
     int numLoopsWithNoProgress = 0;
     
     boolean satisfied = false;
@@ -608,21 +610,28 @@ public class ParameterListenerImpl implements Cloneable, Groundable,
   
   @Override
   public int compareTo( ParameterListenerImpl o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( ParameterListenerImpl o, boolean checkId ) {
     if ( this == o ) return 0;
-    if ( o == null ) return 1;
+    if ( o == null ) return -1;
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     int compare = getClass().getName().compareTo( o.getClass().getName() );
     if ( compare != 0 ) return compare;
     compare = getName().compareTo( o.getName() );
     if ( compare != 0 ) return compare;
     Debug.errln("ParameterListenerImpl.compareTo() potentially accessing value information");
-    compare = CompareUtils.compareCollections( parameters, o.getParameters(), true );
+    compare = CompareUtils.compareCollections( parameters, o.getParameters(),
+                                               true, checkId );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareCollections( dependencies, o.dependencies, true );
+    compare = CompareUtils.compareCollections( dependencies, o.dependencies,
+                                               true, checkId );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compareCollections( constraintExpressions,
-                                        o.constraintExpressions, true );
+                                               o.constraintExpressions,
+                                               true, checkId );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( this, o, false );
+    compare = CompareUtils.compare( this, o, false, checkId );
     if ( compare != 0 ) return compare;
     return compare;
   }

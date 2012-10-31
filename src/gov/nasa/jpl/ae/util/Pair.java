@@ -1,5 +1,8 @@
 package gov.nasa.jpl.ae.util;
 
+import gov.nasa.jpl.ae.event.EventInvocation;
+import gov.nasa.jpl.ae.solver.HasId;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,27 +23,18 @@ public class Pair<A,B> implements Comparable< Pair< A, B > > {
 
   @Override
   public int compareTo( Pair< A, B > o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( Pair< A, B > o, boolean checkId ) {
+    if ( this == o ) return 0;
     if ( o == null ) return 1;
-    if ( first == null ) {
-      if ( o.first == null ) return 0;
-      return -1;
+    boolean bothHaveId = (this instanceof HasId) && (o instanceof HasId);
+    if ( checkId && bothHaveId ) {
+      return CompareUtils.compare( ( (HasId)this ).getId(), ( (HasId)o ).getId() );
     }
-    if ( o.first == null ) return 1;
-    int compare = 0;
-    if ( first instanceof Comparable ) {
-      compare = ((Comparable<A>)first).compareTo( o.first );
-    }
+    int compare = CompareUtils.compare( first, o.first, true, true );
     if ( compare != 0 ) return compare;
-    if ( second == null ) {
-      if ( o.second == null ) return 0;
-      return -1;
-    }
-    if ( o.second == null ) return 1;
-    if ( second instanceof Comparable ) {
-      compare = ((Comparable<B>)second).compareTo( o.second );
-    }
-    if ( compare != 0 ) return compare;
-    return toString().compareTo( o.toString() );
+    return CompareUtils.compare( second, o.second, true, true );
   }
   
   /**

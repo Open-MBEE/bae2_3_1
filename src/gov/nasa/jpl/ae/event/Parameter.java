@@ -13,6 +13,7 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
@@ -26,7 +27,7 @@ import gov.nasa.jpl.ae.util.Utils;
 /**
  * 
  */
-public class Parameter< T > implements Cloneable, Groundable,
+public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                             Comparable< Parameter< ? > >, Satisfiable, Node,
                             Variable< T >, LazyUpdate, HasConstraints {
   public static final Set< Parameter< ? > > emptySet =
@@ -247,6 +248,9 @@ public class Parameter< T > implements Cloneable, Groundable,
     assert !propagateChange || mayPropagate;
     assert mayChange;
     T castVal = null;
+    if ( val instanceof Integer && ((Integer)val).equals(112032)) {
+      Debug.out( "" );
+    }
     try {
       castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
       val = castVal;
@@ -369,12 +373,19 @@ public class Parameter< T > implements Cloneable, Groundable,
    */
   @Override
   public int compareTo( Parameter< ? > o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( Parameter< ? > o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
 //    if ( Timepoint.isComparableToTimepoint( o ) ) {
 //      return super.compareTo( o );
 //    }
 
+    if ( checkId ) {
+      return CompareUtils.compare( getId(), o.getId() );
+    }
+    
     int compare = 0;
 //    if ( value == null && o.value != null ) return -1;
 //    if ( o.value == null && value != null ) return 1;
@@ -400,16 +411,18 @@ public class Parameter< T > implements Cloneable, Groundable,
 //      }
 //      if ( compare != 0 ) return compare;
 //    }
-    compare = CompareUtils.compareTo( name, o.name, true );
+    compare = CompareUtils.compare( name, o.name, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( getDomain(), o.getDomain(), true );
+    compare = CompareUtils.compare( getClass().getName(), o.getClass().getName(), true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( getType(), o.getType(), true );
+    compare = CompareUtils.compare( getDomain(), o.getDomain(), true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareTo( getOwner(), o.getOwner(), true );
+    compare = CompareUtils.compare( getType(), o.getType(), true );
+    if ( compare != 0 ) return compare;
+    compare = CompareUtils.compare( getOwner(), o.getOwner(), true );
     if ( compare != 0 ) return compare;
 //    Debug.errln("Parameter.compareTo() potentially accessing value information");
-    compare = CompareUtils.compareTo( getValue(), o.getValue(), true );
+    compare = CompareUtils.compare( getValue(), o.getValue(), true );
     if ( compare != 0 ) return compare;
 //    compare = CompareUtils.compareTo( this, o, false );
 //    if ( compare != 0 ) return compare;
@@ -536,7 +549,7 @@ public class Parameter< T > implements Cloneable, Groundable,
   @Override
   public void setStale( boolean staleness ) {
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
-    if ( name.equals( "increaseGeneration" ) || name.equals( "amountToIncrease" ) ) {
+    if ( name.contains( "effect65Var" ) ) {
       Debug.out( "" );
     }
     stale = staleness;

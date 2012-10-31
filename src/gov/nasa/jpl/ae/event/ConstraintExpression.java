@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -67,7 +68,7 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = evaluate(false);
     if ( sat == null ) sat = new Boolean( false );
-    if ( deep & sat ) {
+    if ( false && deep & sat ) {
       sat = HasParameters.Helper.isSatisfied( this, false, null );
     }
     if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.isSatisfied() = " + sat + ": " + this );
@@ -171,8 +172,12 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public int compareTo( Constraint o ) {
+    return compareTo( o, true );
+  }
+  public int compareTo( Constraint o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
+    if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     if ( o instanceof Expression ) {
       int compare = super.compareTo( (Expression< ? >)o );
       if ( compare != 0 ) return compare;

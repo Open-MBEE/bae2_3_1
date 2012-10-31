@@ -25,7 +25,7 @@ import org.junit.Assert;
 /**
  *
  */
-public abstract class AbstractRangeDomain< T >
+public abstract class AbstractRangeDomain< T > extends HasIdImpl
                         implements RangeDomain< T > {
 
   //protected static RangeDomain defaultDomain;

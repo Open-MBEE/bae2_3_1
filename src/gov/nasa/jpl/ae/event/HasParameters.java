@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.HasId;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -10,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
-public interface HasParameters extends LazyUpdate {
+public interface HasParameters extends LazyUpdate, HasId {
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen );
 
@@ -538,9 +539,9 @@ public interface HasParameters extends LazyUpdate {
     // getFreeParameters( Object ) suffices for Map
 
     public static < T1, T2 > boolean isFreeParameter( Pair< T1, T2 > p,
-                                                 Parameter< ? > parameter,
-                                                 boolean deep,
-                                                 Set< HasParameters > seen ) {
+                                                      Parameter< ? > parameter,
+                                                      boolean deep,
+                                                      Set< HasParameters > seen ) {
       if ( p instanceof HasParameters ) {
         return ((HasParameters)p).isFreeParameter( parameter, deep, seen );
       }
@@ -551,10 +552,10 @@ public interface HasParameters extends LazyUpdate {
     
     
     public static < T1, T2 > boolean substitute( Pair< T1, T2 > p,
-                                            Parameter< ? > p1,
-                                            Parameter< ? > p2,
-                                            boolean deep,
-                                            Set< HasParameters > seen ) {
+                                                 Parameter< ? > p1,
+                                                 Parameter< ? > p2,
+                                                 boolean deep,
+                                                 Set< HasParameters > seen ) {
       if ( p instanceof HasParameters ) {
         return ((HasParameters)p).substitute( p1, p2, deep, seen );
       }
