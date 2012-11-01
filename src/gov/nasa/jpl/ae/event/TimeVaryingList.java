@@ -346,7 +346,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    */
   public T get( Timepoint t, int index ) {
     List< T > list = getValue( t );
-    if ( list == null || list.size() <= index ) return null;
+    if ( list == null || list.size() <= index || index < 0 ) return null;
     return list.get( index );
   }
   
