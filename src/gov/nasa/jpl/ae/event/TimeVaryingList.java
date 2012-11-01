@@ -355,7 +355,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @return the last element in the list at Timepoint t
    */
   public T lastElement( Timepoint t ) {
-    return get( t, size() - 1 );
+    return get( t, size(t) - 1 );
   }
 
   /**
