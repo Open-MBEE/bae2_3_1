@@ -166,7 +166,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   public int timeSinceMidnight() {
     if ( !isGrounded( false, null ) ) return 0;
     double f = Units.conversionFactor( Units.milliseconds );
-    long v =  (long)(getValue() * f + getEpoch().getTime());
+    long v =  (long)(getValue(false) * f + getEpoch().getTime());
     Date d = new Date( v );
     return timeSinceMidnight( d );
 //    return (int)( ( ( (long)( v * f ) ) % ( 24 * 3600 * 1000 ) ) / f );
@@ -174,9 +174,17 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   
 
   public static int timeSinceMidnight( Date start ) {
-    long v =  start.getTime();
+    Calendar c1 = Calendar.getInstance();
+    Calendar c2 = Calendar.getInstance();
+    c1.setTime( start );
+    c2.setTime( start );
+    c2.set( Calendar.HOUR_OF_DAY, 0 );
+    c2.set(Calendar.MINUTE, 0);
+    c2.set(Calendar.SECOND, 0);
+    c2.set(Calendar.MILLISECOND, 0);
+    long diffMillis = (int)( c1.getTimeInMillis() - c2.getTimeInMillis() ); 
     double f = Units.conversionFactor( Units.milliseconds );
-    return (int)(((long)((v % ( 24 * 3600 * 1000 ))/f)));
+    return (int)( diffMillis / f );
   }
 
   /**
@@ -237,14 +245,14 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 
 	public long convertTo( Units toUnit ) {
 	  Double f = new Double( Units.conversionFactor( toUnit ) );
-	  f *= getValue();
+	  f *= getValue(false);
 	  return (long)( f.longValue() );
 	}
 	
 	public Date getDate() {
 	  if ( !isGrounded( false, null ) ) return null;
 	  Date d = new Date( (long)(Units.conversionFactor( Units.milliseconds )
-	                            * getValue()) );
+	                            * getValue(false)) );
 	  return d;
 	}
 	
@@ -318,7 +326,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	
 	
   public String toTimestamp() {
-    return toTimestamp( getValue() );
+    return toTimestamp( getValue(false) );
 //    Double cf = Units.conversionFactor( Units.milliseconds );
 //    return millisToTimestamp( (long)( getValue() * cf ) );
 ////    Calendar cal = Calendar.getInstance();
@@ -350,6 +358,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
    */
   public synchronized static void setEpoch( Date epoch ) {
     Timepoint.epoch = epoch;
+    System.out.println("Epoch set to " + epoch );
   }
 
   public static void setEpoch( String epochString ) {
@@ -367,6 +376,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
    * @param units the units to set
    */
   public static void setUnits( Units units ) {
+    System.out.println("Units set to " + units );
     Timepoint.units = units;
   }
 
@@ -383,6 +393,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
    */
   public static void setHorizonDuration( int duration ) {
     horizonDuration = duration;
+    System.out.println("Horizon duration set to " + horizonDuration + " " + units );
   }
 
   /**

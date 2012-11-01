@@ -45,4 +45,9 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
     super( name );
   }
 
+  @Override
+  public boolean okToSample() {
+    return true;
+  }
+
 }

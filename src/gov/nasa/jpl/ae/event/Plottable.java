@@ -9,4 +9,6 @@ package gov.nasa.jpl.ae.event;
  */
 public interface Plottable {
   //public double getValue( double x );
+  public boolean okToSample();
+  // public int getSamplePeriod();
 }

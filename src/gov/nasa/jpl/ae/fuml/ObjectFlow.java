@@ -79,7 +79,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
   public void send( Obj o, Timepoint t ) {
     breakpoint();
-    if ( t.getValue() != null && t.getValue().equals(112032)) {
+    if ( t.getValue(false) != null && t.getValue(false).equals(112032)) {
       Debug.out( "" );
     }
     if ( type == null || type.isInstance( o ) ) {
@@ -247,7 +247,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       // Expression.evaluateArg(Class<?>, arg)
      while ( !( b == null || b instanceof Boolean || b.getClass() == boolean.class ) ) {
        if ( b instanceof Parameter ) {
-         b = ((Parameter<?>)b).getValue();
+         b = ((Parameter<?>)b).getValue( false );
        }
        if ( b instanceof Expression ) {
          b = ((Expression)b).evaluate( false );

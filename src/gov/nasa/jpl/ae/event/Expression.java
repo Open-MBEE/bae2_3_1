@@ -178,11 +178,7 @@ public class Expression< ResultType > extends HasIdImpl
           while ( p != null ) {
             Object o = null;
             ResultType r = null;
-            if ( propagate ) {
-              o = p.getValue();
-            } else {
-              o = p.getValueNoPropagate();
-            }
+            o = p.getValue( propagate );
             if ( o == null ) return null;
             try {
               if ( resultType != null ) {
@@ -549,6 +545,7 @@ public class Expression< ResultType > extends HasIdImpl
     else if ( allowWrapping && cls != null ){
       // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
       if ( cls.isAssignableFrom( Parameter.class ) ) {
+        if ( Debug.isOn() ) Debug.error( false, "Warning: wrapping value with a parameter with null owner!" );
         return (TT)( new Parameter( null, null, object, null ) );
       } else if ( cls.isAssignableFrom( Expression.class ) ) {
         return (TT)( new Expression( object ) );

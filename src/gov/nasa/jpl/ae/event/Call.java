@@ -100,11 +100,11 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
     Object evaluatedArgs[] = evaluateArgs( propagate );
     
     // evaluate the object, whose method will be invoked from a nested call
-    if ( nestedCall != null && nestedCall.getValue() != null ) {
+    if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
       // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
       // making this a dependency.  Cached newObject of constructor is similar.
 //    if ( propagate || object == null ) {
-      object = nestedCall.getValue().evaluate( propagate );
+      object = nestedCall.getValue( propagate ).evaluate( propagate );
 //      }
     }
     try {
@@ -256,28 +256,25 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
-    
+
     // TODO -- use HasParameters.Helper!!
     boolean subbed = false;
     if ( p1 == object ) {
       object = p2;
       subbed = true;
-    } else if ( object instanceof HasParameters ) {
-      subbed = ( (HasParameters)object ).substitute( p1, p2, deep, seen );
     }
-    for ( int i = 0; i < arguments.size(); ++i ) {
-      Object a = arguments.get( i );
-      if ( a == p1 ) {
-        arguments.setElementAt( p2, i );
-        subbed = true;
-      } else if ( a instanceof HasParameters ) {
-        boolean s = ( (HasParameters)a ).substitute( p1, p2, deep, seen );
-        subbed = subbed || s;
-      }
+    if ( HasParameters.Helper.substitute( object, p1, p2, deep, seen, true )) {
+      subbed = true;
     }
-    if ( nestedCall != null && nestedCall.getValue() != null ) {
-      boolean s = nestedCall.getValue().substitute( p1, p2, deep, seen ); 
-      subbed = subbed || s;
+    if ( HasParameters.Helper.substitute( arguments, p1, p2, deep, seen, true )) {
+      subbed = true;
+    }
+    if ( p1 == nestedCall ) {
+      nestedCall = (Parameter< Call >)p2;
+      subbed = true;
+    }
+    if ( HasParameters.Helper.substitute( nestedCall, p1, p2, deep, seen, true ) ) {
+      subbed = true;
     }
     return subbed;
   }
@@ -289,35 +286,11 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     Set< Parameter< ? > > set = new TreeSet< Parameter< ? >>();
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen ) );
-//    if ( object instanceof Parameter< ? > ) {
-//      set.add( (Parameter< ? >)object );
-//    }
-//    if ( deep && object instanceof HasParameters ) {
-//      HasParameters gotParameters = (HasParameters)object;
-//      set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
-//    }
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen ) );
-//    if ( arguments != null ) {
-//      for ( int i = 0; i < arguments.size(); ++i  ) {
-//        Object a = arguments.get( i );
-//        if ( a instanceof Parameter< ? > ) {
-//          set.add( (Parameter< ? >)a );
-//        } else if ( !deep && a instanceof Expression ) {
-//          Expression<?> e = (Expression<?>)a;
-//          if ( e.type == Expression.Type.Parameter ) {
-//            set.add( (Parameter< ? >)e.expression );
-//          }
-//        }
-//        if ( deep && a instanceof HasParameters ) {
-//          HasParameters gotParameters = (HasParameters)a;
-//          set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
-//        }
-//      }
-//    }
+    set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
+    set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
     if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen ) );
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen, true ) );
 //      set = Utils.addAll( set, nestedCall.getValue().getParameters( deep, seen ) );
     }
     return set;
@@ -395,10 +368,10 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
       if ( !nestedCall.ground( deep, seen ) ) {
         grounded = false;
       } else if ( object == null ) {
-        if ( nestedCall.getValue() == null ) {
+        if ( nestedCall.getValue(true) == null ) {
           grounded = false;
         } else {
-          object = nestedCall.getValue().evaluate( deep );
+          object = nestedCall.getValue(true).evaluate( deep );
           if ( object == null ) grounded = false;
         }
       }
@@ -522,7 +495,7 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
    * @return the nestedCall
    */
   public Call getNestedCall() {
-    return (nestedCall == null ? null : nestedCall.getValue() );
+    return (nestedCall == null ? null : nestedCall.getValue(false) );
   }
 
   /**

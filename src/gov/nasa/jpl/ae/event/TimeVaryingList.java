@@ -116,7 +116,10 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
 
   /**
-   * Append the value to the end of the list at Timepoint t, creating a new entry if necessary. If list is not null, it is assumed to be the existing entry.
+   * Append the value to the end of the list at Timepoint t, creating a new
+   * entry if necessary. If list is not null, it is assumed to be the existing
+   * entry.
+   * 
    * @param t
    * @param value
    * @return whether the map was changed by the addition.
@@ -149,7 +152,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   protected boolean add( Timepoint t, T value,
                          boolean monotonically, boolean onlyifNotContained,
                          boolean onlyIfBelowMaxSize ) {
-    if ( t == null || t.getValue() == null ) return false;
+    if ( t == null || t.getValue(true) == null ) return false;
     boolean noEntry = !containsKey( t );
     List< T > list = null;
     if ( !noEntry ) list = get( t );
@@ -157,16 +160,11 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       return false;
     }
     boolean changed = false;
-//    if ( noEntry || list == null ) {
-      if ( !onlyifNotContained || list == null || !list.contains( value ) ) {
-        if ( addEntry( t, list, value, onlyifNotContained, onlyIfBelowMaxSize ) ) {
-          changed = true;
-        }
+    if ( !onlyifNotContained || list == null || !list.contains( value ) ) {
+      if ( addEntry( t, list, value, onlyifNotContained, onlyIfBelowMaxSize ) ) {
+        changed = true;
       }
-//    } else if ( !onlyifNotContained || !list.contains( value ) ) {
-//      list.add( value );
-//      changed = true;
-//    }
+    }
     if ( monotonically ) {
       NavigableMap< Timepoint, List< T > > tail = tailMap(t, false);
       for ( Map.Entry< Timepoint, List< T > > e : tail.entrySet() ) {
@@ -305,7 +303,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   protected List<T> nonNullEntry( Timepoint t ) {
     List< T > list = get( t );
     if ( list != null ) return list;
-    list = getValue( t.getValue() );      
+    list = getValue( t.getValue(true) );      
     if ( list == null ) {
       list = new ArrayList<T>();
     } else {
@@ -595,7 +593,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     }
     return listAtT;
   }
-  
+
   @Override
   public void detach( Parameter< ? > parameter ) {
     // remove values added at a Timepoint == parameter
@@ -617,7 +615,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
         List<T> detachList = new ArrayList< T >();
         for ( T v : list ) {
           if ( Utils.valuesEqual( v, parameter ) || 
-               HasParameters.Helper.hasParameter( v, parameter, false, null ) ) {
+               HasParameters.Helper.hasParameter( v, parameter, false, null,
+                                                  true ) ) {
             detachList.add(v);
           }
         }

@@ -62,21 +62,21 @@ public class DRObject extends DurativeEvent {
 	}
 
   public double predictedLoadReduction( double t ) {
-    return predictedLoadReduction( new Timepoint( "", (int)t, null ) );
+    return predictedLoadReduction( new Timepoint( "", (int)t, this ) );
   }
 	public double predictedLoadReduction( Timepoint t ) {
 	  if ( !t.isGrounded(false, null) || !isGrounded(false, null) ) return 0.0;
-	  if ( t.getValue() < startTime.getValue() || t.getValue() > endTime.getValue() ) {
+	  if ( t.getValue(false) < startTime.getValue(false) || t.getValue(false) > endTime.getValue(false) ) {
 	    return 0.0;
 	  }
-	  int offsetTimeFromMax = applianceType.timeOfDayAtMaxPercent.getValue() - t.timeSinceMidnight();
+	  int offsetTimeFromMax = applianceType.timeOfDayAtMaxPercent.getValue(false) - t.timeSinceMidnight();
 	  boolean on = true;
-	  int change = applianceType.durationAtMax.getValue() / 2;
+	  int change = applianceType.durationAtMax.getValue(false) / 2;
 	  int timeFromMax = change;
     final int lengthOfDay = Duration.lengthOfOne(Timepoint.Units.days);
 	  while (offsetTimeFromMax > timeFromMax ) {
 	    on = !on;
-      change = (int)(((long)applianceType.durationAtMax.getValue()) * ( ( (double)(lengthOfDay - timeFromMax ) ) / lengthOfDay ) );
+      change = (int)(((long)applianceType.durationAtMax.getValue(false)) * ( ( (double)(lengthOfDay - timeFromMax ) ) / lengthOfDay ) );
 	    timeFromMax += change;
 	  }
 	  if ( on ) return applianceType.maxPower;

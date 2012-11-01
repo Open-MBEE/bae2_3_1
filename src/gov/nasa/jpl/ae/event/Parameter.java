@@ -178,7 +178,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return getValueNoPropagate();
   }
 
-  public T getValue() {
+  private T getValue() {
     if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() start: " + this );
     assert mayPropagate;
     if ( isStale() ) {
@@ -303,6 +303,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
+    if ( owner == null ) return false;
     if ( deep && value instanceof Groundable ) {
       return ( (Groundable)value ).isGrounded(deep, seen);
     }
@@ -355,6 +356,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
+    if ( owner == null ) return false;
     if ( isGrounded(deep, null) ) return true;
     if ( refresh() ) return true;
     T newValue = pickRandomValue();
@@ -467,6 +469,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
+    if ( owner == null ) return false;
     boolean nullDomain = domain == null;
     if ( nullDomain ) return true;
     boolean emptyDomain = domain.size() == 0;
@@ -487,6 +490,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
+    if ( owner == null ) return false;
     if ( isSatisfied(deep, null) ) return true;
     ground(deep, null);
     getValue();
@@ -524,7 +528,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     seen = pair.second;
     StringBuffer sb  = new StringBuffer();
     if ( withOwner && getOwner() != null ) {
-      sb.append( getOwner().getName() + ":");
+      if ( Utils.isNullOrEmpty( getOwner().getName() ) ) {
+        sb.append( "<EVT>@" + getOwner().hashCode() + ":");
+      } else {
+        sb.append( getOwner().getName() + ":");
+      }
     }
     if ( !deep ) {
       sb.append( getName() );

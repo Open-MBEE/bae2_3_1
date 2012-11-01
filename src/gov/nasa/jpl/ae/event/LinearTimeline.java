@@ -58,7 +58,8 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
     if ( eBefore == null ) return null;
     Entry< Timepoint, Double > eAfter = this.ceilingEntry( tp );
     if ( eAfter == null ) return eBefore.getValue();
-    int timeDiff = eAfter.getKey().getValue() - eBefore.getKey().getValue();
+    double timeDiff =
+        eAfter.getKey().getValue( false ) - eBefore.getKey().getValue( false );
     assert timeDiff >= 0.0;
     double valueDiff = 0.0;
     if ( eAfter.getValue() != null ) {
@@ -74,7 +75,7 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
     } else {
       interpolatedValue =
         eBefore.getValue() + 
-        valueDiff * ( t - eBefore.getKey().getValue() ) / timeDiff;
+        valueDiff * ( t - eBefore.getKey().getValue( false ) ) / timeDiff;
     }
     return interpolatedValue;
   }

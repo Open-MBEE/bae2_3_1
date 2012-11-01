@@ -35,6 +35,9 @@ public class SocketClient {
     this.hostName = hostName;
     this.port = port;
     try {
+      if ( Debug.isOn() ) Debug.outln( getClass().getName()
+                                       + " creating socket on host " + hostName
+                                       + " and port " + port );
       sock = new Socket( hostName, port );
       dataOutputStream = new DataOutputStream( sock.getOutputStream() );
       dataInputStream =  new DataInputStream( sock.getInputStream() );

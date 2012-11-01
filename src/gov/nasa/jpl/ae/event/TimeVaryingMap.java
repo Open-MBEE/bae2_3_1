@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,7 +59,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     
     @Override
     public boolean isStale() {
-      return HasParameters.Helper.isStale( this, false, null );
+      return HasParameters.Helper.isStale( this, false, null, false );
     }
 
     @Override
@@ -73,9 +74,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( pair.first ) return Utils.getEmptySet();
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-      Set< Parameter< ? > > set = HasParameters.Helper.getParameters( first, deep, null );
-      set.addAll(HasParameters.Helper.getParameters( first, deep, null ));
-      return set; 
+      return HasParameters.Helper.getParameters( this, deep, null, false );
     }
 
     @Override
@@ -100,7 +99,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( pair.first ) return false;
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return false;
-      return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen );
+      return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen, false );
     }
 
     @Override
@@ -110,7 +109,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( pair.first ) return false;
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return false;
-      return HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+      return HasParameters.Helper.hasParameter( this, parameter, deep, seen, false );
     }
 
     @Override
@@ -122,7 +121,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       if ( pair.first ) return false;
       seen = pair.second;
       //if ( Utils.seen( this, deep, seen ) ) return false;
-      return HasParameters.Helper.substitute( this, p1, p2, deep, seen );
+      return HasParameters.Helper.substitute( this, p1, p2, deep, seen, false );
     }
 
     @Override
@@ -221,7 +220,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   public Timepoint makeTempTimepoint( Integer t, boolean maxName ) {
     //if ( t == null ) return null;
     String n = ( maxName ? StringDomain.typeMaxValue : null );
-    Timepoint tp = new Timepoint( n, t, null );
+    Timepoint tp = new Timepoint( n, t, this );
     return tp;
   }
   
@@ -322,17 +321,26 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {
-    //return Utils.getEmptySet();
+    return Utils.getEmptySet();
     
-    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
-    if ( pair.first ) return Utils.getEmptySet();
-    seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    
+//    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+//    if ( pair.first ) return Utils.getEmptySet();
+//    seen = pair.second;
+//    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+//    
+//    Set< Parameter< ? > > params = new TreeSet< Parameter< ? > >();
+//    params = Utils.addAll( params, HasParameters.Helper.getParameters( keySet(), deep, seen ) );
+//    params = Utils.addAll( params, HasParameters.Helper.getParameters( values(), deep, seen ) ); 
+//    params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
+//    return params;
+  }
+
+  public Set< Parameter< ? > > getParameters() {
+    HashSet< HasParameters > seen = new HashSet< HasParameters >();
     Set< Parameter< ? > > params = new TreeSet< Parameter< ? > >();
-    params = Utils.addAll( params, HasParameters.Helper.getParameters( keySet(), deep, seen ) );
-    params = Utils.addAll( params, HasParameters.Helper.getParameters( values(), deep, seen ) ); 
-    params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, deep, seen ) );
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( keySet(), false, seen, true ) );
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( values(), false, seen, true ) ); 
+    params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, false, seen, true ) );
     return params;
   }
 
@@ -356,11 +364,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return false;
-    if ( HasParameters.Helper.hasParameter( this, parameter, deep, seen ) ) {
+
+    if ( HasParameters.Helper.hasParameter( this, parameter, deep, seen, false ) ) {
       return true;
     }
-    if ( HasParameters.Helper.hasParameter( floatingEffects, parameter, deep, seen ) ) {
+    if ( HasParameters.Helper.hasParameter( floatingEffects, parameter, deep, seen, true ) ) {
       return true;
     }
     return false;
@@ -371,11 +379,11 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
                   Set< HasParameters > seen ) {
     breakpoint();
-    if ( HasParameters.Helper.substitute( this, p1, p2, deep, seen ) ) {
+    if ( HasParameters.Helper.substitute( this, p1, p2, deep, seen, false ) ) {
       if ( Debug.isOn() ) isConsistent();
       return true;
     }
-    if ( HasParameters.Helper.substitute( floatingEffects, p1, p2, deep, seen ) ) {
+    if ( HasParameters.Helper.substitute( floatingEffects, p1, p2, deep, seen, true ) ) {
       if ( Debug.isOn() ) isConsistent();
       return true;
     }
@@ -389,7 +397,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public boolean isStale() {
     if ( !floatingEffects.isEmpty() ) return true;
-    return ( HasParameters.Helper.isStale( this, false, null ) );
+    return ( HasParameters.Helper.isStale( this, false, null, false ) );
   }
 
   /* (non-Javadoc)
@@ -443,8 +451,8 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( v != null ) return v;
     // Saving this check until later in case a null time value is acceptable,
     // and get(t) above works.
-    if ( t.getValue() == null ) return null;
-    return getValue( t.getValue() );
+    if ( t.getValue( false ) == null ) return null;
+    return getValue( t.getValue( false ) );
   }
 
   /* (non-Javadoc)
@@ -463,7 +471,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( !isEmpty() ) {
       Entry< Timepoint, T > f = firstEntry(); 
       Timepoint k = f.getKey();
-      if ( IntegerDomain.defaultDomain.lessEquals( k.getValue(), t ) ) {
+      if ( IntegerDomain.defaultDomain.lessEquals( k.getValue( false ), t ) ) {
         return f.getValue();
       }
     }
@@ -488,7 +496,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( v != null ) return value.equals( v );
     // Saving this check until later in case a null time value is acceptable,
     // and get(t) above works.
-    if ( tp.getValue() == null ) return false;
+    if ( tp.getValue( false ) == null ) return false;
     return hasValueAt( value, tp.getValueNoPropagate() );
   }
   
@@ -572,16 +580,23 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
   @Override
   public T setValue( Timepoint t, T value ) {
     breakpoint();
+    if ( Debug.isOn() ) Debug.outln( getName() + "setValue(" + t + ", " + value + ")" );
     if ( t == null ) {
-      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint into the map!" );
+      if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Timepoint into the map!" );
       return null;
     }
     if ( t.getValueNoPropagate() == null ) {
-      if ( Debug.isOn() ) Debug.error( true, "Error! trying to insert a null Timepoint value into the map!" );
+      if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Timepoint value into the map!" );
       return null;
     }
+    if ( t.getOwner() == null ) {
+      if ( Debug.isOn() ) Debug.error( false, "Warning: inserting a Timepoint with null owner into the map--may be detached!" );
+    }
+    if ( value != null && value instanceof Parameter && ((Parameter)value).getOwner() == null ) {
+      if ( Debug.isOn() ) Debug.error( true, "Warning: trying to insert a value with a null owner into the map--may be detached!" );
+    }
     T oldValue = null;
-    Timepoint tp = keyForValueAt( value, t.getValue() );
+    Timepoint tp = keyForValueAt( value, t.getValue( false ) );
     if ( Debug.isOn() ) isConsistent();
     if ( tp != null && tp != t ) {
       remove( tp );
@@ -590,16 +605,18 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
       oldValue = put( t, value );
     }
     if ( Debug.isOn() ) isConsistent();
+    if ( Debug.isOn() ) Debug.outln( getName() + "setValue(" + t + ", " + value
+                                     + ") returning oldValue=" + oldValue );
     return oldValue;
   }
 
+  public boolean isConsistent2() {
+    return true;
+  }
   /**
    * Validate the consistency of the map for individual and adjacent entries.
    * @return whether or not the entries in the map make sense.
    */
-  public boolean isConsistent2() {
-    return true;
-  }
   public boolean isConsistent() {    
     Timepoint lastTp = null;
     int lastTime = -1;
@@ -754,7 +771,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
-    return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen );
+    return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen, false );
   }
 
   @Override

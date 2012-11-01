@@ -4,7 +4,8 @@ Created on Sep 5, 2012
 '''
 import os
 workspacePath = 'C:\\Users\\bclement\\workspaceFresh'
-mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
+#mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
+mdPath = 'C:\\Program Files\\MagicDraw\\OpsRevMD1702-20120912'
 projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
@@ -91,10 +92,12 @@ from threading import Thread
 
 class AE:#(Thread):
     
-    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_medium.xml'
+    #xmlFileName = workspaceXmlPath + os.sep + 'Scenario_XML_2012-291T17.49.09.xml'
+    #packageName = 'Scenario_medium_2012'
+    xmlFileName = workspaceXmlPath + os.sep + 'Scenario_XML_2012-291T17.48.51.xml'
+    packageName = 'Scenario_large_2012'
     generatedXmlFileName = 'unspecified'
-    packageName = 'Scenario_medium'
-    timeScale = 1e12
+    timeScale = 1.0e15
     
     # Options for what to run
 #    sysMlToAeXml = True
@@ -103,9 +106,12 @@ class AE:#(Thread):
 #    execute = True
 #    simulate = True
 #    animate = True
-    options = { 'sysMlToAeXml':False, 'xmlToJava':False, 'writeJavaFiles':False,
-                'compile':False, 'load':True, 'execute':True, 'simulate':True,
-                'animate':False }
+    options = { 'sysMlToAeXml':True, 'xmlToJava':True, 'writeJavaFiles':True,
+                'compile':True, 'load':True, 'execute':True, 'simulate':True,
+                'animate':True }
+#    options = { 'sysMlToAeXml':False, 'xmlToJava':False, 'writeJavaFiles':False,
+#                'compile':False, 'load':True, 'execute':True, 'simulate':True,
+#                'animate':True }
     
     # other members
     translator = None

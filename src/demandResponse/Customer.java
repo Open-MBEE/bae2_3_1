@@ -27,10 +27,10 @@ public class Customer extends ParameterListenerImpl {
   public int offsetSecondsFromMidnight = 0;
   public int loadHorizon = 86400; // 1 day in seconds 
   public double maxLoad = 3.5;  // kW
-  public double minLoadFraction = 0.2;
-  public double varianceFactor = 0.15;  // this is not Gaussian variance
-  public double chanceOfChange = 0.7;
-  public double correctionFactor = 0.5;
+  public double minLoadFraction = 0.4;
+  public double varianceFactor = 0.7;  // this is not Gaussian variance
+  public double chanceOfChange = 0.8;
+  public double correctionFactor = 0.1;
   public int samplePeriod = 900; // may only support seconds!
   public long seed = 3;//System.currentTimeMillis();
   public Random numGen = gov.nasa.jpl.ae.solver.Random.global;
@@ -131,7 +131,7 @@ public class Customer extends ParameterListenerImpl {
   
   public double summerLoadProfile( int timeSecs, boolean includeAnyDrEvent ) {
     int t = offsetSecondsFromMidnight + timeSecs;
-    double kWatts = (  minLoadFraction
+    double kWatts = (  minLoadFraction * maxLoad
                        + getMaxLoad(timeSecs,includeAnyDrEvent) * ( 1 - minLoadFraction )
                          * ( 0.5 + 0.5 * Math.sin( 2 * Math.PI 
                                                    * ( t / ( 24 * 3600.0 ) - 0.4 ) ) ) );

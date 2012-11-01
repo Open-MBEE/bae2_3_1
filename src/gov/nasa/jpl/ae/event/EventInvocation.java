@@ -81,7 +81,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
         // makeConstructor();
         ClassUtils.getConstructorForArgs( eventClass, arguments,
                                      ( enclosingInstance == null ) ? null
-                                     : enclosingInstance.getValue() );
+                                     : enclosingInstance.getValue(true) );
     constructor = (Constructor< ? extends Event >)ctorAndArgs.first;
     if ( ctorAndArgs == null || constructor == null ) {
         try {
@@ -163,7 +163,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     constructor =
         (Constructor< ? extends Event >)(ClassUtils.getConstructorForArgs( eventClass,
                                                                      arguments,
-                                                                     enclosingInstance.getValue() )).first;
+                                                                     enclosingInstance.getValue(true) )).first;
     return constructor;
   }
 

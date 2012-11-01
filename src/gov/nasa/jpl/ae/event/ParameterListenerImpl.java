@@ -42,7 +42,7 @@ public class ParameterListenerImpl extends HasIdImpl
   // Constants
   
   protected double timeoutSeconds = 1800.0;
-  protected int maxLoopsWithNoProgress = 8;
+  protected int maxLoopsWithNoProgress = 14;
   protected long maxPassesAtConstraints = 100;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
@@ -128,11 +128,6 @@ public class ParameterListenerImpl extends HasIdImpl
     return subbed;
   }
 
-  public static <T> T getValue( Parameter<T> parameter ) {
-    if ( parameter == null ) return null;
-    return parameter.getValue();
-  }
-  
   // Build a list of pairs of parameters, each in this event paired with the
   // corresponding ones in another event. Subclasses may need to override this
   // to add their own parameters.
@@ -352,12 +347,16 @@ public class ParameterListenerImpl extends HasIdImpl
 //        }
 //      }
 //    }
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( getParameters(), deep, seen ) );
+    set = Utils.addAll( set,
+                        HasParameters.Helper.getParameters( getParameters(),
+                                                            deep, seen, true ) );
     if ( deep ) {
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( getDependencies(),
-                                                      deep, seen ) );
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( getConstraintExpressions(),
-                                                      deep, seen ) );
+      set = Utils.addAll( set,
+                          HasParameters.Helper.getParameters( getDependencies(),
+                                                              deep, seen, true ) );
+      set = Utils.addAll( set,
+                          HasParameters.Helper.getParameters( getConstraintExpressions(),
+                                                              deep, seen, true ) );
     }
     return set;
   }
@@ -694,6 +693,11 @@ public class ParameterListenerImpl extends HasIdImpl
         p.setOwner( null );
       }
     }
+    name = "DETACHED_" + name;
+    dependencies.clear();
+    constraintExpressions.clear();
+    this.timeVaryingObjects.clear();
+    parameters.clear();
   }
   
   /* (non-Javadoc)

@@ -48,7 +48,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
   public boolean isStale() {
     if ( startTime != null && startTime.isStale() ) return true;
     if ( duration != null && duration.isStale() ) return true;
-    return HasParameters.Helper.isStale( effect, false, null );
+    return HasParameters.Helper.isStale( effect, false, null, true );
   }
   @Override
   public void setStale( boolean staleness ) {
@@ -65,7 +65,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     set.add( startTime );
     set.add( duration );
     if ( deep ) {
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( effect, deep, seen ) );
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( effect, deep, seen, true ) );
     }
     return set;
   }
@@ -88,9 +88,11 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
-    if ( HasParameters.Helper.isFreeParameter( startTime, p, deep, null ) ) return true;
-    if ( HasParameters.Helper.isFreeParameter( duration, p, deep, null ) ) return true;
-    if ( HasParameters.Helper.isFreeParameter( effect, p, deep, null ) ) return true;
+    if ( HasParameters.Helper.isFreeParameter( startTime, p, deep, null, true ) ||
+         HasParameters.Helper.isFreeParameter( duration, p, deep, null, true ) ||
+         HasParameters.Helper.isFreeParameter( effect, p, deep, null, true ) ) {
+      return true;
+    }
     return false;
   }
   @Override
@@ -102,7 +104,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( startTime == parameter ) return true;
     if ( duration == parameter ) return true;
-    return HasParameters.Helper.hasParameter( effect, parameter, deep, null );
+    return HasParameters.Helper.hasParameter( effect, parameter, deep, null, true );
   }
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
@@ -120,7 +122,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
       duration = (Duration)p2;
       subbed = true;
     }
-    if ( HasParameters.Helper.substitute( effect, p1, p2, deep, seen ) ) {
+    if ( HasParameters.Helper.substitute( effect, p1, p2, deep, seen, true ) ) {
       subbed = true;
     }
     return subbed;

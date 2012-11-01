@@ -3,9 +3,11 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.SimulatedTime;
 import gov.nasa.jpl.ae.util.SocketClient;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -37,12 +39,32 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   private static final String enthoughtPythonPath = "c:\\Users\\bclement\\workspace\\CS\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;c:\\Python27\\Lib";
   private static final String enthoughtPython = "c:\\Python27\\python.exe";
   private static final String enthoughtTempDir = "c:\\temp";
+  
+  // Members
+  
+  // Members: properties for plotting
+  
+  /**
+   * Whether or not the external plotter should be launched and connected to by
+   * socket.
+   */
+  boolean tryToPlot = true;
+  Timepoint.Units plotAxisTimeUnits = Timepoint.Units.hours;
+  public boolean usingSamplePeriod = true;
+  public double plotSamplePeriod = 900.0 / Units.conversionFactor( Units.seconds ); // 15 min
+  protected String hostOfPlotter = "127.0.0.1";
+  // Trying to pick a port that would not have been used by another running instance. 
+  protected int port = 
+      (int)( 6000 + ( ( System.currentTimeMillis() / 1000 ) % 2000 ) );
+  //  protected static java.util.Random portRandomNumberGenerator =
+//      new java.util.Random( System.currentTimeMillis() );
+//  protected Pair<Integer, Integer > portRange = new Pair( 65000, 66000 );
 
   public enum EventType {
     start,
     end
     }
-  
+
   public static class ObjectComparator implements Comparator< Object > {
 
     @Override
@@ -55,6 +77,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   }
 
+
+  
 /* Running python from Java using PythonInterpreter, available from jython. 
   private static class PlotPythonInterpreter implements Runnable {
     protected void initiatePlotUsingInterpreter() {
@@ -74,14 +98,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
   }
 */
-  // Members
-  
-  /**
-   * Whether or not the external plotter should be launched and connected to by
-   * socket.
-   */
-  boolean tryToPlot = true;
-  Timepoint.Units timeUnits = Timepoint.Units.hours;
+
+  // Members: other
+
   double timeScale;
   
   Map< Object, Object > currentPlottableValues =
@@ -90,18 +109,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   SocketClient plotSocket = null;
   Process plotProcess = null;
   List<Executor> executors = new ArrayList<Executor>();
-  
-  
-//  // epochMillis is a timestamp corresponding to TimePoint = 0 as the date/time that the simulation starts.
-//  // It is an offset of the number of milliseconds since Jan 1, 1970.
-//  // For example, if epochMillis == 1341614935000, then a TimePoint or int value
-//  // of 0 corresponds to Fri, Jul 06, 2012 3:48:55 PM.
-//  // This number comes from using the 'date' unix command:
-//  //    $ date; date '+%s'
-//  //    Fri, Jul 06, 2012  3:48:55 PM
-//  //    1341614935
-//  long epochMillis; 
-  
+  public Collection<Plottable> plottables = new ArrayList<Plottable>();
+    
   // New Constructors
   
   public EventSimulation( Collection<Event> events, double timeScale ) {
@@ -220,54 +229,58 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     simulate( this.timeScale, os );
   }
   
-  public void simulate( double timeScale, java.io.OutputStream os ) {
+  public void simulate( double scale, java.io.OutputStream os ) {
+    this.timeScale = scale;
     PrintWriter w = new PrintWriter( os, true );
-    long startClock = -1;
+    //long startClock = -1;
     int lastT = -1;
+    SimulatedTime simTimer = new SimulatedTime( timeScale );
+    double nextPlotSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Integer.MAX_VALUE;
     
     if ( tryToPlot ) {
       //Debug.turnOn();
       initiatePlot();
       //Debug.turnOff();
     }
+    boolean firstLoop = true;
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
     for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e1 : entrySet() ) {
       for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
         // Delay between events
-        //if ( Debug.isOn() ) Debug.outln("startClock = " + startClock );
-        double nextEventTime = 0.0;
-        if (startClock == -1) {
-          startClock = System.currentTimeMillis();
+        int nextEventSimTime = e1.getKey();
+        if (firstLoop) {
+          firstLoop = false;
+          simTimer.reset();
         } else {
-          nextEventTime = Duration.durationToMillis( e1.getKey() );
-          double nextEventTimeScaled = nextEventTime / timeScale;
-          double timePassed = ( (double)System.currentTimeMillis() ) - startClock;
-          long waitMillis =
-              (long)Math.min( (double)Long.MAX_VALUE / 2,
-                              ( nextEventTimeScaled - timePassed  ) );
-//          if ( Debug.isOn() ) Debug.outln("timePassed = " + timePassed );
-//          if ( Debug.isOn() ) Debug.outln("nextEventTime = " + nextEventTime );
-//          if ( Debug.isOn() ) Debug.outln("nextEventTimeScaled = " + nextEventTimeScaled );
-//          if ( Debug.isOn() ) Debug.outln("waitMillis = " + waitMillis );
-          if ( waitMillis > 0 ) {
-            try {
-              Thread.sleep( waitMillis );
-            } catch ( InterruptedException e ) {
-              // Something unexpected interrupted our sleep.
-              e.printStackTrace();
+          // Update the plot based on the sample period.
+          try {
+            while ( true ) {
+              int simTimeToSleepUntil =
+                  (int)Math.min( nextEventSimTime, nextPlotSimTime );
+              simTimer.sleepUntilSimTime( simTimeToSleepUntil );
+              int simTime = simTimer.getSimTimePassed();
+              while ( tryToPlot && usingSamplePeriod
+                      && nextPlotSimTime <= simTime
+                      && nextPlotSimTime <= Timepoint.getHorizonDuration() ) {
+                plotValues( nextPlotSimTime );
+                // Recompute this in case the time scale changes during
+                // simulation.
+                assert this.plotSamplePeriod > 0.0;
+                nextPlotSimTime += this.plotSamplePeriod;
+              }
+              if ( nextEventSimTime <= simTime) break;
             }
+          } catch ( InterruptedException e ) {
+            System.err.println("Simulation sleep interrupted unexpectedly.");
           }
         }
-//        if ( Debug.isOn() ) Debug.outln("current millis = " + System.currentTimeMillis() );
         
         // the event & value(s)
         int t = e1.getKey().intValue();
         Object variable = p.first; //e2.getKey();
         Object value = p.second; //e2.getValue();
-        if ( currentPlottableValues != null && currentPlottableValues.containsKey( variable ) ) {
-          currentPlottableValues.put( variable, value );
-        }
+        Object originalValue = value; //e2.getValue();
         // the names of the event
         String name;
         String longClassName = variable.getClass().getName();
@@ -286,7 +299,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         
         // unleash the executors!
         for ( Executor exec : executors ) {
-          exec.execute( nextEventTime, name, shortClassName, longClassName,
+          exec.execute( nextEventSimTime, name, shortClassName, longClassName,
                         ( value == null ? "null" : value.toString() ) );
         }
         
@@ -298,7 +311,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           w.printf( formatString, padding, name + " -> " +
                     ( value == null ? "null" : value.toString() ), classNames );
         } else {
-          if ( tryToPlot ) {
+          if ( tryToPlot && !usingSamplePeriod ) {
+            if ( currentPlottableValues != null && currentPlottableValues.containsKey( variable ) ) {
+              currentPlottableValues.put( variable, originalValue );
+            }
             plotValues( t );
           }
           formatString = "%14s : %28s  %-60s   %s\n";
@@ -398,7 +414,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       File f = new File( curDir  );
       String pythonExe = enthoughtPython;
       if ( Utils.isNullOrEmpty( pythonExe ) ) pythonExe = "python";
-      plotProcess = rt.exec( pythonExe + " animatePlot.py", newEnv, f );
+      plotProcess = rt.exec( pythonExe + " animatePlot.py " + port, newEnv, f );
                              //new String[] { pythonPath, mplPath }, f );
       // Allow a half second for the process to start.
       Thread t = new Thread( new Runnable() {
@@ -462,7 +478,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       //System.out.println("Process exited with code = " + p.exitValue());
 
       // Try to connect to the python program's socket.
-      plotSocket = new SocketClient( "127.0.0.1", 60002 );
+      plotSocket = new SocketClient( hostOfPlotter , port );
       // Need to send a 1 so that the python socket server knows the correct
       // endianness.
       if ( plotSocket.isConnected() && currentPlottableValues.size() > 0 ) {
@@ -493,12 +509,20 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       return;
     }
     double doubleArray[] = new double[currentPlottableValues.size()+1];
-    doubleArray[0] = Timepoint.Units.conversionFactor( this.timeUnits ) * time;
+    doubleArray[0] = Timepoint.Units.conversionFactor( this.plotAxisTimeUnits ) * time;
     int cnt = 1;
-    for ( Object v : currentPlottableValues.values() ) {
+    //for ( Object v : currentPlottableValues.values() ) {
+    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+      Object o = e.getKey();
+      Object v = e.getValue();
+      // TODO -- Support different sampling periods for different Plottables.
+      if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable &&
+           ((Plottable)o).okToSample() ) {
+        v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+      }
       assert v instanceof Double || v instanceof Integer || v instanceof Parameter;
       while ( v instanceof Parameter ) {
-        v = ( (Parameter<?>)v ).getValue();
+        v = ( (Parameter<?>)v ).getValue(false);
       }
       if ( v instanceof Integer ) {
         v = ( (Integer)v ).doubleValue();

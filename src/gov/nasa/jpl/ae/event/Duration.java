@@ -113,7 +113,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	}
 	
 	public long toMillis() {
-    return ticksToMillis( getValue() );
+    return ticksToMillis( getValue(false) );
 	}
 	
   public String toFormattedString() {
