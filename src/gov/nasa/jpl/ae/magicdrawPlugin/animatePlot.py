@@ -1,4 +1,5 @@
 import os
+import sys
 #print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +7,7 @@ import matplotlib.animation as animation
 from InterpolatedMap import InterpolatedMap as InterpolatedMap
 from OneWaySocket import OneWaySocket
 
-debugMode = False
+debugMode = True
 useSocket = True
 useTable = False
 useTestData = False
@@ -15,10 +16,12 @@ genXValues = True
 
 showLabels = False
 
-numLines = 4
+numLines = 4 # the default number of lines to plot
+
 #host = "192.168.1.100"
 host = "127.0.0.1"
-port = 60002
+defaultPort = 60002 # the actual port can passed as an argument
+sock = None
 xGrow = 0.2 # how much to grow the x axis for points outside
 yGrow = 0.2 # how much to grow the y axis for points outside
 
@@ -40,15 +43,20 @@ def debugPrint( s ):
     if debugMode:
         print s
 
-if useSocket:
-    sock = OneWaySocket(host, port, False, debugMode)
-    sock.endianGet()
-    numLines = sock.unpack("i", sock.receiveInPieces(4))
-    numLines = numLines[0]
-    debugPrint( "numLines = " + str(numLines) )
+# create the socket, and get numLines, the number of lines to plot!
+def initSocket( host, port ):
+    if useSocket:
+        global sock
+        global numLines
+        sock = OneWaySocket(host, port, False, debugMode)
+        sock.endianGet()
+        numLines = sock.unpack("i", sock.receiveInPieces(4))
+        numLines = numLines[0]
+        debugPrint( "numLines = " + str(numLines) )
 
 
 def socketDataGen():
+    global sock
     cnt = 0
     if genXValues:
         yRange = range(1,numLines+1)
@@ -84,13 +92,32 @@ def dataFromTable():
 #
 # Main loop
 #
-def main():
-   # print "I am really running."
+def main(argv=None):
+    global numLines
+
+    # get port from args
+    if argv is None:
+        argv = sys.argv
+    debugPrint( "argv = " + str(argv) )
+    if len(argv) > 1 and str(argv[1]).isdigit():
+        port = int(argv[1])
+        debugPrint("got arg for port = " + str(port) )
+    else:
+        port = defaultPort
+        debugPrint("using default port = " + str(port) )
     if numLines < 1:
         return
+    
+    # connect with plotter
+    initSocket( host, port )
+    
+    # specify options for plot data display
     colors =  ['r', 'g', 'b', 'm', 'c', 'y', 'k', 'w']
-    symbols = ['-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
+    symbols = ['-','-','-','-','-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
+    #symbols = ['-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
     msizes =  [ 12,  10,  14,  16,  18,   8,  18,  20] 
+    
+    # create plot figure
     fig = plt.figure()
     ax = fig.add_subplot(111)
     debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
