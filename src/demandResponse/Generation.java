@@ -6,6 +6,7 @@ package demandResponse;
 import gov.nasa.jpl.ae.event.LinearTimeline;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
+import gov.nasa.jpl.ae.util.Debug;
 
 /**
  * @author bclement
@@ -15,6 +16,10 @@ public class Generation extends LinearTimeline {
 
   private static final long serialVersionUID = -8766093636354666392L;
   
+  DRObject drObject = null;
+  boolean drEventExists = true;
+  int numberOfCustomers = 200;
+
   protected double maxRateIncrease = 1000.0; // kW/sec
   protected double minRateIncrease = 0.0; // kW/sec
   protected double maxRateDecrease = 2000.0; // kW/sec
@@ -26,8 +31,10 @@ public class Generation extends LinearTimeline {
   public static double middayGenerationLevel = 8.0e2; // 8 GW
   public static LinearTimeline dayProfile = initDayProfile();
 
-  
   protected void init() {
+    if ( drEventExists ) {
+      drObject = new DRObject( true );
+    }
     System.out.println("Initializing Generation with dayProfile = " + dayProfile );
     // Copy the dayProfile into this map based on the epoch offset from midnight.
     int timeSinceMidnight = Timepoint.timeSinceMidnight( Timepoint.getEpoch() );
@@ -42,11 +49,26 @@ public class Generation extends LinearTimeline {
     while ( timeSinceEpoch < Timepoint.getHorizonDuration() ) {
       // Translate the time to the time of day.
       int timeOfDay = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
-      System.out.println( "Generation.setValue(" + timeSinceEpoch
-                          + ", dayProfile.getValue(" + timeOfDay + ") = "
-                          + dayProfile.getValue( timeOfDay ) );
-      setValue( new Timepoint( "", timeSinceEpoch, this ),
-                dayProfile.getValue( timeOfDay ) );
+
+      // Reduce the midday generation by a predicted amount if having a DR event
+      double generationAmount = dayProfile.getValue( timeOfDay );
+      boolean reduceForDREvent = drEventExists && drObject != null && generationAmount == middayGenerationLevel; 
+      if ( Debug.isOn() ) {
+        Debug.out( "Generation.setValue(" + timeSinceEpoch
+                     + ", dayProfile.getValue(" + timeOfDay + ")="
+                     + dayProfile.getValue( timeOfDay ) );
+      }
+      if ( reduceForDREvent ) {
+        generationAmount -= predictedLoadReduction();
+        if ( Debug.isOn() ) {
+          Debug.outln( " - predictedLoadReduction=" + predictedLoadReduction()
+                     + " = " + generationAmount );
+        }
+      } else {
+        Debug.outln( "" );
+      }
+      setValue( new Timepoint( "", timeSinceEpoch, this ), generationAmount );
+
       int thisTime = tp.getValue(false);
       tp = dayProfile.getTimepointAfter( tp );
       // If we're at the end of the dayProfile points, roll over to the start.
@@ -62,6 +84,29 @@ public class Generation extends LinearTimeline {
     int tMod = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
     setValue( new Timepoint( "", timeSinceEpoch, this ),
               dayProfile.getValue( tMod ) );
+    
+/*  // Ramp down the generation with the   
+    if ( drObject != null && drEventExists ) {
+      Timepoint st = new Timepoint( drObject.getStartTime() );
+      Timepoint et = new Timepoint( drObject.getEndTime() );
+      double rt = drObject.rampDuration;
+      st.setValue( (int)( st.getValue( true ) + rt ) );
+      et.setValue( (int)( et.getValue( true ) + rt ) );
+
+      double gs = getValue( st );
+      double ge = getValue( et );
+      gs -= predictedLoadReduction();
+      ge -= predictedLoadReduction();
+
+      setValue( st, gs );
+      setValue( et, ge );
+    }
+*/
+  }
+  
+  double predictedLoadReduction() {
+    if ( drObject == null || !drEventExists ) return 0.0;
+    return 0.3 * numberOfCustomers * drObject.applianceType.maxPower / 1000.0;
   }
 
   // define a profile of generation for a given day
@@ -79,6 +124,8 @@ public class Generation extends LinearTimeline {
                       nightGenerationLevel );
     profile.setValue( new Timepoint( "", new Integer((int)( 24.0 * conversionFactor )), null ),
                       nightGenerationLevel );
+    profile.setValue( new Timepoint( "", new Integer((int)( 11.0 * conversionFactor )), null ),
+                      middayGenerationLevel );
     return profile;
   }
 
@@ -97,14 +144,6 @@ public class Generation extends LinearTimeline {
   public Generation( String name, Double defaultValue ) {
     super( name, defaultValue );
     init();
-  }
-
-  /**
-   * @param args
-   */
-  public static void main( String[] args ) {
-    // TODO Auto-generated method stub
-
   }
 
 }

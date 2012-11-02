@@ -6,6 +6,8 @@ package demandResponse;
 import gov.nasa.jpl.ae.event.Duration;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Timepoint;
+import gov.nasa.jpl.ae.event.Timepoint.Units;
+import gov.nasa.jpl.ae.solver.Random;
 
 /**
  * @author bclement
@@ -51,15 +53,26 @@ public class DRObject extends DurativeEvent {
   } 
   
   protected ApplianceType applianceType = ApplianceType.PCT;
+  protected int DRStart = 5400;
+  protected int DRDuration = 14400;
+  protected int rampDuration = 3600;
+  protected int timeOffset = Random.global.nextInt(rampDuration);
   
 	/**
 	 * 
 	 */
 	public DRObject() {
 		super();
-		startTime.setValue( 7200 ); // HACK -- assumes seconds and not wrt epoch
-		duration.setValue( 7200 );
+		startTime.setValue( (int)( DRStart / Units.conversionFactor( Units.seconds ) ) + timeOffset ); // FIXME -- HACK -- assumes seconds and not wrt epoch
+		duration.setValue( (int)( DRDuration / Units.conversionFactor( Units.seconds ) )  + timeOffset );
+		this.satisfy( true, null );
 	}
+
+  public DRObject( boolean b ) {
+    this();
+    timeOffset = rampDuration;
+    duration.setValue( (int)( DRDuration / Units.conversionFactor( Units.seconds ) ) );
+  }
 
   public double predictedLoadReduction( double t ) {
     return predictedLoadReduction( new Timepoint( "", (int)t, this ) );

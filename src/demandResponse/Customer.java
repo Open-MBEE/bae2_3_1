@@ -35,7 +35,9 @@ public class Customer extends ParameterListenerImpl {
   public long seed = 3;//System.currentTimeMillis();
   public Random numGen = gov.nasa.jpl.ae.solver.Random.global;
   
+  public boolean DREventExists = false;
   public DRObject drEvent = null;
+  protected double DRParticipation = numGen.nextDouble();
   
   /**
    * The customer load behavior over time.  Here's a gnuplot command for its basic shape over a 24 hour period:
@@ -70,6 +72,10 @@ public class Customer extends ParameterListenerImpl {
   }
   
   void init() {
+    //System.out.println("called init()");
+    if ( DREventExists ) {
+      drEvent = new DRObject();
+    }
     //this.numGen = gov.nasa.jpl.ae.solver.Random.global;
     double defaultValue = summerLoad(0);
     load = new TimeVaryingMap< Double >( "load", getSummerLoadMethod(), this,
@@ -126,7 +132,10 @@ public class Customer extends ParameterListenerImpl {
   
   public double getMaxLoad( double t, boolean includeAnyDrEvent ) {
     if ( !includeAnyDrEvent || drEvent == null ) return maxLoad;
-    return maxLoad - drEvent.predictedLoadReduction( t / Units.conversionFactor( Units.seconds ) );
+    double reduction = drEvent.predictedLoadReduction( t / Units.conversionFactor( Units.seconds ) );
+    reduction = reduction * DRParticipation / 1000.0; // covert from W to kW -- FIXME
+    // System.out.println(maxLoad + " - drEvent.predictedLoadReduction(" + t + ")=" + reduction + " = " + (maxLoad - reduction) );
+    return maxLoad - reduction;
   }
   
   public double summerLoadProfile( int timeSecs, boolean includeAnyDrEvent ) {
