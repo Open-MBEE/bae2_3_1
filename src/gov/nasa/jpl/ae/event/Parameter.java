@@ -220,7 +220,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     T v = getValueNoPropagate();
     if ( v == null ) return null;
     Object f = ClassUtils.getFieldValue( v, fieldName );
-    return null;
+    return f;
   }
   
   public <T1> boolean valueEquals( T1 otherValue ) {
@@ -303,7 +303,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    if ( owner == null ) return false;
+    //if ( owner == null ) return false;
     if ( deep && value instanceof Groundable ) {
       return ( (Groundable)value ).isGrounded(deep, seen);
     }
@@ -356,7 +356,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    if ( owner == null ) return false;
+    //if ( owner == null ) return false;
     if ( isGrounded(deep, null) ) return true;
     if ( refresh() ) return true;
     T newValue = pickRandomValue();
@@ -469,7 +469,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    if ( owner == null ) return false;
+    //if ( owner == null ) return false;
     boolean nullDomain = domain == null;
     if ( nullDomain ) return true;
     boolean emptyDomain = domain.size() == 0;

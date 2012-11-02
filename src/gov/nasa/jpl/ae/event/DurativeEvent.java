@@ -768,7 +768,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                       Expression<?>[] arguments ) {
     return addElaborationRule( condition,
                                new Parameter< Object >( "", null,
-                                                        enclosingInstance, null ),
+                                                        enclosingInstance, this ),
                                eventClass, eventName, arguments );
   }
   
@@ -783,7 +783,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Effect e = new EffectFunction( obj, effectFunction, arguments );
     addEffect( sv, e );
   }
-  
+
   public void addEffect( Parameter< ? > sv, Effect e ) {
     checkIfEffectVariableMatches( sv, e );
     Set< Effect > effectSet = null;
@@ -810,8 +810,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public void addEffects( Parameter< ? > sv, Set<Effect> set ) {
     Set< Effect > effectSet = null;
     for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
-      if ( pp.first.getValue(false) != null && Utils.valuesEqual( pp.first.getValue(false), sv.getValue(false) ) ) {
-        Debug.outln( getName() + "'s addEffect() says " + pp.first.getValue(false) + " == " + sv.getValue(false) );
+      if ( pp.first.getValue(true) != null && Utils.valuesEqual( pp.first.getValue(true), sv.getValue(true) ) ) {
+        Debug.outln( getName() + "'s addEffect() says " + pp.first.getValue(true) + " == " + sv.getValue(true) );
         effectSet = pp.second;
         break;
       }
