@@ -178,7 +178,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return getValueNoPropagate();
   }
 
-  private T getValue() {
+  public T getValue() {
     if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() start: " + this );
     assert mayPropagate;
     if ( isStale() ) {

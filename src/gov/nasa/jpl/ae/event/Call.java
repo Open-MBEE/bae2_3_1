@@ -104,8 +104,9 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
       // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
       // making this a dependency.  Cached newObject of constructor is similar.
 //    if ( propagate || object == null ) {
-      object = nestedCall.getValue( propagate ).evaluate( propagate );
-//      }
+      object = Expression.evaluate( nestedCall.getValue( propagate ), null,
+                                    propagate, false );
+      //      }
     }
     try {
       if ( Debug.isOn() ) Debug.outln( "About to invoke a "

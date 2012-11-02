@@ -43,10 +43,10 @@ public class ParameterListenerImpl extends HasIdImpl
   
   protected double timeoutSeconds = 1800.0;
   protected int maxLoopsWithNoProgress = 14;
-  protected long maxPassesAtConstraints = 100;
+  protected long maxPassesAtConstraints = 500;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
-  // TODO -- features for variables below not yet implemented
+
   protected boolean snapshotSimulationDuringSolve = true;
   protected boolean snapshotToSameFile = true;
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
