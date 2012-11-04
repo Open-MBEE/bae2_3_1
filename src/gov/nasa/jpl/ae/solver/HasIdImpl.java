@@ -4,7 +4,6 @@
 package gov.nasa.jpl.ae.solver;
 
 /**
- * @author bclement
  *
  */
 public class HasIdImpl implements HasId {

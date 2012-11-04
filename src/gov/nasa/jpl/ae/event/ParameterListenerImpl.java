@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -70,7 +71,7 @@ public class ParameterListenerImpl extends HasIdImpl
   protected Solver solver = new ConstraintLoopSolver();
 
   protected Set< TimeVarying< ? > > timeVaryingObjects =
-      new TreeSet< TimeVarying< ? > >();
+      new HashSet< TimeVarying< ? > >();
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
@@ -319,7 +320,7 @@ public class ParameterListenerImpl extends HasIdImpl
   // TODO -- This is not finished. Need to get deep dependents.
   public Set< Parameter< ? > > getDependentParameters( boolean deep,
                                                        Set<HasParameters> seen ) {
-    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     for ( Dependency< ? > d : dependencies ) {
       set.add( d.parameter );
     }
@@ -337,7 +338,7 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
 //    set.addAll( getParameters() );
 //    if ( deep ) {
 //      for ( Parameter<?> p : getParameters() ) {
@@ -369,7 +370,7 @@ public class ParameterListenerImpl extends HasIdImpl
    */
   public Set< Timepoint > getTimepoints( boolean deep,
                                          Set<HasParameters> seen ) {
-   Set< Timepoint > set = new TreeSet< Timepoint >();
+   Set< Timepoint > set = new HashSet< Timepoint >();
    for ( Parameter<?> p : getParameters( deep, seen ) ) {
      if ( p instanceof Timepoint ) {
        set.add((Timepoint)p);
@@ -531,7 +532,7 @@ public class ParameterListenerImpl extends HasIdImpl
       return Utils.getEmptySet();
     }
     seen = pair.second;
-    Set< Constraint > set = new TreeSet< Constraint >();
+    Set< Constraint > set = new HashSet< Constraint >();
     set = Utils.addAll( set, HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
     set = Utils.addAll( set, HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
     set = Utils.addAll( set, HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
@@ -555,9 +556,9 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > s = new TreeSet< TimeVarying< ? > >();
+    Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
     s.addAll( timeVaryingObjects );
-    s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( deep,
+    s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( false,
                                                                                  null ),
                                                                   deep, seen ) );
     if ( deep ) {

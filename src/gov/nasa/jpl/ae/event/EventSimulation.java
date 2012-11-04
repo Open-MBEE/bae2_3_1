@@ -142,39 +142,47 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   
   // Returns whether the event was added properly. If the event was not added or
   // its start or stop were already added, the function returns false.
-  public boolean add( Event e ) {
+  public boolean add( Event event ) {
     
-    if ( e != null ){
-      if ( Debug.isOn() ) Debug.outln( "Adding event to simulation: " + e.getName() );
+    if ( event != null ){
+      if ( Debug.isOn() ) Debug.outln( "Adding event to simulation: " + event.getName() );
     } else {
       Assert.fail("Tried to add null event to simulation.");
       return false;
     }
     
     boolean ungroundedTiming =
-        ( e.getStartTime() == null
-          || e.getStartTime().getValueNoPropagate() == null
-          || e.getEndTime() == null || e.getEndTime().getValueNoPropagate() == null );
+        ( event.getStartTime() == null
+          || event.getStartTime().getValueNoPropagate() == null
+          || event.getEndTime() == null || event.getEndTime().getValueNoPropagate() == null );
 //    if ( ungroundedTiming ) {
 //      if ( Debug.isOn() ) Debug.errln( "Warning: trying to add ungrounded event to simulation: " + e.getName() );
 //    }
-    Integer startTime = e.getStartTime().getValueOrMin();
-    Integer endTime = e.getEndTime().getValueOrMax();
+
+    // Get start and end times if they exist.
+    Integer startTime = event.getStartTime().getValueOrMin();
+    Integer endTime = event.getEndTime().getValueOrMax();
     if ( startTime == null || endTime == null ) {
-      System.err.println( "Warning: can't add event to simulation: " + e.getName() );
+      Debug.outln( "Warning: can't add event with no time information: "
+                   + event.getName() );
       return false;
     } else if ( ungroundedTiming ) {
-      System.err.println( "Warning: adding event " + e.getName()
-                          + " to simulation with ungrounded time interval ["
-                          + startTime + ", " + endTime + "]" );
+      if ( Debug.isOn() ) {
+        Debug.outln( "Warning: not adding event " + event.getName()
+                     + " to simulation with ungrounded time interval ["
+                     + startTime + ", " + endTime + "]" );
+      }
+      return false;
     }
-    boolean existingEntry = !put( startTime, e, EventType.start );
-    if ( !put( endTime, e, EventType.end ) ) {
+    
+    // Put entries for the startTime and endTime in the map.
+    boolean existingEntry = !put( startTime, event, EventType.start );
+    if ( !put( endTime, event, EventType.end ) ) {
       existingEntry = true;
     }
-
+    
     if ( existingEntry ) {
-      if ( Debug.isOn() ) Debug.outln( "Entry already exists!" );
+      if ( Debug.isOn() ) Debug.errln( "Entry already exists! " + event );
     }
 //    if ( Debug.isOn() ) Debug.outln( "Simulation after addition:\n" + this );
     return !existingEntry;

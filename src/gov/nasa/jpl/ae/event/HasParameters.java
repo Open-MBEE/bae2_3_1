@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -119,7 +120,7 @@ public interface HasParameters extends LazyUpdate, HasId {
                                                        Set< HasParameters > seen,
                                                        boolean checkIfHasParameters ) {
       if ( o == null ) return Utils.getEmptySet();
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( o instanceof Parameter ) {
         set.add( (Parameter< ? >)o );
         Object value = ( (Parameter< ? >)o ).getValueNoPropagate();
@@ -157,7 +158,7 @@ public interface HasParameters extends LazyUpdate, HasId {
                                                            Set< HasParameters > seen,
                                                            boolean checkIfHasParameters ) {
       if ( o == null ) return Utils.getEmptySet();
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( checkIfHasParameters && o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) )
 //          return Utils.getEmptySet();
@@ -281,7 +282,7 @@ public interface HasParameters extends LazyUpdate, HasId {
                                                                 boolean deep,
                                                                 Set< HasParameters > seen,
                                                                 boolean checkIfHasParameters ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( checkIfHasParameters && map instanceof HasParameters ) {
         set.addAll( ((HasParameters)map ).getParameters( deep, seen ) );
       } else {
@@ -389,7 +390,7 @@ public interface HasParameters extends LazyUpdate, HasId {
                                                              boolean deep,
                                                              Set< HasParameters > seen,
                                                              boolean checkIfHasParameters ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         set = Utils.addAll( set, ((HasParameters)c).getParameters( deep, seen ) );
       } else {
@@ -478,7 +479,7 @@ public interface HasParameters extends LazyUpdate, HasId {
     public static Set< Parameter< ? > > getParameters( Object[] c,
                                                        boolean deep,
                                                        Set< HasParameters > seen ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       for ( Object t : c ) {
         set = Utils.addAll( set, getParameters( t, deep, seen, true ) );
       }
@@ -544,7 +545,7 @@ public interface HasParameters extends LazyUpdate, HasId {
                                                                   boolean deep,
                                                                   Set< HasParameters > seen,
                                                                   boolean checkIfHasParameters ) {
-      Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+      Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
       if ( checkIfHasParameters && p instanceof HasParameters ) {
         set.addAll( ((HasParameters)p ).getParameters( deep, seen ) );
       } else {

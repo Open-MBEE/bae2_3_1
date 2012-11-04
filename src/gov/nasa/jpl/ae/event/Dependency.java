@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -219,7 +220,7 @@ public class Dependency< T > extends HasIdImpl
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > set = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     set.add( parameter );
     set = Utils.addAll( set, expression.getParameters( deep, seen ) );
     return set;
@@ -485,7 +486,7 @@ public class Dependency< T > extends HasIdImpl
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Constraint > set = new TreeSet< Constraint >();
+    Set< Constraint > set = new HashSet< Constraint >();
     set.add( this );
     if ( deep ) {
       Set< Constraint > pSet =
@@ -503,7 +504,7 @@ public class Dependency< T > extends HasIdImpl
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+    Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     return set;

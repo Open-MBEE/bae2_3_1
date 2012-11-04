@@ -8,6 +8,7 @@ import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -43,7 +44,7 @@ public interface HasConstraints extends HasId {
         }
       }
 
-      Set< Constraint > set = new TreeSet< Constraint >();
+      Set< Constraint > set = new HashSet< Constraint >();
       if ( o instanceof Constraint ) {
         set.add( (Constraint)o );
       }
@@ -62,7 +63,7 @@ public interface HasConstraints extends HasId {
     public static < K, V > Set< Constraint > getConstraints( Map< K, V > map,
                                                              boolean deep,
                                                              Set< HasConstraints > seen ) {
-      Set< Constraint > set = new TreeSet< Constraint >();
+      Set< Constraint > set = new HashSet< Constraint >();
       for ( Map.Entry< K, V > me : map.entrySet() ) {
         set = Utils.addAll( set, getConstraints( me.getKey(), deep, seen ) );
         set = Utils.addAll( set, getConstraints( me.getValue(), deep, seen ) );
@@ -73,7 +74,7 @@ public interface HasConstraints extends HasId {
     public static < T > Set< Constraint > getConstraints( Collection< T > c,
                                                           boolean deep,
                                                           Set< HasConstraints > seen ) {
-      Set< Constraint > set = new TreeSet< Constraint >();
+      Set< Constraint > set = new HashSet< Constraint >();
       for ( T t : c ) {
         set = Utils.addAll( set, getConstraints( t, deep, seen ) );
       }
@@ -83,7 +84,7 @@ public interface HasConstraints extends HasId {
     public static Set< Constraint > getConstraints( Object[] c,
                                                        boolean deep,
                                                        Set< HasConstraints > seen ) {
-      Set< Constraint > set = new TreeSet< Constraint >();
+      Set< Constraint > set = new HashSet< Constraint >();
       for ( Object t : c ) {
         set = Utils.addAll( set, getConstraints( t, deep, seen ) );
       }
@@ -95,7 +96,7 @@ public interface HasConstraints extends HasId {
     public static < T1, T2 > Set< Constraint > getConstraints( Pair< T1, T2 > p,
                                                                   boolean deep,
                                                                   Set< HasConstraints > seen ) {
-      Set< Constraint > set = new TreeSet< Constraint >();
+      Set< Constraint > set = new HashSet< Constraint >();
       set = Utils.addAll( set, getConstraints( p.first, deep, seen ) );
       set = Utils.addAll( set, getConstraints( p.second, deep, seen ) );
       return set;

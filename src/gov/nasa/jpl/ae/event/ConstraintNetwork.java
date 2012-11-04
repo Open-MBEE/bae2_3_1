@@ -3,9 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**

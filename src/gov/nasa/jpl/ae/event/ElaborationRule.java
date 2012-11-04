@@ -9,6 +9,7 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -133,7 +134,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
     if ( condition != null ) {
       s = Utils.addAll( s, condition.getParameters( deep, seen ) );
     }
@@ -150,7 +151,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< Parameter< ? > > s = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > s = new HashSet< Parameter< ? > >();
     if ( condition != null ) {
       s = Utils.addAll( s, condition.getFreeParameters( deep, seen ) );
     }

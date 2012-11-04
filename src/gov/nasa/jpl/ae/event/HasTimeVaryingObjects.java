@@ -5,6 +5,7 @@ import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -37,7 +38,7 @@ public interface HasTimeVaryingObjects extends HasId {
           return getTimeVaryingObjects( (Pair< ?, ? >)o, deep, seen );
         }
       }
-      Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       if ( o instanceof TimeVarying< ? > ) {
         set.add( (TimeVarying< ? >)o );
       }
@@ -58,7 +59,7 @@ public interface HasTimeVaryingObjects extends HasId {
     public static < K, V > Set< TimeVarying< ? > >
         getTimeVaryingObjects( Map< K, V > map, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       for ( Map.Entry< K, V > me : map.entrySet() ) {
         set.addAll( getTimeVaryingObjects( me.getKey(), deep, seen ) );
         set.addAll( getTimeVaryingObjects( me.getValue(), deep, seen ) );
@@ -69,7 +70,7 @@ public interface HasTimeVaryingObjects extends HasId {
     public static < T > Set< TimeVarying< ? > >
         getTimeVaryingObjects( Collection< T > c, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       for ( T t : c ) {
         set = Utils.addAll( set, getTimeVaryingObjects( t, deep, (Set<HasTimeVaryingObjects>)seen ) );
       }
@@ -79,7 +80,7 @@ public interface HasTimeVaryingObjects extends HasId {
     public static Set< TimeVarying< ? > >
         getTimeVaryingObjects( Object[] c, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       for ( Object t : c ) {
         set = Utils.addAll( set, getTimeVaryingObjects( t, deep, seen ) );
       }
@@ -91,7 +92,7 @@ public interface HasTimeVaryingObjects extends HasId {
     public static < T1, T2 > Set< TimeVarying< ? > >
         getTimeVaryingObjects( Pair< T1, T2 > p, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
+      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       set = Utils.addAll( set, getTimeVaryingObjects( p.first, deep, seen ) );
       set = Utils.addAll( set, getTimeVaryingObjects( p.second, deep, seen ) );
       return set;

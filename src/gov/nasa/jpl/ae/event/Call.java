@@ -11,6 +11,7 @@ import gov.nasa.jpl.ae.util.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -286,7 +287,7 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    Set< Parameter< ? > > set = new TreeSet< Parameter< ? >>();
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
     set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
     set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
     if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {

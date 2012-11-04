@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -60,7 +61,7 @@ public interface ParameterConstraint extends Constraint, HasParameters {
                                                      boolean deep,
                                                      Set<HasParameters> seen ) {
       //if ( !Utils.seen( o, deep, seen ) ) return Utils.getEmptySet();
-      Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
+      Set< Variable< ? > > s = new HashSet< Variable< ? > >();
       s.addAll( o.getParameters( deep, seen ) );
       return s;
     }
@@ -112,7 +113,7 @@ public interface ParameterConstraint extends Constraint, HasParameters {
       //if ( Utils.seen( o, deep, seen ) ) return;
       Set< Parameter< ? > > freeParams = o.getFreeParameters( deep, seen );
       if ( freeParams == null ) {
-        freeParams = new TreeSet< Parameter< ? > >();
+        freeParams = new HashSet< Parameter< ? > >();
         o.setFreeParameters( freeParams, deep, seen );
       }
       for ( Variable< ? > v : freeVariables ) {
@@ -131,7 +132,7 @@ public interface ParameterConstraint extends Constraint, HasParameters {
       Set< Variable< ? > > s = null;
       Set< Parameter< ? > > oSet = o.getFreeParameters( deep, seen );
       if ( oSet != null ) {
-        s = new TreeSet< Variable< ? > >();
+        s = new HashSet< Variable< ? > >();
         s.addAll( oSet );
       } else {
         s = Utils.getEmptySet();

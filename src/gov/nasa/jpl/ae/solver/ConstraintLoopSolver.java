@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public class ConstraintLoopSolver implements Solver {
 
-  public int maxTriesWithNoProgress = 2;
+  public int maxTriesWithNoProgress = 1;
   
   protected ArrayList< Constraint > unsatisfiedConstraints =
       new ArrayList< Constraint >();

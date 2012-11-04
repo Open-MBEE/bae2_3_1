@@ -337,7 +337,7 @@ public class TimeVaryingMap< T > extends TreeMap< Timepoint, T >
 
   public Set< Parameter< ? > > getParameters() {
     HashSet< HasParameters > seen = new HashSet< HasParameters >();
-    Set< Parameter< ? > > params = new TreeSet< Parameter< ? > >();
+    Set< Parameter< ? > > params = new HashSet< Parameter< ? > >();
     params = Utils.addAll( params, HasParameters.Helper.getParameters( keySet(), false, seen, true ) );
     params = Utils.addAll( params, HasParameters.Helper.getParameters( values(), false, seen, true ) ); 
     params = Utils.addAll( params, HasParameters.Helper.getParameters( floatingEffects, false, seen, true ) );
