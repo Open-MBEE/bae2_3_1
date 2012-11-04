@@ -572,6 +572,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     // TODO Auto-generated constructor stub
   }
 
+  public int numEvents() {
+    int sum = 0;
+    for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e : entrySet() ) {
+      if ( e.getValue() != null ) sum += e.getValue().size();
+    }
+    return sum;
+  }
+
 //  /**
 //   * @param m
 //   */

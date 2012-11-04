@@ -621,8 +621,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
           }
         }
         remove( t, detachList );
-        t = getTimepointAfter( t );
       }
+      t = getTimepointAfter( t );
     }
     //super.detach( parameter );
   }

@@ -658,7 +658,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     try {
       EventSimulation sim = createEventSimulation();
       sim.tryToPlot = runPlotter;
-      System.out.println( sim.size() + " event/state transitions.");
+      System.out.println( sim.numEvents() + " event/state transitions.");
       sim.simulate( timeScale, os );
     } catch ( Exception e ) {
       e.printStackTrace();
@@ -873,7 +873,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     if ( deep ) {
       set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborationsConstraint, deep, seen ) );
       set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effectsConstraint, deep, seen ) );
-      set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborations, false, seen ) );
+      set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( elaborations, deep, seen ) );
       for ( Event e : getEvents(false, null) ) {
         if ( e instanceof HasTimeVaryingObjects ) {
           set = Utils.addAll( set, ((HasTimeVaryingObjects)e).getTimeVaryingObjects( deep, seen ) );
