@@ -167,50 +167,68 @@ class highlighterThread(Thread):
             gl.log("MagicDrawAnimator2: starting simulation with timeScale = " \
                    + str(self.timeScale) + "; last event at " + str(latestTime) \
                    + " scaling to " + str(simulatedDuration) + " seconds")
-            for evt in self.events:
-                gl.log("EVENT at " + str(evt.eventTime))
-                print("EVENT at " + str(evt.eventTime))
-                try: timeOfNextEvent = (float(evt.eventTime) + 0.0) / self.timeScale
-                except: 
-                    exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
-                    gl.log("*** EXCEPTION:")
-                    messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
-                    for message in messages:
-                        gl.log(message)
-                print("1")
-                if evt.eventTime != lastTime:
-                    mda.doThePaint() #paint all events occurring at the previous event time
-                    lastTime = float(evt.eventTime)
-                print("2")
-                if timeOfNextEvent > elapsedSimTime:
-                    print("sleeping sim time of next event(" + str(timeOfNextEvent) \
-                           + ") - elapsed sim time(" + str(elapsedSimTime) + ") = " \
-                           + str(timeOfNextEvent - elapsedSimTime) + " seconds")
-                    gl.log("sleeping sim time of next event(" + str(timeOfNextEvent) \
-                           + ") - elapsed sim time(" + str(elapsedSimTime) + ") = " \
-                           + str(timeOfNextEvent - elapsedSimTime) + " seconds")
-                    time.sleep( timeOfNextEvent - elapsedSimTime )
-                if evt.ctype.startswith("sig") and "ObjectFlow" in evt.cid:
-                    sid = evt.ctype.strip("sig")
-                    if "null" in action and sid in elementsNotEnded:
-                        gl.log("    ---> ENDING SIGNAL %s" % sid)
-                        mda.end(sid)
-                        elementsNotEnded.remove(sid)
-                    elif "null" not in evt.action: 
-                        gl.log("    ---> STARTING SIGNAL %s" % sid)
-                        mda.start(sid)
-                        if sid not in elementsNotEnded: elementsNotEnded.append(sid)
+            try:
+                for evt in self.events:
+                    gl.log("EVENT at " + str(evt.eventTime))
+                    print("EVENT at " + str(evt.eventTime))
+                    try: timeOfNextEvent = (float(evt.eventTime) + 0.0) / self.timeScale
+                    except: 
+                        exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+                        gl.log("*** EXCEPTION:")
+                        messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
+                        for message in messages:
+                            gl.log(message)
+                    print("1")
+                    if evt.eventTime != lastTime:
+                        mda.doThePaint() #paint all events occurring at the previous event time
+                        lastTime = float(evt.eventTime)
+                    print("2")
+                    if timeOfNextEvent > elapsedSimTime:
+                        print("sleeping sim time of next event(" + str(timeOfNextEvent) \
+                               + ") - elapsed sim time(" + str(elapsedSimTime) + ") = " \
+                               + str(timeOfNextEvent - elapsedSimTime) + " seconds")
+                        gl.log("sleeping sim time of next event(" + str(timeOfNextEvent) \
+                               + ") - elapsed sim time(" + str(elapsedSimTime) + ") = " \
+                               + str(timeOfNextEvent - elapsedSimTime) + " seconds")
+                        if (timeOfNextEvent - elapsedSimTime) > 300: 
+                            gl.log("found time jump > 300")
+                            break
+                        time.sleep( timeOfNextEvent - elapsedSimTime )
+                    if evt.componentType.startswith("sig") and "ObjectFlow" in evt.componentId:
+                        sid = evt.componentType.strip("sig")
+                        if "null" in evt.action and sid in elementsNotEnded:
+                            gl.log("    ---> ENDING SIGNAL %s" % sid)
+                            mda.end(sid)
+                            elementsNotEnded.remove(sid)
+                        elif "null" not in evt.action: 
+                            gl.log("    ---> STARTING SIGNAL %s" % sid)
+                            mda.start(sid)
+                            if sid not in elementsNotEnded: elementsNotEnded.append(sid)
+                    
+                    if "start" in evt.action: 
+                        gl.log("    ---> STARTING")
+                        mda.start(evt.componentId)
+                        if evt.componentId not in elementsNotEnded: elementsNotEnded.append(evt.componentId)
+                    elif "end" in evt.action:
+                        gl.log("    ---> ENDING")
+                        mda.end(evt.componentId)
+                        if evt.componentId in elementsNotEnded: elementsNotEnded.remove(evt.componentId)
+                    t = time.time()
+                    elapsedSimTime = t - zeroTime + simStartTime
+                    elapsedTime = self.timeScale * elapsedSimTime
+                    gl.log("Debug: elapsed time = " + str(elapsedSimTime))
+            except: self.handleException()
+            if len(elementsNotEnded)>0:
+                gl.log("Ending Still-Active Events:")
+                for e in elementsNotEnded:
+                    gl.log("    ending %s " % e)
+                    try: mda.end(e)
+                    except: self.handleException()
+                mda.doThePaint()
                 
-                if "start" in evt.action: 
-                    gl.log("    ---> STARTING")
-                    mda.start(evt.componentId)
-                elif "end" in evt.action:
-                    gl.log("    ---> ENDING")
-                    mda.end(evt.componentId)
-                t = time.time()
-                elapsedSimTime = t - zeroTime + simStartTime
-                elapsedTime = self.timeScale * elapsedSimTime
-                gl.log("Debug: elapsed time = " + str(elapsedSimTime))
+            else: gl.log("All Events Completed")
+                
+                
             gl.log("DONE")
         
         elif mode == 1:
@@ -228,6 +246,13 @@ class highlighterThread(Thread):
             gl.log("ending e")
             mda.end(e)
 
+    def handleException(self):
+        exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+        gl.log("*** EXCEPTION:")
+        messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
+        for message in messages:
+            gl.log(message)
+    
     def animateFromFile(self, filepath):
         #gl.log(filepath)
         self.loadEventsFromFile(filepath)
@@ -236,6 +261,7 @@ class highlighterThread(Thread):
 
     def loadEventsFromFile(self, filepath):
         pass
+    
 # This would need updating to match code above
 #        self.events = []
 #        f = open(filepath,"r")

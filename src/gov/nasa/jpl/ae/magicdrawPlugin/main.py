@@ -67,6 +67,7 @@ class MainMenuConfigurator( AMConfigurator):
                 category.setNested(True)
                 category.addAction(ExampleAction("MagicDrawAnimator",None))
                 category.addAction(ExampleAction("MagicDrawAnimator2",None))
+                category.addAction(ExampleAction("FindElementByID",None))
                 manager.addCategory(category)
                 gl.log("done adding categories!")
             else: pass

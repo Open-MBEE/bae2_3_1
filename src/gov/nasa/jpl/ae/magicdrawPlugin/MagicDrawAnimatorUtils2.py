@@ -66,6 +66,7 @@ class MagicDrawAnimator2(object):
             p = PaintEvent(sym,diagram,self.defaults[sym])
             self.paintEvents[sym]=p
             self.currentPaintEvents.append(p)
+        #else: gl.log("Debug: symbol is none")
     
     def end(self, componentId):
         '''
@@ -75,9 +76,11 @@ class MagicDrawAnimator2(object):
         '''
         sym = self.findSymbolToHighlight(componentId)
         if sym and sym in self.paintEvents:
+            #gl.log("found symbol to end")
             p = self.paintEvents[sym]
             if p:
                 self.currentPaintEvents.append(p)
+        #else: gl.log("Debug: no symbol or not in paint events")
     
     def doThePaint(self):
         t = AwesomePaintAction2(self.currentPaintEvents)
@@ -134,7 +137,7 @@ class MagicDrawAnimator2(object):
             if pm:
                 try: fcolor = pm.getPropertyByName("Fill Color").getColor()
                 except:
-                    gl.log("Eek, this is probably a node")
+                    #gl.log("Eek, this is probably a node")
                     fcolor = None
                 lcolor = pm.getPropertyByName("Pen Color").getColor()
                 self.defaults[sym]=(fcolor,lcolor)
@@ -174,13 +177,14 @@ class AwesomePaintAction2(NMAction):
                 newPM = PropertyManager()
                 fc = paintEvent.defaultFillColor
                 lc = paintEvent.defaultLineColor
-                if not paintEvent.on: 
+                if not paintEvent.on:
+                    #gl.log("it's off! setting colors to green") 
                     lc = Color.GREEN
                     fc = Color.GREEN
                     if paintEvent.defaultFillColor and not isinstance(paintEvent.element,PathElement): 
                         gl.log("I'm not a path element!")
                         lc = Color.BLACK
-                        
+                #else: gl.log("it's on! defaults: %s,%s" % (str(fc),str(lc)))  
                 if paintEvent.defaultFillColor: newPM.addProperty(ColorProperty(PropertyID.FILL_COLOR,fc))
                 newPM.addProperty(ColorProperty(PropertyID.PEN_COLOR,lc))
                 PresentationElementsManager.getInstance().setPresentationElementProperties(paintEvent.element, newPM)

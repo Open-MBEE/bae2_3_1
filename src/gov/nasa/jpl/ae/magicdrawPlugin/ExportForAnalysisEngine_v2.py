@@ -250,7 +250,7 @@ class activityEventClass(object):
 		if activity is not owner.classifierBehavior:
 			self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
 			self.members["caller"] = ("DurativeEvent",None,"Initialize variable for cba that called this")
-			self.members["duration"] = ("Integer","60","fake duration?")
+			#self.members["duration"] = ("Integer","60","fake duration?")
 			#self.members["endTime"] = ("Integer","300","fake end time")
 		
 		self.inspectComposition(activity)
@@ -898,6 +898,9 @@ class actionEventClass(object):
 				deciderString = "decider%s.size(endTime) == decider%s.maxSize() &amp;&amp; decider%s.lastElement(endTime)==%s" % (n.getID(),n.getID(),n.getID(),deciderVarName)
 				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,deciderString])
 				else: dependencyString = deciderString
+			if not isinstance(n,ActivityFinalNode) and not isinstance(n,ActivityParameterNode):
+				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"endTime+2 &lt; finalNode_startTime"])
+				else: dependencyString = "endTime+2 &lt; finalNode_startTime"
 			if not dependencyString: dependencyString = "true"
 			self.dependencies[n.getID() + "_exists"] = ("Boolean",str(dependencyString))
 			existscon = n.getID()+"_exists"

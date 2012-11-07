@@ -84,8 +84,10 @@ src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAnalysisEngine_v2.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/FindElementByID.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/HelloWorld.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/InterpolatedMap.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/MPUtils.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator2.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils.py -text svneol=unset#text/plain
