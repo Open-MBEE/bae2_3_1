@@ -16,10 +16,10 @@ import java.util.Map;
  * TODO -- REVIEW -- Look at seqr tms to see if can leverage Timeline infrastructure.
  */
 public interface TimeVarying< V > extends Comparable< TimeVarying< V > >, HasId { //extends Map< Timepoint, T > {
-  public V getValue( Timepoint t );
+  public V getValue( Parameter< Integer > t );
   public V getValue( Integer t );
-  public V setValue( Timepoint t, V value );
-  public V unsetValue( Timepoint t, V value );
+  public V setValue( Parameter< Integer > t, V value );
+  public V unsetValue( Parameter< Integer > t, V value );
 //  public Iterator< ? > iterator();
 ////	public T getValueAtTime( Timepoint t );
 ////	public T setValueAtTime( Timepoint t, T value );
