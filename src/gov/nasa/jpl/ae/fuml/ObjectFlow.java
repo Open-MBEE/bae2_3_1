@@ -148,17 +148,17 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( t == null ) {
       return Timepoint.getHorizonDuration();
     }
-    Timepoint tp = makeTempTimepoint( t, false );
+    Parameter<Integer> tp = makeTempTimepoint( t, false );
     return nextTimeHasStuff( tp );
   }
 
-  public int nextTimeHasStuff( Timepoint t ) {
+  public int nextTimeHasStuff( Parameter<Integer> t ) {
     breakpoint();
     if ( t == null || t.getValueNoPropagate() == null ) {
       return Timepoint.getHorizonDuration();
     }
-    SortedMap< Timepoint, Obj > map = tailMap( t, true );
-    for ( java.util.Map.Entry< Timepoint, Obj > e : map.entrySet() ) {
+    SortedMap< Parameter<Integer>, Obj > map = tailMap( t, true );
+    for ( java.util.Map.Entry< Parameter<Integer>, Obj > e : map.entrySet() ) {
       if ( e.getValue() != null ) {
         t = e.getKey();
         if ( t == null || t.getValueNoPropagate() == null ) {
