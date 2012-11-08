@@ -4,6 +4,7 @@
 package demandResponse;
 
 import gov.nasa.jpl.ae.event.LinearTimeline;
+import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.Debug;
@@ -40,7 +41,7 @@ public class Generation extends LinearTimeline {
     int timeSinceMidnight = Timepoint.timeSinceMidnight( Timepoint.getEpoch() );
     System.out.println( "timeSinceMidnight = " + timeSinceMidnight );
     //putAll( dayProfile );
-    Timepoint tp = dayProfile.floorKey( new Timepoint( "", timeSinceMidnight, dayProfile ) );
+    Parameter< Integer > tp = dayProfile.floorKey( new Timepoint( "", timeSinceMidnight, dayProfile ) );
     System.out.println( "dayProfile.floorKey(timeSinceMidnight) = " + tp );
     int _24hours = (int)( 24.0 / Units.conversionFactor( Units.hours ) );
     System.out.println( "_24hours = " + _24hours );
