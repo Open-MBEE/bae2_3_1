@@ -3121,7 +3121,9 @@ public class EventXmlToJava {
     Set< ConstructorDeclaration > s = new TreeSet<ConstructorDeclaration>(new CompareUtils.GenericComparator< ConstructorDeclaration >());
     for ( BodyDeclaration m : classDecl.getMembers() ) {
       if ( m instanceof ConstructorDeclaration ) {
-        s.add( (ConstructorDeclaration)m );
+        if ( !s.contains( m ) ) {
+          s.add( (ConstructorDeclaration)m );
+        }
       }
     }
     return s;
