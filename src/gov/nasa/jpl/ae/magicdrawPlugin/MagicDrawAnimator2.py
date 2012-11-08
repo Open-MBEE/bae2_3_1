@@ -11,6 +11,7 @@ from com.nomagic.magicdraw.core import Application #this seems to want its own i
 
 #threading, etc.
 from java.lang import *
+from javax.swing import JOptionPane
 
 usingDialogs = True
 if usingDialogs:
@@ -86,13 +87,22 @@ class highlighterThread(Thread):
             #filepath = "c:\\Users\\bclement\\workspace\\CS\\simulationSnapshot.Scenario_medium_2012.txt"
             #filepath = "c:\\Users\\bclement\\Desktop\\large6.txt"
             #filepath = "c:\\Users\\bclement\\Desktop\\foo12.txt"
-            filepath = "/Users/mjackson/Desktop/MedSim.txt"
-            #self.animateFromFile(filepath)
-            
-            #self.loadEventsFromFile(filepath)
-            
+            filepath = "/Users/mjackson/Desktop/testSim.txt"
+            gl.log("default filepath = %s" % filepath)
+            filepath = JOptionPane.showInputDialog(
+                                            None,
+                                            "Select File to Animate",
+                                            "Select File",
+                                            JOptionPane.PLAIN_MESSAGE,
+                                            None,
+                                            None,
+                                            filepath)
+            gl.log("reading events from " + filepath)
             self.events = []
-            f = open(filepath,"r")
+            try: f = open(filepath,"r")
+            except:
+                gl.log("can't find file @ %s" % filepath)
+                return
             lastTime = float(0.0)
             latestTime = float(-1.0e20)
             earliestTime = float(1.0e20)
@@ -169,8 +179,8 @@ class highlighterThread(Thread):
                    + " scaling to " + str(simulatedDuration) + " seconds")
             try:
                 for evt in self.events:
-                    gl.log("EVENT at " + str(evt.eventTime))
-                    print("EVENT at " + str(evt.eventTime))
+                    #gl.log("EVENT at " + str(evt.eventTime))
+                    #Sprint("EVENT at " + str(evt.eventTime))
                     try: timeOfNextEvent = (float(evt.eventTime) + 0.0) / self.timeScale
                     except: 
                         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
@@ -178,11 +188,11 @@ class highlighterThread(Thread):
                         messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
                         for message in messages:
                             gl.log(message)
-                    print("1")
+                    #print("1")
                     if evt.eventTime != lastTime:
                         mda.doThePaint() #paint all events occurring at the previous event time
                         lastTime = float(evt.eventTime)
-                    print("2")
+                    #print("2")
                     if timeOfNextEvent > elapsedSimTime:
                         print("sleeping sim time of next event(" + str(timeOfNextEvent) \
                                + ") - elapsed sim time(" + str(elapsedSimTime) + ") = " \
@@ -197,20 +207,20 @@ class highlighterThread(Thread):
                     if evt.componentType.startswith("sig") and "ObjectFlow" in evt.componentId:
                         sid = evt.componentType.strip("sig")
                         if "null" in evt.action and sid in elementsNotEnded:
-                            gl.log("    ---> ENDING SIGNAL %s" % sid)
+                            gl.log("    ---> (%s) ENDING SIGNAL %s" % (evt.eventTime,sid))
                             mda.end(sid)
                             elementsNotEnded.remove(sid)
                         elif "null" not in evt.action: 
-                            gl.log("    ---> STARTING SIGNAL %s" % sid)
+                            gl.log("    ---> (%s) STARTING SIGNAL %s" % (evt.eventTime,sid))
                             mda.start(sid)
                             if sid not in elementsNotEnded: elementsNotEnded.append(sid)
                     
                     if "start" in evt.action: 
-                        gl.log("    ---> STARTING")
+                        gl.log("    ---> (%s) STARTING" % evt.eventTime)
                         mda.start(evt.componentId)
                         if evt.componentId not in elementsNotEnded: elementsNotEnded.append(evt.componentId)
                     elif "end" in evt.action:
-                        gl.log("    ---> ENDING")
+                        gl.log("    ---> (%s) ENDING" % evt.endTime)
                         mda.end(evt.componentId)
                         if evt.componentId in elementsNotEnded: elementsNotEnded.remove(evt.componentId)
                     t = time.time()

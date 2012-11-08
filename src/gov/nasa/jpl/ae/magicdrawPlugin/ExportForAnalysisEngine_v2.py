@@ -384,9 +384,9 @@ class activityEventClass(object):
 										"args":[("startTime","startTime","Integer")],
 										"enclosingClass" : self.enclosingClass}
 			if isinstance (node,ActivityFinalNode):
-				self.members["finalNode_endTime"] = ("Integer",None,"variable for final node's end time!")
+				self.members["finalNode_endTime"] = ("Integer","84000","variable for final node's end time!")
 				self.dependencies["endTime"] = ("Integer","finalNode_endTime")	
-				self.members["finalNode_startTime"]=("Integer",None,"variable for final node's start time!")
+				self.members["finalNode_startTime"]=("Integer","84000","variable for final node's start time!")
 				self.elaborations[node] = {
 										#"args":[("endTime","endTime","Integer"),("startTime",node.getID()+"_startTime","Integer")],
 										"args":[("startTime","finalNode_startTime","Integer")], #try not passing in the end time as a ref
