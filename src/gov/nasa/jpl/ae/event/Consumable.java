@@ -257,7 +257,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   // As is, setValue() effectively is an add of the difference with the prior
   // map value.  It might be smart to somehow disallow the use of this in effects.
   @Override
-  public Double setValue( Parameter<Integer> t, Double value ) {
+  public Double setValue( Parameter< Integer > t, Double value ) {
     if ( value == null ) return null;
     assert minCap <= maxCap;
     if ( value < minCap ) {

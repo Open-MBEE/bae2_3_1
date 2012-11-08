@@ -15,6 +15,7 @@ import gov.nasa.jpl.ae.util.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Formatter;
 import java.util.HashSet;
 import java.util.List;
@@ -135,6 +136,36 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
 
   }
 
+  public static class TimeComparator implements Comparator< Parameter< Integer > > {
+
+    public boolean propagate = false;
+    public boolean checkId = true;
+
+    @Override
+    public int compare( Parameter< Integer > o1, Parameter< Integer > o2 ) {
+      if ( o1 == o2 ) return 0;
+      if ( o1 == null ) return -1;
+      if ( o2 == null ) return 1;
+      if ( ( o1.getType() != null && !Integer.class.isAssignableFrom( o1.getType() ) ) ||
+           ( o2.getType() != null && !Integer.class.isAssignableFrom( o2.getType() ) ) ) {
+        return o1.compareTo( o2, checkId );
+      }
+      int compare = 0;
+      Integer v1 = null;
+      Integer v2 = null;
+      try {
+        v1 = Expression.evaluate( o1, Integer.class, propagate );
+        v2 = Expression.evaluate( o2, Integer.class, propagate );
+      } catch (ClassCastException e) {
+        // May be possible to get here if a value was not an Integer.
+        return o1.compareTo( o2, checkId );
+      }
+      compare = CompareUtils.compare( v1, v2, true );
+      if ( compare != 0 ) return compare;
+      return o1.compareTo( o2, checkId );
+    }
+  }
+
   /**
    * For the convenience of referring to the effect method.
    */
@@ -155,12 +186,12 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
    * 
    */
   public TimeVaryingMap( String name ) {
-    super();
+    super(new TimeComparator());
     this.name = name;
   }
 
   public TimeVaryingMap( String name, T defaultValue ) {
-    super();
+    super(new TimeComparator());
     this.name = name;
     Parameter<Integer> t = new Parameter<Integer>(null,null, 0, this);
     //System.out.println(name + " put(" + t + ", " + defaultValue + ")" );
@@ -171,7 +202,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   @SuppressWarnings( "unchecked" )
   public TimeVaryingMap( String name, Method initialValueFunction,
                          Object o, int samplePeriod, int horizonDuration ) {
-    super();
+    super(new TimeComparator());
     this.name = name;
     samplePeriod = correctSamplePeriod( samplePeriod, horizonDuration );
     try {
@@ -444,7 +475,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
    * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(gov.nasa.jpl.ae.event.Parameter<Integer>)
    */
   @Override
-  public T getValue( Parameter<Integer> t ) {
+  public T getValue( Parameter< Integer > t ) {
     if ( t == null ) return null;
     T v = get( t ); //.first;
     if ( Debug.isOn() ) isConsistent();
@@ -578,7 +609,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
    * @see gov.nasa.jpl.ae.event.TimeVarying#setValue(gov.nasa.jpl.ae.event.Parameter<Integer>, java.lang.Object)
    */
   @Override
-  public T setValue( Parameter<Integer> t, T value ) {
+  public T setValue( Parameter< Integer > t, T value ) {
     breakpoint();
     if ( Debug.isOn() ) Debug.outln( getName() + "setValue(" + t + ", " + value + ")" );
     if ( t == null ) {
@@ -704,7 +735,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   }
   
   @Override
-  public T unsetValue( Parameter<Integer> t, T value ) {
+  public T unsetValue( Parameter< Integer > t, T value ) {
     breakpoint();
     if ( t == null ) {
       if ( Debug.isOn() ) Debug.error( false, "Warning! unsetValue(" + t + ", " + value
