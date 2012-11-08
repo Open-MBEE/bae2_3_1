@@ -86,26 +86,26 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   public int maxSize() { return maxSize; }
   
   /**
-   * Append the value to the end of the list at Timepoint t unless the list has
+   * Append the value to the end of the list at Parameter<Integer> t unless the list has
    * reached its maximum size.
    * 
    * @param t
    * @param value
    * @return whether the map was changed as a result of this function.
    */
-  public boolean add( Timepoint t, T value ) {
+  public boolean add( Parameter<Integer> t, T value ) {
     return add( t, value, monotonic, !duplicatesAllowed, true );
   }
   
   /**
-   * Append each value in values to the end of the list at Timepoint t unless
+   * Append each value in values to the end of the list at Parameter<Integer> t unless
    * the list has reached its maximum size.
    * 
    * @param t
    * @param values
    * @return whether the map was changed as a result of this function.
    */
-  public boolean add( Timepoint t, List< T > values ) {
+  public boolean add( Parameter<Integer> t, List< T > values ) {
     boolean changed = false;
     for ( T v : values ) {
       if ( add( t, v ) ) {
@@ -116,7 +116,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
 
   /**
-   * Append the value to the end of the list at Timepoint t, creating a new
+   * Append the value to the end of the list at Parameter<Integer> t, creating a new
    * entry if necessary. If list is not null, it is assumed to be the existing
    * entry.
    * 
@@ -124,7 +124,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @param value
    * @return whether the map was changed by the addition.
    */
-  protected boolean addEntry( Timepoint t, List< T > list, T value, 
+  protected boolean addEntry( Parameter<Integer> t, List< T > list, T value, 
                               boolean onlyifNotContained,
                               boolean onlyIfBelowMaxSize ) {
     List< T > oldList = ( list != null ? list : getValue( t ) );
@@ -149,7 +149,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     return changed;
   }
   
-  protected boolean add( Timepoint t, T value,
+  protected boolean add( Parameter<Integer> t, T value,
                          boolean monotonically, boolean onlyifNotContained,
                          boolean onlyIfBelowMaxSize ) {
     if ( t == null || t.getValue(true) == null ) return false;
@@ -166,8 +166,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       }
     }
     if ( monotonically ) {
-      NavigableMap< Timepoint, List< T > > tail = tailMap(t, false);
-      for ( Map.Entry< Timepoint, List< T > > e : tail.entrySet() ) {
+      NavigableMap< Parameter<Integer>, List< T > > tail = tailMap(t, false);
+      for ( Map.Entry< Parameter<Integer>, List< T > > e : tail.entrySet() ) {
         if ( !addEntry( e.getKey(), e.getValue(), value, onlyifNotContained,
                         onlyIfBelowMaxSize ) ) {
           if ( monotonic ) break; // will not succeed for successors since it's
@@ -204,7 +204,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   
   /**
-   * Remove the value from the list at Timepoint t. If duplicatesAreAllowed,
+   * Remove the value from the list at Parameter<Integer> t. If duplicatesAreAllowed,
    * then all entries of value will be removed; otherwise, just the last entry
    * of value. If monotonic, then value will be removed from the list also for
    * all timepoints after t.
@@ -214,12 +214,12 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @return whether any changes were made to the map or its contents as a
    *         result of this function.
    */
-  public boolean remove( Timepoint t, T value ) {
+  public boolean remove( Parameter<Integer> t, T value ) {
     return remove( t, value, monotonic, !duplicatesAllowed );
   }
 
   /**
-   * Remove each value in values from the list at Timepoint t. If
+   * Remove each value in values from the list at Parameter<Integer> t. If
    * duplicatesAreAllowed, then all entries of value will be removed; otherwise,
    * just the last entry of value. If monotonic, then value will be removed from
    * the list also for all timepoints after t.
@@ -229,7 +229,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @return whether any changes were made to the map or its contents as a
    *         result of this function.
    */
-  public boolean remove( Timepoint t, List< T > values ) {
+  public boolean remove( Parameter<Integer> t, List< T > values ) {
     boolean changed = false;
     for ( T v : values ) {
       if ( remove( t, v ) ) {
@@ -239,7 +239,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     return changed;
   }
 
-  protected boolean remove( Timepoint t, T value,
+  protected boolean remove( Parameter<Integer> t, T value,
                             boolean monotonically, boolean justLast ) {
     Assert.assertTrue( floatingEffects.isEmpty() );
     boolean changed = false;
@@ -252,10 +252,10 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     // Remove value from the list entry and, if monotonically, from the lists of
     // all following entries, while removing entries where the list does not
     // change.
-    ArrayList< Timepoint > deleteList = new ArrayList< Timepoint >();
+    ArrayList< Parameter<Integer> > deleteList = new ArrayList< Parameter<Integer> >();
     List< T > lastList = getValueBefore( t );
-    NavigableMap< Timepoint, List< T > > tail = tailMap(t, true);
-    for ( Map.Entry< Timepoint, List< T > > e : tail.entrySet() ) {
+    NavigableMap< Parameter<Integer>, List< T > > tail = tailMap(t, true);
+    for ( Map.Entry< Parameter<Integer>, List< T > > e : tail.entrySet() ) {
       if ( remove( value, e.getValue(), justLast ) ) changed = true;
       // Save away the entry to delete if the list is no different than that of
       // the last entry.
@@ -266,7 +266,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       }
     }
     // Remove lists that are no different than that of the last entry.
-    for ( Timepoint tp : deleteList ) {
+    for ( Parameter<Integer> tp : deleteList ) {
       remove( tp );
     }
     return changed;
@@ -282,12 +282,12 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   
   /**
-   * Append value to the end of the list at Timepoint t unless the list already contains the value or has reached its maximum size.
+   * Append value to the end of the list at Parameter<Integer> t unless the list already contains the value or has reached its maximum size.
    * @param t
    * @param value
    * @return whether the map was changed as a result of this function.
    */
-  public boolean addIfNotContained( Timepoint t, T value ) {
+  public boolean addIfNotContained( Parameter<Integer> t, T value ) {
     if ( !contains( t, value ) ) {
       return add( t, value );
     }
@@ -300,7 +300,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    *         that contains the elements of the list at the timepoint before t if
    *         it exists.
    */
-  protected List<T> nonNullEntry( Timepoint t ) {
+  protected List<T> nonNullEntry( Parameter<Integer> t ) {
     List< T > list = get( t );
     if ( list != null ) return list;
     list = getValue( t.getValue(true) );      
@@ -316,9 +316,9 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   /**
    * @param t
    * @param value
-   * @return whether the list at Timepoint t contains value.
+   * @return whether the list at Parameter<Integer> t contains value.
    */
-  public boolean contains( Timepoint t, T value ) {
+  public boolean contains( Parameter<Integer> t, T value ) {
     List< T > list = getValue( t );
     if ( list != null ) {
       if ( list.contains( value ) ) {
@@ -333,7 +333,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @param value
    * @return the number of occurrences of the value in the List at time t
    */
-  public int occurrences( Timepoint t, T value ) {
+  public int occurrences( Parameter<Integer> t, T value ) {
     List< T > list = getValue( t );
     return Utils.occurrences( value, list );
   }
@@ -341,10 +341,10 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   /**
    * @param t
    * @param index
-   * @return the value at position index in the list at Timepoint t, where
+   * @return the value at position index in the list at Parameter<Integer> t, where
    *         position 0 corresponds to the first element in the list.
    */
-  public T get( Timepoint t, int index ) {
+  public T get( Parameter<Integer> t, int index ) {
     List< T > list = getValue( t );
     if ( list == null || list.size() <= index || index < 0 ) return null;
     return list.get( index );
@@ -352,25 +352,25 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   
   /**
    * @param t
-   * @return the last element in the list at Timepoint t
+   * @return the last element in the list at Parameter<Integer> t
    */
-  public T lastElement( Timepoint t ) {
+  public T lastElement( Parameter<Integer> t ) {
     return get( t, size(t) - 1 );
   }
 
   /**
    * @param t
-   * @return the last element in the list at Timepoint t
+   * @return the last element in the list at Parameter<Integer> t
    */
-  public T firstElement( Timepoint t ) {
+  public T firstElement( Parameter<Integer> t ) {
     return get( t, 0 );
   }
 
   /**
    * @param t
-   * @return the number of elements in the list at Timepoint t or 0 if the list is null.
+   * @return the number of elements in the list at Parameter<Integer> t or 0 if the list is null.
    */
-  public int size( Timepoint t ) {
+  public int size( Parameter<Integer> t ) {
     List< T > list = getValue( t );
     if ( list != null ) {
       return list.size();
@@ -389,7 +389,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     boolean addMethod = !addIfMethod && effectFunction.method.getName().contains( "add" );
     assert ( effectFunction.arguments != null &&
              effectFunction.arguments.size() == 2 );
-    Pair< Timepoint, T > p =
+    Pair< Parameter<Integer>, T > p =
         getTimepointAndValueOfEffect( effectFunction,
                                       effectFunction.method,
                                       effectFunction.method );
@@ -409,21 +409,21 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 //      }
 //      //e.printStackTrace();
 //    }
-    Timepoint tp = p.first;
+    Parameter<Integer> tp = p.first;
     if ( value == null ) {
       return true;  // REVIEW -- is this right?
     }
 //    if ( t instanceof Integer ) {
-//      tp = makeTempTimepoint( (Integer)t, true );
-//    } else if ( t instanceof Timepoint ) {
-//      tp = (Timepoint)t;
+//      tp = makeTempParameter<Integer>( (Integer)t, true );
+//    } else if ( t instanceof Parameter<Integer> ) {
+//      tp = (Parameter<Integer>)t;
 //    } else {
 //      System.err.println( "EffectFunction("
 //                          + effectFunction
-//                          + ") has wrong arguments to TimeVaryingList.add(Timepoint, T)" );
+//                          + ") has wrong arguments to TimeVaryingList.add(Parameter<Integer>, T)" );
 //      return false;
 //    }
-    Timepoint tpBefore = getTimepointBefore( tp );
+    Parameter<Integer> tpBefore = getTimepointBefore( tp );
     int num = occurrences( tp, value );
     int numBefore = occurrences( tpBefore, value );
     if ( num > numBefore ) return true;
@@ -461,9 +461,9 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   public boolean isConsistent() {
     boolean ok = super.isConsistent();
     // if ( floatingEffects.isEmpty() ) {
-    // java.util.Map.Entry< Timepoint, List< T > > lastEntry = null;
+    // java.util.Map.Entry< Parameter<Integer>, List< T > > lastEntry = null;
     List< T > lastList = Utils.getEmptyList();
-    for ( java.util.Map.Entry< Timepoint, List< T > > entry : entrySet() ) {
+    for ( java.util.Map.Entry< Parameter<Integer>, List< T > > entry : entrySet() ) {
       List< T > list = null;
 
       try {
@@ -518,7 +518,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
 
   @Override
-  protected void floatEffects( Timepoint t ) {
+  protected void floatEffects( Parameter<Integer> t ) {
     if ( t == null ) return;
     assert t.getValueNoPropagate() != null;
     if ( !containsKey( t ) ) return;
@@ -533,7 +533,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   
   @Override
-  protected void unfloatEffects( Timepoint t ) {
+  protected void unfloatEffects( Parameter<Integer> t ) {
     breakpoint();
     if ( t == null ) return;
     if ( t.getValueNoPropagate() == null ) return;
@@ -568,7 +568,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
  
   public void unapplyAdd( EffectFunction effectFunction ) {
-    Pair< Timepoint, T > p =
+    Pair< Parameter<Integer>, T > p =
         getTimepointAndValueOfEffect( effectFunction,
                                       effectFunction.method,
                                       effectFunction.method );
@@ -582,7 +582,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @return a list of values from the list at t that are not in the list before
    *         t.
    */
-  public List< T > valuesAddedAt( Timepoint t ) {
+  public List< T > valuesAddedAt( Parameter<Integer> t ) {
     List< T > listAtT = new ArrayList< T >( getValue( t ) );
     List< T > listBefore = getValue( getTimepointBefore( t ) );
     if ( Utils.valuesEqual( listAtT, listBefore ) || listAtT == null ) {
@@ -596,18 +596,18 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   @Override
   public void detach( Parameter< ? > parameter ) {
-    // remove values added at a Timepoint == parameter
-    if ( parameter instanceof Timepoint ) {
+    // remove values added at a Parameter<Integer> == parameter
+    if ( parameter instanceof Parameter ) {
       if ( containsKey( parameter ) ) {
-        List< T > added = valuesAddedAt( (Timepoint)parameter );
-        remove( (Timepoint)parameter, added );
+        List< T > added = valuesAddedAt( (Parameter<Integer>)parameter );
+        remove( (Parameter<Integer>)parameter, added );
       }
-      //remove( (Timepoint)parameter ); // this should already be done
+      //remove( (Parameter<Integer>)parameter ); // this should already be done
     }
     
     // remove list values that are (or have) the parameter
     if ( isEmpty() ) return;
-    Timepoint t = firstEntry().getKey();
+    Parameter<Integer> t = firstEntry().getKey();
     // map contents may change, look up the next timepoint each time
     while ( t != null ) { 
       List< T > list = get( t );
@@ -632,11 +632,11 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    */
   public static void main( String[] args ) {
     TimeVaryingList< Integer > tvl = new TimeVaryingList< Integer >( 3 );
-    Timepoint zero = new Timepoint(0);
-    Timepoint ten = new Timepoint(10);
-    Timepoint twelve1 = new Timepoint(12);
-    Timepoint twelve2 = new Timepoint(12);
-    Timepoint fourteen = new Timepoint(14);
+    Parameter<Integer> zero = new Parameter<Integer>(null, null, 0, null);
+    Parameter<Integer> ten = new Parameter<Integer>(null, null, 10, null);
+    Parameter<Integer> twelve1 = new Parameter<Integer>(null, null, 12, null);
+    Parameter<Integer> twelve2 = new Parameter<Integer>(null, null, 12, null);
+    Parameter<Integer> fourteen = new Parameter<Integer>(null, null, 14, null);
     int size = 0;
 
     System.out.println( tvl );
@@ -649,7 +649,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     size = tvl.size(zero);
     Assert.assertTrue( size == 0 );
     Assert.assertTrue( tvl.contains( ten, 10 ) );
-    Assert.assertTrue( tvl.contains( new Timepoint(10), 10 ) );
+    Assert.assertTrue( tvl.contains( new Parameter<Integer>(null, null, 10, null), 10 ) );
     Assert.assertTrue( tvl.contains( twelve1, 10 ) );
     
     tvl.add( twelve1, 12 );
@@ -670,8 +670,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     tvl.add( fourteen, 12 );
     System.out.println( "add( fourteen, 12 ) = " + tvl );
     
-    tvl.addIfNotContained( new Timepoint(8), 12 );
-    System.out.println( "addIfNotContained( new Timepoint(8), 12 ) = " + tvl );
+    tvl.addIfNotContained( new Parameter<Integer>(null, null, 8, null), 12 );
+    System.out.println( "addIfNotContained( new Parameter<Integer>(8), 12 ) = " + tvl );
     
     tvl.addIfNotContained( twelve1, 12 );
     System.out.println( "addIfNotContained( twelve1, 12 ) = " + tvl );
@@ -679,8 +679,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     tvl.addIfNotContained( twelve2, 12 );
     System.out.println( "addIfNotContained( twelve2, 12 ) = " + tvl );
     
-    tvl.addIfNotContained( new Timepoint(12), 12 );
-    System.out.println( "addIfNotContained( new Timepoint(12), 12 ) = " + tvl );
+    tvl.addIfNotContained( new Parameter<Integer>(null, null, 12, null), 12 );
+    System.out.println( "addIfNotContained( new Parameter<Integer>(12), 12 ) = " + tvl );
   }
 
 }
