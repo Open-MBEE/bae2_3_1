@@ -197,7 +197,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     boolean existingEntry = false;
     Object lastValue = null;
     boolean first = true;
-    for ( Map.Entry< Timepoint, V > e : tv.entrySet() ) {
+    for ( Map.Entry< Parameter<Integer>, V > e : tv.entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
         System.err.println( "Warning: adding time varying map entry with null time key "
                             + " to simulation " + e );
