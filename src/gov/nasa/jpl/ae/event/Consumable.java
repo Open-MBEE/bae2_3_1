@@ -92,15 +92,15 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
          Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
   }
   
-  public double add( Timepoint t, Double delta ) {
+  public double add( Parameter<Integer> t, Double delta ) {
     Double valBefore = getValueBefore( t );
     setValue( t, valBefore );  // we're going to add delta to this below.
-    SortedMap< Timepoint, Double > tail = this.tailMap( t );
+    SortedMap< Parameter<Integer>, Double > tail = this.tailMap( t );
     // Had trouble changing the value while iterating through the tail map, so
     // keys are copied to a list, and setValue() is called while walking the list.
     // So, this is nlogn when it should be n.
-    List< Timepoint > laterTimes = new ArrayList< Timepoint >( tail.keySet() );
-    for ( Timepoint tt : laterTimes ) {
+    List< Parameter<Integer> > laterTimes = new ArrayList< Parameter<Integer> >( tail.keySet() );
+    for ( Parameter<Integer> tt : laterTimes ) {
       setValue( tt, getValue( tt ) + delta );
     }
     double valueSet = getValue( t );
@@ -120,7 +120,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public void initializeFromDeltaMap( TimeVaryingMap< Double > deltaMap ) {
     clear();
 //    double summedValue = 0.0;
-    for ( java.util.Map.Entry< Timepoint, Double > e : deltaMap.entrySet() ) {
+    for ( java.util.Map.Entry< Parameter<Integer>, Double > e : deltaMap.entrySet() ) {
 //      if ( e.getValue() != null && e.getValue() != 0 ) {
 //        summedValue += e.getValue();
 //      }
@@ -140,7 +140,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     TimeVaryingPlottableMap< Double > deltaMap =
       new TimeVaryingPlottableMap< Double >( "delta_" + name );
     Double lastValue = 0.0;
-    for ( Entry< Timepoint, Double > e : entrySet() ) {
+    for ( Entry< Parameter<Integer>, Double > e : entrySet() ) {
       Double thisValue = 0.0; // null value is interpreted as 0.0
       if ( e.getValue() != null ) {
         thisValue = e.getValue();
@@ -151,8 +151,8 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     return deltaMap;
   }
   
-  public Double getValueBefore( Timepoint t ) {
-    Timepoint justBeforeTime = getTimepointBefore( t );
+  public Double getValueBefore( Parameter<Integer> t ) {
+    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
     Double valBefore = new Double(0);
     if ( justBeforeTime != null ) {
       valBefore = get( justBeforeTime );
@@ -169,7 +169,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public static TimeVaryingMap< Double >
       deltaMapPlusEquals( TimeVaryingMap< Double > deltaMap,
                           TimeVaryingMap< Double > otherDeltaMap ) {
-    for ( Entry< Timepoint, Double > e : otherDeltaMap.entrySet() ) {
+    for ( Entry< Parameter<Integer>, Double > e : otherDeltaMap.entrySet() ) {
       Double v = deltaMap.get( e.getKey() );
       if ( v == null ) v = 0.0;
       if ( e.getValue() != null ) v += e.getValue();
@@ -242,7 +242,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
           e.printStackTrace();
         }
         if ( value != null ) {
-          Timepoint justBeforeTime = this.lowerKey( t );
+          Parameter<Integer> justBeforeTime = this.lowerKey( t );
           Double valBefore = new Double(0);
           if ( justBeforeTime != null ) {
             valBefore = get( justBeforeTime );
@@ -257,7 +257,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   // As is, setValue() effectively is an add of the difference with the prior
   // map value.  It might be smart to somehow disallow the use of this in effects.
   @Override
-  public Double setValue( Timepoint t, Double value ) {
+  public Double setValue( Parameter<Integer> t, Double value ) {
     if ( value == null ) return null;
     assert minCap <= maxCap;
     if ( value < minCap ) {
