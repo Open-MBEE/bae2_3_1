@@ -193,7 +193,7 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
       }
       Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
       //Class< ? > c = paramTypes[ i ];
-      argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate );
+      argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
 //      if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): parameter type = " + c.getName() );
 //      if ( c.isInstance( unevaluatedArg ) ) {
 //        if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(): " + c.getName() + ".isInstance("

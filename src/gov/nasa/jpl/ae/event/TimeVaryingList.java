@@ -294,6 +294,14 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     return false;
   }
   
+  public boolean addIfNotContained(  Parameter<Integer> t, T value, Boolean doSend ) {
+    if (doSend == null) return false;
+    if ( !contains( t, value ) && doSend.booleanValue()) {
+      return add( t, value );
+    }
+    return false;
+  }
+  
   /**
    * @param t
    * @return the list in the map with key t or the list of a newly created entry

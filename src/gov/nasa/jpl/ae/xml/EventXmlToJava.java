@@ -2282,11 +2282,11 @@ public class EventXmlToJava {
         middle =
           "(new Functions."
                + javaBinaryOpToEventFunctionName( be.getOperator() ) + "( "
-               + astToAeExpr( be.getLeft(), convertFcnCallArgsToExprs,
+               + astToAeExpr( be.getLeft(), true,
                               lookOutsideXmlForTypes,
                               complainIfDeclNotFound ) + ", "
                + astToAeExpr( be.getRight(), 
-                              convertFcnCallArgsToExprs,
+                              true,
                               lookOutsideXmlForTypes,
                               complainIfDeclNotFound)  + " )).functionCall";
     } else
@@ -2297,7 +2297,7 @@ public class EventXmlToJava {
         return "new Functions."
                + astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
                + astToAeExpr( ue.getExpr(), type,
-                              convertFcnCallArgsToExprs, lookOutsideXmlForTypes,
+                              true, lookOutsideXmlForTypes,
                               complainIfDeclNotFound ) + " )";
     } else
     /*** EnclosedExpr ***/

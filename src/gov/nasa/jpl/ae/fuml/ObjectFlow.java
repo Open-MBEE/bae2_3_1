@@ -68,7 +68,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     getListeners().add( objectFlow );
   }
   
-  public void sendIf( Obj o, Timepoint t, Boolean doSend ) {
+  public void sendIf( Obj o, Parameter<Integer> t, Boolean doSend ) {
     if ( doSend == null ) return;
     if ( doSend.booleanValue() ) {
       send( o, t );
@@ -77,7 +77,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
   }
   
-  public void send( Obj o, Timepoint t ) {
+  public void send( Obj o, Parameter<Integer> t ) {
     breakpoint();
     if ( t.getValue(false) != null && t.getValue(false).equals(112032)) {
       Debug.out( "" );
@@ -100,11 +100,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 //    }
 //  }
 
-  public Obj receive( Timepoint t ) {
+  public Obj receive( Parameter<Integer> t ) {
     return receive( t, false, !receiveSetsEvenIfNull );
     
   }
-  protected Obj receive( Timepoint t, boolean noSetValue,
+  protected Obj receive( Parameter<Integer> t, boolean noSetValue,
                          boolean noSetIfNull ) {
     breakpoint();
     if ( t == null ) return null;
@@ -116,7 +116,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return o;
   }
  
-  public boolean isReceiveApplied( Timepoint t ) {
+  public boolean isReceiveApplied( Parameter<Integer> t ) {
     if ( receive( t, true, true ) == null ) {
       if ( !receiveSetsEvenIfNull ) return true;
     }
@@ -131,7 +131,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 //    return o;
 //  }
   
-  public boolean hasStuff( Timepoint t ) {
+  public boolean hasStuff( Parameter<Integer> t ) {
     breakpoint();
     if ( t == null ) return false;
     return getValue( t ) != null;
@@ -145,6 +145,9 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   public int nextTimeHasStuff( Integer t ) {
     breakpoint();
+    if (name.contains("q_LADWP_receiveGenReading")) {
+      breakpoint();
+    }
     if ( t == null ) {
       return Timepoint.getHorizonDuration();
     }
@@ -157,6 +160,8 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( t == null || t.getValueNoPropagate() == null ) {
       return Timepoint.getHorizonDuration();
     }
+    Obj v = getValue( t );
+    if ( v != null ) return t.getValue( false );
     SortedMap< Parameter<Integer>, Obj > map = tailMap( t, true );
     for ( java.util.Map.Entry< Parameter<Integer>, Obj > e : map.entrySet() ) {
       if ( e.getValue() != null ) {
@@ -229,7 +234,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     
     // Is receive() applied
     if ( effectFunction.getMethod().getName().equals("receive") ) {
-      return isReceiveApplied( (Timepoint)effectFunction.getArguments().get( 0 ) );
+      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArguments().get( 0 ) );
     }
     return false;
   }
@@ -273,8 +278,8 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       //e.printStackTrace();
     }
     if ( value != null ) {
-      if ( timepoint instanceof Timepoint ) {
-        return hasValueAt( value, (Timepoint)timepoint );
+      if ( timepoint instanceof Parameter ) {
+        return hasValueAt( value, (Parameter)timepoint );
       } if ( timepoint instanceof Integer ) {
         return hasValueAt( value, (Integer)timepoint );
       }
@@ -287,7 +292,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( effectFunction.getArguments() != null
          && effectFunction.getArguments().size() >= 2 ) {
      Object o = effectFunction.getArguments().get( 0 );
-     Object t = (Timepoint)effectFunction.getArguments().get( 1 );
+     Object t = (Parameter<Integer>)effectFunction.getArguments().get( 1 );
      return isSetValueApplied( o, t );
     }
     return false;
@@ -299,7 +304,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 				if (m.getName().equals("send")
 						&& m.getParameterTypes() != null
 						&& m.getParameterTypes().length == 2
-						&& m.getParameterTypes()[1] == Timepoint.class) {
+						&& m.getParameterTypes()[1] == Parameter.class) {
 					sendMethod1 = m;
 				}
 			}

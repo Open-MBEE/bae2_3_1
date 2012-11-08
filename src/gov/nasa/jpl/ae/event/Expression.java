@@ -528,7 +528,7 @@ public class Expression< ResultType > extends HasIdImpl
     Object value = null;
     if ( object instanceof Parameter ) {
       value = ( (Parameter)object ).getValue( propagate );
-      return evaluate( value, cls, propagate );  
+      return evaluate( value, cls, propagate, allowWrapping );  
     } 
     else if ( object instanceof Expression ) {
       Expression< ? > expr = (Expression<?>)object;
@@ -537,7 +537,7 @@ public class Expression< ResultType > extends HasIdImpl
         return (TT)expr.expression;
       }
       value = expr.evaluate( propagate );
-      return evaluate( value, cls, propagate );  
+      return evaluate( value, cls, propagate, allowWrapping );  
     }
     else if ( object instanceof Call) {
       value = ( (Call)object ).evaluate( propagate );
