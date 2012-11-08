@@ -382,6 +382,8 @@ public class ClassUtils {
             String fqn = aPackage + "." + simpleClassOrInterfaceName;
             Class.forName(fqn);
             fqns.add(fqn);
+        } catch (NoClassDefFoundError e) {
+          // Ignore
         } catch (Exception e) {
             // Ignore
         }
