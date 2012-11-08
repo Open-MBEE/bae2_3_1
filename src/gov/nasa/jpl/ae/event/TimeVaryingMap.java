@@ -233,12 +233,27 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     return this.lowerKey( t );
   }
 
+  public Parameter<Integer> getTimepointBefore( Integer t ) {
+    if ( t == null ) return null;
+    Parameter<Integer> tp = makeTempTimepoint( t, false );
+    return this.lowerKey( tp );
+  }
+
   public Parameter<Integer> getTimepointAfter( Parameter<Integer> t ) {
     if ( t == null ) return null;
     return this.higherKey( t );
   }
 
   public T getValueBefore( Parameter<Integer> t ) {
+    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+    T valBefore = null;
+    if ( justBeforeTime != null ) {
+      valBefore = get( justBeforeTime );
+    }
+    return valBefore;
+  }
+  
+  public T getValueBefore( Integer t ) {
     Parameter<Integer> justBeforeTime = getTimepointBefore( t );
     T valBefore = null;
     if ( justBeforeTime != null ) {

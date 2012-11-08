@@ -108,10 +108,17 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
                          boolean noSetIfNull ) {
     breakpoint();
     if ( t == null ) return null;
-    Obj o = getValueBefore( t );
+    Obj o = null;
+    if ( containsKey( t ) ) { 
+      o = getValueBefore( t );
+    } else {
+      o = getValueBefore( t.getValue( false ) );
+    }
     boolean noSet = noSetValue || ( noSetIfNull && o == null ); 
     if ( !noSet ) {
-      this.setValue( t, null );
+      if ( !isReceiveApplied( t ) ) {
+        this.setValue( t, null );
+      }
     }
     return o;
   }
