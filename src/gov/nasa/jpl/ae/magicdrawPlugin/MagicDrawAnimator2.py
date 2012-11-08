@@ -220,7 +220,7 @@ class highlighterThread(Thread):
                         mda.start(evt.componentId)
                         if evt.componentId not in elementsNotEnded: elementsNotEnded.append(evt.componentId)
                     elif "end" in evt.action:
-                        gl.log("    ---> (%s) ENDING" % evt.endTime)
+                        gl.log("    ---> (%s) ENDING" % evt.eventTime)
                         mda.end(evt.componentId)
                         if evt.componentId in elementsNotEnded: elementsNotEnded.remove(evt.componentId)
                     t = time.time()
