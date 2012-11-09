@@ -82,10 +82,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( t.getValue(false) != null && t.getValue(false).equals(112032)) {
       Debug.out( "" );
     }
-    if ( type == null || type.isInstance( o ) ) {
-      this.setValue( t, o );
+    Object thing = (Obj)Expression.evaluate( o, type, true );
+    if ( type == null || type.isInstance( thing ) ) {  
+      this.setValue( t, (Obj)thing );
       for ( ObjectFlow< Obj > f : listeners ) {
-        f.send( o, t );
+        f.send( (Obj)thing, t );
       }
     }
   }
@@ -107,6 +108,9 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   protected Obj receive( Parameter<Integer> t, boolean noSetValue,
                          boolean noSetIfNull ) {
     breakpoint();
+    if (name.contains( "q" )){
+      breakpoint();
+    }
     if ( t == null ) return null;
     Obj o = null;
     if ( containsKey( t ) ) { 
@@ -120,6 +124,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
         this.setValue( t, null );
       }
     }
+    
     return o;
   }
  
