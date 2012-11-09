@@ -690,7 +690,7 @@ class actionEventClass(object):
 		nextAccepts = [x for x in self.nexts[node] if isinstance(x,AcceptEventAction)]
 		if len(nextAccepts)>0:
 			if any([not isinstance(x.trigger[0].event,TimeEvent) for x in nextAccepts]): canHaveDuration = False
-		if isinstance(node,AcceptEventAction) and not isinstance(node.trigger[0].event,TimeEvent): canHaveDuration = False
+		if isinstance(node,AcceptEventAction) and isinstance(node.trigger[0].event,TimeEvent): canHaveDuration = False
 		if isinstance(node,CallBehaviorAction) and not node.behavior.humanType == "Opaque Behavior": canHaveDuration = False
 		if canHaveDuration: self.dependencies["duration"] = ("Integer","1")
 		
@@ -719,22 +719,20 @@ class actionEventClass(object):
 		elif myType =="Send Signal Action" :
 			sig = node.signal
 			port = node.onPort
+			prepend = ""
+			if node.context in constructorArgs.keys(): prepend = constructorArgs[node.context].name + "."
 			structSig = "x.ss" + port.getID() + "_" + sig.name
-			argPhrase = ""
+			self.members["signalObject"] = (prepend + "Signal" + sig.name,None,"initialize place holder for constructed signal")
+			self.dependencies["signalObject"] = (prepend + "Signal" + sig.name,"x.new %sSignal%s()" % (prepend,sig.name))
+			self.effects.append(structSig + ".send(signalObject,endTime)")
 			for arg in node.argument:
-				if argPhrase is not "": argPhrase = " , ".join(argPhrase,arg.getID())
-				else: argPhrase = arg.getID() + ".getValue()"
-			if argPhrase =="": #means there are no arguments
-				argPhrase = "true"
-			try: 
-				ct = constructorArgs[node.context]
-				prepend=ct.name+"."
-				invokePhrase = "x.getValue().new Signal%s(endTime,%s)" % (sig.getName(),argPhrase)
-			except: 
-				prepend = ""
-				invokePhrase = "new %sSignal%s(endTime,%s)" % (prepend,sig.getName(),argPhrase)
-			self.effects.append(structSig + ".send(%s,endTime)" % invokePhrase)
-		
+				c = 0
+				for mem in sig.attribute:
+					if arg.name == mem.name: self.effects.append("signalObject.%s_%s.setValue(endTime,%s)" % (mem.name,mem.getID(),arg.getID()))
+					c += 1
+				if c != 1: gl.log("+ERROR - found %s members matching %s in Signal%s!!" % (str(c), arg.name, sig.name))
+			if len(node.argument) == 0: self.effects.append("signalObject.control.setValue(endTime,true)")
+	
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
 			if not isinstance(event,TimeEvent):
@@ -744,11 +742,8 @@ class actionEventClass(object):
 					ct = constructorArgs[node.context]
 					prepend=ct.name+"."
 				except: prepend = ""
-				#queue stuff here?? this isn't right...
-				#self.effects.append("sig" + sig.getID()+" = sig"+sig.getID() + ".receive(startTime - 1)")
 				for res in node.result:
-					self.dependencies[res.getID()] = ("%sSignal%s" % (prepend,sig.name),"q_"+context.name+"_"+sig.name + ".receive(startTime - 1)")
-				#self.members["sigVar_" + sig.name]=(sig.name,None,getPrettyIdent(node) + " accepts the " + sig.name + " signal")
+					self.dependencies[res.getID()] = ("%sSignal%s" % (prepend,sig.name),"q_"+context.name+"_"+sig.name + ".receive(startTime)")
 				for pin in node.output:
 					if pin.type == sig:
 						flow = pin.outgoing[0]
@@ -884,7 +879,7 @@ class actionEventClass(object):
 						context = n.context
 						qname = "q_" + context.name + "_" + sig.name
 						self.dependencies["endTime"] = ("Integer","Math.min(%s.nextTimeHasStuff(startTime),finalNode_endTime)" % qname)
-						s = qname + ".hasStuff(endTime+1)"
+						s = qname + ".hasStuff(endTime)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
 			if len(self.prevs[n].keys())>1 and not isinstance(n,MergeNode):
