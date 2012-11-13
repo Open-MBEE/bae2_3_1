@@ -5,11 +5,14 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.FileUtils;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Timer;
 import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.ae.xml.NameTranslator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -696,6 +699,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       System.out.println( Calendar.getInstance().getTime().toString() );
       if ( writeSimulation( file ) ) {
+        String fn = FileUtils.removeFileExtension( fileName );
+        writeAspen( fn + ".mdl", fn + ".ini" );
         didntWriteFile = false;
       }
       if ( improved ) {
@@ -1144,6 +1149,124 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       sb.append( tv.toString() + "\n" );
     }
     return sb.toString();
+  }
+
+  public void writeAspen(String mdlFileName, String iniFileName ) {
+    FileOutputStream mdlOs = null;
+    FileOutputStream iniOs = null;
+    try {
+      mdlOs = new FileOutputStream( mdlFileName );
+      iniOs = new FileOutputStream( iniFileName );
+      writeAspen( mdlOs, iniOs );
+    } catch ( FileNotFoundException e ) {
+      e.printStackTrace();
+    }
+    try {
+      if ( mdlOs != null ) {
+        mdlOs.flush();
+        mdlOs.close();
+      }
+    } catch ( IOException e ) {
+      e.printStackTrace();
+    }
+    try {
+      if ( iniOs != null ) {
+        iniOs.flush();
+        iniOs.close();
+      }
+    } catch ( IOException e ) {
+      e.printStackTrace();
+    }
+  }
+  
+  public void writeAspen(OutputStream mdlOs, OutputStream iniOs) {
+    // Load keywords into name translator so we can translate names to avoid them.
+    final String aspenKeyWords[] =
+        { "activity", "parameter", "start_time", "duration", "end_time",
+         "permissions", "priority", "model", "fulfills", "resource",
+         "state_variable", "depletable", "nondepletable", "default",
+         "satisfies", "decomposition", "decompositions", "reservations",
+         "dependencies", "alternatives", "expansion", "expansions",
+         "uncertainty", "uncertain", "of", "start", "end", "starts_before",
+         "starts_after", "ends_before", "ends_after", "starts_at", "ends_at",
+         "where", "with", "or", "string", "real", "int", "bool", "constraint",
+         "constraints", "ordered", "ordered_backtoback", "usage" };
+    PrintWriter mdl = new PrintWriter( mdlOs );
+    PrintWriter ini = new PrintWriter( iniOs );
+    NameTranslator nt = new NameTranslator();
+    for ( String n : aspenKeyWords ) {
+      nt.translate( n, "AE", "ASPEN" );
+    }
+
+    // write model.mdl
+    String modelName = nt.translate( getName(), "AE", "ASPEN" );
+    mdl.println("model " + modelName + " {");
+    String unitStr = Timepoint.getUnits().toString();
+    unitStr = unitStr.substring( 0, unitStr.length()-1 ); // removing last char, 's'
+    mdl.println("  time_scale = " + unitStr  + ";");
+    mdl.println("  time_zone = gmt;");
+    mdl.println("  time_format = tee;");
+    mdl.println("  horizon_start = " + Timepoint.toAspenTimeString( Timepoint.getEpoch() ) + ";");
+    mdl.println("  horizon_duration = " + Timepoint.getHorizonDuration() + ";");
+    mdl.println("};\n");
+    
+    // write events
+    Set< Event > events = new HashSet< Event >();
+    events.add( this );
+    events = Utils.addAll( events, getEvents( true, null ) );
+    //final int typeDepth = 2; // the nested class depth, for which types will be created.
+    for ( Event e : events ) {
+      // Create activity type based on enclosing classes.
+      List< Class< ? > > enclosingClasses = new ArrayList< Class<?> >();
+      Class<?> enclosingClass = e.getClass().getEnclosingClass();
+      //System.out.println( e.getClass().getName() );
+      while ( enclosingClass != null ) {
+        //System.out.println("is enclosed by " + enclosingClass.getSimpleName() );
+        enclosingClasses.add( enclosingClass );
+        enclosingClass = enclosingClass.getEnclosingClass();
+      }
+      String typeName = null;
+      if ( enclosingClasses.size() > 0 ) {
+        typeName = enclosingClasses.get( enclosingClasses.size() - 1 ).getSimpleName();
+      } else {
+        typeName = e.getClass().getSimpleName();
+      }
+      // Get the corresponding ASPEN activity schema name.
+      Long id = nt.getIdForNameAndDomain( typeName, "AE" );
+      boolean newSchema = ( id == null ); 
+      typeName = nt.translate( typeName, "AE", "ASPEN" );
+      // Create a unique ASPEN instance name.
+      String instanceName = e.getName();
+      if ( Utils.isNullOrEmpty( instanceName ) ) {
+        instanceName = typeName;
+      }
+      instanceName = nt.makeNameUnique( instanceName, "AE" );
+      instanceName = nt.translate( instanceName, "AE", "ASPEN" );
+      if ( newSchema ) {
+        mdl.println( "activity " + typeName + " {}" );
+      }
+      ini.println( typeName + " " + instanceName + " {" );
+      ini.println( "  start_time = " + Math.max( 0, Math.min( 1073741823, e.getStartTime().getValueOrMin())) + ";" );
+      ini.println( "  duration = " + Math.max( 1, Math.min( 1073741823, e.getDuration().getValueOrMin() ) ) + ";\n}" );
+    }
+    
+    // write timelines
+    Set< TimeVarying< ? > > states = getTimeVaryingObjects( true, null );
+    for ( TimeVarying< ? > state : states ) {
+      String tlName = "";
+      if ( state instanceof TimeVaryingMap ) {
+        tlName = ( (TimeVaryingMap< ? >)state ).getName();
+      }
+      if ( state instanceof AspenTimelineWritable ) {
+        tlName = nt.makeNameUnique( tlName, "AE" );
+        tlName = nt.translate( tlName, "AE", "ASPEN" );
+        AspenTimelineWritable tl = (AspenTimelineWritable)state;
+        mdl.print( tl.toAspenMdl( tlName ) );
+        mdl.flush();
+        ini.print( tl.toAspenIni( tlName ) );
+        ini.flush();
+      }
+    }
   }
 
  // getters and setters

@@ -104,5 +104,13 @@ public final class FileUtils {
     }
     return file;
   }
+
+  public static String removeFileExtension( String fileName ) {
+    int pos = fileName.lastIndexOf('.');
+    if ( pos >= 0 ) {
+      return fileName.substring( 0, pos );
+    }
+    return fileName;
+  }
   
 }

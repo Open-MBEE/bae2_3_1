@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
@@ -42,12 +43,31 @@ import junit.framework.Assert;
  */
 public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
                                  implements TimeVarying< T >,
-                                            ParameterListener {
+                                            ParameterListener,
+                                            AspenTimelineWritable {
                                             //Comparable< TimeVaryingMap< T > > {
 
   private static final long serialVersionUID = -2428504938515591538L;
   
   protected final int id = HasIdImpl.getNext();
+  
+  /**
+   * For the convenience of referring to the effect method.
+   */
+  protected static Method setValueMethod1 = getSetValueMethod1();
+  protected static Method setValueMethod2 = getSetValueMethod2();
+  /**
+   * Floating effects are those whose time or duration is changing. They must be
+   * removed from TimeVaryingMap's map before they change; else, they will
+   * corrupt the map. Before changing, they are placed in this floatingEffects
+   * list, and after changing they are removed from this list and added back to
+   * the map.
+   */
+  protected List< TimeValue > floatingEffects = new ArrayList< TimeValue >();
+
+  protected String name;
+  
+  protected Class<?> type = null;
 
   public class TimeValue extends Pair< Parameter<Integer>, T >
                                implements HasParameters {
@@ -167,22 +187,6 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   }
 
   /**
-   * For the convenience of referring to the effect method.
-   */
-  protected static Method setValueMethod1 = getSetValueMethod1();
-  protected static Method setValueMethod2 = getSetValueMethod2();
-  /**
-   * Floating effects are those whose time or duration is changing. They must be
-   * removed from TimeVaryingMap's map before they change; else, they will
-   * corrupt the map. Before changing, they are placed in this floatingEffects
-   * list, and after changing they are removed from this list and added back to
-   * the map.
-   */
-  protected List< TimeValue > floatingEffects = new ArrayList< TimeValue >();
-
-  protected String name;
-  
-  /**
    * 
    */
   public TimeVaryingMap( String name ) {
@@ -190,13 +194,25 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     this.name = name;
   }
 
-  public TimeVaryingMap( String name, T defaultValue ) {
+  public TimeVaryingMap( String name, Class<?> type ) {
+    this(name);
+    this.type = type;
+  }
+  public TimeVaryingMap( String name, T defaultValue, Class<?> type ) {
     super(new TimeComparator());
     this.name = name;
+    this.type = type;
+    if ( this.type == null && defaultValue != null ) {
+      this.type = defaultValue.getClass();
+    }
     Parameter<Integer> t = new Parameter<Integer>(null,null, 0, this);
     //System.out.println(name + " put(" + t + ", " + defaultValue + ")" );
     put( t, defaultValue );
     if ( Debug.isOn() ) isConsistent();
+  }
+
+  public TimeVaryingMap( String name, T defaultValue ) {
+    this(name, defaultValue, null);
   }
 
   @SuppressWarnings( "unchecked" )
@@ -649,6 +665,10 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     }
     if ( tp != t ) {
       oldValue = put( t, value );
+      if ( value != null &&
+           ( type == null || value.getClass().isAssignableFrom( type ) ) ) {
+        type = value.getClass();
+      }
     }
     if ( Debug.isOn() ) isConsistent();
     if ( Debug.isOn() ) Debug.outln( getName() + "setValue(" + t + ", " + value
@@ -972,6 +992,111 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   @Override
   public int hashCode() {
     return id;
+  }
+
+  public Class<?> getType() {
+    if ( type != null ) return type;
+    for ( T t : values() ) {
+      if ( t != null ) return t.getClass();
+    }
+    return null;
+  }
+  
+  public Number getMinValue() {
+    return getMinOrMaxValue( true );
+  }
+  public Number getMaxValue() {
+    return getMinOrMaxValue( false );
+  }
+  public Number getMinOrMaxValue( boolean isMin ) {
+    if ( !ClassUtils.isNumber( getType() ) ) return null;
+    boolean isInt = ClassUtils.isInteger( getType() );
+    Integer minInt = Integer.MAX_VALUE;
+    Double minDouble = Double.MAX_VALUE;
+    int mul = isMin ? 1 : -1;
+    for ( T v : values() ) {
+      if ( v != null &&  v instanceof Number ) {
+        if ( isInt ) {
+          Integer i = ((Number)v).intValue();
+          if ( mul * i.intValue() < mul * minInt.intValue() ) {
+            minInt = i;
+          }
+        } else {
+          Double d = ((Number)v).doubleValue();
+          if ( mul * d.doubleValue() < mul * minDouble.doubleValue() ) {
+            minDouble = d;
+          }
+        }
+      }
+    }
+    return isInt ? minInt : minDouble;
+  }
+
+  @Override
+  public String toAspenMdl( String tlName ) {
+    if ( Utils.isNullOrEmpty( tlName ) ) {
+      tlName = getName();
+    }
+    StringBuffer sb = new StringBuffer();
+    if ( ClassUtils.isNumber( getType() ) ) {
+      boolean isInt = ClassUtils.isInteger( getType() );
+      Number minVal = getMinValue();
+      Number maxVal = getMaxValue();
+      // If all values are positive, set minVal to 0 unless it would make it
+      // hard to see the difference.
+      if ( minVal.doubleValue() > 0.0 && maxVal.doubleValue() / minVal.doubleValue() > 1.2 ) {
+        minVal = 0;
+      }
+      sb.append( "resource " + tlName + " {\n" );
+      sb.append( "  type = depletable;\n" );
+      sb.append( "  min_value = " + minVal.doubleValue() + ";\n" );
+      sb.append( "  capacity = " + maxVal.doubleValue() + ";\n" );
+      sb.append( "  default = " + minVal.doubleValue() + ";\n" );
+      sb.append( "}\n" );
+      
+      sb.append( "activity " + tlName + "Changer {\n" );
+      sb.append( "  duration = 1;\n" );
+      //sb.append( "  " + (isInt?"int":"real") + " value;\n");
+      sb.append( "  real value;\n");
+      sb.append( "  reservations = " + tlName + " use value;\n");
+      sb.append( "}\n" );
+    } else {
+      sb.append( "state_variable " + tlName + " {\n  default = \"\";\n}\n" );
+      sb.append( "activity " + tlName + "Changer {\n" );
+      sb.append( "  duration = 1;\n" );
+      sb.append( "  string value;\n" );
+      sb.append( "  reservations = " + tlName + " change_to value at_start;\n");
+      sb.append("}\n" );
+    }
+    return sb.toString();
+  }
+
+  @Override
+  public String toAspenIni( String tlName ) {
+    StringBuffer sb = new StringBuffer();
+    boolean isNum = ClassUtils.isNumber( getType() );
+    boolean isInt = isNum && ClassUtils.isInteger( getType() );
+    int ctr = 0;
+    for ( Map.Entry< Parameter< Integer >, T > e : entrySet() ) {
+      if ( e.getKey() == null || e.getKey().getValue(false) == null ) continue;
+      int startTime = e.getKey().getValue(false).intValue();
+      String q = isNum ? "" : "\"";
+      Object value = e.getValue();
+      if ( isNum && value == null ) {
+        value = new Double(getMinValue().doubleValue());
+      }
+      if ( isNum && value != null ) {
+        Number d = (Number)value;
+        value = d.doubleValue();
+      }
+      value = q + value + q;
+      sb.append( tlName + "Changer " + tlName + "Changer_"  + (ctr++) + " {\n" );
+      sb.append( "  start_time = " + Math.max( 0, Math.min( 1073741823, startTime)) + ";\n" );
+      sb.append( "  value = " + value + ";\n" );
+      sb.append("}\n" );
+    }
+    sb.append("\n");
+    return sb.toString();
   }
 
 }

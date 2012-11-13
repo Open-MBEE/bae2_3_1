@@ -143,6 +143,15 @@ public class NameTranslator {
     return true;
   }
   
+  // Suggest a unique name based on the input name for the domain.
+  public String makeNameUnique( String nameToUniquify, String domain ) {
+    Map< String, Long > names = namesInDomain.get( domain );
+    if ( !Utils.isNullOrEmpty( names ) ) {
+      return makeNameUnique( nameToUniquify, names.keySet(), 100 );
+    }
+    return nameToUniquify;
+  }
+  
   // Same as getTranslation() but creates a new translation if none exists.
   public String translate( String name, String fromDomain, String toDomain ) {
 
@@ -166,10 +175,7 @@ public class NameTranslator {
     newName = t.translate( name, fromDomain, toDomain );
 
     // Try and ensure that the new name is unique to toDomain.
-    Map< String, Long > names = namesInDomain.get( toDomain );
-    if ( !Utils.isNullOrEmpty( names ) ) {
-      newName = makeNameUnique( newName, names.keySet(), 100 );
-    }
+    newName = makeNameUnique( newName, toDomain );
 
     // Update the maps for the new translation of name.
     if ( !Utils.isNullOrEmpty( newName ) ) {
@@ -196,7 +202,7 @@ public class NameTranslator {
       try {
         throw new Exception();
       } catch ( Exception e ) {
-        System.err.println( "NameTranslator.makeNameUnique() failed to geenrate a unique id : " + newName );
+        System.err.println( "NameTranslator.makeNameUnique() failed to generate a unique id : " + newName );
         e.printStackTrace();
       }
       return null;

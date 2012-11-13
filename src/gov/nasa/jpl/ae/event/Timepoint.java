@@ -3,12 +3,14 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
 import gov.nasa.jpl.ae.util.CompareUtils;
+import gov.nasa.jpl.ae.util.Debug;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import junit.framework.Assert;
 
@@ -323,7 +325,34 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     return timeString;
   }
 
-	
+  public static final String aspenTeeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+
+  public static String toAspenTimeString( long millis ) {
+    return toAspenTimeString( millis, aspenTeeFormat );
+  }
+  public static String toAspenTimeString( Date d ) {
+    return toAspenTimeString( d, aspenTeeFormat );
+  }
+
+  public static String toAspenTimeString(Date d, String format) {
+    if (d != null) {
+      return toAspenTimeString(d.getTime(), format);
+    } else {
+      Debug.errln("Cannot convert null Date");
+      return null;
+    }
+  }
+
+  public static String toAspenTimeString(long millis, String format) {
+    if (format == null)
+      return null;
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+    cal.setTimeInMillis(millis);
+    String timeString = new SimpleDateFormat(format).format(cal.getTime());
+    return timeString;
+  }
+
 	
   public String toTimestamp() {
     return toTimestamp( getValue(false) );

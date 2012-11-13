@@ -35,6 +35,7 @@ src/demandResponse/Service.java -text
 src/demandResponse/VectorData.java -text
 src/demandResponse/readme.txt -text
 src/gov/nasa/jpl/ae/event/AbstractParameterConstraint.java -text
+src/gov/nasa/jpl/ae/event/AspenTimelineWritable.java -text
 src/gov/nasa/jpl/ae/event/BooleanParameter.java -text
 src/gov/nasa/jpl/ae/event/Call.java -text
 src/gov/nasa/jpl/ae/event/ConstraintExpression.java -text
@@ -132,11 +133,14 @@ src/gov/nasa/jpl/ae/util/CompareUtils.java -text
 src/gov/nasa/jpl/ae/util/Debug.java -text
 src/gov/nasa/jpl/ae/util/FileUtils.java -text
 src/gov/nasa/jpl/ae/util/Pair.java -text
+src/gov/nasa/jpl/ae/util/RunAspen.java -text
 src/gov/nasa/jpl/ae/util/SimulatedTime.java -text
 src/gov/nasa/jpl/ae/util/SocketClient.java -text
 src/gov/nasa/jpl/ae/util/StopWatch.java -text
 src/gov/nasa/jpl/ae/util/Timer.java -text
 src/gov/nasa/jpl/ae/util/Utils.java -text
+src/gov/nasa/jpl/ae/util/runaspen.cmd -text
+src/gov/nasa/jpl/ae/util/runaspen.sh -text
 src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
 src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
 src/gov/nasa/jpl/ae/xml/NameTranslator.java -text

@@ -806,4 +806,25 @@ public class ClassUtils {
     return noParamName;
   }
 
+  /**
+   * @param type
+   * @return whether the input type is a number class or a number primitive.
+   */
+  public static boolean isNumber( Class< ? > type ) {
+    if ( type == null ) return false;
+    Class<?> forPrim = classForPrimitive( type );
+    if ( forPrim != null ) type = forPrim;
+    return ( Number.class.isAssignableFrom( type ) );
+  }
+
+  /**
+   * @param type
+   * @return whether the input type has an integer domain (int, short, long, etc).
+   */
+  public static boolean isInteger( Class< ? > type ) {
+    if ( type == null ) return false;
+    return ( Integer.class.isAssignableFrom( type ) );
+//    Class<?> forPrim = classForPrimitive( type );
+//    if ( forPrim != null ) type = forPrim;
+  }
 }
