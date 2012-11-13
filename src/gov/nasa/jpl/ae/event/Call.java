@@ -141,6 +141,17 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
 //          }
 //        }
 //      }
+      if ( this instanceof ConstructorCall) {
+        ConstructorCall cc = (ConstructorCall) this;
+        if ( cc.thisClass.getEnclosingClass() != null && !Modifier.isStatic( cc.thisClass.getModifiers() )) {
+          Object[] arr = new Object[evaluatedArgs.length + 1];
+          arr[0] = object;
+          for ( int i = 1; i<=evaluatedArgs.length; ++i) {
+            arr[i] = evaluatedArgs[i-1];
+          }
+          evaluatedArgs = arr;
+        }
+      }
       result = invoke( evaluatedArgs );// arguments.toArray() );
       //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
     } catch ( IllegalAccessException e ) {
@@ -322,8 +333,16 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
     if ( getMember() == null ) return false;
     // Check types without throwing exception (like checkForTypeErrors().
     Class< ? >[] paramTypes = getParameterTypes();
-    if ( paramTypes.length > 0
-         && ( arguments == null || arguments.size() != paramTypes.length ) ) {
+    int ecLength = 0;
+    if ( this instanceof ConstructorCall) {
+      ConstructorCall cc = (ConstructorCall) this;
+      if ( cc.thisClass.getEnclosingClass() != null && !Modifier.isStatic( cc.thisClass.getModifiers() )) {
+        ecLength = 1;
+      }
+    }
+    if ( paramTypes.length > ecLength 
+         && ( arguments == null || arguments.size() - ecLength != paramTypes.length ) ) {
+      
       return false;
     }
     // Check if arguments are grounded if groundable.  Ok for arguments to be null.
