@@ -100,6 +100,7 @@ class ClassifierClass(object):
 		self.constructors=[]
 		self.cArgs={}
 		self.inspectComposition(system)
+		self.errors = {}
 		
 	def inspectComposition(self,system):
 		signalsToBuild = []
@@ -196,7 +197,11 @@ class ClassifierClass(object):
 			
 			#fill events
 			for act in system.ownedBehavior: 
-				self.events.append(activityEventClass(act)) #will assume that you can't reference outside activities yet...
+				aeC = activityEventClass(act)
+				self.events.append(aeC) #will assume that you can't reference outside activities yet...
+				gl.log(str(aeC.errors.keys()))
+				if len(aeC.errors.keys())>0: self.errors[act] = aeC.errors
+					
 				#self.members[act.getID()+"_endTime"] = ("Integer",None,"endTime var for %s " % act.name)
 			
 			#queues
@@ -245,6 +250,7 @@ class activityEventClass(object):
 		self.nexts = {}
 		self.prevs = {}
 		self.ranks = {}
+		self.errors = {}
 
 		owner = activity.owner
 		if activity is not owner.classifierBehavior:
@@ -428,7 +434,11 @@ class activityEventClass(object):
 			dicts = (self.invokeDict,self.invokedInvoker,self.invokedFlow,self.flowObject,self.invokerInvoked,self.invokerFlow,self.objectFlows,self.flowTypes,self.allSignals, self.nexts,self.prevs)
 			r = None
 			if node in self.ranks.keys(): r = self.ranks[node]
-			self.classes.append(actionEventClass(node,dicts,self.id,r))
+			aeClass = actionEventClass(node,dicts,self.id,r)
+			self.classes.append(aeClass)
+			if len(aeClass.errors.keys()) > 0:
+				self.errors[node] = aeClass.errors
+			
 	
 	def findEventualTarget(self,edge):
 		for o in edge.target.outgoing:
@@ -511,6 +521,7 @@ class actionEventClass(object):
 		#self.invokeDict = joinDict
 		self.enclosingClass = encloserID + ".this"
 		self.decisionDict = rankDict #{myDeciderID_deciderX : rank}
+		self.errors = {}
 		
 		self.inspectMyself(actionNode)
 		self.inspectByType(actionNode)
@@ -725,13 +736,19 @@ class actionEventClass(object):
 			self.members["signalObject"] = (prepend + "Signal" + sig.name,None,"initialize place holder for constructed signal")
 			self.dependencies["signalObject"] = (prepend + "Signal" + sig.name,"x.new %sSignal%s()" % (prepend,sig.name))
 			self.effects.append(structSig + ".send(signalObject,endTime)")
-			for arg in node.argument:
-				c = 0
-				for mem in sig.attribute:
-					if arg.name == mem.name: self.effects.append("signalObject.%s_%s.setValue(endTime,%s)" % (mem.name,mem.getID(),arg.getID()))
-					c += 1
-				if c != 1: gl.log("+ERROR - found %s members matching %s in Signal%s!!" % (str(c), arg.name, sig.name))
-			if len(node.argument) == 0: self.effects.append("signalObject.control.setValue(endTime,true)")
+			for signalAttribute in sig.attribute:
+				matched = False
+				for arg in node.argument:
+					if arg.name == signalAttribute.name: 
+						self.effects.append("signalObject.%s_%s.setValue(endTime,%s)" % (signalAttribute.name,signalAttribute.getID(),arg.getID()))
+						matched = True
+				if not matched:
+					if len(node.argument)==1 and len(sig.attribute)==1:
+						self.effects.append("signalObject.%s_%s.setValue(endTime,%s)" % (signalAttribute.name,signalAttribute.getID(),node.argument[0].getID()))
+						matched = True
+				if not matched:
+					self.errors[node] = "can't match node arguments to signal attributes!!"		
+			if len(sig.attribute) == 0: self.effects.append("signalObject.control.setValue(endTime,true)")
 	
 		elif myType =="Accept Event Action" :
 			event = node.trigger[0].event
@@ -1199,6 +1216,13 @@ def run(s):
 	gl.log("\nPARTS DICT:")
 	for k,v in partsDict.items():
 		gl.log(k.name + " -- " + str(v))
+		
+	#gl.log("\nERRORS:")
+	#for thing in classesToTranslate:
+	#	if len(thing.errors.keys())>0:
+	#		gl.log("errors in %s" % thing.name)
+	#		gl.log("	%s" % str(thing.errors))
+			
 	
 	gl.log("\nThe log file for this execution is located at: " + str(os.getcwd()) )
 	gl.log("The log file: " + generatedXmlFileName )

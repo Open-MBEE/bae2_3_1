@@ -44,7 +44,7 @@ class MagicDrawAnimator2(object):
         self.currentPaintEvents = [] #the collection of events to be painted together
         self.currentDiagram = None #to avoid potential overhead of opening an already open diagram.
     
-    def start(self, componentId):
+    def start(self, componentId, boxText = None):
         '''
         1. Find symbol we're going to highlight
         2. If we haven't already highlighted this before, find it's default coloring.
@@ -60,10 +60,11 @@ class MagicDrawAnimator2(object):
         if sym != None:
             diagram = sym.getDiagramPresentationElement()
             #gl.log("Debug: found diagram")
-            diagram.open()
+            #diagram.open()
+            diagram.ensureLoaded()
             #gl.log("Debug: opened diagram")
             self.activeDiagrams.append(diagram)
-            p = PaintEvent(sym,diagram,self.defaults[sym])
+            p = PaintEvent(sym,diagram,self.defaults[sym],boxText)
             self.paintEvents[sym]=p
             self.currentPaintEvents.append(p)
         #else: gl.log("Debug: symbol is none")
@@ -86,6 +87,9 @@ class MagicDrawAnimator2(object):
         t = AwesomePaintAction2(self.currentPaintEvents)
         t.actionPerformed(None)
         self.currentPaintEvents = []
+        
+    def gimmeTheSymbol(self,componentId):
+        return self.findSymbolToHighlight(componentId)
         
     def findSymbolToHighlight(self,componentId):
         '''
@@ -144,12 +148,14 @@ class MagicDrawAnimator2(object):
                 #gl.log("Debug: defaults: " + str(fcolor) + " & " + str(lcolor))
 
 class PaintEvent():
-    def __init__(self,element,diagram,defaults):
+    def __init__(self,element,diagram,defaults,text=None):
         self.element = element 
         self.defaultFillColor = defaults[0]
         self.defaultLineColor = defaults[1]
         self.on = False #Initialize to off. Only start calls init so should be OK.
         self.diagram = diagram
+        self.text = text
+        self.box = None
     
 class AwesomePaintAction2(NMAction):
     '''
@@ -173,6 +179,7 @@ class AwesomePaintAction2(NMAction):
         '''
         try:
             SessionManager.getInstance().createSession("Paint!")
+            pem = PresentationElementsManager.getInstance()
             for paintEvent in self.paintEvents:
                 newPM = PropertyManager()
                 fc = paintEvent.defaultFillColor
@@ -189,6 +196,18 @@ class AwesomePaintAction2(NMAction):
                 newPM.addProperty(ColorProperty(PropertyID.PEN_COLOR,lc))
                 PresentationElementsManager.getInstance().setPresentationElementProperties(paintEvent.element, newPM)
                 paintEvent.on = not paintEvent.on
+                if paintEvent.text:
+                    if paintEvent.on: #it's on, we need a box maybe
+                        midPoint = paintEvent.element.getMiddlePoint()
+                        tb = pem.createTextBox(paintEvent.element,midPoint)
+                        newBounds = Rectangle(15,15)
+                        newBounds.setLocation(midPoint)
+                        pem.reshapeShapeElement(tb,newBounds)
+                        pem.setText(tb,str(paintEvent.text))
+                        pem.setPresentationElementProperties(tb, paintEvent.element.getPropertyManager())
+                        paintEvent.box = tb
+                    else:
+                        if paintEvent.box: pem.deletePresentationElement(paintEvent.box)
             SessionManager.getInstance().closeSession()
             #gl.log("Debug: actionPerformed")
         except:
@@ -199,4 +218,5 @@ class AwesomePaintAction2(NMAction):
                 gl.log(message)
             gl.log("***ERROR PAINTING!!")
             return
+    
         #self.diagram.getDiagramSurface().repaint()

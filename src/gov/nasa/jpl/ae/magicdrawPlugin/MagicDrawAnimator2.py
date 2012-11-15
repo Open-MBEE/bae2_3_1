@@ -8,8 +8,15 @@ import time,sys,traceback,re
 #some MD utils. 
 from com.nomagic.magicdraw.core import * #application, project...
 from com.nomagic.magicdraw.core import Application #this seems to want its own import.
+from com.nomagic.magicdraw.openapi.uml import PresentationElementsManager
+from com.nomagic.magicdraw.openapi.uml import SessionManager
+from com.nomagic.magicdraw.properties import ColorProperty
+from com.nomagic.magicdraw.properties import PropertyManager
+from com.nomagic.magicdraw.properties import PropertyID 
 
 #threading, etc.
+from java.awt import Rectangle
+from java.awt import Color
 from java.lang import *
 from javax.swing import JOptionPane
 
@@ -130,8 +137,8 @@ class highlighterThread(Thread):
                     continue
                 else: continue
                 #gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
-                if any([x in cid for x in ["Main","TimeVaryingMap"]]): 
-                    gl.log("    ---> Skipping - can't animate Main or TimeVaryingMap")
+                if any([x in cid for x in ["Main"]]): 
+                    gl.log("    ---> Skipping - can't animate Main")
                     continue
                 if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
                     gl.log("    ---> Skipping - can't animate the Activity object!")
@@ -204,18 +211,24 @@ class highlighterThread(Thread):
                             gl.log("found time jump > 300")
                             break
                         time.sleep( timeOfNextEvent - elapsedSimTime )
-                    if evt.componentType.startswith("sig") and "ObjectFlow" in evt.componentId:
+                        
+                    if "TimeVaryingMap" in evt.componentId:
+                        try: val = evt.action.split("=")[1]
+                        except: val = "[error] can't get time varying map value"
+                        gl.log("    ---> (%s) SETTING VALUE of %s: %s" % (evt.eventTime,evt.componentType,val))
+                        
+                    elif evt.componentType.startswith("sig") and "ObjectFlow" in evt.componentId:
                         sid = evt.componentType.strip("sig")
                         if "null" in evt.action and sid in elementsNotEnded:
                             gl.log("    ---> (%s) ENDING SIGNAL %s" % (evt.eventTime,sid))
                             mda.end(sid)
                             elementsNotEnded.remove(sid)
                         elif "null" not in evt.action: 
-                            gl.log("    ---> (%s) STARTING SIGNAL %s" % (evt.eventTime,sid))
-                            mda.start(sid)
+                            gl.log("    ---> (%s) STARTING SIGNAL %s ==> %s" % (evt.eventTime,sid,evt.action))
+                            mda.start(sid,evt.action.split("=")[1])
                             if sid not in elementsNotEnded: elementsNotEnded.append(sid)
                     
-                    if "start" in evt.action: 
+                    elif "start" in evt.action: 
                         gl.log("    ---> (%s) STARTING" % evt.eventTime)
                         mda.start(evt.componentId)
                         if evt.componentId not in elementsNotEnded: elementsNotEnded.append(evt.componentId)
@@ -242,10 +255,11 @@ class highlighterThread(Thread):
             gl.log("DONE")
         
         elif mode == 1:
-            e = "_17_0_5_edc0357_1346893970422_843838_14398"
+            e = "_17_0_2_edc0357_1352328158277_34448_20209"
             mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
             gl.log("Starting e (%s)" % e)
-            mda.start(e)
+            mda.start(e,"Porpoise Hork")
+            mda.doThePaint()
         
             i = 3
             while i > 0:
@@ -255,7 +269,57 @@ class highlighterThread(Thread):
             
             gl.log("ending e")
             mda.end(e)
-
+            mda.doThePaint()
+            
+        elif mode == 2:
+            try:
+                mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
+                e = "_17_0_2_edc0357_1352328158277_34448_20209" # in the usePower activity
+                gl.log("Starting e (%s)" % e)
+                mda.start(e)
+                mda.doThePaint()
+                tb = None
+                pem = PresentationElementsManager.getInstance()
+                sm = SessionManager.getInstance()
+                try:
+                    sym = mda.gimmeTheSymbol(e)
+                    midPoint = sym.getMiddlePoint()
+                    sm.createSession("make box!")
+                    try:
+                        parentPM = sym.getPropertyManager()
+                        c = Color.GREEN
+                        tb = pem.createTextBox(sym,midPoint)
+                        newBounds = Rectangle(15,15)
+                        newBounds.setLocation(midPoint)
+                        pem.reshapeShapeElement(tb,newBounds)
+                        pem.setText(tb,"     gobblelkajdlfkjakj")
+                        pem.setPresentationElementProperties(tb, parentPM)
+                        sm.closeSession()
+                    except: 
+                        sm.cancelSession()
+                        self.handleException() 
+                except: self.handleException()
+                
+                
+                i = 3
+                while i > 0:
+                    i-=1
+                    gl.log(".")
+                    time.sleep(1)
+                
+                gl.log("ending e")
+                mda.end(e)
+                if tb: 
+                    sm.createSession("deleteBox!")
+                    try:
+                        pem.deletePresentationElement(tb)
+                        sm.closeSession()
+                    except:
+                        sm.cancelSession()
+                        self.handleException()
+                mda.doThePaint()
+            except: self.handleException()
+            
     def handleException(self):
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
         gl.log("*** EXCEPTION:")
