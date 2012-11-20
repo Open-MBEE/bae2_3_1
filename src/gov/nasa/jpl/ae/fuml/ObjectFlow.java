@@ -22,24 +22,27 @@ import gov.nasa.jpl.ae.util.Debug;
  */
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
-	  /**
-	   * For the convenience of referring to the effect method.
-	   */
-	  protected static Method sendMethod1 = getSendMethod1();
-	  protected static Method sendMethod2 = getSendMethod2();
-	  
-	  protected static final boolean receiveSetsEvenIfNull = false;
+  private static final long serialVersionUID = 5278616069238729814L;
 
-	  protected List< ObjectFlow< Obj > > listeners =
+  /**
+   * For the convenience of referring to the effect method.
+   */
+  protected static Method sendMethod1 = getSendMethod1();
+  protected static Method sendMethod2 = getSendMethod2();
+
+  protected static final boolean receiveSetsEvenIfNull = false;
+
+  protected List< ObjectFlow< Obj > > listeners =
       new ArrayList< ObjectFlow< Obj > >();
-	  protected Class< ? > type = null;
+
+  // protected Class< ? > type = null;
   
   /**
    * @param name
    * @param defaultValue
    */
   public ObjectFlow( String name ) {
-    super( name, null );
+    super( name, null, null );
   }
 
   /**
@@ -47,14 +50,10 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
    * @param defaultValue
    */
   public ObjectFlow( String name, Class< ? > type ) {
-    super( name, null );
-    this.type = type;
+    super( name, null, type );
   }
 
   protected void breakpoint() {
-    if ( getName() != null && getName().contains( "13608" ) ) {
-      return;
-    }
     if ( getName() != null && getName().contains( "14272" ) ) {
       return;
     }
@@ -79,9 +78,6 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
   public void send( Obj o, Parameter<Integer> t ) {
     breakpoint();
-    if ( t.getValue(false) != null && t.getValue(false).equals(112032)) {
-      Debug.out( "" );
-    }
     Object thing = (Obj)Expression.evaluate( o, type, true );
     if ( type == null || type.isInstance( thing ) ) {  
       this.setValue( t, (Obj)thing );
@@ -112,12 +108,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       breakpoint();
     }
     if ( t == null ) return null;
-    Obj o = null;
-    if ( containsKey( t ) ) { 
-      o = getValueBefore( t );
-    } else {
-      o = getValueBefore( t.getValue( false ) );
-    }
+    Obj o = getValueEarlier( t );
     boolean noSet = noSetValue || ( noSetIfNull && o == null ); 
     if ( !noSet ) {
       if ( !isReceiveApplied( t ) ) {

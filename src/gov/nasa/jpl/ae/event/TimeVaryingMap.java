@@ -255,12 +255,32 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     return this.lowerKey( tp );
   }
 
+  public Parameter<Integer> getTimepointEarlier( Parameter<Integer> t ) {
+    if ( t == null ) return null;
+    return getTimepointEarlier( t.getValue( false ) );
+  }
+
+  public Parameter<Integer> getTimepointEarlier( Integer t ) {
+    if ( t == null ) return null;
+    Integer justBeforeTimeVal = t;
+    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+    while ( justBeforeTime != null ) {
+      justBeforeTimeVal = justBeforeTime.getValue( false ); 
+      if ( justBeforeTimeVal < t ) {
+        break;
+      }
+      justBeforeTime = getTimepointBefore( justBeforeTime );
+    }
+    return justBeforeTime;
+  }
+
   public Parameter<Integer> getTimepointAfter( Parameter<Integer> t ) {
     if ( t == null ) return null;
     return this.higherKey( t );
   }
 
   public T getValueBefore( Parameter<Integer> t ) {
+    if ( t == null ) return null;
     Parameter<Integer> justBeforeTime = getTimepointBefore( t );
     T valBefore = null;
     if ( justBeforeTime != null ) {
@@ -270,6 +290,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   }
   
   public T getValueBefore( Integer t ) {
+    if ( t == null ) return null;
     Parameter<Integer> justBeforeTime = getTimepointBefore( t );
     T valBefore = null;
     if ( justBeforeTime != null ) {
@@ -278,6 +299,21 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     return valBefore;
   }
   
+  public T getValueEarlier( Parameter<Integer> t ) {
+    if ( t == null ) return null;
+    return getValueEarlier( t.getValue( false ) );
+  }
+  
+  public T getValueEarlier( Integer t ) {
+    if ( t == null ) return null;
+    Parameter<Integer> justEarlierTime = getTimepointEarlier( t );
+    T valBefore = null;
+    if ( justEarlierTime != null ) {
+      valBefore = get( justEarlierTime );
+    }
+    return valBefore;
+  }
+
 
   public Parameter<Integer> makeTempTimepoint( Integer t, boolean maxName ) {
     //if ( t == null ) return null;
