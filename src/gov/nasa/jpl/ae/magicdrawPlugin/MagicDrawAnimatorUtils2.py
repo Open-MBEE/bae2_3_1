@@ -189,7 +189,7 @@ class AwesomePaintAction2(NMAction):
                     lc = Color.GREEN
                     fc = Color.GREEN
                     if paintEvent.defaultFillColor and not isinstance(paintEvent.element,PathElement): 
-                        gl.log("I'm not a path element!")
+                        #gl.log("I'm not a path element!")
                         lc = Color.BLACK
                 #else: gl.log("it's on! defaults: %s,%s" % (str(fc),str(lc)))  
                 if paintEvent.defaultFillColor: newPM.addProperty(ColorProperty(PropertyID.FILL_COLOR,fc))

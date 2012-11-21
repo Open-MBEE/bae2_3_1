@@ -125,23 +125,23 @@ class highlighterThread(Thread):
                     action=x.groups()[2]
                     cid = x.groups()[3]
                     ctype = x.groups()[1]
-                    gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
+                    #gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 elif y:
                     eventTime=lastTime
                     action=y.groups()[1]
                     cid = y.groups()[2]
                     ctype = y.groups()[0]
-                    gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
+                    #gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 elif line.startswith("---"): 
                     gl.log(line)
                     continue
                 else: continue
                 #gl.log("%s %s (%s)" % (action.upper(), cid, ctype))
                 if any([x in cid for x in ["Main"]]): 
-                    gl.log("    ---> Skipping - can't animate Main")
+                    #gl.log("    ---> Skipping - can't animate Main")
                     continue
                 if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
-                    gl.log("    ---> Skipping - can't animate the Activity object!")
+                    #gl.log("    ---> Skipping - can't animate the Activity object!")
                     continue
                 try:
                     if eventTime < earliestTime:
@@ -225,7 +225,10 @@ class highlighterThread(Thread):
                             elementsNotEnded.remove(sid)
                         elif "null" not in evt.action: 
                             gl.log("    ---> (%s) STARTING SIGNAL %s ==> %s" % (evt.eventTime,sid,evt.action))
-                            mda.start(sid,evt.action.split("=")[1])
+                            txt = ""
+                            try: txt = evt.action.split("=")[1]
+                            except: txt = evt.action
+                            mda.start(sid,txt)
                             if sid not in elementsNotEnded: elementsNotEnded.append(sid)
                     
                     elif "start" in evt.action: 
