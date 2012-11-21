@@ -230,6 +230,7 @@ class activityEventClass(object):
 		self.dependencies = {} #are there any?
 		self.classes = []
 		self.initial = None
+		self.final = None
 		#self.members["invoke_time"] = ("Integer",None,"invoke time for whole activity")
 		#self.members["cba_endTime"] = ("Integer",None,"Placeholder for end time of event!!")
 		#self.dependencies["startTime"] = ("Integer","invoke_time")
@@ -390,6 +391,10 @@ class activityEventClass(object):
 										"args":[("startTime","startTime","Integer")],
 										"enclosingClass" : self.enclosingClass}
 			if isinstance (node,ActivityFinalNode):
+				if self.final: 
+					if "Multiple Final Nodes" in self.errors.keys(): self.errors["Multiple Final Nodes!"].append(node)
+					else: self.errors["Multiple Final Nodes!"] = [node]
+				self.final = node
 				self.members["finalNode_endTime"] = ("Integer","84000","variable for final node's end time!")
 				self.dependencies["endTime"] = ("Integer","finalNode_endTime")	
 				self.members["finalNode_startTime"]=("Integer","84000","variable for final node's start time!")
@@ -434,7 +439,7 @@ class activityEventClass(object):
 			dicts = (self.invokeDict,self.invokedInvoker,self.invokedFlow,self.flowObject,self.invokerInvoked,self.invokerFlow,self.objectFlows,self.flowTypes,self.allSignals, self.nexts,self.prevs)
 			r = None
 			if node in self.ranks.keys(): r = self.ranks[node]
-			aeClass = actionEventClass(node,dicts,self.id,r)
+			aeClass = actionEventClass(node,dicts,self.id,r,self.final.getID())
 			self.classes.append(aeClass)
 			if len(aeClass.errors.keys()) > 0:
 				self.errors[node] = aeClass.errors
@@ -502,7 +507,7 @@ class activityEventClass(object):
 		
 
 class actionEventClass(object):
-	def __init__(self,actionNode,dicts,encloserID,rankDict):
+	def __init__(self,actionNode,dicts,encloserID,rankDict,finalID):
 		
 		classType = str(actionNode.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (actionNode.name,classType,actionNode.owner.name)
@@ -522,7 +527,7 @@ class actionEventClass(object):
 		self.enclosingClass = encloserID + ".this"
 		self.decisionDict = rankDict #{myDeciderID_deciderX : rank}
 		self.errors = {}
-		
+		self.finalID = finalID
 		self.inspectMyself(actionNode)
 		self.inspectByType(actionNode)
 
@@ -911,8 +916,8 @@ class actionEventClass(object):
 				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,deciderString])
 				else: dependencyString = deciderString
 			if not isinstance(n,ActivityFinalNode) and not isinstance(n,ActivityParameterNode):
-				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"endTime+2 &lt; finalNode_startTime"])
-				else: dependencyString = "endTime+2 &lt; finalNode_startTime"
+				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"endTime + 2 &lt; finalNode_startTime || !%s_exists" % self.finalID])
+				else: dependencyString = "endTime + 2 &lt; finalNode_startTime || !%s_exists" % self.finalID
 			if not dependencyString: dependencyString = "true"
 			self.dependencies[n.getID() + "_exists"] = ("Boolean",str(dependencyString))
 			existscon = n.getID()+"_exists"
