@@ -2070,7 +2070,27 @@ public class EventXmlToJava {
       complainIfNotFound = false;
     } else if ( expr.getClass() == NameExpr.class ) {
       name = ( (NameExpr)expr ).getName();
-//      below doesn't work.
+/*      // HACK? to avoid errors for package name prefix.  What about org?
+      if ( name.equals( "java" ) ) {
+        result = "java";
+      }
+      if ( result == null ) {
+        // Maybe it's just a class or package name.
+        Class< ? > cls = ClassUtils.getClassForName( expr.toString(), packageName, false );
+        if ( cls != null ) {
+          // REVIEW -- Is it's type itself because it is a type (class name)?
+          result = expr.toString();
+        }
+        if ( result == null ) {
+          // REVIEW -- Is it's type itself because it is a package name?
+          Package pkg = Package.getPackage( expr.toString() );
+          if ( pkg != null ) {
+            result = expr.toString();
+          }
+          // try this? ClassUtils.getPackageStrings( packages );
+        }
+      }
+*///      below doesn't work.
 //      if ( name == "True" ) name = "true";
 //      if ( name == "False" ) name = "false";
     } else if ( expr.getClass() == ThisExpr.class ) {
@@ -2108,7 +2128,23 @@ public class EventXmlToJava {
           result = classForName.getName();
         }
       }
-      if ( result == null ) {
+/*      if ( result == null ) {
+        // Maybe it's just a class or package name.
+        Class< ? > cls = ClassUtils.getClassForName( expr.toString(), packageName, false );
+        if ( cls != null ) {
+          // REVIEW -- Is it's type itself because it is a type (class name)?
+          result = expr.toString();
+        }
+        if ( result == null ) {
+          // REVIEW -- Is it's type itself because it is a package name?
+          Package pkg = Package.getPackage( expr.toString() );
+          if ( pkg != null ) {
+            result = expr.toString();
+          }
+          // try this? ClassUtils.getPackageStrings( packages );
+        }
+      }
+*/      if ( result == null ) {
         // REVIEW -- This probably won't work! What case is this?
         if ( Debug.isOn() ) Debug.err( "Can't determine type from FieldAccessExpr: " + expr );
         name = expr.toString();
@@ -2151,7 +2187,15 @@ public class EventXmlToJava {
         p = lookupCurrentClassMember( name, lookOutsideXml, complainIfNotFound );
         result = ( p == null ) ? null : p.type;
       }
-    }
+/*      // Maybe it's just a class or package name.
+      // REVIEW -- Is it's type itself because it is a type?
+      if ( result == null ) {
+        Class< ? > cls = ClassUtils.getClassForName( expr.toString(), packageName, false );
+        if ( cls != null ) {
+          result = expr.toString();
+        }
+      }
+*/    }
     if ( complainIfNotFound && Utils.isNullOrEmpty( result ) ) // delete this line -- just for setting breakpoint
       Debug.errorOnNull( "Error! null type for expression " + expr + "!", result );
     if ( Debug.isOn() ) Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result );
@@ -2210,6 +2254,17 @@ public class EventXmlToJava {
     String aeString = null;
     if ( fieldAccessExpr.getScope() != null
          && ( fieldAccessExpr.getScope() instanceof FieldAccessExpr || fieldAccessExpr.getScope() instanceof NameExpr ) ) {
+/*      
+      // Maybe it's just a class or package name.
+      Class< ? > cls = ClassUtils.getClassForName( fieldAccessExpr.toString(), packageName, false );
+      if ( cls != null ) {
+        return fieldAccessExpr.toString();
+      }
+      Package pkg = Package.getPackage( fieldAccessExpr.toString() );
+      if ( pkg != null ) {
+        return fieldAccessExpr.toString();
+      }
+*/      
       String parentType =
           astToAeExprType( fieldAccessExpr.getScope(), lookOutsideXmlForTypes, true );
       if ( !Utils.isNullOrEmpty( parentType ) ) {
@@ -2294,11 +2349,11 @@ public class EventXmlToJava {
     if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
         // middle =
-        return "new Functions."
+        return "(new Functions."
                + astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
                + astToAeExpr( ue.getExpr(), type,
                               true, lookOutsideXmlForTypes,
-                              complainIfDeclNotFound ) + " )";
+                              complainIfDeclNotFound ) + " )).functionCall";
     } else
     /*** EnclosedExpr ***/
     if ( expr.getClass() == EnclosedExpr.class ) {

@@ -9,9 +9,14 @@ import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+
+import com.nomagic.uml2.ext.magicdraw.activities.mdbasicactivities.ObjectFlow;
+
 import junit.framework.Assert;
 
 /**
@@ -20,6 +25,15 @@ import junit.framework.Assert;
 public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   private static final long serialVersionUID = 5136649915412969932L;
+
+  private static Collection< Method > effectMethods = TimeVaryingList.initEffectMethods();
+
+  private static Method addMethod = getAddMethod();
+  private static Method addWithListMethod = getAddWithListMethod();
+  private static Method addIfNotContainedMethod = getAddIfNotContainedMethod();
+  private static Method addIfNotContainedIfMethod = getAddIfNotContainedIfMethod();
+  private static Method removeMethod = getRemoveMethod();
+  private static Method removeWithListMethod = getRemoveWithListMethod();
   
   /**
    * the maximum size allowed for the list
@@ -295,8 +309,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   
   public boolean addIfNotContained(  Parameter<Integer> t, T value, Boolean doSend ) {
-    if (doSend == null) return false;
-    if ( !contains( t, value ) && doSend.booleanValue()) {
+    if ( doSend == null || !doSend.booleanValue() ) return false;
+    if ( !contains( t, value ) ) {
       return add( t, value );
     }
     return false;
@@ -633,6 +647,123 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       t = getTimepointAfter( t );
     }
     //super.detach( parameter );
+  }
+
+  public static Method getAddMethod() {
+    if (addMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("add")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 2
+            && m.getParameterTypes()[1] != List.class) {
+          addMethod = m;
+          break;
+        }
+      }
+    }
+    assert addMethod != null;
+    return addMethod;
+  }
+  public static Method getAddWithListMethod() {
+    if (addWithListMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("add")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 2
+            && m.getParameterTypes()[1] == List.class) {
+          addWithListMethod = m;
+          break;
+        }
+      }
+    }
+    assert addWithListMethod != null;
+    return addWithListMethod;
+  }
+
+  public static Method getAddIfNotContainedMethod() {
+    if (addIfNotContainedMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("addIfNotContained")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 2 ) {
+          addIfNotContainedMethod = m;
+          break;
+        }
+      }
+    }
+    assert addIfNotContainedMethod != null;
+    return addIfNotContainedMethod;
+  }
+
+  public static Method getAddIfNotContainedIfMethod() {
+    if (addIfNotContainedIfMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("addIfNotContained")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 3 ) {
+          addIfNotContainedIfMethod = m;
+          break;
+        }
+      }
+    }
+    assert addIfNotContainedIfMethod != null;
+    return addIfNotContainedIfMethod;
+  }
+  
+  public static Method getRemoveMethod() {
+    if (removeMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("remove")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 2
+            && m.getParameterTypes()[1] != List.class) {
+          removeMethod = m;
+          break;
+        }
+      }
+    }
+    assert removeMethod != null;
+    return removeMethod;
+  }
+  public static Method getRemoveWithListMethod() {
+    if (removeWithListMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("remove")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 2
+            && m.getParameterTypes()[1] == List.class) {
+          removeWithListMethod = m;
+          break;
+        }
+      }
+    }
+    assert removeWithListMethod != null;
+    return removeWithListMethod;
+  }
+  protected static Collection< Method > initEffectMethods() {
+    // copy to avoid polluting the superclass's list
+    effectMethods = new HashSet<Method>(TimeVaryingMap.initEffectMethods());
+    Method m = getAddMethod();
+    if ( m != null ) effectMethods.add( m );
+    m = getAddWithListMethod();
+    if ( m != null ) effectMethods.add( m );
+    m = getAddIfNotContainedMethod();
+    if ( m != null ) effectMethods.add( m );
+    m = getAddIfNotContainedIfMethod();
+    if ( m != null ) effectMethods.add( m );
+    m = getRemoveMethod();
+    if ( m != null ) effectMethods.add( m );
+    m = getRemoveWithListMethod();
+    if ( m != null ) effectMethods.add( m );
+    return effectMethods;
+  }
+
+  // This looks the same as parent's getEffectMethods(), but it uses its own
+  // effectMethods and initEffectMethods(). So, DO NOT DELETE.
+  @Override
+  public Collection< Method > getEffectMethods() {
+    if ( effectMethods == null ) effectMethods = initEffectMethods();
+    return effectMethods;
   }
   
   /**

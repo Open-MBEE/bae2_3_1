@@ -865,6 +865,31 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     addEffect( sv, obj, method, v );
   }
 
+  // These effects are dynamic, so we don't want to add them to the static set. 
+//  public void addEffects( Dependency<?> dependency ) {
+//    for ( Effect e : getEffectsFromDependency( dependency ) ) {
+//      addEffect()
+//    }
+//  }
+  
+  // Gather effect functions from a Dependency. 
+  public static Collection<Effect> getEffectsFromDependency( Dependency<?> d ) {
+    List<Effect> effects = new ArrayList<Effect>();
+    List<FunctionCall> calls = d.getExpression().getFunctionCalls();
+    for ( FunctionCall call : calls ) {
+      Affectable affectable = Expression.evaluate( call.getObject(), Affectable.class, false, false );
+      if ( affectable != null ) {
+        if ( affectable.doesAffect( call.getMethod() ) ) {
+          Effect effect = new EffectFunction( call );
+          effects.add( effect );
+        }
+      }
+    }
+    return effects;
+  }
+
+
+  
   @Override
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
@@ -1050,7 +1075,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     return elaborated;
   }
-  
+
   /*
    * Try to remove others' references to this, possibly because it is being
    * deleted.
@@ -1086,6 +1111,26 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     effects.clear();
 
+    // Detach effects embedded in dependency expressions.
+    for ( Dependency<?> dependency : getDependencies() ) {
+      for ( Effect e : getEffectsFromDependency( dependency ) ) {
+        EffectFunction effectFunction;
+        if ( e instanceof EffectFunction )  {
+          effectFunction = (EffectFunction)e;
+        } else {
+          continue;
+        }
+        if ( effectFunction.getObject() != null ) {
+          TimeVarying<?> tv = Expression.evaluate( effectFunction.getObject(),
+                                                   TimeVarying.class,
+                                                   false, false );
+          if ( tv != null ) {
+            effectFunction.unApplyTo( tv );
+          }
+        }
+      }
+    }
+    
     // Remove references to time parameters from TimeVaryingMaps.
     // TODO -- REVIEW -- Is this already being done by ParameterListenerImpl.detach()
     // and TimeVaryingMap.detach( parameter )?

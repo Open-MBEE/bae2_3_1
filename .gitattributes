@@ -35,6 +35,7 @@ src/demandResponse/Service.java -text
 src/demandResponse/VectorData.java -text
 src/demandResponse/readme.txt -text
 src/gov/nasa/jpl/ae/event/AbstractParameterConstraint.java -text
+src/gov/nasa/jpl/ae/event/Affectable.java -text
 src/gov/nasa/jpl/ae/event/AspenTimelineWritable.java -text
 src/gov/nasa/jpl/ae/event/BooleanParameter.java -text
 src/gov/nasa/jpl/ae/event/Call.java -text

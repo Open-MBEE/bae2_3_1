@@ -685,7 +685,77 @@ public class ClassUtils {
                                  argTypes, true );
   }
 
+  private static int lengthOfCommonPrefix( String s1, String s2 ) {
+    int i=0;
+    for ( ; i < Math.min( s1.length(), s2.length() ); ++i ) {
+      if ( s1.charAt(i) != s2.charAt(i) ) {
+        break;
+      }
+    }
+    return i;
+  }
+  
   public static Method getMethodForArgTypes( String className,
+                                             String preferredPackage,
+                                             String callName,
+                                             Class<?>[] argTypes,
+                                             boolean complainIfNotFound ) {
+    Debug.turnOff();  // DELETE ME -- FIXME
+    Debug.outln("=========================start===============================");
+    Debug.errln("=========================start===============================");
+    //Class< ? > classForName = getClassForName( className, preferredPackage, false );
+    List< Class< ? > > classesForName = getClassesForName( className, false );
+    //Debug.err("classForName = " + classForName );
+    Debug.err("classesForName = " + classesForName );
+    if ( Utils.isNullOrEmpty( classesForName ) ) {
+      if ( complainIfNotFound ) {
+        System.err.println( "Couldn't find the class " + className + " for method "
+                     + callName
+                     + ( argTypes == null ? "" : Utils.toString( argTypes ) ) );
+      }
+      Debug.outln("===========================end==============================");
+      Debug.errln("===========================end==============================");
+      Debug.turnOff();  // DELETE ME -- FIXME
+      return null;
+    }
+    Method best = null;
+    Method nextBest = null;
+    int charsInCommonWithPreferredPackage = 0;
+    boolean tie = false;
+    for ( Class<?> cls : classesForName ) {
+      //Method m = getMethodForArgTypes( classForName, callName, argTypes );
+      Method m = getMethodForArgTypes( cls, callName, argTypes, false );
+      if ( m != null ) {
+        int numCharsInCommon = lengthOfCommonPrefix(preferredPackage,cls.getCanonicalName());
+        if ( best == null ) {
+          best = m;
+          charsInCommonWithPreferredPackage = numCharsInCommon;
+        } else {
+          if ( numCharsInCommon > charsInCommonWithPreferredPackage ) {
+            best = m;
+            charsInCommonWithPreferredPackage = numCharsInCommon;
+          } else if ( charsInCommonWithPreferredPackage == numCharsInCommon ) {
+            tie = true;
+            nextBest = m;
+          }
+        }
+      }
+    }
+    if ( tie ) {
+      System.err.println( "Warning! Multiple candidate methods found by getMethodForArgTypes("
+          + className + "." + callName
+          + Utils.toString( argTypes, false )
+          + "): (1) " + best + " (2) " + nextBest );
+    }
+    if ( Debug.isOn() ) Debug.errorOnNull( "getMethodForArgTypes(" + className + "." + callName
+                 + Utils.toString( argTypes, false ) + "): Could not find method!", best );
+    Debug.outln("===========================end==============================");
+    Debug.errln("===========================end==============================");
+    Debug.turnOff();  // DELETE ME -- FIXME
+    return best;
+  }
+
+  public static Method oldGetMethodForArgTypes( String className,
                                              String preferredPackage,
                                              String callName,
                                              Class<?>[] argTypes,
@@ -706,7 +776,11 @@ public class ClassUtils {
   }
 
   public static Method getMethodForArgTypes( Class< ? > cls, String callName,
-                                               Class<?>... argTypes ) {
+                                             Class<?>... argTypes ) {
+    return getMethodForArgTypes( cls, callName, argTypes, true );
+  }
+  public static Method getMethodForArgTypes( Class< ? > cls, String callName,
+                                             Class<?>[] argTypes, boolean complain ) {
   //    return getMethodForArgTypes( cls, callName, argTypes, 10.0, 2.0, null );
   //  }
   //  public static Method getMethodForArgTypes( Class< ? > cls, String callName,
@@ -746,9 +820,15 @@ public class ClassUtils {
         Debug.turnOn();
       }
       if ( atc.best != null && !atc.allArgsMatched ) {
-        if ( Debug.isOn() ) Debug.errln( "method returned (" + atc.best + ") only matches "
-                     + atc.mostMatchingArgs + " args: " + Utils.toString( argTypes ) );
-      } else if ( atc.best == null ) {
+      if ( Debug.isOn() ) Debug.errln( "getMethodForArgTypes( cls="
+                                       + cls.getName() + ", callName="
+                                       + callName + ", argTypes="
+                                       + Utils.toString( argTypes )
+                                       + " ): method returned (" + atc.best
+                                       + ") only matches "
+                                       + atc.mostMatchingArgs + " args: "
+                                       + Utils.toString( argTypes ) );
+      } else if ( atc.best == null && complain ) {
         System.err.println( "method " + callName + "(" + Utils.toString( argTypes ) + ")"
                             + " not found for " + cls.getSimpleName() );
       }

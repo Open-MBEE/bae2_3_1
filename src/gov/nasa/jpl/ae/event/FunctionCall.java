@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Expression.Type;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
@@ -8,6 +9,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -277,4 +280,26 @@ public class FunctionCall extends Call {
     return null;
   }
 
+  /**
+   * A deep search looking for FunctionCalls
+   */
+  public List< FunctionCall > getFunctionCallsRecursively() {
+    List< FunctionCall > calls = new ArrayList< FunctionCall >();
+    calls.add( this );
+    if ( arguments != null ) {
+      for ( Object arg : arguments ) {
+        FunctionCall argCall = null;
+        try {
+          argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+        } catch ( ClassCastException e ) {
+          ; // ignore -- this is expected
+        }
+        if ( argCall != null ) {
+          calls.addAll( argCall.getFunctionCallsRecursively() );
+        }
+      }
+    }
+    return calls;
+  }
+  
 }

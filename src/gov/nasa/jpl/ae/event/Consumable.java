@@ -3,11 +3,14 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.fuml.ObjectFlow;
 import gov.nasa.jpl.ae.util.Debug;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +30,9 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   private static final long serialVersionUID = 6930722265307957963L;
   
-  public static Method addMethod = null;
+  private static Collection< Method > effectMethods = Consumable.initEffectMethods();
+  private static Method addMethod = getAddMethod();
+  private static Method setValueMethod = getSetValueMethod();
 
   protected Double minCap = Double.NEGATIVE_INFINITY;
   protected Double maxCap = Double.POSITIVE_INFINITY;
@@ -224,6 +229,22 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     return addMethod;
   }
 
+  /**
+   * @return the Method for addMethod() 
+   */
+  public static Method getSetValueMethod() {
+    if ( setValueMethod  == null ) {
+      for ( Method m : TimeVaryingMap.class.getMethods() ) {
+        if ( m.getName().equals("setValue") ) {
+          setValueMethod = m;
+          break;
+        }
+      }
+    }
+    assert setValueMethod != null;
+    return setValueMethod;
+  }
+
   @Override
   public boolean isApplied( Effect effect ) {
     if ( !( effect instanceof EffectFunction ) ) {
@@ -275,5 +296,26 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
 //    if ( Debug.isOn() ) Debug.errln( "Error! Ignoring attempt to call setValue() on " + this + "!" );
 //    return super.getValue( t );
   }
+  
+  protected static Collection< Method > initEffectMethods() {
+    // copy to avoid polluting the superclass's list
+    effectMethods = new HashSet<Method>(TimeVaryingMap.initEffectMethods());
+    Method m = getAddMethod();
+    if ( m != null ) effectMethods.add( m );
+    effectMethods.remove( TimeVaryingMap.getSetValueMethod() );
+    m = Consumable.getSetValueMethod();
+    if ( m != null ) effectMethods.add( m );
+    return effectMethods;
+  }
+
+  // This looks the same as parent's getEffectMethods(), but it uses its own
+  // effectMethods and initEffectMethods(). So, DO NOT DELETE.
+  @Override
+  public Collection< Method > getEffectMethods() {
+    if ( effectMethods == null ) initEffectMethods();
+    return effectMethods;
+  }
+
+
 
 }

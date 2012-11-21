@@ -516,4 +516,11 @@ public class Dependency< T > extends HasIdImpl
     // the ParameterListener that has the dependency.
   }
 
+  /**
+   * @return the expression to whose value the Dependency's parameter is set
+   */
+  public Expression< T > getExpression() {
+    return expression;
+  }
+
 }

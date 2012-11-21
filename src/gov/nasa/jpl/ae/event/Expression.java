@@ -9,7 +9,9 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import junit.framework.Assert;
@@ -583,4 +585,15 @@ public class Expression< ResultType > extends HasIdImpl
     Object v2 = evaluate( o2, cls, propagate, allowWrapping );
     return Utils.valuesEqual( v1, v2 );
   }
+
+  /**
+   * A deep search looking for FunctionCalls
+   */
+  public List<FunctionCall> getFunctionCalls() {
+    if ( type == Type.Function ) {
+      return ((FunctionCall)expression).getFunctionCallsRecursively();
+    }
+    return Utils.getEmptyList();
+  }
+
 }

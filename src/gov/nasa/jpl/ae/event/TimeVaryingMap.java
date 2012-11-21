@@ -16,6 +16,7 @@ import gov.nasa.jpl.ae.util.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Formatter;
 import java.util.HashSet;
@@ -43,6 +44,7 @@ import junit.framework.Assert;
  */
 public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
                                  implements TimeVarying< T >,
+                                            Affectable,
                                             ParameterListener,
                                             AspenTimelineWritable {
                                             //Comparable< TimeVaryingMap< T > > {
@@ -54,8 +56,8 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   /**
    * For the convenience of referring to the effect method.
    */
-  protected static Method setValueMethod1 = getSetValueMethod1();
-  protected static Method setValueMethod2 = getSetValueMethod2();
+  protected static Method setValueMethod1 = getSetValueMethod();
+  //protected static Method setValueMethod2 = getSetValueMethod2();
   /**
    * Floating effects are those whose time or duration is changing. They must be
    * removed from TimeVaryingMap's map before they change; else, they will
@@ -68,6 +70,8 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   protected String name;
   
   protected Class<?> type = null;
+
+  private static Collection< Method > effectMethods = initEffectMethods();
 
   public class TimeValue extends Pair< Parameter<Integer>, T >
                                implements HasParameters {
@@ -843,8 +847,8 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   public void unapply( Effect effect ) {
     Pair< Parameter<Integer>, T > p = 
         getTimepointAndValueOfEffect( effect,
-                                      getSetValueMethod1(),
-                                      getSetValueMethod1() );
+                                      getSetValueMethod(),
+                                      getSetValueMethod() );
     if ( p != null ) {
       unsetValue( p.first, p.second );
     }
@@ -907,7 +911,10 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     return compare;
   }
   
-  public static Method getSetValueMethod1() {
+  public static Method getSetValueMethod() {
+    return getSetValueWithParameterMethod();
+  }
+  public static Method getSetValueWithParameterMethod() {
     if ( setValueMethod1 == null ) {
       for ( Method m : TimeVaryingMap.class.getMethods() ) {
         if ( m.getName().equals("setValue") && m.getParameterTypes() != null
@@ -920,19 +927,6 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     return setValueMethod1;
   }
   
-  public static Method getSetValueMethod2() {
-    if ( setValueMethod2 == null ) {
-      for ( Method m : TimeVaryingMap.class.getMethods() ) {
-        if ( m.getName().equals("setValue") && m.getParameterTypes() != null
-             && m.getParameterTypes().length == 2 
-             && m.getParameterTypes() [0] == Integer.class) {
-          setValueMethod2 = m;
-        }
-      }
-    }
-    return setValueMethod2;
-  }
-
   public <TT> Pair< Parameter<Integer>, TT > getTimepointAndValueOfEffect( Effect effect,
                                                                   Method method1,
                                                                   Method method2 ) {
@@ -986,7 +980,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   
   @Override
   public boolean isApplied( Effect effect ) {
-    return isApplied(effect, getSetValueMethod1(), getSetValueMethod1()//getSetValueMethod2()
+    return isApplied(effect, getSetValueMethod(), getSetValueMethod()//getSetValueMethod2()
                      );
   }
   // FIXME -- TODO -- should check to see if value matches!!!
@@ -1133,6 +1127,27 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     }
     sb.append("\n");
     return sb.toString();
+  }
+
+  @Override
+  public Collection< Method > getEffectMethods() {
+    if ( effectMethods == null ) effectMethods = initEffectMethods();
+    return effectMethods;
+  }
+
+  @Override
+  public boolean doesAffect( Method method ) {
+    return getEffectMethods().contains( method );
+  }
+
+  protected static Collection< Method > initEffectMethods() {
+    effectMethods = new HashSet<Method>();
+    Method m = getSetValueMethod();
+    if ( m != null ) effectMethods.add( m );
+    //m = getSetValueMethod2();
+    //m = TimeVaryingMap.class.getMethod("unsetValue");
+    //m = TimeVaryingMap.class.getMethod("unapply");
+    return effectMethods;
   }
 
 }

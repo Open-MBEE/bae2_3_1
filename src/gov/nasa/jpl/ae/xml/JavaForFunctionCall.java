@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
+import gov.nasa.jpl.ae.event.Affectable;
 import gov.nasa.jpl.ae.event.TimeVarying; // don't remove!!
 import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove!!
 import japa.parser.ast.body.ConstructorDeclaration;
@@ -37,6 +38,8 @@ public class JavaForFunctionCall {
   public ObjectCreationExpr objectCreationExpr = null;
   public boolean methodOrConstructor = true; 
   public String object = null;
+  public String objectTypeName;
+  public Class<?> objectType;
   public String className = null;
   public String callName = null;
   public Constructor< ? > matchingConstructor = null;
@@ -45,6 +48,7 @@ public class JavaForFunctionCall {
   public MethodDeclaration methodDecl = null;
   public String pkg = null;
   public String methodJava = null;  // Java text for getting java.reflect.Method
+  public boolean isEffectFunction = false;
   public String argumentArrayJava = null;
   public Vector<String> args = null;
   private boolean convertingArgumentsToExpressions = false;
@@ -119,9 +123,9 @@ public class JavaForFunctionCall {
     // Get object from scope
     Expression scope = getScope();
     object = this.xmlToJava.getObjectFromScope( scope );
-    String objectType = this.xmlToJava.astToAeExprType( scope, true, true );
-    if ( objectType != null ) {
-      className = objectType;
+    objectTypeName = this.xmlToJava.astToAeExprType( scope, true, true );
+    if ( objectTypeName != null ) {
+      className = objectTypeName;
     }
     pkg = this.xmlToJava.packageName + ".";
     if ( pkg.length() == 1 ) {
@@ -130,11 +134,15 @@ public class JavaForFunctionCall {
     
     if ( Utils.isNullOrEmpty( object ) ) {
       if ( methodOrConstructor ||
-          xmlToJava.isInnerClass( objectType ) ) {
+          xmlToJava.isInnerClass( objectTypeName ) ) {
         object = "this";
       } else {
         object = "null";
       }
+    }
+
+    if ( !Utils.isNullOrEmpty( className ) ) {
+      objectType = ClassUtils.getClassForName( className, preferredPackageName, true );
     }
 
     // Assemble Java text for finding the java.reflect.Method for callName
@@ -257,6 +265,26 @@ public class JavaForFunctionCall {
     methodJavaSb.append( " )" );
     methodJava = methodJavaSb.toString();
     
+    // Determine whether the function is regular or actually an effect.
+    // For example, TimeVaryingMap.setValue(...) is an effect function, but
+    // TimeVaryingMap.getValue(...) is not.
+    Class<?> type = null;
+    if ( matchingMethod != null ) {
+      type = matchingMethod.getDeclaringClass();
+    } else if ( objectType != null ) {
+      type = objectType;
+    }
+    // Assume it's an effect if the object it's called from is Affectable, and
+    // try to prove that the function is not one of the effect functions for
+    // that class.
+    isEffectFunction = Affectable.class.isAssignableFrom( objectType );
+    // HACK -- not going to try and prove it isn't.
+//    if ( isEffectFunction && type != null ) {
+//      Class<?>[] types = new Class<?>[]{ TimeVaryingMap, TimeVaryingList, ObjectFlow, Consumable, 
+//      isEffectFunction =  
+//    }
+
+
     // Build Java text to construct an array enclosing the arguments to be
     // passed to the method call.
     StringBuffer argumentArraySb = new StringBuffer();
@@ -374,28 +402,31 @@ public class JavaForFunctionCall {
   }
   
   public String toNewFunctionCallString() {
-    String fcs = null;
+    String fcnCallStr = null;
+    String callTypeName = 
+        ( methodCallExpr == null ? "ConstructorCall"
+                                 : ( isEffectFunction ? "EffectFunction"
+                                                      : "FunctionCall" ) ); 
     if ( object.startsWith( "new FunctionCall" ) 
-         || object.startsWith( "new ConstructorCall" ) ) {
+         || object.startsWith( "new ConstructorCall" )
+      || object.startsWith( "new EffectFunction" ) ) {
       // nest the function calls
-      fcs = "new " + ( methodCallExpr == null ? "Constructor" : "Function" )
-            + "Call( null, " + methodJava + ", " + argumentArrayJava + ", "
-            + object + " )";
+      fcnCallStr = "new " + callTypeName + "( null, " + methodJava + ", "
+                   + argumentArrayJava + ", " + object + " )";
     } else {
       String instance = object;
       if ( isStatic() ) {
         instance = "null";
       }
-      fcs = "new " + ( methodCallExpr == null ? "Constructor" : "Function" )
-            + "Call( " + instance + ", " + methodJava
-            + ", " + argumentArrayJava + " )";
+      fcnCallStr = "new " + callTypeName + "( " + instance + ", " + methodJava
+                   + ", " + argumentArrayJava + " )";
     }
-    if ( evaluateCall && !Utils.isNullOrEmpty( fcs ) ) {
+    if ( evaluateCall && !Utils.isNullOrEmpty( fcnCallStr ) ) {
       if ( !convertingArgumentsToExpressions ) {
-        fcs = "(" + fcs + ").evaluate(true)";
+        fcnCallStr = "(" + fcnCallStr + ").evaluate(true)";
       }
     }
-    return fcs;
+    return fcnCallStr;
   }
   public String toNewExpressionString() {
     return "new Expression( " + toNewFunctionCallString() + " )";

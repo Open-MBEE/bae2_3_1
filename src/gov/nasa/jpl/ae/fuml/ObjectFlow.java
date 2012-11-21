@@ -5,6 +5,8 @@ package gov.nasa.jpl.ae.fuml;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.SortedMap;
 
@@ -23,12 +25,15 @@ import gov.nasa.jpl.ae.util.Debug;
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   private static final long serialVersionUID = 5278616069238729814L;
+  private static Collection< Method > effectMethods = ObjectFlow.initEffectMethods();
 
   /**
-   * For the convenience of referring to the effect method.
+   * For the convenience of referring to the effect methods.
    */
-  protected static Method sendMethod1 = getSendMethod1();
-  protected static Method sendMethod2 = getSendMethod2();
+  protected static Method sendWithParameterMethod = getSendMethod();
+  //protected static Method sendWithIntegerMethod = getSendWithIntegerMethod();
+  protected static Method sendIfMethod = getSendIfMethod();
+  private static Method receiveWithParameterMethod = getReceiveWithParameterMethod();
 
   protected static final boolean receiveSetsEvenIfNull = false;
 
@@ -192,7 +197,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 //      Expression<Boolean> = new Expression<Boolean>(effectFunction.getArguments().get( 2 ));
 //      if ( effectFunction.getArguments().size() == 3 ) && .  
 //    }
-    if ( isApplied(effect, getSendMethod1(), getSendMethod1()//getSendMethod2()
+    if ( isApplied(effect, getSendMethod(), getSendMethod()//getSendMethod2()
                    ) ) {
       return true;
     }
@@ -300,36 +305,92 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
     return false;
   }
+
   
-	public static Method getSendMethod1() {
-		if (sendMethod1 == null) {
+  // static functions to get Methods for this class
+  
+  
+	public static Method getSendMethod() {
+	  return getSendWithParameterMethod();
+	}
+	public static Method getSendWithParameterMethod() {
+		if (sendWithParameterMethod == null) {
 			for (Method m : ObjectFlow.class.getMethods()) {
 				if (m.getName().equals("send")
 						&& m.getParameterTypes() != null
 						&& m.getParameterTypes().length == 2
 						&& m.getParameterTypes()[1] == Parameter.class) {
-					sendMethod1 = m;
+					sendWithParameterMethod = m;
+					break;
 				}
 			}
 		}
-		return sendMethod1;
+		assert sendWithParameterMethod != null;
+		return sendWithParameterMethod;
 	}
 
-	public static Method getSendMethod2() {
-		if (sendMethod2 == null) {
-			for (Method m : ObjectFlow.class.getMethods()) {
-				if (m.getName().equals("send")
-						&& m.getParameterTypes() != null
-						&& m.getParameterTypes().length == 2
-						&& m.getParameterTypes()[1] == Integer.class) {
-					sendMethod2 = m;
-				}
-			}
-		}
-		return sendMethod2;
-	}
+  public static Method getSendIfMethod() {
+    if (sendIfMethod == null) {
+      for (Method m : ObjectFlow.class.getMethods()) {
+        if (m.getName().equals("sendIf")
+            && m.getParameterTypes() != null
+            && m.getParameterTypes().length == 3
+            && m.getParameterTypes()[1] == Parameter.class) {
+          sendIfMethod = m;
+          break;
+        }
+      }
+    }
+    assert sendIfMethod != null;
+    return sendIfMethod;
+  }
 
-/**
+  public static Method getReceiveMethod() {
+    return getReceiveWithParameterMethod();
+  }
+  public static Method getReceiveWithParameterMethod() {
+    if ( receiveWithParameterMethod == null ) return receiveWithParameterMethod;
+    try {
+      receiveWithParameterMethod =
+          ObjectFlow.class.getMethod( "receive", new Class<?>[]{Parameter.class} );
+    } catch ( SecurityException e ) {
+      e.printStackTrace();
+    } catch ( NoSuchMethodException e ) {
+      e.printStackTrace();
+    }
+    assert receiveWithParameterMethod != null;
+    return receiveWithParameterMethod;
+  }
+  
+	protected static Collection< Method > initEffectMethods() {
+	  // copy to avoid polluting the superclass's list
+    effectMethods = new HashSet<Method>(TimeVaryingMap.initEffectMethods());
+    Method m = getSendMethod();
+    if ( m != null ) effectMethods.add( m );
+//    m = getSendMethod2();
+//    if ( m != null ) effectMethods.add( m );
+    m = getSendIfMethod();
+    if ( m != null ) effectMethods.add( m );
+    m = getReceiveMethod();
+    if ( m != null ) effectMethods.add( m );
+//    m = getReceiveWithIntegerMethod();
+//    if ( m != null ) effectMethods.add( m );
+    return effectMethods;
+  }
+
+  // This looks the same as parent's getEffectMethods(), but it uses its own
+  // effectMethods and initEffectMethods(). So, DO NOT DELETE.
+  @Override
+  public Collection< Method > getEffectMethods() {
+    if ( effectMethods == null ) initEffectMethods();
+    return effectMethods;
+  }
+
+  
+  // accessors
+
+  
+  /**
    * @return the listeners
    */
   public List< ObjectFlow< Obj >> getListeners() {
