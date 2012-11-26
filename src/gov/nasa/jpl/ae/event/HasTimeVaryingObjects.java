@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public interface HasTimeVaryingObjects extends HasId {
+public interface HasTimeVaryingObjects extends HasId, Deconstructable {
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen );
 
@@ -60,9 +60,11 @@ public interface HasTimeVaryingObjects extends HasId {
         getTimeVaryingObjects( Map< K, V > map, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
       Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
-      for ( Map.Entry< K, V > me : map.entrySet() ) {
-        set.addAll( getTimeVaryingObjects( me.getKey(), deep, seen ) );
-        set.addAll( getTimeVaryingObjects( me.getValue(), deep, seen ) );
+      if ( map != null ) {
+        for ( Map.Entry< K, V > me : map.entrySet() ) {
+          set.addAll( getTimeVaryingObjects( me.getKey(), deep, seen ) );
+          set.addAll( getTimeVaryingObjects( me.getValue(), deep, seen ) );
+        }
       }
       return set;
     }

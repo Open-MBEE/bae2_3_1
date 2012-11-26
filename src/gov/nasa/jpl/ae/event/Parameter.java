@@ -4,7 +4,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import gov.nasa.jpl.ae.event.Functions.NotEquals;
@@ -21,6 +23,7 @@ import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -29,7 +32,8 @@ import gov.nasa.jpl.ae.util.Utils;
  */
 public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                             Comparable< Parameter< ? > >, Satisfiable, Node,
-                            Variable< T >, LazyUpdate, HasConstraints {
+                            Variable< T >, LazyUpdate, HasConstraints,
+                            MoreToString, Deconstructable {
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
   
@@ -106,7 +110,25 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     stale = true; // not grounded
   }
 */
-  
+
+  @Override
+  public void deconstruct() {
+    name = "DECONSTRUCTED_"
+            + ( getOwner() == null ? "" : getOwner().getName() + "_"
+                                          + getOwner().getId() + "_" ) + name;
+    value = null; // Can't deconstruct what we don't own, so set to null.
+    domain = null; // This may be shared by others. 
+    owner = null;
+    stale = true;
+    // The parameter does own its constraints.
+    for ( Constraint c : constraintList ) {
+      if ( c instanceof Deconstructable ) {
+        ( (Deconstructable)c ).deconstruct();
+      }
+    }
+  }
+
+
   /*
    * (non-Javadoc)
    * 
@@ -519,10 +541,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public String toString() {
-    return toString( true, false, true, null );
+    return toString( true, false, true, null, null );
   }
   
-  public String toString( boolean withOwner, boolean withHash, boolean deep, Set< Object > seen ) {
+  public String toString( boolean withOwner, boolean withHash,
+                          boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
     Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) deep = false;
     seen = pair.second;
@@ -534,20 +558,121 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         sb.append( getOwner().getName() + ":");
       }
     }
-    if ( !deep ) {
+    if ( deep || withHash ) {
       sb.append( getName() );
-    } else if ( isGrounded(false, null) ) {
-      sb.append( getName() + "=" + getValueNoPropagate() );
-    } else if ( getDomain() != null ) {
-      sb.append( getName() + "=" + getDomain() );
-    } else {
-      sb.append( getName() + "(ungrounded, null domain)" );
     }
     if ( withHash ) {
-      sb.append("(" + hashCode() + ")" );
+      sb.append("@" + hashCode() );
+    }
+    if ( !deep ) {
+      sb.append( value.toString() );
+    } else if ( isGrounded( false, null ) ) {
+      T value = getValueNoPropagate();
+      String valueString = null;
+      if ( value instanceof MoreToString ) {
+        valueString =
+            toString( (MoreToString)value, withOwner, withHash, deep, seen );
+      } else {
+        valueString = "" + value;
+      }
+      sb.append( "=" + valueString );
+    } else if ( getDomain() != null ) {
+      sb.append( "=" + getDomain() );
+    } else {
+      sb.append( "(ungrounded, null domain)" );
     }
     return sb.toString();
   }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( true, withHash, deep, seen, null );
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
+    boolean withOwner = true;
+    if ( otherOptions != null ) {
+      Object o = otherOptions.get( "withOwner" );
+      if ( o instanceof Boolean ) {
+        withOwner = ((Boolean)o).booleanValue();
+      }
+    }
+    return toString( withOwner, withHash, deep, seen, otherOptions );
+  }
+  
+  /**
+   * Helper function for passing a withOwner option used by Parameter in
+   * MoreToString.toString(...). Be careful to avoid infinite recursive calls,
+   * such as calling Parameter.toString(this,...) from within this.toString().
+   * 
+   * @return the object's MoreToString.toString(...) after adding withOwner to
+   *         the options.
+   */
+  public static String toString( MoreToString object,
+                                 boolean withOwner, boolean withHash,
+                                 boolean deep, Set< Object > seen,
+                                 Map< String, Object > otherOptions ) {
+    otherOptions.put("withOwner", withOwner);
+    return object.toString( withHash, deep, seen, otherOptions );
+  }
+
+  /**
+   * Helper function for passing a withOwner option used by Parameter in
+   * MoreToString.toString(...)
+   * 
+   * @return the object's MoreToString.toString(...) after adding withOwner to
+   *         the options.
+   */
+  public static String toString( MoreToString object,
+                                 boolean withOwner, boolean withHash,
+                                 boolean deep, Set< Object > seen ) {
+    Map<String, Object > otherOptions = new TreeMap< String, Object >(); 
+    return toString( object, withOwner, withHash, deep, seen, otherOptions );
+  }
+
+  /**
+   * Helper function for MoreToString.toString() when it is not known whether
+   * the input object implements MoreToString.
+   * 
+   * @return ((MoreToString)object).toString(...) with the same options passed
+   *         if the object does implement MoreToString; otherwise return
+   *         object.toString().
+   */
+  public static String toString( Object object,
+                                 boolean withOwner, boolean withHash,
+                                 boolean deep, Set< Object > seen ) {
+    // REVIEW -- Can we assume that this gets called only when object does not
+    // implement MoreToString?
+    if ( object == null ) return "null";
+    if ( object instanceof MoreToString ) {
+      Map<String, Object > otherOptions = new TreeMap< String, Object >(); 
+      return toString( (MoreToString)object, withOwner, withHash, deep, seen,
+                       otherOptions );
+    }
+    return object.toString();
+  }
+  /**
+   * Helper function for MoreToString.toString() when it is not known whether
+   * the input object implements MoreToString.
+   * 
+   * @return ((MoreToString)object).toString(...) with the same options passed
+   *         if the object does implement MoreToString; otherwise return
+   *         object.toString().
+   */
+  public static String toString( Object object,
+                                 boolean withOwner, boolean withHash,
+                                 boolean deep, Set< Object > seen,
+                                 Map< String, Object > otherOptions ) {
+    if ( object == null ) return "null";
+    if ( object instanceof MoreToString ) {
+      return toString( (MoreToString)object, withOwner, withHash, deep, seen,
+                       otherOptions );
+    }
+    return object.toString();
+  }
+
 
   @Override
   public boolean isStale() {

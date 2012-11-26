@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  *
  */
-public interface HasEvents extends HasId {
+public interface HasEvents extends HasId, Deconstructable {
 	/**
 	 * Get any event members; if deep, get members' event members.
 	 * @param deep

@@ -5,6 +5,7 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -12,13 +13,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
 import junit.framework.Assert;
 
-public abstract class Call extends HasIdImpl implements HasParameters, HasDomain, Groundable, Comparable< Call > {
+public abstract class Call extends HasIdImpl implements HasParameters,
+                                                        HasDomain,
+                                                        Groundable,
+                                                        Comparable< Call >,
+                                                        MoreToString {
 
   /**
    * A function call on the result of this function call.
@@ -33,6 +39,36 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
   abstract public Member getMember();
   abstract public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
+  
+  @Override
+  public void deconstruct() {
+    if ( nestedCall != null ) {
+      if ( nestedCall.getValue( false ) != null ) {
+        nestedCall.getValue( false ).deconstruct();
+        nestedCall.setValue( null );
+      }
+      nestedCall.deconstruct();
+      //nestedCall = null;
+    }
+    if ( this.arguments != null ) {
+      for ( Object a : arguments ) {
+        if ( a instanceof Expression ) {
+          ((Expression<?>)a).deconstruct();
+        } else if ( a instanceof Parameter ) {
+          if ( ( (Parameter<?>)a ).getOwner() == null ) {
+            ( (Parameter<?>)a ).deconstruct();
+          }
+        }
+      }
+      this.arguments.clear();
+      //arguments = null;
+    }
+    this.object = null; // Can't deconstruct since Call does not own it.
+    if ( evaluatedArguments != null ) {
+      this.evaluatedArguments.clear(); // Can't deconstruct since Call does not own them.
+    }
+  }
+
   
   public Boolean hasTypeErrors() {
     if ( getMember() == null ) return true;
@@ -402,10 +438,23 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
   
   @Override
   public String toString() {
+    return MoreToString.Helper.toString( this );
+  }
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( withHash, deep, seen, null );
+  }
+  @Override
+  public String toString(boolean withHash, boolean deep, Set< Object > seen,
+                         Map< String, Object > otherOptions) {
+    Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) deep = false;
+    seen = pair.second;
     StringBuffer sb = new StringBuffer();
     if ( nestedCall != null ) {
       sb.append( //"nested::" + 
-                 nestedCall.toString() );
+                 nestedCall.toString(withHash, deep, seen,
+                                     otherOptions) );
       if ( object != null ) {
         sb.append( "-->");
       } else {
@@ -422,25 +471,11 @@ public abstract class Call extends HasIdImpl implements HasParameters, HasDomain
     if ( getMember() == null ) {
       sb.append( "null" );
     } else {
-      sb.append( getMember().getName() + "(" );
-      boolean first = true;
-      for ( Object a : arguments ) {
-        if (first) {
-          first = false;
-        } else {
-          sb.append(", ");
-        }
-        if ( a == null ) {
-          sb.append( "null" );
-        } else {
-          sb.append( a.toString() );
-        }
-      }
-      sb.append( ")" );
+      sb.append( getMember().getName() );
+      sb.append( MoreToString.Helper.toString( arguments, withHash, deep, seen,
+                                               otherOptions,
+                                               MoreToString.PARENTHESES, true ) );
     }
-//    if ( nestedCall != null ) {
-//      sb.append( "." + nestedCall.toString() );
-//    }
     return sb.toString();
   }
 

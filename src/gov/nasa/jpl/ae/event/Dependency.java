@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -17,6 +18,7 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -63,6 +65,19 @@ public class Dependency< T > extends HasIdImpl
     expression = new Expression< T >( d.expression, true );
   }
 
+  @Override
+  public void deconstruct() {
+    //parameter = null; // expecting this parameter will be taken care of by the owner.
+    if ( expression != null ) {
+      expression.deconstruct();
+      //expression = null;
+    }
+    if ( constraint != null ) {
+      constraint.deconstruct();
+      //constraint = null;
+    }
+  }
+
   public boolean apply() {
     return apply( true );
   }
@@ -73,6 +88,8 @@ public class Dependency< T > extends HasIdImpl
   public boolean apply2( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
     if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
+    if ( expression == null ) return false;
+    if ( parameter == null ) return false;
     T val = expression.evaluate(propagate);
     if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
       parameter.setValue( val, propagate );
@@ -119,10 +136,16 @@ public class Dependency< T > extends HasIdImpl
     if ( constraint != null ) {
       sat = constraint.isSatisfied(deep, seen);
       if ( Debug.isOn() && !sat ) Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " );// + this );
+    } else if ( parameter == null ) {
+      sat = false;
+      if ( Debug.isOn() && !sat ) Debug.outln( "Dependency.isSatisfied(): parameter is null: " );// + this );
     } else if ( !parameter.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter not grounded: " );// + this );
+    } else if ( expression == null ) {
+      sat = false;
+      if ( Debug.isOn() && !sat ) Debug.outln( "Dependency.isSatisfied(): expression is null: " );// + this );
     } else if ( !expression.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
@@ -170,6 +193,8 @@ public class Dependency< T > extends HasIdImpl
 //      return getConstraintExpression().satisfy( deep, seen );
 //    }
     if ( Debug.isOn() ) Debug.outln("Dependency.satisfy() calling ground: " + this );
+    if ( expression == null ) return false;
+    if ( parameter == null ) return false;
     expression.ground(deep, null);
     expression.satisfy(deep, seen);
     if ( expression.isGrounded(deep, null) ) {
@@ -181,6 +206,8 @@ public class Dependency< T > extends HasIdImpl
   }
 
   public ConstraintExpression getConstraintExpression() {
+    if ( expression == null ) return null;
+    if ( parameter == null ) return null;
     if ( constraint == null ) {
       Equals< T > eq =
           new Functions.Equals< T >( new Expression< T >( parameter ),
@@ -197,6 +224,8 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public boolean substitute( Parameter< ? > t1, Parameter< ? > t2, boolean deep,
                              Set< HasParameters > seen ) {
+    if ( expression == null ) return false;
+    if ( parameter == null ) return false;
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
@@ -216,13 +245,19 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {
+    if ( expression == null ) return Utils.getEmptySet();
+    if ( parameter == null ) return Utils.getEmptySet();
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-    set.add( parameter );
-    set = Utils.addAll( set, expression.getParameters( deep, seen ) );
+    if ( parameter != null ) {
+      set.add( parameter );
+    }
+    if ( expression != null ) {
+      set = Utils.addAll( set, expression.getParameters( deep, seen ) );
+    }
     return set;
   }
 
@@ -233,6 +268,8 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public Set< Parameter< ? > > getFreeParameters( boolean deep,
                                                   Set< HasParameters > seen) {
+    if ( expression == null ) return Utils.getEmptySet();
+    if ( parameter == null ) return Utils.getEmptySet();
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -261,6 +298,7 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean pickValue( Variable< T1 > variable ) {
+    if ( variable == null ) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
       Object value = variable.getValue( false ); // DON'T CHANGE false
@@ -321,12 +359,15 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean restrictDomain( Variable< T1 > v ) {
+    if ( expression == null ) return false;
+    if ( parameter == null ) return false;
     if ( v == parameter ) {
       T val = expression.evaluate(true);
       Domain<T1> d = v.getDomain().clone();
       d.restrictToValue( (T1)val );
       v.setDomain( d );
     } else {
+      if ( getConstraintExpression() == null) return false;
       getConstraintExpression().restrictDomain( v );
     }
     return v.getDomain() != null && v.getDomain().size() > 0; 
@@ -353,6 +394,7 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public Set< Variable< ? > > getFreeVariables() {
+    if ( getConstraintExpression() == null ) return Utils.getEmptySet();
     Set< Variable< ? > > set = getConstraintExpression().getFreeVariables();
     set.remove( parameter ); 
     return set;
@@ -360,6 +402,7 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public void setFreeVariables( Set< Variable< ? > > freeVariables ) {
+    if ( getConstraintExpression() == null ) return;
     getConstraintExpression().setFreeVariables( freeVariables );
   }
 
@@ -373,8 +416,11 @@ public class Dependency< T > extends HasIdImpl
     if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     // If checkId==true, this is a little weird since this Dependency and it's
     // constraintExpression have different ids.
-    int compare = getConstraintExpression().compareTo( o, checkId );
-    if ( compare != 0 ) return compare;
+    int compare = 0;
+    if ( getConstraintExpression() != null ) {
+      compare = getConstraintExpression().compareTo( o, checkId );
+      if ( compare != 0 ) return compare;
+    }
     compare = CompareUtils.compare( this, o, false, checkId );
     if ( compare != 0 ) return compare;
     return compare;
@@ -410,17 +456,44 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public String toString() {
+    return MoreToString.Helper.toString( this );
+  }
+
+  @Override
+  public String toString(boolean withHash, boolean deep, Set< Object > seen,
+                         Map< String, Object > otherOptions) {
+    Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) deep = false;
+    seen = pair.second;
+    
     StringBuffer sb = new StringBuffer();
-    sb.append("Dependency(");
-    if ( parameter == null ) {
-      sb.append("null");
-    } else {
-      sb.append( parameter.toString( true, false, true, null ) );
-    }
-    sb.append( " <-- " + expression );
+    
+    sb.append("Dependency");
+    if ( withHash ) sb.append( "@" + hashCode() );
+    sb.append("(");
+    
+    if ( parameter == null ) sb.append("null");
+    else sb.append( parameter.toString( withHash, deep, seen, otherOptions ) );
+
+    sb.append( " <-- " );
+    if ( expression == null ) sb.append( "null" );
+    else sb.append( expression.toString( withHash, deep, seen, otherOptions ) );
+
     sb.append(")");
     return sb.toString();
   }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( withHash, deep, seen, null );
+  }
+
+//  @Override
+//  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+//                          Map< String, Object > otherOptions ) {
+//    // TODO Auto-generated method stub
+//    return null;
+//  }
 
   @Override
   public boolean isStale() {
@@ -432,7 +505,7 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public void setStale( boolean staleness ) {
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
-    parameter.setStale( staleness );
+    if ( parameter != null ) parameter.setStale( staleness );
   }
 
   @Override
@@ -450,6 +523,7 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    if ( expression == null ) return;
     if ( expression.hasParameter( changedParameter, true, null ) ) {
       parameter.setStale( true );
     }
@@ -473,6 +547,7 @@ public class Dependency< T > extends HasIdImpl
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( p == parameter ) return false;
+    if ( expression == null ) return false;
     return expression.isFreeParameter( p, deep, seen );
   }
 

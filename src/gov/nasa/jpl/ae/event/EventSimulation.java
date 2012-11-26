@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.SimulatedTime;
 import gov.nasa.jpl.ae.util.SocketClient;
@@ -311,6 +312,12 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                         ( value == null ? "null" : value.toString() ) );
         }
         
+        value = Expression.evaluate( value, null, false );
+        if ( value instanceof MoreToString ) {
+          Map<String,Object> options = new TreeMap< String, Object >();
+          options.put( "withOwner", false );
+          value = ( (MoreToString)value ).toString( false, false, null, options );
+        }
         // todo -- printing should be an Executor
         String formatString = null;
         if ( t == lastT ) {

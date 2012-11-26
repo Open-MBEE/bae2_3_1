@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 
-import com.nomagic.uml2.ext.magicdraw.activities.mdbasicactivities.ObjectFlow;
-
 import junit.framework.Assert;
 
 /**
@@ -273,7 +271,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       if ( remove( value, e.getValue(), justLast ) ) changed = true;
       // Save away the entry to delete if the list is no different than that of
       // the last entry.
-      if ( Utils.valuesEqual( e.getValue(), lastList ) ) {
+      if ( Utils.valuesEqual( e.getValue(), lastList )
+           || ( ( monotonically || lastList == null ) && e.getValue().isEmpty() ) ) {
         deleteList.add( e.getKey() );
       } else {
         lastList = e.getValue();
@@ -624,7 +623,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
         List< T > added = valuesAddedAt( (Parameter<Integer>)parameter );
         remove( (Parameter<Integer>)parameter, added );
       }
-      //remove( (Parameter<Integer>)parameter ); // this should already be done
+      remove( (Parameter<Integer>)parameter ); // this should already be done
     }
     
     // remove list values that are (or have) the parameter
@@ -651,7 +650,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   public static Method getAddMethod() {
     if (addMethod == null) {
-      for (Method m : ObjectFlow.class.getMethods()) {
+      for (Method m : TimeVaryingList.class.getMethods()) {
         if (m.getName().equals("add")
             && m.getParameterTypes() != null
             && m.getParameterTypes().length == 2
@@ -666,7 +665,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   public static Method getAddWithListMethod() {
     if (addWithListMethod == null) {
-      for (Method m : ObjectFlow.class.getMethods()) {
+      for (Method m : TimeVaryingList.class.getMethods()) {
         if (m.getName().equals("add")
             && m.getParameterTypes() != null
             && m.getParameterTypes().length == 2
@@ -682,7 +681,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   public static Method getAddIfNotContainedMethod() {
     if (addIfNotContainedMethod == null) {
-      for (Method m : ObjectFlow.class.getMethods()) {
+      for (Method m : TimeVaryingList.class.getMethods()) {
         if (m.getName().equals("addIfNotContained")
             && m.getParameterTypes() != null
             && m.getParameterTypes().length == 2 ) {
@@ -697,7 +696,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   public static Method getAddIfNotContainedIfMethod() {
     if (addIfNotContainedIfMethod == null) {
-      for (Method m : ObjectFlow.class.getMethods()) {
+      for (Method m : TimeVaryingList.class.getMethods()) {
         if (m.getName().equals("addIfNotContained")
             && m.getParameterTypes() != null
             && m.getParameterTypes().length == 3 ) {
@@ -712,7 +711,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   
   public static Method getRemoveMethod() {
     if (removeMethod == null) {
-      for (Method m : ObjectFlow.class.getMethods()) {
+      for (Method m : TimeVaryingList.class.getMethods()) {
         if (m.getName().equals("remove")
             && m.getParameterTypes() != null
             && m.getParameterTypes().length == 2
@@ -727,7 +726,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   public static Method getRemoveWithListMethod() {
     if (removeWithListMethod == null) {
-      for (Method m : ObjectFlow.class.getMethods()) {
+      for (Method m : TimeVaryingList.class.getMethods()) {
         if (m.getName().equals("remove")
             && m.getParameterTypes() != null
             && m.getParameterTypes().length == 2
@@ -771,11 +770,11 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    */
   public static void main( String[] args ) {
     TimeVaryingList< Integer > tvl = new TimeVaryingList< Integer >( 3 );
-    Parameter<Integer> zero = new Parameter<Integer>(null, null, 0, null);
-    Parameter<Integer> ten = new Parameter<Integer>(null, null, 10, null);
-    Parameter<Integer> twelve1 = new Parameter<Integer>(null, null, 12, null);
-    Parameter<Integer> twelve2 = new Parameter<Integer>(null, null, 12, null);
-    Parameter<Integer> fourteen = new Parameter<Integer>(null, null, 14, null);
+    Parameter<Integer> zero = new Parameter<Integer>(null, null, 0, tvl);
+    Parameter<Integer> ten = new Parameter<Integer>(null, null, 10, tvl);
+    Parameter<Integer> twelve1 = new Parameter<Integer>(null, null, 12, tvl);
+    Parameter<Integer> twelve2 = new Parameter<Integer>(null, null, 12, tvl);
+    Parameter<Integer> fourteen = new Parameter<Integer>(null, null, 14, tvl);
     int size = 0;
 
     System.out.println( tvl );
@@ -788,7 +787,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     size = tvl.size(zero);
     Assert.assertTrue( size == 0 );
     Assert.assertTrue( tvl.contains( ten, 10 ) );
-    Assert.assertTrue( tvl.contains( new Parameter<Integer>(null, null, 10, null), 10 ) );
+    Assert.assertTrue( tvl.contains( new Parameter<Integer>(null, null, 10, tvl), 10 ) );
     Assert.assertTrue( tvl.contains( twelve1, 10 ) );
     
     tvl.add( twelve1, 12 );
@@ -809,7 +808,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     tvl.add( fourteen, 12 );
     System.out.println( "add( fourteen, 12 ) = " + tvl );
     
-    tvl.addIfNotContained( new Parameter<Integer>(null, null, 8, null), 12 );
+    tvl.addIfNotContained( new Parameter<Integer>(null, null, 8, tvl), 12 );
     System.out.println( "addIfNotContained( new Parameter<Integer>(8), 12 ) = " + tvl );
     
     tvl.addIfNotContained( twelve1, 12 );
@@ -818,7 +817,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     tvl.addIfNotContained( twelve2, 12 );
     System.out.println( "addIfNotContained( twelve2, 12 ) = " + tvl );
     
-    tvl.addIfNotContained( new Parameter<Integer>(null, null, 12, null), 12 );
+    tvl.addIfNotContained( new Parameter<Integer>(null, null, 12, tvl), 12 );
     System.out.println( "addIfNotContained( new Parameter<Integer>(12), 12 ) = " + tvl );
   }
 

@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasId;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -12,7 +13,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
-public interface HasParameters extends LazyUpdate, HasId {
+public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
+                                       MoreToString {
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen );
 

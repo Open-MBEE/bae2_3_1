@@ -349,7 +349,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return getReceiveWithParameterMethod();
   }
   public static Method getReceiveWithParameterMethod() {
-    if ( receiveWithParameterMethod == null ) return receiveWithParameterMethod;
+    if ( receiveWithParameterMethod != null ) return receiveWithParameterMethod;
     try {
       receiveWithParameterMethod =
           ObjectFlow.class.getMethod( "receive", new Class<?>[]{Parameter.class} );

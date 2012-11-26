@@ -10,6 +10,7 @@ import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -20,6 +21,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Formatter;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -82,6 +84,12 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
       super( t, v );
     }
     
+    @Override
+    public void deconstruct() {
+      maybeDeconstructParameter( TimeVaryingMap.this, first );
+      maybeDeconstructParameter( TimeVaryingMap.this, second );
+    }
+
     @Override
     public boolean isStale() {
       return HasParameters.Helper.isStale( this, false, null, false );
@@ -156,6 +164,18 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     @Override
     public int hashCode() {
       return id;
+    }
+
+    @Override
+    public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+      return toString( withHash, deep, seen, null );
+    }
+
+    @Override
+    public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                            Map< String, Object > otherOptions ) {
+      return MoreToString.Helper.toString(this, withHash, deep, seen,
+                                          otherOptions, false );
     }
 
   }
@@ -244,6 +264,46 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
       e.printStackTrace();
     }
     if ( Debug.isOn() ) isConsistent();
+  }
+
+  public static void maybeDeconstructParameter( ParameterListener pl,
+                                                Object maybeParam ) {
+    if ( maybeParam instanceof Parameter ) {
+      Parameter<?> param = (Parameter< ? >)maybeParam;
+      if ( param.getOwner() == null || param.getOwner() == pl ) {
+        param.deconstruct();
+      }
+    }
+  }
+  
+  public static <K,V> void deconstructMap( ParameterListener pl, TreeMap<K,V> map ) {
+    List<V> values = new LinkedList< V >();
+    // need to remove keys before values in case the values are keys!
+    while (!map.isEmpty()) {
+      Entry< K, V > front = map.firstEntry();
+      K key = front.getKey(); 
+      V value = front.getValue();
+      map.remove( key );
+      values.add( value );
+      maybeDeconstructParameter( pl, key );
+    }
+    for ( V value : values ) {
+      maybeDeconstructParameter( pl, value );
+    }
+  }
+
+  // TODO -- TimeVaryingMap needs an owner to know when to deconstruct!
+  @Override
+  public void deconstruct() {
+    name = "DECONSTRUCTED_" + name;
+//        + ( getOwner() == null ? "" : getOwner().getName() + "_"
+//            + getOwner().getId() + "_" ) + name;
+    deconstructMap( this, this );
+    for ( TimeValue tv : floatingEffects ) {
+      tv.deconstruct();
+    }
+    floatingEffects.clear();
+    //floatingEffects = null;
   }
 
   protected void breakpoint() {}
@@ -691,11 +751,14 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
       if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter<Integer> value into the map!" );
       return null;
     }
-    if ( t.getOwner() == null ) {
-      if ( Debug.isOn() ) Debug.error( false, "Warning: inserting a Parameter<Integer> with null owner into the map--may be detached!" );
-    }
-    if ( value != null && value instanceof Parameter && ((Parameter)value).getOwner() == null ) {
-      if ( Debug.isOn() ) Debug.error( true, "Warning: trying to insert a value with a null owner into the map--may be detached!" );
+    if ( Debug.isOn() ) {
+      if ( t.getOwner() == null ) {
+        Debug.error( false, "Warning: inserting a Parameter<Integer> with null owner into the map--may be detached!" );
+      }
+      if ( value != null && value instanceof Parameter
+           && ( (Parameter)value ).getOwner() == null ) {
+        Debug.error( true, "Warning: trying to insert a value with a null owner into the map--may be detached!" );
+      }
     }
     T oldValue = null;
     Parameter<Integer> tp = keyForValueAt( value, t.getValue( false ) );
@@ -859,14 +922,16 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
     if ( parameter instanceof Parameter ) {
       remove( (Parameter<Integer>)parameter );
     }
+    Set<Parameter<?>> detachSet = new HashSet< Parameter<?> >();
     for ( Entry< Parameter<Integer>, T > e : ( (TimeVaryingMap< T >)this.clone() ).entrySet() ) {
       if ( e.getValue() instanceof HasParameters ) {
         if ( ( (HasParameters)e.getValue() ).hasParameter( parameter, false,
                                                            null ) ) {
-          detach( e.getKey() );
+          detachSet.add( e.getKey() );
         }
       }
     }
+    for ( Parameter<?> p : detachSet ) detach( p );
   }
 
 
@@ -1003,9 +1068,37 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
   
   @Override
   public String toString() {
+    return toString( Debug.isOn(), true, null );
+  }
+//  public String toString(boolean withOwner, boolean withHash,
+//                         boolean deep, Set< Object > seen,
+//                         Map< String, Object > otherOptions ) {
+//    
+//  }
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return Parameter.toString( this, true, withHash, deep, seen );
+  }
+
+  @Override
+  public String toString(boolean withHash, boolean deep, Set< Object > seen,
+                         Map< String, Object > otherOptions ) {
     StringBuffer sb = new StringBuffer();
     sb.append( this.getName() );
-    sb.append( super.toString() );
+    if ( withHash ) sb.append( "@" + hashCode() );
+    sb.append( MoreToString.Helper.toString( this, withHash, deep, seen, otherOptions, CURLY_BRACES, false ) );
+//    sb.append( "{" );
+//    boolean first = true;
+//    for ( Map.Entry< Parameter< Integer >, T > entry : entrySet() ) {
+//      if ( first ) first = false;
+//      else sb.append( ", " );
+//      sb.append( entry.getKey().toString( withHash, deep, seen, otherOptions ) );
+//      sb.append("=");
+//      sb.append( MoreToString.Helper.toString( (Object)entry.getValue(),
+//                                               withHash, deep, seen,
+//                                               otherOptions ) );
+//    }
+//    sb.append( "}" );
     return sb.toString();
   }
 

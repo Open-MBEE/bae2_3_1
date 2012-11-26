@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -26,6 +27,7 @@ import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -162,9 +164,11 @@ public class ParameterListenerImpl extends HasIdImpl
    */
   @Override
   public String toString() {
-    return toString( false, null );
+    return toString( Debug.isOn(), false, null );
   }
-  public String toString( boolean deep, Set< Object > seen ) {
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
     Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) deep = false;
     seen = pair.second;
@@ -174,13 +178,19 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( deep ) {
       for ( Object p : allParams ) {
         if ( p instanceof Parameter ) {
-          sb.append( ", " + ((Parameter<?>)p).toString( false, false, deep, seen ) );
+          sb.append( ", " + ((Parameter<?>)p).toString( false, withHash, deep,
+                                                        seen, otherOptions ) );
         } else {
           sb.append( ", " + p.toString() );
         }
       }
     }
     return sb.toString();
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( withHash, deep, seen, null );
   }
 
   // TODO -- separate this method and removeDependency from Event to
@@ -685,20 +695,47 @@ public class ParameterListenerImpl extends HasIdImpl
    * Try to remove others' references to this, possibly because it is being
    * deleted.
    */
-  public void detach() {
-    for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.getOwner() != null ) {
-        p.getOwner().detach( p );
-      }
-      if ( p.getOwner() == this ) {
-        p.setOwner( null );
+  @Override
+  public void deconstruct() {
+    if ( isDeconstructed() ) {
+      Debug.outln( "Attempted to deconstruct a deconstructed ParameterListener: "
+                   + this.toString( true, true, null ) );
+      return;
+    }
+    if ( Debug.isOn() ) {
+      Debug.outln( "Deconstructing ParameterListener: "
+                   + this.toString( true, true, null ) );
+    }
+    for ( Dependency< ? > d : dependencies ) {
+      d.deconstruct();
+    }
+    for ( ConstraintExpression ce : constraintExpressions ) {
+      ce.deconstruct();
+    }
+    for ( TimeVarying< ? > tv : timeVaryingObjects ) {
+      if ( tv instanceof Deconstructable ) {
+        ( (Deconstructable)tv ).deconstruct();
       }
     }
-    name = "DETACHED_" + name;
+    for ( Parameter< ? > p : getParameters( false, null ) ) {
+      if ( p.getOwner() != null ) {
+        p.getOwner().detach( p ); // REVIEW -- this seems complicated!
+      }
+      if ( p.getOwner() == this || p.getOwner() == null ) {
+        p.deconstruct();
+      }
+    }
+    name = "DECONSTRUCTED_" + name;
+    
     dependencies.clear();
     constraintExpressions.clear();
     this.timeVaryingObjects.clear();
     parameters.clear();
+    if ( Debug.isOn() ) {
+      Debug.outln( "Done deconstructing ParameterListener: "
+                   + this.toString( true, true, null ) );
+    }
+
   }
   
   /* (non-Javadoc)
@@ -823,6 +860,18 @@ public class ParameterListenerImpl extends HasIdImpl
       return true;
     }
     return false;
+  }
+  
+  // TODO -- add this to Deconstructable interface.
+  public boolean isDeconstructed() {
+    if ( name.startsWith( "DECONSTRUCTED_" ) || 
+        ( Utils.isNullOrEmpty( parameters ) &&
+          Utils.isNullOrEmpty( dependencies ) &&
+          Utils.isNullOrEmpty( timeVaryingObjects ) &&
+          Utils.isNullOrEmpty( constraintExpressions ) ) ) {
+     return true;
+   }
+   return false;
   }
 
 }

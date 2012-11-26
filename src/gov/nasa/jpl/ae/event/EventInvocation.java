@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
@@ -59,10 +60,34 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     this.enclosingInstance  = enclosingInstance;
     this.arguments = arguments;
     this.memberAssignments = memberAssignments;
+    this.constructor = null;
     //this.constructorParameterTypes  = constructorParameterTypes;
     //this.constructor = constructor;
   }
 
+  @Override
+  public void deconstruct() {
+    this.eventClass = null;
+    this.eventName = null;
+    this.enclosingInstance  = null;
+    if ( this.arguments != null ) {
+      for ( Object a : arguments ) {
+        if ( a instanceof Expression ) {
+          ((Expression<?>)a).deconstruct();
+        } else if ( a instanceof Parameter ) {
+          if ( ( (Parameter<?>)a ).getOwner() == null ) {
+            ( (Parameter<?>)a ).deconstruct();
+          }
+        }
+      }
+      //arguments = null;
+    }
+    if ( memberAssignments != null ) {
+      this.memberAssignments.clear();
+      //memberAssignments = null;
+    }
+  }
+  
   public Event invoke() {
     if ( Debug.isOn() ) Debug.outln( "invoke(): " + this );
     Event event = constructEvent();
@@ -193,6 +218,21 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     return "EventInvocation:" + eventName + Utils.toString(arguments); // + memberAssignments;
   }
 
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( withHash, deep, seen, null );
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
+    return "EventInvocation:" + eventName
+           + MoreToString.Helper.toString( arguments, withHash, deep, seen,
+                                           otherOptions,
+                                           MoreToString.SQUARE_BRACES ); // +
+                                                                         // memberAssignments;
+  }
+  
   // This is done by the event's constructor.
 //  // create dependencies from arguments
 //  public void createDependencies( DurativeEvent event ) {
@@ -376,5 +416,5 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( compare != 0 ) return compare;
     return 0;
   }
-  
+
 }

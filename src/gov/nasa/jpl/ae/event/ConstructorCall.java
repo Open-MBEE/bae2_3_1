@@ -1,12 +1,14 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -15,7 +17,6 @@ import java.util.Vector;
  */
 
 /**
- * @author bclement
  * 
  */
 public class ConstructorCall extends Call {
@@ -267,36 +268,29 @@ public class ConstructorCall extends Call {
   }
   
   @Override
-  public String toString() {
+  public String toString(boolean withHash, boolean deep, Set< Object > seen,
+                         Map< String, Object > otherOptions) {
+
     StringBuffer sb = new StringBuffer();
     if ( object != null ) {
       if ( object instanceof DurativeEvent ) {
         sb.append( ((DurativeEvent)object).getName() + " new." );
       } else {
-        sb.append( object.toString() + " new." );
+        sb.append( MoreToString.Helper.toString( object, withHash, deep, seen,
+                                                 otherOptions ) );
+        sb.append( " new." );
       }
     }
     if ( constructor == null ) {
       sb.append( "null" );
     } else {
-      sb.append( constructor.getName() + "(" );
-      boolean first = true;
-      for ( Object a : arguments ) {
-        if (first) {
-          first = false;
-        } else {
-          sb.append(", ");
-        }
-        if ( a == null ) {
-          sb.append( "null" );
-        } else {
-          sb.append( a.toString() );
-        }
-      }
-      sb.append( ")" );
+      sb.append( constructor.getName() );// + "(" );
+      sb.append( MoreToString.Helper.toString( arguments, withHash, deep, seen,
+                                               otherOptions,
+                                               MoreToString.PARENTHESES, true ) );
     }
     if ( nestedCall != null ) {
-      sb.append( "." + nestedCall.toString() );
+      sb.append( "." + nestedCall.toString( withHash, deep, seen, otherOptions) );
     }
     return sb.toString();
   }

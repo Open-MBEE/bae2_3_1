@@ -6,12 +6,14 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import junit.framework.Assert;
@@ -37,7 +39,8 @@ import junit.framework.Assert;
 public class Expression< ResultType > extends HasIdImpl
                                     implements HasParameters, Groundable,
                                                LazyUpdate, Satisfiable,
-                                               HasDomain, HasTimeVaryingObjects {//, Comparable< Expression< ? > > {
+                                               HasDomain, HasTimeVaryingObjects,
+                                               MoreToString {//, Comparable< Expression< ? > > {
 	public Object expression = null;
   public Type type = Type.None;
 	public Class<? extends ResultType> resultType = null;//Type.None;
@@ -160,6 +163,19 @@ public class Expression< ResultType > extends HasIdImpl
     this(e, false);
   }
 
+  @Override
+  public void deconstruct() {
+    if ( expression instanceof Deconstructable ) {
+      if ( type != Type.None && type != Type.Value &&
+          ( type != Type.Parameter || ((Parameter<?>)expression).getOwner() == null ) ) {
+        ( (Deconstructable)expression ).deconstruct();
+      }
+    }
+    //expression = null;
+  }
+
+
+  
   // REVIEW -- What if resultType == Expression.class?
 	public ResultType evaluate( boolean propagate ) {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	  if ( type == null || ( type != Type.None && expression == null ) ) {
@@ -234,7 +250,11 @@ public class Expression< ResultType > extends HasIdImpl
 	}
 	
 	@Override
-	public String toString() {
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
+    Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) deep = false;
+    seen = pair.second;
 		switch (type) {
 		case None:
 			try {
@@ -250,13 +270,24 @@ public class Expression< ResultType > extends HasIdImpl
 		case Function:
     case Constructor:
       if ( expression == null ) return "null";
-      return expression.toString();
+      return MoreToString.Helper.toString( expression, withHash, deep, seen,
+                                           otherOptions );
 		default:
 			return null;
 		}
 	}
 
-	@Override
+  @Override
+  public String toString() {
+    return MoreToString.Helper.toString( expression );
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return MoreToString.Helper.toString( expression, withHash, deep, seen );
+  }
+
+  @Override
 	public boolean substitute( Parameter<?> p1, Parameter<?> p2, boolean deep,
 	                           Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );

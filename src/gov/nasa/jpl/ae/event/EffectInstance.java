@@ -4,10 +4,12 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -34,6 +36,14 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
   }
   
   public EffectInstance() {
+    startTime = null;
+    duration = null;
+    effect = null;
+  }
+  
+  @Override
+  public void deconstruct() {
+    // nothing owned; can only set to null
     startTime = null;
     duration = null;
     effect = null;
@@ -127,6 +137,24 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
       subbed = true;
     }
     return subbed;
+  }
+
+  @Override
+  public String toString() {
+    Object[] array = new Object[]{ startTime, duration, effect };
+    return MoreToString.Helper.toString( array );
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( withHash, deep, seen, null );
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
+    Object[] array = new Object[]{ startTime, duration, effect };
+    return MoreToString.Helper.toString( array, withHash, deep, seen );
   }
 
 }

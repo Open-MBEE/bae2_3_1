@@ -122,7 +122,7 @@ public interface Event extends HasConstraints {
 
   // Try to remove others' references to this, possibly because it is being
   // deleted.
-  public void detach();
+  public void deconstruct();
 
   public String getName();
   public void setName( String name );

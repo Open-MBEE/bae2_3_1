@@ -169,6 +169,22 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     public int hashCode() {
       return id;
     }
+
+    @Override
+    public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+      return toString();
+    }
+
+    @Override
+    public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                            Map< String, Object > otherOptions ) {
+      return toString();
+    }
+
+    @Override
+    public void deconstruct() {
+      // nothing to deconstruct
+    }
     
   };  // end of elaborationsConstraint
   
@@ -297,6 +313,22 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     @Override
     public int hashCode() {
       return id;
+    }
+
+    @Override
+    public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+      return toString();
+    }
+
+    @Override
+    public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                            Map< String, Object > otherOptions ) {
+      return toString();
+    }
+
+    @Override
+    public void deconstruct() {
+      // nothing to deconstruct
     }
     
   };  // end of effectsConstraint
@@ -534,12 +566,25 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   public String toString() {
+    return toString( Debug.isOn(), true, null );
+  }
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#toString(boolean, boolean, java.util.Set, java.util.Map)
+   */
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
+    Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) deep = false;
+    seen = pair.second;
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() + "::");
-    sb.append( getName() ); //+ "@" + hashCode() );
+    sb.append( getName() );
+    if ( withHash ) sb.append( "@" + hashCode() );
     sb.append( "(" );
     Parameter<?> firstParams[] = { startTime, duration, endTime };  // Could use Arrays.sort() .search()
-    List< Parameter< ? > > allParams = new ArrayList< Parameter< ? > >(Arrays.asList( firstParams ));
+    List< Parameter< ? > > allParams =
+        new ArrayList< Parameter< ? > >(Arrays.asList( firstParams ));
     Set< Parameter< ? > > restParams = getParameters( false, null );
     restParams.removeAll( allParams );
     allParams.addAll( restParams );
@@ -548,7 +593,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( first ) first = false;
       else sb.append( ", " );
       if ( p instanceof Parameter ) {
-        sb.append( ((Parameter<?>)p).toString( false, false, true, null ) );
+        sb.append( ((Parameter<?>)p).toString( false, withHash, deep, seen, otherOptions ) );
       } else {
         sb.append( p.toString() );
       }
@@ -874,6 +919,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   
   // Gather effect functions from a Dependency. 
   public static Collection<Effect> getEffectsFromDependency( Dependency<?> d ) {
+    if ( d == null || d.getExpression() == null ) return Utils.getEmptyList();
     List<Effect> effects = new ArrayList<Effect>();
     List<FunctionCall> calls = d.getExpression().getFunctionCalls();
     for ( FunctionCall call : calls ) {
@@ -998,17 +1044,19 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   public Set< Event > getEvents( boolean deep, Set< HasEvents > seen ) {
+    if ( elaborations == null ) return Utils.getEmptySet();
     Pair< Boolean, Set< HasEvents > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     Set< Event > set = new HashSet< Event >();
     for ( Entry< ElaborationRule, Vector< Event > > e :
           elaborations.entrySet() ) {
+      if ( e.getValue() == null ) continue;
       for ( Event event : e.getValue() ) {
         set.add( event );
         if ( deep ) {
           if ( event instanceof HasEvents )
-          set = Utils.addAll( set, ((HasEvents)event).getEvents( deep, seen ) );
+            set = Utils.addAll( set, ((HasEvents)event).getEvents( deep, seen ) );
         }
       }
     }
@@ -1076,6 +1124,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return elaborated;
   }
 
+  public boolean isDeconstructed() {
+    if ( Utils.isNullOrEmpty( effects )
+         && Utils.isNullOrEmpty( elaborations )
+         && super.isDeconstructed() ) {
+      return true;
+    }
+    return false;
+  }
+  
   /*
    * Try to remove others' references to this, possibly because it is being
    * deleted.
@@ -1083,30 +1140,59 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#detach()
    */
   @Override
-  public void detach() {
-    if ( Debug.isOn() ) Debug.outln( "Detaching event: " + this );
-    // TODO -- REVIEW -- detach elaborations? (i.e. detach elaborated events?)
+  public void deconstruct() {
+    if ( isDeconstructed() ) {
+      if ( Debug.isOn() ) {
+        Debug.outln( "Attempted to deconstruct a deconstructed event: " + this );
+//        try {
+//          Thread.sleep(100);
+//        } catch ( InterruptedException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        }
+      }
+      return;
+    }
+    if ( Debug.isOn() ) Debug.outln( "Deconstructing event: " + this.toString( true, true, null ) );
+    if ( getId() == 2443 ) {
+      Debug.out( "" );
+    }
+    
+    // Get time varying objects to use later before potentially disconnecting
+    // them.
+    Set< TimeVarying< ? >> timeVaryingObjs = getTimeVaryingObjects( true, null );
 
     // Detach elaborations.
-    for ( Entry< ElaborationRule, Vector< Event > > e : elaborations.entrySet() ) {
-      for ( Event evt : e.getValue() ) {
-        evt.detach();
+    if ( elaborations != null ) {
+      for ( Entry< ElaborationRule, Vector< Event > > e : elaborations.entrySet() ) {
+        for ( Event evt : e.getValue() ) {
+          if ( evt != null ) evt.deconstruct();
+        }
+        e.getKey().deconstruct();
       }
+      elaborations.clear();
+      //elaborations = null;
     }
-    elaborations.clear();
     
     // Detach effects.
+    assert effects != null;
     for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
       Parameter< ? > tvp = p.first;
-      if ( tvp == null ) return;
-      if ( tvp.getValueNoPropagate() == null ) return;
+      TimeVarying< ? > tv = null;
+      if ( tvp != null ) {
+        tv = Expression.evaluate( (Object)tvp, TimeVarying.class, false );
+        tvp.deconstruct();
+      }
       Set< Effect > set = p.second;
-      if ( set == null ) return;
-      TimeVarying< ? > tv =
-          Expression.evaluate( (Object)tvp, TimeVarying.class, false );
-      for ( Effect e : set ) {
-        // TODO -- Has unApplyTo() been implemented?
-        e.unApplyTo( tv );
+      if ( set != null ) {
+        for ( Effect e : set ) {
+          if ( tv != null ) {
+            e.unApplyTo( tv ); // should this happen in EffectFunction?
+          }
+          if ( e instanceof EffectFunction ) {
+            ((EffectFunction)e).deconstruct();
+          }
+        }
       }
     }
     effects.clear();
@@ -1135,9 +1221,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // TODO -- REVIEW -- Is this already being done by ParameterListenerImpl.detach()
     // and TimeVaryingMap.detach( parameter )?
     Set<Timepoint> timepoints = getTimepoints( false, null );
-    for ( TimeVarying< ? > tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying< ? > tv : timeVaryingObjs  ) {
       if ( tv instanceof TimeVaryingMap ) {
         for ( Parameter<?> p : timepoints ) {
+          Debug.out( "i" );
           ( (TimeVaryingMap<?>)tv ).detach( p );
         }
 //        ( (TimeVaryingMap<?>)tv ).keySet().removeAll( timepoints );
@@ -1145,9 +1232,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
     
-    super.detach();
+    super.deconstruct();
     
-    effects.clear();
+    if ( Debug.isOn() ) Debug.outln( "Done deconstructing event: " + this.toString( true, true, null ) );
   }
   
   @Override

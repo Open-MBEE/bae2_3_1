@@ -6,10 +6,12 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -23,7 +25,7 @@ import junit.framework.Assert;
 public class ElaborationRule extends HasIdImpl implements Comparable<ElaborationRule>, HasParameters { //, ParameterListener {
   protected Expression< Boolean > condition = null;
   protected Vector< EventInvocation > eventInvocations = null;
-  protected Vector< ConstraintInvocation > constraintsToAdd = null;
+//  protected Vector< ConstraintInvocation > constraintsToAdd = null;
 
   public ElaborationRule() {}
 
@@ -33,14 +35,31 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     this.eventInvocations = eventInvocations;
   }
 
-  public ElaborationRule( Expression< Boolean > condition,
-                          Vector< EventInvocation > eventInvocations,
-                          Vector< ConstraintInvocation > constraintsToAdd ) {
-    this.condition = condition;
-    this.eventInvocations = eventInvocations;
-    this.constraintsToAdd = constraintsToAdd;
-  }
+//  public ElaborationRule( Expression< Boolean > condition,
+//                          Vector< EventInvocation > eventInvocations,
+//                          Vector< ConstraintInvocation > constraintsToAdd ) {
+//    this.condition = condition;
+//    this.eventInvocations = eventInvocations;
+//    this.constraintsToAdd = constraintsToAdd;
+//  }
 
+  @Override
+  public void deconstruct() {
+    if ( condition != null ) {
+      condition.deconstruct();
+      //condition = null;
+    }
+    if ( eventInvocations != null ) {
+      for ( EventInvocation i : eventInvocations ) {
+        if ( i != null ) {
+          i.deconstruct();
+        }
+      }
+      eventInvocations.clear();
+      //eventInvocations = null;
+    }
+  }
+  
   public boolean isConditionSatisfied() {
     Expression< Boolean > c = condition;
     boolean isNull = ( c == null );
@@ -68,7 +87,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       // TODO -- REVIEW -- Is this called by anyone keeping constraints and
       // parameters of the lost sub-events?  Do we need ElaborationListeners?
       for ( Event event : elaboratedEvents ) {
-        event.detach();
+        event.deconstruct();
       }
       elaboratedEvents.clear();
     } else if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
@@ -120,10 +139,10 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
                                                o.eventInvocations,
                                                true, checkId );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compareCollections( constraintsToAdd,
-                                               o.constraintsToAdd,
-                                               true, checkId );
-    if ( compare != 0 ) return compare;
+//    compare = CompareUtils.compareCollections( constraintsToAdd,
+//                                               o.constraintsToAdd,
+//                                               true, checkId );
+//    if ( compare != 0 ) return compare;
     return 0;
   }
 
@@ -217,20 +236,20 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     this.eventInvocations = eventInvocations;
   }
 
-  /**
-   * @return the constraintsToAdd
-   */
-  public Vector< ConstraintInvocation > getConstraintsToAdd() {
-    return constraintsToAdd;
-  }
-
-  /**
-   * @param constraintsToAdd the constraintsToAdd to set
-   */
-  public void
-      setConstraintsToAdd( Vector< ConstraintInvocation > constraintsToAdd ) {
-    this.constraintsToAdd = constraintsToAdd;
-  }
+//  /**
+//   * @return the constraintsToAdd
+//   */
+//  public Vector< ConstraintInvocation > getConstraintsToAdd() {
+//    return constraintsToAdd;
+//  }
+//
+//  /**
+//   * @param constraintsToAdd the constraintsToAdd to set
+//   */
+//  public void
+//      setConstraintsToAdd( Vector< ConstraintInvocation > constraintsToAdd ) {
+//    this.constraintsToAdd = constraintsToAdd;
+//  }
 
   @Override
   public boolean isStale() {
@@ -269,6 +288,18 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   public String toString() {
     return "ElaborationRule: " + this.getEventInvocations() + " if "
            + getCondition();
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
+    return toString( withHash, deep, seen, null );
+  }
+
+  @Override
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
+    return "ElaborationRule: " + MoreToString.Helper.toString( getEventInvocations(), withHash, deep, seen, otherOptions, true ) + " if "
+        + MoreToString.Helper.toString( getCondition(), withHash, deep, seen, otherOptions );
   }
   
 }
