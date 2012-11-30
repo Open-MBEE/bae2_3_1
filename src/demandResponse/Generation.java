@@ -18,8 +18,8 @@ public class Generation extends LinearTimeline {
   private static final long serialVersionUID = -8766093636354666392L;
   
   DRObject drObject = null;
-  boolean drEventExists = true;
-  int numberOfCustomers = 200;
+  boolean drEventExists = false;
+  static int numberOfCustomers = 100;
 
   protected double maxRateIncrease = 1000.0; // kW/sec
   protected double minRateIncrease = 0.0; // kW/sec
@@ -28,9 +28,26 @@ public class Generation extends LinearTimeline {
   protected double min = 0.0;
   protected double max = 10200.0; // 10.2 GW
   
-  public static double nightGenerationLevel = 5.0e2; // in kWatts, 5.0e6 = 5 GW
-  public static double middayGenerationLevel = 8.0e2; // 8 GW
+  public static double nightGenerationLevel = 1.8 * numberOfCustomers; // in kWatts, 5.0e6 = 5 GW
+  public static double middayGenerationLevel = 4.0 * numberOfCustomers; // 8.0e6 = 8 GW
   public static LinearTimeline dayProfile = initDayProfile();
+
+  /**
+   * @param name
+   */
+  public Generation( String name ) {
+    super( name );
+    init();
+  }
+
+  /**
+   * @param name
+   * @param defaultValue
+   */
+  public Generation( String name, Double defaultValue ) {
+    super( name, defaultValue );
+    init();
+  }
 
   protected void init() {
     if ( drEventExists ) {
@@ -57,7 +74,7 @@ public class Generation extends LinearTimeline {
       if ( Debug.isOn() ) {
         Debug.out( "Generation.setValue(" + timeSinceEpoch
                      + ", dayProfile.getValue(" + timeOfDay + ")="
-                     + dayProfile.getValue( timeOfDay ) );
+                     + dayProfile.getValue( timeOfDay ) + ")" );
       }
       if ( reduceForDREvent ) {
         generationAmount -= predictedLoadReduction();
@@ -85,6 +102,8 @@ public class Generation extends LinearTimeline {
     int tMod = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
     setValue( new Timepoint( "", timeSinceEpoch, this ),
               dayProfile.getValue( tMod ) );
+
+    System.out.println( this );
     
 /*  // Ramp down the generation with the   
     if ( drObject != null && drEventExists ) {
@@ -107,44 +126,32 @@ public class Generation extends LinearTimeline {
   
   double predictedLoadReduction() {
     if ( drObject == null || !drEventExists ) return 0.0;
-    return 0.3 * numberOfCustomers * drObject.applianceType.maxPower / 1000.0;
+    return 0.15 * numberOfCustomers
+           * ( drObject.applianceType.maxPower - drObject.applianceType.minPower )
+           / 1000.0;
   }
 
   // define a profile of generation for a given day
   private static LinearTimeline initDayProfile() {
     LinearTimeline profile = new LinearTimeline( "dayProfile" );
     double conversionFactor = 1.0 / Units.conversionFactor( Units.hours );
-    profile.setValue( new Timepoint( "", new Integer(0), null ), nightGenerationLevel );
-    profile.setValue( new Timepoint( "", new Integer((int)( 6.0 * conversionFactor )), null ),
+    double[] t = new double[]{0.0, 2.0, 6.0, 11.0, 21.5, 24.0};
+    profile.setValue( new Timepoint( "", new Integer( (int)t[0] ), null ),
+                      nightGenerationLevel
+                          + ( middayGenerationLevel - nightGenerationLevel )
+                          * 2.0 / ( 24.0 - 21.5 + 2.0 ) );
+    //    profile.setValue( new Timepoint( "", new Integer(0), null ), nightGenerationLevel );
+    profile.setValue( new Timepoint( "", new Integer((int)( t[1] * conversionFactor )), null ),
+                      nightGenerationLevel );
+    profile.setValue( new Timepoint( "", new Integer((int)( t[2] * conversionFactor )), null ),
                       nightGenerationLevel  );
-    profile.setValue( new Timepoint( "", new Integer((int)( 11.0 * conversionFactor )), null ),
+    profile.setValue( new Timepoint( "", new Integer((int)( t[3] * conversionFactor )), null ),
                       middayGenerationLevel );
-    profile.setValue( new Timepoint( "", new Integer((int)( 18.0 * conversionFactor )), null ),
+    profile.setValue( new Timepoint( "", new Integer((int)( t[4] * conversionFactor )), null ),
                       middayGenerationLevel );
-    profile.setValue( new Timepoint( "", new Integer((int)( 23.0 * conversionFactor )), null ),
-                      nightGenerationLevel );
-    profile.setValue( new Timepoint( "", new Integer((int)( 24.0 * conversionFactor )), null ),
-                      nightGenerationLevel );
-    profile.setValue( new Timepoint( "", new Integer((int)( 11.0 * conversionFactor )), null ),
-                      middayGenerationLevel );
+//    profile.setValue( new Timepoint( "", new Integer((int)( t[5] * conversionFactor )), null ),
+//                      profile.getValue( (int)t[0] ) );
     return profile;
-  }
-
-  /**
-   * @param name
-   */
-  public Generation( String name ) {
-    super( name );
-    init();
-  }
-
-  /**
-   * @param name
-   * @param defaultValue
-   */
-  public Generation( String name, Double defaultValue ) {
-    super( name, defaultValue );
-    init();
   }
 
 }

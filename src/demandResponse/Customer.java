@@ -25,7 +25,7 @@ public class Customer extends ParameterListenerImpl {
   
   public boolean additive = false;
   public int offsetSecondsFromMidnight = 0;
-  public int loadHorizon = 86400; // 1 day in seconds 
+  public int loadHorizon = Timepoint.getHorizonDuration(); 
   public double maxLoad = 3.5;  // kW
   public double minLoadFraction = 0.4;
   public double varianceFactor = 0.7;  // this is not Gaussian variance
@@ -44,10 +44,10 @@ public class Customer extends ParameterListenerImpl {
    * <p>gnuplot
    * <p>plot [0:24][0:1] f(x)=(1-m)*(sin(2*pi*(x/24-0.4))/2+0.5)+m, m=0.2, p=0.3, pi=3.14159, f(x)
    */
-  public TimeVaryingMap<Double> load = null;
+  public TimeVaryingPlottableMap<Double> load = null;
   public Consumable additiveLoad = null;
 
-  public Parameter< TimeVaryingMap< Double > > loadParameter = null;
+  public Parameter< TimeVaryingPlottableMap< Double > > loadParameter = null;
   public Parameter< Consumable > additiveLoadParameter = null;
   public Method summerLoadMethod = null;
   public Method summerLoadDeltaMethod = null;
@@ -78,7 +78,7 @@ public class Customer extends ParameterListenerImpl {
     }
     //this.numGen = gov.nasa.jpl.ae.solver.Random.global;
     double defaultValue = summerLoad(0);
-    load = new TimeVaryingMap< Double >( "load", getSummerLoadMethod(), this,
+    load = new TimeVaryingPlottableMap< Double >( "load", getSummerLoadMethod(), this,
                                                   samplePeriod, loadHorizon );
     additiveLoad = new Consumable( "additiveLoad", defaultValue,
                                    getSummerLoadDeltaMethod(), this,
@@ -86,7 +86,7 @@ public class Customer extends ParameterListenerImpl {
                                    minLoadFraction*maxLoad/3.0,
                                    Double.POSITIVE_INFINITY);
     loadParameter =
-        new Parameter< TimeVaryingMap< Double > >( "load", null, load, this );
+        new Parameter< TimeVaryingPlottableMap< Double > >( "load", null, load, this );
     additiveLoadParameter =
         new Parameter< Consumable >( "load", null, additiveLoad, this );
     parameters.add( additiveLoadParameter );
@@ -128,6 +128,13 @@ public class Customer extends ParameterListenerImpl {
   public Customer( CustomerType type ) {
     this( Timepoint.getEpoch(), 24 * 3600, 3.5, 0.2,
           ( type==Customer.CustomerType.summer ? 0.15 : 0.0 ), 3 ); 
+  }
+  
+  public Customer( CustomerType type, boolean projected ) {
+    this( Timepoint.getEpoch(), 24 * 3600, 3.5, 0.2,
+          ( type==Customer.CustomerType.summer ? 0.15 : 0.0 ), 3 );
+   load.setProjection( projected ); 
+   additiveLoad.setProjection( projected ); 
   }
   
   public double getMaxLoad( double t, boolean includeAnyDrEvent ) {

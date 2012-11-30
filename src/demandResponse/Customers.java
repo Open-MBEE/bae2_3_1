@@ -93,6 +93,15 @@ public class Customers extends Customer {
     init2();
   }
 
+  /**
+   * @param type
+   */
+  public Customers( CustomerType type, int numberOfCustomers, boolean projected) {
+    super( type, projected );
+    this.numberOfCustomers = numberOfCustomers;
+    init2();
+  }
+
   void init2() {
     //this.numGen = new Random(seed);
     TimeVaryingPlottableMap< Double > deltaMap =
@@ -117,7 +126,7 @@ public class Customers extends Customer {
     this.additiveLoad.initializeFromDeltaMap( deltaMap );
     
     loadParameter =
-        new Parameter< TimeVaryingMap< Double > >( "totalCustomerLoad", null, this.additiveLoad, this );
+        new Parameter< TimeVaryingPlottableMap< Double > >( "totalCustomerLoad", null, this.additiveLoad, this );
     additiveLoadParameter =
         new Parameter< Consumable >( "load", null, additiveLoad, this );
     parameters.add( additiveLoadParameter );
