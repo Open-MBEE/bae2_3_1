@@ -245,7 +245,13 @@ public class FunctionCall extends Call {
       Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
       return null;
     }
-    Object result = method.invoke( object, evaluatedArgs ); 
+    Object result = null;
+    try {
+      result = method.invoke( object, evaluatedArgs ); 
+    } catch (IllegalArgumentException e) {
+      System.err.println("FunctionCall.invoke(" + evaluatedArgs + "): " + e.getMessage());
+    }
+   
     return result;
   }
   

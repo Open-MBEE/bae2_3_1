@@ -1204,7 +1204,7 @@ public class TimeVaryingMap< T > extends TreeMap< Parameter<Integer>, T >
       if ( e.getKey() == null || e.getKey().getValue(false) == null ) continue;
       int startTime = e.getKey().getValue(false).intValue();
       String q = isNum ? "" : "\"";
-      Object value = e.getValue();
+      Object value = Expression.evaluate( e.getValue(), null, false );
       if ( isNum && value == null ) {
         value = new Double(getMinValue().doubleValue());
       }

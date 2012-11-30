@@ -88,6 +88,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       // parameters of the lost sub-events?  Do we need ElaborationListeners?
       for ( Event event : elaboratedEvents ) {
         event.deconstruct();
+        //System.err.println("detatched " + event);
       }
       elaboratedEvents.clear();
     } else if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
@@ -96,6 +97,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
         Event event = ei.invoke();
         if ( event != null ) {
           elaboratedEvents.add( event );
+          System.err.println("elaborated " + event);
         }
       }
     }  // else no change
