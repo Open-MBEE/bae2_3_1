@@ -558,11 +558,14 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         sb.append( getOwner().getName() + ":");
       }
     }
-    if ( deep || withHash ) {
+    if ( withOwner || deep || withHash ) {
       sb.append( getName() );
     }
     if ( withHash ) {
       sb.append("@" + hashCode() );
+    }
+    if ( withOwner || deep || withHash ) {
+      sb.append( "=" );
     }
     if ( !deep ) {
       sb.append( value == null ? "null" : value.toString() );
@@ -575,9 +578,9 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       } else {
         valueString = "" + value;
       }
-      sb.append( "=" + valueString );
+      sb.append( valueString );
     } else if ( getDomain() != null ) {
-      sb.append( "=" + getDomain() );
+      sb.append( getDomain() );
     } else {
       sb.append( "(ungrounded, null domain)" );
     }
