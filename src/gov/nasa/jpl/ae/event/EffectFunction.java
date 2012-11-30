@@ -36,6 +36,15 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 		super(object, method, arguments);
 	}
 
+  /**
+   * @param object
+   * @param method
+   * @param arguments
+   */
+  public EffectFunction(Object object, Method method, Object[] arguments) {
+    super(object, method, arguments);
+  }
+
 	/**
 	 * @param effectFunction
 	 */

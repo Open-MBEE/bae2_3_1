@@ -60,7 +60,6 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
     if ( eAfter == null ) return eBefore.getValue();
     double timeDiff =
         eAfter.getKey().getValue( false ) - eBefore.getKey().getValue( false );
-    assert timeDiff >= 0.0;
     double valueDiff = 0.0;
     if ( eAfter.getValue() != null ) {
       if ( eBefore.getValue() == null ) {
@@ -73,9 +72,13 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
     if ( eBefore.getValue() == null ) {
       interpolatedValue = valueDiff; 
     } else {
-      interpolatedValue =
-        eBefore.getValue() + 
-        valueDiff * ( t - eBefore.getKey().getValue( false ) ) / timeDiff;
+      if ( timeDiff <= 0.0 ) {
+        interpolatedValue = eBefore.getValue() + valueDiff / 2.0;
+      } else {
+        interpolatedValue =
+            eBefore.getValue() + 
+            valueDiff * ( t - eBefore.getKey().getValue( false ) ) / timeDiff;
+      }
     }
     return interpolatedValue;
   }

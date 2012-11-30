@@ -565,7 +565,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       sb.append("@" + hashCode() );
     }
     if ( !deep ) {
-      sb.append( value.toString() );
+      sb.append( value == null ? "null" : value.toString() );
     } else if ( isGrounded( false, null ) ) {
       T value = getValueNoPropagate();
       String valueString = null;

@@ -277,7 +277,7 @@ public class JavaForFunctionCall {
     // Assume it's an effect if the object it's called from is Affectable, and
     // try to prove that the function is not one of the effect functions for
     // that class.
-    isEffectFunction = Affectable.class.isAssignableFrom( objectType );
+    isEffectFunction = objectType != null && Affectable.class.isAssignableFrom( objectType );
     // HACK -- not going to try and prove it isn't.
 //    if ( isEffectFunction && type != null ) {
 //      Class<?>[] types = new Class<?>[]{ TimeVaryingMap, TimeVaryingList, ObjectFlow, Consumable, 

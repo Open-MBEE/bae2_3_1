@@ -16,6 +16,8 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
    * 
    */
   private static final long serialVersionUID = -897416349437818390L;
+  
+  protected boolean dataProjected = false;
 
   /**
    * @param name
@@ -32,10 +34,35 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
 
   /**
    * @param name
+   * @param initialValueFunction
+   * @param o
+   * @param samplePeriod
+   * @param horizonDuration
+   * @param projected
+   */
+  public TimeVaryingPlottableMap( String name, Method initialValueFunction,
+                                  Object o, int samplePeriod,
+                                  int horizonDuration, boolean projected ) {
+    this( name, initialValueFunction, o, samplePeriod, horizonDuration );
+    dataProjected = projected;
+  }
+
+  /**
+   * @param name
    * @param defaultValue
    */
   public TimeVaryingPlottableMap( String name, T defaultValue ) {
     super( name, defaultValue );
+  }
+
+  /**
+   * @param name
+   * @param defaultValue
+   * @param projected
+   */
+  public TimeVaryingPlottableMap( String name, T defaultValue, boolean projected ) {
+    this( name, defaultValue );
+    dataProjected = projected;
   }
 
   /**
@@ -45,9 +72,26 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
     super( name );
   }
 
+  /**
+   * @param name
+   */
+  public TimeVaryingPlottableMap( String name, boolean projected ) {
+    this( name );
+    dataProjected = projected;
+  }
+
   @Override
   public boolean okToSample() {
     return true;
+  }
+
+  @Override
+  public boolean isProjection() {
+    return dataProjected;
+  }
+
+  public void setProjection( boolean b ) {
+    dataProjected = b;
   }
 
 }

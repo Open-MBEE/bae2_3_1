@@ -20,11 +20,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import junit.framework.Assert;
 
@@ -111,6 +113,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   Process plotProcess = null;
   List<Executor> executors = new ArrayList<Executor>();
   public Collection<Plottable> plottables = new ArrayList<Plottable>();
+  protected Set<Plottable> projections = new HashSet< Plottable >();
     
   // New Constructors
   
@@ -195,6 +198,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       return false;
     }
     if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
+    
+    if ( tv instanceof Plottable && ((Plottable)tv).isProjection() ) {
+      return projections.add((Plottable)tv);
+    }
+    
     boolean existingEntry = false;
     Object lastValue = null;
     boolean first = true;
@@ -506,6 +514,55 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       tryToPlot = false;
       e.printStackTrace();
     }
+    if ( tryToPlot ) {
+      plotProjections();
+    }
+  }
+
+  public void plotProjections() {
+    for ( Plottable plottable : projections ) {
+      if ( plottable instanceof TimeVaryingPlottableMap ) {
+        plotProjection( (TimeVaryingPlottableMap< ? >)plottable );
+      }
+    }
+  }
+
+  public void plotProjection( TimeVaryingPlottableMap< ? > map ) {
+    if ( map == null || plotSocket == null || !plotSocket.isConnected() ) {
+      return;
+    }
+    // The array will contain the map's hash code followed by key-value pairs.
+    Vector<Double> doubleVector = new Vector< Double >();
+    doubleVector.add( new Double(map.hashCode()) );
+    int lastTime = Integer.MIN_VALUE;
+    for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
+      Integer timeInteger = e.getKey().getValue();
+      if ( timeInteger <= lastTime ) continue;
+      lastTime = timeInteger.intValue();
+      Double time =
+          Timepoint.Units.conversionFactor( this.plotAxisTimeUnits )
+              * timeInteger.doubleValue();
+      Object v = Expression.evaluate( map.getValue( timeInteger ), null, false );
+      assert v instanceof Double || v instanceof Integer
+             || v instanceof Parameter;
+      while ( v instanceof Parameter ) {
+        v = ( (Parameter< ? >)v ).getValue( false );
+      }
+      if ( v instanceof Integer ) {
+        v = ( (Integer)v ).doubleValue();
+      }
+      if ( Double.class.isInstance( v ) ) {
+        doubleVector.add( time );
+        doubleVector.add( (Double)v );
+      }
+    }
+    try {
+      plotSocket.send( doubleVector );
+    } catch ( IOException e ) {
+      plotSocket.close();
+      tryToPlot = false;
+      e.printStackTrace();
+    }
   }
 
   private void closePlotSocket() {
@@ -531,9 +588,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Object o = e.getKey();
       Object v = e.getValue();
       // TODO -- Support different sampling periods for different Plottables.
-      if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable &&
-           ((Plottable)o).okToSample() ) {
-        v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+      if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
+        if( ((Plottable)o).okToSample() ) {
+          v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+        }
       }
       assert v instanceof Double || v instanceof Integer || v instanceof Parameter;
       while ( v instanceof Parameter ) {
