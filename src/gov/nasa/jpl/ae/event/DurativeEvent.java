@@ -90,8 +90,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( !DurativeEvent.this.startTime.isGrounded(deep, null) ) return false;
 
       // Don't elaborate outside the horizon.  Need startTime grounded to know.
+      Integer value = startTime.getValue(true);
       if ( !startTime.isGrounded(deep, null) ) return false;
-      if ( startTime.getValue(true) >= Timepoint.getHorizonDuration() ) {
+      if ( value >= Timepoint.getHorizonDuration() ) {
         if ( Debug.isOn() ) Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
                      + getName() );
         return true;
@@ -1154,6 +1155,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       return;
     }
     if ( Debug.isOn() ) Debug.outln( "Deconstructing event: " + this.toString( true, true, null ) );
+    System.err.println( "Deconstructing event: " + this.toString( true, true, null ) );
     if ( getId() == 2443 ) {
       Debug.out( "" );
     }
