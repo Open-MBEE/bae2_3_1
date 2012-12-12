@@ -15,6 +15,7 @@ import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -68,14 +69,14 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public void deconstruct() {
     //parameter = null; // expecting this parameter will be taken care of by the owner.
-    if ( expression != null ) {
-      expression.deconstruct();
-      //expression = null;
-    }
-    if ( constraint != null ) {
-      constraint.deconstruct();
-      //constraint = null;
-    }
+    //if ( expression != null ) {
+      //expression.deconstruct();
+    expression = null;
+    //}
+    //if ( constraint != null ) {
+      //constraint.deconstruct();
+      constraint = null;
+    //}
   }
 
   public boolean apply() {
@@ -197,11 +198,11 @@ public class Dependency< T > extends HasIdImpl
     if ( parameter == null ) return false;
     expression.ground(deep, null);
     expression.satisfy(deep, seen);
-    if ( expression.isGrounded(deep, null) ) {
+    //if ( expression.isGrounded(deep, null) ) {
       boolean applied = apply( true );
-    } else {
-      parameter.satisfy(deep, seen);
-    }
+    //} else {
+    //  parameter.satisfy(deep, seen);
+    //}
     return isSatisfied( false, null );
   }
 
@@ -298,7 +299,7 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean pickValue( Variable< T1 > variable ) {
-    if ( variable == null ) return false;
+    if ( variable == null || !Solver.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
       Object value = variable.getValue( false ); // DON'T CHANGE false
@@ -313,10 +314,12 @@ public class Dependency< T > extends HasIdImpl
       if ( var == null ) return false;
       Constraint c = getConstraintExpression();
       boolean changedSomething = false;
-      if ( c != null ) {
-        if ( c.pickValue( var ) ) changedSomething = true;
-      } else {
-        if ( var.pickValue() ) changedSomething = true;
+      if ( !(var instanceof Parameter) || !((Parameter) var).isDependent()){
+        if ( c != null) {
+          if ( c.pickValue( var ) ) changedSomething = true;
+        } else {
+          if ( var.pickValue() ) changedSomething = true;
+        }
       }
       if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") returns "
                    + changedSomething + " for target/sink param" );

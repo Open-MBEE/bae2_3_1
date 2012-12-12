@@ -350,17 +350,17 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         new Functions.Sum< Integer, Integer >(
             new Expression< Integer >( startTime ),
             new Expression< Integer >( duration ) );
-    endTimeDependency  = addDependency( endTime, sum );
+    endTimeDependency  = addDependency( endTime, sum, false );
     Functions.Sub< Integer, Integer > sub1 =
         new Functions.Sub< Integer, Integer >(
             new Expression< Integer >( endTime ),
             new Expression< Integer >( duration ) );
-    startTimeDependency = addDependency( startTime, sub1 );
+    startTimeDependency = addDependency( startTime, sub1, false );
     Functions.Sub< Integer, Integer > sub2 =
         new Functions.Sub< Integer, Integer >(
             new Expression< Integer >( endTime ),
             new Expression< Integer >( startTime ) );
-    durationDependency = addDependency( duration, sub2 );
+    durationDependency = addDependency( duration, sub2, false );
   }
 
   public DurativeEvent( DurativeEvent durativeEvent ) {
@@ -923,8 +923,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     if ( d == null || d.getExpression() == null ) return Utils.getEmptyList();
     List<Effect> effects = new ArrayList<Effect>();
     List<FunctionCall> calls = d.getExpression().getFunctionCalls();
+    Affectable affectable = null;
     for ( FunctionCall call : calls ) {
-      Affectable affectable = Expression.evaluate( call.getObject(), Affectable.class, false, false );
+      try {
+        affectable = Expression.evaluate( call.getObject(), Affectable.class, false, false );
+      }
+      catch (ClassCastException e) {
+        //ignore
+      }
       if ( affectable != null ) {
         if ( affectable.doesAffect( call.getMethod() ) ) {
           Effect effect = new EffectFunction( call );

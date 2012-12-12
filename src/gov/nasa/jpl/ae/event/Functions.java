@@ -374,7 +374,7 @@ public class Functions {
     if ( r == null ) return null;
     if ( r.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       result = ((Double)r) * -1.0;
-    } else if ( r.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+    } else if ( r.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
       result = ((Integer)r) * -1;
     }
     if ( Debug.isOn() ) Debug.outln( "-" + o + " = " + result );
@@ -703,12 +703,19 @@ public class Functions {
 
   public static < T > Boolean
       equals( Expression< T > o1, Expression< T > o2 ) {
+    if ((o1 ==null) && (o2 == null)){
+      Debug.outln( "" );
+    }
     if ( o1 == o2 ) return true;
-    if ( o1 == null || o2 == null ) return false;
-    T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
+    //if ( o1 == null || o2 == null ) return false;
+    T r1 = o1 == null ? null : o1.evaluate( false );
+    T r2 = o2 == null ? null : o2.evaluate( false );
+    if ((r1 ==null) && (r2 == null)){
+      Debug.outln( "" );
+    }
     if ( r1 == r2 ) return true;
-    if ( r1 == null || r2 == null ) return false;
+    if ( r1 == null || r2 == null ) 
+      return false;
     boolean b = true;
     if ( r1 instanceof Comparable ) {
       if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
@@ -756,9 +763,10 @@ public class Functions {
     }
   }
   public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) {
-    if ( o1 == null || o2 == null ) return null;
-    Boolean r1 = o1.evaluate( false );
-    Boolean r2 = o2.evaluate( false );
+    if ( o1 == null && o2 == null ) return null;
+    Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
+    Boolean r2 = (o2 == null ? null : o2.evaluate( false ));
+    if ( ( r1 != null && r1 == false ) || ( r2 != null && r2 == false ) ) return false;
     if ( r1 == null || r2 == null ) return null;
     boolean b = r1 && r2;
     if ( Debug.isOn() ) Debug.outln( o1 + " && " + o2 + " = " + b );
@@ -774,9 +782,10 @@ public class Functions {
     }
   }
   public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-    if ( o1 == null || o2 == null ) return null;
-    Boolean r1 = o1.evaluate( false );
-    Boolean r2 = o2.evaluate( false );
+    if ( o1 == null && o2 == null ) return null;
+    Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
+    Boolean r2 = (o2 == null ? null : o2.evaluate( false ));
+    if ( ( r1 != null && r1 == true ) || ( r2 != null && r2 == true ) ) return true;
     if ( r1 == null || r2 == null ) return null;
     boolean b = r1 || r2;
     if ( Debug.isOn() ) Debug.outln( o1 + " || " + o2 + " = " + b );

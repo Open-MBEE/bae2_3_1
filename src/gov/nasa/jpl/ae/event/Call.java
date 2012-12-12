@@ -124,13 +124,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // IllegalAccessException, InvocationTargetException {
     if ( propagate ) {
       if ( !ground( propagate, null ) ) {
-        return null;
+        //return null;
       }
-    } else {
-      if ( !isGrounded( false, null ) ) {
-        return null;
-      }
-    }
+    } 
+    //else {
+    //  if ( !isGrounded( false, null ) ) {
+      //  return null;
+      //}
+    //}
     Object result = null;
     
     // evaluate the arguments before invoking the method on them

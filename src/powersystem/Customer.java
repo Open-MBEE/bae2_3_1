@@ -95,7 +95,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect34VarV = sig_17_0_2_edc0357_1352328158276_873292_20205;
                     effect34Var = new Parameter("effect34Var", null, null, this);
                     addDependency(effect34Var, new Expression(effect34VarV));
-                    effect34 = new EffectFunction(new FunctionCall(effect34Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect34 = new EffectFunction(new EffectFunction(effect34Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -112,15 +112,15 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158272_257857_20196Dependencies() {
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328158272_534943_20197_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158272_534943_20197_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158272_257857_20196Elaborations() {
                 init_17_0_2_edc0357_1352328158272_257857_20196Dependencies();
                 Expression<?>[] arguments35 = new Expression<?>[1];
-                arguments35[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments35[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition35 = new Expression<Boolean>(_17_0_2_edc0357_1352328158272_534943_20197_exists);
-                elaborationRule35 = addElaborationRule(condition35, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158272_534943_20197.class, "_ReadSelfAction_usePower", arguments35);
+                elaborationRule35 = addElaborationRule(condition35, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158272_534943_20197.class, "CUse_readself_ReadSelfAction_usePower", arguments35);
             }
         }
 
@@ -168,7 +168,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect36VarV = sig_17_0_2_edc0357_1352328158276_279334_20206;
                     effect36Var = new Parameter("effect36Var", null, null, this);
                     addDependency(effect36Var, new Expression(effect36VarV));
-                    effect36 = new EffectFunction(new FunctionCall(effect36Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160533_21059_21384, endTime }));
+                    effect36 = new EffectFunction(new EffectFunction(effect36Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160533_21059_21384, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -184,17 +184,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158272_534943_20197Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158274_877259_20201_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158274_877259_20201_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158276_873292_20205, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158276_873292_20205, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158272_534943_20197Elaborations() {
                 init_17_0_2_edc0357_1352328158272_534943_20197Dependencies();
                 Expression<?>[] arguments37 = new Expression<?>[1];
-                arguments37[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments37[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition37 = new Expression<Boolean>(_17_0_2_edc0357_1352328158274_877259_20201_exists);
-                elaborationRule37 = addElaborationRule(condition37, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158274_877259_20201.class, "_ForkNode_usePower", arguments37);
+                elaborationRule37 = addElaborationRule(condition37, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158274_877259_20201.class, "CUse_forkself_ForkNode_usePower", arguments37);
             }
         }
 
@@ -239,9 +239,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158273_555088_20198Dependencies() {
-                addDependency(endTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))).functionCall));
+                addDependency(endTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_748946_20214, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_748946_20214, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(finalNode_endTime, new Expression<Integer>(endTime));
             }
 
@@ -296,7 +296,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect38VarV = sig_17_0_2_edc0357_1352328158277_819385_20210;
                     effect38Var = new Parameter("effect38Var", null, null, this);
                     addDependency(effect38Var, new Expression(effect38VarV));
-                    effect38 = new EffectFunction(new FunctionCall(effect38Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160534_502046_21385, endTime }));
+                    effect38 = new EffectFunction(new EffectFunction(effect38Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160534_502046_21385, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -312,18 +312,18 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158273_329618_20199Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158275_94410_20203_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160535_109318_21386, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158276_305344_20207, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158275_94410_20203_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328160535_109318_21386, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158276_305344_20207, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328160534_502046_21385, new Expression<Integer>(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160535_109318_21386, Parameter.class, "getMember", new Object[] { "usage__17_0_2_edc0357_1352328156649_216766_19620" }))));
+                addDependency(_17_0_2_edc0357_1352328160534_502046_21385, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160535_109318_21386, Parameter.class, "getMember", new Object[] { "usage__17_0_2_edc0357_1352328156649_216766_19620" }))));
             }
 
             public void init_17_0_2_edc0357_1352328158273_329618_20199Elaborations() {
                 init_17_0_2_edc0357_1352328158273_329618_20199Dependencies();
                 Expression<?>[] arguments39 = new Expression<?>[1];
-                arguments39[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments39[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition39 = new Expression<Boolean>(_17_0_2_edc0357_1352328158275_94410_20203_exists);
-                elaborationRule39 = addElaborationRule(condition39, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158275_94410_20203.class, "fn2_ForkNode_usePower", arguments39);
+                elaborationRule39 = addElaborationRule(condition39, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158275_94410_20203.class, "CUse_fork2_ForkNode_usePower", arguments39);
             }
         }
 
@@ -400,19 +400,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect40VarV = sig_17_0_2_edc0357_1352328158277_686827_20213;
                     effect40Var = new Parameter("effect40Var", null, null, this);
                     addDependency(effect40Var, new Expression(effect40VarV));
-                    effect40 = new EffectFunction(new FunctionCall(effect40Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect40 = new EffectFunction(new EffectFunction(effect40Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect41VarV = decider_17_0_2_edc0357_1352328158275_65316_20204;
                     effect41Var = new Parameter("effect41Var", null, null, this);
                     addDependency(effect41Var, new Expression(effect41VarV));
-                    effect41 = new EffectFunction(new FunctionCall(effect41Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204 }));
+                    effect41 = new EffectFunction(new EffectFunction(effect41Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204 }));
                     Object effect42VarV = new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_2_edc0357_1352328156650_180051_19621_changeLoadValue" });
                     effect42Var = new Parameter("effect42Var", null, null, this);
                     addDependency(effect42Var, new Expression(effect42VarV));
-                    effect42 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("ObjectFlow<SignalchangeLoadValue>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect42Var));
+                    effect42 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("ObjectFlow<SignalchangeLoadValue>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect42Var));
                     Object effect43VarV = new FunctionCall(signalObject, Parameter.class, "getMember", new Object[] { "load__17_0_2_edc0357_1352328156636_307114_19611" });
                     effect43Var = new Parameter("effect43Var", null, null, this);
                     addDependency(effect43Var, new Expression(effect43VarV));
-                    effect43 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160536_968371_21388 }, effect43Var));
+                    effect43 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160536_968371_21388 }, effect43Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -440,9 +440,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158273_110644_20200Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160536_968371_21388, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_962194_20211, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158275_65316_20204_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160535_385192_21387, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_91616_20208, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160536_968371_21388, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_962194_20211, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158275_65316_20204_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328160535_385192_21387, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_91616_20208, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
@@ -452,9 +452,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158273_110644_20200Elaborations() {
                 init_17_0_2_edc0357_1352328158273_110644_20200Dependencies();
                 Expression<?>[] arguments44 = new Expression<?>[1];
-                arguments44[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments44[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition44 = new Expression<Boolean>(_17_0_2_edc0357_1352328158275_65316_20204_exists);
-                elaborationRule44 = addElaborationRule(condition44, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158275_65316_20204.class, "fnn1_JoinNode_usePower", arguments44);
+                elaborationRule44 = addElaborationRule(condition44, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158275_65316_20204.class, "CUse_join_JoinNode_usePower", arguments44);
             }
         }
 
@@ -539,23 +539,23 @@ public class Customer extends ParameterListenerImpl {
                     Object effect45VarV = sig_17_0_2_edc0357_1352328158276_305344_20207;
                     effect45Var = new Parameter("effect45Var", null, null, this);
                     addDependency(effect45Var, new Expression(effect45VarV));
-                    effect45 = new EffectFunction(new FunctionCall(effect45Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect45 = new EffectFunction(new EffectFunction(effect45Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect46VarV = sig_17_0_2_edc0357_1352328158277_91616_20208;
                     effect46Var = new Parameter("effect46Var", null, null, this);
                     addDependency(effect46Var, new Expression(effect46VarV));
-                    effect46 = new EffectFunction(new FunctionCall(effect46Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect46 = new EffectFunction(new EffectFunction(effect46Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect47VarV = sig_17_0_2_edc0357_1352328158277_34448_20209;
                     effect47Var = new Parameter("effect47Var", null, null, this);
                     addDependency(effect47Var, new Expression(effect47VarV));
-                    effect47 = new EffectFunction(new FunctionCall(effect47Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect47 = new EffectFunction(new EffectFunction(effect47Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect48VarV = decider_17_0_2_edc0357_1352328158273_110644_20200;
                     effect48Var = new Parameter("effect48Var", null, null, this);
                     addDependency(effect48Var, new Expression(effect48VarV));
-                    effect48 = new EffectFunction(new FunctionCall(effect48Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200 }));
+                    effect48 = new EffectFunction(new EffectFunction(effect48Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200 }));
                     Object effect49VarV = decider_17_0_2_edc0357_1352328158274_699982_20202;
                     effect49Var = new Parameter("effect49Var", null, null, this);
                     addDependency(effect49Var, new Expression(effect49VarV));
-                    effect49 = new EffectFunction(new FunctionCall(effect49Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202 }));
+                    effect49 = new EffectFunction(new EffectFunction(effect49Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -587,28 +587,28 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158274_877259_20201Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202, new Expression<Integer>(2));
-                addDependency(_17_0_2_edc0357_1352328158274_699982_20202_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158274_699982_20202_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200, new Expression<Integer>(2));
-                addDependency(_17_0_2_edc0357_1352328158273_329618_20199_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158273_329618_20199_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158273_110644_20200_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158276_279334_20206, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158273_110644_20200_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(objectToPass, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158276_279334_20206, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158274_877259_20201Elaborations() {
                 init_17_0_2_edc0357_1352328158274_877259_20201Dependencies();
                 Expression<?>[] arguments50 = new Expression<?>[1];
-                arguments50[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments50[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition50 = new Expression<Boolean>(_17_0_2_edc0357_1352328158273_329618_20199_exists);
-                elaborationRule50 = addElaborationRule(condition50, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_329618_20199.class, "rsfa_up_ReadStructuralFeatureAction_usePower", arguments50);
+                elaborationRule50 = addElaborationRule(condition50, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_329618_20199.class, "CUse_readusageparam_ReadStructuralFeatureAction_usePower", arguments50);
                 Expression<?>[] arguments51 = new Expression<?>[1];
-                arguments51[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments51[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition51 = new Expression<Boolean>(_17_0_2_edc0357_1352328158273_110644_20200_exists);
-                elaborationRule51 = addElaborationRule(condition51, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_110644_20200.class, "clvsend_SendSignalAction_usePower", arguments51);
+                elaborationRule51 = addElaborationRule(condition51, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_110644_20200.class, "CUse_sendload_SendSignalAction_usePower", arguments51);
                 Expression<?>[] arguments52 = new Expression<?>[1];
-                arguments52[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments52[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition52 = new Expression<Boolean>(_17_0_2_edc0357_1352328158274_699982_20202_exists);
-                elaborationRule52 = addElaborationRule(condition52, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158274_699982_20202.class, "rmr1_SendSignalAction_usePower", arguments52);
+                elaborationRule52 = addElaborationRule(condition52, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158274_699982_20202.class, "CUse_sendmeter_SendSignalAction_usePower", arguments52);
             }
         }
 
@@ -685,19 +685,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect53VarV = sig_17_0_2_edc0357_1352328158277_963172_20215;
                     effect53Var = new Parameter("effect53Var", null, null, this);
                     addDependency(effect53Var, new Expression(effect53VarV));
-                    effect53 = new EffectFunction(new FunctionCall(effect53Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect53 = new EffectFunction(new EffectFunction(effect53Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect54VarV = decider_17_0_2_edc0357_1352328158275_65316_20204;
                     effect54Var = new Parameter("effect54Var", null, null, this);
                     addDependency(effect54Var, new Expression(effect54VarV));
-                    effect54 = new EffectFunction(new FunctionCall(effect54Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204 }));
+                    effect54 = new EffectFunction(new EffectFunction(effect54Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204 }));
                     Object effect55VarV = new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_2_edc0357_1352328156658_447229_19624_receiveMeterReading" });
                     effect55Var = new Parameter("effect55Var", null, null, this);
                     addDependency(effect55Var, new Expression(effect55VarV));
-                    effect55 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("ObjectFlow<SignalreceiveMeterReading>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect55Var));
+                    effect55 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("ObjectFlow<SignalreceiveMeterReading>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect55Var));
                     Object effect56VarV = new FunctionCall(signalObject, Parameter.class, "getMember", new Object[] { "meter_value__17_0_2_edc0357_1352328156886_203596_19704" });
                     effect56Var = new Parameter("effect56Var", null, null, this);
                     addDependency(effect56Var, new Expression(effect56VarV));
-                    effect56 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160537_779478_21390 }, effect56Var));
+                    effect56 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160537_779478_21390 }, effect56Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -725,9 +725,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158274_699982_20202Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160537_353128_21389, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_34448_20209, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158275_65316_20204_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160537_779478_21390, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_912374_20212, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160537_353128_21389, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_34448_20209, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158275_65316_20204_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158275_65316_20204, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328160537_779478_21390, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_912374_20212, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158275_65316_20204, new Expression<Integer>(2));
                 addDependency(objectToPass, new Expression<Boolean>(true));
@@ -737,9 +737,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158274_699982_20202Elaborations() {
                 init_17_0_2_edc0357_1352328158274_699982_20202Dependencies();
                 Expression<?>[] arguments57 = new Expression<?>[1];
-                arguments57[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments57[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition57 = new Expression<Boolean>(_17_0_2_edc0357_1352328158275_65316_20204_exists);
-                elaborationRule57 = addElaborationRule(condition57, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158275_65316_20204.class, "fnn1_JoinNode_usePower", arguments57);
+                elaborationRule57 = addElaborationRule(condition57, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158275_65316_20204.class, "CUse_join_JoinNode_usePower", arguments57);
             }
         }
 
@@ -813,19 +813,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect58VarV = sig_17_0_2_edc0357_1352328158277_962194_20211;
                     effect58Var = new Parameter("effect58Var", null, null, this);
                     addDependency(effect58Var, new Expression(effect58VarV));
-                    effect58 = new EffectFunction(new FunctionCall(effect58Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect58 = new EffectFunction(new EffectFunction(effect58Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect59VarV = sig_17_0_2_edc0357_1352328158277_912374_20212;
                     effect59Var = new Parameter("effect59Var", null, null, this);
                     addDependency(effect59Var, new Expression(effect59VarV));
-                    effect59 = new EffectFunction(new FunctionCall(effect59Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect59 = new EffectFunction(new EffectFunction(effect59Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect60VarV = decider_17_0_2_edc0357_1352328158273_110644_20200;
                     effect60Var = new Parameter("effect60Var", null, null, this);
                     addDependency(effect60Var, new Expression(effect60VarV));
-                    effect60 = new EffectFunction(new FunctionCall(effect60Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200 }));
+                    effect60 = new EffectFunction(new EffectFunction(effect60Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200 }));
                     Object effect61VarV = decider_17_0_2_edc0357_1352328158274_699982_20202;
                     effect61Var = new Parameter("effect61Var", null, null, this);
                     addDependency(effect61Var, new Expression(effect61VarV));
-                    effect61 = new EffectFunction(new FunctionCall(effect61Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202 }));
+                    effect61 = new EffectFunction(new EffectFunction(effect61Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -853,23 +853,23 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158275_94410_20203Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158274_699982_20202_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158274_699982_20202_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158274_699982_20202, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158274_699982_20202)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200, new Expression<Integer>(1));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158273_110644_20200_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_819385_20210, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158273_110644_20200_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158273_110644_20200, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158273_110644_20200)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(objectToPass, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_819385_20210, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158275_94410_20203Elaborations() {
                 init_17_0_2_edc0357_1352328158275_94410_20203Dependencies();
                 Expression<?>[] arguments62 = new Expression<?>[1];
-                arguments62[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments62[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition62 = new Expression<Boolean>(_17_0_2_edc0357_1352328158273_110644_20200_exists);
-                elaborationRule62 = addElaborationRule(condition62, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_110644_20200.class, "clvsend_SendSignalAction_usePower", arguments62);
+                elaborationRule62 = addElaborationRule(condition62, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_110644_20200.class, "CUse_sendload_SendSignalAction_usePower", arguments62);
                 Expression<?>[] arguments63 = new Expression<?>[1];
-                arguments63[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments63[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition63 = new Expression<Boolean>(_17_0_2_edc0357_1352328158274_699982_20202_exists);
-                elaborationRule63 = addElaborationRule(condition63, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158274_699982_20202.class, "rmr1_SendSignalAction_usePower", arguments63);
+                elaborationRule63 = addElaborationRule(condition63, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158274_699982_20202.class, "CUse_sendmeter_SendSignalAction_usePower", arguments63);
             }
         }
 
@@ -914,7 +914,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect64VarV = sig_17_0_2_edc0357_1352328158277_748946_20214;
                     effect64Var = new Parameter("effect64Var", null, null, this);
                     addDependency(effect64Var, new Expression(effect64VarV));
-                    effect64 = new EffectFunction(new FunctionCall(effect64Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect64 = new EffectFunction(new EffectFunction(effect64Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -929,10 +929,10 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158275_65316_20204Dependencies() {
-                addDependency(objectToPass1, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_963172_20215, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(finalNode_startTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall));
+                addDependency(objectToPass1, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_963172_20215, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(finalNode_startTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_686827_20213, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158277_686827_20213, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158275_65316_20204Elaborations() {
@@ -976,13 +976,13 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158277_912374_20212 = null;
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158277_819385_20210 = null;
-
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158276_873292_20205 = null;
 
-        public Parameter< ObjectFlow<Customer> > sig_17_0_2_edc0357_1352328158277_91616_20208 = null;
+        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158277_819385_20210 = null;
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158277_962194_20211 = null;
+
+        public Parameter< ObjectFlow<Customer> > sig_17_0_2_edc0357_1352328158277_91616_20208 = null;
 
         public Parameter< ObjectFlow<Customer> > sig_17_0_2_edc0357_1352328158276_279334_20206 = null;
 
@@ -1006,15 +1006,15 @@ public class Customer extends ParameterListenerImpl {
                 if (sig_17_0_2_edc0357_1352328158276_305344_20207 == null) sig_17_0_2_edc0357_1352328158276_305344_20207 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158276_305344_20207", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158276_305344_20207" })).evaluate(true), this);
                 if (_17_0_2_edc0357_1352328158273_555088_20198_exists == null) _17_0_2_edc0357_1352328158273_555088_20198_exists = new BooleanParameter("_17_0_2_edc0357_1352328158273_555088_20198_exists", (Boolean) false, this);
                 if (decider_17_0_2_edc0357_1352328158273_110644_20200 == null) decider_17_0_2_edc0357_1352328158273_110644_20200 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158273_110644_20200", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158273_110644_20200", 2 })).evaluate(true), this);
-                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) 84000, this);
+                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) null, this);
                 if (decider_17_0_2_edc0357_1352328158275_65316_20204 == null) decider_17_0_2_edc0357_1352328158275_65316_20204 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158275_65316_20204", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158275_65316_20204", 2 })).evaluate(true), this);
-                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) 84000, this);
+                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158277_748946_20214 == null) sig_17_0_2_edc0357_1352328158277_748946_20214 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158277_748946_20214", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_748946_20214" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158277_912374_20212 == null) sig_17_0_2_edc0357_1352328158277_912374_20212 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158277_912374_20212", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_912374_20212" })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158277_819385_20210 == null) sig_17_0_2_edc0357_1352328158277_819385_20210 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158277_819385_20210", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_819385_20210" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158276_873292_20205 == null) sig_17_0_2_edc0357_1352328158276_873292_20205 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158276_873292_20205", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158276_873292_20205" })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158277_91616_20208 == null) sig_17_0_2_edc0357_1352328158277_91616_20208 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158277_91616_20208", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_91616_20208" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158277_819385_20210 == null) sig_17_0_2_edc0357_1352328158277_819385_20210 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158277_819385_20210", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_819385_20210" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158277_962194_20211 == null) sig_17_0_2_edc0357_1352328158277_962194_20211 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158277_962194_20211", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_962194_20211" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158277_91616_20208 == null) sig_17_0_2_edc0357_1352328158277_91616_20208 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158277_91616_20208", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158277_91616_20208" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158276_279334_20206 == null) sig_17_0_2_edc0357_1352328158276_279334_20206 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158276_279334_20206", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158276_279334_20206" })).evaluate(true), this);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1035,29 +1035,29 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(finalNode_endTime);
             parameters.add(sig_17_0_2_edc0357_1352328158277_748946_20214);
             parameters.add(sig_17_0_2_edc0357_1352328158277_912374_20212);
-            parameters.add(sig_17_0_2_edc0357_1352328158277_819385_20210);
             parameters.add(sig_17_0_2_edc0357_1352328158276_873292_20205);
-            parameters.add(sig_17_0_2_edc0357_1352328158277_91616_20208);
+            parameters.add(sig_17_0_2_edc0357_1352328158277_819385_20210);
             parameters.add(sig_17_0_2_edc0357_1352328158277_962194_20211);
+            parameters.add(sig_17_0_2_edc0357_1352328158277_91616_20208);
             parameters.add(sig_17_0_2_edc0357_1352328158276_279334_20206);
         }
 
         public void init_17_0_2_edc0357_1352328156638_770509_19615Dependencies() {
             caller.getValue(true).addDependency(caller.getValue(true).endTime, new Expression<Integer>(finalNode_endTime));
-            addDependency(_17_0_2_edc0357_1352328158273_555088_20198_exists, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158277_748946_20214, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>((new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))).functionCall) })));
+            addDependency(_17_0_2_edc0357_1352328158273_555088_20198_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.NotEquals(new Expression<Integer>(finalNode_startTime), null)), new Expression(new EffectFunction(sig_17_0_2_edc0357_1352328158277_748946_20214, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))) })))));
             addDependency(endTime, new Expression<Integer>(finalNode_endTime));
         }
 
         public void init_17_0_2_edc0357_1352328156638_770509_19615Elaborations() {
             init_17_0_2_edc0357_1352328156638_770509_19615Dependencies();
             Expression<?>[] arguments32 = new Expression<?>[1];
-            arguments32[0] = new Expression<Integer>(startTime);
-            Expression<Boolean> condition32 = new Expression<Boolean>(true);
-            elaborationRule32 = addElaborationRule(condition32, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158272_257857_20196.class, "_InitialNode_usePower", arguments32);
+            arguments32[0] = new Expression<Integer>(finalNode_startTime);
+            Expression<Boolean> condition32 = new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists);
+            elaborationRule32 = addElaborationRule(condition32, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_555088_20198.class, "CUse_end_ActivityFinalNode_usePower", arguments32);
             Expression<?>[] arguments33 = new Expression<?>[1];
-            arguments33[0] = new Expression<Integer>(finalNode_startTime);
-            Expression<Boolean> condition33 = new Expression<Boolean>(_17_0_2_edc0357_1352328158273_555088_20198_exists);
-            elaborationRule33 = addElaborationRule(condition33, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158273_555088_20198.class, "_ActivityFinalNode_usePower", arguments33);
+            arguments33[0] = new Expression<Integer>(startTime);
+            Expression<Boolean> condition33 = new Expression<Boolean>(true);
+            elaborationRule33 = addElaborationRule(condition33, _17_0_2_edc0357_1352328156638_770509_19615.this, Customer._17_0_2_edc0357_1352328156638_770509_19615._17_0_2_edc0357_1352328158272_257857_20196.class, "CUse_start_InitialNode_usePower", arguments33);
         }
     }
 
@@ -1114,7 +1114,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect67VarV = sig_17_0_2_edc0357_1352328158429_502495_20265;
                     effect67Var = new Parameter("effect67Var", null, null, this);
                     addDependency(effect67Var, new Expression(effect67VarV));
-                    effect67 = new EffectFunction(new FunctionCall(effect67Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160547_987385_21408, endTime }));
+                    effect67 = new EffectFunction(new EffectFunction(effect67Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160547_987385_21408, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1130,17 +1130,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158425_536558_20249Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158426_178002_20255_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158426_178002_20255_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_913443_20274, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_913443_20274, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158425_536558_20249Elaborations() {
                 init_17_0_2_edc0357_1352328158425_536558_20249Dependencies();
                 Expression<?>[] arguments68 = new Expression<?>[1];
-                arguments68[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments68[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition68 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_178002_20255_exists);
-                elaborationRule68 = addElaborationRule(condition68, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_178002_20255.class, "_ForkNode_changePowerUsage", arguments68);
+                elaborationRule68 = addElaborationRule(condition68, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_178002_20255.class, "CChange_fork2self_ForkNode_changePowerUsage", arguments68);
             }
         }
 
@@ -1190,7 +1190,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect69VarV = sig_17_0_2_edc0357_1352328158431_275687_20282;
                     effect69Var = new Parameter("effect69Var", null, null, this);
                     addDependency(effect69Var, new Expression(effect69VarV));
-                    effect69 = new EffectFunction(new FunctionCall(effect69Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160548_131046_21410, endTime }));
+                    effect69 = new EffectFunction(new EffectFunction(effect69Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160548_131046_21410, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1206,18 +1206,18 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158425_562603_20250Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158428_316417_20263_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158428_316417_20263_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_934674_20275, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_934674_20275, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_edc0357_1352328160548_131046_21410, new Expression<Integer>(15));
             }
 
             public void init_17_0_2_edc0357_1352328158425_562603_20250Elaborations() {
                 init_17_0_2_edc0357_1352328158425_562603_20250Dependencies();
                 Expression<?>[] arguments70 = new Expression<?>[1];
-                arguments70[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments70[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition70 = new Expression<Boolean>(_17_0_2_edc0357_1352328158428_316417_20263_exists);
-                elaborationRule70 = addElaborationRule(condition70, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_316417_20263.class, "_ForkNode_changePowerUsage", arguments70);
+                elaborationRule70 = addElaborationRule(condition70, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_316417_20263.class, "CChange_fork4changeval_ForkNode_changePowerUsage", arguments70);
             }
         }
 
@@ -1285,15 +1285,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect71VarV = sig_17_0_2_edc0357_1352328158430_24745_20272;
                     effect71Var = new Parameter("effect71Var", null, null, this);
                     addDependency(effect71Var, new Expression(effect71VarV));
-                    effect71 = new EffectFunction(new FunctionCall(effect71Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect71 = new EffectFunction(new EffectFunction(effect71Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect72VarV = decider_17_0_2_edc0357_1352328158426_116757_20257;
                     effect72Var = new Parameter("effect72Var", null, null, this);
                     addDependency(effect72Var, new Expression(effect72VarV));
-                    effect72 = new EffectFunction(new FunctionCall(effect72Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257 }));
+                    effect72 = new EffectFunction(new EffectFunction(effect72Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257 }));
                     Object effect73VarV = usage__17_0_2_edc0357_1352328156649_216766_19620;
                     effect73Var = new Parameter("effect73Var", null, null, this);
                     addDependency(effect73Var, new Expression(effect73VarV));
-                    effect73 = new EffectFunction(new FunctionCall(effect73Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160549_391021_21411 }));
+                    effect73 = new EffectFunction(new EffectFunction(effect73Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160549_391021_21411 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1317,20 +1317,20 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158425_844513_20251Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160549_391021_21411, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_532173_20270, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158426_116757_20257_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328160549_391021_21411, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158429_532173_20270, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158426_116757_20257_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257, new Expression<Integer>(3));
-                addDependency(_17_0_2_edc0357_1352328160550_581175_21412, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_694477_20266, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160550_581175_21412, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158429_694477_20266, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158425_844513_20251Elaborations() {
                 init_17_0_2_edc0357_1352328158425_844513_20251Dependencies();
                 Expression<?>[] arguments74 = new Expression<?>[1];
-                arguments74[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments74[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition74 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_116757_20257_exists);
-                elaborationRule74 = addElaborationRule(condition74, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_116757_20257.class, "_SendSignalAction_changePowerUsage", arguments74);
+                elaborationRule74 = addElaborationRule(condition74, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_116757_20257.class, "CChange_sendnewusage_SendSignalAction_changePowerUsage", arguments74);
             }
         }
 
@@ -1375,7 +1375,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect75VarV = sig_17_0_2_edc0357_1352328158430_229342_20273;
                     effect75Var = new Parameter("effect75Var", null, null, this);
                     addDependency(effect75Var, new Expression(effect75VarV));
-                    effect75 = new EffectFunction(new FunctionCall(effect75Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect75 = new EffectFunction(new EffectFunction(effect75Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1392,15 +1392,15 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158425_23694_20252Dependencies() {
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328158427_71576_20259_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158427_71576_20259_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158425_23694_20252Elaborations() {
                 init_17_0_2_edc0357_1352328158425_23694_20252Dependencies();
                 Expression<?>[] arguments76 = new Expression<?>[1];
-                arguments76[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments76[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition76 = new Expression<Boolean>(_17_0_2_edc0357_1352328158427_71576_20259_exists);
-                elaborationRule76 = addElaborationRule(condition76, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_71576_20259.class, "_ForkNode_changePowerUsage", arguments76);
+                elaborationRule76 = addElaborationRule(condition76, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_71576_20259.class, "CChange_fork1_ForkNode_changePowerUsage", arguments76);
             }
         }
 
@@ -1445,9 +1445,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158425_174981_20253Dependencies() {
-                addDependency(endTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))).functionCall));
+                addDependency(endTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_418011_20269, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158429_418011_20269, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(finalNode_endTime, new Expression<Integer>(endTime));
             }
 
@@ -1527,15 +1527,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect77VarV = sig_17_0_2_edc0357_1352328158430_538124_20277;
                     effect77Var = new Parameter("effect77Var", null, null, this);
                     addDependency(effect77Var, new Expression(effect77VarV));
-                    effect77 = new EffectFunction(new FunctionCall(effect77Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160550_744442_21413, endTime }));
+                    effect77 = new EffectFunction(new EffectFunction(effect77Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160550_744442_21413, endTime }));
                     Object effect78VarV = sig_17_0_2_edc0357_1352328158430_630436_20276;
                     effect78Var = new Parameter("effect78Var", null, null, this);
                     addDependency(effect78Var, new Expression(effect78VarV));
-                    effect78 = new EffectFunction(new FunctionCall(effect78Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect78 = new EffectFunction(new EffectFunction(effect78Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect79VarV = decider_17_0_2_edc0357_1352328158428_38684_20262;
                     effect79Var = new Parameter("effect79Var", null, null, this);
                     addDependency(effect79Var, new Expression(effect79VarV));
-                    effect79 = new EffectFunction(new FunctionCall(effect79Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262 }));
+                    effect79 = new EffectFunction(new EffectFunction(effect79Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1560,25 +1560,25 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158425_220398_20254Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158428_38684_20262_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158428_38684_20262_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328160551_311379_21414, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_395232_20267, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160551_311379_21414, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158429_395232_20267, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328158428_668812_20261_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160550_744442_21413, new Expression<Integer>(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160551_311379_21414, Parameter.class, "getMember", new Object[] { "cap__17_0_2_edc0357_1352328156659_30024_19625" }))));
+                addDependency(_17_0_2_edc0357_1352328158428_668812_20261_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328160550_744442_21413, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160551_311379_21414, Parameter.class, "getMember", new Object[] { "cap__17_0_2_edc0357_1352328156659_30024_19625" }))));
             }
 
             public void init_17_0_2_edc0357_1352328158425_220398_20254Elaborations() {
                 init_17_0_2_edc0357_1352328158425_220398_20254Dependencies();
                 Expression<?>[] arguments80 = new Expression<?>[1];
-                arguments80[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments80[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition80 = new Expression<Boolean>(_17_0_2_edc0357_1352328158428_668812_20261_exists);
-                elaborationRule80 = addElaborationRule(condition80, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_668812_20261.class, "_ForkNode_changePowerUsage", arguments80);
+                elaborationRule80 = addElaborationRule(condition80, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_668812_20261.class, "CChange_fork3cap_ForkNode_changePowerUsage", arguments80);
                 Expression<?>[] arguments81 = new Expression<?>[1];
-                arguments81[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments81[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition81 = new Expression<Boolean>(_17_0_2_edc0357_1352328158428_38684_20262_exists);
-                elaborationRule81 = addElaborationRule(condition81, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_38684_20262.class, "_DecisionNode_changePowerUsage", arguments81);
+                elaborationRule81 = addElaborationRule(condition81, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_38684_20262.class, "CChange_decidecap_DecisionNode_changePowerUsage", arguments81);
             }
         }
 
@@ -1663,23 +1663,23 @@ public class Customer extends ParameterListenerImpl {
                     Object effect82VarV = sig_17_0_2_edc0357_1352328158429_694477_20266;
                     effect82Var = new Parameter("effect82Var", null, null, this);
                     addDependency(effect82Var, new Expression(effect82VarV));
-                    effect82 = new EffectFunction(new FunctionCall(effect82Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect82 = new EffectFunction(new EffectFunction(effect82Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect83VarV = sig_17_0_2_edc0357_1352328158429_395232_20267;
                     effect83Var = new Parameter("effect83Var", null, null, this);
                     addDependency(effect83Var, new Expression(effect83VarV));
-                    effect83 = new EffectFunction(new FunctionCall(effect83Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect83 = new EffectFunction(new EffectFunction(effect83Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect84VarV = sig_17_0_2_edc0357_1352328158429_197012_20268;
                     effect84Var = new Parameter("effect84Var", null, null, this);
                     addDependency(effect84Var, new Expression(effect84VarV));
-                    effect84 = new EffectFunction(new FunctionCall(effect84Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect84 = new EffectFunction(new EffectFunction(effect84Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect85VarV = decider_17_0_2_edc0357_1352328158425_844513_20251;
                     effect85Var = new Parameter("effect85Var", null, null, this);
                     addDependency(effect85Var, new Expression(effect85VarV));
-                    effect85 = new EffectFunction(new FunctionCall(effect85Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251 }));
+                    effect85 = new EffectFunction(new EffectFunction(effect85Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251 }));
                     Object effect86VarV = decider_17_0_2_edc0357_1352328158426_116757_20257;
                     effect86Var = new Parameter("effect86Var", null, null, this);
                     addDependency(effect86Var, new Expression(effect86VarV));
-                    effect86 = new EffectFunction(new FunctionCall(effect86Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257 }));
+                    effect86 = new EffectFunction(new EffectFunction(effect86Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1711,28 +1711,28 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158426_178002_20255Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158426_116757_20257_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158426_116757_20257_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_502495_20265, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158429_502495_20265, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257, new Expression<Integer>(2));
-                addDependency(_17_0_2_edc0357_1352328158425_844513_20251_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158425_220398_20254_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158425_844513_20251_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328158425_220398_20254_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158426_178002_20255Elaborations() {
                 init_17_0_2_edc0357_1352328158426_178002_20255Dependencies();
                 Expression<?>[] arguments87 = new Expression<?>[1];
-                arguments87[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments87[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition87 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_844513_20251_exists);
-                elaborationRule87 = addElaborationRule(condition87, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_844513_20251.class, "_AddStructuralFeatureValueAction_changePowerUsage", arguments87);
+                elaborationRule87 = addElaborationRule(condition87, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_844513_20251.class, "CChange_setnewusage_AddStructuralFeatureValueAction_changePowerUsage", arguments87);
                 Expression<?>[] arguments88 = new Expression<?>[1];
-                arguments88[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments88[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition88 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_220398_20254_exists);
-                elaborationRule88 = addElaborationRule(condition88, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_220398_20254.class, "_ReadStructuralFeatureAction_changePowerUsage", arguments88);
+                elaborationRule88 = addElaborationRule(condition88, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_220398_20254.class, "CChange_readcurrentcap_ReadStructuralFeatureAction_changePowerUsage", arguments88);
                 Expression<?>[] arguments89 = new Expression<?>[1];
-                arguments89[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments89[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition89 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_116757_20257_exists);
-                elaborationRule89 = addElaborationRule(condition89, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_116757_20257.class, "_SendSignalAction_changePowerUsage", arguments89);
+                elaborationRule89 = addElaborationRule(condition89, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_116757_20257.class, "CChange_sendnewusage_SendSignalAction_changePowerUsage", arguments89);
             }
         }
 
@@ -1807,7 +1807,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect90VarV = sig_17_0_2_edc0357_1352328158431_565981_20286;
                     effect90Var = new Parameter("effect90Var", null, null, this);
                     addDependency(effect90Var, new Expression(effect90VarV));
-                    effect90 = new EffectFunction(new FunctionCall(effect90Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160551_57517_21415, endTime }));
+                    effect90 = new EffectFunction(new EffectFunction(effect90Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160551_57517_21415, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1828,24 +1828,24 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158426_903101_20256Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160553_159569_21417, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_389607_20279, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160553_159569_21417, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_389607_20279, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(new_load, new Expression<Integer>(new FunctionCall(null, ClassUtils.getMethodForArgTypes("java.lang.Math", "powersystem", "min", int.class, int.class), new Object[] { new Expression<Integer>(desired), new Expression<Integer>(cap) })));
-                addDependency(_17_0_2_edc0357_1352328158428_314626_20264_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158428_314626_20264_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(cap, new Expression<Integer>(_17_0_2_edc0357_1352328160553_159569_21417));
                 addDependency(desired, new Expression<Integer>(_17_0_2_edc0357_1352328160552_993697_21416));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158431_806383_20280, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160552_993697_21416, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158431_868302_20283, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158431_806383_20280, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160552_993697_21416, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158431_868302_20283, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_edc0357_1352328160551_57517_21415, new Expression<Integer>(new_load));
             }
 
             public void init_17_0_2_edc0357_1352328158426_903101_20256Elaborations() {
                 init_17_0_2_edc0357_1352328158426_903101_20256Dependencies();
                 Expression<?>[] arguments91 = new Expression<?>[2];
-                arguments91[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments91[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 arguments91[1] = new Expression<ObjectFlow<Integer>>(sig_17_0_2_edc0357_1352328158431_565981_20286);
                 Expression<Boolean> condition91 = new Expression<Boolean>(_17_0_2_edc0357_1352328158428_314626_20264_exists);
-                elaborationRule91 = addElaborationRule(condition91, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_314626_20264.class, "mergeynode_MergeNode_changePowerUsage", arguments91);
+                elaborationRule91 = addElaborationRule(condition91, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_314626_20264.class, "CChange_merge_changeTo_MergeNode_changePowerUsage", arguments91);
             }
         }
 
@@ -1908,15 +1908,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect92VarV = sig_17_0_2_edc0357_1352328158429_418011_20269;
                     effect92Var = new Parameter("effect92Var", null, null, this);
                     addDependency(effect92Var, new Expression(effect92VarV));
-                    effect92 = new EffectFunction(new FunctionCall(effect92Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect92 = new EffectFunction(new EffectFunction(effect92Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect93VarV = new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_2_edc0357_1352328156650_180051_19621_changeLoadValue" });
                     effect93Var = new Parameter("effect93Var", null, null, this);
                     addDependency(effect93Var, new Expression(effect93VarV));
-                    effect93 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("ObjectFlow<SignalchangeLoadValue>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect93Var));
+                    effect93 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("ObjectFlow<SignalchangeLoadValue>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect93Var));
                     Object effect94VarV = new FunctionCall(signalObject, Parameter.class, "getMember", new Object[] { "load__17_0_2_edc0357_1352328156636_307114_19611" });
                     effect94Var = new Parameter("effect94Var", null, null, this);
                     addDependency(effect94Var, new Expression(effect94VarV));
-                    effect94 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160554_929788_21419 }, effect94Var));
+                    effect94 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160554_929788_21419 }, effect94Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1939,11 +1939,11 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158426_116757_20257Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160554_929788_21419, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_385741_20271, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160553_902427_21418, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_197012_20268, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(finalNode_startTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328160554_929788_21419, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_385741_20271, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160553_902427_21418, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158429_197012_20268, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(finalNode_startTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_24745_20272, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_24745_20272, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(signalObject, new Expression<Power_System.SignalchangeLoadValue>(new ConstructorCall(x, ClassUtils.getConstructorForArgTypes(Power_System.SignalchangeLoadValue.class), new Object[] {})));
             }
 
@@ -2022,19 +2022,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect95VarV = sig_17_0_2_edc0357_1352328158429_532173_20270;
                     effect95Var = new Parameter("effect95Var", null, null, this);
                     addDependency(effect95Var, new Expression(effect95VarV));
-                    effect95 = new EffectFunction(new FunctionCall(effect95Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect95 = new EffectFunction(new EffectFunction(effect95Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect96VarV = sig_17_0_2_edc0357_1352328158430_385741_20271;
                     effect96Var = new Parameter("effect96Var", null, null, this);
                     addDependency(effect96Var, new Expression(effect96VarV));
-                    effect96 = new EffectFunction(new FunctionCall(effect96Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect96 = new EffectFunction(new EffectFunction(effect96Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect97VarV = decider_17_0_2_edc0357_1352328158425_844513_20251;
                     effect97Var = new Parameter("effect97Var", null, null, this);
                     addDependency(effect97Var, new Expression(effect97VarV));
-                    effect97 = new EffectFunction(new FunctionCall(effect97Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251 }));
+                    effect97 = new EffectFunction(new EffectFunction(effect97Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251 }));
                     Object effect98VarV = decider_17_0_2_edc0357_1352328158426_116757_20257;
                     effect98Var = new Parameter("effect98Var", null, null, this);
                     addDependency(effect98Var, new Expression(effect98VarV));
-                    effect98 = new EffectFunction(new FunctionCall(effect98Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257 }));
+                    effect98 = new EffectFunction(new EffectFunction(effect98Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2062,23 +2062,23 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158427_233123_20258Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251, new Expression<Integer>(2));
-                addDependency(_17_0_2_edc0357_1352328158426_116757_20257_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158426_116757_20257_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_116757_20257, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158431_643907_20287, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158431_643907_20287, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158426_116757_20257, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158425_844513_20251_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158425_844513_20251_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158425_844513_20251, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158425_844513_20251)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
             }
 
             public void init_17_0_2_edc0357_1352328158427_233123_20258Elaborations() {
                 init_17_0_2_edc0357_1352328158427_233123_20258Dependencies();
                 Expression<?>[] arguments99 = new Expression<?>[1];
-                arguments99[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments99[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition99 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_844513_20251_exists);
-                elaborationRule99 = addElaborationRule(condition99, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_844513_20251.class, "_AddStructuralFeatureValueAction_changePowerUsage", arguments99);
+                elaborationRule99 = addElaborationRule(condition99, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_844513_20251.class, "CChange_setnewusage_AddStructuralFeatureValueAction_changePowerUsage", arguments99);
                 Expression<?>[] arguments100 = new Expression<?>[1];
-                arguments100[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments100[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition100 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_116757_20257_exists);
-                elaborationRule100 = addElaborationRule(condition100, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_116757_20257.class, "_SendSignalAction_changePowerUsage", arguments100);
+                elaborationRule100 = addElaborationRule(condition100, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_116757_20257.class, "CChange_sendnewusage_SendSignalAction_changePowerUsage", arguments100);
             }
         }
 
@@ -2134,11 +2134,11 @@ public class Customer extends ParameterListenerImpl {
                     Object effect101VarV = sig_17_0_2_edc0357_1352328158430_913443_20274;
                     effect101Var = new Parameter("effect101Var", null, null, this);
                     addDependency(effect101Var, new Expression(effect101VarV));
-                    effect101 = new EffectFunction(new FunctionCall(effect101Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect101 = new EffectFunction(new EffectFunction(effect101Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect102VarV = sig_17_0_2_edc0357_1352328158430_934674_20275;
                     effect102Var = new Parameter("effect102Var", null, null, this);
                     addDependency(effect102Var, new Expression(effect102VarV));
-                    effect102 = new EffectFunction(new FunctionCall(effect102Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect102 = new EffectFunction(new EffectFunction(effect102Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2157,22 +2157,22 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158427_71576_20259Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158425_536558_20249_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158425_562603_20250_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158425_536558_20249_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328158425_562603_20250_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_229342_20273, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_229342_20273, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158427_71576_20259Elaborations() {
                 init_17_0_2_edc0357_1352328158427_71576_20259Dependencies();
                 Expression<?>[] arguments103 = new Expression<?>[1];
-                arguments103[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition103 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_562603_20250_exists);
-                elaborationRule103 = addElaborationRule(condition103, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_562603_20250.class, "_ValueSpecificationAction_changePowerUsage", arguments103);
+                arguments103[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition103 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_536558_20249_exists);
+                elaborationRule103 = addElaborationRule(condition103, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_536558_20249.class, "CChange_readself_ReadSelfAction_changePowerUsage", arguments103);
                 Expression<?>[] arguments104 = new Expression<?>[1];
-                arguments104[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition104 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_536558_20249_exists);
-                elaborationRule104 = addElaborationRule(condition104, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_536558_20249.class, "_ReadSelfAction_changePowerUsage", arguments104);
+                arguments104[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition104 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_562603_20250_exists);
+                elaborationRule104 = addElaborationRule(condition104, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_562603_20250.class, "CChange_spec15_ValueSpecificationAction_changePowerUsage", arguments104);
             }
         }
 
@@ -2237,7 +2237,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect105VarV = sig_17_0_2_edc0357_1352328158431_441018_20285;
                     effect105Var = new Parameter("effect105Var", null, null, this);
                     addDependency(effect105Var, new Expression(effect105VarV));
-                    effect105 = new EffectFunction(new FunctionCall(effect105Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160555_982450_21420, endTime }));
+                    effect105 = new EffectFunction(new EffectFunction(effect105Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160555_982450_21420, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2258,20 +2258,20 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158427_744964_20260Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160555_982450_21420, new Expression<Integer>(new_load));
                 addDependency(new_load, new Expression<Integer>(desired));
-                addDependency(_17_0_2_edc0357_1352328158428_314626_20264_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160555_212303_21421, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158431_555149_20284, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158428_314626_20264_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328160555_212303_21421, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158431_555149_20284, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(desired, new Expression<Integer>(_17_0_2_edc0357_1352328160555_212303_21421));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158431_279190_20281, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158431_279190_20281, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158427_744964_20260Elaborations() {
                 init_17_0_2_edc0357_1352328158427_744964_20260Dependencies();
                 Expression<?>[] arguments106 = new Expression<?>[2];
-                arguments106[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments106[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 arguments106[1] = new Expression<ObjectFlow<Integer>>(sig_17_0_2_edc0357_1352328158431_441018_20285);
                 Expression<Boolean> condition106 = new Expression<Boolean>(_17_0_2_edc0357_1352328158428_314626_20264_exists);
-                elaborationRule106 = addElaborationRule(condition106, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_314626_20264.class, "mergeynode_MergeNode_changePowerUsage", arguments106);
+                elaborationRule106 = addElaborationRule(condition106, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_314626_20264.class, "CChange_merge_changeTo_MergeNode_changePowerUsage", arguments106);
             }
         }
 
@@ -2345,19 +2345,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect107VarV = sig_17_0_2_edc0357_1352328158430_40918_20278;
                     effect107Var = new Parameter("effect107Var", null, null, this);
                     addDependency(effect107Var, new Expression(effect107VarV));
-                    effect107 = new EffectFunction(new FunctionCall(effect107Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect107 = new EffectFunction(new EffectFunction(effect107Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect108VarV = sig_17_0_2_edc0357_1352328158430_389607_20279;
                     effect108Var = new Parameter("effect108Var", null, null, this);
                     addDependency(effect108Var, new Expression(effect108VarV));
-                    effect108 = new EffectFunction(new FunctionCall(effect108Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect108 = new EffectFunction(new EffectFunction(effect108Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect109VarV = decider_17_0_2_edc0357_1352328158426_903101_20256;
                     effect109Var = new Parameter("effect109Var", null, null, this);
                     addDependency(effect109Var, new Expression(effect109VarV));
-                    effect109 = new EffectFunction(new FunctionCall(effect109Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256 }));
+                    effect109 = new EffectFunction(new EffectFunction(effect109Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256 }));
                     Object effect110VarV = decider_17_0_2_edc0357_1352328158428_38684_20262;
                     effect110Var = new Parameter("effect110Var", null, null, this);
                     addDependency(effect110Var, new Expression(effect110VarV));
-                    effect110 = new EffectFunction(new FunctionCall(effect110Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262 }));
+                    effect110 = new EffectFunction(new EffectFunction(effect110Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2384,24 +2384,24 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158428_668812_20261Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158428_38684_20262_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158428_38684_20262_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158428_38684_20262, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158428_38684_20262, new Expression<Integer>(2));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256, new Expression<Integer>(2));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_538124_20277, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158426_903101_20256_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_538124_20277, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158426_903101_20256_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
             }
 
             public void init_17_0_2_edc0357_1352328158428_668812_20261Elaborations() {
                 init_17_0_2_edc0357_1352328158428_668812_20261Dependencies();
                 Expression<?>[] arguments111 = new Expression<?>[1];
-                arguments111[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments111[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition111 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_903101_20256_exists);
-                elaborationRule111 = addElaborationRule(condition111, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_903101_20256.class, "min_CallBehaviorAction_changePowerUsage", arguments111);
+                elaborationRule111 = addElaborationRule(condition111, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_903101_20256.class, "CChange_calc_capmin_CallBehaviorAction_changePowerUsage", arguments111);
                 Expression<?>[] arguments112 = new Expression<?>[1];
-                arguments112[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments112[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition112 = new Expression<Boolean>(_17_0_2_edc0357_1352328158428_38684_20262_exists);
-                elaborationRule112 = addElaborationRule(condition112, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_38684_20262.class, "_DecisionNode_changePowerUsage", arguments112);
+                elaborationRule112 = addElaborationRule(condition112, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158428_38684_20262.class, "CChange_decidecap_DecisionNode_changePowerUsage", arguments112);
             }
         }
 
@@ -2480,19 +2480,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect113VarV = sig_17_0_2_edc0357_1352328158431_806383_20280;
                     effect113Var = new Parameter("effect113Var", null, null, this);
                     addDependency(effect113Var, new Expression(effect113VarV));
-                    effect113 = new EffectFunction(new FunctionCall(effect113Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158426_903101_20256_exists }));
+                    effect113 = new EffectFunction(new EffectFunction(effect113Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158426_903101_20256_exists }));
                     Object effect114VarV = sig_17_0_2_edc0357_1352328158431_279190_20281;
                     effect114Var = new Parameter("effect114Var", null, null, this);
                     addDependency(effect114Var, new Expression(effect114VarV));
-                    effect114 = new EffectFunction(new FunctionCall(effect114Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158427_744964_20260_exists }));
+                    effect114 = new EffectFunction(new EffectFunction(effect114Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158427_744964_20260_exists }));
                     Object effect115VarV = decider_17_0_2_edc0357_1352328158426_903101_20256;
                     effect115Var = new Parameter("effect115Var", null, null, this);
                     addDependency(effect115Var, new Expression(effect115VarV));
-                    effect115 = new EffectFunction(new FunctionCall(effect115Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256 }));
+                    effect115 = new EffectFunction(new EffectFunction(effect115Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256 }));
                     Object effect116VarV = decider_17_0_2_edc0357_1352328158427_744964_20260;
                     effect116Var = new Parameter("effect116Var", null, null, this);
                     addDependency(effect116Var, new Expression(effect116VarV));
-                    effect116 = new EffectFunction(new FunctionCall(effect116Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260 }));
+                    effect116 = new EffectFunction(new EffectFunction(effect116Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2523,22 +2523,22 @@ public class Customer extends ParameterListenerImpl {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260, new Expression<Integer>(2));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256, new Expression<Integer>(3));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_630436_20276, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158426_903101_20256_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Greater(new Expression<Integer>(decisionInput), new Expression<Integer>(0))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
-                addDependency(decisionInput, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158430_40918_20278, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158427_744964_20260_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.LessEquals(new Expression<Integer>(decisionInput), new Expression<Integer>(0))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_630436_20276, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158426_903101_20256_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Greater(new Expression<Integer>(decisionInput), new Expression<Integer>(0))), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256)))))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(decisionInput, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158430_40918_20278, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158427_744964_20260_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.LessEquals(new Expression<Integer>(decisionInput), new Expression<Integer>(0))), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260)))))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
             }
 
             public void init_17_0_2_edc0357_1352328158428_38684_20262Elaborations() {
                 init_17_0_2_edc0357_1352328158428_38684_20262Dependencies();
                 Expression<?>[] arguments117 = new Expression<?>[1];
-                arguments117[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments117[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition117 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_903101_20256_exists);
-                elaborationRule117 = addElaborationRule(condition117, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_903101_20256.class, "min_CallBehaviorAction_changePowerUsage", arguments117);
+                elaborationRule117 = addElaborationRule(condition117, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_903101_20256.class, "CChange_calc_capmin_CallBehaviorAction_changePowerUsage", arguments117);
                 Expression<?>[] arguments118 = new Expression<?>[1];
-                arguments118[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments118[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition118 = new Expression<Boolean>(_17_0_2_edc0357_1352328158427_744964_20260_exists);
-                elaborationRule118 = addElaborationRule(condition118, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_744964_20260.class, "setd_CallBehaviorAction_changePowerUsage", arguments118);
+                elaborationRule118 = addElaborationRule(condition118, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_744964_20260.class, "CChange_calc_desired_CallBehaviorAction_changePowerUsage", arguments118);
             }
         }
 
@@ -2612,19 +2612,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect119VarV = sig_17_0_2_edc0357_1352328158431_868302_20283;
                     effect119Var = new Parameter("effect119Var", null, null, this);
                     addDependency(effect119Var, new Expression(effect119VarV));
-                    effect119 = new EffectFunction(new FunctionCall(effect119Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect119 = new EffectFunction(new EffectFunction(effect119Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect120VarV = sig_17_0_2_edc0357_1352328158431_555149_20284;
                     effect120Var = new Parameter("effect120Var", null, null, this);
                     addDependency(effect120Var, new Expression(effect120VarV));
-                    effect120 = new EffectFunction(new FunctionCall(effect120Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect120 = new EffectFunction(new EffectFunction(effect120Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect121VarV = decider_17_0_2_edc0357_1352328158426_903101_20256;
                     effect121Var = new Parameter("effect121Var", null, null, this);
                     addDependency(effect121Var, new Expression(effect121VarV));
-                    effect121 = new EffectFunction(new FunctionCall(effect121Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256 }));
+                    effect121 = new EffectFunction(new EffectFunction(effect121Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256 }));
                     Object effect122VarV = decider_17_0_2_edc0357_1352328158427_744964_20260;
                     effect122Var = new Parameter("effect122Var", null, null, this);
                     addDependency(effect122Var, new Expression(effect122VarV));
-                    effect122 = new EffectFunction(new FunctionCall(effect122Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260 }));
+                    effect122 = new EffectFunction(new EffectFunction(effect122Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2654,21 +2654,21 @@ public class Customer extends ParameterListenerImpl {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256, new Expression<Integer>(1));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158431_275687_20282, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158426_903101_20256_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158427_744964_20260_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158431_275687_20282, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158426_903101_20256_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158426_903101_20256, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158426_903101_20256)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328158427_744964_20260_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158427_744964_20260, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158427_744964_20260)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
             }
 
             public void init_17_0_2_edc0357_1352328158428_316417_20263Elaborations() {
                 init_17_0_2_edc0357_1352328158428_316417_20263Dependencies();
                 Expression<?>[] arguments123 = new Expression<?>[1];
-                arguments123[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments123[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition123 = new Expression<Boolean>(_17_0_2_edc0357_1352328158426_903101_20256_exists);
-                elaborationRule123 = addElaborationRule(condition123, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_903101_20256.class, "min_CallBehaviorAction_changePowerUsage", arguments123);
+                elaborationRule123 = addElaborationRule(condition123, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158426_903101_20256.class, "CChange_calc_capmin_CallBehaviorAction_changePowerUsage", arguments123);
                 Expression<?>[] arguments124 = new Expression<?>[1];
-                arguments124[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments124[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition124 = new Expression<Boolean>(_17_0_2_edc0357_1352328158427_744964_20260_exists);
-                elaborationRule124 = addElaborationRule(condition124, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_744964_20260.class, "setd_CallBehaviorAction_changePowerUsage", arguments124);
+                elaborationRule124 = addElaborationRule(condition124, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_744964_20260.class, "CChange_calc_desired_CallBehaviorAction_changePowerUsage", arguments124);
             }
         }
 
@@ -2717,7 +2717,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect125VarV = sig_17_0_2_edc0357_1352328158431_643907_20287;
                     effect125Var = new Parameter("effect125Var", null, null, this);
                     addDependency(effect125Var, new Expression(effect125VarV));
-                    effect125 = new EffectFunction(new FunctionCall(effect125Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect125 = new EffectFunction(new EffectFunction(effect125Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2733,17 +2733,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158428_314626_20264Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158427_233123_20258_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158427_233123_20258_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Integer>(new FunctionCall(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Integer>(new EffectFunction(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158428_314626_20264Elaborations() {
                 init_17_0_2_edc0357_1352328158428_314626_20264Dependencies();
                 Expression<?>[] arguments126 = new Expression<?>[1];
-                arguments126[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments126[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition126 = new Expression<Boolean>(_17_0_2_edc0357_1352328158427_233123_20258_exists);
-                elaborationRule126 = addElaborationRule(condition126, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_233123_20258.class, "fork_ForkNode_changePowerUsage", arguments126);
+                elaborationRule126 = addElaborationRule(condition126, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158427_233123_20258.class, "CChange_forkchangeto_ForkNode_changePowerUsage", arguments126);
             }
         }
 
@@ -2769,9 +2769,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158431_441018_20285 = null;
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158431_643907_20287 = null;
-
         public Parameter< ObjectFlow<Customer> > sig_17_0_2_edc0357_1352328158429_395232_20267 = null;
+
+        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158431_643907_20287 = null;
 
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158429_418011_20269 = null;
 
@@ -2789,9 +2789,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328160546_596952_21405 = null;
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158431_555149_20284 = null;
-
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158431_279190_20281 = null;
+
+        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158431_555149_20284 = null;
 
         public Parameter< TimeVaryingList<Integer> > decider_17_0_2_edc0357_1352328158426_903101_20256 = null;
 
@@ -2843,8 +2843,8 @@ public class Customer extends ParameterListenerImpl {
                 if (sig_17_0_2_edc0357_1352328160546_168484_21406 == null) sig_17_0_2_edc0357_1352328160546_168484_21406 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328160546_168484_21406", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328160546_168484_21406" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158425_844513_20251 == null) decider_17_0_2_edc0357_1352328158425_844513_20251 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158425_844513_20251", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158425_844513_20251", 2 })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158431_441018_20285 == null) sig_17_0_2_edc0357_1352328158431_441018_20285 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_441018_20285", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_441018_20285" })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158431_643907_20287 == null) sig_17_0_2_edc0357_1352328158431_643907_20287 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_643907_20287", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_643907_20287" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158429_395232_20267 == null) sig_17_0_2_edc0357_1352328158429_395232_20267 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158429_395232_20267", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158429_395232_20267" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158431_643907_20287 == null) sig_17_0_2_edc0357_1352328158431_643907_20287 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_643907_20287", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_643907_20287" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158429_418011_20269 == null) sig_17_0_2_edc0357_1352328158429_418011_20269 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158429_418011_20269", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158429_418011_20269" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158429_532173_20270 == null) sig_17_0_2_edc0357_1352328158429_532173_20270 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158429_532173_20270", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158429_532173_20270" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158427_744964_20260 == null) decider_17_0_2_edc0357_1352328158427_744964_20260 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158427_744964_20260", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158427_744964_20260", 2 })).evaluate(true), this);
@@ -2853,18 +2853,18 @@ public class Customer extends ParameterListenerImpl {
                 if (sig_17_0_2_edc0357_1352328158430_538124_20277 == null) sig_17_0_2_edc0357_1352328158430_538124_20277 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158430_538124_20277", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_538124_20277" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158430_24745_20272 == null) sig_17_0_2_edc0357_1352328158430_24745_20272 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158430_24745_20272", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_24745_20272" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328160546_596952_21405 == null) sig_17_0_2_edc0357_1352328160546_596952_21405 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328160546_596952_21405", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328160546_596952_21405" })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158431_555149_20284 == null) sig_17_0_2_edc0357_1352328158431_555149_20284 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_555149_20284", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_555149_20284" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158431_279190_20281 == null) sig_17_0_2_edc0357_1352328158431_279190_20281 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158431_279190_20281", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_279190_20281" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158431_555149_20284 == null) sig_17_0_2_edc0357_1352328158431_555149_20284 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_555149_20284", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_555149_20284" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158426_903101_20256 == null) decider_17_0_2_edc0357_1352328158426_903101_20256 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158426_903101_20256", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158426_903101_20256", 3 })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158430_913443_20274 == null) sig_17_0_2_edc0357_1352328158430_913443_20274 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158430_913443_20274", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_913443_20274" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158430_229342_20273 == null) sig_17_0_2_edc0357_1352328158430_229342_20273 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158430_229342_20273", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_229342_20273" })).evaluate(true), this);
-                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) 84000, this);
+                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158431_806383_20280 == null) sig_17_0_2_edc0357_1352328158431_806383_20280 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158431_806383_20280", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_806383_20280" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158428_38684_20262 == null) decider_17_0_2_edc0357_1352328158428_38684_20262 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158428_38684_20262", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158428_38684_20262", 2 })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158431_565981_20286 == null) sig_17_0_2_edc0357_1352328158431_565981_20286 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_565981_20286", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_565981_20286" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158430_934674_20275 == null) sig_17_0_2_edc0357_1352328158430_934674_20275 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158430_934674_20275", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_934674_20275" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158431_868302_20283 == null) sig_17_0_2_edc0357_1352328158431_868302_20283 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158431_868302_20283", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158431_868302_20283" })).evaluate(true), this);
-                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) 84000, this);
+                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158430_630436_20276 == null) sig_17_0_2_edc0357_1352328158430_630436_20276 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158430_630436_20276", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_630436_20276" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158429_502495_20265 == null) sig_17_0_2_edc0357_1352328158429_502495_20265 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158429_502495_20265", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158429_502495_20265" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158430_40918_20278 == null) sig_17_0_2_edc0357_1352328158430_40918_20278 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158430_40918_20278", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158430_40918_20278" })).evaluate(true), this);
@@ -2883,8 +2883,8 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(sig_17_0_2_edc0357_1352328160546_168484_21406);
             parameters.add(decider_17_0_2_edc0357_1352328158425_844513_20251);
             parameters.add(sig_17_0_2_edc0357_1352328158431_441018_20285);
-            parameters.add(sig_17_0_2_edc0357_1352328158431_643907_20287);
             parameters.add(sig_17_0_2_edc0357_1352328158429_395232_20267);
+            parameters.add(sig_17_0_2_edc0357_1352328158431_643907_20287);
             parameters.add(sig_17_0_2_edc0357_1352328158429_418011_20269);
             parameters.add(sig_17_0_2_edc0357_1352328158429_532173_20270);
             parameters.add(decider_17_0_2_edc0357_1352328158427_744964_20260);
@@ -2893,8 +2893,8 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(sig_17_0_2_edc0357_1352328158430_538124_20277);
             parameters.add(sig_17_0_2_edc0357_1352328158430_24745_20272);
             parameters.add(sig_17_0_2_edc0357_1352328160546_596952_21405);
-            parameters.add(sig_17_0_2_edc0357_1352328158431_555149_20284);
             parameters.add(sig_17_0_2_edc0357_1352328158431_279190_20281);
+            parameters.add(sig_17_0_2_edc0357_1352328158431_555149_20284);
             parameters.add(decider_17_0_2_edc0357_1352328158426_903101_20256);
             parameters.add(sig_17_0_2_edc0357_1352328158430_913443_20274);
             parameters.add(sig_17_0_2_edc0357_1352328158430_229342_20273);
@@ -2915,7 +2915,7 @@ public class Customer extends ParameterListenerImpl {
 
         public void init_17_0_2_edc0357_1352328156639_660827_19616Dependencies() {
             caller.getValue(true).addDependency(caller.getValue(true).endTime, new Expression<Integer>(finalNode_endTime));
-            addDependency(_17_0_2_edc0357_1352328158425_174981_20253_exists, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158429_418011_20269, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>((new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))).functionCall) })));
+            addDependency(_17_0_2_edc0357_1352328158425_174981_20253_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.NotEquals(new Expression<Integer>(finalNode_startTime), null)), new Expression(new EffectFunction(sig_17_0_2_edc0357_1352328158429_418011_20269, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))) })))));
             addDependency(endTime, new Expression<Integer>(finalNode_endTime));
         }
 
@@ -2924,11 +2924,11 @@ public class Customer extends ParameterListenerImpl {
             Expression<?>[] arguments65 = new Expression<?>[1];
             arguments65[0] = new Expression<Integer>(finalNode_startTime);
             Expression<Boolean> condition65 = new Expression<Boolean>(_17_0_2_edc0357_1352328158425_174981_20253_exists);
-            elaborationRule65 = addElaborationRule(condition65, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_174981_20253.class, "_ActivityFinalNode_changePowerUsage", arguments65);
+            elaborationRule65 = addElaborationRule(condition65, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_174981_20253.class, "CChange_end_ActivityFinalNode_changePowerUsage", arguments65);
             Expression<?>[] arguments66 = new Expression<?>[1];
             arguments66[0] = new Expression<Integer>(startTime);
             Expression<Boolean> condition66 = new Expression<Boolean>(true);
-            elaborationRule66 = addElaborationRule(condition66, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_23694_20252.class, "_InitialNode_changePowerUsage", arguments66);
+            elaborationRule66 = addElaborationRule(condition66, _17_0_2_edc0357_1352328156639_660827_19616.this, Customer._17_0_2_edc0357_1352328156639_660827_19616._17_0_2_edc0357_1352328158425_23694_20252.class, "CChange_start_InitialNode_changePowerUsage", arguments66);
         }
     }
 
@@ -2985,7 +2985,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect129VarV = sig_17_0_2_edc0357_1352328158534_268675_20330;
                     effect129Var = new Parameter("effect129Var", null, null, this);
                     addDependency(effect129Var, new Expression(effect129VarV));
-                    effect129 = new EffectFunction(new FunctionCall(effect129Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160561_291373_21448, endTime }));
+                    effect129 = new EffectFunction(new EffectFunction(effect129Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160561_291373_21448, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3002,16 +3002,16 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158532_777314_20319Dependencies() {
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158533_247450_20324_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158535_401408_20338, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158533_247450_20324_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158535_401408_20338, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158532_777314_20319Elaborations() {
                 init_17_0_2_edc0357_1352328158532_777314_20319Dependencies();
                 Expression<?>[] arguments130 = new Expression<?>[1];
-                arguments130[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments130[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition130 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_247450_20324_exists);
-                elaborationRule130 = addElaborationRule(condition130, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_247450_20324.class, "_ForkNode_initialize", arguments130);
+                elaborationRule130 = addElaborationRule(condition130, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_247450_20324.class, "CI_forkself_ForkNode_initialize", arguments130);
             }
         }
 
@@ -3070,11 +3070,11 @@ public class Customer extends ParameterListenerImpl {
                     Object effect131VarV = sig_17_0_2_edc0357_1352328158534_440722_20329;
                     effect131Var = new Parameter("effect131Var", null, null, this);
                     addDependency(effect131Var, new Expression(effect131VarV));
-                    effect131 = new EffectFunction(new FunctionCall(effect131Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160562_338541_21450, endTime }));
+                    effect131 = new EffectFunction(new EffectFunction(effect131Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160562_338541_21450, endTime }));
                     Object effect132VarV = decider_17_0_2_edc0357_1352328158532_578076_20321;
                     effect132Var = new Parameter("effect132Var", null, null, this);
                     addDependency(effect132Var, new Expression(effect132VarV));
-                    effect132 = new EffectFunction(new FunctionCall(effect132Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 }));
+                    effect132 = new EffectFunction(new EffectFunction(effect132Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3094,9 +3094,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158532_127805_20320Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158532_578076_20321_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158532_578076_20321_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158535_735383_20339, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158535_735383_20339, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_edc0357_1352328160562_338541_21450, new Expression<Integer>(4));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321, new Expression<Integer>(2));
             }
@@ -3104,9 +3104,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158532_127805_20320Elaborations() {
                 init_17_0_2_edc0357_1352328158532_127805_20320Dependencies();
                 Expression<?>[] arguments133 = new Expression<?>[1];
-                arguments133[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments133[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition133 = new Expression<Boolean>(_17_0_2_edc0357_1352328158532_578076_20321_exists);
-                elaborationRule133 = addElaborationRule(condition133, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_578076_20321.class, "_AddStructuralFeatureValueAction_initialize", arguments133);
+                elaborationRule133 = addElaborationRule(condition133, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_578076_20321.class, "CI_setinitusage_AddStructuralFeatureValueAction_initialize", arguments133);
             }
         }
 
@@ -3174,15 +3174,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect134VarV = sig_17_0_2_edc0357_1352328158534_769162_20334;
                     effect134Var = new Parameter("effect134Var", null, null, this);
                     addDependency(effect134Var, new Expression(effect134VarV));
-                    effect134 = new EffectFunction(new FunctionCall(effect134Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect134 = new EffectFunction(new EffectFunction(effect134Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect135VarV = decider_17_0_2_edc0357_1352328158533_586682_20327;
                     effect135Var = new Parameter("effect135Var", null, null, this);
                     addDependency(effect135Var, new Expression(effect135VarV));
-                    effect135 = new EffectFunction(new FunctionCall(effect135Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327 }));
+                    effect135 = new EffectFunction(new EffectFunction(effect135Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327 }));
                     Object effect136VarV = usage__17_0_2_edc0357_1352328156649_216766_19620;
                     effect136Var = new Parameter("effect136Var", null, null, this);
                     addDependency(effect136Var, new Expression(effect136VarV));
-                    effect136 = new EffectFunction(new FunctionCall(effect136Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160563_706626_21451 }));
+                    effect136 = new EffectFunction(new EffectFunction(effect136Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160563_706626_21451 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3206,20 +3206,20 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158532_578076_20321Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158533_586682_20327_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158533_586682_20327_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328160563_822997_21452, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_699192_20331, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160563_822997_21452, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_699192_20331, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328160563_706626_21451, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_440722_20329, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160563_706626_21451, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_440722_20329, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158532_578076_20321Elaborations() {
                 init_17_0_2_edc0357_1352328158532_578076_20321Dependencies();
                 Expression<?>[] arguments137 = new Expression<?>[1];
-                arguments137[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments137[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition137 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_586682_20327_exists);
-                elaborationRule137 = addElaborationRule(condition137, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_586682_20327.class, "_JoinNode_initialize", arguments137);
+                elaborationRule137 = addElaborationRule(condition137, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_586682_20327.class, "CI_join_JoinNode_initialize", arguments137);
             }
         }
 
@@ -3264,7 +3264,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect138VarV = sig_17_0_2_edc0357_1352328158535_536324_20337;
                     effect138Var = new Parameter("effect138Var", null, null, this);
                     addDependency(effect138Var, new Expression(effect138VarV));
-                    effect138 = new EffectFunction(new FunctionCall(effect138Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect138 = new EffectFunction(new EffectFunction(effect138Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3281,15 +3281,15 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158532_946115_20322Dependencies() {
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328158533_797791_20328_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158533_797791_20328_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158532_946115_20322Elaborations() {
                 init_17_0_2_edc0357_1352328158532_946115_20322Dependencies();
                 Expression<?>[] arguments139 = new Expression<?>[1];
-                arguments139[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments139[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition139 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_797791_20328_exists);
-                elaborationRule139 = addElaborationRule(condition139, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_797791_20328.class, "_ForkNode_initialize", arguments139);
+                elaborationRule139 = addElaborationRule(condition139, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_797791_20328.class, "CI_fork1_ForkNode_initialize", arguments139);
             }
         }
 
@@ -3334,9 +3334,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158533_74852_20323Dependencies() {
-                addDependency(endTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))).functionCall));
+                addDependency(endTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_557121_20335, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_557121_20335, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(finalNode_endTime, new Expression<Integer>(endTime));
             }
 
@@ -3369,9 +3369,9 @@ public class Customer extends ParameterListenerImpl {
 
             public Parameter< Customer > objectToPass = null;
 
-            public IntegerParameter myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 = null;
-
             public BooleanParameter _17_0_2_edc0357_1352328158533_93964_20325_exists = null;
+
+            public IntegerParameter myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 = null;
 
             public Dependency< Boolean > _17_0_2_edc0357_1352328158532_578076_20321_existsDependency = null;
 
@@ -3381,9 +3381,9 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Customer > objectToPassDependency = null;
 
-            public Dependency< Integer > myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321Dependency = null;
-
             public Dependency< Boolean > _17_0_2_edc0357_1352328158533_93964_20325_existsDependency = null;
+
+            public Dependency< Integer > myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321Dependency = null;
 
             public Effect effect140 = null;
 
@@ -3410,24 +3410,24 @@ public class Customer extends ParameterListenerImpl {
                     if (_17_0_2_edc0357_1352328158532_578076_20321_exists == null) _17_0_2_edc0357_1352328158532_578076_20321_exists = new BooleanParameter("_17_0_2_edc0357_1352328158532_578076_20321_exists", (Boolean) false, this);
                     if (myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325 == null) myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325 = new IntegerParameter("myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325", (Integer) 1, this);
                     if (objectToPass == null) objectToPass = new Parameter<Customer>("objectToPass", null, (Customer) null, this);
-                    if (myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 == null) myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 = new IntegerParameter("myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321", (Integer) 1, this);
                     if (_17_0_2_edc0357_1352328158533_93964_20325_exists == null) _17_0_2_edc0357_1352328158533_93964_20325_exists = new BooleanParameter("_17_0_2_edc0357_1352328158533_93964_20325_exists", (Boolean) false, this);
+                    if (myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 == null) myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 = new IntegerParameter("myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321", (Integer) 1, this);
                     Object effect140VarV = sig_17_0_2_edc0357_1352328158534_699192_20331;
                     effect140Var = new Parameter("effect140Var", null, null, this);
                     addDependency(effect140Var, new Expression(effect140VarV));
-                    effect140 = new EffectFunction(new FunctionCall(effect140Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect140 = new EffectFunction(new EffectFunction(effect140Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect141VarV = sig_17_0_2_edc0357_1352328158534_844780_20333;
                     effect141Var = new Parameter("effect141Var", null, null, this);
                     addDependency(effect141Var, new Expression(effect141VarV));
-                    effect141 = new EffectFunction(new FunctionCall(effect141Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
-                    Object effect142VarV = decider_17_0_2_edc0357_1352328158533_93964_20325;
+                    effect141 = new EffectFunction(new EffectFunction(effect141Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    Object effect142VarV = decider_17_0_2_edc0357_1352328158532_578076_20321;
                     effect142Var = new Parameter("effect142Var", null, null, this);
                     addDependency(effect142Var, new Expression(effect142VarV));
-                    effect142 = new EffectFunction(new FunctionCall(effect142Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325 }));
-                    Object effect143VarV = decider_17_0_2_edc0357_1352328158532_578076_20321;
+                    effect142 = new EffectFunction(new EffectFunction(effect142Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 }));
+                    Object effect143VarV = decider_17_0_2_edc0357_1352328158533_93964_20325;
                     effect143Var = new Parameter("effect143Var", null, null, this);
                     addDependency(effect143Var, new Expression(effect143VarV));
-                    effect143 = new EffectFunction(new FunctionCall(effect143Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321 }));
+                    effect143 = new EffectFunction(new EffectFunction(effect143Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3437,8 +3437,8 @@ public class Customer extends ParameterListenerImpl {
                 parameters.add(_17_0_2_edc0357_1352328158532_578076_20321_exists);
                 parameters.add(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325);
                 parameters.add(objectToPass);
-                parameters.add(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321);
                 parameters.add(_17_0_2_edc0357_1352328158533_93964_20325_exists);
+                parameters.add(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321);
                 Set<Effect> effectsForeffect140Var = new TreeSet<Effect>();
                 effectsForeffect140Var.add(effect140);
                 addEffects((Parameter<?>) effect140Var, effectsForeffect140Var);
@@ -3454,24 +3454,24 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158533_247450_20324Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158532_578076_20321_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158532_578076_20321_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158532_578076_20321, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325, new Expression<Integer>(1));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_268675_20330, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_268675_20330, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158533_93964_20325_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158532_578076_20321, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158533_93964_20325_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
             }
 
             public void init_17_0_2_edc0357_1352328158533_247450_20324Elaborations() {
                 init_17_0_2_edc0357_1352328158533_247450_20324Dependencies();
                 Expression<?>[] arguments144 = new Expression<?>[1];
-                arguments144[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition144 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_93964_20325_exists);
-                elaborationRule144 = addElaborationRule(condition144, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_93964_20325.class, "_AddStructuralFeatureValueAction_initialize", arguments144);
+                arguments144[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition144 = new Expression<Boolean>(_17_0_2_edc0357_1352328158532_578076_20321_exists);
+                elaborationRule144 = addElaborationRule(condition144, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_578076_20321.class, "CI_setinitusage_AddStructuralFeatureValueAction_initialize", arguments144);
                 Expression<?>[] arguments145 = new Expression<?>[1];
-                arguments145[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition145 = new Expression<Boolean>(_17_0_2_edc0357_1352328158532_578076_20321_exists);
-                elaborationRule145 = addElaborationRule(condition145, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_578076_20321.class, "_AddStructuralFeatureValueAction_initialize", arguments145);
+                arguments145[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition145 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_93964_20325_exists);
+                elaborationRule145 = addElaborationRule(condition145, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_93964_20325.class, "CI_setinit_cap_AddStructuralFeatureValueAction_initialize", arguments145);
             }
         }
 
@@ -3539,15 +3539,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect146VarV = sig_17_0_2_edc0357_1352328158534_989901_20336;
                     effect146Var = new Parameter("effect146Var", null, null, this);
                     addDependency(effect146Var, new Expression(effect146VarV));
-                    effect146 = new EffectFunction(new FunctionCall(effect146Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect146 = new EffectFunction(new EffectFunction(effect146Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect147VarV = decider_17_0_2_edc0357_1352328158533_586682_20327;
                     effect147Var = new Parameter("effect147Var", null, null, this);
                     addDependency(effect147Var, new Expression(effect147VarV));
-                    effect147 = new EffectFunction(new FunctionCall(effect147Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327 }));
+                    effect147 = new EffectFunction(new EffectFunction(effect147Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327 }));
                     Object effect148VarV = cap__17_0_2_edc0357_1352328156659_30024_19625;
                     effect148Var = new Parameter("effect148Var", null, null, this);
                     addDependency(effect148Var, new Expression(effect148VarV));
-                    effect148 = new EffectFunction(new FunctionCall(effect148Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160564_30011_21453 }));
+                    effect148 = new EffectFunction(new EffectFunction(effect148Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160564_30011_21453 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3571,9 +3571,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158533_93964_20325Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160564_30011_21453, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_643944_20332, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158533_586682_20327_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160565_564177_21454, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_844780_20333, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160564_30011_21453, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_643944_20332, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158533_586682_20327_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_586682_20327, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328160565_564177_21454, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_844780_20333, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158533_586682_20327, new Expression<Integer>(2));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
@@ -3582,9 +3582,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158533_93964_20325Elaborations() {
                 init_17_0_2_edc0357_1352328158533_93964_20325Dependencies();
                 Expression<?>[] arguments149 = new Expression<?>[1];
-                arguments149[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments149[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition149 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_586682_20327_exists);
-                elaborationRule149 = addElaborationRule(condition149, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_586682_20327.class, "_JoinNode_initialize", arguments149);
+                elaborationRule149 = addElaborationRule(condition149, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_586682_20327.class, "CI_join_JoinNode_initialize", arguments149);
             }
         }
 
@@ -3643,11 +3643,11 @@ public class Customer extends ParameterListenerImpl {
                     Object effect150VarV = sig_17_0_2_edc0357_1352328158534_643944_20332;
                     effect150Var = new Parameter("effect150Var", null, null, this);
                     addDependency(effect150Var, new Expression(effect150VarV));
-                    effect150 = new EffectFunction(new FunctionCall(effect150Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160565_649347_21456, endTime }));
+                    effect150 = new EffectFunction(new EffectFunction(effect150Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160565_649347_21456, endTime }));
                     Object effect151VarV = decider_17_0_2_edc0357_1352328158533_93964_20325;
                     effect151Var = new Parameter("effect151Var", null, null, this);
                     addDependency(effect151Var, new Expression(effect151VarV));
-                    effect151 = new EffectFunction(new FunctionCall(effect151Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325 }));
+                    effect151 = new EffectFunction(new EffectFunction(effect151Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3669,17 +3669,17 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158533_893356_20326Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325, new Expression<Integer>(2));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158535_248302_20340, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158535_248302_20340, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_edc0357_1352328160565_649347_21456, new Expression<Integer>(0));
-                addDependency(_17_0_2_edc0357_1352328158533_93964_20325_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158533_93964_20325_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158533_93964_20325, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158533_93964_20325)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
             }
 
             public void init_17_0_2_edc0357_1352328158533_893356_20326Elaborations() {
                 init_17_0_2_edc0357_1352328158533_893356_20326Dependencies();
                 Expression<?>[] arguments152 = new Expression<?>[1];
-                arguments152[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments152[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition152 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_93964_20325_exists);
-                elaborationRule152 = addElaborationRule(condition152, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_93964_20325.class, "_AddStructuralFeatureValueAction_initialize", arguments152);
+                elaborationRule152 = addElaborationRule(condition152, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_93964_20325.class, "CI_setinit_cap_AddStructuralFeatureValueAction_initialize", arguments152);
             }
         }
 
@@ -3724,7 +3724,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect153VarV = sig_17_0_2_edc0357_1352328158534_557121_20335;
                     effect153Var = new Parameter("effect153Var", null, null, this);
                     addDependency(effect153Var, new Expression(effect153VarV));
-                    effect153 = new EffectFunction(new FunctionCall(effect153Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect153 = new EffectFunction(new EffectFunction(effect153Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3739,10 +3739,10 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158533_586682_20327Dependencies() {
-                addDependency(objectToPass1, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_989901_20336, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(finalNode_startTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall));
+                addDependency(objectToPass1, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_989901_20336, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(finalNode_startTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_769162_20334, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158534_769162_20334, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158533_586682_20327Elaborations() {
@@ -3813,15 +3813,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect154VarV = sig_17_0_2_edc0357_1352328158535_401408_20338;
                     effect154Var = new Parameter("effect154Var", null, null, this);
                     addDependency(effect154Var, new Expression(effect154VarV));
-                    effect154 = new EffectFunction(new FunctionCall(effect154Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect154 = new EffectFunction(new EffectFunction(effect154Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect155VarV = sig_17_0_2_edc0357_1352328158535_735383_20339;
                     effect155Var = new Parameter("effect155Var", null, null, this);
                     addDependency(effect155Var, new Expression(effect155VarV));
-                    effect155 = new EffectFunction(new FunctionCall(effect155Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect155 = new EffectFunction(new EffectFunction(effect155Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect156VarV = sig_17_0_2_edc0357_1352328158535_248302_20340;
                     effect156Var = new Parameter("effect156Var", null, null, this);
                     addDependency(effect156Var, new Expression(effect156VarV));
-                    effect156 = new EffectFunction(new FunctionCall(effect156Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect156 = new EffectFunction(new EffectFunction(effect156Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3844,27 +3844,27 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158533_797791_20328Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158532_777314_20319_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158532_127805_20320_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158532_777314_20319_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328158532_127805_20320_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158535_536324_20337, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158533_893356_20326_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158535_536324_20337, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158533_893356_20326_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158533_797791_20328Elaborations() {
                 init_17_0_2_edc0357_1352328158533_797791_20328Dependencies();
                 Expression<?>[] arguments157 = new Expression<?>[1];
-                arguments157[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments157[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition157 = new Expression<Boolean>(_17_0_2_edc0357_1352328158532_127805_20320_exists);
-                elaborationRule157 = addElaborationRule(condition157, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_127805_20320.class, "_ValueSpecificationAction_initialize", arguments157);
+                elaborationRule157 = addElaborationRule(condition157, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_127805_20320.class, "CI_spec4_ValueSpecificationAction_initialize", arguments157);
                 Expression<?>[] arguments158 = new Expression<?>[1];
-                arguments158[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition158 = new Expression<Boolean>(_17_0_2_edc0357_1352328158532_777314_20319_exists);
-                elaborationRule158 = addElaborationRule(condition158, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_777314_20319.class, "_ReadSelfAction_initialize", arguments158);
+                arguments158[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition158 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_893356_20326_exists);
+                elaborationRule158 = addElaborationRule(condition158, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_893356_20326.class, "CI_spec0_ValueSpecificationAction_initialize", arguments158);
                 Expression<?>[] arguments159 = new Expression<?>[1];
-                arguments159[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition159 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_893356_20326_exists);
-                elaborationRule159 = addElaborationRule(condition159, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_893356_20326.class, "_ValueSpecificationAction_initialize", arguments159);
+                arguments159[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition159 = new Expression<Boolean>(_17_0_2_edc0357_1352328158532_777314_20319_exists);
+                elaborationRule159 = addElaborationRule(condition159, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_777314_20319.class, "CI_readself_ReadSelfAction_initialize", arguments159);
             }
         }
 
@@ -3896,9 +3896,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< TimeVaryingList<Integer> > decider_17_0_2_edc0357_1352328158533_586682_20327 = null;
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158534_440722_20329 = null;
-
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158534_989901_20336 = null;
+
+        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158534_440722_20329 = null;
 
         public Parameter< ObjectFlow<Customer> > sig_17_0_2_edc0357_1352328158534_699192_20331 = null;
 
@@ -3937,11 +3937,11 @@ public class Customer extends ParameterListenerImpl {
                 if (sig_17_0_2_edc0357_1352328158534_769162_20334 == null) sig_17_0_2_edc0357_1352328158534_769162_20334 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158534_769162_20334", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158534_769162_20334" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158535_248302_20340 == null) sig_17_0_2_edc0357_1352328158535_248302_20340 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158535_248302_20340", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158535_248302_20340" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158533_586682_20327 == null) decider_17_0_2_edc0357_1352328158533_586682_20327 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158533_586682_20327", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158533_586682_20327", 2 })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158534_440722_20329 == null) sig_17_0_2_edc0357_1352328158534_440722_20329 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158534_440722_20329", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158534_440722_20329" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158534_989901_20336 == null) sig_17_0_2_edc0357_1352328158534_989901_20336 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158534_989901_20336", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158534_989901_20336" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158534_440722_20329 == null) sig_17_0_2_edc0357_1352328158534_440722_20329 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158534_440722_20329", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158534_440722_20329" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158534_699192_20331 == null) sig_17_0_2_edc0357_1352328158534_699192_20331 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158534_699192_20331", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158534_699192_20331" })).evaluate(true), this);
-                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) 84000, this);
-                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) 84000, this);
+                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) null, this);
+                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158535_401408_20338 == null) sig_17_0_2_edc0357_1352328158535_401408_20338 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158535_401408_20338", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158535_401408_20338" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158535_735383_20339 == null) sig_17_0_2_edc0357_1352328158535_735383_20339 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158535_735383_20339", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158535_735383_20339" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158533_93964_20325 == null) decider_17_0_2_edc0357_1352328158533_93964_20325 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158533_93964_20325", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158533_93964_20325", 2 })).evaluate(true), this);
@@ -3962,8 +3962,8 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(sig_17_0_2_edc0357_1352328158534_769162_20334);
             parameters.add(sig_17_0_2_edc0357_1352328158535_248302_20340);
             parameters.add(decider_17_0_2_edc0357_1352328158533_586682_20327);
-            parameters.add(sig_17_0_2_edc0357_1352328158534_440722_20329);
             parameters.add(sig_17_0_2_edc0357_1352328158534_989901_20336);
+            parameters.add(sig_17_0_2_edc0357_1352328158534_440722_20329);
             parameters.add(sig_17_0_2_edc0357_1352328158534_699192_20331);
             parameters.add(finalNode_startTime);
             parameters.add(finalNode_endTime);
@@ -3975,7 +3975,7 @@ public class Customer extends ParameterListenerImpl {
         }
 
         public void init_17_0_2_edc0357_1352328156644_264215_19617Dependencies() {
-            addDependency(_17_0_2_edc0357_1352328158533_74852_20323_exists, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158534_557121_20335, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>((new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))).functionCall) })));
+            addDependency(_17_0_2_edc0357_1352328158533_74852_20323_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.NotEquals(new Expression<Integer>(finalNode_startTime), null)), new Expression(new EffectFunction(sig_17_0_2_edc0357_1352328158534_557121_20335, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))) })))));
             caller.getValue(true).addDependency(caller.getValue(true).endTime, new Expression<Integer>(finalNode_endTime));
             addDependency(endTime, new Expression<Integer>(finalNode_endTime));
         }
@@ -3985,11 +3985,11 @@ public class Customer extends ParameterListenerImpl {
             Expression<?>[] arguments127 = new Expression<?>[1];
             arguments127[0] = new Expression<Integer>(startTime);
             Expression<Boolean> condition127 = new Expression<Boolean>(true);
-            elaborationRule127 = addElaborationRule(condition127, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_946115_20322.class, "_InitialNode_initialize", arguments127);
+            elaborationRule127 = addElaborationRule(condition127, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158532_946115_20322.class, "CI_start_InitialNode_initialize", arguments127);
             Expression<?>[] arguments128 = new Expression<?>[1];
             arguments128[0] = new Expression<Integer>(finalNode_startTime);
             Expression<Boolean> condition128 = new Expression<Boolean>(_17_0_2_edc0357_1352328158533_74852_20323_exists);
-            elaborationRule128 = addElaborationRule(condition128, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_74852_20323.class, "_ActivityFinalNode_initialize", arguments128);
+            elaborationRule128 = addElaborationRule(condition128, _17_0_2_edc0357_1352328156644_264215_19617.this, Customer._17_0_2_edc0357_1352328156644_264215_19617._17_0_2_edc0357_1352328158533_74852_20323.class, "CI_end_ActivityFinalNode_initialize", arguments128);
         }
     }
 
@@ -4066,15 +4066,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect163VarV = sig_17_0_2_edc0357_1352328158680_29152_20391;
                     effect163Var = new Parameter("effect163Var", null, null, this);
                     addDependency(effect163Var, new Expression(effect163VarV));
-                    effect163 = new EffectFunction(new FunctionCall(effect163Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160571_533840_21470, endTime }));
+                    effect163 = new EffectFunction(new EffectFunction(effect163Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160571_533840_21470, endTime }));
                     Object effect164VarV = sig_17_0_2_edc0357_1352328158680_247894_20395;
                     effect164Var = new Parameter("effect164Var", null, null, this);
                     addDependency(effect164Var, new Expression(effect164VarV));
-                    effect164 = new EffectFunction(new FunctionCall(effect164Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect164 = new EffectFunction(new EffectFunction(effect164Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect165VarV = decider_17_0_2_edc0357_1352328158675_718110_20377;
                     effect165Var = new Parameter("effect165Var", null, null, this);
                     addDependency(effect165Var, new Expression(effect165VarV));
-                    effect165 = new EffectFunction(new FunctionCall(effect165Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377 }));
+                    effect165 = new EffectFunction(new EffectFunction(effect165Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4098,23 +4098,23 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158672_866631_20373Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158675_718110_20377_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158677_175784_20381_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158675_718110_20377_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328158677_175784_20381_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377, new Expression<Integer>(1));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_903819_20399, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158681_903819_20399, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158672_866631_20373Elaborations() {
                 init_17_0_2_edc0357_1352328158672_866631_20373Dependencies();
                 Expression<?>[] arguments166 = new Expression<?>[1];
-                arguments166[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments166[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition166 = new Expression<Boolean>(_17_0_2_edc0357_1352328158675_718110_20377_exists);
-                elaborationRule166 = addElaborationRule(condition166, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_718110_20377.class, "customerDecideParticipation_DecisionNode_setDRCap", arguments166);
+                elaborationRule166 = addElaborationRule(condition166, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_718110_20377.class, "CDR_decide_particip_DecisionNode_setDRCap", arguments166);
                 Expression<?>[] arguments167 = new Expression<?>[1];
-                arguments167[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments167[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition167 = new Expression<Boolean>(_17_0_2_edc0357_1352328158677_175784_20381_exists);
-                elaborationRule167 = addElaborationRule(condition167, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_175784_20381.class, "forkNodeReadSelf_ForkNode_setDRCap", arguments167);
+                elaborationRule167 = addElaborationRule(condition167, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_175784_20381.class, "CDR_forkself_ForkNode_setDRCap", arguments167);
             }
         }
 
@@ -4182,15 +4182,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect168VarV = sig_17_0_2_edc0357_1352328158680_379016_20389;
                     effect168Var = new Parameter("effect168Var", null, null, this);
                     addDependency(effect168Var, new Expression(effect168VarV));
-                    effect168 = new EffectFunction(new FunctionCall(effect168Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect168 = new EffectFunction(new EffectFunction(effect168Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect169VarV = decider_17_0_2_edc0357_1352328158677_26057_20380;
                     effect169Var = new Parameter("effect169Var", null, null, this);
                     addDependency(effect169Var, new Expression(effect169VarV));
-                    effect169 = new EffectFunction(new FunctionCall(effect169Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 }));
+                    effect169 = new EffectFunction(new EffectFunction(effect169Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 }));
                     Object effect170VarV = cap__17_0_2_edc0357_1352328156659_30024_19625;
                     effect170Var = new Parameter("effect170Var", null, null, this);
                     addDependency(effect170Var, new Expression(effect170VarV));
-                    effect170 = new EffectFunction(new FunctionCall(effect170Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160572_153680_21471 }));
+                    effect170 = new EffectFunction(new EffectFunction(effect170Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160572_153680_21471 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4214,20 +4214,20 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158673_69485_20374Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160572_153680_21471, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_450048_20388, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160573_976424_21472, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_802723_20392, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160572_153680_21471, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_450048_20388, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160573_976424_21472, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_802723_20392, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380, new Expression<Integer>(3));
-                addDependency(_17_0_2_edc0357_1352328158677_26057_20380_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158677_26057_20380_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158679_596112_20386, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158679_596112_20386, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158673_69485_20374Elaborations() {
                 init_17_0_2_edc0357_1352328158673_69485_20374Dependencies();
                 Expression<?>[] arguments171 = new Expression<?>[1];
-                arguments171[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments171[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition171 = new Expression<Boolean>(_17_0_2_edc0357_1352328158677_26057_20380_exists);
-                elaborationRule171 = addElaborationRule(condition171, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_26057_20380.class, "sendSignalYes_SendSignalAction_setDRCap", arguments171);
+                elaborationRule171 = addElaborationRule(condition171, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_26057_20380.class, "CDR_send_yes_SendSignalAction_setDRCap", arguments171);
             }
         }
 
@@ -4272,7 +4272,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect172VarV = sig_17_0_2_edc0357_1352328158681_221195_20398;
                     effect172Var = new Parameter("effect172Var", null, null, this);
                     addDependency(effect172Var, new Expression(effect172VarV));
-                    effect172 = new EffectFunction(new FunctionCall(effect172Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect172 = new EffectFunction(new EffectFunction(effect172Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4287,7 +4287,7 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158674_234414_20375Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158679_514534_20384_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158679_514534_20384_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
             }
@@ -4295,9 +4295,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158674_234414_20375Elaborations() {
                 init_17_0_2_edc0357_1352328158674_234414_20375Dependencies();
                 Expression<?>[] arguments173 = new Expression<?>[1];
-                arguments173[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments173[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition173 = new Expression<Boolean>(_17_0_2_edc0357_1352328158679_514534_20384_exists);
-                elaborationRule173 = addElaborationRule(condition173, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158679_514534_20384.class, "_ForkNode_setDRCap", arguments173);
+                elaborationRule173 = addElaborationRule(condition173, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158679_514534_20384.class, "CDR_fork1_ForkNode_setDRCap", arguments173);
             }
         }
 
@@ -4342,9 +4342,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158674_624952_20376Dependencies() {
-                addDependency(endTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))).functionCall));
+                addDependency(endTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_50786_20403, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158681_50786_20403, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(finalNode_endTime, new Expression<Integer>(endTime));
             }
 
@@ -4428,19 +4428,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect174VarV = sig_17_0_2_edc0357_1352328158679_596112_20386;
                     effect174Var = new Parameter("effect174Var", null, null, this);
                     addDependency(effect174Var, new Expression(effect174VarV));
-                    effect174 = new EffectFunction(new FunctionCall(effect174Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158673_69485_20374_exists }));
+                    effect174 = new EffectFunction(new EffectFunction(effect174Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158673_69485_20374_exists }));
                     Object effect175VarV = sig_17_0_2_edc0357_1352328158679_76145_20387;
                     effect175Var = new Parameter("effect175Var", null, null, this);
                     addDependency(effect175Var, new Expression(effect175VarV));
-                    effect175 = new EffectFunction(new FunctionCall(effect175Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158675_13172_20378_exists }));
+                    effect175 = new EffectFunction(new EffectFunction(effect175Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "sendIf", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class, java.lang.Boolean.class), new Object[] { objectToPass, endTime, _17_0_2_edc0357_1352328158675_13172_20378_exists }));
                     Object effect176VarV = decider_17_0_2_edc0357_1352328158675_13172_20378;
                     effect176Var = new Parameter("effect176Var", null, null, this);
                     addDependency(effect176Var, new Expression(effect176VarV));
-                    effect176 = new EffectFunction(new FunctionCall(effect176Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378 }));
+                    effect176 = new EffectFunction(new EffectFunction(effect176Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378 }));
                     Object effect177VarV = decider_17_0_2_edc0357_1352328158673_69485_20374;
                     effect177Var = new Parameter("effect177Var", null, null, this);
                     addDependency(effect177Var, new Expression(effect177VarV));
-                    effect177 = new EffectFunction(new FunctionCall(effect177Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 }));
+                    effect177 = new EffectFunction(new EffectFunction(effect177Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4469,24 +4469,24 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158675_718110_20377Dependencies() {
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(decisionInput, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_26576_20397, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158673_69485_20374_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>(decisionInput), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(decisionInput, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158681_26576_20397, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158673_69485_20374_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(decisionInput), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374)))))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374, new Expression<Integer>(3));
-                addDependency(_17_0_2_edc0357_1352328158675_13172_20378_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Functions.Not(new Expression<Boolean>(decisionInput)), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_247894_20395, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158675_13172_20378_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(decisionInput))), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378)))))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_247894_20395, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378, new Expression<Integer>(2));
             }
 
             public void init_17_0_2_edc0357_1352328158675_718110_20377Elaborations() {
                 init_17_0_2_edc0357_1352328158675_718110_20377Dependencies();
                 Expression<?>[] arguments178 = new Expression<?>[1];
-                arguments178[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments178[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition178 = new Expression<Boolean>(_17_0_2_edc0357_1352328158675_13172_20378_exists);
-                elaborationRule178 = addElaborationRule(condition178, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_13172_20378.class, "sendSignalNo_SendSignalAction_setDRCap", arguments178);
+                elaborationRule178 = addElaborationRule(condition178, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_13172_20378.class, "CDR_send_no_SendSignalAction_setDRCap", arguments178);
                 Expression<?>[] arguments179 = new Expression<?>[1];
-                arguments179[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments179[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition179 = new Expression<Boolean>(_17_0_2_edc0357_1352328158673_69485_20374_exists);
-                elaborationRule179 = addElaborationRule(condition179, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158673_69485_20374.class, "addStructuralFeatureCap_AddStructuralFeatureValueAction_setDRCap", arguments179);
+                elaborationRule179 = addElaborationRule(condition179, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158673_69485_20374.class, "CDR_set_cap_AddStructuralFeatureValueAction_setDRCap", arguments179);
             }
         }
 
@@ -4549,15 +4549,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect180VarV = sig_17_0_2_edc0357_1352328158681_384297_20401;
                     effect180Var = new Parameter("effect180Var", null, null, this);
                     addDependency(effect180Var, new Expression(effect180VarV));
-                    effect180 = new EffectFunction(new FunctionCall(effect180Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect180 = new EffectFunction(new EffectFunction(effect180Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect181VarV = new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_2_edc0357_1352328156651_739611_19623_no" });
                     effect181Var = new Parameter("effect181Var", null, null, this);
                     addDependency(effect181Var, new Expression(effect181VarV));
-                    effect181 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("ObjectFlow<Signalno>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect181Var));
+                    effect181 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("ObjectFlow<Signalno>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect181Var));
                     Object effect182VarV = new FunctionCall(signalObject, Parameter.class, "getMember", new Object[] { "control" });
                     effect182Var = new Parameter("effect182Var", null, null, this);
                     addDependency(effect182Var, new Expression(effect182VarV));
-                    effect182 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, true }, effect182Var));
+                    effect182 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, true }, effect182Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4580,20 +4580,20 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158675_13172_20378Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158679_407855_20385_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160573_64130_21473, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_928200_20394, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158679_407855_20385_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328160573_64130_21473, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_928200_20394, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158679_76145_20387, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158679_76145_20387, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(signalObject, new Expression<Power_System.Signalno>(new ConstructorCall(x, ClassUtils.getConstructorForArgTypes(Power_System.Signalno.class), new Object[] {})));
             }
 
             public void init_17_0_2_edc0357_1352328158675_13172_20378Elaborations() {
                 init_17_0_2_edc0357_1352328158675_13172_20378Dependencies();
                 Expression<?>[] arguments183 = new Expression<?>[2];
-                arguments183[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments183[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 arguments183[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158681_384297_20401);
                 Expression<Boolean> condition183 = new Expression<Boolean>(_17_0_2_edc0357_1352328158679_407855_20385_exists);
-                elaborationRule183 = addElaborationRule(condition183, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158679_407855_20385.class, "_MergeNode_setDRCap", arguments183);
+                elaborationRule183 = addElaborationRule(condition183, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158679_407855_20385.class, "CDR_merge_response_MergeNode_setDRCap", arguments183);
             }
         }
 
@@ -4667,19 +4667,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect184VarV = sig_17_0_2_edc0357_1352328158680_450048_20388;
                     effect184Var = new Parameter("effect184Var", null, null, this);
                     addDependency(effect184Var, new Expression(effect184VarV));
-                    effect184 = new EffectFunction(new FunctionCall(effect184Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect184 = new EffectFunction(new EffectFunction(effect184Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect185VarV = sig_17_0_2_edc0357_1352328158680_232103_20390;
                     effect185Var = new Parameter("effect185Var", null, null, this);
                     addDependency(effect185Var, new Expression(effect185VarV));
-                    effect185 = new EffectFunction(new FunctionCall(effect185Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect185 = new EffectFunction(new EffectFunction(effect185Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect186VarV = decider_17_0_2_edc0357_1352328158677_26057_20380;
                     effect186Var = new Parameter("effect186Var", null, null, this);
                     addDependency(effect186Var, new Expression(effect186VarV));
-                    effect186 = new EffectFunction(new FunctionCall(effect186Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 }));
+                    effect186 = new EffectFunction(new EffectFunction(effect186Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 }));
                     Object effect187VarV = decider_17_0_2_edc0357_1352328158673_69485_20374;
                     effect187Var = new Parameter("effect187Var", null, null, this);
                     addDependency(effect187Var, new Expression(effect187VarV));
-                    effect187 = new EffectFunction(new FunctionCall(effect187Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 }));
+                    effect187 = new EffectFunction(new EffectFunction(effect187Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4707,23 +4707,23 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158676_652582_20379Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328158677_26057_20380_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158677_26057_20380_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_29423_20396, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158673_69485_20374_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158681_29423_20396, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158673_69485_20374_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374, new Expression<Integer>(2));
             }
 
             public void init_17_0_2_edc0357_1352328158676_652582_20379Elaborations() {
                 init_17_0_2_edc0357_1352328158676_652582_20379Dependencies();
                 Expression<?>[] arguments188 = new Expression<?>[1];
-                arguments188[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition188 = new Expression<Boolean>(_17_0_2_edc0357_1352328158673_69485_20374_exists);
-                elaborationRule188 = addElaborationRule(condition188, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158673_69485_20374.class, "addStructuralFeatureCap_AddStructuralFeatureValueAction_setDRCap", arguments188);
+                arguments188[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition188 = new Expression<Boolean>(_17_0_2_edc0357_1352328158677_26057_20380_exists);
+                elaborationRule188 = addElaborationRule(condition188, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_26057_20380.class, "CDR_send_yes_SendSignalAction_setDRCap", arguments188);
                 Expression<?>[] arguments189 = new Expression<?>[1];
-                arguments189[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition189 = new Expression<Boolean>(_17_0_2_edc0357_1352328158677_26057_20380_exists);
-                elaborationRule189 = addElaborationRule(condition189, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_26057_20380.class, "sendSignalYes_SendSignalAction_setDRCap", arguments189);
+                arguments189[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition189 = new Expression<Boolean>(_17_0_2_edc0357_1352328158673_69485_20374_exists);
+                elaborationRule189 = addElaborationRule(condition189, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158673_69485_20374.class, "CDR_set_cap_AddStructuralFeatureValueAction_setDRCap", arguments189);
             }
         }
 
@@ -4791,15 +4791,15 @@ public class Customer extends ParameterListenerImpl {
                     Object effect190VarV = sig_17_0_2_edc0357_1352328158681_60367_20402;
                     effect190Var = new Parameter("effect190Var", null, null, this);
                     addDependency(effect190Var, new Expression(effect190VarV));
-                    effect190 = new EffectFunction(new FunctionCall(effect190Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect190 = new EffectFunction(new EffectFunction(effect190Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect191VarV = new FunctionCall(x, Parameter.class, "getMember", new Object[] { "ss_17_0_2_edc0357_1352328156651_739611_19623_yes" });
                     effect191Var = new Parameter("effect191Var", null, null, this);
                     addDependency(effect191Var, new Expression(effect191VarV));
-                    effect191 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("ObjectFlow<Signalyes>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect191Var));
+                    effect191 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("ObjectFlow<Signalyes>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { signalObject, endTime }, effect191Var));
                     Object effect192VarV = new FunctionCall(signalObject, Parameter.class, "getMember", new Object[] { "newLoad__17_0_2_edc0357_1352328156888_707483_19708" });
                     effect192Var = new Parameter("effect192Var", null, null, this);
                     addDependency(effect192Var, new Expression(effect192VarV));
-                    effect192 = new EffectFunction(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160575_146405_21475 }, effect192Var));
+                    effect192 = new EffectFunction(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, _17_0_2_edc0357_1352328160575_146405_21475 }, effect192Var));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4823,21 +4823,21 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158677_26057_20380Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160574_879011_21474, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_930496_20393, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158679_407855_20385_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328160575_146405_21475, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_232103_20390, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160574_879011_21474, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_930496_20393, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158679_407855_20385_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328160575_146405_21475, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_232103_20390, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_379016_20389, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_379016_20389, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(signalObject, new Expression<Power_System.Signalyes>(new ConstructorCall(x, ClassUtils.getConstructorForArgTypes(Power_System.Signalyes.class), new Object[] {})));
             }
 
             public void init_17_0_2_edc0357_1352328158677_26057_20380Elaborations() {
                 init_17_0_2_edc0357_1352328158677_26057_20380Dependencies();
                 Expression<?>[] arguments193 = new Expression<?>[2];
-                arguments193[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments193[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 arguments193[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158681_60367_20402);
                 Expression<Boolean> condition193 = new Expression<Boolean>(_17_0_2_edc0357_1352328158679_407855_20385_exists);
-                elaborationRule193 = addElaborationRule(condition193, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158679_407855_20385.class, "_MergeNode_setDRCap", arguments193);
+                elaborationRule193 = addElaborationRule(condition193, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158679_407855_20385.class, "CDR_merge_response_MergeNode_setDRCap", arguments193);
             }
         }
 
@@ -4861,9 +4861,9 @@ public class Customer extends ParameterListenerImpl {
 
             public IntegerParameter myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 = null;
 
-            public BooleanParameter _17_0_2_edc0357_1352328158677_26057_20380_exists = null;
-
             public BooleanParameter _17_0_2_edc0357_1352328158675_13172_20378_exists = null;
+
+            public BooleanParameter _17_0_2_edc0357_1352328158677_26057_20380_exists = null;
 
             public Parameter< Customer > objectToPass = null;
 
@@ -4875,9 +4875,9 @@ public class Customer extends ParameterListenerImpl {
 
             public Dependency< Integer > myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380Dependency = null;
 
-            public Dependency< Boolean > _17_0_2_edc0357_1352328158677_26057_20380_existsDependency = null;
-
             public Dependency< Boolean > _17_0_2_edc0357_1352328158675_13172_20378_existsDependency = null;
+
+            public Dependency< Boolean > _17_0_2_edc0357_1352328158677_26057_20380_existsDependency = null;
 
             public Dependency< Integer > durationDependency = null;
 
@@ -4922,8 +4922,8 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158677_175784_20381Members() {
                 try {
                     if (myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 == null) myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 = new IntegerParameter("myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380", (Integer) 2, this);
-                    if (_17_0_2_edc0357_1352328158677_26057_20380_exists == null) _17_0_2_edc0357_1352328158677_26057_20380_exists = new BooleanParameter("_17_0_2_edc0357_1352328158677_26057_20380_exists", (Boolean) false, this);
                     if (_17_0_2_edc0357_1352328158675_13172_20378_exists == null) _17_0_2_edc0357_1352328158675_13172_20378_exists = new BooleanParameter("_17_0_2_edc0357_1352328158675_13172_20378_exists", (Boolean) false, this);
+                    if (_17_0_2_edc0357_1352328158677_26057_20380_exists == null) _17_0_2_edc0357_1352328158677_26057_20380_exists = new BooleanParameter("_17_0_2_edc0357_1352328158677_26057_20380_exists", (Boolean) false, this);
                     if (objectToPass == null) objectToPass = new Parameter<Customer>("objectToPass", null, (Customer) null, this);
                     if (myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 == null) myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 = new IntegerParameter("myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374", (Integer) 1, this);
                     if (_17_0_2_edc0357_1352328158673_69485_20374_exists == null) _17_0_2_edc0357_1352328158673_69485_20374_exists = new BooleanParameter("_17_0_2_edc0357_1352328158673_69485_20374_exists", (Boolean) false, this);
@@ -4931,27 +4931,27 @@ public class Customer extends ParameterListenerImpl {
                     Object effect194VarV = sig_17_0_2_edc0357_1352328158680_802723_20392;
                     effect194Var = new Parameter("effect194Var", null, null, this);
                     addDependency(effect194Var, new Expression(effect194VarV));
-                    effect194 = new EffectFunction(new FunctionCall(effect194Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect194 = new EffectFunction(new EffectFunction(effect194Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect195VarV = sig_17_0_2_edc0357_1352328158680_930496_20393;
                     effect195Var = new Parameter("effect195Var", null, null, this);
                     addDependency(effect195Var, new Expression(effect195VarV));
-                    effect195 = new EffectFunction(new FunctionCall(effect195Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect195 = new EffectFunction(new EffectFunction(effect195Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect196VarV = sig_17_0_2_edc0357_1352328158680_928200_20394;
                     effect196Var = new Parameter("effect196Var", null, null, this);
                     addDependency(effect196Var, new Expression(effect196VarV));
-                    effect196 = new EffectFunction(new FunctionCall(effect196Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
-                    Object effect197VarV = decider_17_0_2_edc0357_1352328158675_13172_20378;
+                    effect196 = new EffectFunction(new EffectFunction(effect196Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    Object effect197VarV = decider_17_0_2_edc0357_1352328158677_26057_20380;
                     effect197Var = new Parameter("effect197Var", null, null, this);
                     addDependency(effect197Var, new Expression(effect197VarV));
-                    effect197 = new EffectFunction(new FunctionCall(effect197Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378 }));
-                    Object effect198VarV = decider_17_0_2_edc0357_1352328158677_26057_20380;
+                    effect197 = new EffectFunction(new EffectFunction(effect197Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 }));
+                    Object effect198VarV = decider_17_0_2_edc0357_1352328158675_13172_20378;
                     effect198Var = new Parameter("effect198Var", null, null, this);
                     addDependency(effect198Var, new Expression(effect198VarV));
-                    effect198 = new EffectFunction(new FunctionCall(effect198Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380 }));
+                    effect198 = new EffectFunction(new EffectFunction(effect198Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378 }));
                     Object effect199VarV = decider_17_0_2_edc0357_1352328158673_69485_20374;
                     effect199Var = new Parameter("effect199Var", null, null, this);
                     addDependency(effect199Var, new Expression(effect199VarV));
-                    effect199 = new EffectFunction(new FunctionCall(effect199Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 }));
+                    effect199 = new EffectFunction(new EffectFunction(effect199Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4959,8 +4959,8 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_2_edc0357_1352328158677_175784_20381Collections() {
                 parameters.add(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380);
-                parameters.add(_17_0_2_edc0357_1352328158677_26057_20380_exists);
                 parameters.add(_17_0_2_edc0357_1352328158675_13172_20378_exists);
+                parameters.add(_17_0_2_edc0357_1352328158677_26057_20380_exists);
                 parameters.add(objectToPass);
                 parameters.add(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374);
                 parameters.add(_17_0_2_edc0357_1352328158673_69485_20374_exists);
@@ -4987,11 +4987,11 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158677_175784_20381Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380, new Expression<Integer>(2));
-                addDependency(_17_0_2_edc0357_1352328158677_26057_20380_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158675_13172_20378_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158675_13172_20378_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_13172_20378, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(_17_0_2_edc0357_1352328158677_26057_20380_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158677_26057_20380, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158677_26057_20380)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Customer>(new FunctionCall(sig_17_0_2_edc0357_1352328158680_29152_20391, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158673_69485_20374_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Customer>(new EffectFunction(sig_17_0_2_edc0357_1352328158680_29152_20391, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158673_69485_20374_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158673_69485_20374, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158673_69485_20374, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158675_13172_20378, new Expression<Integer>(1));
             }
@@ -4999,17 +4999,17 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158677_175784_20381Elaborations() {
                 init_17_0_2_edc0357_1352328158677_175784_20381Dependencies();
                 Expression<?>[] arguments200 = new Expression<?>[1];
-                arguments200[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition200 = new Expression<Boolean>(_17_0_2_edc0357_1352328158675_13172_20378_exists);
-                elaborationRule200 = addElaborationRule(condition200, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_13172_20378.class, "sendSignalNo_SendSignalAction_setDRCap", arguments200);
+                arguments200[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition200 = new Expression<Boolean>(_17_0_2_edc0357_1352328158677_26057_20380_exists);
+                elaborationRule200 = addElaborationRule(condition200, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_26057_20380.class, "CDR_send_yes_SendSignalAction_setDRCap", arguments200);
                 Expression<?>[] arguments201 = new Expression<?>[1];
-                arguments201[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition201 = new Expression<Boolean>(_17_0_2_edc0357_1352328158673_69485_20374_exists);
-                elaborationRule201 = addElaborationRule(condition201, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158673_69485_20374.class, "addStructuralFeatureCap_AddStructuralFeatureValueAction_setDRCap", arguments201);
+                arguments201[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition201 = new Expression<Boolean>(_17_0_2_edc0357_1352328158675_13172_20378_exists);
+                elaborationRule201 = addElaborationRule(condition201, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_13172_20378.class, "CDR_send_no_SendSignalAction_setDRCap", arguments201);
                 Expression<?>[] arguments202 = new Expression<?>[1];
-                arguments202[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition202 = new Expression<Boolean>(_17_0_2_edc0357_1352328158677_26057_20380_exists);
-                elaborationRule202 = addElaborationRule(condition202, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158677_26057_20380.class, "sendSignalYes_SendSignalAction_setDRCap", arguments202);
+                arguments202[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition202 = new Expression<Boolean>(_17_0_2_edc0357_1352328158673_69485_20374_exists);
+                elaborationRule202 = addElaborationRule(condition202, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158673_69485_20374.class, "CDR_set_cap_AddStructuralFeatureValueAction_setDRCap", arguments202);
             }
         }
 
@@ -5058,7 +5058,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect203VarV = sig_17_0_2_edc0357_1352328158681_29423_20396;
                     effect203Var = new Parameter("effect203Var", null, null, this);
                     addDependency(effect203Var, new Expression(effect203VarV));
-                    effect203 = new EffectFunction(new FunctionCall(effect203Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect203 = new EffectFunction(new EffectFunction(effect203Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5074,7 +5074,7 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158678_297502_20382Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158676_652582_20379_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158676_652582_20379_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(objectToPass, new Expression<Integer>(_17_0_2_edc0357_1352328158535_616746_20341));
                 addDependency(duration, new Expression<Integer>(1));
             }
@@ -5082,9 +5082,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158678_297502_20382Elaborations() {
                 init_17_0_2_edc0357_1352328158678_297502_20382Dependencies();
                 Expression<?>[] arguments204 = new Expression<?>[1];
-                arguments204[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments204[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition204 = new Expression<Boolean>(_17_0_2_edc0357_1352328158676_652582_20379_exists);
-                elaborationRule204 = addElaborationRule(condition204, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158676_652582_20379.class, "forkNodeLastSignalValue_ForkNode_setDRCap", arguments204);
+                elaborationRule204 = addElaborationRule(condition204, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158676_652582_20379.class, "CDR_fork2_ForkNode_setDRCap", arguments204);
             }
         }
 
@@ -5143,11 +5143,11 @@ public class Customer extends ParameterListenerImpl {
                     Object effect205VarV = sig_17_0_2_edc0357_1352328158681_26576_20397;
                     effect205Var = new Parameter("effect205Var", null, null, this);
                     addDependency(effect205Var, new Expression(effect205VarV));
-                    effect205 = new EffectFunction(new FunctionCall(effect205Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160575_575843_21477, endTime }));
+                    effect205 = new EffectFunction(new EffectFunction(effect205Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160575_575843_21477, endTime }));
                     Object effect206VarV = decider_17_0_2_edc0357_1352328158675_718110_20377;
                     effect206Var = new Parameter("effect206Var", null, null, this);
                     addDependency(effect206Var, new Expression(effect206VarV));
-                    effect206 = new EffectFunction(new FunctionCall(effect206Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377 }));
+                    effect206 = new EffectFunction(new EffectFunction(effect206Var, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "addIfNotContained", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { endTime, myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5168,18 +5168,18 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158678_378610_20383Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160575_575843_21477, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328158675_718110_20377_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.And(new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))).functionCall), new Expression<Boolean>((new Functions.Equals(new Expression(new FunctionCall(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377))).functionCall))).functionCall), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158675_718110_20377_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328158675_718110_20377, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328158675_718110_20377, new Expression<Integer>(2));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_489777_20400, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158681_489777_20400, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158678_378610_20383Elaborations() {
                 init_17_0_2_edc0357_1352328158678_378610_20383Dependencies();
                 Expression<?>[] arguments207 = new Expression<?>[1];
-                arguments207[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments207[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition207 = new Expression<Boolean>(_17_0_2_edc0357_1352328158675_718110_20377_exists);
-                elaborationRule207 = addElaborationRule(condition207, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_718110_20377.class, "customerDecideParticipation_DecisionNode_setDRCap", arguments207);
+                elaborationRule207 = addElaborationRule(condition207, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158675_718110_20377.class, "CDR_decide_particip_DecisionNode_setDRCap", arguments207);
             }
         }
 
@@ -5235,11 +5235,11 @@ public class Customer extends ParameterListenerImpl {
                     Object effect208VarV = sig_17_0_2_edc0357_1352328158681_903819_20399;
                     effect208Var = new Parameter("effect208Var", null, null, this);
                     addDependency(effect208Var, new Expression(effect208VarV));
-                    effect208 = new EffectFunction(new FunctionCall(effect208Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect208 = new EffectFunction(new EffectFunction(effect208Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect209VarV = sig_17_0_2_edc0357_1352328158681_489777_20400;
                     effect209Var = new Parameter("effect209Var", null, null, this);
                     addDependency(effect209Var, new Expression(effect209VarV));
-                    effect209 = new EffectFunction(new FunctionCall(effect209Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect209 = new EffectFunction(new EffectFunction(effect209Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5258,22 +5258,22 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158679_514534_20384Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158672_866631_20373_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158678_378610_20383_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158672_866631_20373_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328158678_378610_20383_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_221195_20398, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158681_221195_20398, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158679_514534_20384Elaborations() {
                 init_17_0_2_edc0357_1352328158679_514534_20384Dependencies();
                 Expression<?>[] arguments210 = new Expression<?>[1];
-                arguments210[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments210[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition210 = new Expression<Boolean>(_17_0_2_edc0357_1352328158672_866631_20373_exists);
-                elaborationRule210 = addElaborationRule(condition210, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158672_866631_20373.class, "customerReadSelf_ReadSelfAction_setDRCap", arguments210);
+                elaborationRule210 = addElaborationRule(condition210, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158672_866631_20373.class, "CDR_readself_ReadSelfAction_setDRCap", arguments210);
                 Expression<?>[] arguments211 = new Expression<?>[1];
-                arguments211[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments211[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition211 = new Expression<Boolean>(_17_0_2_edc0357_1352328158678_378610_20383_exists);
-                elaborationRule211 = addElaborationRule(condition211, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158678_378610_20383.class, "custParticip_ValueSpecificationAction_setDRCap", arguments211);
+                elaborationRule211 = addElaborationRule(condition211, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158678_378610_20383.class, "CDR_participation_spec_ValueSpecificationAction_setDRCap", arguments211);
             }
         }
 
@@ -5317,7 +5317,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect212VarV = sig_17_0_2_edc0357_1352328158681_50786_20403;
                     effect212Var = new Parameter("effect212Var", null, null, this);
                     addDependency(effect212Var, new Expression(effect212VarV));
-                    effect212 = new EffectFunction(new FunctionCall(effect212Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect212 = new EffectFunction(new EffectFunction(effect212Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5332,9 +5332,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158679_407855_20385Dependencies() {
-                addDependency(finalNode_startTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall));
+                addDependency(finalNode_startTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158679_407855_20385Elaborations() {
@@ -5353,9 +5353,9 @@ public class Customer extends ParameterListenerImpl {
             fixTimeDependencies();
         }
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158680_232103_20390 = null;
-
         public Parameter< ObjectFlow<Customer> > sig_17_0_2_edc0357_1352328158680_29152_20391 = null;
+
+        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158680_232103_20390 = null;
 
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158681_221195_20398 = null;
 
@@ -5387,9 +5387,9 @@ public class Customer extends ParameterListenerImpl {
 
         public IntegerParameter finalNode_endTime = null;
 
-        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158680_450048_20388 = null;
-
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158679_76145_20387 = null;
+
+        public Parameter< ObjectFlow<Integer> > sig_17_0_2_edc0357_1352328158680_450048_20388 = null;
 
         public Parameter< TimeVaryingList<Integer> > decider_17_0_2_edc0357_1352328158675_13172_20378 = null;
 
@@ -5423,8 +5423,8 @@ public class Customer extends ParameterListenerImpl {
 
         public void init_17_0_2_edc0357_1352328156645_46192_19618Members() {
             try {
-                if (sig_17_0_2_edc0357_1352328158680_232103_20390 == null) sig_17_0_2_edc0357_1352328158680_232103_20390 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158680_232103_20390", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_232103_20390" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158680_29152_20391 == null) sig_17_0_2_edc0357_1352328158680_29152_20391 = new Parameter<ObjectFlow<Customer>>("sig_17_0_2_edc0357_1352328158680_29152_20391", null, (ObjectFlow<Customer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_29152_20391" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158680_232103_20390 == null) sig_17_0_2_edc0357_1352328158680_232103_20390 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158680_232103_20390", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_232103_20390" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158681_221195_20398 == null) sig_17_0_2_edc0357_1352328158681_221195_20398 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158681_221195_20398", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158681_221195_20398" })).evaluate(true), this);
                 if (caller == null) caller = new Parameter<DurativeEvent>("caller", null, (DurativeEvent) null, this);
                 if (sig_17_0_2_edc0357_1352328158681_50786_20403 == null) sig_17_0_2_edc0357_1352328158681_50786_20403 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158681_50786_20403", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158681_50786_20403" })).evaluate(true), this);
@@ -5439,13 +5439,13 @@ public class Customer extends ParameterListenerImpl {
                 if (_17_0_2_edc0357_1352328158678_297502_20382_startTime == null) _17_0_2_edc0357_1352328158678_297502_20382_startTime = new IntegerParameter("_17_0_2_edc0357_1352328158678_297502_20382_startTime", (Integer) null, this);
                 if (_17_0_2_edc0357_1352328158674_624952_20376_exists == null) _17_0_2_edc0357_1352328158674_624952_20376_exists = new BooleanParameter("_17_0_2_edc0357_1352328158674_624952_20376_exists", (Boolean) false, this);
                 if (sig_17_0_2_edc0357_1352328158680_379016_20389 == null) sig_17_0_2_edc0357_1352328158680_379016_20389 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158680_379016_20389", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_379016_20389" })).evaluate(true), this);
-                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) 84000, this);
-                if (sig_17_0_2_edc0357_1352328158680_450048_20388 == null) sig_17_0_2_edc0357_1352328158680_450048_20388 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158680_450048_20388", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_450048_20388" })).evaluate(true), this);
+                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158679_76145_20387 == null) sig_17_0_2_edc0357_1352328158679_76145_20387 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158679_76145_20387", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158679_76145_20387" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158680_450048_20388 == null) sig_17_0_2_edc0357_1352328158680_450048_20388 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158680_450048_20388", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_450048_20388" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158675_13172_20378 == null) decider_17_0_2_edc0357_1352328158675_13172_20378 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158675_13172_20378", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158675_13172_20378", 2 })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158680_247894_20395 == null) sig_17_0_2_edc0357_1352328158680_247894_20395 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158680_247894_20395", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158680_247894_20395" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158681_489777_20400 == null) sig_17_0_2_edc0357_1352328158681_489777_20400 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158681_489777_20400", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158681_489777_20400" })).evaluate(true), this);
-                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) 84000, this);
+                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158681_60367_20402 == null) sig_17_0_2_edc0357_1352328158681_60367_20402 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158681_60367_20402", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158681_60367_20402" })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158675_718110_20377 == null) decider_17_0_2_edc0357_1352328158675_718110_20377 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158675_718110_20377", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158675_718110_20377", 2 })).evaluate(true), this);
                 if (decider_17_0_2_edc0357_1352328158673_69485_20374 == null) decider_17_0_2_edc0357_1352328158673_69485_20374 = new Parameter<TimeVaryingList<Integer>>("decider_17_0_2_edc0357_1352328158673_69485_20374", null, (TimeVaryingList<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingList.class, java.lang.String.class, int.class), new Object[] { "decider_17_0_2_edc0357_1352328158673_69485_20374", 3 })).evaluate(true), this);
@@ -5457,8 +5457,8 @@ public class Customer extends ParameterListenerImpl {
         }
 
         protected void init_17_0_2_edc0357_1352328156645_46192_19618Collections() {
-            parameters.add(sig_17_0_2_edc0357_1352328158680_232103_20390);
             parameters.add(sig_17_0_2_edc0357_1352328158680_29152_20391);
+            parameters.add(sig_17_0_2_edc0357_1352328158680_232103_20390);
             parameters.add(sig_17_0_2_edc0357_1352328158681_221195_20398);
             parameters.add(caller);
             parameters.add(sig_17_0_2_edc0357_1352328158681_50786_20403);
@@ -5474,8 +5474,8 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(_17_0_2_edc0357_1352328158674_624952_20376_exists);
             parameters.add(sig_17_0_2_edc0357_1352328158680_379016_20389);
             parameters.add(finalNode_endTime);
-            parameters.add(sig_17_0_2_edc0357_1352328158680_450048_20388);
             parameters.add(sig_17_0_2_edc0357_1352328158679_76145_20387);
+            parameters.add(sig_17_0_2_edc0357_1352328158680_450048_20388);
             parameters.add(decider_17_0_2_edc0357_1352328158675_13172_20378);
             parameters.add(sig_17_0_2_edc0357_1352328158680_247894_20395);
             parameters.add(sig_17_0_2_edc0357_1352328158681_489777_20400);
@@ -5490,24 +5490,24 @@ public class Customer extends ParameterListenerImpl {
         public void init_17_0_2_edc0357_1352328156645_46192_19618Dependencies() {
             caller.getValue(true).addDependency(caller.getValue(true).endTime, new Expression<Integer>(finalNode_endTime));
             addDependency(endTime, new Expression<Integer>(finalNode_endTime));
-            addDependency(_17_0_2_edc0357_1352328158674_624952_20376_exists, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158681_50786_20403, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>((new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))).functionCall) })));
+            addDependency(_17_0_2_edc0357_1352328158674_624952_20376_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.NotEquals(new Expression<Integer>(finalNode_startTime), null)), new Expression(new EffectFunction(sig_17_0_2_edc0357_1352328158681_50786_20403, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))) })))));
         }
 
         public void init_17_0_2_edc0357_1352328156645_46192_19618Elaborations() {
             init_17_0_2_edc0357_1352328156645_46192_19618Dependencies();
             Expression<?>[] arguments160 = new Expression<?>[1];
-            arguments160[0] = new Expression<Integer>(finalNode_startTime);
-            Expression<Boolean> condition160 = new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists);
-            elaborationRule160 = addElaborationRule(condition160, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158674_624952_20376.class, "customerFinal_ActivityFinalNode_setDRCap", arguments160);
+            arguments160[0] = new Expression<Integer>(startTime);
+            Expression<Boolean> condition160 = new Expression<Boolean>(true);
+            elaborationRule160 = addElaborationRule(condition160, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158674_234414_20375.class, "CDR_start_InitialNode_setDRCap", arguments160);
             Expression<?>[] arguments161 = new Expression<?>[2];
             arguments161[0] = new Expression<Integer>(startTime);
             arguments161[1] = new Expression<Integer>(_17_0_2_edc0357_1352328158535_616746_20341);
             Expression<Boolean> condition161 = new Expression<Boolean>(true);
-            elaborationRule161 = addElaborationRule(condition161, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158678_297502_20382.class, "capval_ActivityParameterNode_setDRCap", arguments161);
+            elaborationRule161 = addElaborationRule(condition161, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158678_297502_20382.class, "CDR_capval_ActivityParameterNode_setDRCap", arguments161);
             Expression<?>[] arguments162 = new Expression<?>[1];
-            arguments162[0] = new Expression<Integer>(startTime);
-            Expression<Boolean> condition162 = new Expression<Boolean>(true);
-            elaborationRule162 = addElaborationRule(condition162, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158674_234414_20375.class, "customerInitial_InitialNode_setDRCap", arguments162);
+            arguments162[0] = new Expression<Integer>(finalNode_startTime);
+            Expression<Boolean> condition162 = new Expression<Boolean>(_17_0_2_edc0357_1352328158674_624952_20376_exists);
+            elaborationRule162 = addElaborationRule(condition162, _17_0_2_edc0357_1352328156645_46192_19618.this, Customer._17_0_2_edc0357_1352328156645_46192_19618._17_0_2_edc0357_1352328158674_624952_20376.class, "CDR_final_ActivityFinalNode_setDRCap", arguments162);
         }
     }
 
@@ -5561,7 +5561,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect215VarV = sig_17_0_2_edc0357_1352328158795_231230_20458;
                     effect215Var = new Parameter("effect215Var", null, null, this);
                     addDependency(effect215Var, new Expression(effect215VarV));
-                    effect215 = new EffectFunction(new FunctionCall(effect215Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect215 = new EffectFunction(new EffectFunction(effect215Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5576,7 +5576,7 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158789_563871_20435Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158790_99012_20436_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158790_99012_20436_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
             }
@@ -5584,9 +5584,9 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158789_563871_20435Elaborations() {
                 init_17_0_2_edc0357_1352328158789_563871_20435Dependencies();
                 Expression<?>[] arguments216 = new Expression<?>[1];
-                arguments216[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments216[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition216 = new Expression<Boolean>(_17_0_2_edc0357_1352328158790_99012_20436_exists);
-                elaborationRule216 = addElaborationRule(condition216, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158790_99012_20436.class, "startup_activities_CallBehaviorAction_CustomerCB", arguments216);
+                elaborationRule216 = addElaborationRule(condition216, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158790_99012_20436.class, "C_startup_activities_CallBehaviorAction_CustomerCB", arguments216);
             }
         }
 
@@ -5610,8 +5610,6 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_2_edc0357_1352328158793_123216_20448_exists = null;
 
-            public IntegerParameter duration = null;
-
             public BooleanParameter objectToPass = null;
 
             public Dependency< Boolean > _17_0_2_edc0357_1352328158793_123216_20448_existsDependency = null;
@@ -5629,12 +5627,11 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158790_99012_20436Members() {
                 try {
                     if (_17_0_2_edc0357_1352328158793_123216_20448_exists == null) _17_0_2_edc0357_1352328158793_123216_20448_exists = new BooleanParameter("_17_0_2_edc0357_1352328158793_123216_20448_exists", (Boolean) false, this);
-                    if (duration == null) duration = new IntegerParameter("duration", (Integer) 45, this);
                     if (objectToPass == null) objectToPass = new BooleanParameter("objectToPass", (Boolean) null, this);
                     Object effect217VarV = sig_17_0_2_edc0357_1352328158796_758419_20470;
                     effect217Var = new Parameter("effect217Var", null, null, this);
                     addDependency(effect217Var, new Expression(effect217VarV));
-                    effect217 = new EffectFunction(new FunctionCall(effect217Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect217 = new EffectFunction(new EffectFunction(effect217Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5642,7 +5639,6 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_2_edc0357_1352328158790_99012_20436Collections() {
                 parameters.add(_17_0_2_edc0357_1352328158793_123216_20448_exists);
-                parameters.add(duration);
                 parameters.add(objectToPass);
                 Set<Effect> effectsForeffect217Var = new TreeSet<Effect>();
                 effectsForeffect217Var.add(effect217);
@@ -5650,21 +5646,21 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158790_99012_20436Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158793_123216_20448_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158795_231230_20458, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158793_123216_20448_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158795_231230_20458, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158790_99012_20436Elaborations() {
                 init_17_0_2_edc0357_1352328158790_99012_20436Dependencies();
-                Expression<?>[] arguments218 = new Expression<?>[2];
-                arguments218[0] = new Expression<Integer>(startTime);
-                arguments218[1] = new Expression<DurativeEvent>(this);
-                Expression<Boolean> condition218 = new Expression<Boolean>(true);
-                elaborationRule218 = addElaborationRule(condition218, Customer.this, Customer._17_0_2_edc0357_1352328156644_264215_19617.class, "initialize_Activity_Customer", arguments218);
-                Expression<?>[] arguments219 = new Expression<?>[1];
-                arguments219[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition219 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_123216_20448_exists);
-                elaborationRule219 = addElaborationRule(condition219, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_123216_20448.class, "_AcceptEventAction_CustomerCB", arguments219);
+                Expression<?>[] arguments218 = new Expression<?>[1];
+                arguments218[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition218 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_123216_20448_exists);
+                elaborationRule218 = addElaborationRule(condition218, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_123216_20448.class, "C_wait_AcceptEventAction_CustomerCB", arguments218);
+                Expression<?>[] arguments219 = new Expression<?>[2];
+                arguments219[0] = new Expression<Integer>(startTime);
+                arguments219[1] = new Expression<DurativeEvent>(this);
+                Expression<Boolean> condition219 = new Expression<Boolean>(true);
+                elaborationRule219 = addElaborationRule(condition219, Customer.this, Customer._17_0_2_edc0357_1352328156644_264215_19617.class, "initialize_Activity_Customer", arguments219);
             }
         }
 
@@ -5742,19 +5738,19 @@ public class Customer extends ParameterListenerImpl {
                     Object effect220VarV = sig_17_0_2_edc0357_1352328158795_900235_20462;
                     effect220Var = new Parameter("effect220Var", null, null, this);
                     addDependency(effect220Var, new Expression(effect220VarV));
-                    effect220 = new EffectFunction(new FunctionCall(effect220Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect220 = new EffectFunction(new EffectFunction(effect220Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect221VarV = sig_17_0_2_edc0357_1352328158795_852079_20464;
                     effect221Var = new Parameter("effect221Var", null, null, this);
                     addDependency(effect221Var, new Expression(effect221VarV));
-                    effect221 = new EffectFunction(new FunctionCall(effect221Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect221 = new EffectFunction(new EffectFunction(effect221Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect222VarV = sig_17_0_2_edc0357_1352328158796_279864_20469;
                     effect222Var = new Parameter("effect222Var", null, null, this);
                     addDependency(effect222Var, new Expression(effect222VarV));
-                    effect222 = new EffectFunction(new FunctionCall(effect222Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect222 = new EffectFunction(new EffectFunction(effect222Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                     Object effect223VarV = sig_17_0_2_edc0357_1352328158796_884417_20472;
                     effect223Var = new Parameter("effect223Var", null, null, this);
                     addDependency(effect223Var, new Expression(effect223VarV));
-                    effect223 = new EffectFunction(new FunctionCall(effect223Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect223 = new EffectFunction(new EffectFunction(effect223Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5781,35 +5777,35 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158790_493227_20437Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158793_331994_20446_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158792_819832_20444_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(_17_0_2_edc0357_1352328158793_68185_20449_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158793_331994_20446_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328158792_819832_20444_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(_17_0_2_edc0357_1352328158793_68185_20449_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_290441_20471, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158793_123095_20447_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_290441_20471, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158793_123095_20447_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158790_493227_20437Elaborations() {
                 init_17_0_2_edc0357_1352328158790_493227_20437Dependencies();
                 Expression<?>[] arguments224 = new Expression<?>[2];
-                arguments224[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                arguments224[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_852079_20464);
-                Expression<Boolean> condition224 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_331994_20446_exists);
-                elaborationRule224 = addElaborationRule(condition224, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_331994_20446.class, "_MergeNode_CustomerCB", arguments224);
+                arguments224[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                arguments224[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158796_279864_20469);
+                Expression<Boolean> condition224 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_123095_20447_exists);
+                elaborationRule224 = addElaborationRule(condition224, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_123095_20447.class, "C_dr_m_MergeNode_CustomerCB", arguments224);
                 Expression<?>[] arguments225 = new Expression<?>[2];
-                arguments225[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                arguments225[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158796_279864_20469);
-                Expression<Boolean> condition225 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_123095_20447_exists);
-                elaborationRule225 = addElaborationRule(condition225, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_123095_20447.class, "_MergeNode_CustomerCB", arguments225);
-                Expression<?>[] arguments226 = new Expression<?>[2];
-                arguments226[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                arguments226[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_900235_20462);
-                Expression<Boolean> condition226 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_819832_20444_exists);
-                elaborationRule226 = addElaborationRule(condition226, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_819832_20444.class, "_MergeNode_CustomerCB", arguments226);
-                Expression<?>[] arguments227 = new Expression<?>[1];
-                arguments227[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition227 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_68185_20449_exists);
-                elaborationRule227 = addElaborationRule(condition227, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_68185_20449.class, "length_of_test_AcceptEventAction_CustomerCB", arguments227);
+                arguments225[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                arguments225[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_852079_20464);
+                Expression<Boolean> condition225 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_331994_20446_exists);
+                elaborationRule225 = addElaborationRule(condition225, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_331994_20446.class, "C_change_m_MergeNode_CustomerCB", arguments225);
+                Expression<?>[] arguments226 = new Expression<?>[1];
+                arguments226[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition226 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_68185_20449_exists);
+                elaborationRule226 = addElaborationRule(condition226, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_68185_20449.class, "C_activity_timer_AcceptEventAction_CustomerCB", arguments226);
+                Expression<?>[] arguments227 = new Expression<?>[2];
+                arguments227[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                arguments227[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_900235_20462);
+                Expression<Boolean> condition227 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_819832_20444_exists);
+                elaborationRule227 = addElaborationRule(condition227, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_819832_20444.class, "C_use_m_MergeNode_CustomerCB", arguments227);
             }
         }
 
@@ -5859,7 +5855,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect228VarV = sig_17_0_2_edc0357_1352328158795_859697_20465;
                     effect228Var = new Parameter("effect228Var", null, null, this);
                     addDependency(effect228Var, new Expression(effect228VarV));
-                    effect228 = new EffectFunction(new FunctionCall(effect228Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160582_109561_21500, endTime }));
+                    effect228 = new EffectFunction(new EffectFunction(effect228Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160582_109561_21500, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5875,18 +5871,18 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158790_658031_20438Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160582_109561_21500, new Expression<Power_System.Signaldr_request>(new FunctionCall(q_Customer_dr_request, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328160582_109561_21500, new Expression<Power_System.Signaldr_request>(new EffectFunction(q_Customer_dr_request, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_917263_20467, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158792_72920_20445_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_917263_20467, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158792_72920_20445_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158790_658031_20438Elaborations() {
                 init_17_0_2_edc0357_1352328158790_658031_20438Dependencies();
                 Expression<?>[] arguments229 = new Expression<?>[1];
-                arguments229[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments229[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition229 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_72920_20445_exists);
-                elaborationRule229 = addElaborationRule(condition229, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_72920_20445.class, "determineDRCapLevel_ReadStructuralFeatureAction_CustomerCB", arguments229);
+                elaborationRule229 = addElaborationRule(condition229, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_72920_20445.class, "C_readCapLevel_ReadStructuralFeatureAction_CustomerCB", arguments229);
             }
         }
 
@@ -5908,11 +5904,11 @@ public class Customer extends ParameterListenerImpl {
                 fixTimeDependencies();
             }
 
-            public BooleanParameter _17_0_2_edc0357_1352328158791_37119_20442_exists = null;
+            public BooleanParameter _17_0_2_edc0357_1352328158792_819832_20444_exists = null;
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Boolean > _17_0_2_edc0357_1352328158791_37119_20442_existsDependency = null;
+            public Dependency< Boolean > _17_0_2_edc0357_1352328158792_819832_20444_existsDependency = null;
 
             public Dependency< Integer > durationDependency = null;
 
@@ -5926,19 +5922,19 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158791_311867_20439Members() {
                 try {
-                    if (_17_0_2_edc0357_1352328158791_37119_20442_exists == null) _17_0_2_edc0357_1352328158791_37119_20442_exists = new BooleanParameter("_17_0_2_edc0357_1352328158791_37119_20442_exists", (Boolean) false, this);
+                    if (_17_0_2_edc0357_1352328158792_819832_20444_exists == null) _17_0_2_edc0357_1352328158792_819832_20444_exists = new BooleanParameter("_17_0_2_edc0357_1352328158792_819832_20444_exists", (Boolean) false, this);
                     if (objectToPass == null) objectToPass = new BooleanParameter("objectToPass", (Boolean) null, this);
                     Object effect230VarV = sig_17_0_2_edc0357_1352328158795_332074_20459;
                     effect230Var = new Parameter("effect230Var", null, null, this);
                     addDependency(effect230Var, new Expression(effect230VarV));
-                    effect230 = new EffectFunction(new FunctionCall(effect230Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect230 = new EffectFunction(new EffectFunction(effect230Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             protected void init_17_0_2_edc0357_1352328158791_311867_20439Collections() {
-                parameters.add(_17_0_2_edc0357_1352328158791_37119_20442_exists);
+                parameters.add(_17_0_2_edc0357_1352328158792_819832_20444_exists);
                 parameters.add(objectToPass);
                 Set<Effect> effectsForeffect230Var = new TreeSet<Effect>();
                 effectsForeffect230Var.add(effect230);
@@ -5946,17 +5942,18 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158791_311867_20439Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158791_37119_20442_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158792_819832_20444_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(30));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158795_917007_20460, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158795_593515_20461, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158791_311867_20439Elaborations() {
                 init_17_0_2_edc0357_1352328158791_311867_20439Dependencies();
-                Expression<?>[] arguments231 = new Expression<?>[1];
-                arguments231[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition231 = new Expression<Boolean>(_17_0_2_edc0357_1352328158791_37119_20442_exists);
-                elaborationRule231 = addElaborationRule(condition231, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_37119_20442.class, "_CallBehaviorAction_CustomerCB", arguments231);
+                Expression<?>[] arguments231 = new Expression<?>[2];
+                arguments231[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                arguments231[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_332074_20459);
+                Expression<Boolean> condition231 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_819832_20444_exists);
+                elaborationRule231 = addElaborationRule(condition231, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_819832_20444.class, "C_use_m_MergeNode_CustomerCB", arguments231);
             }
         }
 
@@ -5979,8 +5976,6 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public IntegerParameter _17_0_2_edc0357_1352328158535_616746_20341 = null;
-
-            public IntegerParameter duration = null;
 
             public BooleanParameter objectToPass = null;
 
@@ -6007,14 +6002,13 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158791_77291_20440Members() {
                 try {
                     if (_17_0_2_edc0357_1352328158535_616746_20341 == null) _17_0_2_edc0357_1352328158535_616746_20341 = new IntegerParameter("_17_0_2_edc0357_1352328158535_616746_20341", (Integer) null, this);
-                    if (duration == null) duration = new IntegerParameter("duration", (Integer) 45, this);
                     if (objectToPass == null) objectToPass = new BooleanParameter("objectToPass", (Boolean) null, this);
                     if (_17_0_2_edc0357_1352328160582_184647_21502 == null) _17_0_2_edc0357_1352328160582_184647_21502 = new IntegerParameter("_17_0_2_edc0357_1352328160582_184647_21502", (Integer) null, this);
                     if (_17_0_2_edc0357_1352328158793_123095_20447_exists == null) _17_0_2_edc0357_1352328158793_123095_20447_exists = new BooleanParameter("_17_0_2_edc0357_1352328158793_123095_20447_exists", (Boolean) false, this);
                     Object effect232VarV = sig_17_0_2_edc0357_1352328158796_431791_20468;
                     effect232Var = new Parameter("effect232Var", null, null, this);
                     addDependency(effect232Var, new Expression(effect232VarV));
-                    effect232 = new EffectFunction(new FunctionCall(effect232Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect232 = new EffectFunction(new EffectFunction(effect232Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6022,7 +6016,6 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_2_edc0357_1352328158791_77291_20440Collections() {
                 parameters.add(_17_0_2_edc0357_1352328158535_616746_20341);
-                parameters.add(duration);
                 parameters.add(objectToPass);
                 parameters.add(_17_0_2_edc0357_1352328160582_184647_21502);
                 parameters.add(_17_0_2_edc0357_1352328158793_123095_20447_exists);
@@ -6034,23 +6027,23 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158791_77291_20440Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328158535_616746_20341, new Expression<Integer>(_17_0_2_edc0357_1352328160582_184647_21502));
                 addDependency(objectToPass, new Expression<Boolean>(true));
-                addDependency(_17_0_2_edc0357_1352328160582_184647_21502, new Expression<Integer>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_989489_20466, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158793_123095_20447_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328160582_184647_21502, new Expression<Integer>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_989489_20466, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158793_123095_20447_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158791_77291_20440Elaborations() {
                 init_17_0_2_edc0357_1352328158791_77291_20440Dependencies();
-                Expression<?>[] arguments233 = new Expression<?>[3];
-                arguments233[0] = new Expression<Integer>(startTime);
-                arguments233[1] = new Expression<DurativeEvent>(this);
-                arguments233[2] = new Expression<Integer>(_17_0_2_edc0357_1352328158535_616746_20341);
-                Expression<Boolean> condition233 = new Expression<Boolean>(true);
-                elaborationRule233 = addElaborationRule(condition233, Customer.this, Customer._17_0_2_edc0357_1352328156645_46192_19618.class, "setDRCap_Activity_Customer", arguments233);
-                Expression<?>[] arguments234 = new Expression<?>[2];
-                arguments234[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                arguments234[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158796_431791_20468);
-                Expression<Boolean> condition234 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_123095_20447_exists);
-                elaborationRule234 = addElaborationRule(condition234, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_123095_20447.class, "_MergeNode_CustomerCB", arguments234);
+                Expression<?>[] arguments233 = new Expression<?>[2];
+                arguments233[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                arguments233[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158796_431791_20468);
+                Expression<Boolean> condition233 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_123095_20447_exists);
+                elaborationRule233 = addElaborationRule(condition233, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_123095_20447.class, "C_dr_m_MergeNode_CustomerCB", arguments233);
+                Expression<?>[] arguments234 = new Expression<?>[3];
+                arguments234[0] = new Expression<Integer>(startTime);
+                arguments234[1] = new Expression<DurativeEvent>(this);
+                arguments234[2] = new Expression<Integer>(_17_0_2_edc0357_1352328158535_616746_20341);
+                Expression<Boolean> condition234 = new Expression<Boolean>(true);
+                elaborationRule234 = addElaborationRule(condition234, Customer.this, Customer._17_0_2_edc0357_1352328156645_46192_19618.class, "setDRCap_Activity_Customer", arguments234);
             }
         }
 
@@ -6074,8 +6067,6 @@ public class Customer extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_2_edc0357_1352328158793_331994_20446_exists = null;
 
-            public IntegerParameter duration = null;
-
             public BooleanParameter objectToPass = null;
 
             public Dependency< Boolean > _17_0_2_edc0357_1352328158793_331994_20446_existsDependency = null;
@@ -6093,12 +6084,11 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158791_540176_20441Members() {
                 try {
                     if (_17_0_2_edc0357_1352328158793_331994_20446_exists == null) _17_0_2_edc0357_1352328158793_331994_20446_exists = new BooleanParameter("_17_0_2_edc0357_1352328158793_331994_20446_exists", (Boolean) false, this);
-                    if (duration == null) duration = new IntegerParameter("duration", (Integer) 45, this);
                     if (objectToPass == null) objectToPass = new BooleanParameter("objectToPass", (Boolean) null, this);
                     Object effect235VarV = sig_17_0_2_edc0357_1352328158795_53444_20463;
                     effect235Var = new Parameter("effect235Var", null, null, this);
                     addDependency(effect235Var, new Expression(effect235VarV));
-                    effect235 = new EffectFunction(new FunctionCall(effect235Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect235 = new EffectFunction(new EffectFunction(effect235Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6106,7 +6096,6 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_2_edc0357_1352328158791_540176_20441Collections() {
                 parameters.add(_17_0_2_edc0357_1352328158793_331994_20446_exists);
-                parameters.add(duration);
                 parameters.add(objectToPass);
                 Set<Effect> effectsForeffect235Var = new TreeSet<Effect>();
                 effectsForeffect235Var.add(effect235);
@@ -6114,17 +6103,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158791_540176_20441Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158793_331994_20446_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158797_121818_20475, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158793_331994_20446_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158797_121818_20475, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158791_540176_20441Elaborations() {
                 init_17_0_2_edc0357_1352328158791_540176_20441Dependencies();
                 Expression<?>[] arguments236 = new Expression<?>[2];
-                arguments236[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments236[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 arguments236[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_53444_20463);
                 Expression<Boolean> condition236 = new Expression<Boolean>(_17_0_2_edc0357_1352328158793_331994_20446_exists);
-                elaborationRule236 = addElaborationRule(condition236, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_331994_20446.class, "_MergeNode_CustomerCB", arguments236);
+                elaborationRule236 = addElaborationRule(condition236, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158793_331994_20446.class, "C_change_m_MergeNode_CustomerCB", arguments236);
                 Expression<?>[] arguments237 = new Expression<?>[2];
                 arguments237[0] = new Expression<Integer>(startTime);
                 arguments237[1] = new Expression<DurativeEvent>(this);
@@ -6151,15 +6140,13 @@ public class Customer extends ParameterListenerImpl {
                 fixTimeDependencies();
             }
 
-            public BooleanParameter _17_0_2_edc0357_1352328158792_819832_20444_exists = null;
-
-            public IntegerParameter duration = null;
-
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Boolean > _17_0_2_edc0357_1352328158792_819832_20444_existsDependency = null;
+            public BooleanParameter _17_0_2_edc0357_1352328158791_311867_20439_exists = null;
 
             public Dependency< Boolean > objectToPassDependency = null;
+
+            public Dependency< Boolean > _17_0_2_edc0357_1352328158791_311867_20439_existsDependency = null;
 
             public Effect effect238 = null;
 
@@ -6171,30 +6158,28 @@ public class Customer extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328158791_37119_20442Members() {
                 try {
-                    if (_17_0_2_edc0357_1352328158792_819832_20444_exists == null) _17_0_2_edc0357_1352328158792_819832_20444_exists = new BooleanParameter("_17_0_2_edc0357_1352328158792_819832_20444_exists", (Boolean) false, this);
-                    if (duration == null) duration = new IntegerParameter("duration", (Integer) 45, this);
                     if (objectToPass == null) objectToPass = new BooleanParameter("objectToPass", (Boolean) null, this);
+                    if (_17_0_2_edc0357_1352328158791_311867_20439_exists == null) _17_0_2_edc0357_1352328158791_311867_20439_exists = new BooleanParameter("_17_0_2_edc0357_1352328158791_311867_20439_exists", (Boolean) false, this);
                     Object effect238VarV = sig_17_0_2_edc0357_1352328158795_593515_20461;
                     effect238Var = new Parameter("effect238Var", null, null, this);
                     addDependency(effect238Var, new Expression(effect238VarV));
-                    effect238 = new EffectFunction(new FunctionCall(effect238Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect238 = new EffectFunction(new EffectFunction(effect238Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             protected void init_17_0_2_edc0357_1352328158791_37119_20442Collections() {
-                parameters.add(_17_0_2_edc0357_1352328158792_819832_20444_exists);
-                parameters.add(duration);
                 parameters.add(objectToPass);
+                parameters.add(_17_0_2_edc0357_1352328158791_311867_20439_exists);
                 Set<Effect> effectsForeffect238Var = new TreeSet<Effect>();
                 effectsForeffect238Var.add(effect238);
                 addEffects((Parameter<?>) effect238Var, effectsForeffect238Var);
             }
 
             public void init_17_0_2_edc0357_1352328158791_37119_20442Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158792_819832_20444_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158795_332074_20459, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158795_917007_20460, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158791_311867_20439_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158791_37119_20442Elaborations() {
@@ -6204,11 +6189,10 @@ public class Customer extends ParameterListenerImpl {
                 arguments239[1] = new Expression<DurativeEvent>(this);
                 Expression<Boolean> condition239 = new Expression<Boolean>(true);
                 elaborationRule239 = addElaborationRule(condition239, Customer.this, Customer._17_0_2_edc0357_1352328156638_770509_19615.class, "usePower_Activity_Customer", arguments239);
-                Expression<?>[] arguments240 = new Expression<?>[2];
-                arguments240[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                arguments240[1] = new Expression<ObjectFlow<Boolean>>(sig_17_0_2_edc0357_1352328158795_593515_20461);
-                Expression<Boolean> condition240 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_819832_20444_exists);
-                elaborationRule240 = addElaborationRule(condition240, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_819832_20444.class, "_MergeNode_CustomerCB", arguments240);
+                Expression<?>[] arguments240 = new Expression<?>[1];
+                arguments240[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition240 = new Expression<Boolean>(_17_0_2_edc0357_1352328158791_311867_20439_exists);
+                elaborationRule240 = addElaborationRule(condition240, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_311867_20439.class, "C_use_timer_AcceptEventAction_CustomerCB", arguments240);
             }
         }
 
@@ -6253,9 +6237,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158792_106015_20443Dependencies() {
-                addDependency(endTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))).functionCall));
+                addDependency(endTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_819586_20473, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_819586_20473, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(finalNode_endTime, new Expression<Integer>(endTime));
             }
 
@@ -6285,15 +6269,15 @@ public class Customer extends ParameterListenerImpl {
 
             public Parameter< ObjectFlow<Boolean> > receiveThis = null;
 
+            public BooleanParameter _17_0_2_edc0357_1352328158791_37119_20442_exists = null;
+
             public BooleanParameter objectToPass = null;
 
-            public BooleanParameter _17_0_2_edc0357_1352328158791_311867_20439_exists = null;
+            public Dependency< Boolean > _17_0_2_edc0357_1352328158791_37119_20442_existsDependency = null;
 
             public Dependency< Integer > durationDependency = null;
 
             public Dependency< Boolean > objectToPassDependency = null;
-
-            public Dependency< Boolean > _17_0_2_edc0357_1352328158791_311867_20439_existsDependency = null;
 
             public Effect effect241 = null;
 
@@ -6304,12 +6288,12 @@ public class Customer extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328158792_819832_20444Members() {
                 try {
                     if (receiveThis == null) receiveThis = new Parameter<ObjectFlow<Boolean>>("receiveThis", null, (ObjectFlow<Boolean>) null, this);
+                    if (_17_0_2_edc0357_1352328158791_37119_20442_exists == null) _17_0_2_edc0357_1352328158791_37119_20442_exists = new BooleanParameter("_17_0_2_edc0357_1352328158791_37119_20442_exists", (Boolean) false, this);
                     if (objectToPass == null) objectToPass = new BooleanParameter("objectToPass", (Boolean) null, this);
-                    if (_17_0_2_edc0357_1352328158791_311867_20439_exists == null) _17_0_2_edc0357_1352328158791_311867_20439_exists = new BooleanParameter("_17_0_2_edc0357_1352328158791_311867_20439_exists", (Boolean) false, this);
                     Object effect241VarV = sig_17_0_2_edc0357_1352328158795_917007_20460;
                     effect241Var = new Parameter("effect241Var", null, null, this);
                     addDependency(effect241Var, new Expression(effect241VarV));
-                    effect241 = new EffectFunction(new FunctionCall(effect241Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect241 = new EffectFunction(new EffectFunction(effect241Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6317,25 +6301,25 @@ public class Customer extends ParameterListenerImpl {
 
             protected void init_17_0_2_edc0357_1352328158792_819832_20444Collections() {
                 parameters.add(receiveThis);
+                parameters.add(_17_0_2_edc0357_1352328158791_37119_20442_exists);
                 parameters.add(objectToPass);
-                parameters.add(_17_0_2_edc0357_1352328158791_311867_20439_exists);
                 Set<Effect> effectsForeffect241Var = new TreeSet<Effect>();
                 effectsForeffect241Var.add(effect241);
                 addEffects((Parameter<?>) effect241Var, effectsForeffect241Var);
             }
 
             public void init_17_0_2_edc0357_1352328158792_819832_20444Dependencies() {
+                addDependency(_17_0_2_edc0357_1352328158791_37119_20442_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158791_311867_20439_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158792_819832_20444Elaborations() {
                 init_17_0_2_edc0357_1352328158792_819832_20444Dependencies();
                 Expression<?>[] arguments242 = new Expression<?>[1];
-                arguments242[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
-                Expression<Boolean> condition242 = new Expression<Boolean>(_17_0_2_edc0357_1352328158791_311867_20439_exists);
-                elaborationRule242 = addElaborationRule(condition242, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_311867_20439.class, "power_polling_interval_AcceptEventAction_CustomerCB", arguments242);
+                arguments242[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition242 = new Expression<Boolean>(_17_0_2_edc0357_1352328158791_37119_20442_exists);
+                elaborationRule242 = addElaborationRule(condition242, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_37119_20442.class, "C_use_CallBehaviorAction_CustomerCB", arguments242);
             }
         }
 
@@ -6385,7 +6369,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect243VarV = sig_17_0_2_edc0357_1352328158796_989489_20466;
                     effect243Var = new Parameter("effect243Var", null, null, this);
                     addDependency(effect243Var, new Expression(effect243VarV));
-                    effect243 = new EffectFunction(new FunctionCall(effect243Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160583_288418_21503, endTime }));
+                    effect243 = new EffectFunction(new EffectFunction(effect243Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Integer>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_edc0357_1352328160583_288418_21503, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6401,18 +6385,18 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158792_72920_20445Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160583_288418_21503, new Expression<Integer>(new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160584_590137_21504, Parameter.class, "getMember", new Object[] { "cap__17_0_2_edc0357_1352328156887_758776_19707" }))));
+                addDependency(_17_0_2_edc0357_1352328160583_288418_21503, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160584_590137_21504, Parameter.class, "getMember", new Object[] { "cap__17_0_2_edc0357_1352328156887_758776_19707" }))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328160584_590137_21504, new Expression<Power_System.Signaldr_request>(new FunctionCall(sig_17_0_2_edc0357_1352328158795_859697_20465, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328158791_77291_20440_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328160584_590137_21504, new Expression<Power_System.Signaldr_request>(new EffectFunction(sig_17_0_2_edc0357_1352328158795_859697_20465, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158791_77291_20440_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
             public void init_17_0_2_edc0357_1352328158792_72920_20445Elaborations() {
                 init_17_0_2_edc0357_1352328158792_72920_20445Dependencies();
                 Expression<?>[] arguments244 = new Expression<?>[1];
-                arguments244[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments244[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition244 = new Expression<Boolean>(_17_0_2_edc0357_1352328158791_77291_20440_exists);
-                elaborationRule244 = addElaborationRule(condition244, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_77291_20440.class, "_CallBehaviorAction_CustomerCB", arguments244);
+                elaborationRule244 = addElaborationRule(condition244, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_77291_20440.class, "C_setcap_CallBehaviorAction_CustomerCB", arguments244);
             }
         }
 
@@ -6461,7 +6445,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect245VarV = sig_17_0_2_edc0357_1352328158796_890131_20474;
                     effect245Var = new Parameter("effect245Var", null, null, this);
                     addDependency(effect245Var, new Expression(effect245VarV));
-                    effect245 = new EffectFunction(new FunctionCall(effect245Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect245 = new EffectFunction(new EffectFunction(effect245Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6477,17 +6461,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158793_331994_20446Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158794_405865_20450_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
+                addDependency(_17_0_2_edc0357_1352328158794_405865_20450_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158793_331994_20446Elaborations() {
                 init_17_0_2_edc0357_1352328158793_331994_20446Dependencies();
                 Expression<?>[] arguments246 = new Expression<?>[1];
-                arguments246[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments246[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition246 = new Expression<Boolean>(_17_0_2_edc0357_1352328158794_405865_20450_exists);
-                elaborationRule246 = addElaborationRule(condition246, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158794_405865_20450.class, "_AcceptEventAction_CustomerCB", arguments246);
+                elaborationRule246 = addElaborationRule(condition246, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158794_405865_20450.class, "C_change_timer_AcceptEventAction_CustomerCB", arguments246);
             }
         }
 
@@ -6536,7 +6520,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect247VarV = sig_17_0_2_edc0357_1352328158796_917263_20467;
                     effect247Var = new Parameter("effect247Var", null, null, this);
                     addDependency(effect247Var, new Expression(effect247VarV));
-                    effect247 = new EffectFunction(new FunctionCall(effect247Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect247 = new EffectFunction(new EffectFunction(effect247Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6552,17 +6536,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158793_123095_20447Dependencies() {
-                addDependency(endTime, new Expression<Integer>(new FunctionCall(null, ClassUtils.getMethodForArgTypes("java.lang.Math", "powersystem", "min", int.class, int.class), new Object[] { new Expression(new FunctionCall(q_Customer_dr_request, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "nextTimeHasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) })), new Expression<Integer>(finalNode_endTime) })));
-                addDependency(_17_0_2_edc0357_1352328158790_658031_20438_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.And(new Expression(new FunctionCall(q_Customer_dr_request, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(endTime, new Expression<Integer>(new FunctionCall(null, ClassUtils.getMethodForArgTypes("Math", "powersystem", "min", int.class, int.class), new Object[] { new Expression(new EffectFunction(q_Customer_dr_request, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "nextTimeHasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) })), new Expression<Integer>(finalNode_endTime) })));
+                addDependency(_17_0_2_edc0357_1352328158790_658031_20438_exists, new Expression<Boolean>(new Functions.And(new Expression(new EffectFunction(q_Customer_dr_request, ClassUtils.getMethodForArgTypes("ObjectFlow<Signaldr_request>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(receiveThis, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158793_123095_20447Elaborations() {
                 init_17_0_2_edc0357_1352328158793_123095_20447Dependencies();
                 Expression<?>[] arguments248 = new Expression<?>[1];
-                arguments248[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments248[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition248 = new Expression<Boolean>(_17_0_2_edc0357_1352328158790_658031_20438_exists);
-                elaborationRule248 = addElaborationRule(condition248, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158790_658031_20438.class, "_AcceptEventAction_CustomerCB", arguments248);
+                elaborationRule248 = addElaborationRule(condition248, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158790_658031_20438.class, "C_get_drsig_AcceptEventAction_CustomerCB", arguments248);
             }
         }
 
@@ -6607,7 +6591,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect249VarV = sig_17_0_2_edc0357_1352328158796_290441_20471;
                     effect249Var = new Parameter("effect249Var", null, null, this);
                     addDependency(effect249Var, new Expression(effect249VarV));
-                    effect249 = new EffectFunction(new FunctionCall(effect249Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect249 = new EffectFunction(new EffectFunction(effect249Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6622,17 +6606,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158793_123216_20448Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158790_493227_20437_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(duration, new Expression<Integer>(20));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_758419_20470, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158790_493227_20437_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(duration, new Expression<Integer>(5));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_758419_20470, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158793_123216_20448Elaborations() {
                 init_17_0_2_edc0357_1352328158793_123216_20448Dependencies();
                 Expression<?>[] arguments250 = new Expression<?>[1];
-                arguments250[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments250[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition250 = new Expression<Boolean>(_17_0_2_edc0357_1352328158790_493227_20437_exists);
-                elaborationRule250 = addElaborationRule(condition250, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158790_493227_20437.class, "_ForkNode_CustomerCB", arguments250);
+                elaborationRule250 = addElaborationRule(condition250, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158790_493227_20437.class, "C_fork_ForkNode_CustomerCB", arguments250);
             }
         }
 
@@ -6672,7 +6656,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect251VarV = sig_17_0_2_edc0357_1352328158796_819586_20473;
                     effect251Var = new Parameter("effect251Var", null, null, this);
                     addDependency(effect251Var, new Expression(effect251VarV));
-                    effect251 = new EffectFunction(new FunctionCall(effect251Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect251 = new EffectFunction(new EffectFunction(effect251Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6686,9 +6670,9 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158793_68185_20449Dependencies() {
-                addDependency(finalNode_startTime, new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall));
-                addDependency(duration, new Expression<Integer>(1500));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_884417_20472, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(finalNode_startTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))));
+                addDependency(duration, new Expression<Integer>(300));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_884417_20472, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158793_68185_20449Elaborations() {
@@ -6737,7 +6721,7 @@ public class Customer extends ParameterListenerImpl {
                     Object effect252VarV = sig_17_0_2_edc0357_1352328158797_121818_20475;
                     effect252Var = new Parameter("effect252Var", null, null, this);
                     addDependency(effect252Var, new Expression(effect252VarV));
-                    effect252 = new EffectFunction(new FunctionCall(effect252Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
+                    effect252 = new EffectFunction(new EffectFunction(effect252Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6752,17 +6736,17 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328158794_405865_20450Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328158791_540176_20441_exists, new Expression<Boolean>((new Functions.Or(new Expression<Boolean>((new Functions.Less(new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall), new Expression<Integer>(finalNode_startTime))).functionCall), new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))).functionCall));
-                addDependency(duration, new Expression<Integer>(60));
-                addDependency(objectToPass, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_890131_20474, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_edc0357_1352328158791_540176_20441_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
+                addDependency(duration, new Expression<Integer>(150));
+                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_edc0357_1352328158796_890131_20474, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_edc0357_1352328158794_405865_20450Elaborations() {
                 init_17_0_2_edc0357_1352328158794_405865_20450Dependencies();
                 Expression<?>[] arguments253 = new Expression<?>[1];
-                arguments253[0] = new Expression<Integer>((new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))).functionCall);
+                arguments253[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition253 = new Expression<Boolean>(_17_0_2_edc0357_1352328158791_540176_20441_exists);
-                elaborationRule253 = addElaborationRule(condition253, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_540176_20441.class, "_CallBehaviorAction_CustomerCB", arguments253);
+                elaborationRule253 = addElaborationRule(condition253, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158791_540176_20441.class, "C_change_CallBehaviorAction_CustomerCB", arguments253);
             }
         }
 
@@ -6783,9 +6767,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158795_231230_20458 = null;
 
-        public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158796_279864_20469 = null;
-
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158796_290441_20471 = null;
+
+        public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158796_279864_20469 = null;
 
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158795_332074_20459 = null;
 
@@ -6799,9 +6783,9 @@ public class Customer extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158795_53444_20463 = null;
 
-        public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158795_917007_20460 = null;
-
         public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158796_884417_20472 = null;
+
+        public Parameter< ObjectFlow<Boolean> > sig_17_0_2_edc0357_1352328158795_917007_20460 = null;
 
         public Parameter< ObjectFlow<Power_System.Signaldr_request> > sig_17_0_2_edc0357_1352328158795_859697_20465 = null;
 
@@ -6833,18 +6817,18 @@ public class Customer extends ParameterListenerImpl {
                 if (sig_17_0_2_edc0357_1352328158796_431791_20468 == null) sig_17_0_2_edc0357_1352328158796_431791_20468 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_431791_20468", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_431791_20468" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158796_819586_20473 == null) sig_17_0_2_edc0357_1352328158796_819586_20473 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_819586_20473", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_819586_20473" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158795_231230_20458 == null) sig_17_0_2_edc0357_1352328158795_231230_20458 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158795_231230_20458", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158795_231230_20458" })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158796_279864_20469 == null) sig_17_0_2_edc0357_1352328158796_279864_20469 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_279864_20469", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_279864_20469" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158796_290441_20471 == null) sig_17_0_2_edc0357_1352328158796_290441_20471 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_290441_20471", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_290441_20471" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158796_279864_20469 == null) sig_17_0_2_edc0357_1352328158796_279864_20469 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_279864_20469", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_279864_20469" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158795_332074_20459 == null) sig_17_0_2_edc0357_1352328158795_332074_20459 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158795_332074_20459", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158795_332074_20459" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158797_121818_20475 == null) sig_17_0_2_edc0357_1352328158797_121818_20475 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158797_121818_20475", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158797_121818_20475" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158796_758419_20470 == null) sig_17_0_2_edc0357_1352328158796_758419_20470 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_758419_20470", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_758419_20470" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158796_989489_20466 == null) sig_17_0_2_edc0357_1352328158796_989489_20466 = new Parameter<ObjectFlow<Integer>>("sig_17_0_2_edc0357_1352328158796_989489_20466", null, (ObjectFlow<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_989489_20466" })).evaluate(true), this);
-                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) 84000, this);
+                if (finalNode_startTime == null) finalNode_startTime = new IntegerParameter("finalNode_startTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158795_53444_20463 == null) sig_17_0_2_edc0357_1352328158795_53444_20463 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158795_53444_20463", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158795_53444_20463" })).evaluate(true), this);
-                if (sig_17_0_2_edc0357_1352328158795_917007_20460 == null) sig_17_0_2_edc0357_1352328158795_917007_20460 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158795_917007_20460", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158795_917007_20460" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158796_884417_20472 == null) sig_17_0_2_edc0357_1352328158796_884417_20472 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_884417_20472", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_884417_20472" })).evaluate(true), this);
+                if (sig_17_0_2_edc0357_1352328158795_917007_20460 == null) sig_17_0_2_edc0357_1352328158795_917007_20460 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158795_917007_20460", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158795_917007_20460" })).evaluate(true), this);
                 if (sig_17_0_2_edc0357_1352328158795_859697_20465 == null) sig_17_0_2_edc0357_1352328158795_859697_20465 = new Parameter<ObjectFlow<Power_System.Signaldr_request>>("sig_17_0_2_edc0357_1352328158795_859697_20465", null, (ObjectFlow<Power_System.Signaldr_request>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158795_859697_20465" })).evaluate(true), this);
-                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) 84000, this);
+                if (finalNode_endTime == null) finalNode_endTime = new IntegerParameter("finalNode_endTime", (Integer) null, this);
                 if (sig_17_0_2_edc0357_1352328158796_890131_20474 == null) sig_17_0_2_edc0357_1352328158796_890131_20474 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_890131_20474", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_890131_20474" })).evaluate(true), this);
                 if (_17_0_2_edc0357_1352328158792_106015_20443_exists == null) _17_0_2_edc0357_1352328158792_106015_20443_exists = new BooleanParameter("_17_0_2_edc0357_1352328158792_106015_20443_exists", (Boolean) false, this);
                 if (sig_17_0_2_edc0357_1352328158796_917263_20467 == null) sig_17_0_2_edc0357_1352328158796_917263_20467 = new Parameter<ObjectFlow<Boolean>>("sig_17_0_2_edc0357_1352328158796_917263_20467", null, (ObjectFlow<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class), new Object[] { "sig_17_0_2_edc0357_1352328158796_917263_20467" })).evaluate(true), this);
@@ -6861,16 +6845,16 @@ public class Customer extends ParameterListenerImpl {
             parameters.add(sig_17_0_2_edc0357_1352328158796_431791_20468);
             parameters.add(sig_17_0_2_edc0357_1352328158796_819586_20473);
             parameters.add(sig_17_0_2_edc0357_1352328158795_231230_20458);
-            parameters.add(sig_17_0_2_edc0357_1352328158796_279864_20469);
             parameters.add(sig_17_0_2_edc0357_1352328158796_290441_20471);
+            parameters.add(sig_17_0_2_edc0357_1352328158796_279864_20469);
             parameters.add(sig_17_0_2_edc0357_1352328158795_332074_20459);
             parameters.add(sig_17_0_2_edc0357_1352328158797_121818_20475);
             parameters.add(sig_17_0_2_edc0357_1352328158796_758419_20470);
             parameters.add(sig_17_0_2_edc0357_1352328158796_989489_20466);
             parameters.add(finalNode_startTime);
             parameters.add(sig_17_0_2_edc0357_1352328158795_53444_20463);
-            parameters.add(sig_17_0_2_edc0357_1352328158795_917007_20460);
             parameters.add(sig_17_0_2_edc0357_1352328158796_884417_20472);
+            parameters.add(sig_17_0_2_edc0357_1352328158795_917007_20460);
             parameters.add(sig_17_0_2_edc0357_1352328158795_859697_20465);
             parameters.add(finalNode_endTime);
             parameters.add(sig_17_0_2_edc0357_1352328158796_890131_20474);
@@ -6883,19 +6867,19 @@ public class Customer extends ParameterListenerImpl {
 
         public void init_17_0_2_edc0357_1352328156648_548830_19619Dependencies() {
             addDependency(endTime, new Expression<Integer>(finalNode_endTime));
-            addDependency(_17_0_2_edc0357_1352328158792_106015_20443_exists, new Expression<Boolean>(new FunctionCall(sig_17_0_2_edc0357_1352328158796_819586_20473, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>((new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))).functionCall) })));
+            addDependency(_17_0_2_edc0357_1352328158792_106015_20443_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.NotEquals(new Expression<Integer>(finalNode_startTime), null)), new Expression(new EffectFunction(sig_17_0_2_edc0357_1352328158796_819586_20473, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "powersystem", "hasStuff", java.lang.Integer.class), new Object[] { new Expression<Integer>(new Functions.Minus(new Expression<Integer>(finalNode_startTime), new Expression<Integer>(1))) })))));
         }
 
         public void init_17_0_2_edc0357_1352328156648_548830_19619Elaborations() {
             init_17_0_2_edc0357_1352328156648_548830_19619Dependencies();
             Expression<?>[] arguments213 = new Expression<?>[1];
-            arguments213[0] = new Expression<Integer>(finalNode_startTime);
-            Expression<Boolean> condition213 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists);
-            elaborationRule213 = addElaborationRule(condition213, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_106015_20443.class, "_ActivityFinalNode_CustomerCB", arguments213);
+            arguments213[0] = new Expression<Integer>(startTime);
+            Expression<Boolean> condition213 = new Expression<Boolean>(true);
+            elaborationRule213 = addElaborationRule(condition213, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158789_563871_20435.class, "C_start_InitialNode_CustomerCB", arguments213);
             Expression<?>[] arguments214 = new Expression<?>[1];
-            arguments214[0] = new Expression<Integer>(startTime);
-            Expression<Boolean> condition214 = new Expression<Boolean>(true);
-            elaborationRule214 = addElaborationRule(condition214, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158789_563871_20435.class, "_InitialNode_CustomerCB", arguments214);
+            arguments214[0] = new Expression<Integer>(finalNode_startTime);
+            Expression<Boolean> condition214 = new Expression<Boolean>(_17_0_2_edc0357_1352328158792_106015_20443_exists);
+            elaborationRule214 = addElaborationRule(condition214, _17_0_2_edc0357_1352328156648_548830_19619.this, Customer._17_0_2_edc0357_1352328156648_548830_19619._17_0_2_edc0357_1352328158792_106015_20443.class, "C_end_ActivityFinalNode_CustomerCB", arguments214);
         }
     }
 

@@ -195,7 +195,7 @@ public class ParameterListenerImpl extends HasIdImpl
 
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e ) {
+  public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e, boolean fire ) {
     Debug.errorOnNull( "try to add a dependency on null", p );
     
     // Check if p is in enclosing class and call the enclosing class's addDependency() 
@@ -220,11 +220,16 @@ public class ParameterListenerImpl extends HasIdImpl
 //      }
 //    }
     dependencies.add( d );
+    if (fire) d.apply();
     return d;
   }
 
   public < T > Dependency< ? > addDependency( Parameter< T > p, Parameter< T > source ) {
     return addDependency( p, new Expression< T >( source ) );
+  }
+  
+  public < T > Dependency< ? > addDependency(  Parameter< T > p, Expression< T > e ) {
+    return addDependency( p, e, true );
   }
 
   public < T > boolean

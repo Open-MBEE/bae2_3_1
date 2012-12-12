@@ -19,6 +19,7 @@ import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
@@ -381,11 +382,15 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     //if ( owner == null ) return false;
     if ( isGrounded(deep, null) ) return true;
     if ( refresh() ) return true;
-    T newValue = pickRandomValue();
-    if ( newValue != null ) {
-      setValue( newValue );
-      return true;
+    if ( isDependent()) return false;
+    if (Solver.allowPickValue ){
+    	T newValue = pickRandomValue();
+    	if ( newValue != null ) {
+    		setValue( newValue );
+    		return true;
+    	}
     }
+   
     if ( deep && value instanceof Groundable ) {
       ((Groundable)value).ground(deep, seen);
     }
@@ -517,19 +522,27 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     ground(deep, null);
     getValue();
     if ( isSatisfied(deep, null) ) return true;
-    refresh();
-    if ( isSatisfied(deep, null) ) return true;
-    T newValue = pickRandomValue();
-    if ( newValue != null ) {
-      setValue( newValue, true );
-    }
-    if ( isSatisfied(deep, null) ) return true;
-    ownerPickValue();
-    if ( isSatisfied(deep, null) ) return true;
     if ( deep && value instanceof Satisfiable ) {
       ((Satisfiable)value).satisfy(deep, seen);
     }
-    return isSatisfied(deep, null);
+    if ( isSatisfied(deep, null) ) return true;
+    if ( !isDependent() && Solver.allowPickValue){
+      T newValue = pickRandomValue();
+      if ( newValue != null ) {
+        setValue( newValue, true );
+      }
+      if ( isSatisfied(deep, null) ) return true;
+      ownerPickValue();
+      if ( isSatisfied(deep, null) ) return true;
+    }
+    return false;
+  }
+  
+  public boolean isDependent(){
+    if (owner != null && !owner.isFreeParameter( this, true, null )) {
+      return true;
+    }
+    return false;
   }
   
   protected boolean ownerPickValue() {

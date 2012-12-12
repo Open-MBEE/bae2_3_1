@@ -253,7 +253,21 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   protected boolean remove( Parameter<Integer> t, T value,
                             boolean monotonically, boolean justLast ) {
-    Assert.assertTrue( floatingEffects.isEmpty() );
+    //Assert.assertTrue( floatingEffects.isEmpty() );
+    if ( floatingEffects != null){
+      List< TimeVaryingMap.TimeValue > deleteList = new ArrayList();
+      for ( TimeVaryingMap.TimeValue tv : floatingEffects ){
+        if (tv.first == t) {
+          deleteList.add(tv);
+        }
+        else if (tv.second == t) {
+          deleteList.add(tv);
+        }
+      }
+      for (TimeVaryingMap.TimeValue tv : deleteList){
+        floatingEffects.remove(tv);
+      }
+    }
     boolean changed = false;
     // Create an entry at t if one does not exist.
     List< T > list = getValue( t );
