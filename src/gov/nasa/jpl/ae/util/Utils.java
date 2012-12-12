@@ -37,6 +37,10 @@ public class Utils {
   public static <T> List<T> getEmptyList() {
     return (List< T >)emptyList;
   }  
+  @SuppressWarnings( "unchecked" )
+  public static <T> List<T> getEmptyList(Class<T> cls) {
+    return (List< T >)emptyList;
+  }  
   @SuppressWarnings( "rawtypes" )
   public static final Set<?> emptySet = new TreeSet();
   @SuppressWarnings( "unchecked" )

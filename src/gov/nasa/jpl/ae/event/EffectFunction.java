@@ -1,4 +1,5 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.event.Expression.Type;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -79,6 +80,13 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    */
   public EffectFunction( FunctionCall call ) {
     super( call );
+  }
+  
+  /**
+   * @param effectFunction
+   */
+  public EffectFunction( Expression<?> expr ) {
+    super( expr.type == Type.Function ? (FunctionCall)expr.expression : null );
   }
   
 //	abstract public Effect clone() throws CloneNotSupportedException;

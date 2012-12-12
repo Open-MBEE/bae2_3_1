@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -254,31 +255,43 @@ public class ClassUtils {
       return null;
     }
 
+  public static HashMap< String, Class<?> > classCache = new HashMap< String, Class<?> >();
+
   public static Class<?> getClassForName( String className,
                                             String preferredPackage,
                                             boolean initialize ) {
+    Class<?> cls = classCache.get( className );
+    if ( cls != null ) return cls;
       List< Class<?>> classList = getClassesForName( className, initialize );
       if ( !Utils.isNullOrEmpty( classList ) ) {
         for ( Class< ? > c : classList ) {
           if ( c.getPackage().getName().equals( preferredPackage ) ) {
             if ( Debug.isOn() ) Debug.errln("Found preferred package! " + preferredPackage );
+            classCache.put( className, c );
             return c;
           }
         }
       }
-      return getClassFromClasses( classList );
+      cls = getClassFromClasses( classList );
+      if ( cls != null ) classCache.put( className, cls );
+      return cls;
     }
   //  public static Class<?> getClassForName( String className,
   //                                          boolean initialize ) {    
   //    return getClassFromClasses( getClassesForName( className, initialize ) );
   //  }
 
+  public static HashMap< String, List< Class<?> > > classesCache =
+      new HashMap< String, List<Class<?>> >();
+
   public static List< Class< ? > > getClassesForName( String className,
                                                         boolean initialize ) {
   //                                                    ClassLoader loader,
   //                                                    Package[] packages) {
-      List< Class< ? > > classList = new ArrayList< Class< ? > >();
-      if ( Utils.isNullOrEmpty( className ) ) return null;
+    List< Class< ? > > classList = classesCache.get( className );
+    if ( !Utils.isNullOrEmpty( classList ) ) return classList;
+    classList = new ArrayList< Class< ? > >();
+    if ( Utils.isNullOrEmpty( className ) ) return null;
   //    ClassLoader loader = Utils.class.getClassLoader();
   //    if ( loader != null ) {
   //      for ( String pkgName : packagesToForceLoad ) {
@@ -293,11 +306,11 @@ public class ClassUtils {
   //        }
   //      }
   //    }
-      if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " )" );
+      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " )" );
       Class< ? > classForName = tryClassForName( className, initialize );//, loader );
       if ( classForName != null ) classList.add( classForName );
       String strippedClassName = ClassUtils.noParameterName( className );
-      if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): strippedClassName = "
+      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " ): strippedClassName = "
                    + strippedClassName );
       boolean strippedWorthTrying = false;
       if ( !Utils.isNullOrEmpty( strippedClassName ) ) {
@@ -308,7 +321,7 @@ public class ClassUtils {
         }
       }
       List<String> FQNs = getFullyQualifiedNames( className );//, packages );
-      if ( Debug.isOn() ) Debug.outln( "getClassForName( " + className + " ): fully qualified names = "
+      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " ): fully qualified names = "
           + FQNs );
       if ( FQNs.isEmpty() && strippedWorthTrying ) {
         FQNs = getFullyQualifiedNames( strippedClassName );//, packages );
@@ -318,6 +331,9 @@ public class ClassUtils {
           classForName = tryClassForName( fqn, initialize );//, loader );
           if ( classForName != null ) classList.add( classForName );
         }
+      }
+      if ( !Utils.isNullOrEmpty( classList ) ) {
+        classesCache.put( className, classList );
       }
       return classList;
     }
@@ -331,6 +347,24 @@ public class ClassUtils {
       packageStrings.add(aPackage.getName());
     }
     return packageStrings;
+  }
+  
+  public static boolean isPackageName( String packageName ) {
+    Package[] packages = Package.getPackages();
+    for (Package aPackage : packages ) {
+      String packageString = aPackage.getName();
+      if ( packageString.startsWith( packageName ) ) {
+        if ( packageString.charAt( packageName.length() ) == '.' ) return true;
+      }
+    }
+//    Collection<String> packageStrings = getPackageStrings( null );
+//    if ( packageStrings.contains( packageName ) ) return true;
+//    for ( String packageString : packageStrings ) {
+//      if ( packageString.startsWith( packageName ) ) {
+//        if ( packageString.charAt( packageName.length() ) == '.' ) return true;
+//      }
+//    }
+    return false;
   }
 
   public static String simpleName( String longName ) {

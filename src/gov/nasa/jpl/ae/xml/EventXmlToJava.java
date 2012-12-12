@@ -28,10 +28,26 @@ import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
 import japa.parser.ast.expr.ThisExpr;
 import japa.parser.ast.expr.UnaryExpr;
+import japa.parser.ast.expr.VariableDeclarationExpr;
+import japa.parser.ast.stmt.AssertStmt;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.CatchClause;
+import japa.parser.ast.stmt.DoStmt;
 import japa.parser.ast.stmt.ExplicitConstructorInvocationStmt;
+import japa.parser.ast.stmt.ExpressionStmt;
+import japa.parser.ast.stmt.ForStmt;
+import japa.parser.ast.stmt.ForeachStmt;
+import japa.parser.ast.stmt.IfStmt;
+import japa.parser.ast.stmt.LabeledStmt;
+import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
+import japa.parser.ast.stmt.SwitchEntryStmt;
+import japa.parser.ast.stmt.SwitchStmt;
+import japa.parser.ast.stmt.SynchronizedStmt;
+import japa.parser.ast.stmt.ThrowStmt;
 import japa.parser.ast.stmt.TryStmt;
+import japa.parser.ast.stmt.TypeDeclarationStmt;
+import japa.parser.ast.stmt.WhileStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.type.VoidType;
@@ -71,6 +87,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import junit.framework.Assert;
 // import javax.xml.xpath.XPathExpression;
 
+import org.junit.experimental.theories.internal.Assignments;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -102,9 +119,6 @@ import demandResponse.*;
  */
 public class EventXmlToJava {
   
-  // not using this yet
-  public static final String charactersAssumedNotInIdentifiers = "<>+*/.";
- 
   // A struct for packaging name, types, and values, which are used for many
   // purposes in the XML: parameters, args, dependencies, . . .
   public class Param {
@@ -186,6 +200,7 @@ public class EventXmlToJava {
   private boolean gotStartTimeDependency;
   private boolean gotEndTimeDependency;
   private boolean gotDurationDependency;
+
   demandResponse.Customer c = new Customer( "stupid class loader" );
   ObjectFlow<Object> o = new ObjectFlow< Object >( "stupid class loader" );
 
@@ -1071,6 +1086,8 @@ public class EventXmlToJava {
             constructorDecl.setModifiers( ModifierSet.addModifier( constructorDecl.getModifiers(),
                                                                    ModifierSet.PUBLIC ) );
           }
+          addStatementsToConstructor( constructorDecl,
+                                      Utils.getEmptyList(Param.class) );
           ctors.add( constructorDecl );
         }
       }
@@ -1198,15 +1215,198 @@ public class EventXmlToJava {
     return equals;
   }
 
+  protected boolean hasStatementOfType( ConstructorDeclaration ctorDecl,
+                                        Class<?> statementType ) {
+    BlockStmt blockStmt = ctorDecl.getBlock();
+    if ( blockStmt == null || blockStmt.getStmts() == null ) return false;
+    for ( Statement stmt : blockStmt.getStmts() ) {
+      if ( statementType.isAssignableFrom( stmt.getClass() ) ) return true;
+    }
+    return false;
+  }
+  
+  protected List<Expression> fixExpressions( List<Expression> exprs ) {
+    if ( exprs == null ) return null;
+    List<Expression> newExprs = new ArrayList<Expression>();
+    for ( Expression expr : exprs) {
+      Expression newExpr = fixExpression( expr );
+      if ( newExpr != null ) newExprs.add( newExpr );
+      else newExprs.add( expr );
+    }
+    return newExprs;
+  }
+
+  protected Expression fixExpression( Expression expr ) {
+    if ( expr == null ) return null;
+    String newExprString = astToAeExpr( expr, false, true, false );
+    Expression newExpr = parseExpression( newExprString );
+    return newExpr;
+  }
+
+  /**
+   * Convert the Java statement into an AE Java statement by converting 
+   * expressions with astToAeExpr().
+   * @param stmt the statement to fix
+   */
+  protected void fixStatement( Statement stmt ) {
+    if ( stmt == null ) return;
+    if ( stmt instanceof ExpressionStmt ) {
+      ExpressionStmt exprStmt = (ExpressionStmt)stmt;
+      Expression expr = fixExpression( exprStmt.getExpression() );
+      exprStmt.setExpression( expr );
+//      if ( exprStmt.getExpression() instanceof AssignExpr ) {
+//        AssignExpr assignExpr = (AssignExpr)exprStmt.getExpression();
+//        String newExprString = astToAeExpr( assignExpr, false, true, false );
+//        
+//        assignExpr.getValue();
+//        Param p = lookupMemberByName(className, paramName, false, false);
+//      }
+    } else if ( stmt instanceof BlockStmt ) {
+      BlockStmt bs = (BlockStmt)stmt;
+      fixStatements( bs.getStmts() );
+    } else if ( stmt instanceof AssertStmt ) {
+      AssertStmt assertStmt = (AssertStmt)stmt;
+      Expression expr = fixExpression( assertStmt.getCheck() );
+      if ( expr != null ) assertStmt.setCheck( expr );
+    } else if ( stmt instanceof DoStmt ) {
+      DoStmt doStmt = (DoStmt)stmt;
+      List<Statement> stmtList = new ArrayList<Statement>();
+      fixStatement( doStmt.getBody() );
+      Expression expr = fixExpression( doStmt.getCondition() );
+      if ( expr != null ) doStmt.setCondition( expr );
+      //doStmt.setBody( stmtList.get( 0 ) );
+    } else if ( stmt instanceof ExplicitConstructorInvocationStmt ) {
+      ExplicitConstructorInvocationStmt ecis = (ExplicitConstructorInvocationStmt)stmt;
+      List< Expression > exprs = fixExpressions( ecis.getArgs() );
+      if ( exprs != null ) ecis.setArgs( exprs );
+      Expression expr = fixExpression( ecis.getExpr() );
+      if ( expr != null ) ecis.setExpr( expr );
+    } else if ( stmt instanceof ForeachStmt ) {
+      ForeachStmt foreachStmt = (ForeachStmt)stmt;
+      fixStatement( foreachStmt.getBody() );
+      Expression expr = fixExpression( foreachStmt.getIterable() );
+      if ( expr != null ) foreachStmt.setIterable(expr);
+      expr = fixExpression( foreachStmt.getVariable() );
+      if ( expr != null && expr instanceof VariableDeclarationExpr ) {
+        foreachStmt.setVariable( (VariableDeclarationExpr)expr );
+      }
+    } else if ( stmt instanceof ForStmt ) {
+      ForStmt forStmt = (ForStmt)stmt;
+      fixStatement( forStmt.getBody() );
+      List< Expression > exprs = fixExpressions( forStmt.getInit() );
+      if ( exprs != null ) forStmt.setInit( exprs );
+      Expression expr = fixExpression( forStmt.getCompare() );
+      if ( expr != null ) forStmt.setCompare( expr );
+      exprs = fixExpressions( forStmt.getUpdate() );
+      if ( exprs != null ) forStmt.setUpdate( exprs );        
+    } else if ( stmt instanceof IfStmt ) {
+      IfStmt ifStmt = (IfStmt)stmt;
+      List<Statement> stmtList = new ArrayList<Statement>();
+      stmtList.add( ifStmt.getThenStmt() );
+      stmtList.add( ifStmt.getElseStmt() );
+      fixStatements( stmtList );
+      Expression expr = fixExpression( ifStmt.getCondition() );
+      if ( expr != null ) ifStmt.setCondition( expr );
+    } else if ( stmt instanceof LabeledStmt ) {
+      LabeledStmt labeledStmt = (LabeledStmt)stmt;
+      fixStatement( labeledStmt.getStmt() );
+    } else if ( stmt instanceof ReturnStmt ) {
+      ReturnStmt returnStmt = (ReturnStmt)stmt;
+      Expression expr = fixExpression( returnStmt.getExpr() );
+      if ( expr != null ) returnStmt.setExpr( expr );
+    } else if ( stmt instanceof SwitchEntryStmt ) {
+      SwitchEntryStmt switchStmt = (SwitchEntryStmt)stmt;
+      fixStatements( switchStmt.getStmts() );
+      Expression expr = fixExpression( switchStmt.getLabel() );
+      if ( expr != null ) switchStmt.setLabel( expr );
+    } else if ( stmt instanceof SwitchStmt ) {
+      SwitchStmt switchStmt = (SwitchStmt)stmt;
+      fixStatements( switchStmt.getEntries() );
+      Expression expr = fixExpression( switchStmt.getSelector() );
+      if ( expr != null ) switchStmt.setSelector( expr );
+    } else if ( stmt instanceof SynchronizedStmt ) {
+      SynchronizedStmt synchStmt = (SynchronizedStmt)stmt;
+      fixStatement( synchStmt.getBlock() );
+      Expression expr = fixExpression( synchStmt.getExpr() );
+      if ( expr != null ) synchStmt.setExpr( expr );
+    } else if ( stmt instanceof ThrowStmt ) {
+      ThrowStmt throwStmt = (ThrowStmt)stmt;
+      Expression expr = fixExpression( throwStmt.getExpr() );
+      if ( expr != null ) throwStmt.setExpr( expr );
+    } else if ( stmt instanceof TryStmt ) {
+      TryStmt tryStmt = (TryStmt)stmt;
+      List<Statement> stmtList = new ArrayList<Statement>();
+      stmtList.add( tryStmt.getTryBlock() );
+      stmtList.add( tryStmt.getFinallyBlock() );
+      for ( CatchClause cc : tryStmt.getCatchs() ) {
+        stmtList.add( cc.getCatchBlock() );
+      }
+      fixStatements( stmtList );
+    } else if ( stmt instanceof TypeDeclarationStmt ) {
+      // TODO
+      TypeDeclarationStmt typeDeclStmt = (TypeDeclarationStmt)stmt;
+      for ( BodyDeclaration member : typeDeclStmt.getTypeDeclaration().getMembers() ) {
+        //member
+      }
+    } else if ( stmt instanceof WhileStmt ) {
+      WhileStmt whileStmt = (WhileStmt)stmt;
+      fixStatement( whileStmt.getBody() );
+      Expression expr = fixExpression( whileStmt.getCondition() );
+      if ( expr != null ) whileStmt.setCondition( expr );
+    } else {
+      System.err.println( "fixStatement(): got unhandled Statement type: "
+                          + stmt.getClass().getName() );
+    }
+  }
+
+  
+  /**
+   * Converts Java statements into AE Java statements by converting expressions
+   * with astToAeExpr().
+   * @param className
+   * @param stmts
+   */
+  protected void fixStatements( List<? extends Statement> stmts ) {
+    if ( stmts == null ) return;
+    for ( Statement stmt : stmts ) {
+      fixStatement( stmt );
+    }
+  }
+  
   protected void
       addStatementsToConstructor( ConstructorDeclaration ctor,
                                   List< Param > arguments ) {
     StringBuffer stmtList = new StringBuffer();
-    BlockStmt block = new BlockStmt();
-    ASTHelper.addStmt( block, new ExplicitConstructorInvocationStmt() );
+    BlockStmt block = ctor.getBlock();
+    if ( block == null ) {
+      block = new BlockStmt();
+      ctor.setBlock( block );
+    }
+    if ( block.getStmts() == null ) {
+      block.setStmts( new ArrayList<Statement>() );
+    }
+    boolean looksAlreadyFixed = false;
+    int pos = 0; // keep track of the insertion point before the existing statements.
+    if ( !hasStatementOfType( ctor, ExplicitConstructorInvocationStmt.class ) ) {
+      block.getStmts().add( pos++, new ExplicitConstructorInvocationStmt() );
+      //ASTHelper.addStmt( block, new ExplicitConstructorInvocationStmt() );
+    } else {
+      looksAlreadyFixed = true;
+    }
     // stmtList.append( "super();\n" );
-    stmtList.append( "init" + ctor.getName() + "Members();\n" );
-    stmtList.append( "init" + ctor.getName() + "Collections();\n" );
+    String blockString = block.toString();
+    String initMembersString = "init" + ctor.getName() + "Members()";
+    if ( !blockString.contains( initMembersString ) ) {
+      stmtList.append( initMembersString + ";\n" );
+    } else {
+      looksAlreadyFixed = true;
+    }
+    String initCollectionsString = "init" + ctor.getName() + "Collections()";
+    if ( !blockString.contains( initCollectionsString ) ) {    
+      stmtList.append( initCollectionsString + ";\n" );
+    } else {
+      looksAlreadyFixed = true;
+    }
     for ( Param p : arguments ) {
 //      if ( p.name.equals( "startTime" ) || p.name.equals( "endTime" )
 //           || p.name.equals( "duration" ) ) {
@@ -1217,12 +1417,21 @@ public class EventXmlToJava {
                        + " );\n" );
     }
     if ( isEvent( ctor.getName() ) ) {
-      stmtList.append( "init" + ctor.getName() + "Elaborations();\n" );
-      stmtList.append( "fixTimeDependencies();\n" );
+      String initElaborationsString = "init" + ctor.getName() + "Elaborations()";
+      if ( !blockString.contains( initElaborationsString ) ) {
+        stmtList.append( initElaborationsString + ";\n" );
+      } else {
+        looksAlreadyFixed = true;
+      }
+      if ( !blockString.contains( "fixTimeDependencies()") ) {
+        stmtList.append( "fixTimeDependencies();\n" );
+      }
     }
+    if ( !looksAlreadyFixed ) fixStatement( block );
+
     if ( Debug.isOn() ) Debug.outln( "adding statements to block: " + stmtList.toString() );
-    addStatements( block, stmtList.toString() );
-    ctor.setBlock( block );
+    addStatements( block, pos, stmtList.toString() );
+    // ctor.setBlock( block );
     // ctor.setBlock( createBlock( stmtList.toString() ) );
   }
 
@@ -1235,17 +1444,53 @@ public class EventXmlToJava {
   }
 
   private static void addStmts( BlockStmt block, List< Statement > list ) {
+    addStmts( block, -1, list );
+  }
+  private static void addStmts( BlockStmt block, int pos, List< Statement > list ) {
     if ( list != null ) {
+      if ( pos == -1 ) {
+        if ( block == null || Utils.isNullOrEmpty( block.getStmts() ) ) {
+          pos = 0;
+        } else {
+          pos = block.getStmts().size();
+        }
+      }
       for ( Statement stmt : list ) {
-        ASTHelper.addStmt( block, stmt );
+        addStmt( block, pos++, stmt );
       }
     }
   }
 
+  /**
+   * Adds the given statement to the specified block at the specified position.
+   * The list of statements will be initialized if it is <code>null</code>. If
+   * <code>pos</code> is -1, the statement is added to the end.
+   * 
+   * @param block
+   * @param pos
+   * @param stmt
+   */
+  public static void addStmt(BlockStmt block, int pos, Statement stmt) {
+      List<Statement> stmts = block.getStmts();
+      if (stmts == null) {
+          stmts = new ArrayList<Statement>();
+          block.setStmts(stmts);
+      }
+      if ( pos == -1 ) {
+        stmts.add( stmt );
+      } else {
+        stmts.add( pos, stmt );
+      }
+  }
+
+
   public static void addStatements( BlockStmt block, String stmts ) {
+    addStatements( block, -1, stmts );
+  }
+  public static void addStatements( BlockStmt block, int pos, String stmts ) {
     if ( Debug.isOn() ) Debug.outln( "trying to parse \"" + stmts + "\"" );
     List< Statement > list = stringToStatementList( stmts );
-    addStmts( block, list );
+    addStmts( block, pos, list );
   }
 
   public static BlockStmt createBlock( String stmts ) {
@@ -1280,7 +1525,7 @@ public class EventXmlToJava {
 //    stmtList =
 //        createStmtsFromFieldCollection( "dependencies.add( ", dependencies,
 //                                        " );\n" );
-    addStmts( block, stmtList );
+//    addStmts( block, stmtList );
     // TODO -- correct for effects?
     if ( effects != null ) {
       stmtList =  
@@ -2096,9 +2341,19 @@ public class EventXmlToJava {
     } else if ( expr.getClass() == ThisExpr.class ) {
       result = currentClass;
     } else if ( expr.getClass() == FieldAccessExpr.class ) {
+      // Maybe it's just a class or package name.
+      Class< ? > cls = ClassUtils.getClassForName( expr.toString(), packageName, false );
+      if ( cls != null ) {
+        // REVIEW -- Is it's type itself because it is a type (class name)?
+        result = expr.toString();
+      } else {
+
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
       // The member/field type is defined in its parent's class, and the parent class can be found by getting the type of the FiedAccessExpr's scope. 
       //if ( fieldAccessExpr.getScope() instanceof FieldAccessExpr ) {
+      if ( expr.toString().startsWith( "x." ) ) {
+        Debug.out( "" );
+      }
       String parentType = astToAeExprType( fieldAccessExpr.getScope(),
                                            lookOutsideXml, false );
       if ( !Utils.isNullOrEmpty( parentType ) ) {
@@ -2128,6 +2383,7 @@ public class EventXmlToJava {
           result = classForName.getName();
         }
       }
+      }
 /*      if ( result == null ) {
         // Maybe it's just a class or package name.
         Class< ? > cls = ClassUtils.getClassForName( expr.toString(), packageName, false );
@@ -2144,7 +2400,8 @@ public class EventXmlToJava {
           // try this? ClassUtils.getPackageStrings( packages );
         }
       }
-*/      if ( result == null ) {
+*/
+      if ( result == null ) {
         // REVIEW -- This probably won't work! What case is this?
         if ( Debug.isOn() ) Debug.err( "Can't determine type from FieldAccessExpr: " + expr );
         name = expr.toString();
@@ -2180,22 +2437,32 @@ public class EventXmlToJava {
         }
         name = expr.toString();
     }
+
     if ( result == null &&  name != null ) {
       if ( name.startsWith( "\"" ) ) {
         result = "String";
       } else {
-        p = lookupCurrentClassMember( name, lookOutsideXml, complainIfNotFound );
+        if ( name.equals( "x" )) {
+          Debug.out( "" );
+        }
+        p = lookupCurrentClassMember( name, lookOutsideXml, false );
         result = ( p == null ) ? null : p.type;
       }
-/*      // Maybe it's just a class or package name.
+
+      // Maybe it's just a class or package name.
       // REVIEW -- Is it's type itself because it is a type?
       if ( result == null ) {
         Class< ? > cls = ClassUtils.getClassForName( expr.toString(), packageName, false );
         if ( cls != null ) {
           result = expr.toString();
+//        } else {
+//          if ( ClassUtils.isPackageName( expr.toString() ) ) {
+//            result = expr.toString(); // ??
+//          }
         }
       }
-*/    }
+    }
+    
     if ( complainIfNotFound && Utils.isNullOrEmpty( result ) ) // delete this line -- just for setting breakpoint
       Debug.errorOnNull( "Error! null type for expression " + expr + "!", result );
     if ( Debug.isOn() ) Debug.outln( "javaToEventExpressionType(" + expr + ") = " + result );
@@ -2254,7 +2521,7 @@ public class EventXmlToJava {
     String aeString = null;
     if ( fieldAccessExpr.getScope() != null
          && ( fieldAccessExpr.getScope() instanceof FieldAccessExpr || fieldAccessExpr.getScope() instanceof NameExpr ) ) {
-/*      
+/* */
       // Maybe it's just a class or package name.
       Class< ? > cls = ClassUtils.getClassForName( fieldAccessExpr.toString(), packageName, false );
       if ( cls != null ) {
@@ -2264,9 +2531,10 @@ public class EventXmlToJava {
       if ( pkg != null ) {
         return fieldAccessExpr.toString();
       }
-*/      
+/* */
       String parentType =
-          astToAeExprType( fieldAccessExpr.getScope(), lookOutsideXmlForTypes, true );
+          astToAeExprType( fieldAccessExpr.getScope(), lookOutsideXmlForTypes,
+                           complainIfDeclNotFound );
       if ( !Utils.isNullOrEmpty( parentType ) ) {
         Param p =
             lookupMemberByName( parentType, fieldAccessExpr.getField(), false,
@@ -2325,7 +2593,8 @@ public class EventXmlToJava {
                              boolean evaluateCall ) {
     type = typeToClass( type );
     if ( Utils.isNullOrEmpty( type ) ) {
-      type = astToAeExprType( expr, lookOutsideXmlForTypes, true );
+      type = astToAeExprType( expr, lookOutsideXmlForTypes,
+                              complainIfDeclNotFound );
     }
     final String prefix =
         "new Expression" + ( Utils.isNullOrEmpty( type ) ? "" : "<" + type + ">" ) + "( ";
@@ -2335,7 +2604,7 @@ public class EventXmlToJava {
     if ( expr.getClass() == BinaryExpr.class ) {
         BinaryExpr be = ( (BinaryExpr)expr );
         middle =
-          "(new Functions."
+          "new Functions."
                + javaBinaryOpToEventFunctionName( be.getOperator() ) + "( "
                + astToAeExpr( be.getLeft(), true,
                               lookOutsideXmlForTypes,
@@ -2343,17 +2612,28 @@ public class EventXmlToJava {
                + astToAeExpr( be.getRight(), 
                               true,
                               lookOutsideXmlForTypes,
-                              complainIfDeclNotFound)  + " )).functionCall";
+                              complainIfDeclNotFound)  + " )";
+//        if ( !convertFcnCallArgsToExprs ) {
+//          middle = "(" + middle + ").functionCall";
+//        }
+        if ( evaluateCall ) {
+          middle = "(" + middle + ").evaluate(true)"; 
+        }
     } else
     /*** UnaryExpr ***/
     if ( expr.getClass() == UnaryExpr.class ) {
         UnaryExpr ue = ( (UnaryExpr)expr );
-        // middle =
-        return "(new Functions."
-               + astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
-               + astToAeExpr( ue.getExpr(), type,
-                              true, lookOutsideXmlForTypes,
-                              complainIfDeclNotFound ) + " )).functionCall";
+        middle = "new Functions."
+                 + astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
+                 + astToAeExpr( ue.getExpr(), type,
+                                true, lookOutsideXmlForTypes,
+                                complainIfDeclNotFound ) + " )";
+//        if ( !convertFcnCallArgsToExprs ) {
+//          middle = "(" + middle + ").functionCall";
+//        }
+        if ( evaluateCall ) {
+          middle = "(" + middle + ").evaluate(true)"; 
+        }
     } else
     /*** EnclosedExpr ***/
     if ( expr.getClass() == EnclosedExpr.class ) {
@@ -2431,21 +2711,27 @@ public class EventXmlToJava {
     } else if ( expr.getClass() == AssignExpr.class ) {
         AssignExpr ae = (AssignExpr)expr;
         String result = null;
-        if ( ae.getOperator() == AssignExpr.Operator.assign ) {
-          result =
-              ae.getTarget().toString() + ".setValue( "
-                  + astToAeExpr( ae.getValue(), convertFcnCallArgsToExprs,
-                                 lookOutsideXmlForTypes,
-                                 complainIfDeclNotFound ) + " )";
-          return result;
-        }
-        BinaryExpr abe = new BinaryExpr();
-        abe.setLeft( ae.getTarget() );
-        abe.setRight( ae.getValue() );
-        abe.setOperator( assignOpToBinaryOp( ae.getOperator() ) );
         Param p = lookupCurrentClassMember( ae.getTarget().toString(),
                                             lookOutsideXmlForTypes, false );
+        if ( ae.getOperator() == AssignExpr.Operator.assign ) {
+          if ( p == null ) {
+            result = ae.getTarget().toString() + " = "
+                     + astToAeExpr( ae.getValue(), false, lookOutsideXmlForTypes,
+                                    complainIfDeclNotFound );
+          } else {
+            result =
+                ae.getTarget().toString() + ".setValue( "
+                    + astToAeExpr( ae.getValue(), convertFcnCallArgsToExprs,
+                                   lookOutsideXmlForTypes,
+                                   complainIfDeclNotFound ) + " )";
+          }
+          return result;
+        }
         if ( p != null ) {
+          BinaryExpr abe = new BinaryExpr();
+          abe.setLeft( ae.getTarget() );
+          abe.setRight( ae.getValue() );
+          abe.setOperator( assignOpToBinaryOp( ae.getOperator() ) );
           Assert.assertNotNull( abe.getOperator() );
           result =
               ae.getTarget().toString() + ".setValue( "
@@ -3319,9 +3605,9 @@ public class EventXmlToJava {
       // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (ParseException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     return null;
   }
   

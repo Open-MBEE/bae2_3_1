@@ -23,6 +23,13 @@ public class Functions {
 
   private static boolean complainAboutBadExpressions = true;
   
+  private static Expression forceExpression ( Object o ) {
+    return Expression.evaluate( o, Expression.class, false, true );
+//    if ( o instanceof Expression ) return (Expression)o;
+//    //if ( o instanceof FunctionCall ) return new Expression(o);
+//    return new Expression( o );
+  }
+
   // Abstract n-ary functions
   public static class SuggestiveFunctionCall extends FunctionCall implements Suggester {
     public SuggestiveFunctionCall( Object object, Method method,
@@ -45,6 +52,19 @@ public class Functions {
                                          getFunctionMethod( functionMethod ),
                                          new Object[]{ o1, o2 } ) );
       functionCall = (SuggestiveFunctionCall)this.expression;
+    }
+//    public Binary( Expression< T > o1, FunctionCall o2, String functionMethod ) {
+//      this( o1, new Expression<T>(o2), functionMethod );
+//    }
+//    public Binary( FunctionCall o1, Expression< T > o2, String functionMethod ) {
+//      this( new Expression<T>(o1), o2, functionMethod );
+//    }
+//    public Binary( FunctionCall o1, FunctionCall o2, String functionMethod ) {
+//      this( new Expression<T>(o1), new Expression<T>(o2), functionMethod );
+//    }
+    public Binary( Object o1, Object o2, String functionMethod ) {
+      this( forceExpression(o1), forceExpression(o2), functionMethod );
+//      this( ( o1 instanceof Expression ) ? )
     }
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
@@ -70,6 +90,18 @@ public class Functions {
                           String functionMethod ) {
       super( o1, o2, functionMethod );
     }
+    public BooleanBinary( Object o1, Object o2,
+                          String functionMethod ) {
+      super( o1, o2, functionMethod );
+    }
+//    public BooleanBinary( Expression< T > o1, FunctionCall o2,
+//                          String functionMethod ) {
+//      super( o1, o2, functionMethod );
+//    }
+//    public BooleanBinary( FunctionCall o1, Expression< T > o2,
+//                          String functionMethod ) {
+//      super( o1, o2, functionMethod );
+//    }
 
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
@@ -78,13 +110,17 @@ public class Functions {
   }
     
   public static class Unary< T , R > extends Expression< R > {
+    public FunctionCall functionCall = null;
     public Unary( Expression< T > o, String functionMethod ) {
       super( new FunctionCall( (Object)null,
                            getFunctionMethod( functionMethod ) ) );
-      FunctionCall f = (FunctionCall)this.expression;
+      functionCall = (FunctionCall)this.expression;
       Vector< Object > v = new Vector< Object >();
       v.add( o );
-      f.arguments = v;
+      functionCall.arguments = v;
+    }
+    public Unary( Object o, String functionMethod ) {
+      this( forceExpression( o ), functionMethod );
     }
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
@@ -107,18 +143,27 @@ public class Functions {
 
   public static class Sum< T , R > extends Binary< T, R > {
     public Sum( Expression< T > o1, Expression< T > o2 ) {
-        super( o1, o2, "add" );
+      super( o1, o2, "add" );
+    }
+    public Sum( Object o1, Object c ) {
+      super( o1, c, "add" );
     }
   }
   public static class Add< T , R > extends Sum< T, R > {
     public Add( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
+    public Add( Object o1, Object c ) {
+      super( o1, c );
+    }
   }
 
   public static class Plus< T , R > extends Sum< T, R > {
     public Plus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
+    }
+    public Plus( Object o1, Object c ) {
+      super( o1, c );
     }
   }
 
@@ -127,11 +172,34 @@ public class Functions {
     public Sub( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "subtract" );
     }
+    public Sub( Object o1, Object c ) {
+      super( o1, c, "subtract" );
+    }
   }
   public static class Minus< T  extends Comparable< ? super T >,
                              R  extends Comparable< ? super R > > extends Sub< T, R > {
     public Minus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
+    }
+    public Minus( Object o1, Object c ) {
+      super( o1, c );
+    }
+  }
+
+  public static class Times< T , R > extends Binary< T, R > {
+    public Times( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "times" );
+    }
+    public Times( Object o1, Object c ) {
+      super( o1, c, "times" );
+    }
+  }
+  public static class Divide< T , R > extends Binary< T, R > {
+    public Divide( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "divide" );
+    }
+    public Divide( Object o1, Object c ) {
+      super( o1, c, "divide" );
     }
   }
 
@@ -215,6 +283,85 @@ public class Functions {
     return result;
   }
 
+  public static < T > java.lang.Number times( Expression< T > o1,
+                                              Expression< T > o2 ) {
+    if ( o1 == null || o2 == null ) return null;
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    Number result = null;
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      double rd1 = ( (Double) r1).doubleValue();
+      double rd2 = ( (Double) r2).doubleValue();
+      // check for overflow
+      if ( Double.MAX_VALUE / rd1 <= rd2 ) {
+        result = Double.MAX_VALUE;
+      } else if ( -Double.MAX_VALUE / rd1 >= rd2 ) {
+        result = -Double.MAX_VALUE;
+      } else {
+        result = ( (Double)r1 ) * ( (Double)r2 );
+      }
+    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
+      int rd1 = ( (Integer) r1).intValue();
+      int rd2 = ( (Integer) r2).intValue();
+      // check for overflow
+      if ( Integer.MAX_VALUE / rd1 <= rd2 ) {
+        result = Integer.MAX_VALUE;
+      } else if ( Integer.MIN_VALUE / rd1 >= rd2 ) {
+        result = Integer.MIN_VALUE;
+      } else {
+        result = ( (Integer)r1 ) * ( (Integer)r2 );
+      }
+    } else {
+      try {
+        throw new IllegalAccessException();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( r1 + " * " + r2 + " = " + result );
+    return result;
+  }
+  
+  public static < T > java.lang.Number divide( Expression< T > o1,
+                                               Expression< T > o2 ) {
+    if ( o1 == null || o2 == null ) return null;
+    T r1 = o1.evaluate( false );
+    T r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    Number result = null;
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      double rd1 = ( (Double) r1).doubleValue();
+      double rd2 = ( (Double) r2).doubleValue();
+      // check for overflow
+      if ( rd2 >= 0.0 && rd2 < 1.0 && Double.MAX_VALUE * rd2 <= rd1 ) {
+        result = Double.MAX_VALUE;
+      } else if ( rd2 < 0.0 && rd2 > -1.0 && -Double.MAX_VALUE * rd2 >= rd1 ) {
+        result = -Double.MAX_VALUE;
+      } else {
+        result = ( (Double)r1 ) / ( (Double)r2 );
+      }
+    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
+      int rd1 = ( (Integer) r1).intValue();
+      int rd2 = ( (Integer) r2).intValue();
+      // check for divide by 0
+      int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
+      if ( rd2 == 0 ) {
+        result = posNeg * Double.MAX_VALUE;
+      } else {
+        result = ( (Integer)r1 ) / ( (Integer)r2 );
+      }
+    } else {
+      try {
+        throw new IllegalAccessException();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( r1 + " / " + r2 + " = " + result );
+    return result;
+  }
+  
   public static class Negative<T> extends Unary< T, T > {
     public Negative( Expression< T > o ) {
       super( o, "negative" );
@@ -240,6 +387,9 @@ public class Functions {
   public static class EQ< T >
                         extends BooleanBinary< T > {
     public EQ( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "equals" );
+    }
+    public EQ( Object o1, Object o2 ) {
       super( o1, o2, "equals" );
     }
 /*
@@ -290,11 +440,17 @@ public class Functions {
     public Equals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
+    public Equals( Object o1, Object o2 ) {
+      super( o1, o2 );
+    }
   }
 
   public static class NEQ< T > 
                         extends BooleanBinary< T > {
     public NEQ( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "notEquals" );
+    }
+    public NEQ( Object o1, Object o2 ) {
       super( o1, o2, "notEquals" );
     }
 
@@ -349,6 +505,9 @@ public class Functions {
     public NotEquals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
+    public NotEquals( Object o1, Object o2 ) {
+      super( o1, o2 );
+    }
   }
 
   public static class LT< T >
@@ -356,9 +515,15 @@ public class Functions {
     public LT( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThan" );
     }
+    public LT( Object o1, Object o2 ) {
+      super( o1, o2, "lessThan" );
+    }
   }
   public static class Less< T > extends LT< T > {
     public Less( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+    }
+    public Less( Object o1, Object o2 ) {
       super( o1, o2 );
     }
   }
@@ -368,9 +533,15 @@ public class Functions {
     public LTE( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThanOrEqual" );
     }
+    public LTE( Object o1, Object o2 ) {
+      super( o1, o2, "lessThanOrEqual" );
+    }
   }
   public static class LessEquals< T > extends LTE< T > {
     public LessEquals( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+    }
+    public LessEquals( Object o1, Object o2 ) {
       super( o1, o2 );
     }
   }
@@ -380,9 +551,15 @@ public class Functions {
     public GT( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "greaterThan" );
     }
+    public GT( Object o1, Object o2 ) {
+      super( o1, o2, "greaterThan" );
+    }
   }
   public static class Greater< T extends Comparable< ? super T > > extends GT< T > {
     public Greater( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+    }
+    public Greater( Object o1, Object o2 ) {
       super( o1, o2 );
     }
     public boolean restrictDomains( boolean targetResult ) {
@@ -416,12 +593,18 @@ public class Functions {
     public GTE( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "greaterThanOrEqual" );
     }
+    public GTE( Object o1, Object o2 ) {
+      super( o1, o2, "greaterThanOrEqual" );
+    }
   }
 
   public static class GreaterEquals< T extends Comparable< ? super T > > extends
                                                                  GTE< T > {
 
     public GreaterEquals( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+    }
+    public GreaterEquals( Object o1, Object o2 ) {
       super( o1, o2 );
     }
   }
@@ -565,6 +748,12 @@ public class Functions {
     public And( Expression< Boolean > o1, Expression< Boolean > o2 ) {
       super( o1, o2, "and" );
     }
+    public And( Expression< Boolean > o1, FunctionCall o2 ) {
+      super( o1, o2, "and" );
+    }
+    public And(  FunctionCall o2, Expression< Boolean > o1 ) {
+      super( o1, o2, "and" );
+    }
   }
   public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) {
     if ( o1 == null || o2 == null ) return null;
@@ -580,6 +769,9 @@ public class Functions {
     public Or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
       super( o1, o2, "or" );
     }
+    public Or( Expression< Boolean > o1, FunctionCall o2 ) {
+      super( o1, o2, "or" );
+    }
   }
   public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
     if ( o1 == null || o2 == null ) return null;
@@ -593,6 +785,9 @@ public class Functions {
 
   public static class Xor extends BooleanBinary< Boolean > {
     public Xor( Expression< Boolean > o1, Expression< Boolean > o2 ) {
+      super( o1, o2, "xor" );
+    }
+    public Xor( Expression< Boolean > o1, FunctionCall o2 ) {
       super( o1, o2, "xor" );
     }
   }

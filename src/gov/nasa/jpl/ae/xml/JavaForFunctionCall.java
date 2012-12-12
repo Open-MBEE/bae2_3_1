@@ -141,7 +141,8 @@ public class JavaForFunctionCall {
       }
     }
 
-    if ( !Utils.isNullOrEmpty( className ) ) {
+    if ( !Utils.isNullOrEmpty( className ) &&
+         className != xmlToJava.currentClass ) {
       objectType = ClassUtils.getClassForName( className, preferredPackageName, true );
     }
 
