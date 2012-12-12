@@ -3,6 +3,8 @@
  */
 package demandResponse;
 
+import java.util.Map;
+
 import gov.nasa.jpl.ae.event.LinearTimeline;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
@@ -19,7 +21,7 @@ public class Generation extends LinearTimeline {
   
   DRObject drObject = null;
   boolean drEventExists = false;
-  static int numberOfCustomers = 100;
+  protected int numberOfCustomers = 100;
 
   protected double maxRateIncrease = 1000.0; // kW/sec
   protected double minRateIncrease = 0.0; // kW/sec
@@ -28,15 +30,16 @@ public class Generation extends LinearTimeline {
   protected double min = 0.0;
   protected double max = 10200.0; // 10.2 GW
   
-  public static double nightGenerationLevel = 1.8 * numberOfCustomers; // in kWatts, 5.0e6 = 5 GW
-  public static double middayGenerationLevel = 4.0 * numberOfCustomers; // 8.0e6 = 8 GW
-  public static LinearTimeline dayProfile = initDayProfile();
+  public static final double nightGenerationLevelPerCustomer = 1.8; // in kWatts, 5.0e6 = 5 GW
+  public static final double middayGenerationLevelPerCustomer = 4.0; // 8.0e6 = 8 GW
+  public LinearTimeline dayProfile = null;
 
   /**
    * @param name
    */
-  public Generation( String name ) {
+  public Generation( String name, int numCustomers ) {
     super( name );
+    numberOfCustomers = numCustomers;
     init();
   }
 
@@ -44,12 +47,14 @@ public class Generation extends LinearTimeline {
    * @param name
    * @param defaultValue
    */
-  public Generation( String name, Double defaultValue ) {
+  public Generation( String name, Double defaultValue, int numCustomers ) {
     super( name, defaultValue );
+    numberOfCustomers = numCustomers;
     init();
   }
 
   protected void init() {
+    dayProfile = initDayProfile();
     if ( drEventExists ) {
       drObject = new DRObject( true );
     }
@@ -70,7 +75,7 @@ public class Generation extends LinearTimeline {
 
       // Reduce the midday generation by a predicted amount if having a DR event
       double generationAmount = dayProfile.getValue( timeOfDay );
-      boolean reduceForDREvent = drEventExists && drObject != null && generationAmount == middayGenerationLevel; 
+      boolean reduceForDREvent = drEventExists && drObject != null && generationAmount == middayGenerationLevelPerCustomer; 
       if ( Debug.isOn() ) {
         Debug.out( "Generation.setValue(" + timeSinceEpoch
                      + ", dayProfile.getValue(" + timeOfDay + ")="
@@ -132,25 +137,28 @@ public class Generation extends LinearTimeline {
   }
 
   // define a profile of generation for a given day
-  private static LinearTimeline initDayProfile() {
+  private LinearTimeline initDayProfile() {
     LinearTimeline profile = new LinearTimeline( "dayProfile" );
     double conversionFactor = 1.0 / Units.conversionFactor( Units.hours );
     double[] t = new double[]{0.0, 2.0, 6.0, 11.0, 21.5, 24.0};
     profile.setValue( new Timepoint( "", new Integer( (int)t[0] ), null ),
-                      nightGenerationLevel
-                          + ( middayGenerationLevel - nightGenerationLevel )
+                      nightGenerationLevelPerCustomer
+                          + ( middayGenerationLevelPerCustomer - nightGenerationLevelPerCustomer )
                           * 2.0 / ( 24.0 - 21.5 + 2.0 ) );
     //    profile.setValue( new Timepoint( "", new Integer(0), null ), nightGenerationLevel );
     profile.setValue( new Timepoint( "", new Integer((int)( t[1] * conversionFactor )), null ),
-                      nightGenerationLevel );
+                      nightGenerationLevelPerCustomer );
     profile.setValue( new Timepoint( "", new Integer((int)( t[2] * conversionFactor )), null ),
-                      nightGenerationLevel  );
+                      nightGenerationLevelPerCustomer  );
     profile.setValue( new Timepoint( "", new Integer((int)( t[3] * conversionFactor )), null ),
-                      middayGenerationLevel );
+                      middayGenerationLevelPerCustomer );
     profile.setValue( new Timepoint( "", new Integer((int)( t[4] * conversionFactor )), null ),
-                      middayGenerationLevel );
+                      middayGenerationLevelPerCustomer );
 //    profile.setValue( new Timepoint( "", new Integer((int)( t[5] * conversionFactor )), null ),
 //                      profile.getValue( (int)t[0] ) );
+    for ( Map.Entry< Parameter< Integer >, Double > e : this.entrySet() ) {
+      e.setValue( e.getValue() * numberOfCustomers );
+    }
     return profile;
   }
 

@@ -14,13 +14,20 @@ useTestData = False
 
 genXValues = True
 
+zoomToFitX = False
+zoomToFitY = True
+zoomToFitOnlyVisibleY = True
+centerAtNow = True
+horizonDurationHours = 24
+timeNow = horizonDurationHours / 2
+nowLine = None
+
 showLabels = False
 
 numLines = 4 # the default number of lines to plot
 
 replaceInitValues = False #to try and fix exception do we really need this?
 
-#host = "192.168.1.100"
 host = "127.0.0.1"
 defaultPort = 60002 # the actual port can be passed as an argument
 sock = None
@@ -64,12 +71,15 @@ def socketDataGen():
     global lines
     global lineIdToIndex
     global numLines
+    global timeNow
+    global nowLine
+    
     cnt = 0
     if genXValues:
         yRange = range(1,numLines+1)
     else:
         yRange = range(numLines)
-    yield 0, [0.0 for n in yRange]
+    #yield 0, [0.0 for n in yRange]
     while 1:
         try:
             debugPrint("try to receive data for plot")
@@ -104,6 +114,7 @@ def socketDataGen():
                     lines[lineIdToIndex[lineId]].set_data(staticLines[lineId][0], staticLines[lineId][1])
                     #yield 
                 else:
+                    timeNow = xVal
                     yield xVal, [arr[i] for i in yRange] #[ arr[13], arr[14], arr[15] ]
                     cnt+=1
         except RuntimeError:
@@ -112,22 +123,48 @@ def socketDataGen():
     debugPrint("finished yielding data")
 
 def testDataGen():
+    global timeNow
     cnt = 0
-    while 1:
+    while cnt < 100:
+        timeNow = cnt
         debugPrint("try to yield data for plot")
         yield cnt, [(cnt-n-1.0)/(cnt+n+1.0) for n in range(numLines)]
         cnt+=1
 
 def dataFromTable():
+    global timeNow
     debugPrint("dataFromTable()")
     cnt = 0
-    while 1:
+    while cnt < 100:
+        timeNow = cnt
         debugPrint("try to yield data for plot")
         yield cnt, [table[cnt][i] for i in range(numLines)]
         debugPrint("tried to yield data for plot")
         cnt+=1
         debugPrint("incremented counter")
 
+def moveNowLine():
+    global timeNow
+    global nowLine
+    xcoords = [timeNow, timeNow] #[timeNow-0.00001, timeNow+0.00001]
+    ycoords = [-1e20, 1e20]
+    debugPrint("moveNowLine: " + str(xcoords) + ", " + str(ycoords))
+    nowLine.set_data(xcoords, ycoords)
+
+def addNowLine():
+    global staticLines
+    global lines
+    global nowLine
+    global timeNow
+    
+    #lineId = -1.010101 # something random that we hope is not used elsewhere - HACK
+    #staticLines[lineId] = {}
+    #lineIdToIndex[lineId] = len(lines)
+    nowLine = addLine()
+    #staticLines[lineId][0] = [timeNow-0.00001, timeNow+0.00001]
+    #staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
+    moveNowLine()
+    
 def updateData(data):
     global numLines
     global xdata
@@ -169,11 +206,13 @@ def addLine():
     msizes =  [ 12, 12, 12, 12, 12,  12,  10,  4, 16, 18,  8, 18,  20] 
     
     n = len(lines)
-    lines.append( ax.plot([0], [0], symbols[n % len(symbols)], lw=4, \
-                          markeredgecolor=colors[n % len(colors)], \
-                          markeredgewidth=2, markersize=msizes[n % len(msizes)], \
-                          markerfacecolor='None')[0])
-    debugPrint("new line = " + str(lines[-1]))
+    newLine = ax.plot([0], [0], symbols[n % len(symbols)], lw=4, \
+                      markeredgecolor=colors[n % len(colors)], \
+                      markeredgewidth=2, markersize=msizes[n % len(msizes)], \
+                      markerfacecolor='None')[0]
+    lines.append( newLine )
+    debugPrint("new line = " + str(newLine))
+    return newLine
 
 #
 # Main
@@ -209,7 +248,7 @@ def main(argv=None):
     debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
     for _ in xrange(numLines):
         addLine()
-
+    addNowLine()
     ax.set_ylim(-1.1, 1.1)
     ax.set_xlim(0, 5)
     ax.grid()
@@ -223,8 +262,9 @@ def main(argv=None):
         else:
             minnest = None
             for x in a:
-                if minnest == None or x < minnest:
-                    minnest = x
+                z = myMin(x)
+                if minnest == None or z < minnest:
+                    minnest = z
             return minnest
 
     def myMax(a):
@@ -233,8 +273,9 @@ def main(argv=None):
         else:
             maxxest = None
             for x in a:
-                if maxxest == None or x > maxxest:
-                    maxxest = x
+                z = myMax(x)
+                if maxxest == None or z > maxxest:
+                    maxxest = z
             return maxxest
 
     def run(data):
@@ -246,50 +287,84 @@ def main(argv=None):
         global lines
         global ax
         global fig
+        global zoomToFitX
+        global zoomToFitY
+        global zoomToFitOnlyVisibleY
+        global centerAtNow
+        global horizonDurationHours
+        global timeNow
+        global lineNow
+
+        global showLabels
+        
         
         debugPrint( "data = " + str(data) )
         
         updateData(data)
+        moveNowLine()
 
         replaceInitValues = False
-        # stretch the axes for points outside the current bounds
+        
+        # zoom the axes to fit all data according to the zoom options
+        
         xmin, xmax = ax.get_xlim()
         ymin, ymax = ax.get_ylim()
 
-        xDataMax = myMax([myMax(dat) for dat in xdata])
-        xDataMin = myMin([myMin(dat) for dat in xdata])
-        yDataMax = myMax([myMax(dat) for dat in ydata])
-        yDataMin = myMin([myMin(dat) for dat in ydata])
-        if ( staticLines != None and len(staticLines) > 0 and len(staticLines.values()) > 0 and len(staticLines.values()[0]) > 0 ):
-            xDataMaxStatic = myMax([myMax(staticLines[dat][0]) for dat in staticLines])
-            xDataMinStatic = myMin([myMin(staticLines[dat][0]) for dat in staticLines])
-            debugPrint("xDataMax=" + str(xDataMax) + ", xDataMaxStatic=" + str(xDataMaxStatic))
-            xDataMax = np.amax([xDataMax, xDataMaxStatic])
-            xDataMin = np.amin([xDataMin, xDataMinStatic])
-        if ( staticLines != None and len(staticLines) > 0 and len(staticLines.values()) > 0 and len(staticLines.values()[0]) > 1 ):
-            yDataMaxStatic = myMax([myMax(staticLines[dat][1]) for dat in staticLines])
-            yDataMinStatic = myMin([myMin(staticLines[dat][1]) for dat in staticLines])
-            debugPrint("yDataMax=" + str(yDataMax) + ", yDataMaxStatic=" + str(yDataMaxStatic))
-            yDataMax = myMax([yDataMax, yDataMaxStatic])
-            yDataMin = myMin([yDataMin, yDataMinStatic])
-        if xDataMax != xDataMin:
-            #xmin = xDataMin - xGrow*(xDataMax - xDataMin)
-            xmax = xDataMax + xGrow*(xDataMax - xDataMin)
-        else:
-            if xDataMax >= xmax:
-                xmax = myMax((xDataMax, xmax + xGrow*(xmax - xmin)))
-            if xDataMin < xmin:
-                xmin = myMin((xDataMin, xmin - xGrow*(xmax - xmin)))
-        if yDataMax != yDataMin:
-            ymin = yDataMin - yGrow*(yDataMax - yDataMin)
-            ymax = yDataMax + yGrow*(yDataMax - yDataMin)
-        else:
-            if yDataMax >= ymax:
-                ymax = myMax((yDataMax, ymax + yGrow*(ymax - ymin)))
-            if yDataMin < ymin:
-                ymin = myMin((yDataMin, ymin - yGrow*(ymax - ymin)))
-        ax.set_xlim(xmin, xmax)
-        ax.set_ylim(ymin, ymax)
+        # find min/max for x-axis
+        if centerAtNow:
+            # the limits on the x-axis should include the horizon duration
+            xmin = timeNow - horizonDurationHours / 2 
+            xmax = timeNow + horizonDurationHours / 2
+        if zoomToFitX:
+            xDataMax = myMax(xdata)
+            xDataMin = myMin(xdata)
+            if ( staticLines != None and \
+                 len(staticLines) > 0 and \
+                 len(staticLines.values()) > 0 and \
+                 len(staticLines.values()[0]) > 0 ):
+                xDataMaxStatic = myMax([staticLines[dat][0] for dat in staticLines])
+                xDataMinStatic = myMin([staticLines[dat][0] for dat in staticLines])
+                xDataMax = myMax([xDataMax, xDataMaxStatic])
+                xDataMin = myMax([xDataMin, xDataMinStatic])
+            if xDataMax != xDataMin:
+                #xmin = xDataMin - xGrow*(xDataMax - xDataMin)
+                xmax = xDataMax + xGrow*(xDataMax - xDataMin)
+            else:
+                if xDataMax >= xmax:
+                    xmax = myMax((xDataMax, xmax + xGrow*(xmax - xmin)))
+                if xDataMin < xmin:
+                    xmin = myMin((xDataMin, xmin - xGrow*(xmax - xmin)))
+
+        # find min/max for y-axis
+        if zoomToFitY:
+            yvals = [[ydata[i][j] for j in range(len(ydata[i])) \
+                      if ((not zoomToFitOnlyVisibleY) or \
+                          (xdata[i][j] >= xmin and xdata[i][j] <= xmax)) ] \
+                     for i in range(len(ydata))]
+            yDataMax = myMax(yvals)
+            yDataMin = myMin(yvals)
+            if ( staticLines != None and \
+                 len(staticLines) > 0 and \
+                 len(staticLines.values()) > 0 and \
+                 len(staticLines.values()[0]) > 1 ):
+                yDataMaxStatic = myMax([staticLines[dat][1] for dat in staticLines])
+                yDataMinStatic = myMin([staticLines[dat][1] for dat in staticLines])
+                yDataMax = myMax([yDataMax, yDataMaxStatic])
+                yDataMin = myMin([yDataMin, yDataMinStatic])
+            if yDataMax != yDataMin:
+                ymin = yDataMin - yGrow*(yDataMax - yDataMin)
+                ymax = yDataMax + yGrow*(yDataMax - yDataMin)
+            else:
+                if yDataMax >= ymax:
+                    ymax = myMax((yDataMax, ymax + yGrow*(ymax - ymin)))
+                if yDataMin < ymin:
+                    ymin = myMin((yDataMin, ymin - yGrow*(ymax - ymin)))
+
+        if zoomToFitX or centerAtNow:
+            ax.set_xlim(xmin, xmax)
+        if zoomToFitY:
+            ax.set_ylim(ymin, ymax)
+            
         ax.figure.canvas.draw()
 
         debugPrint("updated lines = " + str([line.get_data() for line in lines]))

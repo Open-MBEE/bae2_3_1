@@ -15,6 +15,7 @@
       <parameter><name>DREventEndTime</name><type>Integer</type><value>21600</value></parameter>
       <parameter><name>DRArea</name><type>String</type><value>"Area 51"</value></parameter>
       <parameter><name>LoadReductionNeeded</name><type>Double</type><value>1000.0</value></parameter>
+      <parameter><name>numberOfCustomers</name><type>Integer</type><value>10</value></parameter>
       <parameter><name>loadReductionActual</name><type>Double</type><value>1000.0</value></parameter>
       <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>0.0</value></parameter>
       <parameter><name>assessEventStartTime</name><type>Integer</type><value>150</value></parameter>
@@ -35,6 +36,7 @@
           <parameter><name>DREventEndTime</name><type>Integer</type></parameter>
           <parameter><name>DRArea</name><type>String</type></parameter>
           <parameter><name>LoadReductionNeeded</name><type>Double</type></parameter>
+          <parameter><name>numberOfCustomers</name><type>Integer</type></parameter>
           <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>null</value></parameter>
         </members>
         <constraints></constraints>
@@ -57,7 +59,7 @@
           <parameter><name>assessEventStartTime</name><type>Integer</type><value>100</value></parameter>
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
           <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
-          <parameter><name>theGrid</name><type>Grid</type><value>new Grid()</value></parameter>
+          <parameter><name>theGrid</name><type>Grid</type><value>new Grid(numberOfCustomers)</value></parameter>
           <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints>
@@ -87,6 +89,7 @@
               <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
               <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
+              <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers</value></parameter>
               <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
             </arguments>
           </eventInvocation>
@@ -103,6 +106,7 @@
               <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
               <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
+              <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers</value></parameter>
               <!-- The loadReductionProjectedBasedOnResponses is hardcoded for now as 0 to represent an attack blackholes the responses. -->
               <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>loadReductionProjectedBasedOnResponses</value></parameter>
               <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>lastDREventStartTime</value></parameter>-->
@@ -123,6 +127,7 @@
               <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
               <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
+              <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers</value></parameter>
               <parameter><name>loadReductionActual</name><type>Double</type><value>loadReductionActual</value></parameter>
               <parameter><name>projectedLoadReduction</name><type>Double</type><value>loadReductionProjectedBasedOnResponses</value></parameter>
               <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
@@ -200,6 +205,7 @@
               <!--<parameter><name>DRArea</name><type>String</type><value>"TA-33"</value></parameter>-->
               <!-- Compute the additional load to reduce. -->
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded - loadReductionProjectedBasedOnResponses</value></parameter>
+              <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers - numberOfCustomers * ((loadReductionProjectedBasedOnResponses * 1.0) / LoadReductionNeeded)</value></parameter>
               <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>-->
               <!-- Decrement replan count. -->
               <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>maxNumTimesReplan-1</value></parameter>
@@ -226,7 +232,7 @@
           <parameter><name>increaseGeneration</name><type>Boolean</type><value>false</value></parameter>
           <parameter><name>increasedGeneration</name><type>Double</type><value>0.0</value></parameter>
           <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
-          <parameter><name>generation</name><type>Generation</type><value>new Generation("LADWP_Generation")</value></parameter>
+          <parameter><name>generation</name><type>Generation</type><value>new Generation("LADWP_Generation", numberOfCustomers)</value></parameter>
           <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints>
@@ -396,6 +402,15 @@
           <value>customers.additiveLoad</value>
         </parameter>
       </members>
+      <constructors>
+        <function>
+          <![CDATA[
+          Grid( int numCustomers ) {
+            numberOfCustomers = numCustomers;
+          }
+          ]]>
+        </function>
+      </constructors>
     </class>
   </classes>
 </scenario>
