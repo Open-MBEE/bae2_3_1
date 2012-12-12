@@ -232,7 +232,7 @@
           <parameter><name>increaseGeneration</name><type>Boolean</type><value>false</value></parameter>
           <parameter><name>increasedGeneration</name><type>Double</type><value>0.0</value></parameter>
           <parameter><name>amountToIncrease</name><type>Double</type><value>1000.0</value></parameter>
-          <parameter><name>generation</name><type>Generation</type><value>new Generation("LADWP_Generation", numberOfCustomers)</value></parameter>
+          <parameter><name>generation</name><type>Generation</type><value>null</value></parameter>
           <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints>
@@ -245,6 +245,7 @@
           <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &gt;= 500.0</value></dependency>-->
           <dependency><name>increasedGeneration</name><value>0.0</value></dependency>
           <dependency><name>amountToIncrease</name><value>1000.0</value></dependency>
+          <dependency><name>generation</name><value>new Generation("LADWP_Generation", numberOfCustomers)</value></dependency>
         </dependencies>
         <events>
           <event>

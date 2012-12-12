@@ -423,6 +423,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   public static void setHorizonDuration( int duration ) {
     horizonDuration = duration;
     System.out.println("Horizon duration set to " + horizonDuration + " " + units );
+    TimeDomain.horizonDomain.setUpperBound( horizonDuration );
   }
 
   /**
