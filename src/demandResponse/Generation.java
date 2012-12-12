@@ -156,7 +156,7 @@ public class Generation extends LinearTimeline {
                       middayGenerationLevelPerCustomer );
 //    profile.setValue( new Timepoint( "", new Integer((int)( t[5] * conversionFactor )), null ),
 //                      profile.getValue( (int)t[0] ) );
-    for ( Map.Entry< Parameter< Integer >, Double > e : this.entrySet() ) {
+    for ( Map.Entry< Parameter< Integer >, Double > e : profile.entrySet() ) {
       e.setValue( e.getValue() * numberOfCustomers );
     }
     return profile;
