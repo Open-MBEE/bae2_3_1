@@ -271,9 +271,6 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     assert !propagateChange || mayPropagate;
     assert mayChange;
     T castVal = null;
-    if ( val instanceof Integer && ((Integer)val).equals(112032)) {
-      Debug.out( "" );
-    }
     try {
       castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
       val = castVal;

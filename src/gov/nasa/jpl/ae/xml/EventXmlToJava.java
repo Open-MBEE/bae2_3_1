@@ -25,6 +25,7 @@ import japa.parser.ast.expr.Expression;
 import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.NameExpr;
+import japa.parser.ast.expr.NullLiteralExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
 import japa.parser.ast.expr.ThisExpr;
 import japa.parser.ast.expr.UnaryExpr;
@@ -835,15 +836,22 @@ public class EventXmlToJava {
       TypeDeclaration type = getTypeDeclaration( c.getName() );
       boolean alreadyAdded = false;
       if ( type != null && c != null ) {
+        ConstructorDeclaration ctorToReplace = null;
         for ( BodyDeclaration bd : type.getMembers() ) {
           if ( bd instanceof ConstructorDeclaration ) {
             if ( equals(c, (ConstructorDeclaration)bd ) ) {
+              if ( !Utils.isNullOrEmpty( c.getParameters() ) ) {
+                ctorToReplace = (ConstructorDeclaration)bd;
+              }
               alreadyAdded = true;
               break;
             }
           }
         }
-        if ( !alreadyAdded ) {
+        if ( !alreadyAdded || ctorToReplace != null ) {
+          if ( ctorToReplace != null ) {
+            type.getMembers().remove( ctorToReplace );
+          }
           ASTHelper.addMember( type, c );
         }
       }
@@ -2759,6 +2767,12 @@ public class EventXmlToJava {
 //            middle += "new " javaForFunctionCall.callName + "(" + javaForFunctionCall.argumentArrayJava + ")";            
 //          }
 //        }
+    } else if ( expr.getClass().getSimpleName().endsWith( "LiteralExpr" ) ) {
+      if ( expr.getClass() == NullLiteralExpr.class ) {
+        return "null";
+      } else {
+        middle = expr.toString(); 
+      }
     } else  { //if ( expr.getClass() == ConditionalCallExpr.class ) {
       //case "ConditionalExpr": // TODO
         middle = expr.toString();

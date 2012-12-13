@@ -49,9 +49,6 @@ public class ConstraintLoopSolver implements Solver {
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
         if ( Debug.isOn() ) Debug.outln( "checking constraint " + i + ": " + c );
-        if ( c.toString().contains( "increaseGeneration" ) || c.toString().contains( "amountToIncrease" ) ) {
-          Debug.out( "" );
-        }
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
           thisSatisfied = c.satisfy( deep, null );

@@ -1,9 +1,14 @@
 package gov.nasa.jpl.ae.util;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * MoreToString adds options to toString() for recursively nested objects.
@@ -540,5 +545,68 @@ public interface MoreToString {
       sb.append( suffix );
       return sb.toString();
     }
+    
+    public static List<String> fromString( String s, String prefix,
+                                           String delimiter, String suffix ) {
+      List<String> list = Utils.getEmptyList();
+      Pattern p = Pattern.compile(prefix);
+      Matcher matcher = p.matcher( s );
+      if ( !matcher.find() ) return list;
+      p = Pattern.compile( delimiter );
+      String[] arr = p.split( s.substring( matcher.end() ) );
+      String last = arr[arr.length-1];
+      p = Pattern.compile(suffix);
+      matcher = p.matcher( last );
+      int startPos = -1;
+      while (matcher.find()) {
+        startPos = matcher.start();
+      }
+      int length = arr.length;
+      if ( startPos >= 0 ) {
+        if ( startPos == 0 ) {
+          --length;
+        } else {
+          arr[length-1] = last.substring( 0, startPos );
+        }
+      }
+      list = Arrays.asList( arr ).subList( 0, length );
+      return list;
+    }
+    
+    public static void fromString( Map< String, String > map, String s ) {
+      fromString( map, s, "[\\[{(]\\s*", ",\\s*", "\\s*[\\]})]", "\\s*=\\s*" );
+    }
+    
+    public static void fromString( Map< String, String > map, String s,
+                                   String prefix, String delimiter,
+                                   String suffix,
+                                   String keyValueDelimiter ) {
+      if ( map == null ) map = new HashMap< String, String >();
+      map.clear();
+      Pattern p = Pattern.compile(prefix);
+      Matcher matcher = p.matcher( s );
+      if ( !matcher.find() ) return;
+      int start = matcher.start();
+      int end = -1;
+      Pattern d = Pattern.compile( delimiter );
+      Pattern kvd = Pattern.compile( keyValueDelimiter );
+      boolean gotDelimiter = true;
+      while ( gotDelimiter ) {
+        matcher = kvd.matcher( s.substring( start ) );
+        if ( !matcher.find() ) break;
+        String key = s.substring( start, matcher.start() );
+        start = matcher.end();
+        end = start;
+        matcher = d.matcher( s.substring( start ) );
+        gotDelimiter = matcher.find();
+        if ( gotDelimiter ) {
+          end = matcher.start();
+        }
+        String value = s.substring( start, end );
+        map.put( key, value );
+      }
+    }
+    
+
   }
 }

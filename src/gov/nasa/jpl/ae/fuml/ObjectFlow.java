@@ -17,6 +17,7 @@ import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 
 /**
  * @author bclement
@@ -54,7 +55,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
    * @param name
    * @param defaultValue
    */
-  public ObjectFlow( String name, Class< ? > type ) {
+  public ObjectFlow( String name, Class< Obj > type ) {
     super( name, null, type );
   }
 
@@ -83,11 +84,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
   public void send( Obj o, Parameter<Integer> t ) {
     breakpoint();
-    Object thing = (Obj)Expression.evaluate( o, type, true );
+    Obj thing = Expression.evaluate( o, type, true ); //REVIEW -- This shouldn't be necessary.  Change prototype to send(Object o, IntegerParameter t)? 
     if ( type == null || type.isInstance( thing ) ) {  
-      this.setValue( t, (Obj)thing );
+      this.setValue( t, thing );
       for ( ObjectFlow< Obj > f : listeners ) {
-        f.send( (Obj)thing, t );
+        f.send( thing, t );
       }
     }
   }
@@ -102,6 +103,27 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 //    }
 //  }
 
+  @Override
+  public void unapply( Effect effect ) {
+    boolean needToUnapply = true;
+    if ( effect instanceof EffectFunction ) {
+      EffectFunction effunc = (EffectFunction)effect;
+      if ( effunc.getMethod() == getSendMethod() ||
+           effunc.getMethod() == getSendIfMethod() ) {
+        for ( ObjectFlow<Obj> of : getListeners() ) {
+          of.unapply( effect );
+        }
+        if ( effunc.getMethod() == getSendIfMethod() ) {
+          
+        }
+      }
+    }
+    if ( needToUnapply  ) super.unapply( effect );
+      
+  }
+  
+
+  
   public Obj receive( Parameter<Integer> t ) {
     return receive( t, false, !receiveSetsEvenIfNull );
     
@@ -229,7 +251,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
 
     // Is sendIf() applied
-    if ( effectFunction.getMethod().getName().equals("sendIf") ) {
+    if ( effectFunction.getMethod() == getSendIfMethod() ) {
       return isSendIfApplied( effectFunction );
     }
 
@@ -247,35 +269,26 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return false;
   }
 
+  public boolean isSendIfApplicable( EffectFunction effectFunction ) {
+    boolean doSend = true;
+    if ( effectFunction.getArguments() == null
+         || effectFunction.getArguments().size() < 3 ) {
+      doSend = false;
+    } else {
+      Object bo = effectFunction.getArguments().get( 2 );
+      Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
+      if ( b == null ) doSend = false;
+      else doSend = b.booleanValue();
+    }
+    return doSend;
+  }
+  
   // TODO -- This looks like it would work generically in TimeVaryingMap.
   // TODO -- Move it there.
   public boolean isSendIfApplied( EffectFunction effectFunction ) {
-    if ( effectFunction.getArguments() != null
-         && effectFunction.getArguments().size() >= 3 ) {
-//     Object o = effectFunction.getArguments().get( 0 );
-//     Object t = (Timepoint)effectFunction.getArguments().get( 1 );
-     Object b = effectFunction.getArguments().get( 2 );
-     Boolean doSend = new Boolean( true );
-      // TODO -- need to treat all arguments like this -- need a static
-      // Expression.evaluateArg(Class<?>, arg)
-     while ( !( b == null || b instanceof Boolean || b.getClass() == boolean.class ) ) {
-       if ( b instanceof Parameter ) {
-         b = ((Parameter<?>)b).getValue( false );
-       }
-       if ( b instanceof Expression ) {
-         b = ((Expression)b).evaluate( false );
-       }
-     }
-     if ( b == null ) return false;
-     if ( b instanceof Boolean || b.getClass() == boolean.class ) {
-       doSend = (Boolean)b;
-     } else {
-       return false;
-     }
-     if ( !doSend ) return true;
-     return isSetValueApplied( effectFunction );
-    }
-    return false;
+    boolean doSend = isSendIfApplicable( effectFunction );
+    if ( !doSend ) return true;
+    return isSetValueApplied( effectFunction );
   }
   
   public boolean isSetValueApplied( Object v, Object timepoint ) {
@@ -393,29 +406,15 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   /**
    * @return the listeners
    */
-  public List< ObjectFlow< Obj >> getListeners() {
+  public List< ObjectFlow< Obj > > getListeners() {
     return listeners;
   }
 
   /**
    * @param listeners the listeners to set
    */
-  public void setListeners( List< ObjectFlow< Obj >> listeners ) {
+  public void setListeners( List< ObjectFlow< Obj > > listeners ) {
     this.listeners = listeners;
-  }
-
-  /**
-   * @return the type
-   */
-  public Class< ? > getType() {
-    return type;
-  }
-
-  /**
-   * @param type the type to set
-   */
-  public void setType( Class< ? > type ) {
-    this.type = type;
   }
   
 }

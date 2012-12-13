@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URL;
 //import java.nio.file.FileSystems;
 //import java.nio.file.FileVisitOption;
@@ -15,6 +16,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * @author bclement
@@ -111,6 +113,16 @@ public final class FileUtils {
       return fileName.substring( 0, pos );
     }
     return fileName;
+  }
+
+  public static String fileToString( String fileName ) throws FileNotFoundException {
+    File file = new File( fileName );
+    return fileToString( file );
+  }
+  
+  public static String fileToString( File file ) throws FileNotFoundException {
+    String s = new Scanner(file).useDelimiter("\\Z").next();
+    return s;
   }
   
 }
