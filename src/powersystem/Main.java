@@ -39,6 +39,6 @@ public class Main extends BobCreator {
         Timepoint.setEpoch("Sun Aug 05 23:30:00 PDT 2012");
         Timepoint.setHorizonDuration(86400);
         Main scenario = new Main();
-        scenario.executeAndSimulate();
+        scenario.executeAndSimulate(); //1.0 is realtime
     }
 }

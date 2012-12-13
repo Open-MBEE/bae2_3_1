@@ -39,9 +39,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   // Constants & Types
 
   private static final long serialVersionUID = 7629618647715394322L;
-  private static final String enthoughtPythonPath = "c:\\Users\\bclement\\workspace\\CS\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;c:\\Python27\\Lib";
-  private static final String enthoughtPython = "c:\\Python27\\python.exe";
-  private static final String enthoughtTempDir = "c:\\temp";
+  private static final String enthoughtPythonPath = "/Applications/OpsRevMD1702-20120818/plugins/com.nomagic.magicdraw.jpython/scripts/magicdrawPlugin:/Library/Frameworks/Python.framework/Versions/7.3/lib";
+  private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
+  //private static final String enthoughtTempDir = "c:\\temp";
   
   // Members
   
@@ -54,7 +54,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   boolean tryToPlot = true;
   Timepoint.Units plotAxisTimeUnits = Timepoint.Units.hours;
   public boolean usingSamplePeriod = true;
-  public double plotSamplePeriod = 900.0 / Units.conversionFactor( Units.seconds ); // 15 min
+  public double plotSamplePeriod = 10.0 / Units.conversionFactor( Units.seconds ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 
@@ -255,7 +255,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     double nextPlotSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Integer.MAX_VALUE;
     
     if ( tryToPlot ) {
-      //Debug.turnOn();
+      Debug.turnOn();
       initiatePlot();
       //Debug.turnOff();
     }
@@ -279,7 +279,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
               int simTime = simTimer.getSimTimePassed();
               while ( tryToPlot && usingSamplePeriod
                       && nextPlotSimTime <= simTime
-                      && nextPlotSimTime <= Timepoint.getHorizonDuration() ) {
+                      && nextPlotSimTime <= Timepoint.getHorizonDuration() 
+                      && nextPlotSimTime <= 500.0) {
                 plotValues( nextPlotSimTime );
                 // Recompute this in case the time scale changes during
                 // simulation.
@@ -437,6 +438,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       File f = new File( curDir  );
       String pythonExe = enthoughtPython;
       if ( Utils.isNullOrEmpty( pythonExe ) ) pythonExe = "python";
+      //plotProcess = rt.exec( pythonExe + " test.py ");
       plotProcess = rt.exec( pythonExe + " animatePlot.py " + port, newEnv, f );
                              //new String[] { pythonPath, mplPath }, f );
       // Allow a half second for the process to start.
@@ -506,7 +508,38 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       // endianness.
       if ( plotSocket.isConnected() && currentPlottableValues.size() > 0 ) {
         plotSocket.getDataOutputStream().writeInt(1);
+        //plotSocket.getDataOutputStream().writeInt(currentPlottableValues.size());
+        
+        //test - try sending integers to name things...
+        if ( Debug.isOn() ) Debug.outln( "sending number of lines: " + currentPlottableValues.size() );
         plotSocket.getDataOutputStream().writeInt(currentPlottableValues.size());
+        
+        if ( Debug.isOn() ) Debug.outln( "sending line names... ");
+        
+        for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+          Object o = e.getKey();
+          String nn = "?";
+          if (o instanceof TimeVaryingMap){
+            nn = ((TimeVaryingMap)o).getName();
+          } else {
+            nn = "..." + o.toString().split( "@" )[0];
+          }
+          if ( Debug.isOn() ) Debug.outln( "  sending line " + nn);
+          
+          plotSocket.getDataOutputStream().writeInt(nn.length());
+          plotSocket.getDataOutputStream().writeChars( nn );
+          
+          
+        }
+        
+        /*int c = 0;
+        while (c < currentPlottableValues.size()){
+          if ( Debug.isOn() ) Debug.outln( "    " + c );
+          plotSocket.getDataOutputStream().writeInt(c);
+          c+=1;
+        }*/
+        
+        
       } else {
         tryToPlot = false;
       }
@@ -576,6 +609,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * @param time the time, typically used as the x-axis of the plot.
    */
   protected void plotValues( double time ) {
+    System.out.println("called plotvalues @ " + time);
     if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
       return;
@@ -591,6 +625,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
           v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+          System.out.println("plotting " + o.toString() + " = "+ v);
         }
       }
       assert v instanceof Double || v instanceof Integer || v instanceof Parameter;

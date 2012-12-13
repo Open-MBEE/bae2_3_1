@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
-<!--RUNNING ON: Power_System (owner: sysTestToActivities_simplified) at December 12 2012 11:15:42 AM -->
+<!--RUNNING ON: Power_System (owner: sysTestToActivities_simplified) at December 12 2012 06:23:56 PM -->
 	<epoch>2012-08-05T23:30:00-07:00</epoch>
 	<horizon>P1D</horizon>
 	<timeUnits>seconds</timeUnits>
@@ -1439,14 +1439,14 @@
 				<parameter>
 					<!--simple property (name usage)-->
 					<name>usage__17_0_2_edc0357_1352328156649_216766_19620</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("usage")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("usage")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name cap)-->
 					<name>cap__17_0_2_edc0357_1352328156659_30024_19625</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("cap")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("cap")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Customer-->
@@ -7996,8 +7996,8 @@
 				<parameter>
 					<!--simple property (name load)-->
 					<name>load__17_0_2_edc0357_1352328156622_89989_19605</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("load")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("load")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
@@ -8014,8 +8014,8 @@
 				<parameter>
 					<!--simple property (name power)-->
 					<name>power__17_0_2_edc0357_1352328156609_70990_19604</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("power")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("power")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
@@ -12792,20 +12792,20 @@
 				<parameter>
 					<!--simple property (name expected_load)-->
 					<name>expected_load__17_0_2_edc0357_1352328156882_911968_19696</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("expected_load")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("expected_load")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name current_margin)-->
 					<name>current_margin__17_0_2_edc0357_1352328156885_375094_19701</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("current_margin")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("current_margin")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name demandResponse)-->
 					<name>demandResponse__17_0_2_edc0357_1352328156885_851407_19702</name>
-					<type>TimeVaryingMap&lt;Boolean&gt;</type>
-					<value>new TimeVaryingMap("demandResponse")</value>
+					<type>TimeVaryingPlottableMap&lt;Boolean&gt;</type>
+					<value>new TimeVaryingPlottableMap("demandResponse")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -12828,14 +12828,14 @@
 				<parameter>
 					<!--simple property (name reported_generation)-->
 					<name>reported_generation__17_0_2_edc0357_1352328156883_311908_19697</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("reported_generation")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("reported_generation")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name reported_load)-->
 					<name>reported_load__17_0_2_edc0357_1352328156881_993406_19694</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("reported_load")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("reported_load")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -12846,14 +12846,14 @@
 				<parameter>
 					<!--simple property (name power_needed)-->
 					<name>power_needed__17_0_2_edc0357_1352328156882_937206_19695</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("power_needed")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("power_needed")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_margin)-->
 					<name>expected_margin__17_0_2_edc0357_1352328156884_706788_19700</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("expected_margin")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("expected_margin")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -12876,20 +12876,20 @@
 				<parameter>
 					<!--simple property (name shortage)-->
 					<name>shortage__17_0_2_edc0357_1352328156886_471893_19703</name>
-					<type>TimeVaryingMap&lt;Boolean&gt;</type>
-					<value>new TimeVaryingMap("shortage")</value>
+					<type>TimeVaryingPlottableMap&lt;Boolean&gt;</type>
+					<value>new TimeVaryingPlottableMap("shortage")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name predicted_load)-->
 					<name>predicted_load__17_0_2_edc0357_1352328156883_613042_19698</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("predicted_load")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("predicted_load")</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name actual_load)-->
 					<name>actual_load__17_0_2_edc0357_1352328156881_301885_19693</name>
-					<type>TimeVaryingMap&lt;Integer&gt;</type>
-					<value>new TimeVaryingMap("actual_load")</value>
+					<type>TimeVaryingPlottableMap&lt;Integer&gt;</type>
+					<value>new TimeVaryingPlottableMap("actual_load")</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->

@@ -1,11 +1,12 @@
-#import os
+import os
 import sys
-#print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
+print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from InterpolatedMap import InterpolatedMap as InterpolatedMap
 from OneWaySocket import OneWaySocket
+import string
 
 debugMode = True
 useSocket = True
@@ -14,12 +15,12 @@ useTestData = False
 
 genXValues = True
 
-zoomToFitX = False
+zoomToFitX = True
 zoomToFitY = True
 zoomToFitOnlyVisibleY = True
-centerAtNow = True
-horizonDurationHours = 24
-timeNow = horizonDurationHours / 2
+centerAtNow = False
+horizonDurationHours = 2
+timeNow = horizonDurationHours / 1.6
 nowLine = None
 
 showLabels = False
@@ -52,18 +53,41 @@ table[15]=[5,10,1,10]
 
 def debugPrint( s ):
     if debugMode:
-        print s
+        print "[animatePlot]" + s
 
 # create the socket, and get numLines, the number of lines to plot!
 def initSocket( host, port ):
     if useSocket:
         global sock
         global numLines
+        global linenames
         sock = OneWaySocket(host, port, False, debugMode)
         sock.endianGet()
         numLines = sock.unpack("i", sock.receiveInPieces(4))
-        numLines = numLines[0]
+        numLines = int(numLines[0])
+        
+        linenames = []
+        for _ in xrange(numLines):
+            nameLength = sock.unpack("i", sock.receiveInPieces(4))[0]
+            debugPrint("    unpacked name length of %s" % str(nameLength))
+            msg = str(sock.receiveInPieces(nameLength*2))
+            debugPrint("    received %s of length %s" % (msg,str(len(msg))))
+            if len(msg) > nameLength: 
+                name = ""
+                for char in msg:
+                    debugPrint("char: " + char)
+                    if char not in string.printable: continue
+                    else: name += char
+                debugPrint("fixed name: %s (length %s)" % (name, str(len(name))))
+            else: name=msg
+ 
+            #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
+            #debugPrint("    unpacked name: %s" % linename)
+            #linenames.append(str(linename))
+            linenames.append(name)
+        
         debugPrint( "numLines = " + str(numLines) )
+        debugPrint( "linenames = " + str(linenames))
 
 
 def socketDataGen():
@@ -108,6 +132,7 @@ def socketDataGen():
                     if lineId not in staticLines:
                         staticLines[lineId] = {}
                         lineIdToIndex[lineId] = len(lines)
+                        debugPrint("ADDING EXTRA LINE?")
                         addLine()
                     staticLines[lineId][0] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 1]
                     staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
@@ -194,22 +219,27 @@ def updateData(data):
         if showLabels:
             plt.annotate(('%0.3f' % (y[i])), (t,y[i]))
 
-def addLine():
+def addLine(index = None):
     global ax
     global fig
     global lines
+    
 
     # specify options for plot data display
-    colors =  ['r', 'g', 'b', 'm', 'c', 'y', 'k', 'w']
+    colors =  ['r', 'g', 'b', 'm', 'c', 'k','orange','purple','pink','grey','lime','aqua','maroon','navy']
     #symbols = ['-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
-    symbols = ['-','-','-','-','-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
+    symbols = ['^', 'd', '*', '+', 'x','o']
     msizes =  [ 12, 12, 12, 12, 12,  12,  10,  4, 16, 18,  8, 18,  20] 
     
     n = len(lines)
-    newLine = ax.plot([0], [0], symbols[n % len(symbols)], lw=4, \
+    col = colors[index % len(colors)] if index else 'y'
+    mrk = symbols[index % len(symbols)] if index else "*"
+    newLine = ax.plot([0], [0], "-", lw=4, \
                       markeredgecolor=colors[n % len(colors)], \
-                      markeredgewidth=2, markersize=msizes[n % len(msizes)], \
-                      markerfacecolor='None')[0]
+                      markeredgewidth=1, markersize=7, \
+                      markerfacecolor='y',color = col,marker=mrk)[0]
+    if index:
+        newLine.set_label(str(linenames[index]))
     lines.append( newLine )
     debugPrint("new line = " + str(newLine))
     return newLine
@@ -243,15 +273,19 @@ def main(argv=None):
     initSocket( host, port )
     
     # create plot figure
-    fig = plt.figure()
+    fig = plt.figure(figsize=(25.0,6.0))
     ax = fig.add_subplot(111)
+    
     debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
+    ii = 0
     for _ in xrange(numLines):
-        addLine()
+        addLine(ii)
+        ii+=1
     addNowLine()
     ax.set_ylim(-1.1, 1.1)
-    ax.set_xlim(0, 5)
+    ax.set_xlim(-0.005, 5)
     ax.grid()
+    ax.legend(loc="upper right")
     xdata = [[0] for n in xrange(numLines)] #can't be empty
     ydata = [[0] for n in xrange(numLines)]
     replaceInitValues = True

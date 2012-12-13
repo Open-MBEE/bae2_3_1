@@ -200,7 +200,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect413VarV = reported_load__17_0_2_edc0357_1352328156881_993406_19694;
                     effect413Var = new Parameter("effect413Var", null, null, this);
                     addDependency(effect413Var, new Expression(effect413VarV));
-                    effect413 = new EffectFunction(new EffectFunction(effect413Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160603_812544_21575 }));
+                    effect413 = new EffectFunction(new EffectFunction(effect413Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160603_812544_21575 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -702,7 +702,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect426VarV = actual_load__17_0_2_edc0357_1352328156881_301885_19693;
                     effect426Var = new Parameter("effect426Var", null, null, this);
                     addDependency(effect426Var, new Expression(effect426VarV));
-                    effect426 = new EffectFunction(new EffectFunction(effect426Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160606_76062_21583 }));
+                    effect426 = new EffectFunction(new EffectFunction(effect426Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160606_76062_21583 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1204,7 +1204,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect439VarV = reported_generation__17_0_2_edc0357_1352328156883_311908_19697;
                     effect439Var = new Parameter("effect439Var", null, null, this);
                     addDependency(effect439Var, new Expression(effect439VarV));
-                    effect439 = new EffectFunction(new EffectFunction(effect439Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160610_203295_21591 }));
+                    effect439 = new EffectFunction(new EffectFunction(effect439Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160610_203295_21591 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1717,7 +1717,7 @@ public class LADWP extends ParameterListenerImpl {
                 addDependency(_17_0_2_edc0357_1352328159343_404985_20711_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159343_404985_20711, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159343_404985_20711, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159343_404985_20711, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328159343_404985_20711)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159340_29997_20707_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159340_29997_20707_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159343_404985_20711, new Expression<Integer>(1));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328160624_645253_21605, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160624_140926_21606, Parameter.class, "getMember", new Object[] { "actual_load__17_0_2_edc0357_1352328156881_301885_19693" }))));
+                addDependency(_17_0_2_edc0357_1352328160624_645253_21605, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160624_140926_21606, Parameter.class, "getMember", new Object[] { "actual_load__17_0_2_edc0357_1352328156881_301885_19693" }))));
             }
 
             public void init_17_0_2_edc0357_1352328159338_359312_20704Elaborations() {
@@ -1792,7 +1792,7 @@ public class LADWP extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328159339_590758_20705Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160625_314449_21608, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328159351_407293_20732, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160624_556868_21607, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160625_314449_21608, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
+                addDependency(_17_0_2_edc0357_1352328160624_556868_21607, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160625_314449_21608, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
                 addDependency(_17_0_2_edc0357_1352328159341_255538_20708_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159340_29997_20707_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159340_29997_20707_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
             }
@@ -1887,7 +1887,7 @@ public class LADWP extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328159340_603140_20706Dependencies() {
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159342_449375_20710, new Expression<Integer>(2));
                 addDependency(_17_0_2_edc0357_1352328160625_565953_21610, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328159351_89683_20733, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160625_369339_21609, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160625_565953_21610, Parameter.class, "getMember", new Object[] { "expected_load__17_0_2_edc0357_1352328156882_911968_19696" }))));
+                addDependency(_17_0_2_edc0357_1352328160625_369339_21609, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160625_565953_21610, Parameter.class, "getMember", new Object[] { "expected_load__17_0_2_edc0357_1352328156882_911968_19696" }))));
                 addDependency(_17_0_2_edc0357_1352328159342_449375_20710_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159342_449375_20710, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159342_449375_20710, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159342_449375_20710, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328159342_449375_20710)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159340_29997_20707_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159340_29997_20707_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
             }
@@ -2155,7 +2155,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect465VarV = expected_margin__17_0_2_edc0357_1352328156884_706788_19700;
                     effect465Var = new Parameter("effect465Var", null, null, this);
                     addDependency(effect465Var, new Expression(effect465VarV));
-                    effect465 = new EffectFunction(new EffectFunction(effect465Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160625_725966_21611 }));
+                    effect465 = new EffectFunction(new EffectFunction(effect465Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160625_725966_21611 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2841,7 +2841,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect493VarV = current_margin__17_0_2_edc0357_1352328156885_375094_19701;
                     effect493Var = new Parameter("effect493Var", null, null, this);
                     addDependency(effect493Var, new Expression(effect493VarV));
-                    effect493 = new EffectFunction(new EffectFunction(effect493Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160630_289825_21619 }));
+                    effect493 = new EffectFunction(new EffectFunction(effect493Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160630_289825_21619 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2941,7 +2941,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect496VarV = demandResponse__17_0_2_edc0357_1352328156885_851407_19702;
                     effect496Var = new Parameter("effect496Var", null, null, this);
                     addDependency(effect496Var, new Expression(effect496VarV));
-                    effect496 = new EffectFunction(new EffectFunction(effect496Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160631_841021_21621 }));
+                    effect496 = new EffectFunction(new EffectFunction(effect496Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160631_841021_21621 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3132,7 +3132,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect502VarV = shortage__17_0_2_edc0357_1352328156886_471893_19703;
                     effect502Var = new Parameter("effect502Var", null, null, this);
                     addDependency(effect502Var, new Expression(effect502VarV));
-                    effect502 = new EffectFunction(new EffectFunction(effect502Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160632_457785_21625 }));
+                    effect502 = new EffectFunction(new EffectFunction(effect502Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160632_457785_21625 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -4368,7 +4368,7 @@ public class LADWP extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328159487_840690_20791Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160640_927837_21670, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328159488_469355_20797, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160639_296053_21669, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160640_927837_21670, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
+                addDependency(_17_0_2_edc0357_1352328160639_296053_21669, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160640_927837_21670, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(_17_0_2_edc0357_1352328159487_721291_20792_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159487_721291_20792, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159487_721291_20792, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159487_721291_20792, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328159487_721291_20792)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159488_521575_20795_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159488_521575_20795_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159487_721291_20792, new Expression<Integer>(1));
@@ -4968,7 +4968,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect561VarV = expected_load__17_0_2_edc0357_1352328156882_911968_19696;
                     effect561Var = new Parameter("effect561Var", null, null, this);
                     addDependency(effect561Var, new Expression(effect561VarV));
-                    effect561 = new EffectFunction(new EffectFunction(effect561Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160644_907978_21681 }));
+                    effect561 = new EffectFunction(new EffectFunction(effect561Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160644_907978_21681 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -5479,7 +5479,7 @@ public class LADWP extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328159761_341669_20876Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160653_156922_21693, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328159763_638203_20891, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_edc0357_1352328159761_172756_20878_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159761_172756_20878, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159761_172756_20878, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159761_172756_20878, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328159761_172756_20878)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159762_480652_20882_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159762_480652_20882_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
-                addDependency(_17_0_2_edc0357_1352328160653_87968_21692, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160653_156922_21693, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
+                addDependency(_17_0_2_edc0357_1352328160653_87968_21692, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160653_156922_21693, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159761_172756_20878, new Expression<Integer>(2));
             }
@@ -5573,7 +5573,7 @@ public class LADWP extends ParameterListenerImpl {
 
             public void init_17_0_2_edc0357_1352328159761_511063_20877Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160655_269197_21695, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328159763_789566_20892, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160654_981714_21694, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160655_269197_21695, Parameter.class, "getMember", new Object[] { "current_margin__17_0_2_edc0357_1352328156885_375094_19701" }))));
+                addDependency(_17_0_2_edc0357_1352328160654_981714_21694, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160655_269197_21695, Parameter.class, "getMember", new Object[] { "current_margin__17_0_2_edc0357_1352328156885_375094_19701" }))));
                 addDependency(_17_0_2_edc0357_1352328159761_172756_20878_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159761_172756_20878, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159761_172756_20878, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159761_172756_20878, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328159761_172756_20878)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159762_480652_20882_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159762_480652_20882_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159761_172756_20878, new Expression<Integer>(1));
@@ -6196,7 +6196,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect598VarV = shortage__17_0_2_edc0357_1352328156886_471893_19703;
                     effect598Var = new Parameter("effect598Var", null, null, this);
                     addDependency(effect598Var, new Expression(effect598VarV));
-                    effect598 = new EffectFunction(new EffectFunction(effect598Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160659_721646_21701 }));
+                    effect598 = new EffectFunction(new EffectFunction(effect598Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160659_721646_21701 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -6715,7 +6715,7 @@ public class LADWP extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328159864_462529_20933Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160668_853451_21724, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160669_679290_21725, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
+                addDependency(_17_0_2_edc0357_1352328160668_853451_21724, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160669_679290_21725, Parameter.class, "getMember", new Object[] { "reported_generation__17_0_2_edc0357_1352328156883_311908_19697" }))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159864_693067_20935, new Expression<Integer>(2));
                 addDependency(_17_0_2_edc0357_1352328159864_693067_20935_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159864_693067_20935, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159864_693067_20935, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328159864_693067_20935, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328159864_693067_20935)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328159865_833104_20939_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328159865_833104_20939_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
@@ -6810,7 +6810,7 @@ public class LADWP extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_edc0357_1352328159864_742045_20934Dependencies() {
-                addDependency(_17_0_2_edc0357_1352328160669_316443_21726, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160670_892192_21727, Parameter.class, "getMember", new Object[] { "expected_margin__17_0_2_edc0357_1352328156884_706788_19700" }))));
+                addDependency(_17_0_2_edc0357_1352328160669_316443_21726, new Expression<Integer>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160670_892192_21727, Parameter.class, "getMember", new Object[] { "expected_margin__17_0_2_edc0357_1352328156884_706788_19700" }))));
                 addDependency(_17_0_2_edc0357_1352328160670_892192_21727, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328159866_49088_20945, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328159864_693067_20935, new Expression<Integer>(1));
@@ -7648,7 +7648,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect639VarV = current_margin__17_0_2_edc0357_1352328156885_375094_19701;
                     effect639Var = new Parameter("effect639Var", null, null, this);
                     addDependency(effect639Var, new Expression(effect639VarV));
-                    effect639 = new EffectFunction(new EffectFunction(effect639Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160684_544834_21744 }));
+                    effect639 = new EffectFunction(new EffectFunction(effect639Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160684_544834_21744 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -7761,7 +7761,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect643VarV = expected_margin__17_0_2_edc0357_1352328156884_706788_19700;
                     effect643Var = new Parameter("effect643Var", null, null, this);
                     addDependency(effect643Var, new Expression(effect643VarV));
-                    effect643 = new EffectFunction(new EffectFunction(effect643Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160684_161061_21746 }));
+                    effect643 = new EffectFunction(new EffectFunction(effect643Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160684_161061_21746 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -7874,7 +7874,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect647VarV = expected_load__17_0_2_edc0357_1352328156882_911968_19696;
                     effect647Var = new Parameter("effect647Var", null, null, this);
                     addDependency(effect647Var, new Expression(effect647VarV));
-                    effect647 = new EffectFunction(new EffectFunction(effect647Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_35629_21748 }));
+                    effect647 = new EffectFunction(new EffectFunction(effect647Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_35629_21748 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -7987,7 +7987,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect651VarV = reported_load__17_0_2_edc0357_1352328156881_993406_19694;
                     effect651Var = new Parameter("effect651Var", null, null, this);
                     addDependency(effect651Var, new Expression(effect651VarV));
-                    effect651 = new EffectFunction(new EffectFunction(effect651Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_465369_21750 }));
+                    effect651 = new EffectFunction(new EffectFunction(effect651Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_465369_21750 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -8100,7 +8100,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect655VarV = reported_generation__17_0_2_edc0357_1352328156883_311908_19697;
                     effect655Var = new Parameter("effect655Var", null, null, this);
                     addDependency(effect655Var, new Expression(effect655VarV));
-                    effect655 = new EffectFunction(new EffectFunction(effect655Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_735479_21752 }));
+                    effect655 = new EffectFunction(new EffectFunction(effect655Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_735479_21752 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -8213,7 +8213,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect659VarV = power_needed__17_0_2_edc0357_1352328156882_937206_19695;
                     effect659Var = new Parameter("effect659Var", null, null, this);
                     addDependency(effect659Var, new Expression(effect659VarV));
-                    effect659 = new EffectFunction(new EffectFunction(effect659Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_525012_21754 }));
+                    effect659 = new EffectFunction(new EffectFunction(effect659Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160685_525012_21754 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -8326,7 +8326,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect663VarV = predicted_load__17_0_2_edc0357_1352328156883_613042_19698;
                     effect663Var = new Parameter("effect663Var", null, null, this);
                     addDependency(effect663Var, new Expression(effect663VarV));
-                    effect663 = new EffectFunction(new EffectFunction(effect663Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160686_258237_21756 }));
+                    effect663 = new EffectFunction(new EffectFunction(effect663Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160686_258237_21756 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -8814,7 +8814,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect687VarV = actual_load__17_0_2_edc0357_1352328156881_301885_19693;
                     effect687Var = new Parameter("effect687Var", null, null, this);
                     addDependency(effect687Var, new Expression(effect687VarV));
-                    effect687 = new EffectFunction(new EffectFunction(effect687Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160686_401493_21760 }));
+                    effect687 = new EffectFunction(new EffectFunction(effect687Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Integer>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160686_401493_21760 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -9917,7 +9917,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect738VarV = demandResponse__17_0_2_edc0357_1352328156885_851407_19702;
                     effect738Var = new Parameter("effect738Var", null, null, this);
                     addDependency(effect738Var, new Expression(effect738VarV));
-                    effect738 = new EffectFunction(new EffectFunction(effect738Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160687_957724_21764 }));
+                    effect738 = new EffectFunction(new EffectFunction(effect738Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160687_957724_21764 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -10107,7 +10107,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect744VarV = shortage__17_0_2_edc0357_1352328156886_471893_19703;
                     effect744Var = new Parameter("effect744Var", null, null, this);
                     addDependency(effect744Var, new Expression(effect744VarV));
-                    effect744 = new EffectFunction(new EffectFunction(effect744Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160688_126078_21768 }));
+                    effect744 = new EffectFunction(new EffectFunction(effect744Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160688_126078_21768 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -12999,7 +12999,7 @@ public class LADWP extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328160343_46220_21101Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160715_596850_21830, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328160350_457449_21147, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328160339_705901_21092, new Expression<Integer>(1));
-                addDependency(_17_0_2_edc0357_1352328160715_204198_21829, new Expression<Boolean>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160715_596850_21830, Parameter.class, "getMember", new Object[] { "shortage__17_0_2_edc0357_1352328156886_471893_19703" }))));
+                addDependency(_17_0_2_edc0357_1352328160715_204198_21829, new Expression<Boolean>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160715_596850_21830, Parameter.class, "getMember", new Object[] { "shortage__17_0_2_edc0357_1352328156886_471893_19703" }))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(_17_0_2_edc0357_1352328160339_705901_21092_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328160339_705901_21092, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328160339_705901_21092, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328160339_705901_21092, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328160339_705901_21092)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328160344_903343_21104_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328160344_903343_21104_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
             }
@@ -13188,7 +13188,7 @@ public class LADWP extends ParameterListenerImpl {
             public void init_17_0_2_edc0357_1352328160344_819396_21103Dependencies() {
                 addDependency(_17_0_2_edc0357_1352328160342_621709_21099_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328160342_621709_21099, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328160342_621709_21099, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_edc0357_1352328160342_621709_21099, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "powersystem", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_edc0357_1352328160342_621709_21099)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_edc0357_1352328160344_903343_21104_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_edc0357_1352328160344_903343_21104_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))))));
                 addDependency(_17_0_2_edc0357_1352328160717_104612_21832, new Expression<LADWP>(new EffectFunction(sig_17_0_2_edc0357_1352328160350_129142_21149, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "powersystem", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(_17_0_2_edc0357_1352328160716_300853_21831, new Expression<Boolean>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160717_104612_21832, Parameter.class, "getMember", new Object[] { "demandResponse__17_0_2_edc0357_1352328156885_851407_19702" }))));
+                addDependency(_17_0_2_edc0357_1352328160716_300853_21831, new Expression<Boolean>(new EffectFunction(null, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "getValue", java.lang.Integer.class), new Object[] { new Expression<Integer>(startTime) }, new FunctionCall(_17_0_2_edc0357_1352328160717_104612_21832, Parameter.class, "getMember", new Object[] { "demandResponse__17_0_2_edc0357_1352328156885_851407_19702" }))));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(myDeciderID_decider_17_0_2_edc0357_1352328160342_621709_21099, new Expression<Integer>(2));
             }
@@ -14759,7 +14759,7 @@ public class LADWP extends ParameterListenerImpl {
                     Object effect886VarV = demandResponse__17_0_2_edc0357_1352328156885_851407_19702;
                     effect886Var = new Parameter("effect886Var", null, null, this);
                     addDependency(effect886Var, new Expression(effect886VarV));
-                    effect886 = new EffectFunction(new EffectFunction(effect886Var, ClassUtils.getMethodForArgTypes("TimeVaryingMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160731_93622_21903 }));
+                    effect886 = new EffectFunction(new EffectFunction(effect886Var, ClassUtils.getMethodForArgTypes("TimeVaryingPlottableMap<Boolean>", "powersystem", "setValue", gov.nasa.jpl.ae.event.Parameter.class, java.lang.Object.class), new Object[] { startTime, _17_0_2_edc0357_1352328160731_93622_21903 }));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -15227,11 +15227,11 @@ public class LADWP extends ParameterListenerImpl {
 
     public Parameter< ObjectFlow<Power_System.Signaldr_request> > q_LADWP_dr_request = null;
 
-    public Parameter< TimeVaryingMap<Integer> > expected_load__17_0_2_edc0357_1352328156882_911968_19696 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > expected_load__17_0_2_edc0357_1352328156882_911968_19696 = null;
 
-    public Parameter< TimeVaryingMap<Integer> > current_margin__17_0_2_edc0357_1352328156885_375094_19701 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > current_margin__17_0_2_edc0357_1352328156885_375094_19701 = null;
 
-    public Parameter< TimeVaryingMap<Boolean> > demandResponse__17_0_2_edc0357_1352328156885_851407_19702 = null;
+    public Parameter< TimeVaryingPlottableMap<Boolean> > demandResponse__17_0_2_edc0357_1352328156885_851407_19702 = null;
 
     public Parameter< ObjectFlow<Power_System.SignalreceiveLoadReading> > q_LADWP_receiveLoadReading = null;
 
@@ -15239,15 +15239,15 @@ public class LADWP extends ParameterListenerImpl {
 
     public Parameter< ObjectFlow<Power_System.SignalchangeGenerationValue> > q_LADWP_changeGenerationValue = null;
 
-    public Parameter< TimeVaryingMap<Integer> > reported_generation__17_0_2_edc0357_1352328156883_311908_19697 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > reported_generation__17_0_2_edc0357_1352328156883_311908_19697 = null;
 
-    public Parameter< TimeVaryingMap<Integer> > reported_load__17_0_2_edc0357_1352328156881_993406_19694 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > reported_load__17_0_2_edc0357_1352328156881_993406_19694 = null;
 
     public Parameter< ObjectFlow<Power_System.SignalreceiveGenReading> > q_LADWP_receiveGenReading = null;
 
-    public Parameter< TimeVaryingMap<Integer> > power_needed__17_0_2_edc0357_1352328156882_937206_19695 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > power_needed__17_0_2_edc0357_1352328156882_937206_19695 = null;
 
-    public Parameter< TimeVaryingMap<Integer> > expected_margin__17_0_2_edc0357_1352328156884_706788_19700 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > expected_margin__17_0_2_edc0357_1352328156884_706788_19700 = null;
 
     public Parameter< ObjectFlow<Power_System.SignalreceiveMeterReading> > q_LADWP_receiveMeterReading = null;
 
@@ -15255,34 +15255,34 @@ public class LADWP extends ParameterListenerImpl {
 
     public Parameter< Power_System > x = null;
 
-    public Parameter< TimeVaryingMap<Boolean> > shortage__17_0_2_edc0357_1352328156886_471893_19703 = null;
+    public Parameter< TimeVaryingPlottableMap<Boolean> > shortage__17_0_2_edc0357_1352328156886_471893_19703 = null;
 
-    public Parameter< TimeVaryingMap<Integer> > predicted_load__17_0_2_edc0357_1352328156883_613042_19698 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > predicted_load__17_0_2_edc0357_1352328156883_613042_19698 = null;
 
-    public Parameter< TimeVaryingMap<Integer> > actual_load__17_0_2_edc0357_1352328156881_301885_19693 = null;
+    public Parameter< TimeVaryingPlottableMap<Integer> > actual_load__17_0_2_edc0357_1352328156881_301885_19693 = null;
 
     public Parameter< ObjectFlow<Power_System.Signalno> > q_LADWP_no = null;
 
     public void initLADWPMembers() {
         try {
             if (q_LADWP_dr_request == null) q_LADWP_dr_request = new Parameter<ObjectFlow<Power_System.Signaldr_request>>("q_LADWP_dr_request", null, (ObjectFlow<Power_System.Signaldr_request>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_dr_request", Power_System.Signaldr_request.class })).evaluate(true), this);
-            if (expected_load__17_0_2_edc0357_1352328156882_911968_19696 == null) expected_load__17_0_2_edc0357_1352328156882_911968_19696 = new Parameter<TimeVaryingMap<Integer>>("expected_load__17_0_2_edc0357_1352328156882_911968_19696", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "expected_load" })).evaluate(true), this);
-            if (current_margin__17_0_2_edc0357_1352328156885_375094_19701 == null) current_margin__17_0_2_edc0357_1352328156885_375094_19701 = new Parameter<TimeVaryingMap<Integer>>("current_margin__17_0_2_edc0357_1352328156885_375094_19701", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "current_margin" })).evaluate(true), this);
-            if (demandResponse__17_0_2_edc0357_1352328156885_851407_19702 == null) demandResponse__17_0_2_edc0357_1352328156885_851407_19702 = new Parameter<TimeVaryingMap<Boolean>>("demandResponse__17_0_2_edc0357_1352328156885_851407_19702", null, (TimeVaryingMap<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "demandResponse" })).evaluate(true), this);
+            if (expected_load__17_0_2_edc0357_1352328156882_911968_19696 == null) expected_load__17_0_2_edc0357_1352328156882_911968_19696 = new Parameter<TimeVaryingPlottableMap<Integer>>("expected_load__17_0_2_edc0357_1352328156882_911968_19696", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "expected_load" })).evaluate(true), this);
+            if (current_margin__17_0_2_edc0357_1352328156885_375094_19701 == null) current_margin__17_0_2_edc0357_1352328156885_375094_19701 = new Parameter<TimeVaryingPlottableMap<Integer>>("current_margin__17_0_2_edc0357_1352328156885_375094_19701", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "current_margin" })).evaluate(true), this);
+            if (demandResponse__17_0_2_edc0357_1352328156885_851407_19702 == null) demandResponse__17_0_2_edc0357_1352328156885_851407_19702 = new Parameter<TimeVaryingPlottableMap<Boolean>>("demandResponse__17_0_2_edc0357_1352328156885_851407_19702", null, (TimeVaryingPlottableMap<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "demandResponse" })).evaluate(true), this);
             if (q_LADWP_receiveLoadReading == null) q_LADWP_receiveLoadReading = new Parameter<ObjectFlow<Power_System.SignalreceiveLoadReading>>("q_LADWP_receiveLoadReading", null, (ObjectFlow<Power_System.SignalreceiveLoadReading>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_receiveLoadReading", Power_System.SignalreceiveLoadReading.class })).evaluate(true), this);
             if (classifierBehavior == null) classifierBehavior = new StringParameter("classifierBehavior", (String) "_17_0_2_edc0357_1352328156875_238120_19686", this);
             if (q_LADWP_changeGenerationValue == null) q_LADWP_changeGenerationValue = new Parameter<ObjectFlow<Power_System.SignalchangeGenerationValue>>("q_LADWP_changeGenerationValue", null, (ObjectFlow<Power_System.SignalchangeGenerationValue>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_changeGenerationValue", Power_System.SignalchangeGenerationValue.class })).evaluate(true), this);
-            if (reported_generation__17_0_2_edc0357_1352328156883_311908_19697 == null) reported_generation__17_0_2_edc0357_1352328156883_311908_19697 = new Parameter<TimeVaryingMap<Integer>>("reported_generation__17_0_2_edc0357_1352328156883_311908_19697", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "reported_generation" })).evaluate(true), this);
-            if (reported_load__17_0_2_edc0357_1352328156881_993406_19694 == null) reported_load__17_0_2_edc0357_1352328156881_993406_19694 = new Parameter<TimeVaryingMap<Integer>>("reported_load__17_0_2_edc0357_1352328156881_993406_19694", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "reported_load" })).evaluate(true), this);
+            if (reported_generation__17_0_2_edc0357_1352328156883_311908_19697 == null) reported_generation__17_0_2_edc0357_1352328156883_311908_19697 = new Parameter<TimeVaryingPlottableMap<Integer>>("reported_generation__17_0_2_edc0357_1352328156883_311908_19697", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "reported_generation" })).evaluate(true), this);
+            if (reported_load__17_0_2_edc0357_1352328156881_993406_19694 == null) reported_load__17_0_2_edc0357_1352328156881_993406_19694 = new Parameter<TimeVaryingPlottableMap<Integer>>("reported_load__17_0_2_edc0357_1352328156881_993406_19694", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "reported_load" })).evaluate(true), this);
             if (q_LADWP_receiveGenReading == null) q_LADWP_receiveGenReading = new Parameter<ObjectFlow<Power_System.SignalreceiveGenReading>>("q_LADWP_receiveGenReading", null, (ObjectFlow<Power_System.SignalreceiveGenReading>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_receiveGenReading", Power_System.SignalreceiveGenReading.class })).evaluate(true), this);
-            if (power_needed__17_0_2_edc0357_1352328156882_937206_19695 == null) power_needed__17_0_2_edc0357_1352328156882_937206_19695 = new Parameter<TimeVaryingMap<Integer>>("power_needed__17_0_2_edc0357_1352328156882_937206_19695", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "power_needed" })).evaluate(true), this);
-            if (expected_margin__17_0_2_edc0357_1352328156884_706788_19700 == null) expected_margin__17_0_2_edc0357_1352328156884_706788_19700 = new Parameter<TimeVaryingMap<Integer>>("expected_margin__17_0_2_edc0357_1352328156884_706788_19700", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "expected_margin" })).evaluate(true), this);
+            if (power_needed__17_0_2_edc0357_1352328156882_937206_19695 == null) power_needed__17_0_2_edc0357_1352328156882_937206_19695 = new Parameter<TimeVaryingPlottableMap<Integer>>("power_needed__17_0_2_edc0357_1352328156882_937206_19695", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "power_needed" })).evaluate(true), this);
+            if (expected_margin__17_0_2_edc0357_1352328156884_706788_19700 == null) expected_margin__17_0_2_edc0357_1352328156884_706788_19700 = new Parameter<TimeVaryingPlottableMap<Integer>>("expected_margin__17_0_2_edc0357_1352328156884_706788_19700", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "expected_margin" })).evaluate(true), this);
             if (q_LADWP_receiveMeterReading == null) q_LADWP_receiveMeterReading = new Parameter<ObjectFlow<Power_System.SignalreceiveMeterReading>>("q_LADWP_receiveMeterReading", null, (ObjectFlow<Power_System.SignalreceiveMeterReading>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_receiveMeterReading", Power_System.SignalreceiveMeterReading.class })).evaluate(true), this);
             if (q_LADWP_yes == null) q_LADWP_yes = new Parameter<ObjectFlow<Power_System.Signalyes>>("q_LADWP_yes", null, (ObjectFlow<Power_System.Signalyes>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_yes", Power_System.Signalyes.class })).evaluate(true), this);
             if (x == null) x = new Parameter<Power_System>("x", null, (Power_System) null, this);
-            if (shortage__17_0_2_edc0357_1352328156886_471893_19703 == null) shortage__17_0_2_edc0357_1352328156886_471893_19703 = new Parameter<TimeVaryingMap<Boolean>>("shortage__17_0_2_edc0357_1352328156886_471893_19703", null, (TimeVaryingMap<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "shortage" })).evaluate(true), this);
-            if (predicted_load__17_0_2_edc0357_1352328156883_613042_19698 == null) predicted_load__17_0_2_edc0357_1352328156883_613042_19698 = new Parameter<TimeVaryingMap<Integer>>("predicted_load__17_0_2_edc0357_1352328156883_613042_19698", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "predicted_load" })).evaluate(true), this);
-            if (actual_load__17_0_2_edc0357_1352328156881_301885_19693 == null) actual_load__17_0_2_edc0357_1352328156881_301885_19693 = new Parameter<TimeVaryingMap<Integer>>("actual_load__17_0_2_edc0357_1352328156881_301885_19693", null, (TimeVaryingMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingMap.class, java.lang.String.class), new Object[] { "actual_load" })).evaluate(true), this);
+            if (shortage__17_0_2_edc0357_1352328156886_471893_19703 == null) shortage__17_0_2_edc0357_1352328156886_471893_19703 = new Parameter<TimeVaryingPlottableMap<Boolean>>("shortage__17_0_2_edc0357_1352328156886_471893_19703", null, (TimeVaryingPlottableMap<Boolean>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "shortage" })).evaluate(true), this);
+            if (predicted_load__17_0_2_edc0357_1352328156883_613042_19698 == null) predicted_load__17_0_2_edc0357_1352328156883_613042_19698 = new Parameter<TimeVaryingPlottableMap<Integer>>("predicted_load__17_0_2_edc0357_1352328156883_613042_19698", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "predicted_load" })).evaluate(true), this);
+            if (actual_load__17_0_2_edc0357_1352328156881_301885_19693 == null) actual_load__17_0_2_edc0357_1352328156881_301885_19693 = new Parameter<TimeVaryingPlottableMap<Integer>>("actual_load__17_0_2_edc0357_1352328156881_301885_19693", null, (TimeVaryingPlottableMap<Integer>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(TimeVaryingPlottableMap.class, java.lang.String.class), new Object[] { "actual_load" })).evaluate(true), this);
             if (q_LADWP_no == null) q_LADWP_no = new Parameter<ObjectFlow<Power_System.Signalno>>("q_LADWP_no", null, (ObjectFlow<Power_System.Signalno>) (new ConstructorCall(null, ClassUtils.getConstructorForArgTypes(ObjectFlow.class, java.lang.String.class, java.lang.Class.class), new Object[] { "q_LADWP_no", Power_System.Signalno.class })).evaluate(true), this);
         } catch (Exception e) {
             e.printStackTrace();
