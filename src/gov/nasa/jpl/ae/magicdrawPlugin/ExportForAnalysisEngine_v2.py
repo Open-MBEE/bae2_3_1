@@ -78,6 +78,7 @@ from com.nomagic.uml2.ext.magicdraw.actions.mdbasicactions import OpaqueAction
 from com.nomagic.uml2.ext.magicdraw.actions.mdbasicactions import Pin
 #from java.io import File
 #from javax.swing import JFileChooser
+from javax.swing import JOptionPane
 
 global gl
 
@@ -85,6 +86,7 @@ generatedXmlFileName = ''
 
 class ClassifierClass(object):
 	def __init__(self,system):
+		stime = time.time()
 		classType = str(system.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (system.name,classType,system.owner.name)
 		self.name = system.name
@@ -101,6 +103,7 @@ class ClassifierClass(object):
 		self.cArgs={}
 		self.inspectComposition(system)
 		self.errors = {}
+		gl.log("time to make classifier: %s" % str(time.time()-stime))
 		
 	def inspectComposition(self,system):
 		signalsToBuild = []
@@ -114,7 +117,8 @@ class ClassifierClass(object):
 			self.constructors.append("init%sElaborations();" % self.id)
 		for p in simpleProperties:
 			propName = p.name + "_" + p.getID()
-			self.members[propName] = ("TimeVaryingMap&lt;%s&gt;" % p.type.name,'new TimeVaryingMap("%s")' % p.name,"simple property (name " + p.name + ")")
+			pl = "Plottable" if not isinstance(system,Signal) else ""
+			self.members[propName] = ("TimeVarying%sMap&lt;%s&gt;" % (pl,p.type.name),'new TimeVarying%sMap("%s")' % (pl,p.name),"simple property (name " + p.name + ")")
 			if isinstance(system,Signal): 
 				self.cArgs["x"]=p.type.name
 				self.cArgs["t"]="Timepoint"
@@ -218,6 +222,7 @@ class ClassifierClass(object):
 #TODO - if you're a classifier behavior, have a queue. when you pop something off the queue, set it to has stuff (?)
 class activityEventClass(object):
 	def __init__(self,activity):
+		stime = time.time()
 		gl.log("HI, my name is " + activity.name)
 		classType = str(activity.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (activity,classType,activity.owner.name)
@@ -231,10 +236,6 @@ class activityEventClass(object):
 		self.classes = []
 		self.initial = None
 		self.final = None
-		#self.members["invoke_time"] = ("Integer",None,"invoke time for whole activity")
-		#self.members["cba_endTime"] = ("Integer",None,"Placeholder for end time of event!!")
-		#self.dependencies["startTime"] = ("Integer","invoke_time")
-		#self.dependencies["endTime"] = ("Integer","cba_endTime")
 		self.invokeDict = {}
 		self.enclosingClass = self.id + ".this"
 		
@@ -261,7 +262,8 @@ class activityEventClass(object):
 			#self.members["endTime"] = ("Integer","300","fake end time")
 		
 		self.inspectComposition(activity)
-	
+		gl.log("time to inspect activity: %s" % str(time.time() - stime))
+		
 	def getPrettyIdent(self,node):
 		#gl.log("DEBUG: node name %s (%s) (%s)" %(node.name,str(node),str(node.getClassType())))
 		return node.name + " (" + str(node.getClassType()).split(".")[-1].strip("'>") + ")"	
@@ -313,19 +315,19 @@ class activityEventClass(object):
 		else: self.invokerFlow[invokingThing] = [flow]
 		
 	def inspectComposition(self,activity):
-		#NEW
+		#Initialize Activity Parameter Nodes
 		for p in activity.ownedParameter:
 			try: d = str(p.getDefault())
 			except: d = None
 			self.members[p.getID()] = (p.type.name,d,"Initialize Activity Parameter Values (for transition through")
 		
-		#FINAL NODES
+		#Set up final nodes
 		for final in [f for f in activity.node if isinstance(f,ActivityFinalNode)]:
 			self.members[final.getID() + "_exists"] = ("Boolean","false","Initialize existence of " + getPrettyIdent(final) + " as false")
 			for inc in final.incoming:
 				signame = "sig" + str(inc.getID())
 				self.members[signame] = ("ObjectFlow&lt;Boolean&gt;",'new ObjectFlow("'+signame+'")',"member for FINAL NODE object flow")
-			s = "sig" + str(inc.getID()) + ".hasStuff(finalNode_startTime - 1)" #WAS +1
+			s = "finalNode_startTime != null &amp;&amp; sig" + str(inc.getID()) + ".hasStuff(finalNode_startTime - 1)" #WAS +1
 			self.dependencies[final.getID() + "_exists"] = ("Boolean",s)
 		
 		#inspect edges...
@@ -395,9 +397,9 @@ class activityEventClass(object):
 					if "Multiple Final Nodes" in self.errors.keys(): self.errors["Multiple Final Nodes!"].append(node)
 					else: self.errors["Multiple Final Nodes!"] = [node]
 				self.final = node
-				self.members["finalNode_endTime"] = ("Integer","84000","variable for final node's end time!")
+				self.members["finalNode_endTime"] = ("Integer",None,"variable for final node's end time!")
 				self.dependencies["endTime"] = ("Integer","finalNode_endTime")	
-				self.members["finalNode_startTime"]=("Integer","84000","variable for final node's start time!")
+				self.members["finalNode_startTime"]=("Integer",None,"variable for final node's start time!")
 				self.elaborations[node] = {
 										#"args":[("endTime","endTime","Integer"),("startTime",node.getID()+"_startTime","Integer")],
 										"args":[("startTime","finalNode_startTime","Integer")], #try not passing in the end time as a ref
@@ -508,6 +510,7 @@ class activityEventClass(object):
 
 class actionEventClass(object):
 	def __init__(self,actionNode,dicts,encloserID,rankDict,finalID):
+		stime = time.time()
 		
 		classType = str(actionNode.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (actionNode.name,classType,actionNode.owner.name)
@@ -530,6 +533,7 @@ class actionEventClass(object):
 		self.finalID = finalID
 		self.inspectMyself(actionNode)
 		self.inspectByType(actionNode)
+		gl.log("time to inspect action: %s" % str(time.time() - stime))
 
 	def safeConvertProperty(self,prop):
 		if prop.type and isinstance(prop.type,Class): return prop.type
@@ -815,7 +819,7 @@ class actionEventClass(object):
 			else:
 				behav = node.behavior
 				owner = behav.owner
-				self.members["duration"] = ("Integer","45","fake duration")
+				#self.members["duration"] = ("Integer","45","fake duration")
 				#self.dependencies["endTime"] = ("Integer","finalNode_endTime")
 				self.elaborations[node.behavior]={
 												#"args": [("endTime","endTime","Integer"),("startTime","startTime","Integer")],
@@ -912,12 +916,12 @@ class actionEventClass(object):
 				self.members[deciderVarName] = ("Integer",str(rank),"SETTING RANK FOR DECIDER")
 				self.dependencies[deciderVarName] = ("Integer",str(rank))
 				self.effects.append("decider" + n.getID()+".addIfNotContained(endTime,%s)" % deciderVarName)
-				deciderString = "decider%s.size(endTime) == decider%s.maxSize() &amp;&amp; decider%s.lastElement(endTime)==%s" % (n.getID(),n.getID(),n.getID(),deciderVarName)
+				deciderString = "(decider%s.size(endTime) == decider%s.maxSize() &amp;&amp; decider%s.lastElement(endTime)==%s)" % (n.getID(),n.getID(),n.getID(),deciderVarName)
 				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,deciderString])
 				else: dependencyString = deciderString
 			if not isinstance(n,ActivityFinalNode) and not isinstance(n,ActivityParameterNode):
-				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"endTime + 2 &lt; finalNode_startTime || !%s_exists" % self.finalID])
-				else: dependencyString = "endTime + 2 &lt; finalNode_startTime || !%s_exists" % self.finalID
+				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"((%s_exists == null || !%s_exists) || endTime + 2 &lt; finalNode_startTime)" % (self.finalID,self.finalID)])
+				else: dependencyString = "((%s_exists == null || !%s_exists) || endTime + 2 &lt; finalNode_startTime)" % (self.finalID,self.finalID)
 			if not dependencyString: dependencyString = "true"
 			self.dependencies[n.getID() + "_exists"] = ("Boolean",str(dependencyString))
 			existscon = n.getID()+"_exists"
@@ -1142,7 +1146,7 @@ class StructuralSignal(object):
 
 def run(s):
 	if not setup(): return
-	gl.log("Date: October 2")
+	gl.log("Date: December 5")
 	#get the user's selection - the element that should be top level and contain (recursively) all other systems/behaviors you wish to reason about.
 	firstSelected = Application.getInstance().getMainFrame().getBrowser().getActiveTree().getSelectedNodes()[0].getUserObject()
 	gl.log(str(time.time()) + "You have selected " + firstSelected.name + " as the highest level element in your system.")
@@ -1210,18 +1214,23 @@ def run(s):
 		try: os.mkdir(latestDir)
 		except: #this won't do much if you're running in batch mode...
 			print "Error creating latest directory!"
-	generatedXmlFileName = latestDir + os.sep + "Scenario_latest.xml"
+	ffile = "Scenario_latest.xml"
+	ff = JOptionPane.showInputDialog(
+                                    None,
+                                    "Output Filename",
+                                    "What are we naming this scenario?",
+                                    JOptionPane.PLAIN_MESSAGE,
+                                    None,
+                                    None,
+                                    ffile)
+	if ff and len(ff) > 0:
+		if not ff.endswith(".xml"): ff+=".xml"
+	
+	generatedXmlFileName = latestDir + os.sep + ff
 	shutil.copyfile(log_file_name, generatedXmlFileName)
 	gl.log("\nfrom " + os.getcwd() + " copied " + log_file_name + " to " + generatedXmlFileName )
 	
-	gl.log("\nINSPECTED:")
-	for thing in inspected:
-		gl.log("	+" + thing.name + " (" + thing.humanType + ")")
-		
-	gl.log("\nPARTS DICT:")
-	for k,v in partsDict.items():
-		gl.log(k.name + " -- " + str(v))
-		
+	
 	#gl.log("\nERRORS:")
 	#for thing in classesToTranslate:
 	#	if len(thing.errors.keys())>0:
