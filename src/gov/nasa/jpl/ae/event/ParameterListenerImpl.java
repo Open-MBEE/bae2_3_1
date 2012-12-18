@@ -70,6 +70,8 @@ public class ParameterListenerImpl extends HasIdImpl
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected ArrayList< Dependency< ? > > dependencies =
       new ArrayList< Dependency< ? > >();
+  protected ArrayList< Dependency< ? > > externalDependencies =
+      new ArrayList< Dependency< ? > >();
   protected Solver solver = new ConstraintLoopSolver();
 
   protected Set< TimeVarying< ? > > timeVaryingObjects =
@@ -202,7 +204,9 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( p.getOwner() != null && p.getOwner() != this ) {
       if ( p.getOwner() instanceof ParameterListenerImpl ) {
         ParameterListenerImpl pli = (ParameterListenerImpl)p.getOwner();
-        return pli.addDependency( p, e );
+        Dependency<?> d = pli.addDependency( p, e );
+        externalDependencies.add( d );
+        return d;
       }
       Debug.error(getName() + " adding a dependency on a parameter it doesn't own.");
     }
@@ -712,6 +716,15 @@ public class ParameterListenerImpl extends HasIdImpl
                    + this.toString( true, true, null ) );
     }
     for ( Dependency< ? > d : dependencies ) {
+      d.deconstruct();
+    }
+    for ( Dependency< ? > d : externalDependencies ) {
+      Parameter<?> p = d.parameter;
+      if ( p != null && p.getOwner() != null && p.getOwner() instanceof ParameterListenerImpl ) {
+        ((ParameterListenerImpl)p.getOwner()).removeDependenciesForParameter( p );
+        // TODO -- Should we add back default dependencies for startTime,
+        // duration, & endTime in DurativeEvent?
+      }
       d.deconstruct();
     }
     for ( ConstraintExpression ce : constraintExpressions ) {
