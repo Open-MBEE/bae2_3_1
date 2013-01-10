@@ -84,6 +84,18 @@ global gl
 
 generatedXmlFileName = ''
 
+def convertTime(fromType,toType,t):
+	#conversion use "newT = t * conversion[from][to]
+	conversion = {
+				"s": {"m":1/60,"h":1/3600},
+				"m": {"s":60,"h":1/60 },
+				"h": {"s":3600,"m":60}
+				}
+	if fromType in conversion.keys() and toType in conversion.keys():
+		newTime = t * conversion[fromType][toType]
+	else: newTime = None
+	return newTime
+
 class ClassifierClass(object):
 	def __init__(self,system):
 		stime = time.time()
@@ -118,7 +130,9 @@ class ClassifierClass(object):
 		for p in simpleProperties:
 			propName = p.name + "_" + p.getID()
 			pl = "Plottable" if not isinstance(system,Signal) else ""
-			self.members[propName] = ("TimeVarying%sMap&lt;%s&gt;" % (pl,p.type.name),'new TimeVarying%sMap("%s")' % (pl,p.name),"simple property (name " + p.name + ")")
+			tvmargs = '"%s"' % p.name
+			if StereotypesHelper.hasStereotype(p,TVM): tvmargs += ', "%s"' % StereotypesHelper.getStereotypePropertyValue(p,TVM,"filename")[0]
+			self.members[propName] = ("TimeVarying%sMap&lt;%s&gt;" % (pl,p.type.name),'new TimeVarying%sMap(%s)' % (pl,tvmargs),"simple property (name " + p.name + ")")
 			if isinstance(system,Signal): 
 				self.cArgs["x"]=p.type.name
 				self.cArgs["t"]="Timepoint"
@@ -273,7 +287,7 @@ class activityEventClass(object):
 		self.errors = {}
 
 		owner = activity.owner
-		if activity is not owner.classifierBehavior:
+		if activity is not owner.classifierBehavior or (activity is owner.classifierBehavior and owner is firstSelected):
 			self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
 			interfaceText = "DurativeEvent"
 			if len(activity.ownedParameter) > 0: interfaceText = activity.getID() + "_interface"
@@ -804,8 +818,11 @@ class actionEventClass(object):
 						if isinstance(next,Pin): next = next.owner
 			else: 
 				when = event.when
-				w = str(when.expr.value).strip("s")
-				self.dependencies["duration"] = ("Integer", w)
+				w = str(when.expr.value)
+				if not w[-1] in ["s","m","h"]: raise
+				tm = int(w[0:-1]) #should throw a type error if it's not an int...
+				if w[-1] is not "s" : tm = convertTime(w[-1],"s",tm)
+				self.dependencies["duration"] = ("Integer", tm)
 		
 		elif myType =="Value Specification Action" :
 			val = node.value
@@ -1091,6 +1108,8 @@ def setup():
 	#get a copy of the project - useful for getting the elements factory, various other things like that.
 	project = Application.getInstance().getProjectsManager().getActiveProject()
 	global project
+	TVM = StereotypesHelper.getStereotype(project,"TimeVaryingMap")
+	global TVM
 
 	#declare any stereotype elements here, for convenience.	
 	return True
@@ -1204,6 +1223,7 @@ def run(s):
 	#get the user's selection - the element that should be top level and contain (recursively) all other systems/behaviors you wish to reason about.
 	firstSelected = Application.getInstance().getMainFrame().getBrowser().getActiveTree().getSelectedNodes()[0].getUserObject()
 	gl.log(str(time.time()) + "You have selected " + firstSelected.name + " as the highest level element in your system.")
+	global firstSelected
 	
 	#make sure the user picked a class... 
 	if not isinstance(firstSelected,Class):
@@ -1343,10 +1363,10 @@ def writeScenarioRunner(e):
 	logAndExport(6,"eventType",e.name + "." + cb.getID())
 	logAndExport(6,"eventName","%s_%s_%s" % (cb.name,"Activity",cb.owner.name))
 	logAndExport(6,None,"<arguments>")
-	#logAndExport(7,None,"<parameter>")
-	#logAndExport(8,"name","caller")
-	#logAndExport(8,"value","this")
-	#logAndExport(7,None,"</parameter>")
+	logAndExport(7,None,"<parameter>")
+	logAndExport(8,"name","caller")
+	logAndExport(8,"value","this")
+	logAndExport(7,None,"</parameter>")
 	logAndExport(7,None,"<parameter>")
 	logAndExport(8,"name","startTime")
 	logAndExport(8,"value","startTime")
