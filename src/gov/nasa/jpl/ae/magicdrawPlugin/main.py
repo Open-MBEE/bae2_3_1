@@ -151,7 +151,7 @@ class BrowserContextAMConfigurator(BrowserContextAMConfigurator):
 			category=MDActionsCategory("LADWP","LADWP")
 			category.setNested(True)
 			#category.addAction(ExampleAction("MassRefactor",None))
-			#category.addAction(ExampleAction("ExportForAnalysisEngine",None))
+			category.addAction(ExampleAction("ExportForAE",None))
 			category.addAction(ExampleAction("ExportForAnalysisEngine_v2",None))
 			category.addAction(ExampleAction("AE",None))
 			#category.addAction(ExampleAction("RegisterAcronyms",None))
