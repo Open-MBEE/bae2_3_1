@@ -746,6 +746,7 @@ public class ParameterListenerImpl extends HasIdImpl
     name = "DECONSTRUCTED_" + name;
     
     dependencies.clear();
+    externalDependencies.clear();
     constraintExpressions.clear();
     this.timeVaryingObjects.clear();
     parameters.clear();
