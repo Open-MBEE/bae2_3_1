@@ -203,6 +203,9 @@ class ClassifierClass(object):
 			for act in system.ownedBehavior: 
 				aeC = activityEventClass(act)
 				self.events.append(aeC) #will assume that you can't reference outside activities yet...
+				if len(act.ownedParameter)>0:
+					aIC = activityInterfaceClass(act)
+					self.events.append(aIC)
 				gl.log(str(aeC.errors.keys()))
 				if len(aeC.errors.keys())>0: self.errors[act] = aeC.errors
 					
@@ -218,6 +221,21 @@ class ClassifierClass(object):
 		#queues
 		#sigports
 		
+class activityInterfaceClass(object):
+	def __init__(self,activity):
+		self.id = str(activity.getID()) + "_interface"
+		self.name = activity.name + "_interface"
+		self.members = {}
+		self.elaborations = {}
+		self.constraints = {}
+		self.dependencies = {}
+		self.enclosingClass = self.id + ".this"
+		self.classes = []
+		
+		for p in activity.ownedParameter:
+			if p.type: tname = p.type.name
+			else: tname = "Object"
+			self.members[p.getID()] = (tname,None,"Initialize Parameter Nodes")
 		
 #TODO - if you're a classifier behavior, have a queue. when you pop something off the queue, set it to has stuff (?)
 class activityEventClass(object):
@@ -257,7 +275,9 @@ class activityEventClass(object):
 		owner = activity.owner
 		if activity is not owner.classifierBehavior:
 			self.dependencies["caller.endTime"] = ("Integer","finalNode_endTime")
-			self.members["caller"] = ("DurativeEvent",None,"Initialize variable for cba that called this")
+			interfaceText = "DurativeEvent"
+			if len(activity.ownedParameter) > 0: interfaceText = activity.getID() + "_interface"
+			self.members["caller"] = (interfaceText,None,"Initialize variable for cba that called this")
 			#self.members["duration"] = ("Integer","60","fake duration?")
 			#self.members["endTime"] = ("Integer","300","fake end time")
 		
@@ -412,9 +432,13 @@ class activityEventClass(object):
 				else: tname = "Object"
 				#self.members[p_id]= (tname, None,"Activity Parameter Node")
 				#gl.log("PARAM DIRECTION: " + str(node.parameter.direction))
-				#if str(node.parameter.direction)=="out": 
-				#	self.members["sig"+p_id]=("ObjectFlow&lt;%s&gt;" % node.parameter.type.name,None,"Initialize passed-in object flow!")
-				self.members[node.getID()+"_startTime"]=("Integer",None,"variable for act param node's start time!")
+				if str(node.parameter.direction)=="out" or len(node.incoming)>0: 
+					self.members[node.parameter.getID()+"_default"]=(tname,node.parameter.default,"Outgoing node's default value")
+					self.members[node.parameter.getID()+"_changed"]=("Boolean","false","initialize new value as false")
+					self.dependencies["caller.%s" % node.parameter.getID()] = (tname,node.parameter.getID())
+					self.elaborations[node] = {
+											"args":[("startTime","finalNode_startTime","Integer")],
+											"enclosingClass" : self.enclosingClass}
 				if len(node.outgoing)>0: self.elaborations[node] = {
 																"args": [("startTime","startTime","Integer"),(p_id,p_id,tname)],
 																"enclosingClass" : self.enclosingClass}
@@ -435,7 +459,7 @@ class activityEventClass(object):
 					else:
 					  if param.type: pt = param.type.name
 					  signame = "sig" + param.getID()
-					  self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes")
+					  self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes") #used??
 			
 		for node in activity.node:	
 			dicts = (self.invokeDict,self.invokedInvoker,self.invokedFlow,self.flowObject,self.invokerInvoked,self.invokerFlow,self.objectFlows,self.flowTypes,self.allSignals, self.nexts,self.prevs)
@@ -521,6 +545,8 @@ class actionEventClass(object):
 		self.actionType = actionNode.humanType
 		#self.name = actionNode.getID()
 		self.id = actionNode.getID()
+		self.inheritsFrom = None
+		self.interfaceClass = None
 		self.members = {} #name : (type,value)
 		self.constraints = {}
 		self.dependencies = {}
@@ -534,6 +560,7 @@ class actionEventClass(object):
 		self.inspectMyself(actionNode)
 		self.inspectByType(actionNode)
 		gl.log("time to inspect action: %s" % str(time.time() - stime))
+		
 
 	def safeConvertProperty(self,prop):
 		if prop.type and isinstance(prop.type,Class): return prop.type
@@ -553,7 +580,7 @@ class actionEventClass(object):
 		
 		#----Role = INVOKED BY SOMETHING ELSE
 		
-		self.constraints["startTime"]=[]
+		'''self.constraints["startTime"]=[]
 		if previousList: #weed out initial nodes, parameter nodes...
 			if len(previousList) == 1: #merge node not working here?
 				previous = previousList[0]
@@ -622,14 +649,14 @@ class actionEventClass(object):
 				else: tname = "Object"
 
 		#----Role = INVOKER OF SOMETHING ELSE
-		myOutgoingSignalFlows=[]
-		if nextList: #weed out final nodes and activity parameter nodes...
+		#myOutgoingSignalFlows=[]
+		#if nextList: #weed out final nodes and activity parameter nodes...
 			#call behavior: signal send = sigout parameter.receive()
-			myOutgoingSignalFlows.extend([x for x in actionNode.outgoing if x not in self.invokerFlow[actionNode]]) #any outgoing flows that don't invoke stuff
-			try: myOutputPins = actionNode.output
-			except: myOutputPins = []
-			myOutgoingSignalFlows.extend([x.outgoing[0] for x in myOutputPins if x.outgoing[0] not in self.invokerFlow[actionNode]])
-			i = 0
+			#myOutgoingSignalFlows.extend([x for x in actionNode.outgoing if x not in self.invokerFlow[actionNode]]) #any outgoing flows that don't invoke stuff
+			#try: myOutputPins = actionNode.output
+			#except: myOutputPins = []
+			#myOutgoingSignalFlows.extend([x.outgoing[0] for x in myOutputPins if x.outgoing[0] not in self.invokerFlow[actionNode]])
+			#i = 0
 			for next in nextList:
 				gl.log("next: " + next.name)
 				invokingFlow = self.invokerFlow[actionNode][i]
@@ -668,41 +695,41 @@ class actionEventClass(object):
 					for inc in signalFlows:	
 						s = "sig" + str(inc.getID()) + ".hasStuff(endTime)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
-						else: dependencyString = s
-				if isinstance(next,AcceptEventAction):
-					event = next.trigger[0].event
-					if not isinstance(event,TimeEvent):
-						sig = event.signal
-						context = next.context
-						s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime)"
-						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
-						else: dependencyString = s
-				if not dependencyString: dependencyString = "true"
+						else: dependencyString = s'''
+				#if isinstance(next,AcceptEventAction):
+				#	event = next.trigger[0].event
+				#	if not isinstance(event,TimeEvent):
+				#		sig = event.signal
+				#		context = next.context
+				#		s = "q_" + context.name + "_" + sig.name + ".hasStuff(endTime)"
+				#		if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
+				#		else: dependencyString = s
+				#if not dependencyString: dependencyString = "true"
 				
 				#send invoke params to next if it's an object-invoker
-				src = "objectToPass"
-				if isinstance(invokingFlow.source,Pin): 
-					src = invokingFlow.source.getID()
-				if isinstance(invokingFlow.source,ActivityParameterNode): src = invokingFlow.source.parameter.getID()
+				#src = "objectToPass"
+				#if isinstance(invokingFlow.source,Pin): 
+				#	src = invokingFlow.source.getID()
+				#if isinstance(invokingFlow.source,ActivityParameterNode): src = invokingFlow.source.parameter.getID()
 				#gl.log(str(object))
-				if object != "Control":
-					if isinstance(invokingFlow.target,Pin): #pin-pin - easy object-invoker
-						it = invokingFlow.target.getID()
-						if isinstance(invokingFlow.target.owner,CallBehaviorAction): it = invokingFlow.target.parameter.getID()
-				i+=1
-		else:
-			myOutgoingSignalFlows.extend([x for x in actionNode.outgoing])
-			try: myOutputPins = actionNode.output
-			except: myOutputPins = []
-			myOutgoingSignalFlows.extend([x.outgoing[0] for x in myOutputPins])
+				#if object != "Control":
+				#	if isinstance(invokingFlow.target,Pin): #pin-pin - easy object-invoker
+				#		it = invokingFlow.target.getID()
+				#		if isinstance(invokingFlow.target.owner,CallBehaviorAction): it = invokingFlow.target.parameter.getID()
+				#i+=1
+		#else:
+			#myOutgoingSignalFlows.extend([x for x in actionNode.outgoing])
+			#try: myOutputPins = actionNode.output
+			#except: myOutputPins = []
+			#myOutgoingSignalFlows.extend([x.outgoing[0] for x in myOutputPins])
 
-		for outFlow in myOutgoingSignalFlows:
-			if isinstance(outFlow.source,Pin): #should handle pin --> decision input flow
-				tname = "Object"
-				if outFlow in self.flowTypes.keys():
-					t = self.flowTypes[outFlow] #apparently there can be a key errror. wtf!?
-					if t: tname = t.name
-					if isinstance(t,Property): tname = t.type.name
+		#for outFlow in myOutgoingSignalFlows:
+			#if isinstance(outFlow.source,Pin): #should handle pin --> decision input flow
+				#tname = "Object"
+				#if outFlow in self.flowTypes.keys():
+					#t = self.flowTypes[outFlow] #apparently there can be a key errror. wtf!?
+					#if t: tname = t.name
+					#if isinstance(t,Property): tname = t.type.name
 
 	def inspectByType(self,node):
 		myType = node.humanType
@@ -711,7 +738,7 @@ class actionEventClass(object):
 		if len(nextAccepts)>0:
 			if any([not isinstance(x.trigger[0].event,TimeEvent) for x in nextAccepts]): canHaveDuration = False
 		if isinstance(node,AcceptEventAction) and isinstance(node.trigger[0].event,TimeEvent): canHaveDuration = False
-		if isinstance(node,CallBehaviorAction) and not node.behavior.humanType == "Opaque Behavior": canHaveDuration = False
+		if isinstance(node,CallBehaviorAction) and (not node.behavior or not node.behavior.humanType == "Opaque Behavior"): canHaveDuration = False
 		if canHaveDuration: self.dependencies["duration"] = ("Integer","1")
 		
 		if myType == "Read Self Action":
@@ -800,7 +827,9 @@ class actionEventClass(object):
 			self.effects.append("result = " + str(node.body))
 		
 		elif myType =="Call Behavior Action" :
-			if node.behavior.humanType == "Opaque Behavior":
+			if not node.behavior: #blank action...
+				pass
+			elif node.behavior.humanType == "Opaque Behavior":
 				gl.log("*****OPAAAAQUE")
 				args = node.argument
 				res = node.result
@@ -819,11 +848,16 @@ class actionEventClass(object):
 			else:
 				behav = node.behavior
 				owner = behav.owner
+				interfaceText = ""
+				if len(behav.ownedParameter)>0:
+					self.inheritsFrom = str(node.behavior.owner.name + "." + node.behavior.getID()+"_interface")
+					interfaceText = node.behavior.getID() + "_interface"
+				gl.log("INHERITSFROM : %s" % str(self.inheritsFrom))
 				#self.members["duration"] = ("Integer","45","fake duration")
 				#self.dependencies["endTime"] = ("Integer","finalNode_endTime")
 				self.elaborations[node.behavior]={
 												#"args": [("endTime","endTime","Integer"),("startTime","startTime","Integer")],
-												"args": [("startTime","startTime","Integer"),("caller","this","DurativeEvent")],
+												"args": [("startTime","startTime","Integer"),("caller","this",interfaceText)],
 												"enclosingClass" : node.behavior.owner.name+".this"}
 				for pin in node.input:
 					if pin.type: tname = pin.type.name
@@ -831,13 +865,15 @@ class actionEventClass(object):
 					if pin.parameter:
 						self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),tname)])
 						self.dependencies[pin.parameter.getID()] = (pin.parameter.type.name,pin.getID())
-						self.members[pin.parameter.getID()] = (pin.parameter.type.name,None,"NEW - initialize parameter pass-through variable for call behavior")
+						#this might not be necessary if initialized from inherited class...
+						#self.members[pin.parameter.getID()] = (pin.parameter.type.name,None,"NEW - initialize parameter pass-through variable for call behavior")
 				for pin in node.output:
 					if pin.type: tname = pin.type.name
 					else: tname = "Object"
 					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),pin.parameter.type.name)])
-					self.dependencies[pin.getID()] = (pin.parameter.type.name,pin.getID())
-					self.members[pin.parameter.getID()] = (pin.parameter.type.name,None,"NEW - initialize output parameter storage value")
+					self.dependencies[pin.getID()] = (pin.parameter.type.name,pin.parameter.getID())
+					#this might not be necessary if initialized from inherited class...
+					#self.members[pin.parameter.getID()] = (pin.parameter.type.name,None,"NEW - initialize output parameter storage value")
 
 		elif myType =="Start Object Behavior Action":
 			inc = node.object.incoming[0]
@@ -858,7 +894,13 @@ class actionEventClass(object):
 			if str(node.parameter.direction)=="in": 
 				self.dependencies["objectToPass"] = (node.parameter.type.name,node.parameter.getID())
 				self.members[node.parameter.getID()] = (node.parameter.type.name, None, "Initialize Activity Parameter Node receptacle for incoming value!")
-			else: self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
+			else: 
+				self.members["startTimeMinusOne"] = ("Integer",None,"placeholder for a start time minus one function")
+				self.dependencies["startTimeMinusOne"] = ("Integer","startTime-1")
+				self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
+				self.members["sendDefault"] = ("Boolean","false","initialize whether to send default return value on object flow as false")
+				self.dependencies["sendDefault"] = ("Boolean","%s_changed == null || %s_changed == false" % (node.parameter.getID(),node.parameter.getID()))
+				self.effects.append("sig%s.sendIf(%s_default,startTimeMinusOne,sendDefault)" % (node.incoming[0].getID(),node.parameter.getID()))
 		
 		elif myType =="Decision Node":
 			gl.log("Special Decision Node Guard Handling...")
@@ -869,6 +911,7 @@ class actionEventClass(object):
 				for dName,(dType,dVal) in self.dependencies.items():
 					if dName.endswith("_exists"):
 						self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()","decisionInput"))
+					
 		elif myType == "Activity Final Node":
 			self.dependencies["endTime"] = ("Integer","startTime+duration")
 			self.dependencies["finalNode_endTime"] = ("Integer","endTime")
@@ -888,6 +931,9 @@ class actionEventClass(object):
 			if isinstance(n,ActivityFinalNode): #TODO - activity parameter nodes?
 				self.dependencies["finalNode_startTime"] = ("Integer","endTime+2")
 				continue #TODO - put dependency stuff on the elaborator (the ACTIVITY)
+			if isinstance(n,ActivityParameterNode):
+				self.dependencies["%s_changed" % n.parameter.getID()] = ("Boolean","true")
+				continue
 			nFlow = self.nexts[node][n]
 			dependencyString = False
 			self.members[n.getID()+"_exists"] = ("Boolean","false","NEW - initialize nexts to false")
@@ -895,9 +941,10 @@ class actionEventClass(object):
 				b = str(nFlow.guard.body[0]) #could be more than one
 				b = b.replace("<","&lt;")
 				b = b.replace(">","&gt;")
+				if isinstance(node,DecisionNode): b = b.replace("ALH.getTokenValue()","decisionInput")
 				dependencyString = str(b)
 				
-			for otherPrev in self.prevs[n].keys(): #take out "my" flow??
+			for otherPrev in self.prevs[n].keys(): #take out "my" flow?? #uh, don't even use otherprev....
 				if isinstance(n,AcceptEventAction):
 					event = n.trigger[0].event
 					if not isinstance(event,TimeEvent):
@@ -908,6 +955,9 @@ class actionEventClass(object):
 						s = qname + ".hasStuff(endTime)"
 						if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,s])
 						else: dependencyString = s
+			if not isinstance(n,ActivityFinalNode) and not isinstance(n,ActivityParameterNode):
+				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"((%s_exists == null || !%s_exists) || endTime + 2 &lt; finalNode_startTime)" % (self.finalID,self.finalID)])
+				else: dependencyString = "((%s_exists == null || !%s_exists) || endTime + 2 &lt; finalNode_startTime)" % (self.finalID,self.finalID)
 			if len(self.prevs[n].keys())>1 and not isinstance(n,MergeNode):
 				rank = "None"
 				deciderVarName = "myDeciderID_decider%s" % n.getID()
@@ -915,14 +965,17 @@ class actionEventClass(object):
 				except: gl.log("CAN'T FIND MY RANK FOR DECIDING %s" % self.getPrettyIdent(n))
 				self.members[deciderVarName] = ("Integer",str(rank),"SETTING RANK FOR DECIDER")
 				self.dependencies[deciderVarName] = ("Integer",str(rank))
-				self.effects.append("decider" + n.getID()+".addIfNotContained(endTime,%s)" % deciderVarName)
+				deciderCondition = dependencyString if dependencyString else "true"
+				self.members["addToDecider_%s" % n.getID()] = ("Boolean","false","initializing decider add")
+				self.dependencies["addToDecider_%s" % n.getID()] = ("Boolean",deciderCondition)
+				gl.log("DEP STR %s" % str(deciderCondition))
+				self.effects.append("decider" + n.getID()+".addIfNotContained(endTime,%s,addToDecider_%s)" % (deciderVarName,n.getID()))
 				deciderString = "(decider%s.size(endTime) == decider%s.maxSize() &amp;&amp; decider%s.lastElement(endTime)==%s)" % (n.getID(),n.getID(),n.getID(),deciderVarName)
 				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,deciderString])
 				else: dependencyString = deciderString
-			if not isinstance(n,ActivityFinalNode) and not isinstance(n,ActivityParameterNode):
-				if dependencyString: dependencyString = " &amp;&amp; ".join([dependencyString,"((%s_exists == null || !%s_exists) || endTime + 2 &lt; finalNode_startTime)" % (self.finalID,self.finalID)])
-				else: dependencyString = "((%s_exists == null || !%s_exists) || endTime + 2 &lt; finalNode_startTime)" % (self.finalID,self.finalID)
+			
 			if not dependencyString: dependencyString = "true"
+			
 			self.dependencies[n.getID() + "_exists"] = ("Boolean",str(dependencyString))
 			existscon = n.getID()+"_exists"
 			self.elaborations[n]={
@@ -1145,6 +1198,7 @@ class StructuralSignal(object):
 		
 
 def run(s):
+	starttime = time.time()
 	if not setup(): return
 	gl.log("Date: December 5")
 	#get the user's selection - the element that should be top level and contain (recursively) all other systems/behaviors you wish to reason about.
@@ -1184,7 +1238,8 @@ def run(s):
 		thing = classifiersToInspect.pop(0)
 		classesToTranslate.append(inspect(thing))
 		count += 1
-
+	inspecttime = time.time()
+	gl.log("time to inspect everything: %s" % str(inspecttime-starttime))
 	homeDir = os.getenv('HOME')
 	if homeDir == None:
 		homeDir = os.getcwd()
@@ -1197,6 +1252,7 @@ def run(s):
 		    print "Error creating log directory!"
 	os.chdir(log_dir)
 	log_file_name = "Scenario_XML_" + str(formatCurrentTime()) + ".xml"
+	
 	log_file = open(log_file_name,"w")
 	global log_file
 	try: writeScenario(firstSelected,classesToTranslate)
@@ -1215,6 +1271,7 @@ def run(s):
 		except: #this won't do much if you're running in batch mode...
 			print "Error creating latest directory!"
 	ffile = "Scenario_latest.xml"
+	gl.log("time to write scenario: %s" % str(time.time()-inspecttime))
 	ff = JOptionPane.showInputDialog(
                                     None,
                                     "Output Filename",
@@ -1240,6 +1297,7 @@ def run(s):
 	
 	gl.log("\nThe log file for this execution is located at: " + str(os.getcwd()) )
 	gl.log("The log file: " + generatedXmlFileName )
+	gl.log("time to do everything: %s" % str(time.time()-starttime))
 	return generatedXmlFileName
 
 def logAndExport(tabNum,tag,text):
@@ -1460,6 +1518,7 @@ def translateActivity(classThingy,l):
 		#---CLASS---#
 		logAndExport(l+4,None,"<class>")
 		logAndExport(l+5,"name",actionE.id)
+		if actionE.inheritsFrom is not None: logAndExport(l+5,"inheritsFrom",actionE.inheritsFrom)
 		logAndExport(l+5,None,"<!--<actionName>%s</actionName><actionType>%s</actionType>-->" % (actionE.name,actionE.actionType))
 		writeMembers(actionE,l+5)
 		if len(actionE.constraints.keys())>0:
