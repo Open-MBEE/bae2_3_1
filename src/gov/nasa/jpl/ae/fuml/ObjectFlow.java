@@ -20,7 +20,6 @@ import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 
 /**
- * @author bclement
  *
  */
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
@@ -48,7 +47,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
    * @param defaultValue
    */
   public ObjectFlow( String name ) {
-    super( name, null, null );
+    super( name );
   }
 
   /**
@@ -56,7 +55,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
    * @param defaultValue
    */
   public ObjectFlow( String name, Class< Obj > type ) {
-    super( name, null, type );
+    super( name, type );
   }
 
   protected void breakpoint() {

@@ -14,7 +14,9 @@ import gov.nasa.jpl.ae.util.FileUtils;
 import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.ae.xml.EventXmlToJava;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -221,11 +223,33 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     super(new TimeComparator());
     this.name = name;
   }
+  public TimeVaryingMap( String name, String fileName ) {
+    super(new TimeComparator());
+    this.name = name;
+    try {
+      fromCsvFile( fileName, type );
+    } catch ( FileNotFoundException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
 
   public TimeVaryingMap( String name, Class<V> type ) {
     this(name);
     this.type = type;
   }
+  public TimeVaryingMap( String name, String fileName, Class<V> type ) {
+    this(name);
+    this.type = type;
+    try {
+      fromCsvFile( fileName, type );
+    } catch ( FileNotFoundException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
   public TimeVaryingMap( String name, V defaultValue, Class<V> type ) {
     super(new TimeComparator());
     this.name = name;
@@ -239,8 +263,29 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( Debug.isOn() ) isConsistent();
   }
 
+  public TimeVaryingMap( String name, String fileName,
+                         V defaultValue, Class<V> type ) {
+    this( name, defaultValue, type );
+    try {
+      fromCsvFile( fileName, type );
+    } catch ( FileNotFoundException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
   public TimeVaryingMap( String name, V defaultValue ) {
     this(name, defaultValue, null);
+  }
+
+  public TimeVaryingMap( String name, String fileName, V defaultValue ) {
+    this(name, defaultValue, null);
+    try {
+      fromCsvFile( fileName, type );
+    } catch ( FileNotFoundException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   @SuppressWarnings( "unchecked" )
@@ -279,7 +324,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
     }
   }
-  
+
   public static <KEY,VAL> void deconstructMap( ParameterListener pl, TreeMap<KEY,VAL> map ) {
     List<VAL> values = new LinkedList< VAL >();
     // need to remove keys before values in case the values are keys!
@@ -1077,13 +1122,42 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return
    */
   public V valueFromString( String s ) {
+    // FIXME -- HERE -- TODO -- this is returning integers instead of doubles.
     V value = null;
     if ( type == Double.class || type == double.class ) {
       value = type.cast( Double.parseDouble( s ) );
     } else if ( type == Integer.class || type == int.class ) {
       value = type.cast( Integer.parseInt( s ) );
-    } else {
+    } else if ( type == Boolean.class || type == boolean.class ) {
+      value = type.cast( Boolean.parseBoolean( s ) );
+    } else if ( type != null ) {
       value = type.cast( s );
+    } else {
+      List<Object> objs = new ArrayList< Object >();
+      objs.add( s );
+      try {
+        objs.add( Double.parseDouble( s ) );
+      } catch (Exception e) {
+      }
+      try {
+        objs.add( Integer.parseInt( s ) );
+      } catch (Exception e) {
+      }
+      try {
+        objs.add( Boolean.parseBoolean( s ) );
+      } catch (Exception e) {
+      }
+      for ( Object o : objs ) {
+        try {
+          value = (V)o;
+        } catch ( Exception e ) {
+        }
+      }
+    }
+    try {
+      value = (V)s;
+    } catch ( Exception e ) {
+      e.printStackTrace();
     }
     return value;
   }
@@ -1119,10 +1193,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     fromStringMap( map, cls );
   }
   
+  public void fromCsvFile( String fileName ) throws FileNotFoundException {
+    fromCsvFile( fileName, null );
+  }
   public void fromCsvFile( String fileName, Class<V> cls ) throws FileNotFoundException {
     String s = FileUtils.fileToString( fileName );
     Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s*", "", "\\s*,\\s*" );
+    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "\\s*,\\s*" );
     fromStringMap( map, cls );
   }
   
@@ -1324,6 +1401,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     //m = TimeVaryingMap.class.getMethod("unsetValue");
     //m = TimeVaryingMap.class.getMethod("unapply");
     return effectMethods;
+  }
+  
+  public static void main( String[] args ) {
+    String fileName1 = "integerTimeline.csv";
+    String fileName2 = "aggregateLoad.csv";
+    File f = FileUtils.findFile( fileName1 );
+    if ( f != null ) {
+      TimeVaryingMap<Integer> tvm1 = new TimeVaryingMap< Integer >( "integer_map", f.getAbsolutePath() );
+      System.out.println( tvm1 );
+    } else {
+      System.err.println( "couldn't find file " + fileName1 );
+    }
+    f = FileUtils.findFile( fileName2 );
+    if ( f != null ) {
+      TimeVaryingMap<Double> tvm2 = new TimeVaryingMap< Double >( "double_map", f.getAbsolutePath() );
+      System.out.println( tvm2 );
+    } else {
+      System.err.println( "couldn't find file " + fileName2 );
+    }
   }
 
 }

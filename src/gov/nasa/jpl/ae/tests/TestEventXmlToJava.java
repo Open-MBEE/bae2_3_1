@@ -108,11 +108,13 @@ public class TestEventXmlToJava {
   public void writeFiles() {
     if ( translator != null ) {
       // Figure out where to write the files
-      String targetDirectory = null;
-      if ( directory == null ) {
-        targetDirectory = packageName;
-      } else {
-        targetDirectory = directory + File.separator + packageName;
+      String targetDirectory = translator.getPackageSourcePath( null );
+      if ( targetDirectory == null ) {
+        if ( directory == null ) {
+          targetDirectory = packageName;
+        } else {
+          targetDirectory = directory + File.separator + packageName;
+        }
       }
       
       // Create the directory for the package where the files will be written

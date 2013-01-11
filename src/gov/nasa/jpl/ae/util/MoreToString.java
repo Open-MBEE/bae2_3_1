@@ -1,5 +1,9 @@
 package gov.nasa.jpl.ae.util;
 
+import java.io.BufferedReader;
+import java.io.Console;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -592,21 +596,81 @@ public interface MoreToString {
       Pattern kvd = Pattern.compile( keyValueDelimiter );
       boolean gotDelimiter = true;
       while ( gotDelimiter ) {
+        // find delimiter between key and value
         matcher = kvd.matcher( s.substring( start ) );
         if ( !matcher.find() ) break;
-        String key = s.substring( start, matcher.start() );
-        start = matcher.end();
-        end = start;
+        // get the key as the characters before the key-value delimiter
+        String key = s.substring( start, start + matcher.start() );
+        // get the value between the key-value delimiter and the delimiter between pairs
+        start = start + matcher.end();
         matcher = d.matcher( s.substring( start ) );
         gotDelimiter = matcher.find();
         if ( gotDelimiter ) {
-          end = matcher.start();
+          end = start + matcher.start();
+        } else {
+          end = s.length();
         }
         String value = s.substring( start, end );
+        // add the key-value pair to the map
         map.put( key, value );
+        // set the start position at the end of the delimiter to get the next pair  
+        if ( gotDelimiter ) {
+          end = start + matcher.end();
+        }
+        start = end;
       }
     }
     
+    private static String readLine(String format, Object... args) {
+      if (System.console() != null) {
+          return System.console().readLine(format, args);
+      }
+      System.out.print(String.format(format, args));
+      BufferedReader reader = new BufferedReader(new InputStreamReader(
+              System.in));
+      try {
+        return reader.readLine();
+      } catch ( IOException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return null;
+    }
+
+    public static void main( String[] args ) {
+      String input = "0,1\\n1,2\\n";
+      Pattern p = Pattern.compile( "\\s*,\\s*" );
+      Matcher m = p.matcher( input );
+      while (m.find()) {
+        System.out.print("Start index: " + m.start());
+        System.out.print(" End index: " + m.end() + " ");
+        System.out.println(m.group());
+      }
+      
+      while ( true ) {
+        String patternString = readLine( "pattern:" );
+        if ( patternString == null ) break;
+        Pattern pattern = Pattern.compile( patternString );
+        String string = readLine( "string for pattern to match:" );
+        if ( string == null ) break;
+        Matcher matcher = pattern.matcher( string );
+        while (matcher.find()) {
+          System.out.print("Start index: " + matcher.start());
+          System.out.print(" End index: " + matcher.end() + " ");
+          System.out.println(matcher.group());
+        }
+//        String op = "";
+//        while ( true ) {
+//          op = c.readLine( "call to matcher:" );
+//          if ( op == null || op.equals( "q" ) || op.equals( "quit" )
+//               || op.equals( "exit" ) ) break;
+//          
+//        }
+//        if ( op == null ) break;
+        
+      }
+      System.out.println("\nbye!");
+    }
 
   }
 }

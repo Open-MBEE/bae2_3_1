@@ -130,6 +130,13 @@ public class ClassUtils {
       }
     }
 
+    // TODO -- this would be useful for TimeVaryingMap.valueFromString();
+//  public static <V> V valueFromString() {
+//    V value = null;
+//    
+//    return value;
+//  }
+    
   // boolean, byte, char, short, int, long, float, and double
   public static Class< ? > classForPrimitive( Class< ? > primClass ) {
     if ( !primClass.isPrimitive() ) return null;
