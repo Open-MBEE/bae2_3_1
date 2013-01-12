@@ -24,20 +24,20 @@ import java.util.Scanner;
  */
 public final class FileUtils {
 
-  public static boolean pathExists( String path ) {
+  public static boolean exists( String path ) {
     File f = existingFile( path );
     return ( f != null );
   }
   
   public static String existingPath( String path ) {
-    if ( path != null && pathExists( path ) ) {
+    if ( path != null && exists( path ) ) {
       return path;
     }
     return null;
   }
   
   public static String existingPath( URL url ) {
-    if ( url != null && pathExists( url.getFile() ) ) {
+    if ( url != null && exists( url.getFile() ) ) {
       return url.getFile();
     }
     return null;

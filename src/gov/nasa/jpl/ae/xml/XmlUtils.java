@@ -178,10 +178,10 @@ public class XmlUtils {
     String xsdFilePathName = defaultXsdFilePath; // default
 
     // Make sure we know where to find the xmlFileName.
-    if ( !FileUtils.pathExists( aeXmlFilePathName ) ) {
+    if ( !FileUtils.exists( aeXmlFilePathName ) ) {
       aeXmlFilePathName = getXmlFilePath( aeXmlFilePathName );
     }
-    if (!FileUtils.pathExists( aeXmlFilePathName ) ) {
+    if (!FileUtils.exists( aeXmlFilePathName ) ) {
       System.err.println( EventXmlToJava.class.getSimpleName()
                           + ".validateXML() could not find xml file \""
                           + aeXmlFilePathName  + "\"" );
@@ -219,15 +219,15 @@ public class XmlUtils {
     }
     // If not there, see if we can find it in some general places where XML
     // files can be found.
-    if ( xsdFilePathName == null || !FileUtils.pathExists( xsdFilePathName ) ) {
+    if ( xsdFilePathName == null || !FileUtils.exists( xsdFilePathName ) ) {
       xsdFilePathName = getXmlFilePath( xsdFileName );
     }
     // If not there, try to use the default.
-    if ( xsdFilePathName == null || !FileUtils.pathExists( xsdFilePathName ) ) {
+    if ( xsdFilePathName == null || !FileUtils.exists( xsdFilePathName ) ) {
       xsdFilePathName = FileUtils.existingPath( defaultXsdFilePath );
     }
     // Complain if still not found
-    if ( xsdFilePathName == null || !FileUtils.pathExists( xsdFilePathName ) ) {
+    if ( xsdFilePathName == null || !FileUtils.exists( xsdFilePathName ) ) {
       System.err.println( EventXmlToJava.class.getSimpleName()
                           + ".validateXML() could not find xsd file \""
                           + xsdFileName  + "\"" );

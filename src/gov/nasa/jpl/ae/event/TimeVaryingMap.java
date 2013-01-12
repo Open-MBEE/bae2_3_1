@@ -1097,7 +1097,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return isApplied(effect, getSetValueMethod(), getSetValueMethod()//getSetValueMethod2()
                      );
   }
-  // FIXME -- TODO -- should check to see if value matches!!!
+
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();
     if ( Debug.isOn() ) isConsistent();
@@ -1197,7 +1197,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     fromCsvFile( fileName, null );
   }
   public void fromCsvFile( String fileName, Class<V> cls ) throws FileNotFoundException {
-    String s = FileUtils.fileToString( fileName );
+    File f = FileUtils.findFile( fileName );
+    String s = FileUtils.fileToString( f );
     Map<String,String> map = new HashMap<String,String>();
     MoreToString.Helper.fromString( map, s, "", "\\s+", "", "\\s*,\\s*" );
     fromStringMap( map, cls );
@@ -1406,20 +1407,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static void main( String[] args ) {
     String fileName1 = "integerTimeline.csv";
     String fileName2 = "aggregateLoad.csv";
-    File f = FileUtils.findFile( fileName1 );
-    if ( f != null ) {
-      TimeVaryingMap<Integer> tvm1 = new TimeVaryingMap< Integer >( "integer_map", f.getAbsolutePath() );
-      System.out.println( tvm1 );
-    } else {
-      System.err.println( "couldn't find file " + fileName1 );
-    }
-    f = FileUtils.findFile( fileName2 );
-    if ( f != null ) {
-      TimeVaryingMap<Double> tvm2 = new TimeVaryingMap< Double >( "double_map", f.getAbsolutePath() );
-      System.out.println( tvm2 );
-    } else {
-      System.err.println( "couldn't find file " + fileName2 );
-    }
+    TimeVaryingMap< Integer > tvm1 =
+        new TimeVaryingMap< Integer >( "integer_map", fileName1, Integer.class );
+    System.out.println( "loaded from " + fileName1 + ":\n" + tvm1 );
+    TimeVaryingMap< Double > tvm2 =
+        new TimeVaryingMap< Double >( "double_map", fileName2, Double.class );
+    System.out.println( "loaded from " + fileName2 + ":\n" + tvm2 );
   }
 
 }
