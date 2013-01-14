@@ -317,7 +317,7 @@ class activityEventClass(object):
 				else: tname = "Object"
 				try: d = str(node.getDefault())
 				except: d = None
-				self.members[node.getID()] = (node.type.name,d,"Initialize Activity Parameter Values (for transition through")
+				self.members[p_id] = (node.type.name,d,"Initialize Activity Parameter Values (for transition through")
 				if str(node.parameter.direction)=="out" or len(node.incoming)>0: 
 					self.members[node.parameter.getID()+"_default"]=(tname,node.parameter.default,"Outgoing node's default value")
 					self.members[node.parameter.getID()+"_changed"]=("Boolean","false","initialize new value as false")
