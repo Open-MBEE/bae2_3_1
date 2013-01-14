@@ -58,10 +58,28 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
   /**
    * @param name
    * @param defaultValue
+   */
+  public TimeVaryingPlottableMap( String name, String fileName, T defaultValue ) {
+    super( name, fileName, defaultValue );
+  }
+
+  /**
+   * @param name
+   * @param defaultValue
    * @param projected
    */
   public TimeVaryingPlottableMap( String name, T defaultValue, boolean projected ) {
     this( name, defaultValue );
+    dataProjected = projected;
+  }
+
+  /**
+   * @param name
+   * @param defaultValue
+   * @param projected
+   */
+  public TimeVaryingPlottableMap( String name, String fileName, T defaultValue, boolean projected ) {
+    this( name, fileName, defaultValue );
     dataProjected = projected;
   }
 
@@ -84,6 +102,14 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
    */
   public TimeVaryingPlottableMap( String name, boolean projected ) {
     this( name );
+    dataProjected = projected;
+  }
+
+  /**
+   * @param name
+   */
+  public TimeVaryingPlottableMap( String name, String fileName, boolean projected ) {
+    this( name, fileName );
     dataProjected = projected;
   }
 
