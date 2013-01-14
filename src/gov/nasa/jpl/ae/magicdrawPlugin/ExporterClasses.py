@@ -53,12 +53,12 @@ class ClassifierClass(object):
 		self.constructorArgs = cs
 		self.firstSelected = firstSelected
 		self.toInspect = []
-		if isinstance(system,Signal): self.id = "Signal"+system.name
 		self.errors = 		{}
 		classType = str(system.getClassType()).split(".")[-1].strip("'>")
 		self.identifier = "%s_%s_%s" % (system.name,classType,system.owner.name)
 		self.name = 			system.name
 		self.id = 				system.name #SO THAT WE GET READABLE CLASS NAMES
+		if isinstance(system,Signal): self.id = "Signal"+system.name
 		self.events=			[]
 		self.members=			{} #"name":("type","value")
 		self.structuralSignals = {}
