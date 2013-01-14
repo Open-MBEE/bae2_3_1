@@ -1150,14 +1150,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       for ( Object o : objs ) {
         try {
           value = (V)o;
+          if ( value != null ) break;
         } catch ( Exception e ) {
         }
       }
     }
-    try {
-      value = (V)s;
-    } catch ( Exception e ) {
-      e.printStackTrace();
+    if ( value == null && s != null ) {
+      try {
+        value = (V)s;
+      } catch ( Exception e ) {
+        e.printStackTrace();
+      }
     }
     return value;
   }
