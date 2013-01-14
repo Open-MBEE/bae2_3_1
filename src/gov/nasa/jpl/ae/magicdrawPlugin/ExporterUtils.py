@@ -47,9 +47,9 @@ global logDebug
 def convertTime(fromType,toType,t):
 	#conversion use "newT = t * conversion[from][to]
 	conversion = {
-				"s": {"m":1/60,"h":1/3600},
-				"m": {"s":60,"h":1/60 },
-				"h": {"s":3600,"m":60}
+				"s": {"s":1,"m":1/60,"h":1/3600},
+				"m": {"s":60,"m":1,"h":1/60},
+				"h": {"s":3600,"m":60,"h":1}
 				}
 	if fromType in conversion.keys() and toType in conversion.keys():
 		newTime = t * conversion[fromType][toType]
