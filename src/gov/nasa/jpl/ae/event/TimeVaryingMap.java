@@ -226,11 +226,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap( String name, String fileName ) {
     super(new TimeComparator());
     this.name = name;
-    try {
-      fromCsvFile( fileName, type );
-    } catch ( FileNotFoundException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    if ( fileName != null ) {
+      try {
+        fromCsvFile( fileName, type );
+      } catch ( FileNotFoundException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 
@@ -242,11 +244,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap( String name, String fileName, Class<V> type ) {
     this(name);
     this.type = type;
-    try {
-      fromCsvFile( fileName, type );
-    } catch ( FileNotFoundException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    if ( fileName != null ) {
+      try {
+        fromCsvFile( fileName, type );
+      } catch ( FileNotFoundException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 
@@ -266,11 +270,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap( String name, String fileName,
                          V defaultValue, Class<V> type ) {
     this( name, defaultValue, type );
-    try {
-      fromCsvFile( fileName, type );
-    } catch ( FileNotFoundException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    if ( fileName != null ) {
+      try {
+        fromCsvFile( fileName, type );
+      } catch ( FileNotFoundException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 
@@ -280,11 +286,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   public TimeVaryingMap( String name, String fileName, V defaultValue ) {
     this(name, defaultValue, null);
-    try {
-      fromCsvFile( fileName, type );
-    } catch ( FileNotFoundException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    if ( fileName != null ) {
+      try {
+        fromCsvFile( fileName, type );
+      } catch ( FileNotFoundException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 
@@ -1227,7 +1235,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     StringBuffer sb = new StringBuffer();
     sb.append( this.getName() );
     if ( withHash ) sb.append( "@" + hashCode() );
-    sb.append( MoreToString.Helper.toString( this, withHash, deep, seen, otherOptions, CURLY_BRACES, false ) );
+    sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
+                                             otherOptions, CURLY_BRACES, false ) );
 //    sb.append( "{" );
 //    boolean first = true;
 //    for ( Map.Entry< Parameter< Integer >, T > entry : entrySet() ) {

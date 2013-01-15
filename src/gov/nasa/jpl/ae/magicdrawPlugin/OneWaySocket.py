@@ -113,6 +113,26 @@ class OneWaySocket:
             self.debugPrint( "total length = " + str(length) + ", msg so far = '" + msg + "'" )
         return msg
 
+    def sendString(self, data):
+        formatString = str(len(str(data))) + 's'
+        self.send(formatString, data)
+
+    def sendInt(self, theInt):
+        formatString = "i"
+        self.send(formatString, theInt)
+
+    def sendLong(self, theLong):
+        formatString = "l"
+        self.send(formatString, theLong)
+
+    def sendFloat(self, theFloat):
+        formatString = "f"
+        self.send(formatString, theFloat)
+
+    def sendDouble(self, theDouble):
+        formatString = "d"
+        self.send(formatString, theDouble)
+
     def send(self, formatString, data):
         msg = struct.pack("i",len(formatString))
         self.debugPrint( "sending packed length of format string: " + binascii.hexlify(msg) + " = " + msg )

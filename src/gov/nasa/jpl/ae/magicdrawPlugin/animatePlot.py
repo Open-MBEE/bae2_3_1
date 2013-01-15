@@ -55,6 +55,24 @@ def debugPrint( s ):
     if debugMode:
         print "[animatePlot]" + s
 
+def receiveString( sock ):
+    ''' We don't have Java code for packaging data like Python's struct.pack(),
+        so we need to receive it another way.
+    '''
+    nameLength = sock.unpack("i", sock.receiveInPieces(4))[0]
+    debugPrint("    unpacked receivedString length of %s" % str(nameLength))
+    msg = str(sock.receiveInPieces(nameLength*2))
+    debugPrint("    received %s of length %s" % (msg,str(len(msg))))
+    receivedString = ""
+    if len(msg) > nameLength: 
+        for char in msg:
+            debugPrint("char: " + char)
+            if char not in string.printable: continue
+            else: receivedString += char
+        debugPrint("fixed receivedString: %s (length %s)" % (receivedString, str(len(receivedString))))
+    else: receivedString=msg
+    return receivedString
+
 # create the socket, and get numLines, the number of lines to plot!
 def initSocket( host, port ):
     if useSocket:
@@ -68,19 +86,7 @@ def initSocket( host, port ):
         
         linenames = []
         for _ in xrange(numLines):
-            nameLength = sock.unpack("i", sock.receiveInPieces(4))[0]
-            debugPrint("    unpacked name length of %s" % str(nameLength))
-            msg = str(sock.receiveInPieces(nameLength*2))
-            debugPrint("    received %s of length %s" % (msg,str(len(msg))))
-            if len(msg) > nameLength: 
-                name = ""
-                for char in msg:
-                    debugPrint("char: " + char)
-                    if char not in string.printable: continue
-                    else: name += char
-                debugPrint("fixed name: %s (length %s)" % (name, str(len(name))))
-            else: name=msg
- 
+            name = receiveString(sock)
             #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
             #debugPrint("    unpacked name: %s" % linename)
             #linenames.append(str(linename))
@@ -106,6 +112,8 @@ def socketDataGen():
     #yield 0, [0.0 for n in yRange]
     while 1:
         try:
+#            # receive an int telling whether receiving data at pin
+#            code = sock.receive()
             debugPrint("try to receive data for plot")
             arr = sock.receive()
             debugPrint("received data for plot: " + str(arr))
