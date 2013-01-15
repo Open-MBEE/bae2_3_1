@@ -679,7 +679,6 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       }
     }
     try {
-      System.out.println("sending timepoint data");
       plotSocket.send( "timepointData" );
       plotSocket.send( doubleArray );
     } catch ( IOException e ) {
