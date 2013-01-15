@@ -23,6 +23,8 @@ horizonDurationHours = 2
 timeNow = horizonDurationHours / 1.6
 nowLine = None
 
+donePlotting = False
+
 showLabels = False
 
 numLines = 4 # the default number of lines to plot
@@ -79,19 +81,22 @@ def initSocket( host, port ):
         global sock
         global numLines
         global linenames
+        global subplotForLine
         sock = OneWaySocket(host, port, False, debugMode)
         sock.endianGet()
         numLines = sock.unpack("i", sock.receiveInPieces(4))
         numLines = int(numLines[0])
         
         linenames = []
+        subplotForLine = []
         for _ in xrange(numLines):
             name = receiveString(sock)
+            subplotId = receiveString(sock)
             #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
             #debugPrint("    unpacked name: %s" % linename)
             #linenames.append(str(linename))
             linenames.append(name)
-        
+            subplotForLine.append(subplotId)
         debugPrint( "numLines = " + str(numLines) )
         debugPrint( "linenames = " + str(linenames))
 
@@ -101,8 +106,11 @@ def socketDataGen():
     global lines
     global lineIdToIndex
     global numLines
+    global linenames
+    global subplotForLine
     global timeNow
     global nowLine
+    global donePlotting
     
     cnt = 0
     if genXValues:
@@ -111,45 +119,60 @@ def socketDataGen():
         yRange = range(numLines)
     #yield 0, [0.0 for n in yRange]
     while 1:
+        if donePlotting:
+            break
         try:
-#            # receive an int telling whether receiving data at pin
-#            code = sock.receive()
-            debugPrint("try to receive data for plot")
-            arr = sock.receive()
-            debugPrint("received data for plot: " + str(arr))
-            if arr == None:
+            # receive a string telling whether receiving data at timepoint or 
+            # update a series of data
+            dataType = receiveString(sock) #sock.receive()
+            if dataType == 'quit' :
+                donePlotting = True
                 break
-            expectedLength = numLines + 1
-            if genXValues and len(arr) > 0:
-                xVal = arr[0]
-            else:
-                expectedLength += 1
-                xVal = cnt
-            if arr == None:
-                break
-            else:
-                if len(arr) != expectedLength: # HACK -- what if the size were coincidentally the same?
-                    debugPrint("static lines")
-                    # We are receiving pairs of x,y values to plot.
-                    # The first number in the array is an id for plot line, so
-                    # we can replace it if it's an update.
-                    lineId = arr[0]
-                    # REVIEW -- we could also put in a dimension for 3D plots.
-                    plotDimension = 2
-                    # get x-axis values
-                    if lineId not in staticLines:
-                        staticLines[lineId] = {}
-                        lineIdToIndex[lineId] = len(lines)
-                        debugPrint("ADDING EXTRA LINE?")
-                        addLine()
-                    staticLines[lineId][0] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 1]
-                    staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
-                    lines[lineIdToIndex[lineId]].set_data(staticLines[lineId][0], staticLines[lineId][1])
-                    #yield 
+            if dataType == 'timepointData' :
+                debugPrint("try to receive data for plot")
+                arr = sock.receive()
+                debugPrint("received data for plot: " + str(arr))
+                if arr == None:
+                    break
+                #expectedLength = numLines + 1
+                if genXValues and len(arr) > 0:
+                    xVal = arr[0]
                 else:
-                    timeNow = xVal
-                    yield xVal, [arr[i] for i in yRange] #[ arr[13], arr[14], arr[15] ]
-                    cnt+=1
+                    #expectedLength += 1
+                    xVal = cnt
+                timeNow = xVal
+                yield xVal, [arr[i] for i in yRange] #[ arr[13], arr[14], arr[15] ]
+                cnt+=1
+            else:
+                #if len(arr) != expectedLength: # HACK -- what if the size were coincidentally the same?
+                debugPrint("static line")
+                # We are receiving pairs of x,y values to plot.
+                # The first number in the array is an id for plot line, so
+                # we can replace it if it's an update.
+                lineId = receiveString(sock) #sock.receive()
+                debugPrint("received lineId=" + str(lineId))
+                subplotId = receiveString(sock) #sock.receive()
+                debugPrint("received subplotId=" + str(subplotId))
+                #lineId = arr[0]
+                # REVIEW -- we could also put in a dimension for 3D plots.
+                plotDimension = 2
+                debugPrint("try to receive data for plot")
+                arr = sock.receive()
+                debugPrint("received data for plot: " + str(arr))
+                # get x-axis values
+                if lineId not in staticLines:
+                    staticLines[lineId] = {}
+                    idx = len(lines)
+                    lineIdToIndex[lineId] = idx 
+                    debugPrint("ADDING EXTRA LINE to lines with names " + str(linenames))
+                    linenames.append(lineId)
+                    subplotForLine.append(subplotId)
+                    addLine(idx)
+                    ax.legend(loc="upper right")
+                staticLines[lineId][0] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
+                staticLines[lineId][1] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
+                lines[lineIdToIndex[lineId]].set_data(staticLines[lineId][0], staticLines[lineId][1])
+                #yield 
         except RuntimeError:
             #print "Socket connection terminated"
             break
@@ -193,6 +216,7 @@ def addNowLine():
     #lineId = -1.010101 # something random that we hope is not used elsewhere - HACK
     #staticLines[lineId] = {}
     #lineIdToIndex[lineId] = len(lines)
+    linenames.append('_nolegend_')
     nowLine = addLine()
     #staticLines[lineId][0] = [timeNow-0.00001, timeNow+0.00001]
     #staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
@@ -246,10 +270,10 @@ def addLine(index = None):
                       markeredgecolor=colors[n % len(colors)], \
                       markeredgewidth=1, markersize=7, \
                       markerfacecolor='y',color = col,marker=mrk)[0]
-    if index:
+    if index != None:
         newLine.set_label(str(linenames[index]))
     lines.append( newLine )
-    debugPrint("new line = " + str(newLine))
+    debugPrint("new line = " + str(newLine) )
     return newLine
 
 #
@@ -407,6 +431,11 @@ def main(argv=None):
         if zoomToFitY:
             ax.set_ylim(ymin, ymax)
             
+        debugPrint("xdata=" + str(xdata))
+        debugPrint("ydata=" + str(ydata))
+        debugPrint("lines=" + str([y.get_data() for y in lines]))
+        debugPrint("staticLines=" + str(staticLines))
+
         ax.figure.canvas.draw()
 
         debugPrint("updated lines = " + str([line.get_data() for line in lines]))

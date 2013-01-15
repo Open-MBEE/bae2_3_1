@@ -61,6 +61,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   protected final int id = HasIdImpl.getNext();
   
+  protected Object owner = null;
   /**
    * For the convenience of referring to the effect method.
    */
@@ -533,6 +534,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       newName = getClass().getSimpleName();
     }
     this.name = newName;
+  }
+
+  public Object getOwner() {
+    return owner;
+  }
+  public void setOwner( Object owner ) {
+    this.owner = owner;
+  }
+  public List< TimeValue > getFloatingEffects() {
+    return floatingEffects;
+  }
+  public void setFloatingEffects( List< TimeValue > floatingEffects ) {
+    this.floatingEffects = floatingEffects;
   }
 
   // Add startTimes, durations, values that are Parameters, and (if deep)

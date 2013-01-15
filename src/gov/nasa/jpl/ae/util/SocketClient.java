@@ -73,6 +73,7 @@ public class SocketClient {
     send( doubleArray );
   }
   
+  // Sends an array of doubles in the format of the struct.pack() Python function. 
   public void send( double... doubleArray ) throws IOException {
     String formatString = doubleArray.length + "d";
     if ( Debug.isOn() ) Debug.outln("sending int size of format string: " + formatString.length() );
@@ -90,6 +91,12 @@ public class SocketClient {
       dataOutputStream.writeDouble( d );
     }
     dataOutputStream.flush();
+  }
+
+  // Sends a string, not using the format of the struct.pack() Python function.
+  public void send( String str ) throws IOException {
+    getDataOutputStream().writeInt(str.length());
+    getDataOutputStream().writeChars( str );
   }
 
   /**
@@ -196,27 +203,43 @@ public class SocketClient {
     SocketClient socketClient = new SocketClient( hostName, port );
 
     // first int is for determining endianness
-    socketClient.dataOutputStream.writeInt(1);
+    socketClient.getDataOutputStream().writeInt(1);
+    
     // next int is the number of lines to plot
-    socketClient.dataOutputStream.writeInt(4);
+    socketClient.getDataOutputStream().writeInt(4);
+    
+    // send names of lines and their subplot names
+    String nameArray[] = {"line1", "line2", "line3", "line4" };
+    String subplotArray[] = {"subplot1", "subplot2", "subplot1", "subplot2" };
+    for ( int i=0; i<4; ++i ) {
+      socketClient.send( nameArray[ i ] );
+      socketClient.send( subplotArray[ i ] );
+    }
+    
     // send array with x value followed by a y value to add to each line
     double doubleArray[] = {0.0, 1.0, 3.14, 2.71, -1.1};
-    double lineId = 3.14;
+    String lineId = "fixedLine1";
+    String subplotId = "subplot1";
     int numPoints = 60;
-    double fixedLine[] = new double[2*numPoints+1];//{lineId, 0, 0.0, 1, 1.0, 2, 2.0, 3, 3.0, 4, 4.0, 5, 5.0, 6, 6.0, 7, 7.0, 8, 8.0, 9, 9.0};
-    fixedLine[0] = lineId;
-    for ( int j=1; j<fixedLine.length; j+=2 ) {
+    //double fixedLine[] = new double[2*numPoints+1];//{lineId, 0, 0.0, 1, 1.0, 2, 2.0, 3, 3.0, 4, 4.0, 5, 5.0, 6, 6.0, 7, 7.0, 8, 8.0, 9, 9.0};
+    double fixedLine[] = new double[2*numPoints]; // sequential x,y pairs
+    //fixedLine[0] = lineId;
+    for ( int j=0; j<fixedLine.length; j+=2 ) {
       fixedLine[j] = 0.5*(j-1);
       fixedLine[j+1] = numPoints * 0.5 * (Math.sin(j*6.2832/fixedLine.length)+1);
     }
     for ( int i=0; i<numPoints; ++i ) {
+      socketClient.send( "timepointData" );
       socketClient.send( doubleArray );
       for ( int j=0; j<doubleArray.length; ++j ) {
         doubleArray[j] += 0.5 + Math.random();
       }
       if ( (i+1) % 10 == 0 ) {
+        socketClient.send( "seriesData" );
+        socketClient.send( lineId );
+        socketClient.send( subplotId );
         socketClient.send( fixedLine );
-        for ( int j=2; j<fixedLine.length; j+=2 ) {
+        for ( int j=1; j<fixedLine.length; j+=2 ) {
           fixedLine[j] += numPoints * 0.25 * ( 0.5 - Math.random() );
         }
       }
@@ -226,18 +249,11 @@ public class SocketClient {
         e.printStackTrace();
       }
     }
-    socketClient.dataOutputStream.writeInt(-1);
+    socketClient.send("quit");//(-1);
+    //socketClient.dataOutputStream.writeInt(-1);
     socketClient.dataOutputStream.flush();
 
     socketClient.close();
   }
-  /**
-   * @param args
-   */
-  // public static void main( String[] args ) {
-  // // TODO Auto-generated method stub
-  //
-  // }
-
 
 }

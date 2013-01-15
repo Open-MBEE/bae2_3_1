@@ -59,6 +59,7 @@ public class ParameterListenerImpl extends HasIdImpl
   // Static members
   
   protected static int counter = 0;
+  public static boolean settingTimeVaryingMapOwners = false;
 
   // Other Members
 
@@ -585,6 +586,13 @@ public class ParameterListenerImpl extends HasIdImpl
                                                                     deep, seen ) );
       s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
                                                                     deep, seen ) );
+    }
+    if ( settingTimeVaryingMapOwners ) {
+      for ( TimeVarying< ? > tv : s ) {
+        if ( tv.getOwner() == null ) {
+          tv.setOwner( this );
+        }
+      }
     }
     return s;
   }

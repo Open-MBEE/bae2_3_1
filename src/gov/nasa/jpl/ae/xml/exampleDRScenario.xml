@@ -20,7 +20,7 @@
       <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>0.0</value></parameter>
       <parameter><name>assessEventStartTime</name><type>Integer</type><value>150</value></parameter>
       <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
-      <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;("DRState", "")</value></parameter>
+      <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;( "DRState", null, "", String.class )</value></parameter>
       <parameter><name>generator</name><type>Generator</type><value>new Generator()</value></parameter>
     </arguments>
   </eventToBeExecuted>
