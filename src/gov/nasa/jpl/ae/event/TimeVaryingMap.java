@@ -51,7 +51,8 @@ import junit.framework.Assert;
  * 
  */
 public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
-                                 implements TimeVarying< V >,
+                                 implements Cloneable,
+                                            TimeVarying< V >,
                                             Affectable,
                                             ParameterListener,
                                             AspenTimelineWritable {
@@ -324,6 +325,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( Debug.isOn() ) isConsistent();
   }
 
+  public TimeVaryingMap( TimeVaryingMap<V> tvm ) {
+    this( tvm.name, null, null, tvm.type );
+    owner = tvm.owner;
+    clear(); // clears the default value.
+    putAll( tvm );
+  }
+
+  public TimeVaryingMap<V> clone() {
+    TimeVaryingMap<V> tvm = new TimeVaryingMap<V>(this);
+    return tvm;
+  }
+  
   public static void maybeDeconstructParameter( ParameterListener pl,
                                                 Object maybeParam ) {
     if ( maybeParam instanceof Parameter ) {
@@ -850,6 +863,134 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return oldValue;
   }
 
+  public TimeVaryingMap<V> multiply( Number n ) {
+    return multiply( n, firstKey(), null );
+  }
+  
+  public TimeVaryingMap<V> times( Number n ) {
+    return times( n, firstKey(), null );
+  }
+  
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey is not multiplied.  To include the last key, pass null for endKey.
+   * @return this map after multiplying each value in the range [beginKey, endKey)
+   */
+  private TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey,
+                                        Parameter< Integer > toKey ) {
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      if ( e.getValue() instanceof Double ) {
+        Double v = (Double)e.getValue();
+        v = v * n.doubleValue();
+        try {
+          e.setValue( (V)v );
+        } catch ( Exception exc ) {
+          // ignore
+        }
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
+        v = (int)( v * n.doubleValue() );
+        try {
+          e.setValue( (V)v );
+        } catch ( Exception exc ) {
+          // ignore
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          is not multiplied. To include the last key, pass null for endKey.
+   * @return a copy of this map for which each value in the range [beginKey,
+   *         endKey) is multiplied by n
+   */
+  private TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey,
+                                     Parameter< Integer > toKey ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.multiply( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  
+  public TimeVaryingMap<V> add( Number n ) {
+    return add( n, firstKey(), null );
+  }
+  
+  public TimeVaryingMap<V> plus( Number n ) {
+    return plus( n, firstKey(), null );
+  }
+  
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after fromKey to whose value is not added n. To
+   *          include the last key, pass null for endKey.
+   * @return this map after adding n to each value in the range [beginKey,
+   *         endKey)
+   */
+  private TimeVaryingMap< V > add( Number n, Parameter< Integer > fromKey,
+                                   Parameter< Integer > toKey ) {
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      if ( e.getValue() instanceof Double ) {
+        Double v = (Double)e.getValue();
+        v = v + n.doubleValue();
+        try {
+          e.setValue( (V)v );
+        } catch ( Exception exc ) {
+          // ignore
+        }
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
+        v = (int)( v + n.doubleValue() );
+        try {
+          e.setValue( (V)v );
+        } catch ( Exception exc ) {
+          // ignore
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after fromKey to whose value is not added n. To
+   *          include the last key, pass null for endKey.
+   * @return a copy of this map for which n is added to each value in the range
+   *         [beginKey, endKey)
+   */
+  private TimeVaryingMap< V > plus( Number n, Parameter< Integer > fromKey,
+                                    Parameter< Integer > toKey ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.add( n, fromKey, toKey );
+    return newTvm;
+  }  
+
+  
   public boolean isConsistent2() {
     return true;
   }
@@ -1435,10 +1576,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     String fileName2 = "aggregateLoad.csv";
     TimeVaryingMap< Integer > tvm1 =
         new TimeVaryingMap< Integer >( "integer_map", fileName1, Integer.class );
-    System.out.println( "loaded from " + fileName1 + ":\n" + tvm1 );
+    System.out.println( "map1 loaded from " + fileName1 + ":\n" + tvm1 );
     TimeVaryingMap< Double > tvm2 =
         new TimeVaryingMap< Double >( "double_map", fileName2, Double.class );
-    System.out.println( "loaded from " + fileName2 + ":\n" + tvm2 );
+    System.out.println( "\nmap2 loaded from " + fileName2 + ":\n" + tvm2 );
+    tvm1.multiply( 2, tvm1.firstKey(), null );
+    System.out.println( "\nmap1 multiplied by 2:\n" + tvm1 );
+    TimeVaryingMap< Double > tvm3 = tvm2.plus( 12.12 );
+    System.out.println( "\nnew map3 = map2 plus 12.12:\n" + tvm3 );
+    tvm3 = tvm2.times( 1111, tvm2.firstKey(), tvm2.lastKey() );
+    System.out.println( "\nmap3 = map2 times 1111 (except for the last entry):\n" + tvm3 );
+    tvm3 = tvm2.times( 1111, tvm2.lastKey(), tvm2.lastKey() );
+    System.out.println( "\nmap3 = map2 times 1111 (for just the last entry):\n" + tvm3 );
   }
 
 }
