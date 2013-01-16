@@ -21,7 +21,7 @@ zoomToFitOnlyVisibleY = True
 centerAtNow = False
 horizonDurationHours = 2
 timeNow = horizonDurationHours / 1.6
-nowLine = None
+nowLines = []
 
 donePlotting = False
 
@@ -40,8 +40,9 @@ yGrow = 0.2 # how much to grow the y axis for points outside
 sock = None
 
 fig = None
-ax = None
-lines = []
+#ax = None
+axs = {}
+lines = {}
 xdata = None
 ydata = None
 staticLines = {}
@@ -82,6 +83,8 @@ def initSocket( host, port ):
         global numLines
         global linenames
         global subplotForLine
+        global subplotIds
+
         sock = OneWaySocket(host, port, False, debugMode)
         sock.endianGet()
         numLines = sock.unpack("i", sock.receiveInPieces(4))
@@ -89,6 +92,8 @@ def initSocket( host, port ):
         
         linenames = []
         subplotForLine = []
+        subplotIds = set()
+
         for _ in xrange(numLines):
             name = receiveString(sock)
             subplotId = receiveString(sock)
@@ -97,6 +102,7 @@ def initSocket( host, port ):
             #linenames.append(str(linename))
             linenames.append(name)
             subplotForLine.append(subplotId)
+            subplotIds.add(subplotId)
         debugPrint( "numLines = " + str(numLines) )
         debugPrint( "linenames = " + str(linenames))
 
@@ -108,9 +114,11 @@ def socketDataGen():
     global numLines
     global linenames
     global subplotForLine
+    global subplotIds
     global timeNow
-    global nowLine
+    #global nowLines
     global donePlotting
+    global subplotIds
     
     cnt = 0
     if genXValues:
@@ -167,8 +175,14 @@ def socketDataGen():
                     debugPrint("ADDING EXTRA LINE to lines with names " + str(linenames))
                     linenames.append(lineId)
                     subplotForLine.append(subplotId)
-                    addLine(idx)
+                    if subplotId not in subplotIds:
+                        ax = addAx(subplotId)
+                    else:
+                        ax = axs[subplotId]
+                    addLine(ax, idx)
+                    debugPrint("adding line " + linenames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
                     ax.legend(loc="upper right")
+
                 staticLines[lineId][0] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
                 staticLines[lineId][1] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
                 lines[lineIdToIndex[lineId]].set_data(staticLines[lineId][0], staticLines[lineId][1])
@@ -199,28 +213,30 @@ def dataFromTable():
         cnt+=1
         debugPrint("incremented counter")
 
-def moveNowLine():
+def moveNowLine(nowLine):
     global timeNow
-    global nowLine
+    #global nowLines
+
     xcoords = [timeNow, timeNow] #[timeNow-0.00001, timeNow+0.00001]
     ycoords = [-1e20, 1e20]
     debugPrint("moveNowLine: " + str(xcoords) + ", " + str(ycoords))
     nowLine.set_data(xcoords, ycoords)
 
-def addNowLine():
+def addNowLine(ax):
     global staticLines
     global lines
-    global nowLine
+    global nowLines
     global timeNow
     
     #lineId = -1.010101 # something random that we hope is not used elsewhere - HACK
     #staticLines[lineId] = {}
     #lineIdToIndex[lineId] = len(lines)
     linenames.append('_nolegend_')
-    nowLine = addLine()
+    nowLine = addLine(ax, None)
+    nowLines.append(nowLine)
     #staticLines[lineId][0] = [timeNow-0.00001, timeNow+0.00001]
     #staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
-    moveNowLine()
+    moveNowLine(nowLine)
     
 def updateData(data):
     global numLines
@@ -228,6 +244,8 @@ def updateData(data):
     global ydata
     global replaceInitValues
     global lines
+    global nowLines
+
     debugPrint("try to update data for plot")
     t,y = data
     # update the plot data
@@ -251,18 +269,27 @@ def updateData(data):
         if showLabels:
             plt.annotate(('%0.3f' % (y[i])), (t,y[i]))
 
-def addLine(index = None):
-    global ax
+    # update nowLines
+    for nowLine in nowLines:
+        moveNowLine(nowLine)
+
+
+def addLine(ax = None, index = None):
+    global axs
     global fig
     global lines
     
-
     # specify options for plot data display
     colors =  ['r', 'g', 'b', 'm', 'c', 'k','orange','purple','pink','grey','lime','aqua','maroon','navy']
     #symbols = ['-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
     symbols = ['^', 'd', '*', '+', 'x','o']
     msizes =  [ 12, 12, 12, 12, 12,  12,  10,  4, 16, 18,  8, 18,  20] 
     
+    if ax == None and axs != None and len(axs) > 0:
+        return None
+        #ax = axs.values()[0]
+    if ax == None:
+        return None
     n = len(lines)
     col = colors[index % len(colors)] if index else 'y'
     mrk = symbols[index % len(symbols)] if index else "*"
@@ -272,9 +299,43 @@ def addLine(index = None):
                       markerfacecolor='y',color = col,marker=mrk)[0]
     if index != None:
         newLine.set_label(str(linenames[index]))
-    lines.append( newLine )
-    debugPrint("new line = " + str(newLine) )
+    else:
+        index = n
+    lines[index] = newLine
+    debugPrint("new line = " + str(newLine) + " on ax=" + str(ax) )
     return newLine
+
+def addAx(subplotId):
+    global subplotForLine
+    global subplotIds
+    global axs
+    global fig
+    global linenames
+    
+    subplotIds.add(subplotId)
+    idx = [s for s in subplotIds].index(subplotId)
+    ax = fig.add_subplot(len(subplotIds), 1, idx)
+    if len(subplotIds) >= len(fig.axes):
+        for i in range(len(fig.axes)):
+            fig.axes[i].change_geometry(len(fig.axes), 1, i+1)
+            debugPrint("fig.axes[" + str(i) + "].get_geometry() = " + str(fig.axes[i].get_geometry()))
+    axs[subplotId] = ax
+    debugPrint("ax.get_geometry() = " + str(ax.get_geometry()))
+    ii = 0
+    for _ in xrange(numLines):
+        if subplotForLine[ii] == subplotId:
+            debugPrint("adding line " + linenames[ii] + " for subplot " + subplotId + ", ax=" + str(ax))
+            addLine(ax, ii)
+        ii+=1
+    addNowLine(ax)
+    ax.set_ylim(-1.1, 1.1)
+    ax.set_xlim(-0.005, 5)
+    ax.grid()
+    ax.set_xlabel("time")
+    ax.set_ylabel("kWh")
+    ax.set_title(subplotId)
+    ax.legend(loc="upper right")
+    return ax
 
 #
 # Main
@@ -285,7 +346,7 @@ def main(argv=None):
     global ydata
     global replaceInitValues
     global lines
-    global ax
+    global axs
     global fig
 
     # get port from args
@@ -306,20 +367,22 @@ def main(argv=None):
     
     # create plot figure
     fig = plt.figure(figsize=(25.0,6.0))
-    ax = fig.add_subplot(111)
-    
-    debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
-    ii = 0
-    for _ in xrange(numLines):
-        addLine(ii)
-        ii+=1
-    addNowLine()
-    ax.set_ylim(-1.1, 1.1)
-    ax.set_xlim(-0.005, 5)
-    ax.grid()
-    ax.legend(loc="upper right")
-    xdata = [[0] for n in xrange(numLines)] #can't be empty
-    ydata = [[0] for n in xrange(numLines)]
+#    ax = fig.add_subplot(111)
+    for subplotId in subplotIds:
+        addAx(subplotId)
+#    
+#    debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
+#    ii = 0
+#    for _ in xrange(numLines):
+#        addLine(ii)
+#        ii+=1
+#    addNowLine()
+#    ax.set_ylim(-1.1, 1.1)
+#    ax.set_xlim(-0.005, 5)
+#    ax.grid()
+#    ax.legend(loc="upper right")
+    xdata = [[0] for _ in xrange(numLines)] #can't be empty
+    ydata = [[0] for _ in xrange(numLines)]
     replaceInitValues = True
 
     def myMin(a):
@@ -351,7 +414,7 @@ def main(argv=None):
         global ydata
         global replaceInitValues
         global lines
-        global ax
+        global axs
         global fig
         global zoomToFitX
         global zoomToFitY
@@ -359,7 +422,6 @@ def main(argv=None):
         global centerAtNow
         global horizonDurationHours
         global timeNow
-        global lineNow
 
         global showLabels
         
@@ -367,14 +429,17 @@ def main(argv=None):
         debugPrint( "data = " + str(data) )
         
         updateData(data)
-        moveNowLine()
 
         replaceInitValues = False
         
         # zoom the axes to fit all data according to the zoom options
         
-        xmin, xmax = ax.get_xlim()
-        ymin, ymax = ax.get_ylim()
+        xmin = myMin([ax.get_xlim()[0] for ax in axs.values()])
+        xmax = myMax([ax.get_xlim()[1] for ax in axs.values()])
+        ymin = myMin([ax.get_ylim()[0] for ax in axs.values()])
+        ymax = myMax([ax.get_ylim()[1] for ax in axs.values()])
+        #xmin, xmax = ax.get_xlim()
+        #ymin, ymax = ax.get_ylim()
 
         # find min/max for x-axis
         if centerAtNow:
@@ -427,19 +492,22 @@ def main(argv=None):
                     ymin = myMin((yDataMin, ymin - yGrow*(ymax - ymin)))
 
         if zoomToFitX or centerAtNow:
-            ax.set_xlim(xmin, xmax)
+            for ax in axs.values():
+                ax.set_xlim(xmin, xmax)
         if zoomToFitY:
-            ax.set_ylim(ymin, ymax)
+            for ax in axs.values():
+                ax.set_ylim(ymin, ymax)
             
         debugPrint("xdata=" + str(xdata))
         debugPrint("ydata=" + str(ydata))
-        debugPrint("lines=" + str([y.get_data() for y in lines]))
+        debugPrint("lines=" + str([y.get_data() for y in lines.values()]))
         debugPrint("staticLines=" + str(staticLines))
 
-        ax.figure.canvas.draw()
+        for ax in axs.values():
+            ax.figure.canvas.draw()
 
-        debugPrint("updated lines = " + str([line.get_data() for line in lines]))
-        return lines
+        debugPrint("updated lines = " + str([line.get_data() for line in lines.values()]))
+        return lines.values()
 
     gen = testDataGen
     if useSocket:
