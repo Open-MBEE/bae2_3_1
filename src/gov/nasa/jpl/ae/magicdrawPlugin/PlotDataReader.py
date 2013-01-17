@@ -1,5 +1,34 @@
 import re
 
+import os
+homeDir = os.getenv('HOME')
+workspacePath = homeDir + os.sep + 'proj/ae/workspace'
+mdPath = '/home/bclement/apps/MagicDraw/OpsRevMD1702-20120912'
+pluginDirName = 'LADWP'
+if 'mjackson' in homeDir: 
+    workspacePath = homeDir + os.sep + 'Documents/workspace-Helios/'
+    mdpath = '/Applications/OpsRevMD1702-20120818/'
+    pluginDirName = 'magicdrawPlugin'
+
+
+projectPath = workspacePath + os.sep + 'CS'
+pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
+                'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
+workspaceEventPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
+                'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'event'
+
+import sys
+
+def addToPath(s):
+    if not(s in sys.path):
+        sys.path.append(s)
+
+addToPath(workspaceEventPath)
+addToPath(pluginSrcPath);
+addToPath(projectPath + os.sep + 'bin');
+
+import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap as TimeVaryingPlottableMap
+
 class PlotDataReader(object):
     '''
     reads plottable values from AE output
@@ -22,49 +51,25 @@ class PlotDataReader(object):
         except:
             print("can't find file @ %s" % fileName)
             return
-        lastTime = float(0.0)
-        latestTime = float(-1.0e20)
-        earliestTime = float(1.0e20)
-        print( "MagicDrawAnimator2: before simulation, loading events from " + str(fileName) )
-        print( "MagicDrawAnimator2: before simulation, loading events from " + str(fileName) )
+        readingExecution = False
+        print( "PlotDataReader: before simulation, loading events from " + str(fileName) )
         for line in f.readlines():
             print("read line = " + line)
-            x = re.search("(\d*)[^0-9: \t\n\r\f\v]*\s*:\s*\S*\s*(\S*) -> (\S*)\s*(\S*) ==>",line)
-            y = re.search("(\S*) -> (\S*)\s*(\S*) ==>",line)
-            if x: 
-                eventTime=float(x.groups()[0])
-                lastTime = eventTime
-                action=x.groups()[2]
-                cid = x.groups()[3]
-                ctype = x.groups()[1]
-                #print("%s %s (%s)" % (action.upper(), cid, ctype))
-            elif y:
-                eventTime=lastTime
-                action=y.groups()[1]
-                cid = y.groups()[2]
-                ctype = y.groups()[0]
-                #print("%s %s (%s)" % (action.upper(), cid, ctype))
-            elif line.startswith("---"): 
-                print(line)
+            if not readingExecution and str(line).startswith("execution:"):
+                readingExecution = True;
                 continue
-            else: continue
-            #print("%s %s (%s)" % (action.upper(), cid, ctype))
-            if any([x in cid for x in ["Main"]]): 
-                #print("    ---> Skipping - can't animate Main")
+            if not readingExecution:
                 continue
-            if re.search("(_)?Activity(_.*)?(?!\S)",ctype): 
-                #print("    ---> Skipping - can't animate the Activity object!")
-                continue
-            try:
-                if eventTime < earliestTime:
-                    earliestTime = eventTime
-                if eventTime > latestTime:
-                    latestTime = eventTime
-                evt = event(eventTime,action,cid,ctype)
-                try: self.events.append(evt)
-                except: print("NESTED ARGHHHHH")
-            except: print("ARRGHHH")
-        
-        print( "MagicDrawAnimator2: finished loading events from " + str(fileName) )
-        print( "MagicDrawAnimator2: finished loading events from " + str(fileName) )
-        
+            x = re.search("^plottable ([^ {]*) ",line)
+            if x:
+                category = x.groups()[0]
+                tvm = TimeVaryingPlottableMap("")
+                tvm.fromString()
+                if category not in self.data.keys():
+                    self.data[category] = []
+                self.data[category].append(tvm)
+                print( "PlotDataReader: found " + line )
+            elif readingExecution and line.startsWith("^--- simulation start"):
+                readingExecution = False
+        print( "PlotDataReader: finished loading plottables from " + str(fileName) )
+

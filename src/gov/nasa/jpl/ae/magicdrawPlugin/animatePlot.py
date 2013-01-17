@@ -78,33 +78,32 @@ def receiveString( sock ):
 
 # create the socket, and get numLines, the number of lines to plot!
 def initSocket( host, port ):
-    if useSocket:
-        global sock
-        global numLines
-        global linenames
-        global subplotForLine
-        global subplotIds
+    global sock
+    global numLines
+    global linenames
+    global subplotForLine
+    global subplotIds
 
-        sock = OneWaySocket(host, port, False, debugMode)
-        sock.endianGet()
-        numLines = sock.unpack("i", sock.receiveInPieces(4))
-        numLines = int(numLines[0])
-        
-        linenames = []
-        subplotForLine = []
-        subplotIds = set()
+    sock = OneWaySocket(host, port, False, debugMode)
+    sock.endianGet()
+    numLines = sock.unpack("i", sock.receiveInPieces(4))
+    numLines = int(numLines[0])
+    
+    linenames = []
+    subplotForLine = []
+    subplotIds = set()
 
-        for _ in xrange(numLines):
-            name = receiveString(sock)
-            subplotId = receiveString(sock)
-            #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
-            #debugPrint("    unpacked name: %s" % linename)
-            #linenames.append(str(linename))
-            linenames.append(name)
-            subplotForLine.append(subplotId)
-            subplotIds.add(subplotId)
-        debugPrint( "numLines = " + str(numLines) )
-        debugPrint( "linenames = " + str(linenames))
+    for _ in xrange(numLines):
+        name = receiveString(sock)
+        subplotId = receiveString(sock)
+        #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
+        #debugPrint("    unpacked name: %s" % linename)
+        #linenames.append(str(linename))
+        linenames.append(name)
+        subplotForLine.append(subplotId)
+        subplotIds.add(subplotId)
+    debugPrint( "numLines = " + str(numLines) )
+    debugPrint( "linenames = " + str(linenames))
 
 
 def socketDataGen():
@@ -349,38 +348,30 @@ def main(argv=None):
     global axs
     global fig
 
-    # get port from args
     if argv is None:
         argv = sys.argv
     debugPrint( "argv = " + str(argv) )
-    if len(argv) > 1 and str(argv[1]).isdigit():
-        port = int(argv[1])
-        debugPrint("got arg for port = " + str(port) )
-    else:
-        port = defaultPort
-        debugPrint("using default port = " + str(port) )
-    if numLines < 1:
-        return
+
+    if useSocket:
+        # get port from args
+        if len(argv) > 1 and str(argv[1]).isdigit():
+            port = int(argv[1])
+            debugPrint("got arg for port = " + str(port) )
+        else:
+            port = defaultPort
+            debugPrint("using default port = " + str(port) )
+        if numLines < 1:
+            return
     
-    # connect with plotter
-    initSocket( host, port )
+        # connect with data source for plot
+        initSocket( host, port )
     
     # create plot figure
     fig = plt.figure(figsize=(25.0,6.0))
-#    ax = fig.add_subplot(111)
+    fig.subplots_adjust(hspace=2.0)
     for subplotId in subplotIds:
         addAx(subplotId)
-#    
-#    debugPrint( "xrange(numLines) = " + str(xrange(numLines)) )
-#    ii = 0
-#    for _ in xrange(numLines):
-#        addLine(ii)
-#        ii+=1
-#    addNowLine()
-#    ax.set_ylim(-1.1, 1.1)
-#    ax.set_xlim(-0.005, 5)
-#    ax.grid()
-#    ax.legend(loc="upper right")
+
     xdata = [[0] for _ in xrange(numLines)] #can't be empty
     ydata = [[0] for _ in xrange(numLines)]
     replaceInitValues = True
@@ -509,6 +500,8 @@ def main(argv=None):
         debugPrint("updated lines = " + str([line.get_data() for line in lines.values()]))
         return lines.values()
 
+        # end of run()
+
     gen = testDataGen
     if useSocket:
         gen = socketDataGen
@@ -520,6 +513,7 @@ def main(argv=None):
     ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=1, repeat=False)
     plt.show()
 
+    #end of main()
 
 if __name__ == "__main__":
     #print "I am running."

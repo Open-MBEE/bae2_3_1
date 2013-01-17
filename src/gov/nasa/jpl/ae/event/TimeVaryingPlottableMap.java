@@ -4,12 +4,14 @@
 package gov.nasa.jpl.ae.event;
 
 import java.lang.reflect.Method;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * This class is the same as TimeVaryingMap< T > but implements Plottable.
+ * This class is the same as TimeVaryingMap< V > but implements Plottable.
  *
  */
-public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
+public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                                                                      Plottable {
 
   /**
@@ -51,7 +53,7 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
    * @param name
    * @param defaultValue
    */
-  public TimeVaryingPlottableMap( String name, T defaultValue ) {
+  public TimeVaryingPlottableMap( String name, V defaultValue ) {
     super( name, defaultValue );
   }
 
@@ -59,7 +61,7 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
    * @param name
    * @param defaultValue
    */
-  public TimeVaryingPlottableMap( String name, String fileName, T defaultValue ) {
+  public TimeVaryingPlottableMap( String name, String fileName, V defaultValue ) {
     super( name, fileName, defaultValue );
   }
 
@@ -68,12 +70,12 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
    * @param defaultValue
    * @param projected
    */
-  public TimeVaryingPlottableMap( String name, T defaultValue, boolean projected ) {
+  public TimeVaryingPlottableMap( String name, V defaultValue, boolean projected ) {
     this( name, defaultValue );
     dataProjected = projected;
   }
 
-  public TimeVaryingPlottableMap( String name, String fileName, Class<T> cls, boolean projected ) {
+  public TimeVaryingPlottableMap( String name, String fileName, Class<V> cls, boolean projected ) {
     super( name, fileName, cls );
     dataProjected = projected;
   }
@@ -120,6 +122,29 @@ public class TimeVaryingPlottableMap< T > extends TimeVaryingMap< T > implements
 
   public void setProjection( boolean b ) {
     dataProjected = b;
+  }
+  
+  @Override
+  public void fromString( String s, Class< V > cls ) {
+    // skip over "plottable" and owner name
+    Pattern p = Pattern.compile( "\\s*plottable [^{]*\\s*" );
+    Matcher matcher = p.matcher( s );
+    int end = 0;
+    if ( matcher.find() ) {
+      end = matcher.end();
+    }
+    super.fromString( s.substring( end ), cls );
+  }
+
+  @Override
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append( "plottable " );
+    if ( getOwner() != null && getOwner() instanceof ParameterListener ) {
+      sb.append( ( (ParameterListener)getOwner() ).getName() );
+    }
+    sb.append( super.toString() );
+    return sb.toString();
   }
 
 }
