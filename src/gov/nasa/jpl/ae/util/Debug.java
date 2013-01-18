@@ -13,7 +13,7 @@ public class Debug {
   public static GUILog gl = getGuiLog();
   public static StringBuffer glBuf = new StringBuffer(); 
   public static StringBuffer glErrBuf = new StringBuffer();
-  
+
   public static GUILog getGuiLog() {
     Application app = Application.getInstance();
     if ( app == null ) return null;

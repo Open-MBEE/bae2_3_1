@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,6 +69,10 @@ public interface MoreToString {
   String toString( boolean withHash, boolean deep,
                    Set<Object> seen, Map<String, Object> otherOptions);
   
+  /**
+   * @return a single name or value
+   */
+  String toShortString();
   
   
   /**
@@ -135,6 +141,118 @@ public interface MoreToString {
       return toString( object, false, false, null, null );
     }
 
+    public static String toShortString( Object object ) {
+      if ( object == null ) return "null";
+      
+      // We have to make sure we get to the right method since collections
+      // require an extra boolean argument.
+      if ( object instanceof Collection ) {
+        return toShortString( (Collection<?>)object, null, true );
+      }
+      if ( object instanceof Map ) {
+        return toShortString( (Map<?,?>)object, null, true );
+      }
+      if ( object instanceof Pair ) {
+        return toShortString( (Pair<?,?>)object, null, true );
+      }
+      if ( object instanceof Map.Entry ) {
+        return toShortString( (Map.Entry<?,?>)object, null, true );
+      }
+      
+      if ( object instanceof MoreToString ) {
+        return ( (MoreToString)object ).toShortString();
+      }
+      return object.toString();
+    }
+
+    public static < T > String toShortString( Collection< T > collection,
+                                              Map< String, Object > otherOptions,
+                                              boolean checkIfMoreToString ) {
+      int formatKey = PARENTHESES;
+      if ( hasFormatOptions( otherOptions ) ) {
+        formatKey = NO_FORMAT;
+      }
+      return toShortString( collection, formatKey, otherOptions,
+                            checkIfMoreToString );
+    }
+    public static <T> String toShortString( final Collection< T > collection,
+                                            int formatKey,
+                                            Map< String, Object > otherOptions,
+                                            boolean checkIfMoreToString ) {
+      if ( checkIfMoreToString && collection instanceof MoreToString ) {
+        return ((MoreToString)collection).toShortString();
+      }
+      return toString( collection.toArray(), false, false, null, otherOptions,
+                       formatKey );
+    }
+    public static < K, V > String toShortString( Map< K, V > map,
+                                            Map< String, Object > otherOptions,
+                                            int formatKey,
+                                            boolean checkIfMoreToString ) {
+      if ( checkIfMoreToString && map instanceof MoreToString ) {
+        stuffOptionsFromKey( otherOptions, formatKey );
+        return ( (MoreToString)map ).toShortString();
+      }
+      return toString( map.entrySet().toArray(), false, false, null,
+                       otherOptions, formatKey );
+    }
+
+    public static < K, V > String toShortString( Map< K, V > map,
+                                                 Map< String, Object > otherOptions,
+                                                 boolean checkIfMoreToString ) {
+      int formatKey = CURLY_BRACES;
+      if ( hasFormatOptions( otherOptions ) ) {
+        formatKey = NO_FORMAT;
+      }
+      return toString( map, false, false, null, otherOptions, formatKey,
+                       checkIfMoreToString );
+    }
+
+    public static < K, V > String toShortString( Map.Entry< K, V > entry,
+                                            Map<String,Object> otherOptions,
+                                            int formatKey,
+                                            boolean checkIfMoreToString ) {
+      if ( checkIfMoreToString && entry instanceof MoreToString ) {
+        stuffOptionsFromKey( otherOptions, formatKey );
+        return ((MoreToString)entry).toShortString();
+      }
+      Pair< K, V > p = new Pair< K, V >( entry.getKey(), entry.getValue() );
+      return toShortString( p, otherOptions, formatKey, true );
+    }
+    public static < K, V > String toShortString( Map.Entry< K, V > entry,
+                                            Map<String,Object> otherOptions,
+                                            boolean checkIfMoreToString ) {
+      int formatKey = EQUALS;
+      if ( hasFormatOptions( otherOptions ) ) {
+        formatKey = NO_FORMAT;
+      }// else {
+      return toString( entry, false, false, null, otherOptions, formatKey,
+                       checkIfMoreToString );
+//      }
+    }
+    public static < K, V > String toShortString( Pair< K, V > pair,
+                                            Map<String,Object> otherOptions,
+                                            int formatKey,
+                                            boolean checkIfMoreToString ) {
+      if ( checkIfMoreToString && pair instanceof MoreToString ) {
+        stuffOptionsFromKey( otherOptions, formatKey );
+        return ((MoreToString)pair).toShortString();
+      }
+      return toString( new Object[]{pair.first, pair.second}, false,
+                       false, null, otherOptions, formatKey );
+    }
+    public static < K, V > String toShortString( Pair< K, V > pair,
+                                            Map<String,Object> otherOptions,
+                                            boolean checkIfMoreToString ) {
+      int formatKey = hasFormatOptions( otherOptions ) ? NO_FORMAT : PARENTHESES;
+      return toShortString( pair, otherOptions, formatKey, checkIfMoreToString );
+    }
+
+    public static < T > String toShortString( final T[] array,
+                                              Map<String,Object> otherOptions ) {
+      return toString( array, false, false, null, otherOptions );
+    }
+    
     /**
      * Writes an array to a string with MoreToString options, including an
      * explicit format key. For example, if the format key
@@ -503,6 +621,15 @@ public interface MoreToString {
       }
     }
 
+//    public static < T > String toShortString( final T[] array, int formatKey,
+//                                              boolean checkIfMoreToString ) {
+//      String[] options = getFormatOptions(otherOptions);
+//      String delimiter = options[0]; // ordered by option name
+//      String prefix = options[1];
+//      String suffix = options[2];
+//     return null;
+//   }
+
     public static < T > String toString( final T[] array,
                                          boolean withHash, boolean deep,
                                          Set< Object > seen,
@@ -543,8 +670,12 @@ public interface MoreToString {
         } else {
           sb.append( delimiter );
         }
-        sb.append( MoreToString.Helper.toString( object, withHash, deep, seen,
-                                                 otherOptions ) );
+        if ( deep && ( seen == null || !seen.contains( object ) ) ) {
+          sb.append( MoreToString.Helper.toString( object, withHash, deep, seen,
+                                                   otherOptions ) );
+        } else {
+          sb.append( MoreToString.Helper.toShortString( object ) );
+        }
       }
       sb.append( suffix );
       return sb.toString();
@@ -578,47 +709,91 @@ public interface MoreToString {
     }
     
     public static void fromString( Map< String, String > map, String s ) {
-      fromString( map, s, "[\\[{(]\\s*", ",\\s*", "\\s*[\\]})]", "\\s*=\\s*" );
+      fromString( map, s, "[\\[{(]\\s*", ",\\s*", "\\s*[\\]})]", "[\\[{(]\\s*",
+                  "\\s*=\\s*", "\\s*[\\]})]" );
     }
     
     public static void fromString( Map< String, String > map, String s,
-                                   String prefix, String delimiter,
+                                   String prefix,
+                                   String delimiter,
                                    String suffix,
-                                   String keyValueDelimiter ) {
+                                   String keyValuePrefix,
+                                   String keyValueDelimiter,
+                                   String keyValueSuffix ) {
+      
       if ( map == null ) map = new HashMap< String, String >();
       map.clear();
+      
       Pattern p = Pattern.compile(prefix);
       Matcher matcher = p.matcher( s );
       if ( !matcher.find() ) return;
-      int start = matcher.start();
-      int end = -1;
+      int start = matcher.end();
+      
       Pattern d = Pattern.compile( delimiter );
+      Pattern kvp = Pattern.compile( keyValuePrefix );
       Pattern kvd = Pattern.compile( keyValueDelimiter );
+      Pattern kvs = Pattern.compile( keyValueSuffix );
       boolean gotDelimiter = true;
       while ( gotDelimiter ) {
+        System.out.println("\nstart = " + start);
+        System.out.println("substring = " + s.substring( start ) );
+        // find key-value prefix
+        matcher = kvp.matcher( s.substring( start ) );
+        if ( !matcher.find() ) break;
+        start = start + matcher.end();
+
+        System.out.println("\nkvp match = " + matcher.group() );
+        System.out.println("matcher.start() = " + matcher.start());
+        System.out.println("matcher.end() = " + matcher.end());
+        System.out.println("\nstart = " + start);
+        System.out.println("substring = " + s.substring( start ) );
+        
         // find delimiter between key and value
         matcher = kvd.matcher( s.substring( start ) );
         if ( !matcher.find() ) break;
         // get the key as the characters before the key-value delimiter
         String key = s.substring( start, start + matcher.start() );
-        // get the value between the key-value delimiter and the delimiter between pairs
         start = start + matcher.end();
-        matcher = d.matcher( s.substring( start ) );
-        gotDelimiter = matcher.find();
-        if ( gotDelimiter ) {
-          end = start + matcher.start();
-        } else {
-          end = s.length();
-        }
-        String value = s.substring( start, end );
+
+        System.out.println("\nkvd match = " + matcher.group() );
+        System.out.println("matcher.start() = " + matcher.start());
+        System.out.println("matcher.end() = " + matcher.end());
+        System.out.println("\nkey = " + key);
+        System.out.println("\nstart = " + start);
+        System.out.println("substring = " + s.substring( start ) );
+        
+        // get the value between the key-value delimiter and the key-value suffix
+        matcher = kvs.matcher( s.substring( start ) );
+        if ( !matcher.find() ) break;
+        String value = s.substring( start, start + matcher.start() );
+        start = start + matcher.end();
+
+        System.out.println("\nkvs match = " + matcher.group() );
+        System.out.println("matcher.start() = " + matcher.start());
+        System.out.println("matcher.end() = " + matcher.end());
+        System.out.println("\nvalue = " + value);
+        System.out.println("\nstart = " + start);
+        System.out.println("substring = " + s.substring( start ) );
+
         // add the key-value pair to the map
         map.put( key, value );
-        // set the start position at the end of the delimiter to get the next pair  
+
+        // skip over the delimiter
+        matcher = d.matcher( s.substring( start ) );
+        // set the start position at the end of the delimiter to get the next pair
+        gotDelimiter = matcher.find();
         if ( gotDelimiter ) {
-          end = start + matcher.end();
+          start = start + matcher.end();
+          
+          System.out.println("\nd match = " + matcher.group() );
+          System.out.println("matcher.start() = " + matcher.start());
+          System.out.println("matcher.end() = " + matcher.end());
+          System.out.println("\nstart = " + start);
+          System.out.println("substring = " + s.substring( start ) );
         }
-        start = end;
+        
       }
+      System.out.println("parsed map = " + map );
     }
     
     private static String readLine(String format, Object... args) {
@@ -667,7 +842,16 @@ public interface MoreToString {
 //          
 //        }
 //        if ( op == null ) break;
-        
+      }
+      
+      Map<String, String> map = new HashMap< String, String >();
+      String mapString = "{(0=2.31359797761508),(84600=2.080913063156552),(85500=2.3810581138436953)}";
+      fromString( map, mapString );
+      System.out.println( "string to parse into map: " + mapString );
+      System.out.println( "map after parsing:\n" );
+      for ( Map.Entry<String, String> e : map.entrySet() ) {
+        System.out.println("key = " + e.getKey() );
+        System.out.println("value = " + e.getValue() );
       }
       System.out.println("\nbye!");
     }

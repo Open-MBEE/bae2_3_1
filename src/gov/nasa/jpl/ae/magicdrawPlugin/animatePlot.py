@@ -8,8 +8,12 @@ from InterpolatedMap import InterpolatedMap as InterpolatedMap
 from OneWaySocket import OneWaySocket
 import string
 
+# debugMode can be passed in at the command line to turn it on
 debugMode = True
+# A modes for a data sources below can be passed at the command line and
+# override these assignments 
 useSocket = True
+useFile = False
 useTable = False
 useTestData = False
 
@@ -27,7 +31,7 @@ donePlotting = False
 
 showLabels = False
 
-numLines = 4 # the default number of lines to plot
+numLines = 4 # the default number of lines to plot corresponding to test modes
 
 replaceInitValues = False #to try and fix exception do we really need this?
 
@@ -336,6 +340,68 @@ def addAx(subplotId):
     ax.legend(loc="upper right")
     return ax
 
+def pickDataMode(dataModes):
+    global dataModes
+
+    selectedMode = None
+    
+    for mode in dataModes:
+        exec("global " + mode)
+
+    numDataModesChosen = sum([(1 if eval(x) else 0) for x in dataModes])
+
+    if numDataModesChosen == 0:
+        exec(dataModes[0] + " = True")
+        return dataModes[0]
+
+    if numDataModesChosen > 1:
+        print "Warning! Multiple data source modes chosen!"
+    for mode in dataModes:
+        if eval(mode):
+            if selectedMode == None:
+                if numDataModesChosen == 1:
+                    return mode
+                selectedMode = mode
+            else:
+                exec(mode + " = False")
+
+    return selectedMode
+
+def handleCommandLineArgs(argv=None):
+    global dataModes
+    global debugMode
+    global useSocket
+    global useFile
+    global useTable
+    global useTestData
+    
+    dataModes = ["useSocket", "useFile", "useTable", "useTestData"]
+    modes = dataModes + ["debugMode"]
+    
+    selectedMode = pickDataMode(dataModes)
+
+    if argv == None:
+        return
+
+    for mode in dataModes:
+        exec(mode + ' = False')
+
+    for arg in argv:
+        if arg in modes:
+            exec(arg + ' = True')
+
+    numDataModesChosen = sum([(1 if eval(x) else 0) for x in dataModes])
+    
+    if numDataModesChosen == 0:
+        exec(selectedMode + " = True")
+    else:
+        selectedMode = pickDataMode(dataModes)
+
+    for mode in modes:
+        print(mode + " = " + str(eval(mode)))
+
+    return
+
 #
 # Main
 #
@@ -351,6 +417,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
     debugPrint( "argv = " + str(argv) )
+    handleCommandLineArgs(argv);
 
     if useSocket:
         # get port from args
@@ -517,4 +584,4 @@ def main(argv=None):
 
 if __name__ == "__main__":
     #print "I am running."
-    main()
+    main(sys.argv)

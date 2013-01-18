@@ -244,7 +244,7 @@ public class SocketClient {
         }
       }
       try {
-        Thread.sleep( 400 ); // millis
+        Thread.sleep( 100 ); // millis
       } catch ( InterruptedException e ) {
         e.printStackTrace();
       }
