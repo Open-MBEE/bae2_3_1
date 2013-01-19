@@ -1,5 +1,6 @@
 import re
-
+import InterpolatedMap
+#import SortedDict
 import os
 homeDir = os.getenv('HOME')
 workspacePath = homeDir + os.sep + 'proj/ae/workspace'
@@ -23,7 +24,13 @@ def addToPath(s):
 # access to AE Java 
 addToPath(projectPath + os.sep + 'bin');
 
-import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap as TimeVaryingPlottableMap
+#import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap as TimeVaryingPlottableMap
+
+debug = False
+def debugPrint(s, outputFile=sys.stdout):
+    if debug:
+        outputFile.write(s + '\n')
+
 
 class PlotDataReader(object):
     '''
@@ -40,38 +47,45 @@ class PlotDataReader(object):
         
     def read(self, fileName):
         self.fileName = fileName
-        print("reading events from " + fileName)
+        debugPrint("reading events from " + fileName)
         self.events = []
         try: f = open(fileName,"r")
         except:
             print("can't find file @ %s" % fileName)
             return
         readingExecution = False
-        print( "PlotDataReader: before simulation, loading events from " + str(fileName) )
+        debugPrint( "PlotDataReader: before simulation, loading events from " + str(fileName) )
         for line in f.readlines():
-            print("read line = " + line)
+            debugPrint("read line = " + line)
             if not readingExecution and str(line).startswith("execution:"):
                 readingExecution = True;
                 continue
             if not readingExecution:
                 continue
 #            x = re.search("^([A-Za-z0-9_-]*=)?plottable ([^ {]*) ",line)
-            x = re.search("^plottable ([^ {]*) ",line)
+            x = re.search("^plottable ([^ {]*) ([^ {]*)(.*)",line)
             if x:
                 category = x.groups()[0]
-                tvm = TimeVaryingPlottableMap("")
-                tvm.fromString(line, None)
+                name = x.groups()[1]
+                mapString = x.groups()[2]
+                m = PlotDataReader.parseMap(mapString)
+#                tvm = TimeVaryingPlottableMap("")
+#                tvm.fromString(line, None)
                 if category not in self.data.keys():
-                    self.data[category] = []
-                self.data[category].append(tvm)
-                print( "PlotDataReader: found " + line )
+                    self.data[category] = {}
+#                self.data[category].append(tvm)
+                self.data[category][name] = m
+                debugPrint( "PlotDataReader: found " + name + " " + category + " " + str(m) )
+                for p in m:
+                    debugPrint(p)
             elif readingExecution and line.startswith("^--- simulation start"):
                 readingExecution = False
         print( "PlotDataReader: finished loading plottables from " + str(fileName) )
 
     @staticmethod
     def parseMapWith(s, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2):
-        zmap = {}
+        zmap = InterpolatedMap.InterpolatedMap()
+        #zmap = SortedDict.SortedDict()
         outerPatternStrings = [prefix1, delimiter1, suffix1]
         innerPatternStrings = [prefix2, delimiter2, suffix2]
         outerPatterns = [re.compile(ps) for ps in outerPatternStrings]
@@ -90,54 +104,56 @@ class PlotDataReader(object):
                 break
             pos = m.end()
 
-            print("\nkvp match = " + m.group() );
-            print("matcher.start() = " + str(m.start()));
-            print("matcher.end() = " + str(m.end()));
-            print("\npos = " + str(pos));
+            debugPrint("\nkvp match = " + m.group() );
+            debugPrint("matcher.start() = " + str(m.start()));
+            debugPrint("matcher.end() = " + str(m.end()));
+            debugPrint("\npos = " + str(pos));
 
             #find key-value delimiter
             m = innerPatterns[1].search(s, pos)
             if m == None:
                 break
             #get the key before the delimiter
-            key = s[pos, m.start()]
+            st = m.start()
+            key = s[pos:st]
             pos = m.end()
             
-            print("\nkvd match = " + m.group() );
-            print("matcher.start() = " + str(m.start()));
-            print("matcher.end() = " + str(m.end()));
-            print("key = " + key)
-            print("\npos = " + str(pos));
+            debugPrint("\nkvd match = " + m.group() );
+            debugPrint("matcher.start() = " + str(m.start()));
+            debugPrint("matcher.end() = " + str(m.end()));
+            debugPrint("key = " + key)
+            debugPrint("\npos = " + str(pos));
 
             #get the value between the key-value delimiter and the key-value suffix
             m = innerPatterns[2].search(s, pos)
             if m == None:
                 break
             #get the key before the delimiter
-            value = s[pos, m.start()]
+            value = s[pos:m.start()]
             pos = m.end()
             
-            print("\nkvs match = " + m.group() );
-            print("matcher.start() = " + str(m.start()));
-            print("matcher.end() = " + str(m.end()));
-            print("value = " + value)
-            print("\npos = " + str(pos));
+            debugPrint("\nkvs match = " + m.group() );
+            debugPrint("matcher.start() = " + str(m.start()));
+            debugPrint("matcher.end() = " + str(m.end()));
+            debugPrint("value = " + value)
+            debugPrint("\npos = " + str(pos));
 
             #add the key to the map
-            zmap[key] = value
+            zmap[int(key)] = float(value)
             
             #skip over the delimiter
             m = outerPatterns[1].search(s, pos)
-            gotDelimiter = (m == None)
+            gotDelimiter = (m != None)
             if gotDelimiter:
                 pos = m.end()
 
-                print("\nd match = " + m.group() );
-                print("matcher.start() = " + str(m.start()));
-                print("matcher.end() = " + str(m.end()));
-                print("\npos = " + str(pos));
+                debugPrint("\nd match = " + m.group() );
+                debugPrint("matcher.start() = " + str(m.start()));
+                debugPrint("matcher.end() = " + str(m.end()));
+                debugPrint("\npos = " + str(pos));
 
-        print("parsed map = " + str(zmap))
+        #zmap.sorted()
+        debugPrint("parsed map = " + str(zmap))
         return zmap
         
     @staticmethod
@@ -146,36 +162,36 @@ class PlotDataReader(object):
         prefix2, delimiter2, suffix2 = "[\\[{(]\\s*", "\\s*=\\s*", "\\s*[\\]})]"
         return PlotDataReader.parseMapWith(s, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2)
     
-    def reread(self, fileName):
-        self.fileName = fileName
-        print("reading events from " + fileName)
-        self.events = []
-        try: f = open(fileName,"r")
-        except:
-            print("can't find file @ %s" % fileName)
-            return
-        readingExecution = False
-        print( "PlotDataReader: before simulation, loading events from " + str(fileName) )
-        for line in f.readlines():
-            print("read line = " + line)
-            if not readingExecution and str(line).startswith("execution:"):
-                readingExecution = True;
-                continue
-            if not readingExecution:
-                continue
-#            x = re.search("^([A-Za-z0-9_-]*=)?plottable ([^ {]*) ",line)
-            x = re.search("^plottable ([^ {]*) ",line)
-            if x:
-                category = x.groups()[0]
-                tvm = TimeVaryingPlottableMap("")
-                tvm.fromString(line, None)
-                if category not in self.data.keys():
-                    self.data[category] = []
-                self.data[category].append(tvm)
-                print( "PlotDataReader: found " + line )
-            elif readingExecution and line.startswith("^--- simulation start"):
-                readingExecution = False
-        print( "PlotDataReader: finished loading plottables from " + str(fileName) )
+#    def reread(self, fileName):
+#        self.fileName = fileName
+#        debugPrint("reading events from " + fileName)
+#        self.events = []
+#        try: f = open(fileName,"r")
+#        except:
+#            print("can't find file @ %s" % fileName)
+#            return
+#        readingExecution = False
+#        debugPrint( "PlotDataReader: before simulation, loading events from " + str(fileName) )
+#        for line in f.readlines():
+#            debugPrint("read line = " + line)
+#            if not readingExecution and str(line).startswith("execution:"):
+#                readingExecution = True;
+#                continue
+#            if not readingExecution:
+#                continue
+##            x = re.search("^([A-Za-z0-9_-]*=)?plottable ([^ {]*) ",line)
+#            x = re.search("^plottable ([^ {]*) ",line)
+#            if x:
+#                category = x.groups()[0]
+#                tvm = TimeVaryingPlottableMap("")
+#                tvm.fromString(line, None)
+#                if category not in self.data.keys():
+#                    self.data[category] = []
+#                self.data[category].append(tvm)
+#                debugPrint( "PlotDataReader: found " + line )
+#            elif readingExecution and line.startswith("^--- simulation start"):
+#                readingExecution = False
+#        print( "PlotDataReader: finished loading plottables from " + str(fileName) )
 
 #
 # Main test

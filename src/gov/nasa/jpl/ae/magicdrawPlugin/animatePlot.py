@@ -4,7 +4,8 @@ print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from InterpolatedMap import InterpolatedMap as InterpolatedMap
+from PlotDataReader import PlotDataReader
+from InterpolatedMap import InterpolatedMap
 from OneWaySocket import OneWaySocket
 import string
 
@@ -16,6 +17,9 @@ useSocket = True
 useFile = False
 useTable = False
 useTestData = False
+
+dataModes = None
+fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt" # default file to read if useFile
 
 genXValues = True
 
@@ -84,7 +88,7 @@ def receiveString( sock ):
 def initSocket( host, port ):
     global sock
     global numLines
-    global linenames
+    global lineNames
     global subplotForLine
     global subplotIds
 
@@ -93,7 +97,7 @@ def initSocket( host, port ):
     numLines = sock.unpack("i", sock.receiveInPieces(4))
     numLines = int(numLines[0])
     
-    linenames = []
+    lineNames = []
     subplotForLine = []
     subplotIds = set()
 
@@ -102,12 +106,12 @@ def initSocket( host, port ):
         subplotId = receiveString(sock)
         #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
         #debugPrint("    unpacked name: %s" % linename)
-        #linenames.append(str(linename))
-        linenames.append(name)
+        #lineNames.append(str(linename))
+        lineNames.append(name)
         subplotForLine.append(subplotId)
         subplotIds.add(subplotId)
     debugPrint( "numLines = " + str(numLines) )
-    debugPrint( "linenames = " + str(linenames))
+    debugPrint( "lineNames = " + str(lineNames))
 
 
 def socketDataGen():
@@ -115,7 +119,7 @@ def socketDataGen():
     global lines
     global lineIdToIndex
     global numLines
-    global linenames
+    global lineNames
     global subplotForLine
     global subplotIds
     global timeNow
@@ -175,15 +179,15 @@ def socketDataGen():
                     staticLines[lineId] = {}
                     idx = len(lines)
                     lineIdToIndex[lineId] = idx 
-                    debugPrint("ADDING EXTRA LINE to lines with names " + str(linenames))
-                    linenames.append(lineId)
+                    debugPrint("ADDING EXTRA LINE to lines with names " + str(lineNames))
+                    lineNames.append(lineId)
                     subplotForLine.append(subplotId)
                     if subplotId not in subplotIds:
                         ax = addAx(subplotId)
                     else:
                         ax = axs[subplotId]
                     addLine(ax, idx)
-                    debugPrint("adding line " + linenames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
+                    debugPrint("adding line " + lineNames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
                     ax.legend(loc="upper right")
 
                 staticLines[lineId][0] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
@@ -216,6 +220,65 @@ def dataFromTable():
         cnt+=1
         debugPrint("incremented counter")
 
+# Need this to get numLines
+def initFileData():
+    global fileName
+    global fileData
+    global numLines
+    global lineNames
+    global subplotForLine
+    global subplotIds
+    global xdata
+    global ydata
+
+    fileData = PlotDataReader(fileName)
+    if fileData == None or fileData.data == None or len(fileData.data) == 0:
+        print("No data found for " + fileName)
+        return
+    #numLines = sum([ len([lineData for lineData in subplotData.values()]) for subplotData in fileData.data.values() ])
+
+    lineNames = []
+    subplotForLine = []
+    subplotIds = set()
+    xdata = []
+    ydata = []
+    for subplotItem in fileData.data.items():
+        subplotIds.add(subplotItem[0])
+        for lineItems in subplotItem[1].items():
+            lineNames.append(lineItems[0])
+            subplotForLine.append(subplotItem[0])
+            #i = len(lineNames) - 1
+            lineData = lineItems[1]
+            xdata.append(lineData.keys())
+            ydata.append(lineData.values())
+    numLines = len(lineNames)
+    debugPrint( "numLines = " + str(numLines) )
+    debugPrint( "lineNames = " + str(lineNames))
+    debugPrint( "subplotIds = " + str(subplotIds))
+    return
+
+# TODO - here's where simulation code with timescaling and sleeps would go.
+def dataFromFile():
+    return # TODO
+    global timeNow
+    global fileName
+    global fileData
+    global numLines
+    debugPrint("dataFromFile()")
+
+    if fileData == None or fileData.data == None or len(fileData.data) == 0:
+        print("No data found for " + fileName)
+        return
+
+    timeNow = fileData.data.keys()[0]
+    done = False
+    while not done:
+        for subplotItem in fileData.data.items():
+            for lineItems in subplotItem[1]:
+                lineData = lineItems[1]
+        yield timeNow, [table[timeNow][i] for i in range(numLines)]
+        debugPrint("tried to yield data for plot")
+
 def moveNowLine(nowLine):
     global timeNow
     #global nowLines
@@ -234,7 +297,7 @@ def addNowLine(ax):
     #lineId = -1.010101 # something random that we hope is not used elsewhere - HACK
     #staticLines[lineId] = {}
     #lineIdToIndex[lineId] = len(lines)
-    linenames.append('_nolegend_')
+    lineNames.append('_nolegend_')
     nowLine = addLine(ax, None)
     nowLines.append(nowLine)
     #staticLines[lineId][0] = [timeNow-0.00001, timeNow+0.00001]
@@ -249,6 +312,8 @@ def updateData(data):
     global lines
     global nowLines
 
+    if data == None:
+        return
     debugPrint("try to update data for plot")
     t,y = data
     # update the plot data
@@ -301,7 +366,7 @@ def addLine(ax = None, index = None):
                       markeredgewidth=1, markersize=7, \
                       markerfacecolor='y',color = col,marker=mrk)[0]
     if index != None:
-        newLine.set_label(str(linenames[index]))
+        newLine.set_label(str(lineNames[index]))
     else:
         index = n
     lines[index] = newLine
@@ -313,7 +378,7 @@ def addAx(subplotId):
     global subplotIds
     global axs
     global fig
-    global linenames
+    global lineNames
     
     subplotIds.add(subplotId)
     idx = [s for s in subplotIds].index(subplotId)
@@ -327,7 +392,7 @@ def addAx(subplotId):
     ii = 0
     for _ in xrange(numLines):
         if subplotForLine[ii] == subplotId:
-            debugPrint("adding line " + linenames[ii] + " for subplot " + subplotId + ", ax=" + str(ax))
+            debugPrint("adding line " + lineNames[ii] + " for subplot " + subplotId + ", ax=" + str(ax))
             addLine(ax, ii)
         ii+=1
     addNowLine(ax)
@@ -341,7 +406,7 @@ def addAx(subplotId):
     return ax
 
 def pickDataMode(dataModes):
-    global dataModes
+    #global dataModes
 
     selectedMode = None
     
@@ -374,21 +439,28 @@ def handleCommandLineArgs(argv=None):
     global useFile
     global useTable
     global useTestData
+    global fileName
+    global port
     
     dataModes = ["useSocket", "useFile", "useTable", "useTestData"]
     modes = dataModes + ["debugMode"]
     
     selectedMode = pickDataMode(dataModes)
 
-    if argv == None:
+    if argv == None or len(argv) < 2:
         return
 
     for mode in dataModes:
-        exec(mode + ' = False')
+        exec mode + ' = False' in globals()
 
-    for arg in argv:
+    for arg in argv[1:]:
         if arg in modes:
-            exec(arg + ' = True')
+            exec arg + ' = True' in globals()
+        elif arg.isdigit():
+            port = arg
+        else: # fileName must not be just digits
+            fileName = arg
+            debugPrint("setting file to read to " + fileName)
 
     numDataModesChosen = sum([(1 if eval(x) else 0) for x in dataModes])
     
@@ -413,25 +485,43 @@ def main(argv=None):
     global lines
     global axs
     global fig
+    global fileName
+    global fileData
+    global port
 
     if argv is None:
         argv = sys.argv
     debugPrint( "argv = " + str(argv) )
+    port = None
     handleCommandLineArgs(argv);
+    fileData = None
 
     if useSocket:
-        # get port from args
-        if len(argv) > 1 and str(argv[1]).isdigit():
-            port = int(argv[1])
-            debugPrint("got arg for port = " + str(port) )
-        else:
+        if port == None:
+            for arg in argv: #.reverse():
+                if str(arg).isdigit():
+                    port = int(arg)
+                    break
+#        # get port from last arg
+#        if len(argv) > 1 and str(argv[-1]).isdigit():
+#            port = int(argv[-1])
+#            debugPrint("got arg for port = " + str(port) )
+#        else:
+        if port == None:
             port = defaultPort
             debugPrint("using default port = " + str(port) )
+        else:
+            debugPrint("got arg for port = " + str(port) )
+
         if numLines < 1:
+            print("no lines!")
             return
     
         # connect with data source for plot
         initSocket( host, port )
+    
+    elif useFile:
+        initFileData()
     
     # create plot figure
     fig = plt.figure(figsize=(25.0,6.0))
@@ -439,9 +529,10 @@ def main(argv=None):
     for subplotId in subplotIds:
         addAx(subplotId)
 
-    xdata = [[0] for _ in xrange(numLines)] #can't be empty
-    ydata = [[0] for _ in xrange(numLines)]
-    replaceInitValues = True
+    if xdata == None:
+        xdata = [[0] for _ in xrange(numLines)] #can't be empty
+        ydata = [[0] for _ in xrange(numLines)]
+        replaceInitValues = True
 
     def myMin(a):
         if type(a) not in [list, tuple, set]:
@@ -572,14 +663,18 @@ def main(argv=None):
     gen = testDataGen
     if useSocket:
         gen = socketDataGen
+    elif useTable:
+        gen = dataFromTable
+    elif useFile:
+        gen = dataFromFile
+        
+    if useFile:
+        run(None)
     else:
-        if useTable:
-            gen = dataFromTable
-
-    # must store return value, even if unused, or else it will stop plotting after the first point
-    ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=1, repeat=False)
+        # must store return value, even if unused, or else it will stop plotting after the first point
+        ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=1, repeat=False)
     plt.show()
-
+    print("done with main()")
     #end of main()
 
 if __name__ == "__main__":
