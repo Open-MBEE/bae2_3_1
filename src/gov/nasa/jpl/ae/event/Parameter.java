@@ -550,6 +550,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   }
 
   @Override
+  public String toShortString() {
+    return MoreToString.Helper.toShortString( value );
+  }
+
+  @Override
   public String toString() {
     return toString( true, false, true, null, null );
   }
@@ -578,7 +583,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       sb.append( "=" );
     }
     if ( !deep ) {
-      sb.append( value == null ? "null" : value.toString() );
+      sb.append( value == null ? "null" : MoreToString.Helper.toShortString( value ) );
     } else if ( isGrounded( false, null ) ) {
       T value = getValueNoPropagate();
       String valueString = null;

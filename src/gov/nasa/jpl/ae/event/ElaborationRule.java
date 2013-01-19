@@ -287,6 +287,12 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   }
 
   @Override
+  public String toShortString() {
+    return MoreToString.Helper.toShortString( getEventInvocations() ) + " if "
+    + MoreToString.Helper.toShortString( getCondition() );
+  }
+
+  @Override
   public String toString() {
     return "ElaborationRule: " + this.getEventInvocations() + " if "
            + getCondition();

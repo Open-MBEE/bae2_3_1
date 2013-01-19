@@ -150,6 +150,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     @Override
+    public String toShortString() {
+      return getName() + ".elaborationsConstraint";
+    }
+
+    @Override
     public String toString() {
       // TODO -- should make this look evaluable, ex: condition -> eventExists
       return getName() + ".elaborationsConstraint";
@@ -293,6 +298,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         }
       }
       return s;
+    }
+
+    @Override
+    public String toShortString() {
+      // TODO -- maybe make this look evaluable, ex: v.getValue(t) == fCall.arg0
+      return getName() + ".effectsConstraint";
     }
 
     @Override
@@ -567,7 +578,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   public String toString() {
-    return toString( Debug.isOn(), true, null );
+    return toString( Debug.isOn(), false, null );
   }
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#toString(boolean, boolean, java.util.Set, java.util.Map)
@@ -795,6 +806,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                + " unsatisfied constraints: "
                + Utils.join( solver.getUnsatisfiedConstraints(),
                              "\nConstraint: " ) );
+    w.println("execution:\n" + executionToString() + "\n");
     simulate( 1e15, os, false );
     return true;
   }

@@ -160,6 +160,11 @@ public class ParameterListenerImpl extends HasIdImpl
     return new ParameterListenerImpl( this );
   }
 
+  @Override
+  public String toShortString() {
+    return getName();
+  }
+
   /*
    * (non-Javadoc)
    * 

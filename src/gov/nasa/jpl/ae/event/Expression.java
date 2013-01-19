@@ -278,6 +278,11 @@ public class Expression< ResultType > extends HasIdImpl
 	}
 
   @Override
+  public String toShortString() {
+    return MoreToString.Helper.toShortString( expression );
+  }
+
+  @Override
   public String toString() {
     return MoreToString.Helper.toString( expression );
   }

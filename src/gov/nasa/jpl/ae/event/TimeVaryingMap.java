@@ -175,6 +175,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
 
     @Override
+    public String toShortString() {
+      return MoreToString.Helper.toShortString( this, null, true );
+    }
+
+    @Override
     public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
       return toString( withHash, deep, seen, null );
     }
@@ -1355,7 +1360,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   public void fromCsvString( String s, Class<V> cls ) {
     Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s*", "", "\\s*,\\s*" );
+    MoreToString.Helper.fromString( map, s, "", "\\s*", "", "", "\\s*,\\s*", "" );
     fromStringMap( map, cls );
   }
   
@@ -1366,13 +1371,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     File f = FileUtils.findFile( fileName );
     String s = FileUtils.fileToString( f );
     Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "\\s*,\\s*" );
+    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "\\s*,\\s*", "" );
     fromStringMap( map, cls );
   }
   
   @Override
+  public String toShortString() {
+    return getName();
+  }
+
+  @Override
   public String toString() {
-    return toString( Debug.isOn(), true, null );
+    return toString( Debug.isOn(), false, null );
   }
 //  public String toString(boolean withOwner, boolean withHash,
 //                         boolean deep, Set< Object > seen,

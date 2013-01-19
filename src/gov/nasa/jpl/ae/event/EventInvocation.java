@@ -214,6 +214,11 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   }
 
   @Override
+  public String toShortString() {
+    return eventName + "()"; // + memberAssignments;
+  }
+  
+  @Override
   public String toString() {
     return "EventInvocation:" + eventName + Utils.toString(arguments); // + memberAssignments;
   }

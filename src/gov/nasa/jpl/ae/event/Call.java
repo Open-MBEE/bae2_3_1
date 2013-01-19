@@ -438,6 +438,21 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   @Override
+  public String toShortString() {
+    StringBuffer sb = new StringBuffer();
+    if ( getMember() == null ) {
+      sb.append( "null" );
+    } else {
+      sb.append( getMember().getName() );
+      sb.append( MoreToString.Helper.toShortString( arguments, 
+                                                    MoreToString.PARENTHESES,
+                                                    null,
+                                                    true ) );
+    }
+    return sb.toString();
+  }
+  
+  @Override
   public String toString() {
     return MoreToString.Helper.toString( this );
   }

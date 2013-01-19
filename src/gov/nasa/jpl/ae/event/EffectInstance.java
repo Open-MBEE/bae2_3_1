@@ -146,6 +146,12 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
   }
 
   @Override
+  public String toShortString() {
+    Object[] array = new Object[]{ startTime, duration, effect };
+    return MoreToString.Helper.toShortString( array, null );
+  }
+
+  @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
     return toString( withHash, deep, seen, null );
   }

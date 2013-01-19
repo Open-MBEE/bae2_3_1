@@ -3,7 +3,11 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.MoreToString;
+
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -137,14 +141,16 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   }
 
   @Override
-  public String toString() {
+  public String toString( boolean withHash, boolean deep, Set< Object > seen,
+                          Map< String, Object > otherOptions ) {
     StringBuffer sb = new StringBuffer();
     sb.append( "plottable " );
     if ( getOwner() != null && getOwner() instanceof ParameterListener ) {
-      sb.append( ( (ParameterListener)getOwner() ).getName() );
+      sb.append( ( (ParameterListener)getOwner() ).getName() + " " );
     }
-    sb.append( super.toString() );
+    sb.append( super.toString( withHash, deep, seen, otherOptions ) );
     return sb.toString();
   }
 
+  
 }

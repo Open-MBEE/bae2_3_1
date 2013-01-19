@@ -458,6 +458,24 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
+  public String toShortString() {
+    StringBuffer sb = new StringBuffer();
+
+    sb.append("(");
+
+    if ( parameter == null ) sb.append("null");
+    else sb.append( parameter.toShortString() );
+
+    sb.append( " <-- " );
+    
+    if ( expression == null ) sb.append( "null" );
+    else sb.append( expression.toShortString() );
+
+    sb.append(")");
+    return sb.toString();
+  }
+  
+  @Override
   public String toString() {
     return MoreToString.Helper.toString( this );
   }
