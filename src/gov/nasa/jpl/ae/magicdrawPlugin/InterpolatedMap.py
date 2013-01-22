@@ -1,8 +1,8 @@
-import UserDict
+from SortedDict import SortedDict
 import re
 import os
 
-class InterpolatedMap(UserDict.IterableUserDict):
+class InterpolatedMap(SortedDict):
     
     @staticmethod
     def getNumPattern():
@@ -15,19 +15,19 @@ class InterpolatedMap(UserDict.IterableUserDict):
     #     self={}
     def __getitem__(self, i=None):
         if i in self.keys():
-            return UserDict.IterableUserDict.__getitem__(self, i)
+            return SortedDict.__getitem__(self, i)
         if len(self.keys()) == 0:
             return None
         sortedKeys = self.keys()
         sortedKeys.sort()
         last = sortedKeys[0]
-        if i < 0: return UserDict.IterableUserDict.__getitem__(self, last)
+        if i < 0: return SortedDict.__getitem__(self, last)
         for k in sortedKeys:
             if last <= i < k:
-                return UserDict.IterableUserDict.__getitem__(self, last)
+                return SortedDict.__getitem__(self, last)
             else:
                 last = k
-        return UserDict.IterableUserDict.__getitem__(self, sortedKeys[len(sortedKeys)-1])
+        return SortedDict.__getitem__(self, sortedKeys[len(sortedKeys)-1])
     
     # TODO:  This needs to be cleaned up
     def getNumParameters(self, command):
@@ -79,7 +79,7 @@ class InterpolatedMap(UserDict.IterableUserDict):
                     midKey = float(lastKey) + (float(k) - float(lastKey)) * (floatValue - float(lastVal)) / (float(thisVal) - float(lastVal))
                     print "returning key = " + str(midKey)
                     return midKey
-                print "found value=" + str(value) + " not foudn between " + str(lastKey) + " and " + str(k)
+                print "found value=" + str(value) + " not found between " + str(lastKey) + " and " + str(k)
                 return None
             else:
                 lastKey = k

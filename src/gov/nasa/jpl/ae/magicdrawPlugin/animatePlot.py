@@ -304,7 +304,7 @@ def addNowLine(ax):
     #staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
     moveNowLine(nowLine)
     
-def updateData(data):
+def updateData(data = (None, None)):
     global numLines
     global xdata
     global ydata
@@ -324,7 +324,7 @@ def updateData(data):
             xdata[i][0] = t
             debugPrint( "ydata[" + str(i) + "][" + str(t) + " = " + str(y[i]) + "]" )
             ydata[i][0] = y[i]
-        else:
+        elif t != None and y != None:
             # add the data to the end of the list
             debugPrint( "xdata[" + str(i) + "].append(" + str(t) + ")" )
             xdata[i].append(t)
@@ -525,7 +525,7 @@ def main(argv=None):
     
     # create plot figure
     fig = plt.figure(figsize=(25.0,6.0))
-    fig.subplots_adjust(hspace=2.0)
+    fig.subplots_adjust(hspace=0.5)
     for subplotId in subplotIds:
         addAx(subplotId)
 
@@ -556,7 +556,7 @@ def main(argv=None):
                     maxxest = z
             return maxxest
 
-    def run(data):
+    def run(data = (None, None)):
         debugPrint("run()")
         global numLines
         global xdata
@@ -669,7 +669,7 @@ def main(argv=None):
         gen = dataFromFile
         
     if useFile:
-        run(None)
+        run()
     else:
         # must store return value, even if unused, or else it will stop plotting after the first point
         ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=1, repeat=False)
