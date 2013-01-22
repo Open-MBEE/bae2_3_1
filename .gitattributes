@@ -4462,6 +4462,7 @@ src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils2.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawExecutor.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/OneWaySocket.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/PlotDataReader.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/SortedDict.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/getCustomerData.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/main.py -text svneol=unset#text/plain
