@@ -139,7 +139,10 @@ class PlotDataReader(object):
             debugPrint("\npos = " + str(pos));
 
             #add the key to the map
-            zmap[int(key)] = float(value)
+            try:
+                zmap[int(key)] = float(value)
+            except:
+                print("Error! Failed to add key-value to plot: (" + str(key) + "=" + str(value) + ")")
             
             #skip over the delimiter
             m = outerPatterns[1].search(s, pos)

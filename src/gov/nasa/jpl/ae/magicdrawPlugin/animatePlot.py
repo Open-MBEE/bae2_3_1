@@ -488,6 +488,7 @@ def main(argv=None):
     global fileName
     global fileData
     global port
+    global subplotIds
 
     if argv is None:
         argv = sys.argv
