@@ -7,10 +7,11 @@ import matplotlib.animation as animation
 from PlotDataReader import PlotDataReader
 from InterpolatedMap import InterpolatedMap
 from OneWaySocket import OneWaySocket
+import collections
 import string
 
 # debugMode can be passed in at the command line to turn it on
-debugMode = True
+debugMode = False
 # A modes for a data sources below can be passed at the command line and
 # override these assignments 
 useSocket = True
@@ -27,7 +28,7 @@ zoomToFitX = True
 zoomToFitY = True
 zoomToFitOnlyVisibleY = True
 centerAtNow = False
-horizonDurationHours = 2
+horizonDurationHours = 24
 timeNow = horizonDurationHours / 1.6
 nowLines = []
 
@@ -60,11 +61,10 @@ ymax = None
 
 staticLines = {}
 lineIdToIndex = {}
-
-table = InterpolatedMap()
-table[0]=[3,4,1,0]
-table[10]=[7,4,8,4]
-table[15]=[5,10,1,10]
+subplotIds = set()
+lineNames = []
+subplotForLine = []
+defaultSubplotTitle = ""
 
 
 def debugPrint( s ):
@@ -102,16 +102,9 @@ def initSocket( host, port ):
     numLines = sock.unpack("i", sock.receiveInPieces(4))
     numLines = int(numLines[0])
     
-    lineNames = []
-    subplotForLine = []
-    subplotIds = set()
-
     for _ in xrange(numLines):
         name = receiveString(sock)
         subplotId = receiveString(sock)
-        #linename = sock.unpack(str(nameLength*2)+"c",msg)[0]
-        #debugPrint("    unpacked name: %s" % linename)
-        #lineNames.append(str(linename))
         lineNames.append(name)
         subplotForLine.append(subplotId)
         subplotIds.add(subplotId)
@@ -129,7 +122,7 @@ def interpolateForAllX():
     newXdata = [[] for _ in xrange(len(xdata))]
     newYdata = [[] for _ in xrange(len(xdata))]
     done = False
-    while not done:
+    while not done and x != None:
         done = True
         for i in range(len(xdata)):
             value = None
@@ -158,10 +151,17 @@ def updateBounds(subId, datx, daty, updateLimits=True):
     global zoomToFitX
     global zoomToFitY
     global centerAtNow
+    global timeNow
+    global horizonDurationHours
     global xGrow
     global yGrow
     global axs
 
+    # find min/max for x-axis
+    if centerAtNow:
+        # the limits on the x-axis should include the horizon duration
+        xmin[subId] = timeNow - horizonDurationHours / 2 
+        xmax[subId] = timeNow + horizonDurationHours / 2
     if zoomToFitX and datx != None and len(datx) > 0:
 #        mn = myMin([xmin[subId], datx])
 #        mx = myMax([xmax[subId], datx])
@@ -271,10 +271,11 @@ def socketDataGen():
                 arr = sock.receive()
                 debugPrint("received data for plot: " + str(arr))
                 # get x-axis values
-                if lineId not in staticLines:
-                    staticLines[lineId] = {}
+                plotLineId = str(subplotId) + "_" + str(lineId)
+                if plotLineId not in staticLines:
+                    staticLines[plotLineId] = {}
                     idx = len(lines)
-                    lineIdToIndex[lineId] = idx 
+                    lineIdToIndex[plotLineId] = idx 
                     debugPrint("ADDING EXTRA LINE to lines with names " + str(lineNames))
                     lineNames.append(lineId)
                     subplotForLine.append(subplotId)
@@ -286,10 +287,22 @@ def socketDataGen():
                     debugPrint("adding line " + lineNames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
                     ax.legend(loc="upper right")
 
-                staticLines[lineId][0] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
-                staticLines[lineId][1] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
-                lines[lineIdToIndex[lineId]].set_data(staticLines[lineId][0], staticLines[lineId][1])
-                updateBounds(subplotId, staticLines[lineId][0], staticLines[lineId][1])
+                staticLines[plotLineId][0] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
+                staticLines[plotLineId][1] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
+                lines[lineIdToIndex[plotLineId]].set_data(staticLines[plotLineId][0], staticLines[plotLineId][1])
+                debugPrint("lineNames = " + str(lineNames))
+                debugPrint("subplotForLine = " + str(subplotForLine))
+                debugPrint("subplotId = " + str(subplotId))
+                debugPrint("lineId = " + str(lineId))
+                debugPrint("lineIdToIndex = " + str(lineIdToIndex))
+                debugPrint("lineIdToIndex[plotLineId] = " + str(lineIdToIndex[plotLineId]))
+                debugPrint("subplotForLine = " + str(subplotForLine))
+                debugPrint("lineId = " + str(lineId))
+                debugPrint("plotLineId = " + str(plotLineId))
+                debugPrint("staticLines[plotLineId][0] = " + str(staticLines[plotLineId][0]))
+                debugPrint("staticLines[plotLineId][1] = " + str(staticLines[plotLineId][1]))
+                debugPrint("lines.keys() = " + str(lines.keys()))
+                initializePlotBounds(subplotId)
 
                 #yield 
         except RuntimeError:
@@ -308,9 +321,16 @@ def testDataGen():
 
 def dataFromTable():
     global timeNow
+    
+    table = InterpolatedMap()
+    table[0]=[3,4,1,0]
+    table[10]=[7,4,8,4]
+    table[15]=[5,10,1,10]
+    
     debugPrint("dataFromTable()")
     cnt = 0
-    while cnt < 100:
+    #subplotIds.add("tableData")
+    while cnt <= 30:
         timeNow = cnt
         debugPrint("try to yield data for plot")
         yield cnt, [table[cnt][i] for i in range(numLines)]
@@ -335,9 +355,6 @@ def initFileData():
         return
     #numLines = sum([ len([lineData for lineData in subplotData.values()]) for subplotData in fileData.data.values() ])
 
-    lineNames = []
-    subplotForLine = []
-    subplotIds = set()
     xdata = []
     ydata = []
     for subplotItem in fileData.data.items():
@@ -355,9 +372,22 @@ def initFileData():
     debugPrint( "subplotIds = " + str(subplotIds))
     return
 
+
+def flatten(lst, useValuesInsteadOfKeys=False):
+    print("flatten(" + str(lst) + ")")
+    newLst = []
+    for e in lst:
+        if useValuesInsteadOfKeys and isinstance(e, dict):
+            newLst.extend(flatten(e.values()))
+        if isinstance(e, collections.Iterable) and not isinstance(e, str):
+            newLst.extend(flatten(e))
+        else:
+            newLst.append(e)
+    return newLst
+
+# TODO - needs testing
 # TODO - here's where simulation code with timescaling and sleeps would go.
 def dataFromFile():
-    return # TODO
     global timeNow
     global fileName
     global fileData
@@ -368,41 +398,48 @@ def dataFromFile():
         print("No data found for " + fileName)
         return
 
-    timeNow = fileData.data.keys()[0]
-    done = False
-    while not done:
+    mapLists = [ namedMaps.values() for namedMaps in file.data.values() if namedMaps != None ]
+    keys = flatten([[ m.keys() for m in mList if len(m.keys()) > 0] for mList in mapLists])
+    s = set()
+    for k in keys():
+        s.add(k)
+    keys = [k for k in s]
+    keys.sort()
+    for k in keys:
+        timeNow = k
+        dat = []
         for subplotItem in fileData.data.items():
+            subplotId = subplotItem[0]
             for lineItems in subplotItem[1]:
+                lineName = lineItems[0]
                 lineData = lineItems[1]
-        yield timeNow, [table[timeNow][i] for i in range(numLines)]
-        debugPrint("tried to yield data for plot")
+                dat.append(lineData[timeNow])
+        yield timeNow, dat
+        debugPrint("tried to yield data for plot: " + str(dat))
 
 def moveNowLine(nowLine):
     global timeNow
-    #global nowLines
 
-    xcoords = [timeNow, timeNow] #[timeNow-0.00001, timeNow+0.00001]
+    xcoords = [timeNow, timeNow]
     ycoords = [-1e20, 1e20]
     debugPrint("moveNowLine: " + str(xcoords) + ", " + str(ycoords))
     nowLine.set_data(xcoords, ycoords)
 
-def addNowLine(ax):
+def addNowLine(subplotId):
     global staticLines
     global lines
     global nowLines
     global timeNow
+    global axs
     
-    #lineId = -1.010101 # something random that we hope is not used elsewhere - HACK
-    #staticLines[lineId] = {}
-    #lineIdToIndex[lineId] = len(lines)
+    ax = axs[subplotId]
     lineNames.append('_nolegend_')
+    subplotForLine.append(subplotId)
     nowLine = addLine(ax, None)
     nowLines.append(nowLine)
-    #staticLines[lineId][0] = [timeNow-0.00001, timeNow+0.00001]
-    #staticLines[lineId][1] = [arr[i] for i in range(1,len(arr)) if np.mod(i,plotDimension) == 0]
     moveNowLine(nowLine)
 
-def initializePlotBounds():
+def initializePlotBounds(subplotId = None):
     global numLines
     global xdata
     global ydata
@@ -421,12 +458,18 @@ def initializePlotBounds():
     global lineIdToIndex
     global subplotForLine
 
-    xmin = {}
-    xmax = {}
-    ymin = {}
-    ymax = {}
+    if xmin == None:
+        xmin = {}
+        xmax = {}
+        ymin = {}
+        ymax = {}
     
-    for subId in axs.keys():
+    if subplotId == None:
+        subs = axs.keys()
+    else:
+        subs = [subplotId]
+    
+    for subId in subs:
         ax = axs[subId]
     
         xmin[subId], xmax[subId] = ax.get_xlim()
@@ -445,20 +488,6 @@ def initializePlotBounds():
                  len(staticLines.values()[0]) > 0 ):
                 xdat.append([staticLines[dat][0] for dat in staticLines if subplotForLine[lineIdToIndex[dat]] == subId])
             updateBounds(subId, xdat, None, False)
-#                xDataMaxStatic = myMax(statDat)
-#                xDataMinStatic = myMin(statDat)
-#                xDataMax = myMax([xDataMax, xDataMaxStatic])
-#                xDataMin = myMax([xDataMin, xDataMinStatic])
-#            xDataMax = myMax(xdat)
-#            xDataMin = myMin(xdat)
-#            if xDataMax != xDataMin:
-#                #xmin = xDataMin - xGrow*(xDataMax - xDataMin)
-#                xmax[subId] = xDataMax + xGrow*(xDataMax - xDataMin)
-#            else:
-#                if xDataMax >= xmax[subId]:
-#                    xmax[subId] = myMax((xDataMax, xmax[subId] + xGrow*(xmax[subId] - xmin[subId])))
-#                if xDataMin < xmin[subId]:
-#                    xmin[subId] = myMin((xDataMin, xmin[subId] - xGrow*(xmax[subId] - xmin[subId])))
     
         # find min/max for y-axis
         if zoomToFitY:
@@ -472,24 +501,18 @@ def initializePlotBounds():
                  len(staticLines) > 0 and \
                  len(staticLines.values()) > 0 and \
                  len(staticLines.values()[0]) > 1 ):
-#                yDataMaxStatic = myMax([staticLines[dat][1] for dat in staticLines])
-#                yDataMinStatic = myMin([staticLines[dat][1] for dat in staticLines])
-#                yDataMax = myMax([yDataMax, yDataMaxStatic])
-#                yDataMin = myMin([yDataMin, yDataMinStatic])
                 yvals.append([staticLines[dat][1] for dat in staticLines if subplotForLine[lineIdToIndex[dat]] == subId])
             updateBounds(subId, None, yvals, False)
-#            if yDataMax != yDataMin:
-#                ymin[subId] = yDataMin - yGrow*(yDataMax - yDataMin)
-#                ymax[subId] = yDataMax + yGrow*(yDataMax - yDataMin)
-#            else:
-#                if yDataMax >= ymax[subId]:
-#                    ymax[subId] = myMax((yDataMax, ymax[subId] + yGrow*(ymax[subId] - ymin[subId])))
-#                if yDataMin < ymin:
-#                    ymin[subId] = myMin((yDataMin, ymin[subId] - yGrow*(ymax[subId] - ymin[subId])))
     if axs.keys() != None and len(axs.keys()) > 0:
         for subId in axs.keys():
             updateBounds(subId, None, None, True)
     interpolateForAllX()
+    for subId in axs.keys():
+        debugPrint("plot bounds for " + subId + ":")
+        debugPrint("xmin = " + str(xmin[subId]))
+        debugPrint("xmax = " + str(xmax[subId]))
+        debugPrint("ymin = " + str(ymin[subId]))
+        debugPrint("ymax = " + str(ymax[subId]))
     return
 
 def updateData(data = (None, None)):
@@ -509,33 +532,32 @@ def updateData(data = (None, None)):
 
     if xmin == None:
         initializePlotBounds()
-    elif y != None:
+    elif t != None and y != None:
         if len(y) > 0:
             updateBounds(subplotForLine[0], [t], None)
-        for i in xrange(len(y)):
-            updateBounds(subplotForLine[i], None, [y[i]])
+            for i in range(len(y)):
+                updateBounds(subplotForLine[i], None, [y[i]])
 
-    if data == None:
-        return
     debugPrint("try to update data for plot")
     # update the plot data
     for i in range(numLines):
-        if replaceInitValues:
-            # overwrite any existing data (like initial values for plot)
-            debugPrint( "xdata[" + str(i) + "][" + str(t) + " = " + str(t) + "]" )
-            xdata[i][0] = t
-            if y != None:
-                debugPrint( "ydata[" + str(i) + "][" + str(t) + " = " + str(y[i]) + "]" )
-                ydata[i][0] = y[i]
-            else:
-                debugPrint( "ydata[" + str(i) + "][" + str(t) + " = 0]" )
-                ydata[i][0] = 0
-        elif t != None and y != None:
-            # add the data to the end of the list
-            debugPrint( "xdata[" + str(i) + "].append(" + str(t) + ")" )
-            xdata[i].append(t)
-            debugPrint( "ydata[" + str(i) + "].append(" + str(y[i]) + ")" )
-            ydata[i].append(y[i])
+        if t != None and y != None:
+            if replaceInitValues:
+                # overwrite any existing data (like initial values for plot)
+                debugPrint( "xdata[" + str(i) + "][" + str(t) + " = " + str(t) + "]" )
+                xdata[i][0] = t
+                if y != None:
+                    debugPrint( "ydata[" + str(i) + "][" + str(t) + " = " + str(y[i]) + "]" )
+                    ydata[i][0] = y[i]
+                else:
+                    debugPrint( "ydata[" + str(i) + "][" + str(t) + " = 0]" )
+                    ydata[i][0] = 0
+            elif t != None and y != None:
+                # add the data to the end of the list
+                debugPrint( "xdata[" + str(i) + "].append(" + str(t) + ")" )
+                xdata[i].append(t)
+                debugPrint( "ydata[" + str(i) + "].append(" + str(y[i]) + ")" )
+                ydata[i].append(y[i])
         # apply the data to the plot lines
         debugPrint(str(lines))
         lines[i].set_data(xdata[i], ydata[i])
@@ -598,6 +620,12 @@ def addAx(subplotId):
     axs[subplotId] = ax
     debugPrint("ax.get_geometry() = " + str(ax.get_geometry()))
     ii = 0
+    if len(subplotForLine) == 0:
+        for _ in xrange(numLines):
+            subplotForLine.append(subplotId)
+    if len(lineNames) == 0:
+        for _ in xrange(numLines):
+            lineNames.append('_nolegend_')        
     for _ in xrange(numLines):
         if subplotForLine[ii] == subplotId:
             debugPrint("adding line " + lineNames[ii] + " for subplot " + subplotId + ", ax=" + str(ax))
@@ -623,7 +651,7 @@ def pickDataMode(dataModes):
     numDataModesChosen = sum([(1 if eval(x) else 0) for x in dataModes])
 
     if numDataModesChosen == 0:
-        exec(dataModes[0] + " = True")
+        exec dataModes[0] + " = True" #in globals() # may not be needed bc of global cmds exec'd above 
         return dataModes[0]
 
     if numDataModesChosen > 1:
@@ -662,7 +690,7 @@ def handleCommandLineArgs(argv=None):
             if arg in modes:
                 exec arg + ' = True' in globals()
             elif arg.isdigit():
-                port = arg
+                port = int(arg)
             else: # fileName must not be just digits
                 fileName = arg
                 debugPrint("setting file to read to " + fileName)
@@ -675,7 +703,7 @@ def handleCommandLineArgs(argv=None):
         selectedMode = pickDataMode(dataModes)
 
     for mode in modes:
-        print(mode + " = " + str(eval(mode)))
+        debugPrint(mode + " = " + str(eval(mode)))
 
     if useSocket:
         if port == None:
@@ -712,6 +740,46 @@ def myMax(a):
             if maxxest == None or z > maxxest:
                 maxxest = z
         return maxxest
+
+def run(data = (None, None)):
+    debugPrint("run()")
+    global numLines
+    global xdata
+    global ydata
+    global replaceInitValues
+    global lines
+    global axs
+    global fig
+    global zoomToFitX
+    global zoomToFitY
+    global zoomToFitOnlyVisibleY
+    global centerAtNow
+    global horizonDurationHours
+    global timeNow
+
+    global showLabels
+    
+    
+    debugPrint( "data = " + str(data) )
+    
+    updateData(data)
+        
+    debugPrint("xdata=" + str(xdata))
+    debugPrint("ydata=" + str(ydata))
+    debugPrint("lines=" + str([y.get_data() for y in lines.values()]))
+    debugPrint("staticLines=" + str(staticLines))
+
+    for ax in axs.values():
+        try:
+            ax.figure.canvas.draw()
+        except:
+            print("error")
+
+    debugPrint("updated lines = " + str([str(line.get_data()) + "\n" for line in lines.values()]))
+    return lines.values()
+
+    # end of run()
+
 
 #
 # Main
@@ -756,123 +824,19 @@ def main(argv=None):
     # create plot figure
     fig = plt.figure(figsize=(25.0,6.0))
     fig.subplots_adjust(hspace=0.5)
+    if len(subplotIds) == 0:
+        subplotIds.add(defaultSubplotTitle)
     for subplotId in subplotIds:
         addAx(subplotId)
-    for ax in axs.values():
-        addNowLine(ax)
+    for subplotId in subplotIds:
+        addNowLine(subplotId)
 
     if xdata == None:
         xdata = [[0] for _ in xrange(numLines)] #can't be empty
         ydata = [[0] for _ in xrange(numLines)]
         replaceInitValues = True
 
-    def run(data = (None, None)):
-        debugPrint("run()")
-        global numLines
-        global xdata
-        global ydata
-        global replaceInitValues
-        global lines
-        global axs
-        global fig
-        global zoomToFitX
-        global zoomToFitY
-        global zoomToFitOnlyVisibleY
-        global centerAtNow
-        global horizonDurationHours
-        global timeNow
-
-        global showLabels
-        
-        
-        debugPrint( "data = " + str(data) )
-        
-        updateData(data)
-
-#        # zoom the axes to fit all data according to the zoom options
-#        
-#        xmin = myMin([ax.get_xlim()[0] for ax in axs.values()])
-#        xmax = myMax([ax.get_xlim()[1] for ax in axs.values()])
-#        ymin = myMin([ax.get_ylim()[0] for ax in axs.values()])
-#        ymax = myMax([ax.get_ylim()[1] for ax in axs.values()])
-#        #xmin, xmax = ax.get_xlim()
-#        #ymin, ymax = ax.get_ylim()
-#
-#        # find min/max for x-axis
-#        if centerAtNow:
-#            # the limits on the x-axis should include the horizon duration
-#            xmin = timeNow - horizonDurationHours / 2 
-#            xmax = timeNow + horizonDurationHours / 2
-#        if zoomToFitX:
-#            xDataMax = myMax(xdata)
-#            xDataMin = myMin(xdata)
-#            if ( staticLines != None and \
-#                 len(staticLines) > 0 and \
-#                 len(staticLines.values()) > 0 and \
-#                 len(staticLines.values()[0]) > 0 ):
-#                xDataMaxStatic = myMax([staticLines[dat][0] for dat in staticLines])
-#                xDataMinStatic = myMin([staticLines[dat][0] for dat in staticLines])
-#                xDataMax = myMax([xDataMax, xDataMaxStatic])
-#                xDataMin = myMax([xDataMin, xDataMinStatic])
-#            if xDataMax != xDataMin:
-#                #xmin = xDataMin - xGrow*(xDataMax - xDataMin)
-#                xmax = xDataMax + xGrow*(xDataMax - xDataMin)
-#            else:
-#                if xDataMax >= xmax:
-#                    xmax = myMax((xDataMax, xmax + xGrow*(xmax - xmin)))
-#                if xDataMin < xmin:
-#                    xmin = myMin((xDataMin, xmin - xGrow*(xmax - xmin)))
-#
-#        # find min/max for y-axis
-#        if zoomToFitY:
-#            yvals = [[ydata[i][j] for j in range(len(ydata[i])) \
-#                      if ((not zoomToFitOnlyVisibleY) or \
-#                          (xdata[i][j] >= xmin and xdata[i][j] <= xmax)) ] \
-#                     for i in range(len(ydata))]
-#            yDataMax = myMax(yvals)
-#            yDataMin = myMin(yvals)
-#            if ( staticLines != None and \
-#                 len(staticLines) > 0 and \
-#                 len(staticLines.values()) > 0 and \
-#                 len(staticLines.values()[0]) > 1 ):
-#                yDataMaxStatic = myMax([staticLines[dat][1] for dat in staticLines])
-#                yDataMinStatic = myMin([staticLines[dat][1] for dat in staticLines])
-#                yDataMax = myMax([yDataMax, yDataMaxStatic])
-#                yDataMin = myMin([yDataMin, yDataMinStatic])
-#            if yDataMax != yDataMin:
-#                ymin = yDataMin - yGrow*(yDataMax - yDataMin)
-#                ymax = yDataMax + yGrow*(yDataMax - yDataMin)
-#            else:
-#                if yDataMax >= ymax:
-#                    ymax = myMax((yDataMax, ymax + yGrow*(ymax - ymin)))
-#                if yDataMin < ymin:
-#                    ymin = myMin((yDataMin, ymin - yGrow*(ymax - ymin)))
-#
-#        if zoomToFitX or centerAtNow:
-#            for subId, ax in axs.items():
-#                ax.set_xlim(xmin[subId], xmax[subId])
-#        if zoomToFitY:
-#            for subId, ax in axs.items():
-#                ax.set_ylim(ymin[subId], ymax[subId])
-            
-        debugPrint("xdata=" + str(xdata))
-        debugPrint("ydata=" + str(ydata))
-        debugPrint("lines=" + str([y.get_data() for y in lines.values()]))
-        debugPrint("staticLines=" + str(staticLines))
-
-        for ax in axs.values():
-            for line in ax.get_lines():
-                print("x:" + str(line.get_xdata()))
-                print("y:" + str(line.get_ydata()))
-            try:
-                ax.figure.canvas.draw()
-            except:
-                print("error")
-
-        debugPrint("updated lines = " + str([line.get_data() for line in lines.values()]))
-        return lines.values()
-
-        # end of run()
+    initializePlotBounds()
 
     gen = testDataGen
     if useSocket:
