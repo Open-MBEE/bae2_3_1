@@ -1,4 +1,5 @@
 from SortedDict import SortedDict
+from bisect import bisect_left, bisect_right
 import re
 import os
 
@@ -14,20 +15,42 @@ class InterpolatedMap(SortedDict):
     # def __init__(self):
     #     self={}
     def __getitem__(self, i=None):
-        if i in self.keys():
-            return SortedDict.__getitem__(self, i)
-        if len(self.keys()) == 0:
+        size = len(self._sorted_keys)
+        if size == 0:
             return None
-        sortedKeys = self.keys()
-        sortedKeys.sort()
-        last = sortedKeys[0]
-        if i < 0: return SortedDict.__getitem__(self, last)
-        for k in sortedKeys:
-            if last <= i < k:
-                return SortedDict.__getitem__(self, last)
-            else:
-                last = k
-        return SortedDict.__getitem__(self, sortedKeys[len(sortedKeys)-1])
+        if i == None:
+            return SortedDict.__getitem__(self, self._sorted_keys[0])
+
+        indexOfFirstGreaterOrEqual = bisect_left(self._sorted_keys, i)
+        
+        if size > indexOfFirstGreaterOrEqual:
+            if self._sorted_keys[indexOfFirstGreaterOrEqual] == i:
+                return SortedDict.__getitem__(self, i)
+        if indexOfFirstGreaterOrEqual == 0:
+            return None
+        return SortedDict.__getitem__(self, self._sorted_keys[indexOfFirstGreaterOrEqual-1])
+    
+    def getIndexOfNextKey(self, k):
+        bisect_right(self._sorted_keys, k)
+
+    def getNextKey(self, k):
+        nki = self.getIndexOfNextKey(k)
+        if nki >= len(self._sorted_keys):
+            return None
+        if nki < 0:
+            return None
+        return self._sorted_keys[nki]
+
+    def getIndexOfFirstEqualOrGreaterKey(self, k):
+        bisect_left(self._sorted_keys, k)
+
+    def getPreviousKey(self, k):
+        egki = self.getIndexOfFirstEqualOrGreaterKey(k)
+        if egki <= 0:
+            return None
+        if egki > len(self._sorted_keys):
+            return None
+        return self._sorted_keys[egki-1]
     
     # TODO:  This needs to be cleaned up
     def getNumParameters(self, command):

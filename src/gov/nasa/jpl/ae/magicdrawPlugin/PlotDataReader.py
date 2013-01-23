@@ -165,37 +165,6 @@ class PlotDataReader(object):
         prefix2, delimiter2, suffix2 = "[\\[{(]\\s*", "\\s*=\\s*", "\\s*[\\]})]"
         return PlotDataReader.parseMapWith(s, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2)
     
-#    def reread(self, fileName):
-#        self.fileName = fileName
-#        debugPrint("reading events from " + fileName)
-#        self.events = []
-#        try: f = open(fileName,"r")
-#        except:
-#            print("can't find file @ %s" % fileName)
-#            return
-#        readingExecution = False
-#        debugPrint( "PlotDataReader: before simulation, loading events from " + str(fileName) )
-#        for line in f.readlines():
-#            debugPrint("read line = " + line)
-#            if not readingExecution and str(line).startswith("execution:"):
-#                readingExecution = True;
-#                continue
-#            if not readingExecution:
-#                continue
-##            x = re.search("^([A-Za-z0-9_-]*=)?plottable ([^ {]*) ",line)
-#            x = re.search("^plottable ([^ {]*) ",line)
-#            if x:
-#                category = x.groups()[0]
-#                tvm = TimeVaryingPlottableMap("")
-#                tvm.fromString(line, None)
-#                if category not in self.data.keys():
-#                    self.data[category] = []
-#                self.data[category].append(tvm)
-#                debugPrint( "PlotDataReader: found " + line )
-#            elif readingExecution and line.startswith("^--- simulation start"):
-#                readingExecution = False
-#        print( "PlotDataReader: finished loading plottables from " + str(fileName) )
-
 #
 # Main test
 #
