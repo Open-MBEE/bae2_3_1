@@ -767,21 +767,41 @@ public interface MoreToString {
         if ( !matcher.find() ) break;
         String value = s.substring( start, start + matcher.start() );
         start = start + matcher.end();
+        boolean foundValue = matcher.start() != 0;
 
         System.out.println("\nkvs match = " + matcher.group() );
         System.out.println("matcher.start() = " + matcher.start());
         System.out.println("matcher.end() = " + matcher.end());
-        System.out.println("\nvalue = " + value);
+        if ( foundValue ) {
+          System.out.println("\nvalue = " + value);
+        }
         System.out.println("\nstart = " + start);
         System.out.println("substring = " + s.substring( start ) );
 
-        // add the key-value pair to the map
-        map.put( key, value );
+        if ( foundValue ) {
+          // add the key-value pair to the map
+          map.put( key, value );
+        }
 
         // skip over the delimiter
         matcher = d.matcher( s.substring( start ) );
         // set the start position at the end of the delimiter to get the next pair
         gotDelimiter = matcher.find();
+        
+        if ( !foundValue ) {
+          if ( gotDelimiter ) {
+            foundValue = matcher.start() != 0;
+            if ( !foundValue ) {
+              System.err.println("Error! fromString(): no value parsed from " + s.substring(start));
+            }
+            value = s.substring( start, start + matcher.start() );
+          } else {
+            value = s.substring( start );
+          }
+          System.out.println("\nvalue = " + value);
+          map.put( key, value );          
+        }
+
         if ( gotDelimiter ) {
           start = start + matcher.end();
           

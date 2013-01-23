@@ -11,8 +11,10 @@ import gov.nasa.jpl.ae.solver.Random;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Formatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -140,6 +142,14 @@ public class Utils {
   public static String spaces( int n ) {
     return repeat( " ", n );
   }
+  
+  public static String numberWithLeadingZeroes( int n, int totalChars ) {
+    Formatter formatter = new Formatter(Locale.US);
+    String suffix = "" + formatter.format( "%0" + totalChars + "d", n );
+    formatter.close();
+    return suffix;
+  }        
+
   
   // Check if string has really got something.
   public static boolean isNullOrEmpty( String s ) {
