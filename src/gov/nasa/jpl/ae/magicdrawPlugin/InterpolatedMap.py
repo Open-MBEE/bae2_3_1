@@ -14,18 +14,18 @@ class InterpolatedMap(SortedDict):
     """A map from time to value"""
     # def __init__(self):
     #     self={}
-    def __getitem__(self, i=None):
+    def __getitem__(self, k=None):
         size = len(self._sorted_keys)
         if size == 0:
             return None
-        if i == None:
+        if k == None:
             return SortedDict.__getitem__(self, self._sorted_keys[0])
 
-        indexOfFirstGreaterOrEqual = bisect_left(self._sorted_keys, i)
+        indexOfFirstGreaterOrEqual = bisect_left(self._sorted_keys, k)
         
         if size > indexOfFirstGreaterOrEqual:
-            if self._sorted_keys[indexOfFirstGreaterOrEqual] == i:
-                return SortedDict.__getitem__(self, i)
+            if self._sorted_keys[indexOfFirstGreaterOrEqual] == k:
+                return SortedDict.__getitem__(self, k)
         if indexOfFirstGreaterOrEqual == 0:
             return None
         return SortedDict.__getitem__(self, self._sorted_keys[indexOfFirstGreaterOrEqual-1])

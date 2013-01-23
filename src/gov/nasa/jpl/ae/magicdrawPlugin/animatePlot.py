@@ -1,15 +1,3 @@
-import os
-import sys
-print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from PlotDataReader import PlotDataReader
-from InterpolatedMap import InterpolatedMap
-from OneWaySocket import OneWaySocket
-import collections
-import string
-
 # debugMode can be passed in at the command line to turn it on
 debugMode = False
 # A modes for a data sources below can be passed at the command line and
@@ -22,6 +10,37 @@ useTestData = False
 dataModes = None
 fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt" # default file to read if useFile
 
+timeout = 20 # seconds of no data
+
+usingTk = True
+
+if usingTk:
+    # imports for Tk backend
+    import matplotlib
+    matplotlib.use('TkAgg')
+    
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+    
+    from Tkinter import *
+    import threading
+
+    # vars for Tk backend
+    root = Tk()
+
+import os
+import sys
+import Queue
+import threading
+print "PYTHONPATH = " + str(os.getenv("PYTHONPATH"))
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from PlotDataReader import PlotDataReader
+from InterpolatedMap import InterpolatedMap
+from OneWaySocket import OneWaySocket
+import collections
+import string
+
 genXValues = True
 
 zoomToFitX = True
@@ -30,9 +49,13 @@ zoomToFitOnlyVisibleY = True
 centerAtNow = False
 horizonDurationHours = 24
 timeNow = horizonDurationHours / 1.6
+redrawEveryNthTime = 1
+
+queue = None
+
 nowLines = []
 
-donePlotting = False
+doneReceiving = False
 
 showLabels = False
 
@@ -110,6 +133,8 @@ def initSocket( host, port ):
         subplotIds.add(subplotId)
     debugPrint( "numLines = " + str(numLines) )
     debugPrint( "lineNames = " + str(lineNames))
+    spawnQueue()
+    return
 
 def interpolateForAllX():
     global xdata
@@ -211,6 +236,64 @@ def updateBounds(subId, datx, daty, updateLimits=True):
         axs[subId].set_ylim(ymin[subId], ymax[subId])
     return
 
+def queueSocketData(sock, queue):
+    #global sock
+
+    #queue = args[0]
+    doneReceiving = False
+
+    while 1:
+        if doneReceiving:
+            break
+        try:
+            # receive a string telling whether receiving data at timepoint or 
+            # update a series of data
+            dataType = receiveString(sock) #sock.receive()
+            dat = [dataType]
+            if dataType == 'quit' :
+                donePlotting = True
+                break
+            if dataType == 'timepointData' :
+                debugPrint("try to receive data for plot")
+                arr = sock.receive()
+                debugPrint("received data for plot: " + str(arr))
+                if arr == None:
+                    break
+                dat.append(arr)
+            else:
+                #if len(arr) != expectedLength: # HACK -- what if the size were coincidentally the same?
+                debugPrint("static line")
+                # We are receiving pairs of x,y values to plot.
+                # The first number in the array is an id for plot line, so
+                # we can replace it if it's an update.
+                lineId = receiveString(sock) #sock.receive()
+                dat.append(lineId)
+                debugPrint("received lineId=" + str(lineId))
+                subplotId = receiveString(sock) #sock.receive()
+                dat.append(subplotId)
+                debugPrint("received subplotId=" + str(subplotId))
+                debugPrint("try to receive data for plot")
+                arr = sock.receive()
+                debugPrint("received data for plot: " + str(arr))
+                dat.append(arr)
+            queue.put(dat)
+        except:
+            debugPrint("error receiving data")
+    debugPrint("done queueing data")
+
+def spawnQueue():
+    global queue
+    global qthread
+    global sock
+
+    queue = Queue.Queue()
+    qthread = threading.Thread(target=queueSocketData, args=(sock, queue))
+    qthread.daemon = True
+    qthread.start()
+
+    return qthread
+
+
 def socketDataGen():
     global sock
     global lines
@@ -221,7 +304,10 @@ def socketDataGen():
     global subplotIds
     global timeNow
     #global nowLines
-    global donePlotting
+    global doneReceiving
+    global queue
+    
+    global timeout
 
     cnt = 0
     if genXValues:
@@ -230,18 +316,27 @@ def socketDataGen():
         yRange = range(numLines)
     #yield 0, [0.0 for n in yRange]
     while 1:
-        if donePlotting:
+        if doneReceiving:
             break
         try:
+            if queue == None:
+                break
+            dat = None
+            try:
+                dat = queue.get(True, timeout)
+            except:
+                pass
+            if dat == None:
+                break
             # receive a string telling whether receiving data at timepoint or 
             # update a series of data
-            dataType = receiveString(sock) #sock.receive()
+            dataType = dat[0]
             if dataType == 'quit' :
-                donePlotting = True
+                doneReceiving = True
                 break
             if dataType == 'timepointData' :
                 debugPrint("try to receive data for plot")
-                arr = sock.receive()
+                arr = dat[1]
                 debugPrint("received data for plot: " + str(arr))
                 if arr == None:
                     break
@@ -260,15 +355,15 @@ def socketDataGen():
                 # We are receiving pairs of x,y values to plot.
                 # The first number in the array is an id for plot line, so
                 # we can replace it if it's an update.
-                lineId = receiveString(sock) #sock.receive()
+                lineId = dat[1]
                 debugPrint("received lineId=" + str(lineId))
-                subplotId = receiveString(sock) #sock.receive()
+                subplotId = dat[2]
                 debugPrint("received subplotId=" + str(subplotId))
                 #lineId = arr[0]
                 # REVIEW -- we could also put in a dimension for 3D plots.
                 plotDimension = 2
                 debugPrint("try to receive data for plot")
-                arr = sock.receive()
+                arr = dat[3]
                 debugPrint("received data for plot: " + str(arr))
                 # get x-axis values
                 plotLineId = str(subplotId) + "_" + str(lineId)
@@ -741,6 +836,7 @@ def myMax(a):
                 maxxest = z
         return maxxest
 
+count = 0
 def run(data = (None, None)):
     debugPrint("run()")
     global numLines
@@ -759,6 +855,9 @@ def run(data = (None, None)):
 
     global showLabels
     
+    global count
+    global redrawEveryNthTime
+    global queue
     
     debugPrint( "data = " + str(data) )
     
@@ -769,17 +868,67 @@ def run(data = (None, None)):
     debugPrint("lines=" + str([y.get_data() for y in lines.values()]))
     debugPrint("staticLines=" + str(staticLines))
 
-    for ax in axs.values():
-        try:
-            ax.figure.canvas.draw()
-        except:
-            print("error")
+    if count % redrawEveryNthTime == 0:
+        for ax in axs.values():
+            try:
+                ax.figure.canvas.draw()
+            except:
+                print("error")
+    count = count + 1
+
+    if queue != None and not queue.empty():
+        redrawEveryNthTime = int(1 + queue.qsize() / 2)
 
     debugPrint("updated lines = " + str([str(line.get_data()) + "\n" for line in lines.values()]))
     return lines.values()
 
     # end of run()
 
+def initTk():
+    global root
+    #root = Tk()
+    root.option_add('*Font', 'Verdana 10')
+    root.title(defaultSubplotTitle)
+
+def quit():
+    global root
+    if usingTk:
+        root.quit()
+        #root.destroy()
+
+def makeTkCanvas():
+    global fig
+    global root
+
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    canvas.show()
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+    toolbar = NavigationToolbar2TkAgg(canvas, root)
+    toolbar.update()
+    canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
+    button = Button(root, text="Quit", command=lambda root=root:quit()).pack()
+
+def update_task(gen):
+    """
+    Update plots from socket here...
+    """
+    global root
+
+    debugPrint("updateTask()")
+
+    time_period = 20
+
+    # read line without blocking
+    try:
+        data = gen.next()
+        if data:
+            debugPrint("generated data = " + str(data))
+            run(data)
+        root.update_idletasks()
+        root.after(time_period, update_task, gen)
+    except:
+        debugPrint("no more data")
+    return
 
 #
 # Main
@@ -802,6 +951,9 @@ def main(argv=None):
     global useFile
     global useTable
     global useTestData
+    
+    global usingTk
+    global root
 
     if argv is None:
         argv = sys.argv
@@ -838,6 +990,10 @@ def main(argv=None):
 
     initializePlotBounds()
 
+    if usingTk:
+        initTk()
+        makeTkCanvas()
+
     gen = testDataGen
     if useSocket:
         gen = socketDataGen
@@ -849,9 +1005,15 @@ def main(argv=None):
     if useFile:
         run()
     else:
-        # must store return value, even if unused, or else it will stop plotting after the first point
-        ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=1, repeat=False)
-    plt.show()
+        if usingTk:
+                root.after(1, update_task, gen())
+        else:
+            # must store return value, even if unused, or else it will stop plotting after the first point
+            ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=0, repeat=False)
+    if usingTk:
+        root.mainloop()
+    else:
+        plt.show()
     print("done with main()")
     #end of main()
 
