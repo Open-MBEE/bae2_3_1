@@ -15,7 +15,9 @@ import gov.nasa.jpl.ae.util.Utils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,6 +66,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 
       (int)( 6000 + ( ( System.currentTimeMillis() / 1000 ) % 2000 ) );
+  protected Thread readStdoutPlotThread = null;
+  protected Thread readStderrPlotThread = null;
+  
   //  protected static java.util.Random portRandomNumberGenerator =
 //      new java.util.Random( System.currentTimeMillis() );
 //  protected Pair<Integer, Integer > portRange = new Pair( 65000, 66000 );
@@ -362,6 +367,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
     w.println("--- simulation end ---");
     closePlotSocket();
+    joinIoThreads();
   }
 
   protected void getPlotProcessOutput() {
@@ -449,16 +455,17 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       plotProcess = rt.exec( pythonExe + " animatePlot.py " + port, newEnv, f );
                              //new String[] { pythonPath, mplPath }, f );
       // Allow a half second for the process to start.
-      Thread t = new Thread( new Runnable() {
+      readStdoutPlotThread = new Thread( new Runnable() {
         // save the debug state since it could be changed by another thread
-        boolean debugOn = Debug.isOn();
+        public boolean debugOn = Debug.isOn();
+        public BufferedReader reader = null;
        
         @Override
         public void run() {
           if (debugOn)
             System.out.println( "[plot]: process output:" );
-          java.io.InputStream is = plotProcess.getInputStream();
-          java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+          InputStream is = plotProcess.getInputStream();
+          reader = new java.io.BufferedReader(new InputStreamReader(is));
           // And print each line
           String s = null;
           try {
@@ -466,22 +473,22 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
               if (debugOn)
                 System.out.println("[plot]: " + s);
             }
-            is.close();
+            reader.close();
           } catch ( IOException e ) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
         }
       });
-      Thread t2 = new Thread( new Runnable() {
-        boolean debugOn = Debug.isOn();
-       
+      readStderrPlotThread = new Thread( new Runnable() {
+        public boolean debugOn = Debug.isOn();
+        public BufferedReader reader = null;
         @Override
         public void run() {
           if (debugOn)
             System.err.println( "[plot]: process error output:" );
-          java.io.InputStream is = plotProcess.getErrorStream();
-          java.io.BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(is));
+          InputStream is = plotProcess.getErrorStream();
+          reader = new BufferedReader(new InputStreamReader(is));
           // And print each line
           String s = null;
           try {
@@ -489,15 +496,15 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
               if (debugOn)
                 System.err.println("[plot]: " + s);
             }
-            is.close();
+            reader.close();
           } catch ( IOException e ) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
         }
       });
-      t.start();
-      t2.start();
+      readStdoutPlotThread.start();
+      readStderrPlotThread.start();
 
       try {
         Thread.sleep( 3000 );
@@ -640,6 +647,20 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   private void closePlotSocket() {
     if ( plotSocket != null && plotSocket.isConnected() ) {
       plotSocket.close();
+    }
+  }
+  
+  protected void joinIoThreads() {
+    if ( readStderrPlotThread != null ) {
+      try {
+        readStderrPlotThread.join( 20000 ); // millis
+        readStdoutPlotThread.join( 20000 ); // millis
+//        readStderrPlotThread.reader.close();
+//        readStdoutPlotThread.reader.close();
+      } catch ( InterruptedException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 

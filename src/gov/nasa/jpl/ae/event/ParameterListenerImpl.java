@@ -45,13 +45,14 @@ public class ParameterListenerImpl extends HasIdImpl
   // Constants
   
   protected double timeoutSeconds = 1800.0;
-  protected int maxLoopsWithNoProgress = 500;
-  protected long maxPassesAtConstraints = 500;
+  protected int maxLoopsWithNoProgress = 200;
+  protected long maxPassesAtConstraints = 3000;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
   protected boolean snapshotSimulationDuringSolve = true;
   protected boolean snapshotToSameFile = true;
+  protected int loopsPerSnapshot = 10;  // set to 1 to take snapshot every time
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
   
@@ -476,7 +477,8 @@ public class ParameterListenerImpl extends HasIdImpl
       boolean improved = numResolvedConstraints > mostResolvedConstraints; 
       // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
       // move it out of this class and into DurativeEvent since Events simulate.
-      if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate ) {
+      if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate
+           && ( numLoops % loopsPerSnapshot == 0 ) ) {
         doSnapshotSimulation( improved );
       }
       
@@ -707,8 +709,8 @@ public class ParameterListenerImpl extends HasIdImpl
 
   public void setName( String newName ) {
     if ( newName == null || newName.isEmpty() ) {
-      Formatter formatter = new Formatter(Locale.US);
-      newName = getClass().getSimpleName() + formatter.format( "%06d", (counter++) );
+      newName = getClass().getSimpleName() 
+                + Utils.numberWithLeadingZeroes( counter++, 6 );
     }
     this.name = newName;
   }

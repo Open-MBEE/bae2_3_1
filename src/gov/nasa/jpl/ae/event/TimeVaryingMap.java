@@ -1371,7 +1371,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     File f = FileUtils.findFile( fileName );
     String s = FileUtils.fileToString( f );
     Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "\\s*,\\s*", "" );
+    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
     fromStringMap( map, cls );
   }
   
