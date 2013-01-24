@@ -82,7 +82,19 @@ class highlighterThread(Thread):
     '''
     def __init__(self):
         self.events = []
-        self.timeScale = float(3.0) #animation time is sped up by this factor
+        self.timeScale = float(3.0) #animation sped up by this factor
+        ts = JOptionPane.showInputDialog(
+                                            None,
+                                            "Increase speed by factor of...",
+                                            "Set Timescale",
+                                            JOptionPane.PLAIN_MESSAGE,
+                                            None,
+                                            None,
+                                            "3.0")
+        try: 
+            if ts and float(ts): self.timeScale = float(ts)
+        except: pass
+        gl.log("using timescale: %s" % str(self.timeScale))
         self.frame = None
         if usingDialogs:
             self.frame = Application.getInstance().getMainFrame();
@@ -214,7 +226,7 @@ class highlighterThread(Thread):
                         
                     if "TimeVaryingMap" in evt.componentId:
                         try: val = evt.action.split("=")[1]
-                        except: val = "[error] can't get time varying map value"
+                        except: val = evt.action
                         gl.log("    ---> (%s) SETTING VALUE of %s: %s" % (evt.eventTime,evt.componentType,val))
                         
                     elif evt.componentType.startswith("sig") and "ObjectFlow" in evt.componentId:
