@@ -5,6 +5,9 @@ package gov.nasa.jpl.ae.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 //import java.nio.file.FileSystems;
 //import java.nio.file.FileVisitOption;
@@ -73,6 +76,26 @@ public final class FileUtils {
     String curDir = System.getProperty("user.dir");
     return curDir;
   }
+
+  // These require org.eclipse plugins
+//  protected static String getWorkspaceDirectory() {
+//    return getWorkspaceFile().getAbsolutePath();
+//  }
+//  protected static File getWorkspaceFile() {
+//    //get object which represents the workspace  
+//    IWorkspace workspace = ResourcesPlugin.getWorkspace();  
+//    //get location of workspace (java.io.File)  
+//    File workspaceDirectory = workspace.getRoot().getLocation().toFile();
+//    return workspaceDirectory;
+//  }
+//  
+//  protected static String getProjectDirectory() {
+//    return getProjectFile().getAbsolutePath();
+//
+//  }
+//  protected static File getProjectFile() {
+//    ResourcesPlugin.getWorkspace().getRoot().getProjects();
+//  }
   
   public static File findFile( final String fileName ) {
     File file = existingFile( fileName );
@@ -89,7 +112,14 @@ public final class FileUtils {
           File[] dirFiles = f.listFiles();
           q.addAll( Arrays.asList( dirFiles ) );
         }
-        if ( f.getAbsolutePath().endsWith( fileName ) ) {
+        int lengthDiff = f.getAbsolutePath().length() - fileName.length();
+        if ( lengthDiff >= 0
+             && f.getAbsolutePath().endsWith( fileName )
+// uncomment lines below -- untested but it makes this fcn correct
+//             && ( lengthDiff == 0 
+//                  || f.getAbsolutePath().charAt( lengthDiff - 1 )
+//                     == File.separatorChar ) 
+                     ) {
           files.add( f );
         }
       }
@@ -105,6 +135,18 @@ public final class FileUtils {
       file = latestModifiedFile;
     }
     return file;
+  }
+  
+  public static File[] filesInDirectory( final String fileName ) {
+    File[] dirFiles = null;
+    File f = existingFile(fileName);
+    if ( f == null ) {
+      f = findFile( fileName );
+    }
+    if ( f != null && f.isDirectory() ) {
+      dirFiles = f.listFiles();
+    }
+    return dirFiles;
   }
 
   public static String removeFileExtension( String fileName ) {
@@ -123,6 +165,19 @@ public final class FileUtils {
   public static String fileToString( File file ) throws FileNotFoundException {
     String s = new Scanner(file).useDelimiter("\\Z").next();
     return s;
+  }
+
+  public static void stringToFile( String s, String fileName ) {
+    FileWriter outFile = null;
+    try {
+      outFile = new FileWriter(fileName);
+      PrintWriter out = new PrintWriter(outFile);
+      out.print( s );
+      out.close();
+    } catch ( IOException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
   
 }
