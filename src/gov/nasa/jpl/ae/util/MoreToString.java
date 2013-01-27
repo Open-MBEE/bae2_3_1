@@ -735,18 +735,18 @@ public interface MoreToString {
       Pattern kvs = Pattern.compile( keyValueSuffix );
       boolean gotDelimiter = true;
       while ( gotDelimiter ) {
-        System.out.println("\nstart = " + start);
-        System.out.println("substring = " + s.substring( start ) );
+        Debug.outln("\nstart = " + start);
+        Debug.outln("substring = " + s.substring( start ) );
         // find key-value prefix
         matcher = kvp.matcher( s.substring( start ) );
         if ( !matcher.find() ) break;
         start = start + matcher.end();
 
-        System.out.println("\nkvp match = " + matcher.group() );
-        System.out.println("matcher.start() = " + matcher.start());
-        System.out.println("matcher.end() = " + matcher.end());
-        System.out.println("\nstart = " + start);
-        System.out.println("substring = " + s.substring( start ) );
+        Debug.outln("\nkvp match = " + matcher.group() );
+        Debug.outln("matcher.start() = " + matcher.start());
+        Debug.outln("matcher.end() = " + matcher.end());
+        Debug.outln("\nstart = " + start);
+        Debug.outln("substring = " + s.substring( start ) );
         
         // find delimiter between key and value
         matcher = kvd.matcher( s.substring( start ) );
@@ -755,12 +755,12 @@ public interface MoreToString {
         String key = s.substring( start, start + matcher.start() );
         start = start + matcher.end();
 
-        System.out.println("\nkvd match = " + matcher.group() );
-        System.out.println("matcher.start() = " + matcher.start());
-        System.out.println("matcher.end() = " + matcher.end());
-        System.out.println("\nkey = " + key);
-        System.out.println("\nstart = " + start);
-        System.out.println("substring = " + s.substring( start ) );
+        Debug.outln("\nkvd match = " + matcher.group() );
+        Debug.outln("matcher.start() = " + matcher.start());
+        Debug.outln("matcher.end() = " + matcher.end());
+        Debug.outln("\nkey = " + key);
+        Debug.outln("\nstart = " + start);
+        Debug.outln("substring = " + s.substring( start ) );
         
         // get the value between the key-value delimiter and the key-value suffix
         matcher = kvs.matcher( s.substring( start ) );
@@ -769,14 +769,14 @@ public interface MoreToString {
         start = start + matcher.end();
         boolean foundValue = matcher.start() != 0;
 
-        System.out.println("\nkvs match = " + matcher.group() );
-        System.out.println("matcher.start() = " + matcher.start());
-        System.out.println("matcher.end() = " + matcher.end());
+        Debug.outln("\nkvs match = " + matcher.group() );
+        Debug.outln("matcher.start() = " + matcher.start());
+        Debug.outln("matcher.end() = " + matcher.end());
         if ( foundValue ) {
-          System.out.println("\nvalue = " + value);
+          Debug.outln("\nvalue = " + value);
         }
-        System.out.println("\nstart = " + start);
-        System.out.println("substring = " + s.substring( start ) );
+        Debug.outln("\nstart = " + start);
+        Debug.outln("substring = " + s.substring( start ) );
 
         if ( foundValue ) {
           // add the key-value pair to the map
@@ -798,22 +798,22 @@ public interface MoreToString {
           } else {
             value = s.substring( start );
           }
-          System.out.println("\nvalue = " + value);
+          Debug.outln("\nvalue = " + value);
           map.put( key, value );          
         }
 
         if ( gotDelimiter ) {
           start = start + matcher.end();
           
-          System.out.println("\nd match = " + matcher.group() );
-          System.out.println("matcher.start() = " + matcher.start());
-          System.out.println("matcher.end() = " + matcher.end());
-          System.out.println("\nstart = " + start);
-          System.out.println("substring = " + s.substring( start ) );
+          Debug.outln("\nd match = " + matcher.group() );
+          Debug.outln("matcher.start() = " + matcher.start());
+          Debug.outln("matcher.end() = " + matcher.end());
+          Debug.outln("\nstart = " + start);
+          Debug.outln("substring = " + s.substring( start ) );
         }
         
       }
-      System.out.println("parsed map = " + map );
+      Debug.outln("parsed map = " + map );
     }
     
     private static String readLine(String format, Object... args) {
