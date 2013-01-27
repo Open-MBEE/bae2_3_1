@@ -13,6 +13,19 @@ fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt" 
 timeout = 20 # seconds of no data
 
 usingTk = True
+saveMovie = False
+if saveMovie:
+    usingTk = False
+
+zoomToFitX = False
+zoomToFitY = True
+zoomToFitOnlyVisibleY = True
+centerAtNow = True
+horizonDurationHours = 24
+redrawEveryNthTime = 1
+
+timeNow = horizonDurationHours / 1.6
+
 
 if usingTk:
     # imports for Tk backend
@@ -42,14 +55,6 @@ import collections
 import string
 
 genXValues = True
-
-zoomToFitX = True
-zoomToFitY = True
-zoomToFitOnlyVisibleY = True
-centerAtNow = False
-horizonDurationHours = 24
-timeNow = horizonDurationHours / 1.6
-redrawEveryNthTime = 1
 
 queue = None
 
@@ -1010,6 +1015,8 @@ def main(argv=None):
         else:
             # must store return value, even if unused, or else it will stop plotting after the first point
             ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=0, repeat=False)
+            if saveMovie:
+                ani.save('movie.mp4', 10)
     if usingTk:
         root.mainloop()
     else:
