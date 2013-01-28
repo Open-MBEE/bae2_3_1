@@ -1,5 +1,5 @@
 # debugMode can be passed in at the command line to turn it on
-debugMode = True
+debugMode = False
 # A modes for a data sources below can be passed at the command line and
 # override these assignments 
 useSocket = True
