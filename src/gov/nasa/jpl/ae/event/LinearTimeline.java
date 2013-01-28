@@ -33,8 +33,8 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
    * @param name
    * @param defaultValue
    */
-  public LinearTimeline( String name, Double defaultValue ) {
-    super( name, defaultValue );
+  public LinearTimeline( String name, Double defaultValue, boolean projected ) {
+    super( name, null, defaultValue, Double.class, projected );
   }
 
   /**

@@ -203,6 +203,39 @@ public class Functions {
     }
   }
 
+  public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
+    Number result = null;
+    Number n1 = Expression.evaluate( o1, Number.class, false );
+    Number n2 = Expression.evaluate( o2, Number.class, false );
+    if ( n1 != null && n2 != null ) {
+      if ( n1 instanceof Double || n2 instanceof Double ) {
+        result = n1.doubleValue() + n2.doubleValue();
+      } else {
+        // TODO -- what if they are longs?
+        result = n1.intValue() + n2.intValue();
+      }
+    }
+    return (V1)result;
+  }
+  public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
+    Number result = null;
+    Number n1 = Expression.evaluate( o1, Number.class, false );
+    Number n2 = Expression.evaluate( o2, Number.class, false );
+    if ( n1 != null && n2 != null ) {
+      if ( n1 instanceof Double || n2 instanceof Double ) {
+        result = n1.doubleValue() * n2.doubleValue();
+      } else {
+        // TODO -- what if they are longs?
+        result = n1.intValue() * n2.intValue();
+      }
+    }
+    return (V1)result;
+  }
+  
+  public static <V1, V2> V1 minus( V1 o1, V2 o2 ) {
+    return plus( o1, times( -1, o2 ) );
+  }
+  
   public static < T > java.lang.Number add( Expression< T > o1,
                                             Expression< T > o2 ) {
     if ( o1 == null || o2 == null ) return null;
@@ -210,7 +243,8 @@ public class Functions {
     T r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     Number result = null;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) &&
+         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       double rd1 = ( (Double) r1).doubleValue();
       double rd2 = ( (Double) r2).doubleValue();
       // check for overflow
@@ -221,7 +255,8 @@ public class Functions {
       } else {
         result = ( (Double)r1 ) + ( (Double)r2 );
       }
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
+    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) &&
+                r2.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
       int rd1 = ( (Integer) r1).intValue();
       int rd2 = ( (Integer) r2).intValue();
       // check for overflow
@@ -233,11 +268,12 @@ public class Functions {
         result = ( (Integer)r1 ) + ( (Integer)r2 );
       }
     } else {
-      try {
-        throw new IllegalAccessException();
-      } catch ( IllegalAccessException e ) {
-        e.printStackTrace();
-      }
+      result = (Number)plus( r1, r2 );
+//      try {
+//        throw new IllegalAccessException();
+//      } catch ( IllegalAccessException e ) {
+//        e.printStackTrace();
+//      }
     }
     if ( Debug.isOn() ) Debug.outln( r1 + " + " + r2 + " = " + result );
     return result;
@@ -250,7 +286,8 @@ public class Functions {
     T r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     Number result = null;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) &&
+         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       double rd1 = ( (Double) r1).doubleValue();
       double rd2 = ( (Double) r2).doubleValue();
       // check for overflow
@@ -261,7 +298,8 @@ public class Functions {
       } else {
         result = ( (Double)r1 ) - ( (Double)r2 );
       }
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
+    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) &&
+                r2.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
       int rd1 = ( (Integer) r1).intValue();
       int rd2 = ( (Integer) r2).intValue();
       // check for overflow
@@ -273,11 +311,12 @@ public class Functions {
         result = ( (Integer)r1 ) - ( (Integer)r2 );
       }
     } else {
-      try {
-        throw new IllegalAccessException();
-      } catch ( IllegalAccessException e ) {
-        e.printStackTrace();
-      }
+      result = (Number)minus( r1, r2 );
+//    try {
+//      throw new IllegalAccessException();
+//    } catch ( IllegalAccessException e ) {
+//      e.printStackTrace();
+//    }
     }
     if ( Debug.isOn() ) Debug.outln( r1 + " - " + r2 + " = " + result );
     return result;
@@ -639,7 +678,15 @@ public class Functions {
     T r2 = o2.evaluate( false );
     if ( r1 == r2 ) return false;
     if ( r1 == null || r2 == null ) return (r2 != null);
-    boolean b = r1.compareTo( r2 ) < 0;
+    boolean b;
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
+         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      Number n1 = Expression.evaluate( o1, Number.class, false );
+      Number n2 = Expression.evaluate( o2, Number.class, false );      
+      b = n1.doubleValue() < n2.doubleValue();
+    } else {
+      b = r1.compareTo( r2 ) < 0;
+    }
     if ( Debug.isOn() ) Debug.outln( o1 + " < " + o2 + " = " + b );
     return b;
   }
@@ -658,7 +705,15 @@ public class Functions {
     T r2 = o2.evaluate( false );
     if ( r1 == r2 ) return true;
     if ( r1 == null || r2 == null ) return (r1 == null);
-    boolean b = r1.compareTo( r2 ) <= 0;
+    boolean b;
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
+         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      Number n1 = Expression.evaluate( o1, Number.class, false );
+      Number n2 = Expression.evaluate( o2, Number.class, false );      
+      b = n1.doubleValue() <= n2.doubleValue();
+    } else {
+      b = r1.compareTo( r2 ) <= 0;
+    }
     if ( Debug.isOn() ) Debug.outln( o1 + " <= " + o2 + " = " + b );
     return b;
   }
@@ -677,7 +732,15 @@ public class Functions {
     T r2 = o2.evaluate( false );
     if ( r1 == r2 ) return false;
     if ( r1 == null || r2 == null ) return (r1 != null);
-    boolean b = r1.compareTo( r2 ) > 0;
+    boolean b;
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
+         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      Number n1 = Expression.evaluate( o1, Number.class, false );
+      Number n2 = Expression.evaluate( o2, Number.class, false );      
+      b = n1.doubleValue() > n2.doubleValue();
+    } else {
+      b = r1.compareTo( r2 ) > 0;
+    }
     if ( Debug.isOn() ) Debug.outln( o1 + " > " + o2 + " = " + b );
     return b;
   }
@@ -696,7 +759,15 @@ public class Functions {
     T r2 = o2.evaluate( false );
     if ( r1 == r2 ) return true;
     if ( r1 == null || r2 == null ) return (r2 == null);
-    boolean b = r1.compareTo( r2 ) >= 0;
+    boolean b;
+    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
+         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      Number n1 = Expression.evaluate( o1, Number.class, false );
+      Number n2 = Expression.evaluate( o2, Number.class, false );      
+      b = n1.doubleValue() >= n2.doubleValue();
+    } else {
+      b = r1.compareTo( r2 ) >= 0;
+    }
     if ( Debug.isOn() ) Debug.outln( o1 + " >= " + o2 + " = " + b );
     return b;
   }

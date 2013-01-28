@@ -47,8 +47,9 @@ public class Generation extends LinearTimeline {
    * @param name
    * @param defaultValue
    */
-  public Generation( String name, Double defaultValue, int numCustomers ) {
-    super( name, defaultValue );
+  public Generation( String name, Double defaultValue, int numCustomers,
+                     boolean projected ) {
+    super( name, defaultValue, projected );
     numberOfCustomers = numCustomers;
     init();
   }

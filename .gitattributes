@@ -7,6 +7,7 @@
 /AE.jar -text
 /build.xml -text
 data/all.csv -text
+data/allGen.csv -text
 data/meterData/meterdata_000091373833_20120926.csv -text
 data/meterData/meterdata_000091373833_20120927.csv -text
 data/meterData/meterdata_000091373833_20120928.csv -text
@@ -4445,6 +4446,7 @@ src/gov/nasa/jpl/ae/event/TimeVaryingList.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMaps.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMap.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMaps.java -text
 src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
@@ -4493,6 +4495,7 @@ src/gov/nasa/jpl/ae/solver/TimeDependentConstraint.java -text
 src/gov/nasa/jpl/ae/solver/TimeVariable.java -text
 src/gov/nasa/jpl/ae/solver/Variable.java -text
 src/gov/nasa/jpl/ae/tests/Adder.java -text
+src/gov/nasa/jpl/ae/tests/GenerateInputsFromMeterData.java -text
 src/gov/nasa/jpl/ae/tests/JythonAdderFactory.java -text
 src/gov/nasa/jpl/ae/tests/TestDate.java -text
 src/gov/nasa/jpl/ae/tests/TestEventXmlToJava.java -text
@@ -4500,6 +4503,7 @@ src/gov/nasa/jpl/ae/tests/TestExecute.java -text
 src/gov/nasa/jpl/ae/tests/TestJavaparser.java -text
 src/gov/nasa/jpl/ae/tests/TestJythonAdder.java -text
 src/gov/nasa/jpl/ae/tests/aggregateLoad.csv -text
+src/gov/nasa/jpl/ae/tests/aggregatePlan.csv -text
 src/gov/nasa/jpl/ae/tests/integerTimeline.csv -text
 src/gov/nasa/jpl/ae/util/ClassUtils.java -text
 src/gov/nasa/jpl/ae/util/CompareUtils.java -text

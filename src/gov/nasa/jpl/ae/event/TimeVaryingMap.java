@@ -292,10 +292,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
   }
 
-  public TimeVaryingMap( String name, V defaultValue ) {
-    this(name, defaultValue, null);
-  }
-
+//  public TimeVaryingMap( String name, V defaultValue ) {
+//    this(name, defaultValue, null);
+//  }
+//
   public TimeVaryingMap( String name, String fileName, V defaultValue ) {
     this(name, defaultValue, null);
     if ( fileName != null ) {
@@ -982,6 +982,27 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return (V1)result;
   }
   
+  public static <V1, V2> V1 dividedBy( V1 o1, V2 o2 ) {
+    Number result = null;
+    Number n1 = Expression.evaluate( o1, Number.class, false );
+    Number n2 = Expression.evaluate( o2, Number.class, false );
+    if ( n1 != null && n2 != null ) {
+      if ( n1 instanceof Double || n2 instanceof Double ) {
+        if ( n2.doubleValue() == 0 ) {
+          return (V1)o1.getClass().cast( Double.NaN );
+        }
+        result = n1.doubleValue() / n2.doubleValue();
+      } else {
+        if ( n2.doubleValue() == 0 ) {
+          return (V1)o1.getClass().cast( Integer.MAX_VALUE );
+        }
+        // TODO -- what if they are longs?
+        result = n1.intValue() / n2.intValue();
+      }
+    }
+    return (V1)result;
+  }
+
   public boolean contains( Integer t ) {
     return getKey( t ) != null;
   }

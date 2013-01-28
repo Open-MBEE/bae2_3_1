@@ -77,8 +77,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
    * @param name
    * @param defaultValue
    */
-  public TimeVaryingList( String name, List< T > defaultValue ) {
-    super( name, defaultValue );
+  public TimeVaryingList( String name, List< T > defaultValue) {
+    super( name, defaultValue, null );
     // TODO Auto-generated constructor stub
   }
 

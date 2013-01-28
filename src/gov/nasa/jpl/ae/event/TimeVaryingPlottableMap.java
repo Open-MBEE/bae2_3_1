@@ -3,8 +3,6 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.util.MoreToString;
-
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
@@ -53,19 +51,19 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     dataProjected = projected;
   }
 
-  /**
-   * @param name
-   * @param defaultValue
-   */
-  public TimeVaryingPlottableMap( String name, V defaultValue ) {
-    super( name, defaultValue );
-  }
+//  /**
+//   * @param name
+//   * @param defaultValue
+//   */
+//  public TimeVaryingPlottableMap( String name, V defaultValue ) {
+//    super( name, defaultValue );
+//  }
 
   /**
    * @param name
    * @param defaultValue
    */
-  public TimeVaryingPlottableMap( String name, String fileName, V defaultValue ) {
+  public TimeVaryingPlottableMap( String name, String fileName, V defaultValue, Class<V> cls ) {
     super( name, fileName, defaultValue );
   }
 
@@ -74,13 +72,15 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    * @param defaultValue
    * @param projected
    */
-  public TimeVaryingPlottableMap( String name, V defaultValue, boolean projected ) {
-    this( name, defaultValue );
+  public TimeVaryingPlottableMap( String name, String fileName, Class<V> cls, boolean projected ) {
+    super( name, fileName, cls );
     dataProjected = projected;
   }
 
-  public TimeVaryingPlottableMap( String name, String fileName, Class<V> cls, boolean projected ) {
-    super( name, fileName, cls );
+  public TimeVaryingPlottableMap( String name, String fileName, V defaultValue,
+                                  Class<V> cls,
+                                  boolean projected ) {
+    super( name, fileName, defaultValue, cls );
     dataProjected = projected;
   }
   

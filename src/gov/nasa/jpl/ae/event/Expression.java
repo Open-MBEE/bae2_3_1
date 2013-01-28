@@ -204,6 +204,10 @@ public class Expression< ResultType > extends HasIdImpl
                 if ( resultType.isInstance( o ) ) {
                   return (ResultType)o;
                 } else {
+                  if ( resultType == Integer.class && Double.class.isAssignableFrom(o.getClass()) ) {
+                    Double d = (Double)o;
+                    return (ResultType)(Integer)d.intValue();
+                  }
                   throw new ClassCastException();
                 }
               }
@@ -216,6 +220,14 @@ public class Expression< ResultType > extends HasIdImpl
                 return r;
               }
             } catch ( ClassCastException cce ) {
+              try {
+                if ( Double.class.isAssignableFrom(o.getClass()) ) {
+                  Double d = (Double)o;
+                  return (ResultType)(Integer)d.intValue();
+                }
+              } catch ( Exception e ) {
+                // ignore
+              }
               if ( o instanceof Parameter ) {
                 p = (Parameter< ? >)o;
               } else if ( o instanceof Expression ) {

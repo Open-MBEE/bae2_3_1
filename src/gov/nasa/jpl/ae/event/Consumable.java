@@ -20,7 +20,6 @@ import java.util.SortedMap;
 import junit.framework.Assert;
 
 /**
- * @author bclement
  *
  */
 public class Consumable extends TimeVaryingPlottableMap< Double > {
@@ -49,8 +48,8 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    * @param name
    * @param defaultValue
    */
-  public Consumable( String name, Double defaultValue ) {
-    super( name, defaultValue );
+  public Consumable( String name, Double defaultValue, boolean projected ) {
+    super( name, null, defaultValue, Double.class, projected );
   }
 
   public Consumable( String name, Double initialValue,
@@ -58,7 +57,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
                      int samplePeriod, int horizonDuration,
                      Double minCap, Double maxCap ) {
 //  super( name, initialValueFunction, o, samplePeriod, horizonDuration );
-    super( name, initialValue );
+    super( name, null, initialValue, Double.class, false );
     this.minCap = minCap;
     this.maxCap = maxCap;
     samplePeriod =

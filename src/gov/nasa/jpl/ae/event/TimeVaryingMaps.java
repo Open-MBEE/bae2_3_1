@@ -6,12 +6,14 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.FileUtils;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
@@ -35,6 +37,32 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
   
   protected Number numberOfSubmaps = 0;
   protected String profileName = null;
+
+  protected boolean computeAvg = false;
+
+  public List< Pair< Number, TimeVaryingMap< V >>> getMaps() {
+    return maps;
+  }
+
+  public void setMaps( List< Pair< Number, TimeVaryingMap< V >>> maps ) {
+    this.maps = maps;
+  }
+
+  public String getProfileName() {
+    return profileName;
+  }
+
+  public void setProfileName( String profileName ) {
+    this.profileName = profileName;
+  }
+
+  public boolean isComputeAvg() {
+    return computeAvg;
+  }
+
+  public void setComputeAvg( boolean computeAvg ) {
+    this.computeAvg = computeAvg;
+  }
 
   public TimeVaryingMaps( String name, Class<V> cls ) {
     super( name );
@@ -72,6 +100,12 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
       }
       numberOfSubmaps = plus(numberOfSubmaps, numInstances);
     }
+    if ( computeAvg ) {
+      for ( Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+//        Number v = Expression.evaluate( e.getValue(), Number.class, false );
+        e.setValue( TimeVaryingMap.dividedBy( e.getValue(), numberOfSubmaps ) );
+      }
+    }
   }
 
   /*
@@ -98,19 +132,6 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
       }
       fromCsvFiles( fileNames, mapPrefix, cls );
     }
-  }
-  
-  /**
-   * @param args
-   */
-  public static void main( String[] args ) {
-    String folder = "data/meterData";
-    TimeVaryingMaps< Object > tvm =
-        new TimeVaryingMaps< Object >( "test", Object.class );
-    tvm.fromFolder( folder, ".*", Double.class );
-    System.out.println( "tvm map summing values from folder " + folder + ":\n"
-                        + tvm );
-    tvm.toCsvFile( "data/all.csv" );
   }
 
 }
