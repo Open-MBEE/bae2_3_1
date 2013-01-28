@@ -1,5 +1,5 @@
 # debugMode can be passed in at the command line to turn it on
-debugMode = False
+debugMode = True
 # A modes for a data sources below can be passed at the command line and
 # override these assignments 
 useSocket = True
@@ -17,11 +17,12 @@ saveMovie = False
 if saveMovie:
     usingTk = False
 
-zoomToFitX = False
+zoomToFitX = True
 zoomToFitY = True
 zoomToFitOnlyVisibleY = True
-centerAtNow = True
+centerAtNow = False
 horizonDurationHours = 24
+xAxisUnits = None
 redrawEveryNthTime = 1
 
 timeNow = horizonDurationHours / 1.6
@@ -183,6 +184,7 @@ def updateBounds(subId, datx, daty, updateLimits=True):
     global centerAtNow
     global timeNow
     global horizonDurationHours
+    global xAxisUnits
     global xGrow
     global yGrow
     global axs
@@ -190,8 +192,9 @@ def updateBounds(subId, datx, daty, updateLimits=True):
     # find min/max for x-axis
     if centerAtNow:
         # the limits on the x-axis should include the horizon duration
-        xmin[subId] = timeNow - horizonDurationHours / 2 
-        xmax[subId] = timeNow + horizonDurationHours / 2
+        halfHorizon = convertHoursTo(horizonDurationHours, xAxisUnits) / 2
+        xmin[subId] = timeNow - halfHorizon
+        xmax[subId] = timeNow + halfHorizon
     if zoomToFitX and datx != None and len(datx) > 0:
 #        mn = myMin([xmin[subId], datx])
 #        mx = myMax([xmax[subId], datx])
@@ -539,6 +542,16 @@ def addNowLine(subplotId):
     nowLines.append(nowLine)
     moveNowLine(nowLine)
 
+def convertHoursTo(numHours, units):
+    if units == None or units == 'seconds':
+        return numHours * 3600
+    if units == 'minutes':
+        return numHours * 60
+    if units == 'hours':
+        return numHours
+    if units == 'days':
+        return numHours / 24
+
 def initializePlotBounds(subplotId = None):
     global numLines
     global xdata
@@ -554,6 +567,7 @@ def initializePlotBounds(subplotId = None):
     global zoomToFitOnlyVisibleY
     global centerAtNow
     global horizonDurationHours
+    global xAxisUnits
     global timeNow
     global lineIdToIndex
     global subplotForLine
@@ -578,8 +592,9 @@ def initializePlotBounds(subplotId = None):
         # find min/max for x-axis
         if centerAtNow:
             # the limits on the x-axis should include the horizon duration
-            xmin[subId] = timeNow - horizonDurationHours / 2 
-            xmax[subId] = timeNow + horizonDurationHours / 2
+            halfHorizon = convertHoursTo(horizonDurationHours, xAxisUnits) / 2
+            xmin[subId] = timeNow - halfHorizon
+            xmax[subId] = timeNow + halfHorizon
         if zoomToFitX:
             xdat = [xdata[i] for i in range(len(xdata)) if subplotForLine[i] == subId]
             if ( staticLines != None and \
@@ -613,6 +628,10 @@ def initializePlotBounds(subplotId = None):
         debugPrint("xmax = " + str(xmax[subId]))
         debugPrint("ymin = " + str(ymin[subId]))
         debugPrint("ymax = " + str(ymax[subId]))
+        if xAxisUnits == None and xmax[subId] - xmin[subId] > 5000:
+            xAxisUnits = 'seconds'
+    if xAxisUnits == None:
+        xAxisUnits = 'hours'
     return
 
 def updateData(data = (None, None)):

@@ -16,7 +16,6 @@ import java.util.Random;
 import java.util.Vector;
 
 /**
- * @author bclement
  *
  */
 public class Customers extends Customer {
@@ -105,7 +104,8 @@ public class Customers extends Customer {
   void init2() {
     //this.numGen = new Random(seed);
     TimeVaryingPlottableMap< Double > deltaMap =
-        new TimeVaryingPlottableMap< Double >( "deltaMap", 0.0 );
+        new TimeVaryingPlottableMap< Double >( "deltaMap", null, 0.0, Double.class,
+            false );
     for ( int i=0; i<numberOfCustomers; ++i ) {
       Customer customer =
           new Customer( offsetSecondsFromMidnight, loadHorizon, maxLoad,

@@ -291,7 +291,7 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( pair.first ) return true;
     seen = pair.second;
     for ( Parameter< ? > p : parameters ) {
-      if ( !p.isGrounded(deep, seen) ) return false;
+      if ( p != null && !p.isGrounded(deep, seen) ) return false;
     }
     return true;
   }

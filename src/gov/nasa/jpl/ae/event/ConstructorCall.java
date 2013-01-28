@@ -317,7 +317,9 @@ public class ConstructorCall extends Call {
    */
   public void setConstructor( Constructor<?> constructor ) {
     this.constructor = constructor;
-    this.thisClass = constructor.getDeclaringClass();
+    if ( constructor != null ) {
+      this.thisClass = constructor.getDeclaringClass();
+    }
     this.newObject = null;
  }
 
