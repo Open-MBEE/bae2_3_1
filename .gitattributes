@@ -4370,6 +4370,12 @@ data/meterData/meterdata_000091375097_20121111.csv -text
 data/meterData/meterdata_000091375097_20121112.csv -text
 data/meterData/meterdata_000091375097_20121113.csv -text
 /projFormatterOptions.xml -text
+src/PowerSystem2/BobCreator.java -text
+src/PowerSystem2/Customer.java -text
+src/PowerSystem2/LADWP.java -text
+src/PowerSystem2/Main.java -text
+src/PowerSystem2/Power.java -text
+src/PowerSystem2/Power_System.java -text
 src/demandResponse/AssessDRCommitmentEvent.java -text
 src/demandResponse/Computer.java -text
 src/demandResponse/ControlRealTimeLoadReductionEvent.java -text
@@ -4522,6 +4528,7 @@ src/gov/nasa/jpl/ae/util/runaspen.sh -text
 src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
 src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
 src/gov/nasa/jpl/ae/xml/NameTranslator.java -text
+src/gov/nasa/jpl/ae/xml/PowerSystem2_2013-01-23.xml -text
 src/gov/nasa/jpl/ae/xml/Scenario_latest.xml -text
 src/gov/nasa/jpl/ae/xml/Scenario_med_caller.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/xml/Scenario_medium.xml -text
