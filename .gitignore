@@ -1,3 +1,5 @@
+/logs
+/simulationSnapshot*txt
 src/Scenario_large_2012
 src/Scenario_latest
 src/Scenario_latest_2012
