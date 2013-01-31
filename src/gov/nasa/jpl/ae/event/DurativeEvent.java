@@ -58,6 +58,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   // Other Members
 
+  protected boolean writeConstraintsOut = false;
+  
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
   public Timepoint endTime = new Timepoint( "endTime", this );
@@ -80,6 +82,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       new AbstractParameterConstraint() {
 
     protected final int id = HasIdImpl.getNext();
+    private boolean tryToSatisfyOnElaboration = false;
+    protected boolean deepSatisfyOnElaboration = false;
     
     @Override
     public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
@@ -108,7 +112,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         ElaborationRule r = p.first;
         Vector< Event > events = p.second;
         if ( isElaborated( events ) != r.isConditionSatisfied() ) {
-          if ( r.attemptElaboration( events, true ) ) {
+          if ( r.attemptElaboration( events, true,
+                                     tryToSatisfyOnElaboration,
+                                     deepSatisfyOnElaboration ) ) {
             if ( !r.isConditionSatisfied() ) satisfied = false;
           } else {
             if ( r.isConditionSatisfied() ) satisfied = false;
@@ -344,6 +350,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     
   };  // end of effectsConstraint
+
 
   
   // Constructors
@@ -650,9 +657,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     System.out.println( timer );
     timer.start();
     Collection<Constraint> constraints = getConstraints( true, null );
-    System.out.println("All " + constraints.size() + " constraints: ");
-    for (Constraint c : constraints) {
-    	System.out.println("Constraint: " + c);
+    if ( writeConstraintsOut ) {
+      System.out.println("All " + constraints.size() + " constraints: ");
+      for (Constraint c : constraints) {
+      	System.out.println("Constraint: " + c);
+      }
     }
     if ( satisfied ) {
       System.out.println( "\nAll constraints were satisfied!" );

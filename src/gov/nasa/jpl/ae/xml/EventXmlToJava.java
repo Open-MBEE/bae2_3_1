@@ -835,22 +835,29 @@ public class EventXmlToJava {
     for ( ConstructorDeclaration c : constructors ) {
       TypeDeclaration type = getTypeDeclaration( c.getName() );
       boolean alreadyAdded = false;
-      if ( type != null && c != null ) {
+      if ( type == null ) {
+        Debug.error( "No type found for constructor! " + c );
+      } else if ( c != null ) {
         ConstructorDeclaration ctorToReplace = null;
         for ( BodyDeclaration bd : type.getMembers() ) {
           if ( bd instanceof ConstructorDeclaration ) {
             if ( equals(c, (ConstructorDeclaration)bd ) ) {
-              if ( !Utils.isNullOrEmpty( c.getParameters() ) ) {
+              if ( Utils.isNullOrEmpty( c.getParameters() ) ) {
+                Debug.outln( "found constructor to replace:\n" + bd );
                 ctorToReplace = (ConstructorDeclaration)bd;
               }
               alreadyAdded = true;
               break;
             }
+            Debug.outln( "not replacing constructor:\n" + bd );
           }
         }
         if ( !alreadyAdded || ctorToReplace != null ) {
           if ( ctorToReplace != null ) {
             type.getMembers().remove( ctorToReplace );
+            Debug.outln( "replacing constructor with:\n" + c );
+          } else {
+            Debug.outln( "adding constructor:\n" + c );
           }
           ASTHelper.addMember( type, c );
         }
@@ -1096,6 +1103,7 @@ public class EventXmlToJava {
           }
           addStatementsToConstructor( constructorDecl,
                                       Utils.getEmptyList(Param.class) );
+          Debug.outln( "found constructor:\n" + constructorDecl.getName() + constructorDecl.getParameters() );
           ctors.add( constructorDecl );
         }
       }
@@ -1171,6 +1179,7 @@ public class EventXmlToJava {
         // Don't add if already created. Default constructor is added
         // elsewhere, so filter that one out by checking if arguments is empty.
         if ( !alreadyCreated && !arguments.isEmpty() ) {
+          if ( Debug.isOn() ) Debug.outln( "keeping constructor: " + ctor );
           ctors.add( ctor );
         }
       }
@@ -1715,6 +1724,9 @@ public class EventXmlToJava {
     
       if ( !isNested ) {
         ASTHelper.addTypeDeclaration( currentCompilationUnit, newClassDecl );
+      }
+      if ( newClassDecl != null && newClassDecl.getName().startsWith( "Power_System" )) {
+        Debug.out( "" );
       }
       createDefaultConstructor( newClassDecl );
     } else {

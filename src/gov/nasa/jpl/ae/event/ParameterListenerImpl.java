@@ -44,15 +44,15 @@ public class ParameterListenerImpl extends HasIdImpl
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  protected double timeoutSeconds = 1800.0;
-  protected int maxLoopsWithNoProgress = 200;
-  protected long maxPassesAtConstraints = 3000;
-  protected boolean usingTimeLimit = false;
+  protected double timeoutSeconds = 3600.0;
+  protected int maxLoopsWithNoProgress = 1000;
+  protected long maxPassesAtConstraints = 5000;
+  protected boolean usingTimeLimit = true;
   protected boolean usingLoopLimit = true;
 
   protected boolean snapshotSimulationDuringSolve = true;
   protected boolean snapshotToSameFile = true;
-  protected int loopsPerSnapshot = 10;  // set to 1 to take snapshot every time
+  protected int loopsPerSnapshot = 20;  // set to 1 to take snapshot every time
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
   

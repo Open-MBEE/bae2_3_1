@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.MoreToString;
@@ -26,6 +27,8 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   protected Expression< Boolean > condition = null;
   protected Vector< EventInvocation > eventInvocations = null;
 //  protected Vector< ConstraintInvocation > constraintsToAdd = null;
+  private boolean tryToSatisfyOnElaboration = false;
+  protected boolean satisfyDeepOnElaboration = false;
 
   public ElaborationRule() {}
 
@@ -70,9 +73,17 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     return r;//( condition == null || condition.evaluate(true) );
   }
   
-  // Fix elaboration and return whether it is elaborated.
   public boolean attemptElaboration( Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan ) {
+    return attemptElaboration( elaboratedEvents, elaborateIfCan,
+                               tryToSatisfyOnElaboration,
+                               satisfyDeepOnElaboration );
+  }
+  // Fix elaboration and return whether it is elaborated.
+  public boolean attemptElaboration( Vector< Event > elaboratedEvents,
+                                     boolean elaborateIfCan,
+                                     boolean satisfyOnElaboration,
+                                     boolean satisfyDeep ) {
     
     if ( Debug.isOn() ) Debug.outln( "attemptElaboration(): " + this );
     // Find out if the rule is satisfied and elaborated.
@@ -98,6 +109,11 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
         if ( event != null ) {
           elaboratedEvents.add( event );
           System.err.println("elaborated " + event);
+          if ( satisfyOnElaboration ) {
+            if ( event instanceof Satisfiable ) {
+              ( (Satisfiable)event ).satisfy( satisfyDeep , null );
+            }
+          }
         }
       }
     }  // else no change

@@ -47,6 +47,13 @@ global project
 TVM = StereotypesHelper.getStereotype(project,"TimeVaryingMap")
 global TVM
 
+def mlTypeToJavaClass(typeName):
+    if str(typeName) in ['double', 'integer', 'string' , 'float', 'long', 'short', 'boolean']:
+        return str(typeName).capitalize()
+    elif str(typeName) == 'int':
+        return 'Integer'
+    return str(typeName)
+
 class ClassifierClass(object):
 	def __init__(self,system,cs,firstSelected):
 		stime = time.time()
@@ -87,10 +94,11 @@ class ClassifierClass(object):
 			propName = p.name + "_" + p.getID()
 			pl = "Plottable" if not isinstance(system,Signal) else ""
 			tvmargs = '"%s"' % p.name
-			if StereotypesHelper.hasStereotype(p,TVM): tvmargs += ', "%s"' % StereotypesHelper.getStereotypePropertyValue(p,TVM,"filename")[0]
-			self.members[propName] = ("TimeVarying%sMap&lt;%s&gt;" % (pl,p.type.name),'new TimeVarying%sMap(%s)' % (pl,tvmargs),"simple property (name " + p.name + ")")
+			tvmargs += ((', "%s"' % StereotypesHelper.getStereotypePropertyValue(p,TVM,"filename")[0]) if StereotypesHelper.hasStereotype(p,TVM) else ', null') + \
+            (', %s.class' % mlTypeToJavaClass(p.type.name)) + ('' if len(pl) <= 0 else ', %s ' % ('true' if StereotypesHelper.hasStereotype(p,TVM) else 'false')) # this is all on one line because Brad can't create tab characters unless he changes his eclipse settings or uses another editor, and he's not willing to do that. 
+			self.members[propName] = ("TimeVarying%sMap&lt;%s&gt;" % (pl,mlTypeToJavaClass(p.type.name)),'new TimeVarying%sMap(%s)' % (pl,tvmargs),"simple property (name " + p.name + ")")
 			if isinstance(system,Signal): 
-				self.cArgs["x"]=p.type.name
+				self.cArgs["x"]=mlTypeToJavaClass(p.type.name)
 				self.cArgs["t"]="Timepoint"
 				self.constructors.append("%s.getValue().setValue(t,x);" % propName)
 		if len(simpleProperties)==0 and isinstance(system,Signal): 
@@ -103,7 +111,7 @@ class ClassifierClass(object):
 		partProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,Class)]
 		gl.log("Part Properties: " + str([str(pt.name) for pt in partProperties]))
 		for p in partProperties:
-			self.members[p.name] = (p.type.name,"new " + p.type.name + "(this)","part property (name " + p.name + ")")
+			self.members[p.name] = (mlTypeToJavaClass(p.type.name),"new " + mlTypeToJavaClass(p.type.name) + "(this)","part property (name " + p.name + ")")
 			self.toInspect.append(p.type) #this will probably have to change when we have lots of customers... also will need multiplicity
 			self.constructorArgs[p.type]=system
 			
@@ -192,7 +200,7 @@ class activityInterfaceClass(object):
 		self.classes = 			[]
 		
 		for p in activity.ownedParameter:
-			if p.type: tname = p.type.name
+			if p.type: tname = mlTypeToJavaClass(p.type.name)
 			else: tname = "Object"
 			self.members[p.getID()] = (tname,None,"Initialize Parameter Nodes")
 		
@@ -241,9 +249,9 @@ class activityEventClass(object):
 			self.flowTypes[flow] = type
 			typeName = "Object"
 			if type is not "Control": 
-				if isinstance(type,Property) and type.type: typeName = type.type.name
-				elif isinstance(type,Signal): typeName = "Signal"+type.name
-				else: typeName = type.name
+				if isinstance(type,Property) and type.type: typeName = mlTypeToJavaClass(type.type.name)
+				elif isinstance(type,Signal): typeName = "Signal"+mlTypeToJavaClass(type.name)
+				else: typeName = mlTypeToJavaClass(type.name)
 			else: typeName = "Boolean"
 			k = str("sig" + flow.getID())
 			t = "ObjectFlow&lt;%s&gt;" % typeName
@@ -313,11 +321,11 @@ class activityEventClass(object):
 			
 			if isinstance(node,ActivityParameterNode):
 				p_id = node.parameter.getID()
-				if node.parameter.type: tname = node.parameter.type.name
+				if node.parameter.type: tname = mlTypeToJavaClass(node.parameter.type.name)
 				else: tname = "Object"
 				try: d = str(node.getDefault())
 				except: d = None
-				self.members[p_id] = (node.type.name,d,"Initialize Activity Parameter Values (for transition through")
+				self.members[p_id] = (mlTypeToJavaClass(node.type.name),d,"Initialize Activity Parameter Values (for transition through")
 				if str(node.parameter.direction)=="out" or len(node.incoming)>0: 
 					self.members[node.parameter.getID()+"_default"]=(tname,node.parameter.default,"Outgoing node's default value")
 					self.members[node.parameter.getID()+"_changed"]=("Boolean","false","initialize new value as false")
@@ -342,7 +350,7 @@ class activityEventClass(object):
 					if param == None:
 					  gl.log("BADNESS 0")
 					else:
-					  if param.type: pt = param.type.name
+					  if param.type: pt = mlTypeToJavaClass(param.type.name)
 					  signame = "sig" + param.getID()
 					  self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes") #used??
 			
@@ -499,7 +507,7 @@ class actionEventClass(object):
 		
 		if myType == "Read Self Action":
 			objectFlowOut = node.result.outgoing[0]
-			try: itemname = node.result.type.name
+			try: itemname = mlTypeToJavaClass(node.result.type.name)
 			except: itemname = node.owner.owner.name
 			self.members[node.result.getID()] = (itemname,itemname+".this","Instance of whoever is operating this activity")
 		
@@ -514,7 +522,7 @@ class actionEventClass(object):
 			objectIn = node.object
 			objectOut = node.result
 			prepend=""
-			try: tname = sf.type.name
+			try: tname = mlTypeToJavaClass(sf.type.name)
 			except:tname = "Object"
 			if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, node.object.getID() + "." + sf.name + "_" + sf.getID() + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
 			else: self.dependencies[objectOut.getID()] = (tname,node.object.getID() + "." + sf.name)
@@ -576,7 +584,7 @@ class actionEventClass(object):
 			if not tname: 
 				tname = "Object"
 				t = node.value.type
-				if t: tname = node.value.type.name
+				if t: tname = mlTypeToJavaClass(node.value.type.name)
 			self.members[node.result.getID()] = (tname,str(v),"value specification VALUE")
 			self.dependencies[node.result.getID()] = (tname,str(v))
 		
@@ -592,12 +600,12 @@ class actionEventClass(object):
 				res = node.result
 				body = node.behavior.body
 				for p in args: 
-					if p.type: tname = p.type.name #parameter
+					if p.type: tname = mlTypeToJavaClass(p.type.name) #parameter
 					else: tname = "Object"
 					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Argument Param: " + p.name)
 					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),p.getID())
 				for p in res:
-					if p.type: tname = p.type.name
+					if p.type: tname = mlTypeToJavaClass(p.type.name)
 					else: tname = "Object"
 					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Result Pin: " + p.name)
 					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),node.behavior.body[0].split("=")[1])
@@ -614,16 +622,16 @@ class actionEventClass(object):
 												"args": [("startTime","startTime","Integer"),("caller","this",interfaceText)],
 												"enclosingClass" : node.behavior.owner.name+".this"}
 				for pin in node.input:
-					if pin.type: tname = pin.type.name
+					if pin.type: tname = mlTypeToJavaClass(pin.type.name)
 					else: tname = "Object"
 					if pin.parameter:
 						self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),tname)])
-						self.dependencies[pin.parameter.getID()] = (pin.parameter.type.name,pin.getID())
+						self.dependencies[pin.parameter.getID()] = (mlTypeToJavaClass(pin.parameter.type.name),pin.getID())
 				for pin in node.output:
-					if pin.type: tname = pin.type.name
+					if pin.type: tname = mlTypeToJavaClass(pin.type.name)
 					else: tname = "Object"
-					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),pin.parameter.type.name)])
-					self.dependencies[pin.getID()] = (pin.parameter.type.name,pin.parameter.getID())
+					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),mlTypeToJavaClass(pin.parameter.type.name))])
+					self.dependencies[pin.getID()] = (mlTypeToJavaClass(pin.parameter.type.name),pin.parameter.getID())
 
 		elif myType =="Start Object Behavior Action":
 			inc = node.object.incoming[0]
@@ -641,12 +649,12 @@ class actionEventClass(object):
 
 		elif myType =="Activity Parameter Node":
 			if str(node.parameter.direction)=="in": 
-				self.dependencies["objectToPass"] = (node.parameter.type.name,node.parameter.getID())
+				self.dependencies["objectToPass"] = (mlTypeToJavaClass(node.parameter.type.name),node.parameter.getID())
 				self.members[node.parameter.getID()] = (node.parameter.type.name, None, "Initialize Activity Parameter Node receptacle for incoming value!")
 			else: 
 				self.members["startTimeMinusOne"] = ("Integer",None,"placeholder for a start time minus one function")
 				self.dependencies["startTimeMinusOne"] = ("Integer","startTime-1")
-				self.dependencies[node.parameter.getID()]=(node.parameter.type.name,"objectToPass")
+				self.dependencies[node.parameter.getID()]=(mlTypeToJavaClass(node.parameter.type.name),"objectToPass")
 				self.members["sendDefault"] = ("Boolean","false","initialize whether to send default return value on object flow as false")
 				self.dependencies["sendDefault"] = ("Boolean","%s_changed == null || %s_changed == false" % (node.parameter.getID(),node.parameter.getID()))
 				self.effects.append("sig%s.sendIf(%s_default,startTimeMinusOne,sendDefault)" % (node.incoming[0].getID(),node.parameter.getID()))
@@ -686,4 +694,4 @@ class actionEventClass(object):
 		elif obtype is "Control": obtypename = "Boolean"
 		elif isinstance(obtype,Property): obtypename = obtype.type.name
 		else: obtypename = obtype.name
-		return(obtype,obtypename)
+		return(obtype,mlTypeToJavaClass(obtypename))
