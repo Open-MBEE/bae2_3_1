@@ -59,7 +59,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * socket.
    */
   boolean tryToPlot = true;
-  Timepoint.Units plotAxisTimeUnits = Timepoint.Units.hours;
+  Timepoint.Units plotAxisTimeUnits = Timepoint.Units.seconds;
   public boolean usingSamplePeriod = true;
   public double plotSamplePeriod = 15.0 / Units.conversionFactor( Units.minutes ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
@@ -688,15 +688,29 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }
-      assert v instanceof Double || v instanceof Integer || v instanceof Parameter;
+      assert v == null || v instanceof Double || v instanceof Integer
+             || v instanceof Boolean || v instanceof Parameter;
       while ( v instanceof Parameter ) {
         v = ( (Parameter<?>)v ).getValue(false);
       }
       if ( v instanceof Integer ) {
         v = ( (Integer)v ).doubleValue();
       }
+      if ( v instanceof Boolean ) {
+        v = ( (Boolean)v ) ? 1.0 : 0.0;
+      }
+      if ( v == null ) v = 0.0;
+      
       if ( Double.class.isInstance( v ) ) {
-        doubleArray[ cnt++ ] = ((Double)v).doubleValue();
+        Debug.outln( "appending " + o.toString() + " at index " + cnt + " = "
+                     + v );
+        doubleArray[ cnt++ ] = ( (Double)v ).doubleValue();
+      } else {
+        Debug.error( "should have a double value for " + o.toString() + ": "
+                     + v );
+        Debug.outln( "no value found! appending 0.0 for " + o.toString()
+                     + " at index " + cnt + ", bad value: " + v );
+        doubleArray[ cnt++ ] = 0.0;
       }
     }
     try {

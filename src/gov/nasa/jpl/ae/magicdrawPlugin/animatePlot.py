@@ -54,6 +54,7 @@ from InterpolatedMap import InterpolatedMap
 from OneWaySocket import OneWaySocket
 import collections
 import string
+import time
 
 genXValues = True
 
@@ -259,7 +260,7 @@ def queueSocketData(sock, queue):
             dataType = receiveString(sock) #sock.receive()
             dat = [dataType]
             if dataType == 'quit' :
-                donePlotting = True
+                doneReceiving = True
                 break
             if dataType == 'timepointData' :
                 debugPrint("try to receive data for plot")
@@ -285,8 +286,17 @@ def queueSocketData(sock, queue):
                 debugPrint("received data for plot: " + str(arr))
                 dat.append(arr)
             queue.put(dat)
-        except:
+        except IOError as e:
+            print "I/O error({0}): {1}".format(e.errno, e.strerror)
+            print
+            print sys.exc_info()[0]
             debugPrint("error receiving data")
+            time.sleep(1.0) # seconds
+            doneReceiving = True
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            debugPrint("error receiving data")
+            raise
     debugPrint("done queueing data")
 
 def spawnQueue():
@@ -312,10 +322,12 @@ def socketDataGen():
     global subplotIds
     global timeNow
     #global nowLines
-    global doneReceiving
+    #global doneReceiving
     global queue
     
     global timeout
+
+    doneReceiving = False
 
     cnt = 0
     if genXValues:
@@ -747,7 +759,7 @@ def addAx(subplotId):
             lineNames.append('_nolegend_')        
     for _ in xrange(numLines):
         if subplotForLine[ii] == subplotId:
-            debugPrint("adding line " + lineNames[ii] + " for subplot " + subplotId + ", ax=" + str(ax))
+            debugPrint("adding line " + lineNames[ii] + ", index " + str(ii) + ", for subplot " + subplotId + ", ax=" + str(ax))
             addLine(ax, ii)
         ii+=1
     ax.set_ylim(-1.1, 1.1)
