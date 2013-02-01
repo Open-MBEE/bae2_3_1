@@ -13,7 +13,7 @@ fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt" 
 timeout = 20 # seconds of no data
 
 usingTk = True
-saveMovie = False
+saveMovie = True
 if saveMovie:
     usingTk = False
 
@@ -1010,8 +1010,10 @@ def main(argv=None):
         return
 
     # create plot figure
-    fig = plt.figure(figsize=(25.0,6.0))
-    fig.subplots_adjust(hspace=0.5)
+    fig = plt.figure(figsize=(20.0,10.0))
+    fig.subplots_adjust(hspace=0.2)
+    fig.subplots_adjust(left=0.12)
+    fig.subplots_adjust(right=0.9)
     if len(subplotIds) == 0:
         subplotIds.add(defaultSubplotTitle)
     for subplotId in subplotIds:

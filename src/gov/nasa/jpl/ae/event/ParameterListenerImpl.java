@@ -44,9 +44,9 @@ public class ParameterListenerImpl extends HasIdImpl
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  protected double timeoutSeconds = 3600.0;
-  protected int maxLoopsWithNoProgress = 1000;
-  protected long maxPassesAtConstraints = 5000;
+  protected double timeoutSeconds = 7200.0;
+  protected int maxLoopsWithNoProgress = 500;
+  protected long maxPassesAtConstraints = 1000;
   protected boolean usingTimeLimit = true;
   protected boolean usingLoopLimit = true;
 
@@ -451,23 +451,31 @@ public class ParameterListenerImpl extends HasIdImpl
     int numLoopsWithNoProgress = 0;
     
     boolean satisfied = false;
+    long millisPassed = (long)( System.currentTimeMillis() - clockStart );
     double curTimeLeft =
-        ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
+        ( timeoutSeconds * 1000.0 - ( millisPassed ) );
     
     while ( !satisfied
             && numLoopsWithNoProgress < maxLoopsWithNoProgress
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
             && ( !usingLoopLimit || numLoops < maxPassesAtConstraints ) ) {
-      if ( usingTimeLimit ) {
-        if ( Debug.isOn() || this.amTopEventToSimulate ) {
-          Debug.outln( this.getClass().getName() + " satisfy loop with "
-                       + curTimeLeft + " milliseconds left" );
+      if ( Debug.isOn() || this.amTopEventToSimulate ) {
+        if ( usingTimeLimit ) {
+          System.out.println( this.getClass().getName() + " satisfy loop with "
+                              + Duration.toFormattedString( (long)curTimeLeft )
+                              + " time left" );
+        } else {
+          System.out.println( this.getClass().getName()
+                              + " satisfy loop after "
+                              + Duration.toShortFormattedStringForIdentifier( millisPassed ) );
         }
-      }
-      if ( usingLoopLimit ) {
         if ( Debug.isOn() || this.amTopEventToSimulate ) {
-          System.out.println( this.getClass().getName() + " satisfy loop round "
-              + (numLoops+1) + " out of " + maxPassesAtConstraints );
+          System.out.println( this.getClass().getName()
+                              + " satisfy loop round " + ( numLoops + 1 )
+                              + " out of " + maxPassesAtConstraints );
+        } else {
+          System.out.println( this.getClass().getName()
+                              + " satisfy loop round " + ( numLoops + 1 ) );
         }
       }
       satisfied = tryToSatisfy(deep, null);
@@ -494,8 +502,8 @@ public class ParameterListenerImpl extends HasIdImpl
         numLoopsWithNoProgress = 0;
       }
       
-      curTimeLeft =
-          ( timeoutSeconds * 1000.0 - ( System.currentTimeMillis() - clockStart ) );
+      millisPassed = (long)( System.currentTimeMillis() - clockStart );
+      curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
     }
     return satisfied;
