@@ -61,7 +61,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   boolean tryToPlot = true;
   Timepoint.Units plotAxisTimeUnits = Timepoint.Units.seconds;
   public boolean usingSamplePeriod = true;
-  public double plotSamplePeriod = 15.0 / Units.conversionFactor( Units.minutes ); // 15 min
+  public double plotSamplePeriod = 5.0 / Units.conversionFactor( Units.minutes ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 

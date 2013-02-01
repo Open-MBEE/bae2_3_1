@@ -249,7 +249,8 @@ public class FunctionCall extends Call {
     try {
       result = method.invoke( object, evaluatedArgs ); 
     } catch (IllegalArgumentException e) {
-      System.err.println("FunctionCall.invoke(" + evaluatedArgs + "): " + e.getMessage());
+      System.err.println("FunctionCall.invoke(" + Utils.toString( evaluatedArgs, false )  + "): " + e.getMessage());
+      e.printStackTrace();
     }
    
     return result;
