@@ -14,6 +14,7 @@ import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
+import gov.nasa.jpl.ae.event.Functions.BooleanBinary;
 import gov.nasa.jpl.ae.event.Functions.LessEquals;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
@@ -72,7 +73,10 @@ public class OperatingLimits extends DurativeEvent {
     }
   }
 
-  
+
+  public static boolean mustViolateLowerLimit = false;
+  public static boolean mustViolateUpperLimit = false;
+
   public Collection< Customer > customers =
       new ArrayList< OperatingLimits.Customer >();
   public Expression< Boolean > lowerStableLimit = null;
@@ -107,8 +111,8 @@ public class OperatingLimits extends DurativeEvent {
   }
 
   private void initLimits() {
-    initLimit( "lowerStableLimit", "lowerLimit" );
-    initLimit( "upperUnstableLimit", "upperLimit" );
+    initLimit( "lowerStableLimit", "lowerLimit", mustViolateLowerLimit );
+    initLimit( "upperUnstableLimit", "upperLimit", mustViolateLowerLimit );
 //    initLowerStableLimit( ramp, rampDuration );
 //    initUpperUnstableLimit( ramp, rampDuration );
   }
@@ -116,11 +120,12 @@ public class OperatingLimits extends DurativeEvent {
   private void initLimit( //Expression< Double > ramp,
                           //Expression< Double > rampDuration,
                           String limitName,
-                          String limitFuncName ) {
+                          String limitFuncName,
+                          boolean negateLimit ) {
     Exception ex = null;
     try {
       Field limitField = this.getClass().getField( limitName );
-      Expression< Boolean > limit = addLimit(ramp, rampDuration, limitFuncName );
+      Expression< Boolean > limit = addLimit(ramp, rampDuration, limitFuncName, negateLimit );
       try {
         limitField.set( this, limit );
       } catch ( IllegalArgumentException e ) { ex = e; }
@@ -151,14 +156,16 @@ public class OperatingLimits extends DurativeEvent {
 
   public Expression< Boolean > addLimit( Expression< Double > ramp,
                                          Expression< Double > rampDuration,
-                                         String functionName ) {
+                                         String functionName, boolean negateLimit ) {
     Object[] args = new Object[] { rampDuration };
     Expression< Double > limit =
         new Expression< Double >( new FunctionCall( null, getClass(),
                                                     functionName, args ) );
-    LessEquals< Double > limitFunc =
-        new Functions.LessEquals< Double >( ramp, limit );
+    BooleanBinary< Double > limitFunc =
+        ( negateLimit ? new Functions.Greater< Double >( ramp, limit )
+                      : new Functions.LessEquals< Double >( ramp, limit ) );
     Expression< Boolean > limitExpr = new Expression< Boolean >( limitFunc );
+
     constraintExpressions.add( new ConstraintExpression( limitExpr ) );
     return limitExpr;
   }
@@ -189,6 +196,11 @@ public class OperatingLimits extends DurativeEvent {
     Double minDelayValue = darr[2];
     Double maxDelayValue = darr[3];
 
+//    OperatingLimits.mustViolateLowerLimit = true;
+//    OperatingLimits.mustViolateUpperLimit = true;
+    OperatingLimits.mustViolateLowerLimit = false;
+    OperatingLimits.mustViolateUpperLimit = false;
+
     OperatingLimits.Customer c = new Customer( "customer", 
                                                minLoadValue, maxLoadValue,
                                                minDelayValue, maxDelayValue );
@@ -198,6 +210,13 @@ public class OperatingLimits extends DurativeEvent {
     ol.writeConstraintsOut = true;
 
     ol.executeAndSimulate();
+    
+//    try {
+//      Thread.sleep( 600 );
+//    } catch ( InterruptedException e ) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    }
     
     System.out.println("");
   }
