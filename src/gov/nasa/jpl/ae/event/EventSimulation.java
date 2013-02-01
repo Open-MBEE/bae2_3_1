@@ -579,7 +579,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       }
     } catch ( IOException e ) {
       tryToPlot = false;
-      plotSocket.close();
+      if ( plotSocket != null && plotSocket.isConnected() ) {
+        plotSocket.close();
+      }
       System.out.println("Giving up on plotting." );
       e.printStackTrace();
     }
@@ -646,6 +648,12 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   private void closePlotSocket() {
     if ( plotSocket != null && plotSocket.isConnected() ) {
+      try {
+        plotSocket.send( "quit" );
+      } catch ( IOException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       plotSocket.close();
     }
   }

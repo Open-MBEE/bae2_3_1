@@ -2,9 +2,18 @@ import re
 import InterpolatedMap
 #import SortedDict
 import os
+applicationsDir = "C:\Program Files" 
 homeDir = os.getenv('HOME')
-workspacePath = homeDir + os.sep + 'proj/ae/workspace'
-mdPath = '/home/bclement/apps/MagicDraw/OpsRevMD1702-20120912'
+if homeDir == None:
+    homeDir = "C:\Users\bclement"
+workspacePath = homeDir + os.sep + 'proj' + os.sep + 'ae' + os.sep + 'workspace'
+if not os.path.isdir(workspacePath):
+    workspacePath = homeDir + os.sep + 'workspace'
+    #workspacePath = homeDir + os.sep + 'proj/ae/workspace'
+mdPath = homeDir + os.sep + 'apps' + os.sep + 'MagicDraw' + os.sep + 'OpsRevMD1702-20120912'#"C:\Program Files\MagicDraw\OpsRevMD1702-20120912\bin\mduml.exe"
+if not os.path.isdir(mdPath):
+    mdPath = applicationsDir + 'MagicDraw' + os.sep + 'OpsRevMD1702-20120912'
+
 pluginDirName = 'LADWP'
 if 'mjackson' in homeDir: 
     workspacePath = homeDir + os.sep + 'Documents/workspace-Helios/'
