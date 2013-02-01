@@ -246,13 +246,12 @@ def updateBounds(subId, datx, daty, updateLimits=True):
     return
 
 def queueSocketData(sock, queue):
-    #global sock
 
     #queue = args[0]
-    doneReceiving = False
+    doneRecv = False
 
     while 1:
-        if doneReceiving:
+        if doneRecv:
             break
         try:
             # receive a string telling whether receiving data at timepoint or 
@@ -260,7 +259,8 @@ def queueSocketData(sock, queue):
             dataType = receiveString(sock) #sock.receive()
             dat = [dataType]
             if dataType == 'quit' :
-                doneReceiving = True
+                debugPrint("got quit")
+                doneRecv = True
                 break
             if dataType == 'timepointData' :
                 debugPrint("try to receive data for plot")
@@ -297,6 +297,7 @@ def queueSocketData(sock, queue):
             print "Unexpected error:", sys.exc_info()[0]
             debugPrint("error receiving data")
             raise
+    sock.close()
     debugPrint("done queueing data")
 
 def spawnQueue():
@@ -352,6 +353,7 @@ def socketDataGen():
             # update a series of data
             dataType = dat[0]
             if dataType == 'quit' :
+                debugPrint("got quit from queue")
                 doneReceiving = True
                 break
             if dataType == 'timepointData' :
