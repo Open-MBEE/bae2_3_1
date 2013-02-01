@@ -22,6 +22,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
   protected Timepoint.Units units = Timepoint.getUnits();
 
   public static final String durationFormat = "yyyy-DDD'T'HH:mm:ss.SSS";
+  public static final String durationFormatForIdentifier = "yyyy-DDD'T'HH.mm.ss.SSS";
       //Timepoint.timestampFormat.replace( "Z", "" ); //"HH:mm:ss.SSS";
 
   /**
@@ -117,15 +118,71 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	}
 	
   public String toFormattedString() {
-    // TODO -- 
-    SimpleDateFormat sdf = new SimpleDateFormat( durationFormat );
+    return toFormattedString( toMillis() );
+  }
+  public String toFormattedStringForIdentifier() {
+    return toFormattedString( toMillis() );
+  }
+  public static String toFormattedStringForIdentifier( long millis ) {
+    return fixYear(toFormattedString( millis, durationFormatForIdentifier ));
+  }
+  public static String toShortFormattedStringForIdentifier( long millis ) {
+    String s = fixYear(toFormattedString( millis, durationFormatForIdentifier ));
+    return removeLeadingZeroValues( s );
+  }
+  public static String toFormattedString( long millis ) {
+    return fixYear(toFormattedString( millis, durationFormat ));
+  }
+  public static String toFormattedString( long millis, String format ) {
+    SimpleDateFormat sdf = new SimpleDateFormat( format );
     String tString =
-        sdf.format( new Date( toMillis() 
+        sdf.format( new Date( millis 
                               - TimeZone.getDefault().getRawOffset() ) );
     return tString;
   }
+
+  public static String fixYear( String dateString ) {
+    if ( dateString.length() >= 5 ) {
+      String yearStr = dateString.substring( 0, 4 );
+      Integer year = Integer.parseInt( yearStr );
+      String newYearStr = "0000"; 
+      if ( year > 1970 ) {
+        year = year - 1970;
+        newYearStr = year.toString() + dateString.substring( 4, 5 );
+      }
+      return newYearStr + dateString.substring( 4 );
+    }
+    return dateString;
+  }
   
-	@Override
+  public static String removeLeadingZeroValues( String s ) {
+    int posOfNewStr = 0;
+    boolean done = false;
+    // remove all-zero numbers and delimiters that follow
+    while ( posOfNewStr < s.length() && !done && s.charAt( posOfNewStr ) == '0' ) {
+      int newPos = posOfNewStr;
+      // skip zeroes
+      while ( newPos < s.length() && Character.isDigit( s.charAt( newPos ) ) ) {
+        if ( s.charAt( newPos ) == '0' ) {
+          ++newPos;
+        } else {
+          newPos = posOfNewStr;
+          done = true;
+          break;
+        }
+      }
+      if ( !done ) {
+        // non-zero digits were not found; skip over delimiter(s)
+        while ( newPos < s.length() && !Character.isDigit( s.charAt( newPos ) ) ) {
+          ++newPos;
+        }
+      }
+      posOfNewStr = newPos;
+    }
+    return s.substring( posOfNewStr );
+  }
+
+  @Override
   public String toString() {
 	  return toStringWithUnits( true, true );
   }

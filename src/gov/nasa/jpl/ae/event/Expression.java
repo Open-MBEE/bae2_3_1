@@ -4,18 +4,17 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import junit.framework.Assert;
 
 /**
@@ -570,7 +569,7 @@ public class Expression< ResultType > extends HasIdImpl
                                   boolean allowWrapping ) throws ClassCastException {
     if ( object == null ) return null;
     // Check if object is already what we want.
-    if ( cls != null && cls.isInstance( object ) ) {
+    if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
       return (TT)object;
     }
     
@@ -592,6 +591,32 @@ public class Expression< ResultType > extends HasIdImpl
     else if ( object instanceof Call) {
       value = ( (Call)object ).evaluate( propagate );
       return evaluate( value, cls, propagate );  
+    }
+    else if ( cls != null 
+        && ClassUtils.isNumber( cls )
+        && ClassUtils.isNumber( object.getClass() ) ) {
+      try {
+        int f = 5;
+        Integer t = 3;
+        f = (int)(Integer)t.intValue();
+        Number n = (Number)object;
+        Class<?> c = ClassUtils.classForPrimitive( cls );
+        if ( c == null ) c = cls;
+        if ( c == Long.class ) return (TT)(Long)n.longValue(); 
+        if ( c == Short.class ) return (TT)(Short)n.shortValue(); 
+        if ( c == Double.class ) return (TT)(Double)n.doubleValue(); 
+        if ( c == Integer.class ) return (TT)(Integer)n.intValue(); 
+        if ( c == Float.class ) return (TT)(Float)n.floatValue(); 
+//        if ( c == Character.class ) return (TT)(Character)n.shortValue();
+//      if ( c == Long.class ) return cls.cast( n.longValue() ); 
+//      if ( c == Short.class ) return cls.cast( n.shortValue() ); 
+//      if ( c == Double.class ) return cls.cast( n.doubleValue() ); 
+//      if ( c == Integer.class ) return cls.cast( n.intValue() ); 
+//      if ( c == Float.class ) return cls.cast( n.floatValue() ); 
+//      if ( c == Character.class ) return cls.cast( n );
+      } catch ( Exception e ) {
+        // ignore
+      }
     }
     else if ( allowWrapping && cls != null ){
       // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
