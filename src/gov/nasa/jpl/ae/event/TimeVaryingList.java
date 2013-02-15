@@ -552,6 +552,9 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     return ok;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.TimeVaryingMap#floatEffects(gov.nasa.jpl.ae.event.Parameter)
+   */
   @Override
   protected void floatEffects( Parameter<Integer> t ) {
     if ( t == null ) return;
@@ -568,7 +571,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   
   @Override
-  protected void unfloatEffects( Parameter<Integer> t ) {
+  protected void unfloatEffects( Parameter<?> t ) {
     breakpoint();
     if ( t == null ) return;
     if ( t.getValueNoPropagate() == null ) return;
@@ -577,7 +580,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
       if ( e.first.compareTo( t ) == 0 ) { // REVIEW -- Do we need to use
                                            // compareTo instead of equals
                                            // elsewhere?
-        add( t, e.second );
+        add( tryCastTimepoint( t ), e.second );
         if ( Debug.isOn() ) Debug.out( getName() + ": unfloated effect, " + e );
       }
       floatingEffects.remove( e );
