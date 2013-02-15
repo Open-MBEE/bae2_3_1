@@ -24,7 +24,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                         HasDomain,
                                                         Groundable,
                                                         Comparable< Call >,
-                                                        MoreToString {
+                                                        MoreToString,
+                                                        Cloneable {
 
   /**
    * A function call on the result of this function call.

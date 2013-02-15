@@ -23,6 +23,7 @@ import java.util.Vector;
 public class FunctionCall extends Call {
 
   protected Method method = null;
+  protected boolean monotonic = false;
   //protected Object object = null; // object from which method is invoked
   //protected Vector< Object > arguments = null; // arguments to method
 
@@ -224,6 +225,35 @@ public class FunctionCall extends Call {
     hasTypeErrors();
   }
 
+  @Override
+  public FunctionCall clone() {
+    FunctionCall f = new FunctionCall(this);
+    return f;
+  }
+  
+  /**
+   * A monotonic function is always increasing or always decreasing.
+   */
+  public boolean isMonotonic() {
+    // TODO -- redefine for functions in Functions.java
+    return monotonic ;
+  }
+  
+  /**
+   * @param monotonic the monotonic to set
+   */
+  public void setMonotonic( boolean monotonic ) {
+    this.monotonic = monotonic;
+  }
+
+  /**
+   * A monotonic function is always increasing or always decreasing.
+   */
+  public boolean isContinuous() {
+    // TODO -- redefine for functions in Functions.java
+    return false;
+  }
+  
   @Override
   public Class<?>[] getParameterTypes() {
     return method.getParameterTypes();

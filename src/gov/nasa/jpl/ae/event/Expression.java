@@ -143,10 +143,10 @@ public class Expression< ResultType > extends HasIdImpl
 				expression = e.expression;
 				break;
 			case Function:
-				expression = (Object) new FunctionCall((FunctionCall)e.expression);
+				expression = (Object) ((FunctionCall)e.expression).clone();
 				break;
       case Constructor:
-        expression = (Object) new ConstructorCall((ConstructorCall)e.expression);
+        expression = (Object) ((ConstructorCall)e.expression).clone();
         break;
 //			case Parameter:
 //				expression = (Object) new Parameter<ResultType>((Parameter<ResultType>)e.expression);

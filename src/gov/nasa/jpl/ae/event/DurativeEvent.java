@@ -9,6 +9,7 @@ import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.FileUtils;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Timer;
 import gov.nasa.jpl.ae.util.Utils;
@@ -993,6 +994,31 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return set;
   }
   
+  @Override
+  public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
+                                                               Set< ParameterListenerImpl > seen ) {
+    Pair< Boolean, Set< ParameterListenerImpl > > pair =
+        Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+    Collection< ParameterListenerImpl > set = super.getNonEventObjects( deep, seen );
+    for ( Pair< Parameter< ? >, Set< Effect > > e : getEffects() ) {
+      set.addAll( getNonEventObjects(e, deep, seen ) );
+    }
+    if ( deep ) {
+      set.addAll( getNonEventObjects(elaborationsConstraint, deep, seen ) );
+      set.addAll( getNonEventObjects(effectsConstraint, deep, seen ) );
+      for ( Entry< ElaborationRule, Vector< Event > > e : getElaborations().entrySet() ) {
+        set.addAll( getNonEventObjects(e, deep, seen ) );
+      }
+      for ( Event e : getEvents(false, null) ) {
+        set.addAll( getNonEventObjects(e, deep, seen ) );
+      }
+    }
+    return set;
+  }
+  
   /* 
    * Gather any parameter instances contained by this event.
    * (non-Javadoc)
@@ -1310,10 +1336,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     events.add( this );
     events = Utils.addAll( events, getEvents( true, null ) );
     for ( Event e : events ) {
-      sb.append( e.toString() + "\n" );
+      sb.append( MoreToString.Helper.toString( e, false, true, null ) + "\n" );
+    }
+    for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
+      sb.append( MoreToString.Helper.toString( pl, false, true, null ) + "\n" );
     }
     for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
-      sb.append( tv.toString() + "\n" );
+      sb.append( MoreToString.Helper.toString( tv, false, true, null ) + "\n" );
     }
     return sb.toString();
   }

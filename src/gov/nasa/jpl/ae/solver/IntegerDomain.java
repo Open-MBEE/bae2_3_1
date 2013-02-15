@@ -73,6 +73,9 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 	 */
 	@Override
 	public Integer pickRandomValue() {
+    if ( this.isEmpty() ) {
+      return null;
+    }
 		//return (int) Math.abs( getLowerBound() + Math.random() * size() );
     // a bunch of tricks to avoid overflow
     double r1 = Random.global.nextDouble();
@@ -85,7 +88,11 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
     return (int)(middle + r2 * half);
 	}
 
-	 public Integer pickRandomValueLessThan( int maxVal ) {
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.AbstractRangeDomain#pickRandomValueLessThan(java.lang.Object)
+   */
+  @Override
+	public Integer pickRandomValueLessThan( Integer maxVal ) {
 	   int u = getUpperBound();
 	   setUpperBound( maxVal );
 	   int p = pickRandomValue();
@@ -113,6 +120,9 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   }
 
   // counts from zero!!!
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain#getNthValue(long)
+   */
   @Override
   public Integer getNthValue( long n ) {
     return (int)(((long)getLowerBound()) + n);

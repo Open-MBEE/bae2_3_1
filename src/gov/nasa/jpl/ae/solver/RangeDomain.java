@@ -18,6 +18,8 @@ public interface RangeDomain< T > extends Domain< T > {
   public boolean excludeUpperBound();
   public boolean includeUpperBound();
   public boolean isUpperBoundIncluded();
+  
+  public Number width();
 
   public RangeDomain< T > clone();
 }

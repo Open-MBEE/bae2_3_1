@@ -2,6 +2,8 @@ import re
 import InterpolatedMap
 #import SortedDict
 import os
+
+debug = False
 applicationsDir = "C:\Program Files" 
 homeDir = os.getenv('HOME')
 if homeDir == None:
@@ -33,9 +35,6 @@ def addToPath(s):
 # access to AE Java 
 addToPath(projectPath + os.sep + 'bin');
 
-#import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap as TimeVaryingPlottableMap
-
-debug = False
 def debugPrint(s, outputFile=sys.stdout):
     if debug:
         outputFile.write(s + '\n')
@@ -82,11 +81,17 @@ class PlotDataReader(object):
 #                tvm.fromString(line, None)
                 if category not in self.data.keys():
                     self.data[category] = {}
+                else:
+                    originalName = str(name)
+                    ctr = 0
+                    while name in self.data[category].keys():
+                        name = originalName + str(ctr)
+                        ctr = ctr + 1
 #                self.data[category].append(tvm)
                 self.data[category][name] = m
                 debugPrint( "PlotDataReader: found " + name + " " + category + " " + str(m) )
                 for p in m:
-                    debugPrint(p)
+                    debugPrint(str(p))
             elif readingExecution and line.startswith("^--- simulation start"):
                 readingExecution = False
         print( "PlotDataReader: finished loading plottables from " + str(fileName) )
@@ -170,8 +175,11 @@ class PlotDataReader(object):
         
     @staticmethod
     def parseMap(s):
+        #numRegEx = "\d+(?:\.\d*)?"
+        identifierRegEx = "[A-Za-z_]\\w*"
         prefix1, delimiter1, suffix1 = "[\\[{(]\\s*", ",\\s*", "\\s*[\\]})]"
-        prefix2, delimiter2, suffix2 = "[\\[{(]\\s*", "\\s*=\\s*", "\\s*[\\]})]"
+        prefix2, delimiter2, suffix2 = "[\\[{(]\\s*(?:" + identifierRegEx + "(?::(?:" + identifierRegEx + ")?)?\\s*=)?", "\\s*=\\s*", "\\s*[\\]})]"
+        #key, value = numRegEx, numRegEx
         return PlotDataReader.parseMapWith(s, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2)
     
 #
