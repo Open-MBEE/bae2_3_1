@@ -4440,6 +4440,7 @@ src/gov/nasa/jpl/ae/event/Groundable.java -text
 src/gov/nasa/jpl/ae/event/HasEvents.java -text
 src/gov/nasa/jpl/ae/event/HasParameters.java -text
 src/gov/nasa/jpl/ae/event/HasTimeVaryingObjects.java -text
+src/gov/nasa/jpl/ae/event/HowManyQuery.java -text
 src/gov/nasa/jpl/ae/event/IntegerParameter.java -text
 src/gov/nasa/jpl/ae/event/LazyUpdate.java -text
 src/gov/nasa/jpl/ae/event/LinearTimeline.java -text
@@ -4449,6 +4450,7 @@ src/gov/nasa/jpl/ae/event/ParameterConstraint.java -text
 src/gov/nasa/jpl/ae/event/ParameterListener.java -text
 src/gov/nasa/jpl/ae/event/ParameterListenerImpl.java -text
 src/gov/nasa/jpl/ae/event/Plottable.java -text
+src/gov/nasa/jpl/ae/event/Query.java -text
 src/gov/nasa/jpl/ae/event/Simulator.java -text
 src/gov/nasa/jpl/ae/event/StringParameter.java -text
 src/gov/nasa/jpl/ae/event/Suggester.java -text

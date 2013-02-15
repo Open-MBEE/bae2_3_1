@@ -6,9 +6,12 @@ public interface Domain< T > extends Cloneable, HasId {
 
   public long size();
 
+  public boolean isEmpty();
+  
   public boolean contains( T t );
 
   public T pickRandomValue();
+  public T pickRandomValueNotEqual( T t );
   
   public boolean isInfinite();
   

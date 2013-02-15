@@ -89,8 +89,9 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     super( expr.type == Type.Function ? (FunctionCall)expr.expression : null );
   }
   
+  // TODO -- REVIEW -- should this call super.clone() all the way up to Object?
 //	abstract public Effect clone() throws CloneNotSupportedException;
-	public Effect clone() {
+	public EffectFunction clone() {
 		return new EffectFunction( this );
 	}
 	

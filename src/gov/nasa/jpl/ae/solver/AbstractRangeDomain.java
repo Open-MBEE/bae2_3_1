@@ -9,18 +9,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.text.AbstractDocument;
-
 import gov.nasa.jpl.ae.event.ConstraintExpression;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
-import gov.nasa.jpl.ae.event.Functions.NotEquals;
 import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
-
-import org.junit.Assert;
 
 /**
  *
@@ -67,6 +62,14 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	 */
 	@Override
 	public abstract long size();
+	
+  @Override
+	public boolean isEmpty() {
+    return ( less( getUpperBound(), getLowerBound() ) ||
+             ( equals( getUpperBound(), getLowerBound() ) &&
+               !lowerIncluded && !upperIncluded ) );
+  }
+
 
 	/* (non-Javadoc)
 	 * @see event.Domain#getLowerBound()
@@ -84,6 +87,13 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 		return upperBound;
 	}
 
+  /**
+   * @param n
+   * @return the nth element in the domain counting from zero if there are at
+   *         least n+1 elements, and the number of elements is countable.
+   *         Otherwise, if the domain is uncountable and n is zero, return the
+   *         lower bound; else return null.
+   */
 	public abstract T getNthValue( long n );
 	
 	/* (non-Javadoc)
@@ -92,6 +102,165 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	@Override
 	public abstract T pickRandomValue();
 	
+  // TODO -- should probably just make this abstract and redefine instead of
+  // trying to make it work for many types.
+	public static <TT> TT pickRandomValue( AbstractRangeDomain<TT> d1,
+	                                       AbstractRangeDomain<TT> d2 ) {
+    long zl = d1.size();
+    long zu = d2.size();
+    long totalSize = zl + zu;
+    if ( zl == 0 && zu == 0 ) return null;
+    if ( zl == 0 ) return d2.pickRandomValue();
+    if ( zu == 0 ) return d1.pickRandomValue();
+    double totalSizeDouble = totalSize;
+    Number wl = zl;
+    Number wu = zu;
+    if ( totalSize < 0 ) {
+      wl = d1.width();
+      wu = d2.width();
+    }
+    Number totalWidth = Functions.plus( wl, wu );
+    totalSizeDouble = totalWidth.doubleValue();
+    double r = Random.global.nextDouble() * totalSizeDouble;
+    if ( r < wl.byteValue() ) {
+      if ( wl instanceof Long || wl instanceof Integer ) {
+        return d1.getNthValue( (long)r );
+      }
+      return Functions.plus( d1.getLowerBound(), (Double)r );
+    }
+    if ( wl instanceof Long || wl instanceof Integer ) {
+      return d2.getNthValue( ((long)r) - zl );
+    }
+    return Functions.plus( d2.getLowerBound(),
+                           (Double)( r - wl.doubleValue() ) );
+	}
+	
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.RangeDomain#width()
+   */
+	@Override
+  public Number width() {
+	  T lb = getLowerBound();
+    T ub = getUpperBound();
+    if ( lb instanceof Number && ub instanceof Number ) {
+      T diff = Functions.minus( ub, lb );
+      if ( diff instanceof Number ) return (Number)diff;
+    }
+    Debug.error( "width() needs to be redefined for "
+                 + getClass().getCanonicalName() );
+    return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Domain#pickRandomValueNotEqual()
+   */
+  @Override
+  public T pickRandomValueNotEqual( T t ) {
+    long z = size();
+    if ( z == 0 ) return null;
+    if ( z == 1 ) {
+      if ( this.contains( t ) ) {
+        return null;
+      } else {
+        return this.getNthValue( 0 );
+      }
+    }
+    T tt = pickRandomValue();
+    if ( tt.equals( t ) ) {
+      // bummer -- better not loop on calling pickRandomValue()
+      AbstractRangeDomain<T> dLower = createSubDomainBelow( t, false );
+      AbstractRangeDomain<T> dUpper = createSubDomainAbove( t, false );
+      tt = pickRandomValue( dLower, dUpper );
+    }
+    return tt;
+  }
+	
+  public void makeEmpty() {
+    lowerIncluded = true;
+    upperIncluded = true;
+    if ( getLowerBound() != null ) {
+      setUpperBound( getLowerBound() );
+    } else if ( getLowerBound() != null ) {
+      setLowerBound( getUpperBound() );
+    }
+    lowerIncluded = false;
+    upperIncluded = false;
+  }
+
+  public T min( T t1, T t2 ) {
+    if ( lessEquals( t1, t2 ) ) return t1;
+    return t2;
+  }
+  public T max( T t1, T t2 ) {
+    if ( greaterEquals( t1, t2 ) ) return t1;
+    return t2;
+  }
+
+  public AbstractRangeDomain<T> createSubDomainAbove( T t, boolean include ) {
+    if ( t == null ) return null;
+    AbstractRangeDomain<T> d = this.clone();
+    boolean belowLb = less( t, getLowerBound() );
+    boolean eqLb = t.equals( getLowerBound() );
+    if ( !belowLb || eqLb ) {
+      d.lowerIncluded = true; // temporary to make sure setUpperBound() works
+    }
+    if ( belowLb || eqLb || d.setLowerBound( t ) ) {
+      if ( !belowLb || eqLb ) {
+        d.lowerIncluded = include;
+      }
+      return d; 
+    }
+    d.makeEmpty();
+    return d;
+  }
+
+  public AbstractRangeDomain<T> createSubDomainBelow( T t, boolean include ) {
+    if ( t == null ) return null;
+    AbstractRangeDomain<T> d = this.clone();
+    boolean aboveUb = greater( t, getUpperBound() );
+    boolean eqUb = t.equals( getUpperBound() );
+    if ( !aboveUb || eqUb ) {
+      d.upperIncluded = true; // temporary to make sure setUpperBound() works
+    }
+    if ( aboveUb || eqUb || d.setUpperBound( t ) ) {
+      if ( !aboveUb || eqUb ) {
+        d.upperIncluded = include;
+      }
+      return d; 
+    }
+    d.makeEmpty();
+    return d;
+  }
+
+  public T pickRandomValueGreaterThanOrEqual( T t ) {
+    return pickRandomValueGreater( t, true );
+  }
+  public T pickRandomValueGreaterThan( T t ) {
+    return pickRandomValueGreater( t, false );
+  }
+  public T pickRandomValueGreater( T t, boolean include ) {
+    if ( t == null ) t = getLowerBound();
+    AbstractRangeDomain<T> d = createSubDomainAbove( t, include );
+    if ( d != null ) {
+      return d.pickRandomValue();
+    }
+    return null;
+  }
+  public T pickRandomValueLessThanOrEqual( T t ) {
+    return pickRandomValueLess( t, true );
+  }
+  public T pickRandomValueLessThan( T t ) {
+    return pickRandomValueLess( t, false );
+  }
+  public T pickRandomValueLess( T t, boolean include ) {
+    if ( t == null ) t = getUpperBound();
+    AbstractRangeDomain<T> d = createSubDomainBelow( t, include );
+    if ( d != null ) {
+      return d.pickRandomValue();
+    }
+    return null;
+  }
+  
 	@Override
 	public String toString() {
 	  if ( getLowerBound() == null || getUpperBound() == null ) {
@@ -240,8 +409,8 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     boolean gotBoundConstraint = false;
     boolean propagate = false; // setting this to true can cause sets/maps of parameters/constraints to have problems
     // lower bound constraint
-    if ( greater( lowerBound, getTypeMinValue() ) ) {
-      args = new Object[] { lowerBound, t.getValue( propagate ) };
+    if ( greater( getLowerBound(), getTypeMinValue() ) ) {
+      args = new Object[] { getLowerBound(), t.getValue( propagate ) };
       method = ClassUtils.getMethodForArgs( getClass(), "lessEquals", args );
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
       Expression< T > expr = 
@@ -252,19 +421,19 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 //            new Expression< T >( new FunctionCall( null, Variable.class, "getValue",
 //                                                   new Object[]{ propagate }, (FunctionCall)expr.expression ) );
 //      }
-      args = new Object[] { lowerBound, expr };
+      args = new Object[] { getLowerBound(), expr };
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                              args ) ) );
       gotBoundConstraint = true;
     }
     // upper bound constraint
-    if ( less( upperBound, getTypeMaxValue() ) ) {
-      args = new Object[] { upperBound, t.getValue( propagate ) };
+    if ( less( getUpperBound(), getTypeMaxValue() ) ) {
+      args = new Object[] { getUpperBound(), t.getValue( propagate ) };
       method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
       Expression< T > expr = 
         new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
                                                new Object[]{ propagate } ) );
-      args = new Object[] { upperBound, expr };
+      args = new Object[] { getUpperBound(), expr };
 
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
                                                              args ) ) );

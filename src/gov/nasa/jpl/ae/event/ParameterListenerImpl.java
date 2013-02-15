@@ -183,16 +183,28 @@ public class ParameterListenerImpl extends HasIdImpl
     seen = pair.second;
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() ); // super.toString() adds hash code
-    Set< Parameter< ? > > allParams = getParameters( false, null );
+    if ( withHash ) {
+      sb.append("@" + this.hashCode() );
+    }
+    // TODO -- REVIEW -- Can this just call MoreToString.Helper.toString(params)?
     if ( deep ) {
-      for ( Object p : allParams ) {
-        if ( p instanceof Parameter ) {
-          sb.append( ", " + ((Parameter<?>)p).toString( false, withHash, deep,
-                                                        seen, otherOptions ) );
+      sb.append( "(" );
+      boolean first = true;
+      if ( !Utils.isNullOrEmpty( name ) ) {
+        sb.append( "name=" + name );
+        first = false;
+      }
+      Set< Parameter< ? > > allParams = getParameters( false, null );
+      for ( Parameter<?> p : allParams ) {
+        if ( first ) first = false;
+        else sb.append( ", " );
+        if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+          sb.append( p.toString( false, withHash, false, seen, otherOptions ) );
         } else {
-          sb.append( ", " + p.toString() );
+          sb.append( p.toString( false, withHash, deep, seen, otherOptions ) );
         }
       }
+      sb.append( ")" );
     }
     return sb.toString();
   }
@@ -612,6 +624,54 @@ public class ParameterListenerImpl extends HasIdImpl
     return s;
   }
 
+  public static HashSet<ParameterListenerImpl> getNonEventObjects( Object o,
+                                                                   boolean deep,
+                                                                   Set< ParameterListenerImpl > seen) {
+    HashSet< ParameterListenerImpl > s = new HashSet< ParameterListenerImpl >();
+    if ( o instanceof ParameterListenerImpl ) {
+      ParameterListenerImpl pl = (ParameterListenerImpl)o;
+      if ( !(o instanceof Event) ) {
+        s.add( pl );
+      }
+      if ( deep ) {
+        s.addAll( pl.getNonEventObjects( deep, seen ) );
+      }
+    } else if ( deep ) {
+      for ( Parameter< ? > p : HasParameters.Helper.getParameters( o, false,
+                                                                   null, true ) ) {
+        s.addAll( getNonEventObjects( p.getValueNoPropagate(), deep, seen ) );
+      }
+    }
+    return s;
+  }
+  
+  /**
+   * Get non-event ParameterListenerImpls, behavior classes.
+   * @param deep
+   * @param seen
+   * @return
+   */
+  public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
+                                                               Set< ParameterListenerImpl > seen ) {
+    Pair< Boolean, Set< ParameterListenerImpl > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+
+    Set< ParameterListenerImpl > s = new HashSet< ParameterListenerImpl >();
+    
+    for ( Parameter<?> p : getParameters( false, null ) ) {
+      s.addAll( getNonEventObjects(p.getValueNoPropagate(), deep, seen ) );
+    }
+    for ( Dependency<?> d : getDependencies() ) {
+      s.addAll( getNonEventObjects(d, deep, seen ) );
+    }
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      s.addAll( getNonEventObjects(c, deep, seen ) );
+    }
+    return s;
+  }
+
+  
   public List< Parameter< ? > > getParameters() {
     return parameters;
   }

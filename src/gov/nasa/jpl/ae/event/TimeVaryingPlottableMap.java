@@ -119,6 +119,9 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     return true;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Plottable#isProjection()
+   */
   @Override
   public boolean isProjection() {
     return dataProjected;
@@ -130,12 +133,20 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   
   @Override
   public void fromString( String s, Class< V > cls ) {
-    // skip over "plottable" and owner name
-    Pattern p = Pattern.compile( "\\s*plottable [^{]*\\s*" );
+    // skip over "plottable", "projected", and owner name
+    // REVIEW -- shouldn't owner be handled by super class?
+    Pattern p = Pattern.compile( "\\s*plottable\\s*(projected)?\\s*[^{]*\\s*" );
     Matcher matcher = p.matcher( s );
     int end = 0;
+    setProjection( false );
     if ( matcher.find() ) {
       end = matcher.end();
+      for ( int i=1; i<=matcher.groupCount(); ++i ) {
+        String g = matcher.group( i ); 
+        if ( g.equals( "projected" ) ) {
+          setProjection( true );
+        }
+      }
     }
     super.fromString( s.substring( end ), cls );
   }
@@ -145,8 +156,13 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                           Map< String, Object > otherOptions ) {
     StringBuffer sb = new StringBuffer();
     sb.append( "plottable " );
+    if ( isProjection() ) {
+      sb.append( "projected " );
+    }
     if ( getOwner() != null && getOwner() instanceof ParameterListener ) {
       sb.append( ( (ParameterListener)getOwner() ).getName() + " " );
+    } else {
+      sb.append( "unowned " );
     }
     sb.append( super.toString( withHash, deep, seen, otherOptions ) );
     return sb.toString();

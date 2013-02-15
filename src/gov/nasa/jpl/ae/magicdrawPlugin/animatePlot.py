@@ -7,13 +7,40 @@ useFile = False
 useTable = False
 useTestData = False
 
-dataModes = None
-fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt" # default file to read if useFile
+# separate out lines into separate plots or not
+doSubplots = False
+
+# save animation to mp4?
+saveMovie = False
+
+# default file to read if useFile
+#fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt"
+fileName = 'C:\Users\bclement\workspace\CS\simulationSnapshot.example.txt'
+
+plotLines = True
+allLinesSameStyle = True # linestyle="-" for all lines
+plotMarkers = False
+allMarkersSameStyle = False # linestyle="-" for all lines
+
+# webpage for colors: http://matplotlib.org/api/colors_api.html
+colors =  ['r', 'g', 'b', 'm', 'c', 'k','orange','purple','pink','grey','lime','aqua','maroon','navy']
+    
+# http://www.loria.fr/~rougier/teaching/matplotlib/#line-styles
+# from interpreter: matplotlib.lines.Line2D.lineStyles
+lineStyles = ['-','--','-.',':']
+    
+# http://www.loria.fr/~rougier/teaching/matplotlib/#markers
+# from interpreter: matplotlib.lines.Line2D.markers
+markers = ['^', 'd', '*', '+', 'x','o','v','s','p']
+
+msizes =  [ 12, 12, 12, 12, 12,  12,  10,  4, 16, 18,  8, 18,  20] 
+    
 
 timeout = 20 # seconds of no data
 
+dataModes = None
+
 usingTk = True
-saveMovie = True
 if saveMovie:
     usingTk = False
 
@@ -52,7 +79,7 @@ import matplotlib.animation as animation
 from PlotDataReader import PlotDataReader
 from InterpolatedMap import InterpolatedMap
 from OneWaySocket import OneWaySocket
-import collections
+from collections import Iterable
 import string
 import time
 
@@ -136,10 +163,12 @@ def initSocket( host, port ):
         name = receiveString(sock)
         subplotId = receiveString(sock)
         lineNames.append(name)
+        if not doSubplots and len(subplotIds) > 0:
+            subplotId = [x for x in subplotIds][0]
         subplotForLine.append(subplotId)
         subplotIds.add(subplotId)
     debugPrint( "numLines = " + str(numLines) )
-    debugPrint( "lineNames = " + str(lineNames))
+    debugPrint( "lineNames = " + str(lineNames) )
     spawnQueue()
     return
 
@@ -279,6 +308,8 @@ def queueSocketData(sock, queue):
                 dat.append(lineId)
                 debugPrint("received lineId=" + str(lineId))
                 subplotId = receiveString(sock) #sock.receive()
+                if not doSubplots and len(subplotIds) > 0:
+                    subplotId = [x for x in subplotIds][0]
                 dat.append(subplotId)
                 debugPrint("received subplotId=" + str(subplotId))
                 debugPrint("try to receive data for plot")
@@ -475,10 +506,13 @@ def initFileData():
     xdata = []
     ydata = []
     for subplotItem in fileData.data.items():
-        subplotIds.add(subplotItem[0])
+        subplotId = subplotItem[0]
+        if not doSubplots and len(subplotIds) > 0:
+            subplotId = [x for x in subplotIds][0]
+        subplotIds.add(subplotId)
         for lineItems in subplotItem[1].items():
             lineNames.append(lineItems[0])
-            subplotForLine.append(subplotItem[0])
+            subplotForLine.append(subplotId)
             #i = len(lineNames) - 1
             lineData = lineItems[1]
             xdata.append(lineData.keys())
@@ -496,7 +530,7 @@ def flatten(lst, useValuesInsteadOfKeys=False):
     for e in lst:
         if useValuesInsteadOfKeys and isinstance(e, dict):
             newLst.extend(flatten(e.values()))
-        if isinstance(e, collections.Iterable) and not isinstance(e, str):
+        if isinstance(e, Iterable) and not isinstance(e, str):
             newLst.extend(flatten(e))
         else:
             newLst.append(e)
@@ -711,10 +745,6 @@ def addLine(ax = None, index = None):
     global lines
     
     # specify options for plot data display
-    colors =  ['r', 'g', 'b', 'm', 'c', 'k','orange','purple','pink','grey','lime','aqua','maroon','navy']
-    #symbols = ['-','--','-.',':','.',',','_','o', 'v', '^', 's', 'p', '*', '+', 'x']
-    symbols = ['^', 'd', '*', '+', 'x','o']
-    msizes =  [ 12, 12, 12, 12, 12,  12,  10,  4, 16, 18,  8, 18,  20] 
     
     if ax == None and axs != None and len(axs) > 0:
         return None
@@ -723,11 +753,25 @@ def addLine(ax = None, index = None):
         return None
     n = len(lines)
     col = colors[index % len(colors)] if index else 'y'
-    mrk = symbols[index % len(symbols)] if index else "*"
+    if plotLines:
+        if allLinesSameStyle:
+            lineStyle = lineStyles[0]
+        else:
+            lineStyle = lineStyles[index % len(lineStyles)] if index else lineStyles[0]
+    else:
+        lineStyle = None
+    if plotMarkers:
+        if allMarkersSameStyle:
+            marker = markers[0]
+        else:
+            marker = markers[index % len(markers)] if index else markers[0]
+    else:
+        marker = None
     newLine = ax.plot([0], [0], "-", lw=4, \
                       markeredgecolor=colors[n % len(colors)], \
                       markeredgewidth=1, markersize=7, \
-                      markerfacecolor='y',color = col,marker=mrk)[0]
+                      markerfacecolor='y', color=col, linestyle=lineStyle,
+                      marker=marker)[0]
     if index != None:
         newLine.set_label(str(lineNames[index]))
     else:

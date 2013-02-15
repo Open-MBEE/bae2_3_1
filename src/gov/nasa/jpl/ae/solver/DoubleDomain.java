@@ -97,6 +97,9 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   @Override
   public Double pickRandomValue() {
     // a bunch of tricks to avoid overflow
+    if ( this.isEmpty() ) {
+      return null;
+    }
     double r1 = Random.global.nextDouble();
     double r2 = Random.global.nextDouble();
     double middle = getMiddleValue();
@@ -155,6 +158,16 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
     return t1 <= t2;
   }
 
+  @Override
+  public Double getLowerBound() {
+    return lowerBound;
+  }
+  
+  @Override
+  public Double getUpperBound() {
+    return upperBound;
+  }
+  
   /* (non-Javadoc)
    * @see solver.AbstractRangeDomain#clone()
    */
@@ -182,7 +195,6 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public static void main( String args[] ) {
     DoubleDomain d = new DoubleDomain();
     if ( Debug.isOn() ) Debug.outln( " new d = " + d );
-    
   }
 
   @Override

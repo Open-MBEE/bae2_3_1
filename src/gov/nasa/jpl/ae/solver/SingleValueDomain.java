@@ -116,4 +116,14 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
     value = v;
   }
 
+  @Override
+  public boolean isEmpty() {
+    return false;
+  }
+
+  @Override
+  public T pickRandomValueNotEqual( T t ) {
+    return null;
+  }
+
 }

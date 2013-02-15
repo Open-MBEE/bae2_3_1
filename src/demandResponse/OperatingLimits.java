@@ -19,6 +19,7 @@ import gov.nasa.jpl.ae.event.Functions.LessEquals;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
+import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 
 /**
@@ -76,6 +77,7 @@ public class OperatingLimits extends DurativeEvent {
 
   public static boolean mustViolateLowerLimit = false;
   public static boolean mustViolateUpperLimit = false;
+  public static boolean forAll = false;
 
   public Collection< Customer > customers =
       new ArrayList< OperatingLimits.Customer >();
@@ -137,22 +139,6 @@ public class OperatingLimits extends DurativeEvent {
     }
 
   }
-//  private void initLowerStableLimit( //Expression< Double > ramp,
-//                                     //Expression< Double > rampDuration 
-//                                     ) {
-//    if ( lowerStableLimit != null ) {
-//      constraintExpressions.remove( lowerStableLimit );
-//    }
-//    lowerStableLimit = addLimit( ramp, rampDuration, "lowerLimit" );
-//  }
-//  private void initUpperUnstableLimit( //Expression< Double > ramp,
-//                                       //Expression< Double > rampDuration 
-//                                       ) {
-//    if ( upperUnstableLimit != null ) {
-//      constraintExpressions.remove( upperUnstableLimit );
-//    }
-//    upperUnstableLimit = addLimit( ramp, rampDuration, "upperLimit" );
-//  }
 
   public Expression< Boolean > addLimit( Expression< Double > ramp,
                                          Expression< Double > rampDuration,
@@ -161,9 +147,17 @@ public class OperatingLimits extends DurativeEvent {
     Expression< Double > limit =
         new Expression< Double >( new FunctionCall( null, getClass(),
                                                     functionName, args ) );
-    BooleanBinary< Double > limitFunc =
+    BooleanBinary< Double > limitFunc = null;
+//    Expression<Double> forAllRamps = new Functions.ForAll( ramp.expression, o )
+    if ( this.forAll ) {
+      limitFunc =
+          ( negateLimit ? new Functions.Greater< Double >( ramp, limit )
+                        : new Functions.LessEquals< Double >( ramp, limit ) );
+    } else {
+      limitFunc =
         ( negateLimit ? new Functions.Greater< Double >( ramp, limit )
                       : new Functions.LessEquals< Double >( ramp, limit ) );
+    }
     Expression< Boolean > limitExpr = new Expression< Boolean >( limitFunc );
 
     constraintExpressions.add( new ConstraintExpression( limitExpr ) );
@@ -182,6 +176,8 @@ public class OperatingLimits extends DurativeEvent {
    * @param args
    */
   public static void main( String[] args ) {
+    Debug.turnOff();
+    
     // get command line args and replace defaults
     Double[] darr = new Double[] { 0.5, 3.0, 100.0, 120.0 };
     if ( args.length > 0 ) {
@@ -196,10 +192,12 @@ public class OperatingLimits extends DurativeEvent {
     Double minDelayValue = darr[2];
     Double maxDelayValue = darr[3];
 
-//    OperatingLimits.mustViolateLowerLimit = true;
-//    OperatingLimits.mustViolateUpperLimit = true;
-    OperatingLimits.mustViolateLowerLimit = false;
-    OperatingLimits.mustViolateUpperLimit = false;
+    OperatingLimits.mustViolateLowerLimit = true;
+    OperatingLimits.mustViolateUpperLimit = true;
+//    OperatingLimits.mustViolateLowerLimit = false;
+//    OperatingLimits.mustViolateUpperLimit = false;
+
+    OperatingLimits.forAll  = true;
 
     OperatingLimits.Customer c = new Customer( "customer", 
                                                minLoadValue, maxLoadValue,

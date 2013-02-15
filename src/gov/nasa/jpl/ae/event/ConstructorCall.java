@@ -210,6 +210,13 @@ public class ConstructorCall extends Call {
     hasTypeErrors();
   }
 
+  // TODO -- REVIEW -- should this call super.clone() all the way up to Object?
+  @Override
+  public ConstructorCall clone() {
+    ConstructorCall c = new ConstructorCall(this);
+    return c;
+  }
+  
   @Override
   public Class<?>[] getParameterTypes() {
     return constructor.getParameterTypes();
