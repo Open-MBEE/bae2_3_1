@@ -126,7 +126,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   protected Class<V> type = null;
 
-  private static Collection< Method > effectMethods = initEffectMethods();
+  protected static Collection< Method > effectMethods = initEffectMethods();
 
   public class TimeValue extends Pair< Parameter<Integer>, V >
                                implements HasParameters {
@@ -351,9 +351,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param obj object to cast from 
    * @param cls Class to which to cast o
-   * @return obj cast to T or null if the cast fails
+   * @return obj cast to T or {@code null} if the cast fails
    */
-  private static < T > T tryCast( Object obj, Class<T> cls ) {
+  public static < T > T tryCast( Object obj, Class<T> cls ) {
     if ( cls != null ) {
       try {
         return cls.cast( obj );
@@ -366,10 +366,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   /**
    * @param obj object to cast from 
-   * @return obj cast to V or null if the cast fails
+   * @return obj cast to V or {@code null} if the cast fails
    */
   @SuppressWarnings( "unchecked" )
-  private V tryCastValue( Object obj ) {
+  public V tryCastValue( Object obj ) {
     if ( getType() != null ) {
       return tryCast( obj, getType() );
     }
@@ -383,7 +383,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   /**
    * @param obj object to cast from 
-   * @return obj cast to V or null if the cast fails
+   * @return obj cast to V or {@code null} if the cast fails
    */
   @SuppressWarnings( "unchecked" )
   public Parameter<Integer> tryCastTimepoint( Object obj ) {
@@ -837,14 +837,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   /**
    * Return the Parameter<Integer>1 for an entry (Parameter<Integer>1, value1) such that
-   * Parameter<Integer>1.value equals tp.value, and value1 equals value.
+   * Parameter<Integer>1.value equals {@code tp}.value, and value1 equals value.
    * 
    * @param value
    *          the value to match with a value in the map
    * @param tp
    *          the time value required for the returned key
-   * @return a Parameter<Integer> key in the map, whose time value equals tp's value and
-   *         whose map entry equals value or null if there is no such Parameter<Integer>.
+   * @return a Parameter<Integer> key in the map, whose time value equals {@code tp}'s value and
+   *         whose map entry equals value or {@code null} if there is no such Parameter<Integer>.
    */
   public boolean hasValueAt( V value, Parameter<Integer> tp ) {
     if ( tp == null ) return false;
@@ -859,14 +859,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   /**
    * Return the Parameter<Integer>1 for an entry (Parameter<Integer>1, value1) such that
-   * Parameter<Integer>1.value equals t, and value1 equals value.
+   * Parameter<Integer>1.value equals {@code t}, and value1 equals value.
    * 
    * @param value
    *          the value to match with a value in the map
    * @param t
    *          the time value required for the returned key
-   * @return a Parameter<Integer> key in the map, whose time value equals t and whose map
-   *         entry equals value or null if there is no such Parameter<Integer>.
+   * @return a Parameter<Integer> key in the map, whose time value equals {@code t} and whose map
+   *         entry equals value or {@code null} if there is no such Parameter<Integer>.
    */
   public Parameter<Integer> keyForValueAt( V value, Integer t ) {
     if ( t == null ) return null;
@@ -947,21 +947,40 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return oldValue;
   }
 
+  /**
+   * @param n the number by which this map is multiplied
+   * @return this map after multiplying each value by {@code n}
+   */
   public TimeVaryingMap<V> multiply( Number n ) {
     return multiply( n, firstKey(), null );
   }
   
+  /**
+   * @param n the number by which the map is multiplied
+   * @return a copy of the map whose values are each multiplied by {@code n}
+   */
   public TimeVaryingMap<V> times( Number n ) {
     return times( n, firstKey(), null );
   }
   
   /**
-   * @param n
+   * @param n the number by which the map is multiplied
    * @param fromKey
-   * @param toKey is not multiplied.  To include the last key, pass null for endKey.
-   * @return this map after multiplying each value in the range [beginKey, endKey)
+   *          the key from which all values are multiplied by {@code n}.
+   * @return this map after multiplying each value in the range [fromKey,
+   *         toKey) by {@code n}
    */
-  private TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey,
+  public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey ) {
+    return multiply( n, fromKey, null );
+  }
+  
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey the first key whose value is multiplied by {@code n}
+   * @param toKey is not multiplied.  To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after multiplying each value in the range [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey,
                                         Parameter< Integer > toKey ) {
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
@@ -972,43 +991,114 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       map = subMap( fromKey, true, toKey, same );
     }
     for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
-      if ( e.getValue() instanceof Double ) {
-        Double v = (Double)e.getValue();
-        v = v * n.doubleValue();
-        try {
-          e.setValue( tryCastValue( v ) );
-        } catch ( ClassCastException exc ) {
-          // ignore
-        }
-      } else if ( e.getValue() instanceof Integer ) {
-        Integer v = (Integer)e.getValue();
-        v = (int)( v * n.doubleValue() );
-        try {
-          e.setValue( tryCastValue( v ) );
-        } catch ( ClassCastException exc ) {
-          // ignore
-        }
-      }
+      e.setValue( times(e.getValue(), n ) );
     }
     return this;
   }
 
   /**
-   * @param n
+   * @param n the number by which the map is multiplied
    * @param fromKey
-   * @param toKey
-   *          is not multiplied. To include the last key, pass null for endKey.
-   * @return a copy of this map for which each value in the range [beginKey,
-   *         endKey) is multiplied by n
+   *          the key from which all values are multiplied by {@code n}.
+   * @return a copy of this map for which each value in the range [{@code fromKey},
+   *         {@code toKey}) is multiplied by {@code n}
    */
-  private TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey,
+  public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey ) {
+    return times( n, fromKey, null );
+  }
+  
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey the first key whose value is multiplied by {@code n}
+   * @param toKey
+   *          is not multiplied. To include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which each value in the range [fromKey,
+   *         toKey) is multiplied by {@code n}
+   */
+  public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey,
                                      Parameter< Integer > toKey ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.multiply( n, fromKey, toKey );
     return newTvm;
   }
 
+
+  /**
+   * @param n the number by which this map is divided
+   * @return this map after dividing each value by {@code n}
+   */
+  public TimeVaryingMap<V> divide( Number n ) {
+    return divide( n, firstKey(), null );
+  }
   
+  /**
+   * @param n the number by which the map is divided
+   * @return a copy of the map whose values are each divided by {@code n}
+   */
+  public TimeVaryingMap<V> dividedBy( Number n ) {
+    return dividedBy( n, firstKey(), null );
+  }
+  
+  /**
+   * @param n the number by which the map is divided
+   * @param fromKey
+   *          the key from which all values are divided by {@code n}.
+   * @return this map after divideing each value in the range [fromKey,
+   *         toKey) by {@code n}
+   */
+  public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey ) {
+    return divide( n, fromKey, null );
+  }
+  
+  /**
+   * @param n the number by which the map is divided
+   * @param fromKey the first key whose value is divided by {@code n}
+   * @param toKey is not divided.  To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after dividing each value in the range [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey,
+                                     Parameter< Integer > toKey ) {
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      e.setValue( dividedBy(e.getValue(), n ) );
+    }
+    return this;
+  }
+  
+  /**
+   * @param n the number by which the map is divided
+   * @param fromKey
+   *          the key from which all values are divided by {@code n}.
+   * @return a copy of this map for which each value in the range [{@code fromKey},
+   *         {@code toKey}) is divided by {@code n}
+   */
+  public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey ) {
+    return dividedBy( n, fromKey, null );
+  }
+  
+  /**
+   * @param n the number by which the map is divided
+   * @param fromKey the first key whose value is divided by {@code n}
+   * @param toKey
+   *          is not divided. To include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which each value in the range [fromKey,
+   *         toKey) is divided by {@code n}
+   */
+  public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey,
+                                     Parameter< Integer > toKey ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.divide( n, fromKey, toKey );
+    return newTvm;
+  }
+
+
   public TimeVaryingMap<V> add( Number n ) {
     return add( n, firstKey(), null );
   }
@@ -1147,10 +1237,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param n
    * @param fromKey
    * @param toKey
-   *          the first key after fromKey to whose value is not added n. To
-   *          include the last key, pass null for endKey.
-   * @return this map after adding n to each value in the range [beginKey,
-   *         endKey)
+   *          the first key after {@code fromKey} to whose value is not added {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after adding {@code n} to each value in the range [{@code fromKey},
+   *         {@code toKey})
    */
   public TimeVaryingMap< V > add1( Number n, Parameter< Integer > fromKey,
                                    Parameter< Integer > toKey ) {
@@ -1194,11 +1284,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n
    * @param fromKey
+   *          the key from which {@code n} is added to all values.
+   * @return this map after adding {@code n} to each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > add( Number n, Parameter< Integer > fromKey ) {
+    return add( n, fromKey, null );
+  }
+
+  /**
+   * @param n
+   * @param fromKey
    * @param toKey
-   *          the first key after fromKey to whose value is not added n. To
-   *          include the last key, pass null for endKey.
-   * @return this map after adding n to each value in the range [beginKey,
-   *         endKey)
+   *          the first key after {@code fromKey} to whose value is not added {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after adding {@code n} to each value in the range [{@code fromKey},
+   *         {@code toKey})
    */
   public TimeVaryingMap< V > add( Number n, Parameter< Integer > fromKey,
                                    Parameter< Integer > toKey ) {
@@ -1246,7 +1347,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return this;
   }
 
-  
+  /**
+   * @param tvm the {@code TimeVaryingMap} to be added to this {@code TimeVaryingMap}
+   * @return this {@code TimeVaryingMap} after adding {@code tvm}
+   */
   public <VV> TimeVaryingMap< V > add( TimeVaryingMap< VV > tvm ) {
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
@@ -1262,6 +1366,56 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return removeDuplicates();
   }
   
+  /**
+   * @param n
+   * @param fromKey
+   *          the key from which {@code n} is subtracted from all values.
+   * @return this map after subtracting {@code n} from each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey ) {
+    return subtract( n, fromKey, null );
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not subtracted by {@code n}.
+   *          To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after subtracting {@code n} from each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey,
+                                       Parameter< Integer > toKey ) {
+    return add( times(n, -1), fromKey, toKey );
+  }
+  
+  /**
+   * @param tvm
+   *          the {@code TimeVaryingMap} to be subtracted from this
+   *          {@code TimeVaryingMap}
+   * @return this {@code TimeVaryingMap} after subtracting {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > subtract( TimeVaryingMap< VV > tvm ) {
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      if ( n != null && n.doubleValue() != 0 ) {
+        subtract( n, k, k );
+      }
+    }
+    return removeDuplicates();
+  }
+  
+  /**
+   * @return this map after removing all but one entry from each set of adjacent
+   *         entries with the same values.
+   */
   public <VV> TimeVaryingMap< V > removeDuplicates() {
     List<Parameter< Integer > > dups = new ArrayList< Parameter< Integer > >();
     Parameter<Integer> lastKey = null;
@@ -1282,16 +1436,53 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n
    * @param fromKey
-   * @param toKey
-   *          the first key after fromKey to whose value is not added n. To
-   *          include the last key, pass null for endKey.
-   * @return a copy of this map for which n is added to each value in the range
-   *         [beginKey, endKey)
+   *          the key from which {@code n} is added to all values.
+   * @return a copy of this map for which {@code n} is added to each value in the range
+   *         [{@code fromKey}, {@code toKey})
    */
-  private TimeVaryingMap< V > plus( Number n, Parameter< Integer > fromKey,
+  public TimeVaryingMap< V > plus( Number n, Parameter< Integer > fromKey ) {
+    return plus( n, fromKey, null );
+  }
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not added {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which {@code n} is added to each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > plus( Number n, Parameter< Integer > fromKey,
                                     Parameter< Integer > toKey ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( n, fromKey, toKey );
+    return newTvm;
+  }  
+
+
+  /**
+   * @param n
+   * @param fromKey
+   *          the key from which {@code n} is subtracted from all values.
+   * @return a copy of this map for which {@code n} is subtracted from each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey ) {
+    return minus( n, fromKey, null );
+  }
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not subtracted by {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which {@code n} is subtracted from each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey,
+                                    Parameter< Integer > toKey ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.subtract( n, fromKey, toKey );
     return newTvm;
   }  
 
@@ -1323,22 +1514,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       // Check for problems with the key.
       // No null keys.
       if ( tp == null ) {
-        if ( Debug.isOn() ) {
-          Debug.error( true, "Error! null key in TimeVaryingMap " + getName() );
-        }
+        Debug.error( true, "Error! null key in TimeVaryingMap " + getName() );
         ok = false;
       } else if ( tp.getValueNoPropagate() == null ) {
         // No null values for Parameter<Integer> key.  
-        if ( Debug.isOn() ) {
-          Debug.errorOnNull( true, "Error! null Parameter<Integer> value in TimeVaryingMap "
-                                   + getName(), tp.getValueNoPropagate() );
-        }
+        Debug.errorOnNull( true, "Error! null Parameter<Integer> value in TimeVaryingMap "
+                                 + getName(), tp.getValueNoPropagate() );
         ok = false;
       } else {
        TimepointValueChanged = !tp.getValueNoPropagate().equals( lastTime );
         if ( !firstEntry && tp.getValueNoPropagate() < lastTime ) {
           // Time cannot decrease.
-          if ( Debug.isOn() ) Debug.error( true, "Error! time value for entry " + entry
+          Debug.error( true, "Error! time value for entry " + entry
                              + " should be >= " + lastTime
                              + " in TimeVaryingMap " + getName() );
           ok = false;
@@ -1352,17 +1539,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       duplicateValueAtTime = valuesAtSameTime.contains( value );
       if ( tp != null && tp == lastTp ) {
         // A key should have only one entry.
-        if ( Debug.isOn() ) Debug.error( true, "Error! Parameter<Integer> has duplicate entry " + entry
-                     + " in TimeVaryingMap " + getName() );
+        Debug.error( true, "Error! Parameter<Integer> has duplicate entry " + entry
+                           + " in TimeVaryingMap " + getName() );
         ok = false;
       }
       
       // Check for problems with the value.
+      if ( value != null && getType() != null
+           && !getType().isAssignableFrom( value.getClass() ) ) {
+        Debug.error( true, "Error! value " + value + " at time " + tp
+                           + " has an incompatible type "
+                           + value.getClass().getCanonicalName()
+                           + "; getType() = " + getType().getCanonicalName() );
+        ok = false;
+      }
       if ( !firstEntry && duplicateValueAtTime ) {
-        if ( Debug.isOn() ) Debug.error( true, "Error! duplicate entry of value " + value
-                     + " at time " + tp + " with value set "
-                     + valuesAtSameTime + " for TimeVaryingMap "
-                     + getName() );
+        Debug.error( true, "Error! duplicate entry of value " + value
+                           + " at time " + tp + " with value set "
+                           + valuesAtSameTime + " for TimeVaryingMap "
+                           + getName() );
         ok = false;
       }
       lastTp = tp;
@@ -1684,7 +1879,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     FileUtils.stringToFile( s, fileName );
   }
   
-  private String toCsvString() {
+  public String toCsvString() {
     StringBuffer sb = new StringBuffer();
     for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
       sb.append( e.getKey().toShortString() + ","
@@ -1892,6 +2087,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     System.out.println( "map1 loaded from " + fileName1 + ":\n" + tvm1 );
     TimeVaryingMap< Double > tvm2 =
         new TimeVaryingMap< Double >( "double_map", fileName2, Double.class );
+
+    Assert.assertTrue( tvm1.isConsistent() );
+    Assert.assertTrue( tvm2.isConsistent() );
+    
     System.out.println( "\nmap2 loaded from " + fileName2 + ":\n" + tvm2 );
     tvm1.multiply( 2, tvm1.firstKey(), null );
     System.out.println( "\nmap1 multiplied by 2:\n" + tvm1 );
@@ -1901,12 +2100,43 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     System.out.println( "\nmap3 = map2 times 1111 (except for the last entry):\n" + tvm3 );
     tvm3 = tvm2.times( 1111, tvm2.lastKey(), tvm2.lastKey() );
     System.out.println( "\nmap3 = map2 times 1111 (for just the last entry):\n" + tvm3 );
+
+    Assert.assertTrue( tvm1.isConsistent() );
+    Assert.assertTrue( tvm2.isConsistent() );
+    Assert.assertTrue( tvm3.isConsistent() );
+    
     tvm3.add( tvm1 );
     System.out.println( "\nmap3 = map3 + map1:\n" + tvm3);
+    tvm3.divide( 0.5 );
+    System.out.println( "\nmap3 /= 0.5:\n" + tvm3);
+    System.out.println( "map2:\n" + tvm2);
+    tvm3 = tvm2.dividedBy( 2.0 );
+    System.out.println( "\nmap3 = map2 / 2.0:\n" + tvm3);
+    System.out.println( "map2:\n" + tvm2);
+    tvm3 = tvm2.dividedBy( 2 );
+    System.out.println( "\nmap3 = map2 / 2:\n" + tvm3);
+    System.out.println( "map2:\n" + tvm2);
     
     Assert.assertTrue( tvm1.isConsistent() );
     Assert.assertTrue( tvm2.isConsistent() );
     Assert.assertTrue( tvm3.isConsistent() );
+
+    TimeVaryingMap< Integer > tvm4 = null;
+    System.out.println( "map1:\n" + tvm1);
+    tvm4 = tvm1.dividedBy( 2.0 );
+    System.out.println( "\nmap4 = map1 / 2.0:\n" + tvm4);
+    
+    Assert.assertTrue( tvm1.isConsistent() );
+    Assert.assertTrue( tvm4.isConsistent() ); // TODO -- THIS CURRENTLY FAILS!
+
+    System.out.println( "map1:\n" + tvm1);
+    tvm4 = tvm1.dividedBy( 2 );
+    System.out.println( "\nmap4 = map1 / 2:\n" + tvm4);
+    System.out.println( "map1:\n" + tvm1);
+
+    Assert.assertTrue( tvm1.isConsistent() );
+    Assert.assertTrue( tvm4.isConsistent() );
+  
   }
 
 }
