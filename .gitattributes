@@ -4462,6 +4462,7 @@ src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingMaps.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMap.java -text
 src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMaps.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingProjection.java -text
 src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
