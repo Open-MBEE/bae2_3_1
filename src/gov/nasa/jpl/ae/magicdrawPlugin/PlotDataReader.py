@@ -71,12 +71,24 @@ class PlotDataReader(object):
             if not readingExecution:
                 continue
 #            x = re.search("^([A-Za-z0-9_-]*=)?plottable ([^ {]*) ",line)
-            x = re.search("^plottable ([^ {]*) ([^ {]*)(.*)",line)
+            x = re.search("^plottable( projected)? ([^ {]*)( STEP|RAMP|LINEAR)?( [^ {]*)?(.*)",line)
             if x:
-                category = x.groups()[0]
-                name = x.groups()[1]
-                mapString = x.groups()[2]
+                debugPrint("x.groups()=" + str(x.groups()))
+                projected = x.groups()[0]
+                if projected != None:
+                    projected = projected.strip()
+                category = x.groups()[1]
+                interpolationType = x.groups()[2]
+                name = x.groups()[3]
+                if name != None:
+                    name = name.strip()
+                if (name == None or len(name) == 0) and interpolationType not in ["STEP", "RAMP", "LINEAR"]:
+                    name = interpolationType
+                    interpolationType = "STEP"
+                mapString = x.groups()[4]
                 m = PlotDataReader.parseMap(mapString)
+                m.interpolationType = interpolationType
+                m.attributes["projected"] = (str(projected).lower() == "projected")
 #                tvm = TimeVaryingPlottableMap("")
 #                tvm.fromString(line, None)
                 if category not in self.data.keys():
@@ -177,8 +189,9 @@ class PlotDataReader(object):
     def parseMap(s):
         #numRegEx = "\d+(?:\.\d*)?"
         identifierRegEx = "[A-Za-z_]\\w*"
+        valuePrefix = "(?:" + identifierRegEx + "(?::(?:" + identifierRegEx + ")?)?\\s*=)?"
         prefix1, delimiter1, suffix1 = "[\\[{(]\\s*", ",\\s*", "\\s*[\\]})]"
-        prefix2, delimiter2, suffix2 = "[\\[{(]\\s*(?:" + identifierRegEx + "(?::(?:" + identifierRegEx + ")?)?\\s*=)?", "\\s*=\\s*", "\\s*[\\]})]"
+        prefix2, delimiter2, suffix2 = "[\\[{(]\\s*" + valuePrefix, "\\s*=\\s*" + valuePrefix, "\\s*[\\]})]"
         #key, value = numRegEx, numRegEx
         return PlotDataReader.parseMapWith(s, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2)
     

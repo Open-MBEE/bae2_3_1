@@ -345,6 +345,7 @@ def spawnQueue():
 
 
 def socketDataGen():
+    global staticLines
     global sock
     global lines
     global lineIdToIndex
@@ -393,17 +394,14 @@ def socketDataGen():
                 debugPrint("received data for plot: " + str(arr))
                 if arr == None:
                     break
-                #expectedLength = numLines + 1
                 if genXValues and len(arr) > 0:
                     xVal = arr[0]
                 else:
-                    #expectedLength += 1
                     xVal = cnt
                 timeNow = xVal
-                yield xVal, [arr[i] for i in yRange] #[ arr[13], arr[14], arr[15] ]
+                yield xVal, [arr[i] for i in yRange]
                 cnt+=1
             else:
-                #if len(arr) != expectedLength: # HACK -- what if the size were coincidentally the same?
                 debugPrint("static line")
                 # We are receiving pairs of x,y values to plot.
                 # The first number in the array is an id for plot line, so
@@ -413,50 +411,60 @@ def socketDataGen():
                 subplotId = dat[2]
                 debugPrint("received subplotId=" + str(subplotId))
                 #lineId = arr[0]
-                # REVIEW -- we could also put in a dimension for 3D plots.
-                plotDimension = 2
                 debugPrint("try to receive data for plot")
                 arr = dat[3]
                 debugPrint("received data for plot: " + str(arr))
-                # get x-axis values
-                plotLineId = str(subplotId) + "_" + str(lineId)
-                if plotLineId not in staticLines:
-                    staticLines[plotLineId] = {}
-                    idx = len(lines)
-                    lineIdToIndex[plotLineId] = idx 
-                    debugPrint("ADDING EXTRA LINE to lines with names " + str(lineNames))
-                    lineNames.append(lineId)
-                    subplotForLine.append(subplotId)
-                    if subplotId not in subplotIds:
-                        ax = addAx(subplotId)
-                    else:
-                        ax = axs[subplotId]
-                    addLine(ax, idx)
-                    debugPrint("adding line " + lineNames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
-                    ax.legend(loc="upper right")
-
-                staticLines[plotLineId][0] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
-                staticLines[plotLineId][1] = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
-                lines[lineIdToIndex[plotLineId]].set_data(staticLines[plotLineId][0], staticLines[plotLineId][1])
-                debugPrint("lineNames = " + str(lineNames))
-                debugPrint("subplotForLine = " + str(subplotForLine))
-                debugPrint("subplotId = " + str(subplotId))
-                debugPrint("lineId = " + str(lineId))
-                debugPrint("lineIdToIndex = " + str(lineIdToIndex))
-                debugPrint("lineIdToIndex[plotLineId] = " + str(lineIdToIndex[plotLineId]))
-                debugPrint("subplotForLine = " + str(subplotForLine))
-                debugPrint("lineId = " + str(lineId))
-                debugPrint("plotLineId = " + str(plotLineId))
-                debugPrint("staticLines[plotLineId][0] = " + str(staticLines[plotLineId][0]))
-                debugPrint("staticLines[plotLineId][1] = " + str(staticLines[plotLineId][1]))
-                debugPrint("lines.keys() = " + str(lines.keys()))
-                initializePlotBounds(subplotId)
-
-                #yield 
+                # REVIEW -- we could also put in a dimension for 3D plots.
+                plotDimension = 2
+                xvals = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
+                yvals = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
+                addStaticLine(lineId, subplotId, xvals, yvals)
         except RuntimeError:
-            #print "Socket connection terminated"
             break
     debugPrint("finished yielding data")
+
+
+def addStaticLine(lineId, subplotId, xvals, yvals):
+    global staticLines
+    global lines
+    global lineIdToIndex
+    global lineNames
+    global subplotForLine
+    global subplotIds
+    
+    # get x-axis values
+    plotLineId = str(subplotId) + "_" + str(lineId)
+    if plotLineId not in staticLines:
+        staticLines[plotLineId] = {}
+        idx = len(lines)
+        lineIdToIndex[plotLineId] = idx 
+        debugPrint("ADDING EXTRA LINE to lines with names " + str(lineNames))
+        lineNames.append(lineId)
+        subplotForLine.append(subplotId)
+        if subplotId not in subplotIds:
+            ax = addAx(subplotId)
+        else:
+            ax = axs[subplotId]
+        addLine(ax, idx)
+        debugPrint("adding line " + lineNames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
+        ax.legend(loc="upper right")
+
+    staticLines[plotLineId][0] = xvals
+    staticLines[plotLineId][1] = yvals
+    lines[lineIdToIndex[plotLineId]].set_data(staticLines[plotLineId][0], staticLines[plotLineId][1])
+    debugPrint("lineNames = " + str(lineNames))
+    debugPrint("subplotForLine = " + str(subplotForLine))
+    debugPrint("subplotId = " + str(subplotId))
+    debugPrint("lineId = " + str(lineId))
+    debugPrint("lineIdToIndex = " + str(lineIdToIndex))
+    debugPrint("lineIdToIndex[plotLineId] = " + str(lineIdToIndex[plotLineId]))
+    debugPrint("subplotForLine = " + str(subplotForLine))
+    debugPrint("lineId = " + str(lineId))
+    debugPrint("plotLineId = " + str(plotLineId))
+    debugPrint("staticLines[plotLineId][0] = " + str(staticLines[plotLineId][0]))
+    debugPrint("staticLines[plotLineId][1] = " + str(staticLines[plotLineId][1]))
+    debugPrint("lines.keys() = " + str(lines.keys()))
+    initializePlotBounds(subplotId)
 
 def testDataGen():
     global timeNow
@@ -564,7 +572,10 @@ def dataFromFile():
             for lineItems in subplotItem[1]:
                 lineName = lineItems[0]
                 lineData = lineItems[1]
-                dat.append(lineData[timeNow])
+                if "projected" in lineData.attributes.keys() and lineData.attributes["projected"] == True:
+                    addStaticLine(lineName, subplotId, lineData.keys(), lineData.values())
+                else:
+                    dat.append(lineData[timeNow])
         yield timeNow, dat
         debugPrint("tried to yield data for plot: " + str(dat))
 
