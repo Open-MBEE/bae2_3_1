@@ -1470,12 +1470,34 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /**
+   * @param map1
+   * @param map2
+   * @return a new map that sums {@code map1} and {@code map2}
+   */
+  public static <VV> TimeVaryingMap< VV > plus( TimeVaryingMap< VV > map1, TimeVaryingMap< VV > map2 ) {
+    TimeVaryingMap< VV > newTvm = map1.clone();
+    newTvm.add( map2 );
+    return newTvm;
+  }
+
+  /**
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} subtracted from it
    */
   public TimeVaryingMap< V > minus( TimeVaryingMap< V > map ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.subtract( map );
+    return newTvm;
+  }
+
+  /**
+   * @param map1
+   * @param map2
+   * @return a new map that is {@code map1} minus {@code map2}
+   */
+  public static <VV> TimeVaryingMap< VV > minus( TimeVaryingMap< VV > map1, TimeVaryingMap< VV > map2 ) {
+    TimeVaryingMap< VV > newTvm = map1.clone();
+    newTvm.subtract( map2 );
     return newTvm;
   }
 
