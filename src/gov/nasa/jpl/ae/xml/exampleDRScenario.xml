@@ -59,7 +59,7 @@
           <parameter><name>assessEventStartTime</name><type>Integer</type><value>100</value></parameter>
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
           <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
-          <parameter><name>theGrid</name><type>Grid</type><value>new Grid(numberOfCustomers)</value></parameter>
+          <parameter><name>theGrid</name><type>Grid</type><value>null</value></parameter>
           <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
         </members>
         <constraints>
@@ -73,6 +73,7 @@
           </function>
         </methods>
         <dependencies>
+          <dependency><name>theGrid</name><value>new Grid(numberOfCustomers)</value></dependency>
           <dependency><name>endTime</name><value>DREventEndTime</value></dependency>
           <dependency><name>testX</name><value>sq(12)</value></dependency>
         </dependencies>
@@ -242,7 +243,7 @@
           <!-- Again, hardcoding uncontrollable/uncertain value. -->
           <!--<dependency><name>loadReductionActual</name><type>Double</type><value>1000.0</value></dependency>-->
           <!-- TODO: optionally elaborate into IncreaseGeneration. -->
-          <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &gt;= 500.0</value></dependency>-->
+          <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &gt;= 500.0</value></dependency>
           <dependency><name>increasedGeneration</name><value>0.0</value></dependency>
           <dependency><name>amountToIncrease</name><value>1000.0</value></dependency>
           <dependency><name>generation</name><value>new Generation("LADWP_Generation", numberOfCustomers)</value></dependency>

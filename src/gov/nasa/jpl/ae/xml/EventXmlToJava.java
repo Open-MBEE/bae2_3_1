@@ -1406,7 +1406,6 @@ public class EventXmlToJava {
     int pos = 0; // keep track of the insertion point before the existing statements.
     if ( !hasStatementOfType( ctor, ExplicitConstructorInvocationStmt.class ) ) {
       block.getStmts().add( pos++, new ExplicitConstructorInvocationStmt() );
-      //ASTHelper.addStmt( block, new ExplicitConstructorInvocationStmt() );
     } else {
       looksAlreadyFixed = true;
     }
@@ -1425,11 +1424,6 @@ public class EventXmlToJava {
       looksAlreadyFixed = true;
     }
     for ( Param p : arguments ) {
-//      if ( p.name.equals( "startTime" ) || p.name.equals( "endTime" )
-//           || p.name.equals( "duration" ) ) {
-//        stmtList.append( "removeDependenciesForParameter( this." + p.name
-//                         + " );\n" );
-//      }
       stmtList.append( "addDependency( this." + p.name + ", " + p.name
                        + " );\n" );
     }
