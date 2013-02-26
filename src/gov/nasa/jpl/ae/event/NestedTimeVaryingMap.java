@@ -10,8 +10,8 @@ import java.util.Collections;
  * 
  *
  */
-public class TimeVaryingProjection< V > extends
-                                        TimeVaryingPlottableMap< TimeVaryingPlottableMap< V > > {
+public class NestedTimeVaryingMap< V > extends
+                                        TimeVaryingMap< TimeVaryingMap< V > > {
 
   /**
    * 
@@ -36,38 +36,38 @@ public class TimeVaryingProjection< V > extends
    * @param defaultValue
    * @param cls
    */
-  public TimeVaryingProjection( String name, String fileName,
+  public NestedTimeVaryingMap( String name, String fileName,
                                 V defaultValue,
                                 Class< V > cls ) {
-    super( name, (String)null,
-           new TimeVaryingPlottableMap< V >( name, fileName, defaultValue,
-                                             cls, true ),
-           null, true );
+    super( name, (String)null, 
+           new TimeVaryingMap< V >( name, fileName, defaultValue,
+                                             cls ),
+           null );
   }
 
   /**
    * @param name
    */
-  public TimeVaryingProjection( String name ) {
+  public NestedTimeVaryingMap( String name ) {
     super( name );
-    this.dataProjected = true;
+//    this.dataProjected = true;
   }
 
   /**
    * @param name
    * @param fileName
    */
-  public TimeVaryingProjection( String name, String fileName ) {
+  public NestedTimeVaryingMap( String name, String fileName ) {
     super( name, fileName );
-    this.dataProjected = true;
+//    this.dataProjected = true;
   }
 
   public void setValue( Timepoint t1, Timepoint t2, V value ) {
     
-    TimeVaryingPlottableMap< V > newMap = getValue( t1 );
+    TimeVaryingMap< V > newMap = getValue( t1 );
     if ( newMap == null ) {
       Class<?> cls = ( value == null ? null : value.getClass() );
-      newMap = new TimeVaryingPlottableMap< V >( name, null, null, null, true );
+      newMap = new TimeVaryingMap< V >( name, null, null, null );
     }
     newMap.setValue( t2, value );
     super.setValue( t1, newMap );
@@ -75,7 +75,7 @@ public class TimeVaryingProjection< V > extends
   
   public V getValue( Timepoint t1, Timepoint t2 ) {
     
-    TimeVaryingPlottableMap< V > newMap = getValue( t1 );
+    TimeVaryingMap< V > newMap = getValue( t1 );
     if ( newMap == null ) {
       return null;
     }
@@ -86,8 +86,8 @@ public class TimeVaryingProjection< V > extends
    * @param args
    */
   public static void main( String[] args ) {
-    TimeVaryingProjection< Double > tvp =
-        new TimeVaryingProjection< Double >( "tvm", null, 2.0, Double.class );
+    NestedTimeVaryingMap< Double > tvp =
+        new NestedTimeVaryingMap< Double >( "tvm", null, 2.0, Double.class );
 
     Timepoint t0 = new Timepoint(0);
     Timepoint t2 = new Timepoint(2);
@@ -105,7 +105,7 @@ public class TimeVaryingProjection< V > extends
     EventSimulation sim = new EventSimulation( Collections.< Event >emptyList(), 1.0 );
     
     
-    //TimeVaryingPlottableMap< Double > m = new 
+    //TimeVaryingMap< Double > m = new 
     // TODO -- reproduce one of the animated plots with updating projections
   }
 
