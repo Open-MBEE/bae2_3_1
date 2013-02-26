@@ -5,6 +5,9 @@ import os
 
 class InterpolatedMap(SortedDict):
     
+    interpolationType = "STEP" # legal values are "STEP", "RAMP", and "LINEAR"
+    attributes = {} # for storing attributes of the map with external meaning
+    
     @staticmethod
     def getNumPattern():
         #numPattern = r"[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?"
@@ -28,7 +31,19 @@ class InterpolatedMap(SortedDict):
                 return SortedDict.__getitem__(self, k)
         if indexOfFirstGreaterOrEqual == 0:
             return None
-        return SortedDict.__getitem__(self, self._sorted_keys[indexOfFirstGreaterOrEqual-1])
+        if self.interpolationType == "STEP":
+            return SortedDict.__getitem__(self, self._sorted_keys[indexOfFirstGreaterOrEqual-1])
+        else:
+            # linear interpolation (for both "RAMP" and "LINEAR")
+            try:
+                t1 = self._sorted_keys[indexOfFirstGreaterOrEqual-1]
+                t2 = self._sorted_keys[indexOfFirstGreaterOrEqual]
+                v1 = SortedDict.__getitem__(self, t1)
+                v2 = SortedDict.__getitem__(self, t2)
+                return v1+((v2-v1)*(k-t1))/(t2-t1)
+            except:
+                # if linear interpolation fails, do step
+                return SortedDict.__getitem__(self, self._sorted_keys[indexOfFirstGreaterOrEqual-1])
     
     def getIndexOfNextKey(self, k):
         bisect_right(self._sorted_keys, k)
