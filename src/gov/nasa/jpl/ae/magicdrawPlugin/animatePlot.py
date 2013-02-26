@@ -35,8 +35,7 @@ markers = ['^', 'd', '*', '+', 'x','o','v','s','p']
 
 msizes =  [ 12, 12, 12, 12, 12,  12,  10,  4, 16, 18,  8, 18,  20] 
     
-
-timeout = 20 # seconds of no data
+timeout = 20 # seconds of no data over socket before closing socket
 
 dataModes = None
 
@@ -44,6 +43,7 @@ usingTk = True
 if saveMovie:
     usingTk = False
 
+# To keep time=now in center and scroll with time, set zoomToFitX=False and centerAtNow=True
 zoomToFitX = True
 zoomToFitY = True
 zoomToFitOnlyVisibleY = True
@@ -1104,9 +1104,9 @@ def main(argv=None):
                 root.after(1, update_task, gen())
         else:
             # must store return value, even if unused, or else it will stop plotting after the first point
-            ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=0, repeat=False)
+            ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=0, repeat=False, save_count=1000)
             if saveMovie:
-                ani.save('movie.mp4', 10)
+                ani.save('movie.mp4', fps=10)
     if usingTk:
         root.mainloop()
     else:
