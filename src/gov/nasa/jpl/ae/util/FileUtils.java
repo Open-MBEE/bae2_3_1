@@ -157,6 +157,21 @@ public final class FileUtils {
     return fileName;
   }
 
+  public static String getExtension( String fileName ) {
+    int pos = fileName.lastIndexOf('.');
+    if ( pos >= 0 && pos < fileName.length()-1 ) {
+      return fileName.substring( pos + 1 );
+    }
+    return "";
+  }
+  
+  public static String fixFileName( String fileName ) {
+    String newName = fileName.replaceAll( "[:;+]", "-" );
+    newName = fileName.replaceAll( "[+*&%#@^(){}]+", "_" );
+    return newName;
+  }
+  
+
   public static String fileToString( String fileName ) throws FileNotFoundException {
     File file = new File( fileName );
     return fileToString( file );
@@ -179,5 +194,5 @@ public final class FileUtils {
       e.printStackTrace();
     }
   }
-  
+
 }
