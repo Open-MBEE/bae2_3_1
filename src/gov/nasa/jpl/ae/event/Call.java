@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.MoreToString;
@@ -15,7 +16,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -70,6 +70,24 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
   }
 
+  public Boolean hasTypeErrors( Object[] evaluatedArgs ) {
+    boolean gotErrors = hasTypeErrors();
+    for ( int i = 0; !gotErrors && i < getParameterTypes().length; i++ ) {
+      Class< ? > c = getParameterTypes()[ i ];
+      if ( evaluatedArgs[ i ] == null ) {
+        if ( c.isPrimitive() ) {
+          gotErrors = true; 
+        }
+      } else if ( !c.isAssignableFrom( evaluatedArgs[ i ].getClass() ) ) {
+        if ( !c.isPrimitive()
+             || !ClassUtils.classForPrimitive( c )
+                           .isAssignableFrom( evaluatedArgs[ i ].getClass() ) ) {
+          gotErrors = true;
+        }
+      }
+    }
+    return gotErrors;
+  }
   
   public Boolean hasTypeErrors() {
     if ( getMember() == null ) return true;

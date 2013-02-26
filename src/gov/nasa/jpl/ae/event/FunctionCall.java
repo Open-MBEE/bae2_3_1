@@ -1,8 +1,8 @@
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.event.Expression.Type;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -273,6 +273,12 @@ public class FunctionCall extends Call {
   public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     if ( !Modifier.isStatic( method.getModifiers() )  && object == null ) {
       Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
+      return null;
+    }
+    if ( hasTypeErrors( evaluatedArgs ) ) {
+      Debug.errln( "Warning! Tried calling " + this
+                   + " with bad argument types! "
+                   + MoreToString.Helper.toString( evaluatedArgs ) );
       return null;
     }
     Object result = null;
