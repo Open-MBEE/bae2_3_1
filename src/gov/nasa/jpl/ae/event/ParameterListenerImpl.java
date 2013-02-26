@@ -975,5 +975,172 @@ public class ParameterListenerImpl extends HasIdImpl
    }
    return false;
   }
+  
+	/**
+	 * @return the timeoutSeconds
+	 */
+	public double getTimeoutSeconds() {
+		return timeoutSeconds;
+	}
 
+	/**
+	 * @param timeoutSeconds
+	 *            the timeoutSeconds to set
+	 */
+	public void setTimeoutSeconds(double timeoutSeconds) {
+		this.timeoutSeconds = timeoutSeconds;
+	}
+
+	/**
+	 * @return the maxLoopsWithNoProgress
+	 */
+	public int getMaxLoopsWithNoProgress() {
+		return maxLoopsWithNoProgress;
+	}
+
+	/**
+	 * @param maxLoopsWithNoProgress
+	 *            the maxLoopsWithNoProgress to set
+	 */
+	public void setMaxLoopsWithNoProgress(int maxLoopsWithNoProgress) {
+		this.maxLoopsWithNoProgress = maxLoopsWithNoProgress;
+	}
+
+	/**
+	 * @return the maxPassesAtConstraints
+	 */
+	public long getMaxPassesAtConstraints() {
+		return maxPassesAtConstraints;
+	}
+
+	/**
+	 * @param maxPassesAtConstraints
+	 *            the maxPassesAtConstraints to set
+	 */
+	public void setMaxPassesAtConstraints(long maxPassesAtConstraints) {
+		this.maxPassesAtConstraints = maxPassesAtConstraints;
+	}
+
+	/**
+	 * @return the usingTimeLimit
+	 */
+	public boolean isUsingTimeLimit() {
+		return usingTimeLimit;
+	}
+
+	/**
+	 * @param usingTimeLimit
+	 *            the usingTimeLimit to set
+	 */
+	public void setUsingTimeLimit(boolean usingTimeLimit) {
+		this.usingTimeLimit = usingTimeLimit;
+	}
+
+	/**
+	 * @return the usingLoopLimit
+	 */
+	public boolean isUsingLoopLimit() {
+		return usingLoopLimit;
+	}
+
+	/**
+	 * @param usingLoopLimit
+	 *            the usingLoopLimit to set
+	 */
+	public void setUsingLoopLimit(boolean usingLoopLimit) {
+		this.usingLoopLimit = usingLoopLimit;
+	}
+
+	/**
+	 * @return the snapshotSimulationDuringSolve
+	 */
+	public boolean isSnapshotSimulationDuringSolve() {
+		return snapshotSimulationDuringSolve;
+	}
+
+	/**
+	 * @param snapshotSimulationDuringSolve
+	 *            the snapshotSimulationDuringSolve to set
+	 */
+	public void setSnapshotSimulationDuringSolve(
+			boolean snapshotSimulationDuringSolve) {
+		this.snapshotSimulationDuringSolve = snapshotSimulationDuringSolve;
+	}
+
+	/**
+	 * @return the snapshotToSameFile
+	 */
+	public boolean isSnapshotToSameFile() {
+		return snapshotToSameFile;
+	}
+
+	/**
+	 * @param snapshotToSameFile
+	 *            the snapshotToSameFile to set
+	 */
+	public void setSnapshotToSameFile(boolean snapshotToSameFile) {
+		this.snapshotToSameFile = snapshotToSameFile;
+	}
+
+	/**
+	 * @return the loopsPerSnapshot
+	 */
+	public int getLoopsPerSnapshot() {
+		return loopsPerSnapshot;
+	}
+
+	/**
+	 * @param loopsPerSnapshot
+	 *            the loopsPerSnapshot to set
+	 */
+	public void setLoopsPerSnapshot(int loopsPerSnapshot) {
+		this.loopsPerSnapshot = loopsPerSnapshot;
+	}
+
+	/**
+	 * @return the baseSnapshotFileName
+	 */
+	public String getBaseSnapshotFileName() {
+		return baseSnapshotFileName;
+	}
+
+	/**
+	 * @param baseSnapshotFileName
+	 *            the baseSnapshotFileName to set
+	 */
+	public void setBaseSnapshotFileName(String baseSnapshotFileName) {
+		this.baseSnapshotFileName = baseSnapshotFileName;
+	}
+
+	/**
+	 * @return the amTopEventToSimulate
+	 */
+	public boolean isAmTopEventToSimulate() {
+		return amTopEventToSimulate;
+	}
+
+	/**
+	 * @param amTopEventToSimulate
+	 *            the amTopEventToSimulate to set
+	 */
+	public void setAmTopEventToSimulate(boolean amTopEventToSimulate) {
+		this.amTopEventToSimulate = amTopEventToSimulate;
+	}
+
+	/**
+	 * @return the settingTimeVaryingMapOwners
+	 */
+	public static boolean isSettingTimeVaryingMapOwners() {
+		return settingTimeVaryingMapOwners;
+	}
+
+	/**
+	 * @param settingTimeVaryingMapOwners
+	 *            the settingTimeVaryingMapOwners to set
+	 */
+	public static void setSettingTimeVaryingMapOwners(
+			boolean settingTimeVaryingMapOwners) {
+		ParameterListenerImpl.settingTimeVaryingMapOwners = settingTimeVaryingMapOwners;
+	}
+  
 }
