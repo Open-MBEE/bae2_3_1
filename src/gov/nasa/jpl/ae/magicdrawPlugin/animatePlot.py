@@ -12,6 +12,8 @@ doSubplots = False
 
 # save animation to mp4?
 saveMovie = False
+movieFilePrefix = "plotAnimation"
+movieFileExtension = "mp4"
 
 # default file to read if useFile
 #fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt"
@@ -1106,7 +1108,7 @@ def main(argv=None):
             # must store return value, even if unused, or else it will stop plotting after the first point
             ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=0, repeat=False, save_count=1000)
             if saveMovie:
-                ani.save('movie.mp4', fps=10)
+                ani.save(movieFilePrefix + '.' + movieFileExtension, fps=10)
     if usingTk:
         root.mainloop()
     else:
