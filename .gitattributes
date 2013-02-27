@@ -4536,6 +4536,7 @@ src/gov/nasa/jpl/ae/util/Timer.java -text
 src/gov/nasa/jpl/ae/util/Utils.java -text
 src/gov/nasa/jpl/ae/util/runaspen.cmd -text
 src/gov/nasa/jpl/ae/util/runaspen.sh -text
+src/gov/nasa/jpl/ae/xml/Demo_Scenario_Latest.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
 src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
 src/gov/nasa/jpl/ae/xml/NameTranslator.java -text
