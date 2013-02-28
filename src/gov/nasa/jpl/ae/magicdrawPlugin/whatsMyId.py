@@ -1,9 +1,18 @@
-from com.nomagic.magicdraw.core import Application
+#handy python things
+import time,sys,traceback,re
 
-import os, csv, sys, traceback, re, time, shutil
+#some MD utils. 
+from com.nomagic.magicdraw.core import * #application, project...
+from com.nomagic.magicdraw.core import Application #this seems to want its own import.
+
+from javax.swing import JOptionPane
+
+import MPUtils
+reload (MPUtils)
 
 global gl
 gl = Application.getInstance().getGUILog()
+        
 
 def run(s):
 	#get the user's selection - the element that should be top level and contain (recursively) all other systems/behaviors you wish to reason about.

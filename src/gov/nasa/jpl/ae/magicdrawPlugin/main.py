@@ -39,7 +39,7 @@ def addToPath(s):
 addToPath(aePluginDir)
 addToPath(pluginSrcPath);
 addToPath(projectPath + os.sep + 'bin');
-addToPath(projectPath + os.sep + 'AE.jar');
+#addToPath(projectPath + os.sep + 'AE.jar');
 #print 'AE sys.path = ' + sys.path
 
 class ExampleAction( MDAction ):
@@ -164,6 +164,7 @@ class BrowserContextAMConfigurator(BrowserContextAMConfigurator):
             category.addAction(ExampleAction("ExportForAE",None))
             category.addAction(ExampleAction("ExportForAnalysisEngine_v2",None))
             category.addAction(ExampleAction("AE",None))
+            category.addAction(ExampleAction("whatsMyId",None))
             #category.addAction(ExampleAction("RegisterAcronyms",None))
             #category.addAction(ExampleAction("UpdateDocumentNumbering"))
             #category.addAction(ExampleAction("DocumentViewer"))
