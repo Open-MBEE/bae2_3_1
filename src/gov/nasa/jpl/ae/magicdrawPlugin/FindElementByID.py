@@ -44,7 +44,7 @@ def run(x):
         if not element: 
             gl.log("Can't find element matching this ID.")
             return
-        gl.log("Found Element: ")
+        gl.log("Found Element with ID = " + str(id) + ": ")
         gl.log("    Name: %s" % element.name)
         gl.log("    Type: %s" % element.humanType)
         try: symbols = SEM.getAllPresentationElements(element)
