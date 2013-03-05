@@ -578,8 +578,9 @@ class actionEventClass(object):
 				t = node.object.getID()
 				self.dependencies[outID] = (tname,"%s.getValue(%s)" % (sfID,t))
 			elif StereotypesHelper.hasStereotype(node,GSM):
+				append = ".getValue(startTime)" if EU.getStypePropValue(sf, TVM, "projection")[0] else ""
 				tvOut = ("%s&lt;%s&gt;" % (objectOut.type.name, EU.type2java(sf.type.name))) if objectOut.type else ("TimeVaryingMap&lt;%s&gt;" % sf.type.name)
-				self.dependencies[outID] = (tvOut,sfID)
+				self.dependencies[outID] = (tvOut,sfID + append)
 				if outID in self.members.keys():
 					x = self.members[outID]
 					x = (tvOut,x[1],x[2])
