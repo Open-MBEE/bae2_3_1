@@ -74,7 +74,7 @@ def setup():
 def run(s):
 	starttime = time.time()
 	if not setup(): return
-	gl.log("Date: Jan 10, 2013")
+	gl.log("Last Exporter Modification Date: March 4, 2013")
 	#get the user's selection - the element that should be top level and contain (recursively) all other systems/behaviors you wish to reason about.
 	firstSelected = Application.getInstance().getMainFrame().getBrowser().getActiveTree().getSelectedNodes()[0].getUserObject()
 	gl.log(str(time.time()) + "You have selected " + firstSelected.name + " as the highest level element in your system.")
@@ -101,7 +101,8 @@ def run(s):
 	global toInspect
 	global classifiersToInspect
 	global constructorArgs
-
+	
+	#collect and inspect everybody based on top classifier!
 	count = 0
 	while len(classifiersToInspect)>0:
 		if count > 50:
@@ -111,7 +112,55 @@ def run(s):
 		classesToTranslate.append(inspect(thing))
 		count += 1
 	inspecttime = time.time()
-	gl.log("time to inspect everything: %s" % str(inspecttime-starttime))
+	gl.log("finished inspecting - time: %s" % str(inspecttime-starttime))
+	
+	#write everything out
+	log_dir = getLogDirectory()
+	os.chdir(log_dir)
+	log_file_name = "Scenario_XML_" + str(EU.formatCurrentTime()) + ".xml"
+	log_file = EW.makeLog(firstSelected,classesToTranslate,log_file_name)
+	latestDir = getLatestDirectory()
+	ffile = "Demo_Scenario_Latest.xml"
+	gl.log("time to write scenario: %s" % str(time.time()-inspecttime))
+	generatedXmlFileName = getFileName(latestDir,ffile)
+	if generatedXmlFileName:
+		shutil.copyfile(log_file_name, generatedXmlFileName)
+		gl.log("copied file from " + os.getcwd() + " copied " + log_file_name + " to " + generatedXmlFileName )
+	
+	#gl.log("\nERRORS:")
+	#for thing in classesToTranslate:
+	#	if len(thing.errors.keys())>0:
+	#		gl.log("errors in %s" % thing.name)
+	#		gl.log("	%s" % str(thing.errors))
+			
+	gl.log("\nThe log file for this execution is located at: " + str(os.getcwd()) )
+	gl.log("The log file: %s" % str(generatedXmlFileName) )
+	gl.log("time to do everything: %s" % str(time.time()-starttime))
+	return generatedXmlFileName
+
+def getFileName(latestDir,ff = ""):
+	ff = JOptionPane.showInputDialog(
+                                    None,
+                                    "Output Filename",
+                                    "What are we naming this scenario?",
+                                    JOptionPane.PLAIN_MESSAGE,
+                                    None,
+                                    None,
+                                    ff)
+	if ff and len(ff) > 0:
+		if not ff.endswith(".xml"): ff+=".xml"
+		return latestDir + os.sep + ff
+	return None
+
+def getLatestDirectory():
+	latestDir = str(os.getcwd()) + os.sep + "latest"
+	if not os.path.exists(latestDir):
+		try: os.mkdir(latestDir)
+		except: #this won't do much if you're running in batch mode...
+			print "Error creating latest directory!"
+	return latestDir
+
+def getLogDirectory():
 	homeDir = os.getenv('HOME')
 	if homeDir == None:
 		homeDir = os.getcwd()
@@ -122,45 +171,7 @@ def run(s):
 		try: os.mkdir(log_dir)
 		except: #this won't do much if you're running in batch mode...
 		    print "Error creating log directory!"
-	os.chdir(log_dir)
-	log_file_name = "Scenario_XML_" + str(EU.formatCurrentTime()) + ".xml"
-	
-	log_file = EW.makeLog(firstSelected,classesToTranslate,log_file_name)
-	latestDir = str(os.getcwd()) + os.sep + "latest"
-	if not os.path.exists(latestDir):
-		try: os.mkdir(latestDir)
-		except: #this won't do much if you're running in batch mode...
-			print "Error creating latest directory!"
-	ffile = "Scenario_latest_v3.xml"
-	gl.log("time to write scenario: %s" % str(time.time()-inspecttime))
-	ff = ""
-	ff = JOptionPane.showInputDialog(
-                                    None,
-                                    "Output Filename",
-                                    "What are we naming this scenario?",
-                                    JOptionPane.PLAIN_MESSAGE,
-                                    None,
-                                    None,
-                                    ffile)
-	if ff and len(ff) > 0:
-		if not ff.endswith(".xml"): ff+=".xml"
-	
-	generatedXmlFileName = latestDir + os.sep + ff
-	shutil.copyfile(log_file_name, generatedXmlFileName)
-	gl.log("copied file from " + os.getcwd() + " copied " + log_file_name + " to " + generatedXmlFileName )
-	
-	
-	#gl.log("\nERRORS:")
-	#for thing in classesToTranslate:
-	#	if len(thing.errors.keys())>0:
-	#		gl.log("errors in %s" % thing.name)
-	#		gl.log("	%s" % str(thing.errors))
-			
-	
-	gl.log("\nThe log file for this execution is located at: " + str(os.getcwd()) )
-	gl.log("The log file: " + generatedXmlFileName )
-	gl.log("time to do everything: %s" % str(time.time()-starttime))
-	return generatedXmlFileName
+	return log_dir
 
 def getPrettyIdent(node):
 		return node.name + " (" + str(node.getClassType()).split(".")[-1].strip("'>") + ")"		

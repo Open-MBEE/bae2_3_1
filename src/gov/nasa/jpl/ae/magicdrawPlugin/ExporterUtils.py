@@ -170,3 +170,17 @@ def setDebug(status):
 	
 def setLogDebug(status):
 	logDebug = status
+	
+def handleException(msg = None):
+    exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+    messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
+    for message in messages:
+        gl.log(message)
+    if msg: gl.log(msg)
+    
+def type2java(typeName):
+    if str(typeName) in ['double', 'integer', 'string' , 'float', 'long', 'short', 'boolean']:
+        return str(typeName).capitalize()
+    elif str(typeName) == 'int':
+        return 'Integer'
+    return str(typeName)

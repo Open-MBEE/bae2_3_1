@@ -45,17 +45,19 @@ global gl
 project = Application.getInstance().getProjectsManager().getActiveProject()
 global project
 TVM = StereotypesHelper.getStereotype(project,"TimeVaryingMap")
-global TVM
+PF = StereotypesHelper.getStereotype(project,"Profile")
+ASMIP = StereotypesHelper.getStereotype(project,"AddToStructuralFeatureMapInPlace")
+GSM = StereotypesHelper.getStereotype(project, "GetStructuralFeatureMap")
+MSMIP = StereotypesHelper.getStereotype(project, "MultiplyStructuralFeatureMapInPlace")
+SSMAT = StereotypesHelper.getStereotype(project, "SampleStructuralFeatureMapAtTime")
+USM = StereotypesHelper.getStereotype(project, "UpdateStructuralFeatureMap")
 
-def mlTypeToJavaClass(typeName):
-    if str(typeName) in ['double', 'integer', 'string' , 'float', 'long', 'short', 'boolean']:
-        return str(typeName).capitalize()
-    elif str(typeName) == 'int':
-        return 'Integer'
-    return str(typeName)
+global TVM
 
 class ClassifierClass(object):
 	def __init__(self,system,cs,firstSelected):
+		gl.log("=====================================")
+		gl.log("Class: " + firstSelected.name)
 		stime = time.time()
 		self.constructorArgs = cs
 		self.firstSelected = firstSelected
@@ -79,28 +81,55 @@ class ClassifierClass(object):
 				
 		gl.log("time to make classifier: %s" % str(time.time()-stime))
 
-		
+	def getStypePropValue(self,element,stereotype,propname):
+		return StereotypesHelper.getStereotypePropertyValue(element,stereotype,propname)
+	
 	def inspectComposition(self,system):
 		signalsToBuild = []
-		#fill members
+
+		#simple properties: instance of datatype (int, float, etc.)
 		simpleProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,DataType)]
-		gl.log("Simple Properties: " + str([str(pt.name) for pt in simpleProperties]))
+		
 		if isinstance(system,Signal):
 			self.constructors.append("super();")
 			self.constructors.append("init%sMembers();" % self.id)
 			self.constructors.append("init%sCollections();" % self.id)
 			self.constructors.append("init%sElaborations();" % self.id)
+			self.cArgs["t"] = "Timepoint" #NOTE - this means variable called "t" is probably reserved?
+		gl.log("Simple Properties: " + str([str(pt.name) for pt in simpleProperties]))
 		for p in simpleProperties:
+			gl.log("Analyzing Property: %s" % p.name)
+			#arguments for time varying map construction
+			readOnly = derived = plottable = projection = default = filename = profile = None
+			if StereotypesHelper.hasStereotype(p,TVM):
+				plottable = self.getStypePropValue(p, TVM, "plottable")[0]
+				projection = self.getStypePropValue(p, TVM, "projection")[0]
+				readOnly = p.isReadOnly()
+				derived = p.isDerived()
+				default = (p.default if p.default != "" else None)
+				if projection and not derived: profile = self.getStypePropValue(p, TVM, "profile")[0]
+				if profile: 
+					try: filename = self.getStypePropValue(profile, PF, "filename")[0]
+					except: EU.handleException("can't get filename on item %s" % str(profile))
+			gl.log("\n	readOnly: %s\n	derived: %s\n	plottable: %s\n	projection: %s\n	default: %s\n	profile: %s\n	filename: %s" \
+							% (str(readOnly), str(derived), str(plottable), str(projection), str(default), str((profile.name if profile else None)), str(filename)))
+			
 			propName = p.name + "_" + p.getID()
-			pl = "Plottable" if not isinstance(system,Signal) else ""
-			tvmargs = '"%s"' % p.name
-			tvmargs += ((', "%s"' % StereotypesHelper.getStereotypePropertyValue(p,TVM,"filename")[0]) if StereotypesHelper.hasStereotype(p,TVM) else ', null') + \
-            (', %s.class' % mlTypeToJavaClass(p.type.name)) + ('' if len(pl) <= 0 else ', %s ' % ('true' if StereotypesHelper.hasStereotype(p,TVM) else 'false')) # this is all on one line because Brad can't create tab characters unless he changes his eclipse settings or uses another editor, and he's not willing to do that. 
-			self.members[propName] = ("TimeVarying%sMap&lt;%s&gt;" % (pl,mlTypeToJavaClass(p.type.name)),'new TimeVarying%sMap(%s)' % (pl,tvmargs),"simple property (name " + p.name + ")")
-			if isinstance(system,Signal): 
-				self.cArgs["x"]=mlTypeToJavaClass(p.type.name)
-				self.cArgs["t"]="Timepoint"
-				self.constructors.append("%s.getValue().setValue(t,x);" % propName)
+			mapType = "TimeVaryingMap"
+			if plottable and not projection: mapType = "TimeVaryingPlottableMap"
+			elif projection: mapType = "TimeVaryingProjection"
+			
+			#public TimeVaryingMap( String name, String fileName, V defaultValue, Class<V> type) is best constructor. Put null in for filename when not using it. Same with defaultValue.		
+			tvmargs = '"%s",%s,%s,%s.class' % (p.name,('"'+filename+'"' if filename else "null"), (str(default) if default else "null") , EU.type2java(p.type.name))
+			if plottable and projection: tvmargs += ", true" #projection flag for time varying plottable map. 
+			self.members[propName] = ("%s&lt;%s&gt;" % (mapType,EU.type2java(p.type.name)),'new %s(%s)' % (mapType,tvmargs),"simple property (name " + p.name + ")")
+			
+			if isinstance(system,Signal):
+				self.cArgs[p.name] = EU.type2java(p.type.name)
+				#self.cArgs["x"]= EU.type2java(p.type.name)
+				#self.cArgs["t"]="Timepoint"
+				self.constructors.append("%s.getValue().setValue(t,%s);" % (propName,p.name))
+				
 		if len(simpleProperties)==0 and isinstance(system,Signal): 
 			propName="control"
 			self.members[propName] = ("TimeVaryingMap&lt;Boolean&gt;",'new TimeVaryingMap("%s")' % propName,"DEFAULT NO STRUCTURE OBJECT FLOW (name Control)")
@@ -111,7 +140,7 @@ class ClassifierClass(object):
 		partProperties = [prop for prop in system.ownedAttribute if not isinstance(prop,Port) and isinstance(prop.type,Class)]
 		gl.log("Part Properties: " + str([str(pt.name) for pt in partProperties]))
 		for p in partProperties:
-			self.members[p.name] = (mlTypeToJavaClass(p.type.name),"new " + mlTypeToJavaClass(p.type.name) + "(this)","part property (name " + p.name + ")")
+			self.members[p.name] = (p.type.name,"new " + p.type.name + "(this)","part property (name " + p.name + ")")
 			self.toInspect.append(p.type) #this will probably have to change when we have lots of customers... also will need multiplicity
 			self.constructorArgs[p.type]=system
 			
@@ -200,7 +229,7 @@ class activityInterfaceClass(object):
 		self.classes = 			[]
 		
 		for p in activity.ownedParameter:
-			if p.type: tname = mlTypeToJavaClass(p.type.name)
+			if p.type: tname = EU.type2java(p.type.name)
 			else: tname = "Object"
 			self.members[p.getID()] = (tname,None,"Initialize Parameter Nodes")
 		
@@ -249,12 +278,12 @@ class activityEventClass(object):
 			self.flowTypes[flow] = type
 			typeName = "Object"
 			if type is not "Control": 
-				if isinstance(type,Property) and type.type: typeName = mlTypeToJavaClass(type.type.name)
-				elif isinstance(type,Signal): typeName = "Signal"+mlTypeToJavaClass(type.name)
-				else: typeName = mlTypeToJavaClass(type.name)
+				if isinstance(type,Property) and type.type: typeName = type.type.name
+				elif isinstance(type,Signal): typeName = "Signal"+type.name
+				else: typeName = type.name
 			else: typeName = "Boolean"
 			k = str("sig" + flow.getID())
-			t = "ObjectFlow&lt;%s&gt;" % typeName
+			t = "ObjectFlow&lt;%s&gt;" % EU.type2java(typeName)
 			self.members[k] = (t,'new ObjectFlow("'+k+'")',"NEWWWWW member for object flow signal")
 		
 	def inspectComposition(self,activity):
@@ -321,11 +350,11 @@ class activityEventClass(object):
 			
 			if isinstance(node,ActivityParameterNode):
 				p_id = node.parameter.getID()
-				if node.parameter.type: tname = mlTypeToJavaClass(node.parameter.type.name)
+				if node.parameter.type: tname = EU.type2java(node.parameter.type.name)
 				else: tname = "Object"
 				try: d = str(node.getDefault())
 				except: d = None
-				self.members[p_id] = (mlTypeToJavaClass(node.type.name),d,"Initialize Activity Parameter Values (for transition through")
+				self.members[p_id] = (EU.type2java(node.type.name),d,"Initialize Activity Parameter Values (for transition through")
 				if str(node.parameter.direction)=="out" or len(node.incoming)>0: 
 					self.members[node.parameter.getID()+"_default"]=(tname,node.parameter.default,"Outgoing node's default value")
 					self.members[node.parameter.getID()+"_changed"]=("Boolean","false","initialize new value as false")
@@ -350,7 +379,7 @@ class activityEventClass(object):
 					if param == None:
 					  gl.log("BADNESS 0")
 					else:
-					  if param.type: pt = mlTypeToJavaClass(param.type.name)
+					  if param.type: pt = EU.type2java(param.type.name)
 					  signame = "sig" + param.getID()
 					  self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes") #used??
 			
@@ -391,11 +420,17 @@ class actionEventClass(object):
 		self.inspectByType(actionNode)
 		
 		gl.log("time to inspect action: %s" % str(time.time() - stime))
-		
+	
 	def inspectMyself(self,actionNode):	
 		self.setUpSignalEffectsAndMembers(actionNode)
 		self.setUpBasicElaborationsAndDependencies(actionNode)
 
+	def inMyContext(self,prop,me):
+		#most common usage of this is for a property and a node in a behavior in a class, so let's try that first...
+		gl.log("###in context - %s " % str(prop in me.context.attribute))
+		if isinstance(me,Action): return prop in me.context.attribute
+		else: return False #TBD - don't use this yet.	
+	
 	def setUpSignalEffectsAndMembers(self,node):
 		gl.log(". . . . . . .Signals. . . . . .")
 		for f in self.allSignals[node]["out"]:
@@ -403,18 +438,19 @@ class actionEventClass(object):
 			next = EU.getNext(f)
 			if isinstance(f.source,Pin):
 				self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % f.source.getID())
-				self.members[f.source.getID()] = (obtypename,None,"NEW initialize output pin members")
+				self.members[f.source.getID()] = (EU.type2java(obtypename),None,"NEW initialize output pin members")
 			else:
 				if isinstance(node,DecisionNode): self.effects.append("sig" + f.getID() + ".sendIf(%s,endTime,%s_exists)" % ("objectToPass",next.getID()))
 				else: self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % "objectToPass")
 				if obtype is "Control":	self.dependencies["objectToPass"]=("Boolean","true")
-				self.members["objectToPass"] = (obtypename,None,"NEW initialize objectToPass")
+				self.members["objectToPass"] = (EU.type2java(obtypename),None,"NEW initialize objectToPass")
 				if not obtype: gl.log("+ cannot find flow type for flow %s" % f.getID())
 		targetVar = "objectToPass"
 		oTargetVar = "objectToPass"
 		c=1
 		for f in self.allSignals[node]["in"]:
 			(obtype,obtypename) = self.getObtypeName(f,node)
+			obtypename = EU.type2java(obtypename)
 			if isinstance(node,MergeNode): continue
 			if isinstance(f.target,Pin):
 				self.dependencies[f.target.getID()] = (obtypename,"sig" + f.getID() + ".receive(startTime)")
@@ -451,6 +487,7 @@ class actionEventClass(object):
 				b = str(nFlow.guard.body[0]) #could be more than one
 				b = b.replace("<","&lt;")
 				b = b.replace(">","&gt;")
+				if isinstance(node,DecisionNode): b = b.replace("input","decisionInput")
 				if isinstance(node,DecisionNode): b = b.replace("ALH.getTokenValue()","decisionInput")
 				dependencyString = str(b)
 			for otherPrev in self.prevs[n].keys(): #take out "my" flow?? #uh, don't even use otherprev....
@@ -496,7 +533,7 @@ class actionEventClass(object):
 	def inspectByType(self,node):
 		gl.log(". . . . . . .Inspecting by Type. . . . . .")
 		myType = node.humanType
-		gl.log("type is %s" % myType)
+		gl.log("type: %s - name: %s - owner: %s" % (myType,node.name,node.owner.name))
 		canHaveDuration = True
 		nextAccepts = [x for x in self.nexts[node] if isinstance(x,AcceptEventAction)]
 		if len(nextAccepts)>0:
@@ -507,25 +544,53 @@ class actionEventClass(object):
 		
 		if myType == "Read Self Action":
 			objectFlowOut = node.result.outgoing[0]
-			try: itemname = mlTypeToJavaClass(node.result.type.name)
+			try: itemname = node.result.type.name
 			except: itemname = node.owner.owner.name
 			self.members[node.result.getID()] = (itemname,itemname+".this","Instance of whoever is operating this activity")
 		
 		elif myType =="Add Structural Feature Value Action" :
 			sf = node.structuralFeature
-			objectFlowIn = node.object.incoming[0]
+			#objectFlowIn = node.object.incoming[0] #we don't even need this...
 			valueFlowIn = node.value.incoming[0]
-			self.effects.append(sf.name + "_" + sf.getID() + ".setValue(startTime,"+ node.value.getID() + ")")
+			try: featureID = sf.name + "_" + sf.getID()
+			except: EU.handleException("Found Structural Feature w/out name in %s:%s" % (node.name,node.owner.name))
+			v = node.value.getID()
+			if StereotypesHelper.hasStereotype(node,ASMIP): #add to structural feature map in place
+				self.effects.append("%s.add(%s,startTime)" % (featureID,v))
+			elif StereotypesHelper.hasStereotype(node,MSMIP): #multiply map in place all by some value after start Time
+				self.effects.append("%s.multiply(%s,startTime" % (featureID,v))
+			elif StereotypesHelper.hasStereotype(node,USM): #update projection with another projection after some point
+				self.effects.append("%s.setValue(startTime,%s)" % (featureID,v))
+			else: #normal add one number to tvm
+				self.effects.append("%s.setValue(startTime,%s)" % (featureID,v))
 		
 		elif myType =="Read Structural Feature Action" :
 			sf = node.structuralFeature
-			objectIn = node.object
+			sfContext = "this" if self.inMyContext(sf,node) else sf.owner.getID()
+			gl.log("SFCONTEXT - %s" % str(sfContext))
+			sfID = "%s_%s" % (sf.name,sf.getID())
+			sfFullName = "%s.%s" % (sfContext,sfID)
 			objectOut = node.result
-			prepend=""
-			try: tname = mlTypeToJavaClass(sf.type.name)
+			outID = objectOut.getID()
+			try: tname = EU.type2java(sf.type.name)
 			except:tname = "Object"
-			if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, node.object.getID() + "." + sf.name + "_" + sf.getID() + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
-			else: self.dependencies[objectOut.getID()] = (tname,node.object.getID() + "." + sf.name)
+			if StereotypesHelper.hasStereotype(node,SSMAT):
+				t = node.object.getID()
+				self.dependencies[outID] = (tname,"%s.getValue(%s)" % (sfID,t))
+			elif StereotypesHelper.hasStereotype(node,GSM):
+				tvOut = ("%s&lt;%s&gt;" % (objectOut.type.name, EU.type2java(sf.type.name))) if objectOut.type else ("TimeVaryingMap&lt;%s&gt;" % sf.type.name)
+				self.dependencies[outID] = (tvOut,sfID)
+				if outID in self.members.keys():
+					x = self.members[outID]
+					x = (tvOut,x[1],x[2])
+					self.members[outID] = x
+			else:
+				sfContext = node.object.getID() + "." if node.object else ""
+				gl.log("SFContext2 %s" % str(sfContext))
+				if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, sfContext + sfID + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
+				else: self.dependencies[objectOut.getID()] = (tname,sf.name)
+				#if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, sfContext + "." + sfID + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
+				#else: self.dependencies[objectOut.getID()] = (tname,sfContext + "." + sf.name)
 		
 		elif myType =="Send Signal Action" :
 			sig = node.signal
@@ -584,7 +649,8 @@ class actionEventClass(object):
 			if not tname: 
 				tname = "Object"
 				t = node.value.type
-				if t: tname = mlTypeToJavaClass(node.value.type.name)
+				if t: tname = node.value.type.name
+			tname = EU.type2java(tname)
 			self.members[node.result.getID()] = (tname,str(v),"value specification VALUE")
 			self.dependencies[node.result.getID()] = (tname,str(v))
 		
@@ -600,12 +666,12 @@ class actionEventClass(object):
 				res = node.result
 				body = node.behavior.body
 				for p in args: 
-					if p.type: tname = mlTypeToJavaClass(p.type.name) #parameter
+					if p.type: tname = EU.type2java(p.type.name) #parameter
 					else: tname = "Object"
 					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Argument Param: " + p.name)
 					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),p.getID())
 				for p in res:
-					if p.type: tname = mlTypeToJavaClass(p.type.name)
+					if p.type: tname = EU.type2java(p.type.name)
 					else: tname = "Object"
 					if p.parameter: self.members[p.parameter.name] = (str(tname),None,"Result Pin: " + p.name)
 					if p.parameter: self.dependencies[p.parameter.name] = (str(tname),node.behavior.body[0].split("=")[1])
@@ -622,16 +688,17 @@ class actionEventClass(object):
 												"args": [("startTime","startTime","Integer"),("caller","this",interfaceText)],
 												"enclosingClass" : node.behavior.owner.name+".this"}
 				for pin in node.input:
-					if pin.type: tname = mlTypeToJavaClass(pin.type.name)
+					if pin.type: tname = pin.parameter.type.name
 					else: tname = "Object"
-					if pin.parameter:
-						self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),tname)])
-						self.dependencies[pin.parameter.getID()] = (mlTypeToJavaClass(pin.parameter.type.name),pin.getID())
+					tname = EU.type2java(tname)
+					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),tname)])
+					self.dependencies[pin.parameter.getID()] = (tname,pin.getID())
 				for pin in node.output:
-					if pin.type: tname = mlTypeToJavaClass(pin.type.name)
+					if pin.type: tname = pin.parameter.type.name
 					else: tname = "Object"
-					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),mlTypeToJavaClass(pin.parameter.type.name))])
-					self.dependencies[pin.getID()] = (mlTypeToJavaClass(pin.parameter.type.name),pin.parameter.getID())
+					tname = EU.type2java(tname)
+					self.elaborations[node.behavior]["args"].extend([(pin.parameter.getID(),pin.parameter.getID(),tname)])
+					self.dependencies[pin.getID()] = (tname,pin.parameter.getID())
 
 		elif myType =="Start Object Behavior Action":
 			inc = node.object.incoming[0]
@@ -648,13 +715,14 @@ class actionEventClass(object):
 			else: gl.log("*****ERROR -- CANNOT ELABORATE TO NONE FROM START OBJECT BEHAVIOR!!")
 
 		elif myType =="Activity Parameter Node":
+			tname = EU.type2java(node.parameter.type.name)
 			if str(node.parameter.direction)=="in": 
-				self.dependencies["objectToPass"] = (mlTypeToJavaClass(node.parameter.type.name),node.parameter.getID())
-				self.members[node.parameter.getID()] = (node.parameter.type.name, None, "Initialize Activity Parameter Node receptacle for incoming value!")
+				self.dependencies["objectToPass"] = (tname,node.parameter.getID())
+				self.members[node.parameter.getID()] = (tname, None, "Initialize Activity Parameter Node receptacle for incoming value!")
 			else: 
 				self.members["startTimeMinusOne"] = ("Integer",None,"placeholder for a start time minus one function")
 				self.dependencies["startTimeMinusOne"] = ("Integer","startTime-1")
-				self.dependencies[node.parameter.getID()]=(mlTypeToJavaClass(node.parameter.type.name),"objectToPass")
+				self.dependencies[node.parameter.getID()]=(tname,"objectToPass")
 				self.members["sendDefault"] = ("Boolean","false","initialize whether to send default return value on object flow as false")
 				self.dependencies["sendDefault"] = ("Boolean","%s_changed == null || %s_changed == false" % (node.parameter.getID(),node.parameter.getID()))
 				self.effects.append("sig%s.sendIf(%s_default,startTimeMinusOne,sendDefault)" % (node.incoming[0].getID(),node.parameter.getID()))
@@ -665,7 +733,10 @@ class actionEventClass(object):
 				try: tname = self.feet[dif].name
 				except:tname = "Object"
 				for dName,(dType,dVal) in self.dependencies.items():
-					if dName.endswith("_exists"): self.dependencies[dName] = (dType,dVal.replace("ALH.getTokenValue()","decisionInput"))
+					if dName.endswith("_exists"):
+						dVal = dVal.replace("input","decisionInput")
+						dVal = dVal.replace("ALH.getTokenValue()","decisionInput")
+						self.dependencies[dName] = (dType,dVal)
 					
 		elif myType == "Activity Final Node":
 			self.dependencies["endTime"] = ("Integer","startTime+duration")
@@ -677,6 +748,7 @@ class actionEventClass(object):
 				nextkey = self.nexts[node].keys()[0]
 				nextFlow = self.nexts[node][nextkey]
 				(t,tname) = self.getObtypeName(nextFlow, node)
+				tname = EU.type2java(tname)
 			except: gl.log('ARRGHAHGHAHGHAHG')
 			self.members["receiveThis"] = ("ObjectFlow&lt;%s&gt;" % tname,None,"Anonymous receive for invoker!")
 		gl.log("finished inspecting by type.")
@@ -694,4 +766,4 @@ class actionEventClass(object):
 		elif obtype is "Control": obtypename = "Boolean"
 		elif isinstance(obtype,Property): obtypename = obtype.type.name
 		else: obtypename = obtype.name
-		return(obtype,mlTypeToJavaClass(obtypename))
+		return(obtype,obtypename)

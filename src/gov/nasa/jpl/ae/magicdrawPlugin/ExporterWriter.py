@@ -150,57 +150,56 @@ def translate(classThingy,l):
 	elif isinstance(classThingy,EC.ClassifierClass): translateClass(classThingy,l)
 
 def writeConstructor(classThingy,l):
-	if len(classThingy.constructors)>0:
-		x=""
-		if len(classThingy.cArgs.keys())>0:
-			if "t" in classThingy.cArgs.keys(): x = classThingy.cArgs["t"] + " t,"
-			else: x = ""
-			x+= str(classThingy.cArgs["x"] + " x")
-		logAndExport(l,None,"<constructors>")
-		logAndExport(l+1,None,"<function>")
-		logAndExport(l+1,None,"<![CDATA[")
-		logAndExport(l+1,None," %s(%s) {" % (classThingy.id,x))
-		for c in classThingy.constructors:
-			logAndExport(l+2,None,"%s" % c)
-		logAndExport(l+1,None," }")
-		logAndExport(l+2,None,"]]>")
-		logAndExport(l+1,None,"</function>")
-		logAndExport(l,None,"</constructors>")
-	else: logAndExport(l,None,"<constructors/>")
+    if len(classThingy.constructors)>0:
+        args = classThingy.cArgs["t"] + " t, " if "t" in classThingy.cArgs.keys() else ""
+        for arg in [x for x in sorted(classThingy.cArgs.keys()) if x != "t"]: args += str("%s %s, " % (classThingy.cArgs[arg], arg))
+        try: args = args.rstrip(", ")
+        except: pass
+    	logAndExport(l,None,"<constructors>")
+    	logAndExport(l+1,None,"<function>")
+    	logAndExport(l+1,None,"<![CDATA[")
+    	logAndExport(l+1,None," %s(%s) {" % (classThingy.id,args))
+    	for c in classThingy.constructors: logAndExport(l+2,None,"%s" % c)
+    	logAndExport(l+1,None," }")
+    	logAndExport(l+2,None,"]]>")
+    	logAndExport(l+1,None,"</function>")
+    	logAndExport(l,None,"</constructors>")
+    else: logAndExport(l,None,"<constructors/>")
 	
 	
 def translateClass(classThingy,l):
-	logAndExport(l,None,"<class>")
-	logAndExport(l+1,"name",classThingy.id)
-	logAndExport(l+1,"import","java.util.Queue")
-	logAndExport(l+1,"import","java.util.LinkedList")
-	logAndExport(l+1,"import","gov.nasa.jpl.ae.event.Timepoint")
-	logAndExport(l+1,"import","gov.nasa.jpl.ae.fuml.ObjectFlow")
-	logAndExport(l+1,"import","gov.nasa.jpl.ae.event.TimeVaryingList")
-	logAndExport(l+1,"import","java.lang.Math")
-	writeMembers(classThingy,l+1)
-	writeConstructor(classThingy,l+1)
-	
-	if len(classThingy.methods)>0:
-		logAndExport(l+1,None,"<methods>")
-		for m in classThingy.methods:
-			logAndExport(l+2,"function",m)	
-		logAndExport(l+1,None,"</methods>")
-	else: logAndExport(l+1,None,"<methods/>")
-	
-	if len(classThingy.events)>0:
-		logAndExport(l+1,None,"<events>")
-		for activity in classThingy.events: translateActivity(activity,l+2)
-		logAndExport(l+1,None,"</events>")
-	else: logAndExport(l+1,None,"<events/>")
-	
-	if len(classThingy.MDsignalClasses)>0:
-		logAndExport(l+1,None,"<classes>")
-		for c in classThingy.MDsignalClasses:
-			translateClass(c,l+2)
-		logAndExport(l+1,None,"</classes>")
-	else: logAndExport(l+1,None,"<classes/>")
-	logAndExport(l,None,"</class>")
+    logAndExport(l,None,"<class>")
+    logAndExport(l+1,"name",classThingy.id)
+    logAndExport(l+1,"import","java.util.Queue")
+    logAndExport(l+1,"import","java.util.LinkedList")
+    logAndExport(l+1,"import","gov.nasa.jpl.ae.event.Timepoint")
+    logAndExport(l+1,"import","gov.nasa.jpl.ae.fuml.ObjectFlow")
+    logAndExport(l+1,"import","gov.nasa.jpl.ae.event.TimeVaryingList")
+    logAndExport(l+1,"import","gov.nasa.jpl.ae.event.TimeVaryingProjection")
+    logAndExport(l+1,"import","java.lang.Math")
+    writeMembers(classThingy,l+1)
+    writeConstructor(classThingy,l+1)
+    
+    if len(classThingy.methods)>0:
+    	logAndExport(l+1,None,"<methods>")
+    	for m in classThingy.methods:
+    		logAndExport(l+2,"function",m)	
+    	logAndExport(l+1,None,"</methods>")
+    else: logAndExport(l+1,None,"<methods/>")
+    
+    if len(classThingy.events)>0:
+    	logAndExport(l+1,None,"<events>")
+    	for activity in classThingy.events: translateActivity(activity,l+2)
+    	logAndExport(l+1,None,"</events>")
+    else: logAndExport(l+1,None,"<events/>")
+    
+    if len(classThingy.MDsignalClasses)>0:
+    	logAndExport(l+1,None,"<classes>")
+    	for c in classThingy.MDsignalClasses:
+    		translateClass(c,l+2)
+    	logAndExport(l+1,None,"</classes>")
+    else: logAndExport(l+1,None,"<classes/>")
+    logAndExport(l,None,"</class>")
 
 def writeMembers(memberOwner,l):
 	if len(memberOwner.members.keys())>0:
@@ -221,7 +220,7 @@ def writeDependencies(dependencyOwner,l):
 		for parameter, (type,expression) in dependencyOwner.dependencies.items():
 			logAndExport(l+1,None,"<dependency>")
 			logAndExport(l+2,"name",parameter)
-			#logAndExport(l+2,"type",type)
+			logAndExport(l+2,"type",type)
 			logAndExport(l+2,"value",expression)
 			logAndExport(l+1,None,"</dependency>")
 		logAndExport(l,None,"</dependencies>")
