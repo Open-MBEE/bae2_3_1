@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
-<!--RUNNING ON: Power_System (owner: Demo_Test_Model) at March 04 2013 11:24:47 AM -->
+<!--RUNNING ON: Power_System (owner: Demo_Test_Model) at March 04 2013 05:11:47 PM -->
 	<epoch>2012-08-05T23:30:00-07:00</epoch>
 	<horizon>P1D</horizon>
 	<timeUnits>seconds</timeUnits>
@@ -54,6 +54,7 @@
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
 			<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 			<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+			<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 			<import>java.lang.Math</import>
 			<members>
 				<parameter>
@@ -389,7 +390,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766470_27157_22167</name>
 											<type>Customer</type>
-											<value>this.c</value>
+											<value>c</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -445,7 +446,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766471_289951_22169</name>
 											<type>Power</type>
-											<value>this.p</value>
+											<value>p</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -745,7 +746,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766473_160708_22173</name>
 											<type>LADWP</type>
-											<value>this.l</value>
+											<value>l</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -901,7 +902,7 @@
 										<dependency>
 											<name>duration</name>
 											<type>Integer</type>
-											<value>36000</value>
+											<value>18000</value>
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
@@ -1198,24 +1199,25 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
 							<!--simple property (name load)-->
 							<name>load__17_0_2_1_edc0357_1360798765030_737782_20262</name>
-							<type>TimeVaryingMap&lt;Integer&gt;</type>
-							<value>new TimeVaryingMap("load",null,null,Integer.class)</value>
+							<type>TimeVaryingMap&lt;Float&gt;</type>
+							<value>new TimeVaryingMap("load",null,null,Float.class)</value>
 						</parameter>
 					</members>
 					<constructors>
 						<function>
 						<![CDATA[
-						 SignalchangeLoadValue(Timepoint t,Integer x) {
+						 SignalchangeLoadValue(Timepoint t, Float load) {
 							super();
 							initSignalchangeLoadValueMembers();
 							initSignalchangeLoadValueCollections();
 							initSignalchangeLoadValueElaborations();
-							load__17_0_2_1_edc0357_1360798765030_737782_20262.getValue().setValue(t,x);
+							load__17_0_2_1_edc0357_1360798765030_737782_20262.getValue().setValue(t,load);
 						 }
 							]]>
 						</function>
@@ -1231,24 +1233,25 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
 							<!--simple property (name newGenValue)-->
 							<name>newGenValue__17_0_2_1_edc0357_1360798765030_16604_20261</name>
-							<type>TimeVaryingMap&lt;Integer&gt;</type>
-							<value>new TimeVaryingMap("newGenValue",null,null,Integer.class)</value>
+							<type>TimeVaryingMap&lt;Float&gt;</type>
+							<value>new TimeVaryingMap("newGenValue",null,null,Float.class)</value>
 						</parameter>
 					</members>
 					<constructors>
 						<function>
 						<![CDATA[
-						 SignalchangeGenerationValue(Timepoint t,Integer x) {
+						 SignalchangeGenerationValue(Timepoint t, Float newGenValue) {
 							super();
 							initSignalchangeGenerationValueMembers();
 							initSignalchangeGenerationValueCollections();
 							initSignalchangeGenerationValueElaborations();
-							newGenValue__17_0_2_1_edc0357_1360798765030_16604_20261.getValue().setValue(t,x);
+							newGenValue__17_0_2_1_edc0357_1360798765030_16604_20261.getValue().setValue(t,newGenValue);
 						 }
 							]]>
 						</function>
@@ -1264,6 +1267,7 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
@@ -1279,23 +1283,23 @@
 							<value>new TimeVaryingMap("startTime",null,null,Integer.class)</value>
 						</parameter>
 						<parameter>
-							<!--simple property (name rediction_percent)-->
-							<name>rediction_percent__17_0_2_1_edc0357_1360798765096_200759_20353</name>
-							<type>TimeVaryingMap&lt;Integer&gt;</type>
-							<value>new TimeVaryingMap("rediction_percent",null,null,Integer.class)</value>
+							<!--simple property (name reduction_percent)-->
+							<name>reduction_percent__17_0_2_1_edc0357_1360798765096_200759_20353</name>
+							<type>TimeVaryingMap&lt;Float&gt;</type>
+							<value>new TimeVaryingMap("reduction_percent",null,null,Float.class)</value>
 						</parameter>
 					</members>
 					<constructors>
 						<function>
 						<![CDATA[
-						 Signaldr_request(Timepoint t,Integer x) {
+						 Signaldr_request(Timepoint t, Integer endTime, Float reduction_percent, Integer startTime) {
 							super();
 							initSignaldr_requestMembers();
 							initSignaldr_requestCollections();
 							initSignaldr_requestElaborations();
-							rediction_percent__17_0_2_1_edc0357_1360798765096_200759_20353.getValue().setValue(t,x);
-							startTime__17_0_2_1_edc0357_1360951246626_674842_20288.getValue().setValue(t,x);
-							endTime__17_0_2_1_edc0357_1360951280962_119825_20290.getValue().setValue(t,x);
+							reduction_percent__17_0_2_1_edc0357_1360798765096_200759_20353.getValue().setValue(t,reduction_percent);
+							startTime__17_0_2_1_edc0357_1360951246626_674842_20288.getValue().setValue(t,startTime);
+							endTime__17_0_2_1_edc0357_1360951280962_119825_20290.getValue().setValue(t,endTime);
 						 }
 							]]>
 						</function>
@@ -1311,6 +1315,7 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
@@ -1323,12 +1328,12 @@
 					<constructors>
 						<function>
 						<![CDATA[
-						 Signalyes(Timepoint t,Float x) {
+						 Signalyes(Timepoint t, Float newLoad) {
 							super();
 							initSignalyesMembers();
 							initSignalyesCollections();
 							initSignalyesElaborations();
-							newLoad__17_0_2_1_edc0357_1360798765097_803626_20354.getValue().setValue(t,x);
+							newLoad__17_0_2_1_edc0357_1360798765097_803626_20354.getValue().setValue(t,newLoad);
 						 }
 							]]>
 						</function>
@@ -1344,6 +1349,7 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
@@ -1356,7 +1362,7 @@
 					<constructors>
 						<function>
 						<![CDATA[
-						 Signalno(Timepoint t,Boolean x) {
+						 Signalno(Timepoint t, Boolean x) {
 							super();
 							initSignalnoMembers();
 							initSignalnoCollections();
@@ -1377,24 +1383,25 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
 							<!--simple property (name meter_value)-->
 							<name>meter_value__17_0_2_1_edc0357_1360798765095_360811_20350</name>
-							<type>TimeVaryingMap&lt;Integer&gt;</type>
-							<value>new TimeVaryingMap("meter_value",null,null,Integer.class)</value>
+							<type>TimeVaryingMap&lt;Float&gt;</type>
+							<value>new TimeVaryingMap("meter_value",null,null,Float.class)</value>
 						</parameter>
 					</members>
 					<constructors>
 						<function>
 						<![CDATA[
-						 SignalreceiveMeterReading(Timepoint t,Integer x) {
+						 SignalreceiveMeterReading(Timepoint t, Float meter_value) {
 							super();
 							initSignalreceiveMeterReadingMembers();
 							initSignalreceiveMeterReadingCollections();
 							initSignalreceiveMeterReadingElaborations();
-							meter_value__17_0_2_1_edc0357_1360798765095_360811_20350.getValue().setValue(t,x);
+							meter_value__17_0_2_1_edc0357_1360798765095_360811_20350.getValue().setValue(t,meter_value);
 						 }
 							]]>
 						</function>
@@ -1410,24 +1417,25 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
 							<!--simple property (name actual_load)-->
 							<name>actual_load__17_0_2_1_edc0357_1360798765095_91554_20351</name>
-							<type>TimeVaryingMap&lt;Integer&gt;</type>
-							<value>new TimeVaryingMap("actual_load",null,null,Integer.class)</value>
+							<type>TimeVaryingMap&lt;Float&gt;</type>
+							<value>new TimeVaryingMap("actual_load",null,null,Float.class)</value>
 						</parameter>
 					</members>
 					<constructors>
 						<function>
 						<![CDATA[
-						 SignalreceiveLoadReading(Timepoint t,Integer x) {
+						 SignalreceiveLoadReading(Timepoint t, Float actual_load) {
 							super();
 							initSignalreceiveLoadReadingMembers();
 							initSignalreceiveLoadReadingCollections();
 							initSignalreceiveLoadReadingElaborations();
-							actual_load__17_0_2_1_edc0357_1360798765095_91554_20351.getValue().setValue(t,x);
+							actual_load__17_0_2_1_edc0357_1360798765095_91554_20351.getValue().setValue(t,actual_load);
 						 }
 							]]>
 						</function>
@@ -1443,24 +1451,25 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
 							<!--simple property (name actual_power)-->
 							<name>actual_power__17_0_2_1_edc0357_1360798765096_597525_20352</name>
-							<type>TimeVaryingMap&lt;Integer&gt;</type>
-							<value>new TimeVaryingMap("actual_power",null,null,Integer.class)</value>
+							<type>TimeVaryingMap&lt;Float&gt;</type>
+							<value>new TimeVaryingMap("actual_power",null,null,Float.class)</value>
 						</parameter>
 					</members>
 					<constructors>
 						<function>
 						<![CDATA[
-						 SignalreceiveGenReading(Timepoint t,Integer x) {
+						 SignalreceiveGenReading(Timepoint t, Float actual_power) {
 							super();
 							initSignalreceiveGenReadingMembers();
 							initSignalreceiveGenReadingCollections();
 							initSignalreceiveGenReadingElaborations();
-							actual_power__17_0_2_1_edc0357_1360798765096_597525_20352.getValue().setValue(t,x);
+							actual_power__17_0_2_1_edc0357_1360798765096_597525_20352.getValue().setValue(t,actual_power);
 						 }
 							]]>
 						</function>
@@ -1476,6 +1485,7 @@
 					<import>gov.nasa.jpl.ae.event.Timepoint</import>
 					<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 					<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+					<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 					<import>java.lang.Math</import>
 					<members>
 						<parameter>
@@ -1488,7 +1498,7 @@
 					<constructors>
 						<function>
 						<![CDATA[
-						 Signalgeneration_ack(Timepoint t,Boolean x) {
+						 Signalgeneration_ack(Timepoint t, Boolean x) {
 							super();
 							initSignalgeneration_ackMembers();
 							initSignalgeneration_ackCollections();
@@ -1511,6 +1521,7 @@
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
 			<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 			<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+			<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 			<import>java.lang.Math</import>
 			<members>
 				<parameter>
@@ -1529,7 +1540,7 @@
 					<!--simple property (name customer_load_profile)-->
 					<name>customer_load_profile__17_0_2_1_edc0357_1360798765043_677547_20278</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("customer_load_profile",null,null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("customer_load_profile","test_load.csv",null,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name reduction_level)-->
@@ -2487,7 +2498,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766418_709225_22049</name>
 											<type>Boolean</type>
-											<value>this.participation_policy__17_0_2_1_edc0357_1360951506981_801034_20303.getValue(startTime)</value>
+											<value>participation_policy__17_0_2_1_edc0357_1360951506981_801034_20303.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -3330,8 +3341,8 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766430_702718_22075</name>
-											<type>Integer</type>
-											<value>_17_0_2_1_edc0357_1360798766431_574039_22076.rediction_percent__17_0_2_1_edc0357_1360798765096_200759_20353.getValue(startTime)</value>
+											<type>Float</type>
+											<value>_17_0_2_1_edc0357_1360798766431_574039_22076.reduction_percent__17_0_2_1_edc0357_1360798765096_200759_20353.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798765736_372247_20928_exists</name>
@@ -3522,7 +3533,7 @@
 										<dependency>
 											<name>duration</name>
 											<type>Integer</type>
-											<value>32400</value>
+											<value>14400</value>
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
@@ -3712,7 +3723,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360879730964_303007_16002</name>
 											<type>Float</type>
-											<value>this.customer_actual_load__17_0_2_1_edc0357_1360798765039_852829_20272.getValue(startTime)</value>
+											<value>customer_actual_load__17_0_2_1_edc0357_1360798765039_852829_20272.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -4265,7 +4276,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766449_745073_22111</name>
 											<type>Float</type>
-											<value>this.reduction_level__17_0_2_1_edc0357_1360798765043_828353_20277.getValue(startTime)</value>
+											<value>reduction_level__17_0_2_1_edc0357_1360798765043_828353_20277.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798765770_511877_20997_exists</name>
@@ -5228,7 +5239,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766455_191814_22120</name>
 											<type>Float</type>
-											<value>this.customer_load_profile__17_0_2_1_edc0357_1360798765043_677547_20278.getValue(startTime)</value>
+											<value>customer_load_profile__17_0_2_1_edc0357_1360798765043_677547_20278.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -5310,6 +5321,7 @@
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
 			<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 			<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+			<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 			<import>java.lang.Math</import>
 			<members>
 				<parameter>
@@ -5328,7 +5340,7 @@
 					<!--simple property (name genProfile)-->
 					<name>genProfile__17_0_2_1_edc0357_1360798765028_430905_20259</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("genProfile","blech.txt",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("genProfile","test_gen.csv",null,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
@@ -5671,7 +5683,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766254_732299_21881</name>
 											<type>Float</type>
-											<value>this.genProfile__17_0_2_1_edc0357_1360798765028_430905_20259.getValue(startTime)</value>
+											<value>genProfile__17_0_2_1_edc0357_1360798765028_430905_20259.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -5858,7 +5870,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766256_140761_21885</name>
 											<type>Float</type>
-											<value>this.powerAugmentation__17_0_2_1_edc0357_1360798765029_789574_20260.getValue(startTime)</value>
+											<value>powerAugmentation__17_0_2_1_edc0357_1360798765029_789574_20260.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798765444_162511_20578_exists</name>
@@ -7182,7 +7194,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766309_159629_21912</name>
-											<type>Integer</type>
+											<type>Float</type>
 											<value>_17_0_2_1_edc0357_1360798766309_83168_21913.load__17_0_2_1_edc0357_1360798765030_737782_20262.getValue(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -7260,7 +7272,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766310_329451_21914</name>
-											<type>Integer</type>
+											<type>Float</type>
 											<value>_17_0_2_1_edc0357_1360798766311_546066_21915.newGenValue__17_0_2_1_edc0357_1360798765030_16604_20261.getValue(startTime)</value>
 										</dependency>
 										<dependency>
@@ -7343,7 +7355,7 @@
 										<dependency>
 											<name>duration</name>
 											<type>Integer</type>
-											<value>32400</value>
+											<value>14400</value>
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
@@ -7790,7 +7802,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360879079294_5124_15941</name>
 											<type>Float</type>
-											<value>this.load__17_0_2_1_edc0357_1360798765025_607442_20254.getValue(startTime)</value>
+											<value>load__17_0_2_1_edc0357_1360798765025_607442_20254.getValue(startTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -7946,6 +7958,7 @@
 			<import>gov.nasa.jpl.ae.event.Timepoint</import>
 			<import>gov.nasa.jpl.ae.fuml.ObjectFlow</import>
 			<import>gov.nasa.jpl.ae.event.TimeVaryingList</import>
+			<import>gov.nasa.jpl.ae.event.TimeVaryingProjection</import>
 			<import>java.lang.Math</import>
 			<members>
 				<parameter>
@@ -7964,7 +7977,7 @@
 					<!--simple property (name contracted_power)-->
 					<name>contracted_power__17_0_2_1_edc0357_1360868839392_705029_15332</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("contracted_power","blech.txt",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("contracted_power","test_gen.csv",null,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_power_margin)-->
@@ -7988,7 +8001,7 @@
 					<!--simple property (name expected_load)-->
 					<name>expected_load__17_0_2_1_edc0357_1360798765090_793282_20342</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_load",null,0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_load","test_load.csv",0.0,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -8012,7 +8025,7 @@
 					<!--simple property (name max_reserve_power)-->
 					<name>max_reserve_power__17_0_2_1_edc0357_1360798949731_160370_24866</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("max_reserve_power",null,null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("max_reserve_power","test_reserve.csv",null,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--Classifier Behavior for LADWP is LADWP_CB-->
@@ -8078,7 +8091,7 @@
 					<!--simple property (name expected_power)-->
 					<name>expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_power","blech.txt",0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_power","test_gen.csv",0.0,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name dr_reduction_policy)-->
@@ -8090,7 +8103,7 @@
 					<!--simple property (name buyable_power)-->
 					<name>buyable_power__17_0_2_1_edc0357_1360798840328_87479_24862</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("buyable_power",null,null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("buyable_power","test_max_buy.csv",null,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name actual_reserve_margin)-->
@@ -8132,13 +8145,13 @@
 					<!--simple property (name expected_margin)-->
 					<name>expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_margin",null,0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_margin","test_margin_load.csv",0.0,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name contracted_margin)-->
 					<name>contracted_margin__17_0_2_1_edc0357_1360954498520_242954_20503</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("contracted_margin",null,null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("contracted_margin","test_margin_load.csv",null,Float.class, true)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -8150,7 +8163,7 @@
 					<!--simple property (name predicted_load)-->
 					<name>predicted_load__17_0_2_1_edc0357_1360798765091_333592_20344</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("predicted_load",null,null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("predicted_load","test_load.csv",null,Float.class, true)</value>
 				</parameter>
 			</members>
 			<constructors>
@@ -8230,13 +8243,13 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1361909276033_571416_20556</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1361909276033_571416_20556")</value>
 							</parameter>
 							<parameter>
 								<!--object flow for return type activity parameter nodes-->
 								<name>sig_17_0_2_1_edc0357_1360960218312_433562_22284</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360960218312_433562_22284")</value>
 							</parameter>
 							<parameter>
@@ -8302,7 +8315,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1361909280314_794983_20561</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1361909280314_794983_20561")</value>
 							</parameter>
 						</members>
@@ -8396,7 +8409,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766569_557417_22268</name>
 											<type>Float</type>
-											<value>this.reported_generation__17_0_2_1_edc0357_1360798765091_92301_20343.getValue(startTime)</value>
+											<value>reported_generation__17_0_2_1_edc0357_1360798765091_92301_20343.getValue(startTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -8475,7 +8488,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766570_561366_22270</name>
 											<type>Float</type>
-											<value>this.feeder_data__17_0_2_1_edc0357_1360798765088_101330_20339.getValue(startTime)</value>
+											<value>feeder_data__17_0_2_1_edc0357_1360798765088_101330_20339.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -8998,13 +9011,13 @@
 										<parameter>
 											<!--Result Pin: C-->
 											<name>C</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360963970922_622326_23453</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -9041,12 +9054,12 @@
 										</dependency>
 										<dependency>
 											<name>C</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value> A - B</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360963970922_622326_23453</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value>C</value>
 										</dependency>
 										<dependency>
@@ -9119,7 +9132,7 @@
 										<parameter>
 											<!--NEW - INTIALIZE TARGETVAR (if not there already)-->
 											<name>objectToPass</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 									</members>
@@ -9142,7 +9155,7 @@
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value>sig_17_0_2_1_edc0357_1361909280314_794983_20561.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -9165,7 +9178,7 @@
 										<parameter>
 											<!--NEW initialize objectToPass-->
 											<name>objectToPass</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -9189,7 +9202,7 @@
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value>sig_17_0_2_1_edc0357_1361909276033_571416_20556.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -9370,7 +9383,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360956598689_265735_21296</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360956598689_265735_21296")</value>
 							</parameter>
 							<parameter>
@@ -9448,7 +9461,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360798766589_191695_22305</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -9477,7 +9490,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766589_191695_22305</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value>sig_17_0_2_1_edc0357_1360956598689_265735_21296.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -9800,7 +9813,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360956543197_951611_21260</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -9826,7 +9839,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360956543197_951611_21260</name>
 											<type>Float</type>
-											<value>this.expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340.getValue(_17_0_2_1_edc0357_1360956543197_662730_21261)</value>
+											<value>expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340.getValue(_17_0_2_1_edc0357_1360956543197_662730_21261)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -10348,7 +10361,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360956029831_772123_21137</name>
-								<type>ObjectFlow&lt;Float&gt;</type>
+								<type>ObjectFlow&lt;Integer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360956029831_772123_21137")</value>
 							</parameter>
 							<parameter>
@@ -10444,7 +10457,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360884669438_858834_19912</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360884669438_858834_19912")</value>
 							</parameter>
 							<parameter>
@@ -10594,7 +10607,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360956471957_455364_21256</name>
-								<type>ObjectFlow&lt;Float&gt;</type>
+								<type>ObjectFlow&lt;Integer&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360956471957_455364_21256")</value>
 							</parameter>
 							<parameter>
@@ -10606,7 +10619,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360956076143_330114_21161</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360956076143_330114_21161")</value>
 							</parameter>
 							<parameter>
@@ -11059,7 +11072,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766691_57088_22390</name>
-											<type>Integer</type>
+											<type>Float</type>
 											<value>_17_0_2_1_edc0357_1360798766691_240446_22391.meter_value__17_0_2_1_edc0357_1360798765095_360811_20350.getValue(startTime)</value>
 										</dependency>
 										<dependency>
@@ -11201,7 +11214,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766692_359697_22393</name>
-											<type>Integer</type>
+											<type>Float</type>
 											<value>_17_0_2_1_edc0357_1360798766693_980097_22394.actual_load__17_0_2_1_edc0357_1360798765095_91554_20351.getValue(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -11475,7 +11488,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766695_225975_22399</name>
-											<type>Integer</type>
+											<type>Float</type>
 											<value>_17_0_2_1_edc0357_1360798766695_142945_22400.actual_power__17_0_2_1_edc0357_1360798765096_597525_20352.getValue(startTime)</value>
 										</dependency>
 										<dependency>
@@ -11746,7 +11759,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360956442148_904575_21241</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -11792,7 +11805,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360956442148_904575_21241</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value>sig_17_0_2_1_edc0357_1360956471957_455364_21256.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -12332,7 +12345,7 @@
 										<dependency>
 											<name>duration</name>
 											<type>Integer</type>
-											<value>7200</value>
+											<value>1800</value>
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
@@ -12566,7 +12579,7 @@
 										<dependency>
 											<name>duration</name>
 											<type>Integer</type>
-											<value>32400</value>
+											<value>14400</value>
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
@@ -13264,7 +13277,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766703_238556_22420</name>
 											<type>Boolean</type>
-											<value>this.shortage__17_0_2_1_edc0357_1360798765094_572024_20349.getValue(startTime)</value>
+											<value>shortage__17_0_2_1_edc0357_1360798765094_572024_20349.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -13663,6 +13676,7 @@
 								<effects>
 									<effect>sig_17_0_2_1_edc0357_1360798766096_925894_21602.send(objectToPass,endTime)</effect>
 									<effect>x.ss_17_0_2_1_edc0357_1360798765085_887966_20334_dr_request.send(signalObject,endTime)</effect>
+									<effect>signalObject.reduction_percent__17_0_2_1_edc0357_1360798765096_200759_20353.setValue(endTime,_17_0_2_1_edc0357_1360881824623_958035_16246)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
@@ -13692,7 +13706,7 @@
 										<parameter>
 											<!--Result Pin: t-->
 											<name>t</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -13710,7 +13724,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360883350584_578734_19653</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 									</members>
@@ -13718,7 +13732,7 @@
 									<dependencies>
 										<dependency>
 											<name>t</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value> startTime + 3600</value>
 										</dependency>
 										<dependency>
@@ -13738,7 +13752,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360883350584_578734_19653</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value>t</value>
 										</dependency>
 									</dependencies>
@@ -13786,7 +13800,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360884548131_813580_19887</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 									</members>
@@ -13810,7 +13824,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360884548131_813580_19887</name>
 											<type>Float</type>
-											<value>this.expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340.getValue(_17_0_2_1_edc0357_1360884533451_618679_19874)</value>
+											<value>expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340.getValue(_17_0_2_1_edc0357_1360884533451_618679_19874)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -13863,7 +13877,7 @@
 										<parameter>
 											<!--NEW Var for DecisionInputValue-->
 											<name>decisionInput</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 									</members>
@@ -13891,7 +13905,7 @@
 										</dependency>
 										<dependency>
 											<name>decisionInput</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value>sig_17_0_2_1_edc0357_1360884669438_858834_19912.receive(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -14056,7 +14070,7 @@
 										<parameter>
 											<!--NEW Var for DecisionInputValue-->
 											<name>decisionInput</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 									</members>
@@ -14084,7 +14098,7 @@
 										</dependency>
 										<dependency>
 											<name>decisionInput</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value>sig_17_0_2_1_edc0357_1360956076143_330114_21161.receive(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -14236,7 +14250,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360950023065_899492_20220</name>
 											<type>Boolean</type>
-											<value>this.dr_enabled__17_0_2_1_edc0357_1360950087343_678787_20223.getValue(startTime)</value>
+											<value>dr_enabled__17_0_2_1_edc0357_1360950087343_678787_20223.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -14406,7 +14420,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360950974224_405499_20277</name>
 											<type>Float</type>
-											<value>this.dr_reduction_policy__17_0_2_1_edc0357_1360950585309_401699_20262.getValue(startTime)</value>
+											<value>dr_reduction_policy__17_0_2_1_edc0357_1360950585309_401699_20262.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360881824620_190761_16242_exists</name>
@@ -14587,7 +14601,7 @@
 										<parameter>
 											<!--NEW initialize objectToPass-->
 											<name>objectToPass</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -14636,7 +14650,7 @@
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
-											<type>Float</type>
+											<type>Integer</type>
 											<value>sig_17_0_2_1_edc0357_1360956029831_772123_21137.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -14727,7 +14741,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360956048997_293270_21142</name>
-											<type>TimeVaryingMap</type>
+											<type>Float</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -14747,7 +14761,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360956048997_293270_21142</name>
 											<type>Float</type>
-											<value>this.expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340.getValue(_17_0_2_1_edc0357_1360956048998_585279_21143)</value>
+											<value>expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340.getValue(_17_0_2_1_edc0357_1360956048998_585279_21143)</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360885187517_576819_19989_exists</name>
@@ -15405,7 +15419,7 @@
 								<!--Outgoing node's default value-->
 								<name>_17_0_2_1_edc0357_1360798766098_415393_21611_default</name>
 								<type>Float</type>
-								<value>-1</value>
+								<value>-1.0</value>
 							</parameter>
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
@@ -16433,7 +16447,7 @@
 							<parameter>
 								<!--object flow for return type activity parameter nodes-->
 								<name>sig_17_0_2_1_edc0357_1360960218312_433562_22284</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;Float&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360960218312_433562_22284")</value>
 							</parameter>
 							<parameter>
@@ -16565,7 +16579,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766781_294982_22544</name>
 											<type>Float</type>
-											<value>this.feeder_data__17_0_2_1_edc0357_1360798765088_101330_20339.getValue(startTime)</value>
+											<value>feeder_data__17_0_2_1_edc0357_1360798765088_101330_20339.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>myDeciderID_decider_17_0_2_1_edc0357_1360960438128_749192_22378</name>
@@ -16632,7 +16646,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766781_751913_22546</name>
 											<type>Float</type>
-											<value>this.reported_generation__17_0_2_1_edc0357_1360798765091_92301_20343.getValue(startTime)</value>
+											<value>reported_generation__17_0_2_1_edc0357_1360798765091_92301_20343.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -16929,7 +16943,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360960068032_555261_22229</name>
 											<type>Float</type>
-											<value>this.margin_policy__17_0_2_1_edc0357_1360959876415_568912_22198.getValue(startTime)</value>
+											<value>margin_policy__17_0_2_1_edc0357_1360959876415_568912_22198.getValue(startTime)</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -17772,7 +17786,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360798766806_704205_22591</name>
 											<type>Float</type>
-											<value>this.original_reserve_margin__17_0_2_1_edc0357_1360798765093_620866_20347.getValue(startTime)</value>
+											<value>original_reserve_margin__17_0_2_1_edc0357_1360798765093_620866_20347.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -18465,7 +18479,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360955775474_808663_21012</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;TimeVaryingProjection&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360955775474_808663_21012")</value>
 							</parameter>
 							<parameter>
@@ -18489,7 +18503,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360955545364_135598_20874</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;TimeVaryingProjection&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360955545364_135598_20874")</value>
 							</parameter>
 							<parameter>
@@ -18513,7 +18527,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360955733221_321759_20972</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;TimeVaryingProjection&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360955733221_321759_20972")</value>
 							</parameter>
 							<parameter>
@@ -18628,7 +18642,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360954032685_669932_20467</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -18647,8 +18661,8 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360954032685_669932_20467</name>
-											<type>Float</type>
-											<value>this.expected_load__17_0_2_1_edc0357_1360798765090_793282_20342</value>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
+											<value>expected_load__17_0_2_1_edc0357_1360798765090_793282_20342</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -18693,7 +18707,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360955200109_975562_20742</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -18725,8 +18739,8 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955200109_975562_20742</name>
-											<type>Float</type>
-											<value>this.expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</value>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
+											<value>expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -18805,7 +18819,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360955503441_991581_20847</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -18846,7 +18860,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955503441_991581_20847</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value>sig_17_0_2_1_edc0357_1360955545364_135598_20874.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -19015,7 +19029,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360955715375_133513_20955</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -19049,8 +19063,8 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955715375_133513_20955</name>
-											<type>Float</type>
-											<value>this.expected_power_margin__17_0_2_1_edc0357_1360799121208_716050_24883</value>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
+											<value>expected_power_margin__17_0_2_1_edc0357_1360799121208_716050_24883</value>
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955742808_335366_20981_exists</name>
@@ -19150,7 +19164,7 @@
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value>sig_17_0_2_1_edc0357_1360955733221_321759_20972.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -19244,7 +19258,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360955742818_919651_20991</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -19290,7 +19304,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955742818_919651_20991</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value>sig_17_0_2_1_edc0357_1360955775474_808663_21012.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -19723,13 +19737,13 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360958237737_85291_21571</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;TimeVaryingProjection&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360958237737_85291_21571")</value>
 							</parameter>
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360958237736_315226_21568</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;TimeVaryingProjection&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360958237736_315226_21568")</value>
 							</parameter>
 							<parameter>
@@ -19759,7 +19773,7 @@
 							<parameter>
 								<!--NEWWWWW member for object flow signal-->
 								<name>sig_17_0_2_1_edc0357_1360958237737_985067_21573</name>
-								<type>ObjectFlow&lt;TimeVaryingMap&gt;</type>
+								<type>ObjectFlow&lt;TimeVaryingProjection&gt;</type>
 								<value>new ObjectFlow("sig_17_0_2_1_edc0357_1360958237737_985067_21573")</value>
 							</parameter>
 							<parameter>
@@ -19934,7 +19948,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360958237748_604581_21583</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -19953,8 +19967,8 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237748_604581_21583</name>
-											<type>Float</type>
-											<value>this.expected_load__17_0_2_1_edc0357_1360798765090_793282_20342</value>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
+											<value>expected_load__17_0_2_1_edc0357_1360798765090_793282_20342</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -20023,7 +20037,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360958237749_135197_21585</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 									</members>
@@ -20056,8 +20070,8 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237749_135197_21585</name>
-											<type>Float</type>
-											<value>this.expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</value>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
+											<value>expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</value>
 										</dependency>
 									</dependencies>
 								</class>
@@ -20129,7 +20143,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360958237750_312225_21588</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value/>
 										</parameter>
 									</members>
@@ -20172,7 +20186,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237750_312225_21588</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value>sig_17_0_2_1_edc0357_1360958237736_315226_21568.receive(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -20321,7 +20335,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360958237752_54158_21592</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -20355,8 +20369,8 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237752_54158_21592</name>
-											<type>Float</type>
-											<value>this.expected_power_margin__17_0_2_1_edc0357_1360799121208_716050_24883</value>
+											<type>TimeVaryingProjection&lt;Float&gt;</type>
+											<value>expected_power_margin__17_0_2_1_edc0357_1360799121208_716050_24883</value>
 										</dependency>
 										<dependency>
 											<name>addToDecider__17_0_2_1_edc0357_1360958237735_14835_21563</name>
@@ -20471,7 +20485,7 @@
 										</dependency>
 										<dependency>
 											<name>objectToPass</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value>sig_17_0_2_1_edc0357_1360958237737_85291_21571.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -20568,7 +20582,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360958237754_562642_21595</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value/>
 										</parameter>
 									</members>
@@ -20611,7 +20625,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237754_562642_21595</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingProjection</type>
 											<value>sig_17_0_2_1_edc0357_1360958237737_985067_21573.receive(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -21784,7 +21798,7 @@
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360962564338_706347_22913</name>
 											<type>Float</type>
-											<value>this.margin_policy__17_0_2_1_edc0357_1360959876415_568912_22198.getValue(startTime)</value>
+											<value>margin_policy__17_0_2_1_edc0357_1360959876415_568912_22198.getValue(startTime)</value>
 										</dependency>
 										<dependency>
 											<name>duration</name>
@@ -21830,7 +21844,7 @@
 										<parameter>
 											<!--NEW initialize output pin members-->
 											<name>_17_0_2_1_edc0357_1360962628937_193377_22938</name>
-											<type>TimeVaryingMap</type>
+											<type>TimeVaryingMap&lt;Float&gt;</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -21868,8 +21882,8 @@
 									<dependencies>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360962628937_193377_22938</name>
-											<type>Float</type>
-											<value>this.expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</value>
+											<type>TimeVaryingMap&lt;Float&gt;</type>
+											<value>expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</value>
 										</dependency>
 										<dependency>
 											<name>myDeciderID_decider_17_0_2_1_edc0357_1360962640464_809989_22955</name>
