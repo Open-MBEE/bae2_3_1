@@ -20,17 +20,19 @@ workspacePath = home + os.sep + 'workspace'
 #mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
 mdPath = 'C:\\Program Files\\MagicDraw\\OpsRevMD1702-20120912'
 
+if home == '/Users/mjackson': 
+    workspacePath = '/Users/mjackson/Documents/workspace-Helios/'
+    mdpath = '/Applications/SSCAE-MD17.0.2-PackageH-build164-20121121/'
+    aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
+             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'magicdrawPlugin'
+
 projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
 aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
              'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'LADWP'
 
-if home == '/Users/mjackson': 
-    workspacePath = '/Users/mjackson/Documents/workspace-Helios/'
-    mdpath = '/Applications/OpsRevMD1702-20120818/'
-    aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
-             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'magicdrawPlugin'
+
 import sys
 def addToPath(s):
     if not(s in sys.path):
@@ -120,9 +122,6 @@ class DiagramConfigurator(DiagramContextAMConfigurator):
             if active:
                 category=MDActionsCategory("LADWP","LADWP")
                 category.setNested(True)
-                #category.addAction(ExampleAction("SpacePorts",selected))
-                #category.addAction(ExampleAction("Align",selected))
-                #category.addAction(ExampleAction("MakeTreeNonNavigable",selected))
                 category.addAction(ExampleAction("whatsMyId",None))
                 manager.addCategory(category)
                 #gl.log(str(diagram) + " " + str(selected) + " " + str(requestor))
@@ -160,15 +159,10 @@ class BrowserContextAMConfigurator(BrowserContextAMConfigurator):
         try:
             category=MDActionsCategory("LADWP","LADWP")
             category.setNested(True)
-            #category.addAction(ExampleAction("MassRefactor",None))
             category.addAction(ExampleAction("ExportForAE",None))
             category.addAction(ExampleAction("ExportForAnalysisEngine_v2",None))
             category.addAction(ExampleAction("AE",None))
             category.addAction(ExampleAction("whatsMyId",None))
-            #category.addAction(ExampleAction("RegisterAcronyms",None))
-            #category.addAction(ExampleAction("UpdateDocumentNumbering"))
-            #category.addAction(ExampleAction("DocumentViewer"))
-            #category.addAction(ExampleAction("CreateDefaultDocument"))
             manager.addCategory(category)
         except:
             exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
