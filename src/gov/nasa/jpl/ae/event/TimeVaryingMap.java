@@ -1303,6 +1303,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public TimeVaryingMap< V > add( Number n, Parameter< Integer > fromKey,
                                    Parameter< Integer > toKey ) {
+    
+    if ( n == null) return this; //REVIEW
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
     if ( same ) {
