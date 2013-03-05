@@ -4504,6 +4504,7 @@ src/gov/nasa/jpl/ae/magicdrawPlugin/whatsMyId.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/AbstractRangeDomain.java -text
 src/gov/nasa/jpl/ae/solver/BooleanDomain.java -text
+src/gov/nasa/jpl/ae/solver/CollectionTree.java -text
 src/gov/nasa/jpl/ae/solver/Constraint.java -text
 src/gov/nasa/jpl/ae/solver/ConstraintLoopSolver.java -text
 src/gov/nasa/jpl/ae/solver/Domain.java -text
@@ -4521,6 +4522,7 @@ src/gov/nasa/jpl/ae/solver/Solver.java -text
 src/gov/nasa/jpl/ae/solver/StringDomain.java -text
 src/gov/nasa/jpl/ae/solver/TimeDependentConstraint.java -text
 src/gov/nasa/jpl/ae/solver/TimeVariable.java -text
+src/gov/nasa/jpl/ae/solver/Uncollection.java -text
 src/gov/nasa/jpl/ae/solver/Variable.java -text
 src/gov/nasa/jpl/ae/tests/Adder.java -text
 src/gov/nasa/jpl/ae/tests/GenerateInputsFromMeterData.java -text

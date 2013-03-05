@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import junit.framework.Assert;
 
 import gov.nasa.jpl.ae.event.Functions.Equals;
+import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
@@ -575,9 +576,6 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set< HasConstraints > seen ) {
-    if ( parameter.owner == null ) {
-      Debug.out( "" );
-    }
     Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -593,6 +591,23 @@ public class Dependency< T > extends HasIdImpl
     return set;
   }
 
+  @Override
+  public long getNumberOfResolvedConstraints( boolean deep,
+                                              Set< HasConstraints > seen ) {
+    return isSatisfied( false, null ) ? 1 : 0;
+  }
+
+  @Override
+  public long getNumberOfUnresolvedConstraints( boolean deep,
+                                                Set< HasConstraints > seen ) {
+    return isSatisfied( false, null ) ? 0 : 1;
+  }
+
+  @Override
+  public long getNumberOfConstraints( boolean deep, Set< HasConstraints > seen ) {
+    return 1;
+  }
+      
   @Override
   public Set< TimeVarying< ? > >
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
@@ -617,6 +632,12 @@ public class Dependency< T > extends HasIdImpl
    */
   public Expression< T > getExpression() {
     return expression;
+  }
+
+  @Override
+  public CollectionTree getConstraintCollection() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

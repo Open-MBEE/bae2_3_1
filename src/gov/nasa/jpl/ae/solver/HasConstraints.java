@@ -7,11 +7,19 @@ import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.Vector;
+
+import org.python.antlr.PythonParser.return_stmt_return;
+
+import sferyx.administration.editors.HTMLEditor.newParagraphAction;
 
 /**
  * 
@@ -19,6 +27,11 @@ import java.util.TreeSet;
 public interface HasConstraints extends HasId {
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set< HasConstraints > seen );
+  public long getNumberOfResolvedConstraints(boolean deep, Set< HasConstraints > seen);
+  public long getNumberOfUnresolvedConstraints(boolean deep, Set< HasConstraints > seen);
+  public long getNumberOfConstraints(boolean deep, Set< HasConstraints > seen);
+  //public Iterator<Constraint> iterator();
+  public CollectionTree getConstraintCollection();
 
   /**
    * This helper class provides static methods for making calls on Objects and
@@ -102,6 +115,191 @@ public interface HasConstraints extends HasId {
       return set;
     }
     
+    // getNumberOfResolvedConstraints
+    
+    public static long getNumberOfResolvedConstraints( Object o, 
+                                   boolean deep,
+                                   Set< HasConstraints > seen) {
+      if ( o == null ) return 0;
+      if ( o instanceof HasConstraints ) {
+        return ( (HasConstraints)o ).getNumberOfResolvedConstraints( deep, seen );
+      } else if ( o instanceof Object[] ) {
+        return getNumberOfResolvedConstraints( (Object[])o, deep, seen );
+      } else if ( o instanceof Map ) {
+        return getNumberOfResolvedConstraints( (Map< ?, ? >)o, deep, seen );
+      } else if ( o instanceof Collection ) {
+        return getNumberOfResolvedConstraints( (Collection< ? >)o, deep, seen );
+      } else if ( o instanceof Pair ) {
+        return getNumberOfResolvedConstraints( (Pair< ?, ? >)o, deep, seen );
+      }
+      return 0;
+    }
+    
+    public static < K, V > long getNumberOfResolvedConstraints( Map< K, V > map,
+                                            boolean deep,
+                                            Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( Map.Entry< K, V > me : map.entrySet() ) {
+        num += getNumberOfResolvedConstraints( me.getKey(), deep, seen );
+        num += getNumberOfResolvedConstraints( me.getValue(), deep, seen );
+      }
+      return num;
+    }
+    
+    public static < T > long getNumberOfResolvedConstraints( Collection< T > c,
+                                         boolean deep,
+                                         Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( T t : c ) {
+        num += getNumberOfResolvedConstraints( t, deep, seen );
+      }
+      return num;
+    }
+    
+    public static long getNumberOfResolvedConstraints( Object[] c,
+                                   boolean deep,
+                                   Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( Object t : c ) {
+        num += getNumberOfResolvedConstraints( t, deep, seen );
+      }
+      return num;
+    }
+  
+    // static implementations on Pair
+    
+    public static < T1, T2 > long getNumberOfResolvedConstraints( Pair< T1, T2 > p,
+                                              boolean deep,
+                                              Set< HasConstraints > seen ) {
+      long num = 0;
+      num += getNumberOfResolvedConstraints( p.first, deep, seen );
+      num += getNumberOfResolvedConstraints( p.second, deep, seen );
+      return num;
+    }    
+
+    // getNumberOfUnresolvedConstraints
+    
+    public static long getNumberOfUnresolvedConstraints( Object o, 
+                                   boolean deep,
+                                   Set< HasConstraints > seen) {
+      if ( o == null ) return 0;
+      if ( o instanceof HasConstraints ) {
+        return ( (HasConstraints)o ).getNumberOfUnresolvedConstraints( deep, seen );
+      } else if ( o instanceof Object[] ) {
+        return getNumberOfUnresolvedConstraints( (Object[])o, deep, seen );
+      } else if ( o instanceof Map ) {
+        return getNumberOfUnresolvedConstraints( (Map< ?, ? >)o, deep, seen );
+      } else if ( o instanceof Collection ) {
+        return getNumberOfUnresolvedConstraints( (Collection< ? >)o, deep, seen );
+      } else if ( o instanceof Pair ) {
+        return getNumberOfUnresolvedConstraints( (Pair< ?, ? >)o, deep, seen );
+      }
+      return 0;
+    }
+    
+    public static < K, V > long getNumberOfUnresolvedConstraints( Map< K, V > map,
+                                            boolean deep,
+                                            Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( Map.Entry< K, V > me : map.entrySet() ) {
+        num += getNumberOfUnresolvedConstraints( me.getKey(), deep, seen );
+        num += getNumberOfUnresolvedConstraints( me.getValue(), deep, seen );
+      }
+      return num;
+    }
+    
+    public static < T > long getNumberOfUnresolvedConstraints( Collection< T > c,
+                                         boolean deep,
+                                         Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( T t : c ) {
+        num += getNumberOfUnresolvedConstraints( t, deep, seen );
+      }
+      return num;
+    }
+    
+    public static long getNumberOfUnresolvedConstraints( Object[] c,
+                                   boolean deep,
+                                   Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( Object t : c ) {
+        num += getNumberOfUnresolvedConstraints( t, deep, seen );
+      }
+      return num;
+    }
+  
+    // static implementations on Pair
+    
+    public static < T1, T2 > long getNumberOfUnresolvedConstraints( Pair< T1, T2 > p,
+                                              boolean deep,
+                                              Set< HasConstraints > seen ) {
+      long num = 0;
+      num += getNumberOfUnresolvedConstraints( p.first, deep, seen );
+      num += getNumberOfUnresolvedConstraints( p.second, deep, seen );
+      return num;
+    }    
+
+    // getNumberOfConstraints
+    
+    public static long getNumberOfConstraints( Object o, 
+                                   boolean deep,
+                                   Set< HasConstraints > seen) {
+      if ( o == null ) return 0;
+      if ( o instanceof HasConstraints ) {
+        return ( (HasConstraints)o ).getNumberOfConstraints( deep, seen );
+      } else if ( o instanceof Object[] ) {
+        return getNumberOfConstraints( (Object[])o, deep, seen );
+      } else if ( o instanceof Map ) {
+        return getNumberOfConstraints( (Map< ?, ? >)o, deep, seen );
+      } else if ( o instanceof Collection ) {
+        return getNumberOfConstraints( (Collection< ? >)o, deep, seen );
+      } else if ( o instanceof Pair ) {
+        return getNumberOfConstraints( (Pair< ?, ? >)o, deep, seen );
+      }
+      return 0;
+    }
+    
+    public static < K, V > long getNumberOfConstraints( Map< K, V > map,
+                                            boolean deep,
+                                            Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( Map.Entry< K, V > me : map.entrySet() ) {
+        num += getNumberOfConstraints( me.getKey(), deep, seen );
+        num += getNumberOfConstraints( me.getValue(), deep, seen );
+      }
+      return num;
+    }
+    
+    public static < T > long getNumberOfConstraints( Collection< T > c,
+                                         boolean deep,
+                                         Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( T t : c ) {
+        num += getNumberOfConstraints( t, deep, seen );
+      }
+      return num;
+    }
+    
+    public static long getNumberOfConstraints( Object[] c,
+                                   boolean deep,
+                                   Set< HasConstraints > seen ) {
+      long num = 0;
+      for ( Object t : c ) {
+        num += getNumberOfConstraints( t, deep, seen );
+      }
+      return num;
+    }
+  
+    // static implementations on Pair
+    
+    public static < T1, T2 > long getNumberOfConstraints( Pair< T1, T2 > p,
+                                              boolean deep,
+                                              Set< HasConstraints > seen ) {
+      long num = 0;
+      num += getNumberOfConstraints( p.first, deep, seen );
+      num += getNumberOfConstraints( p.second, deep, seen );
+      return num;
+    }    
 
   }
 

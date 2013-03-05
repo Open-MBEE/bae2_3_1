@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
@@ -79,7 +80,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   protected Dependency durationDependency = null;
   
   // TODO -- consider breaking elaborations up into separate constraints
-  protected Constraint elaborationsConstraint = 
+  protected AbstractParameterConstraint elaborationsConstraint = 
       new AbstractParameterConstraint() {
 
     protected final int id = HasIdImpl.getNext();
@@ -198,11 +199,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     public void deconstruct() {
       // nothing to deconstruct
     }
+
+    @Override
+    public CollectionTree getConstraintCollection() {
+      // TODO Auto-generated method stub
+      return null;
+    }
     
   };  // end of elaborationsConstraint
   
   // TODO -- consider breaking effects into separate constraints
-  protected Constraint effectsConstraint = new AbstractParameterConstraint() {
+  protected AbstractParameterConstraint effectsConstraint =
+      new AbstractParameterConstraint() {
 
     protected final int id = HasIdImpl.getNext();
 
@@ -349,7 +357,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     public void deconstruct() {
       // nothing to deconstruct
     }
-    
+
+    @Override
+    public CollectionTree getConstraintCollection() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
   };  // end of effectsConstraint
 
 
@@ -1046,16 +1060,116 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return set;
   }
 
+  public static boolean newMode = false;
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#tryToSatisfy(boolean, java.util.Set)
+   */
   @Override
   protected boolean tryToSatisfy( boolean deep, Set< Satisfiable > seen ) {
-    boolean satisfied = super.tryToSatisfy( deep, seen );
-    // REVIEW -- Is it necessary to call satisfyElaborations given the
-    // elaborationsConstraint?
-    if ( satisfied ) {
-      satisfied = satisfyElaborations();
-      if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called satisfyElaborations() " );
+//    if ( //amTopEventToSimulate && 
+//          mode % 2 == 1 ) {
+//      return tryToSatisfy( deep, seen, false );
+//    }
+    return tryToSatisfy( deep, seen, newMode );
+  }
+  protected boolean tryToSatisfy( boolean deep, Set< Satisfiable > seen,
+                                  boolean newTrySat ) {
+    boolean satisfied = true;
+    if ( newTrySat ) {
+      satisfied = super.tryToSatisfy2( deep, seen );
+    } else {
+      satisfied = super.tryToSatisfy( deep, seen );
     }
+    if ( satisfied ) {
+      // already handled through getConstraints()
+//      if ( !effectsConstraint.satisfy( deep, seen ) ) {
+//        satisfied = false;
+//      }
+      if ( !Satisfiable.Helper.satisfy( effects, deep, seen ) ) {
+        satisfied = false;
+      }
+      // already handled through getConstraints()
+  //    if ( !elaborationsConstraint.satisfy( false, seen ) ) {
+  //      satisfied = false;
+  //    }
+      // REVIEW -- Is this necessary if elaborationsConstraint is called? Well,
+      // they are different in that satisfyElaborations tries to satisfy the
+      // events after they are elaborated. Maybe the constraint should do this
+      // so that we can get rid of satisfyElaborations(), or maybe
+      // elaborationsConstraint.satisfy() should simply call
+      // satisfyElaborations.
+      if ( !satisfyElaborations( deep, seen ) ) {
+        satisfied = false;
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( this.getClass().getName()
+                                     + " satisfy loop called satisfyElaborations() " );
     return satisfied;
+  }
+  
+  @Override
+  public long getNumberOfResolvedConstraints( boolean deep,
+                                              Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) {
+      return 0;
+    }
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+    long num = 0;
+    num += super.getNumberOfResolvedConstraints( deep, seen );
+    num += elaborationsConstraint.getNumberOfResolvedConstraints( false, seen );
+    num += effectsConstraint.getNumberOfResolvedConstraints( deep, seen );
+    if ( deep ) {
+      num += HasConstraints.Helper.getNumberOfResolvedConstraints( elaborations.keySet(), deep, seen );
+      num += HasConstraints.Helper.getNumberOfResolvedConstraints( effects, deep, seen );
+      Set< Event > events = getEvents( false, null );
+      num += HasConstraints.Helper.getNumberOfResolvedConstraints( events, deep, seen );
+    }
+    return num;
+  }
+
+  @Override
+  public long getNumberOfUnresolvedConstraints( boolean deep,
+                                                Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) {
+      return 0;
+    }
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+    long num = 0;
+    num += super.getNumberOfUnresolvedConstraints( deep, seen );
+    num += elaborationsConstraint.getNumberOfUnresolvedConstraints( false, seen );
+    num += effectsConstraint.getNumberOfUnresolvedConstraints( deep, seen );
+    if ( deep ) {
+      num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( elaborations.keySet(), deep, seen );
+      num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( effects, deep, seen );
+      Set< Event > events = getEvents( false, null );
+      num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( events, deep, seen );
+    }
+    return num;
+  }
+
+  @Override
+  public long getNumberOfConstraints( boolean deep, Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) {
+      return 0;
+    }
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+    long num = 0;
+    num += super.getNumberOfConstraints( deep, seen );
+    num += elaborationsConstraint.getNumberOfConstraints( false, seen );
+    num += effectsConstraint.getNumberOfConstraints( deep, seen );
+    if ( deep ) {
+      num += HasConstraints.Helper.getNumberOfConstraints( elaborations.keySet(), deep, seen );
+      num += HasConstraints.Helper.getNumberOfConstraints( effects, deep, seen );
+      Set< Event > events = getEvents( false, null );
+      num += HasConstraints.Helper.getNumberOfConstraints( events, deep, seen );
+    }
+    return num;
   }
   
   public Collection< Constraint > getConstraints( boolean deep,
@@ -1078,11 +1192,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     set.add( elaborationsConstraint );
     set.add( effectsConstraint );
     if ( deep ) {
-      set = Utils.addAll( set, HasConstraints.Helper.getConstraints( elaborationsConstraint, deep, seen ) );
+      set = Utils.addAll( set, HasConstraints.Helper.getConstraints( elaborationsConstraint, false, seen ) );
       set = Utils.addAll( set, HasConstraints.Helper.getConstraints( effectsConstraint, deep, seen ) );
-      set = Utils.addAll( set, HasConstraints.Helper.getConstraints( elaborations, deep, seen ) );
+      set = Utils.addAll( set, HasConstraints.Helper.getConstraints( elaborations.keySet(), false, seen ) );
       set = Utils.addAll( set, HasConstraints.Helper.getConstraints( effects, deep, seen ) );
-      Set< Event > events = getEvents( deep, null );
+      Set< Event > events = getEvents( false, null );
       set = Utils.addAll( set, HasConstraints.Helper.getConstraints( events, deep, seen ) );
     }
     Parameter.mayPropagate = mayHaveBeenPropagating;
@@ -1611,34 +1725,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         ((ParameterListener)e).handleValueChangeEvent( parameter );
       }
     }
-    
-//    // Update elaborations.
-//    for ( Entry< ElaborationRule, Vector< Event > > entry : 
-//          getElaborations().entrySet() ) {
-//      //entry.getKey().handleValueChangeEvent( parameter );
-//
-//      // Initialize some local variables.
-//      Vector< Event > elaboratedEvents = entry.getValue();  
-//      ElaborationRule elaborationRule = entry.getKey();
-//      
-//      boolean elaborated = 
-//          elaborationRule.attemptElaboration( elaboratedEvents, false );
-//      
-//      // Make sure that elaborated events have handled parameter change.
-//      if ( elaborated ) { // conditionSatisfied == true here
-//        assert( elaborationRule.getEventInvocations().size() ==
-//                elaboratedEvents.size() );
-//        for ( int i=0; i < elaboratedEvents.size(); ++i ) {
-//          EventInvocation inv = elaborationRule.getEventInvocations().get( i );
-//          if ( inv.getParameters( true, null ).contains( parameter ) ) {
-//            Event event = elaboratedEvents.get( i );
-//            if ( event instanceof ParameterListener ) {
-//              ((ParameterListener)event).handleValueChangeEvent( parameter );
-//            }
-//          }
-//        }
-//      }
-//    }
   }
 
   /**
@@ -1646,12 +1732,29 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    *         satisfied.
    */
   public boolean satisfyElaborations() {
+    boolean deep = true;
+    return satisfyElaborations( deep, null );
+  }
+  
+  /**
+   * @param deep
+   * @param seenSatisfiable
+   * @return whether or not the constraints of the elaborations have been
+   *         satisfied.
+   */
+  public boolean satisfyElaborations( boolean deep,
+                                      Set<Satisfiable> seenSatisfiable ) {
+    if ( elaborations == null ) return false;
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep,
+                                                           seenSatisfiable );
+    if ( pair.first ) return true;
+    seenSatisfiable = pair.second;
+
     // REVIEW -- code below is replicated in elaborate() and
     // elaborationsConstraint.
     // Don't elaborate outside the horizon.  Need startTime grounded to know.
-    boolean deep = true;
     Set< Groundable > seenGroundable = null;
-    Set< Satisfiable > seenSatisfiable = null;
+//    Set< Satisfiable > seenSatisfiable = null;
     if ( !startTime.isGrounded(deep, seenGroundable) ) startTime.ground(deep, seenGroundable);
     if ( !startTime.isGrounded(deep, seenGroundable) ) return false;
     if ( startTime.getValue(true) >= Timepoint.getHorizonDuration() ) {
@@ -1672,7 +1775,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( Vector< Event > v : elaboratedEvents ) {
       for ( Event e : v ) {
         if ( e instanceof Satisfiable ) {
-          if ( !( (Satisfiable)e ).isSatisfied(deep, seenSatisfiable) ) {
+          if ( !( (Satisfiable)e ).isSatisfied(deep, null) ) {
+            if ( e instanceof ParameterListenerImpl ) {
+              ParameterListenerImpl pl = (ParameterListenerImpl)e;
+              pl.amTopEventToSimulate = false;
+              pl.maxLoopsWithNoProgress = 2;
+              pl.maxPassesAtConstraints = 1;
+              pl.timeoutSeconds = Math.max(0.5,timeoutSeconds / 2.0);
+              pl.usingLoopLimit = true;
+              pl.usingTimeLimit = true;
+            }
             if ( !( (Satisfiable)e ).satisfy(deep, seenSatisfiable) ) {
               satisfied = false;
             }
