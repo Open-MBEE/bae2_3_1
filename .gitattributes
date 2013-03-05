@@ -4370,6 +4370,12 @@ data/meterData/meterdata_000091375097_20121111.csv -text
 data/meterData/meterdata_000091375097_20121112.csv -text
 data/meterData/meterdata_000091375097_20121113.csv -text
 /projFormatterOptions.xml -text
+src/Demo_Scenario/BobCreator.java -text svneol=unset#text/plain
+src/Demo_Scenario/Customer.java -text svneol=unset#text/plain
+src/Demo_Scenario/LADWP.java -text svneol=unset#text/plain
+src/Demo_Scenario/Main.java -text svneol=unset#text/plain
+src/Demo_Scenario/Power.java -text svneol=unset#text/plain
+src/Demo_Scenario/Power_System.java -text svneol=unset#text/plain
 src/PowerSystem2/BobCreator.java -text
 src/PowerSystem2/Customer.java -text
 src/PowerSystem2/LADWP.java -text
