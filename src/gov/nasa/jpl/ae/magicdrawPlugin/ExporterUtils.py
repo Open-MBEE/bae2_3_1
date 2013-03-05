@@ -67,6 +67,9 @@ def getPrev(flow):
 def getPrettyIdent(node):
 	return node.name + " (" + str(node.getClassType()).split(".")[-1].strip("'>") + ")"	
 
+def getStypePropValue(element,stereotype,propname):
+	return StereotypesHelper.getStereotypePropertyValue(element,stereotype,propname)
+
 #walks along flows until it finds a pin or an activity parameter node
 #preconditions:
 #	-you already know that edge.target is not a pin or parameter node

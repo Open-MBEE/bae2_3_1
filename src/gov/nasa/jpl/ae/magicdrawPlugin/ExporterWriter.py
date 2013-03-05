@@ -220,7 +220,7 @@ def writeDependencies(dependencyOwner,l):
 		for parameter, (type,expression) in dependencyOwner.dependencies.items():
 			logAndExport(l+1,None,"<dependency>")
 			logAndExport(l+2,"name",parameter)
-			logAndExport(l+2,"type",type)
+			#logAndExport(l+2,"type",type)
 			logAndExport(l+2,"value",expression)
 			logAndExport(l+1,None,"</dependency>")
 		logAndExport(l,None,"</dependencies>")
