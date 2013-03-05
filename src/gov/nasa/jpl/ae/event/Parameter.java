@@ -11,6 +11,7 @@ import java.util.TreeSet;
 
 import gov.nasa.jpl.ae.event.Functions.NotEquals;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
+import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
@@ -756,4 +757,34 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return constraintList;
   }
 
+  @Override
+  public long getNumberOfResolvedConstraints( boolean deep,
+                                              Set< HasConstraints > seen ) {
+    long num = 0;
+    for ( Constraint c : getConstraints(deep, seen) ) {
+      if ( c.isSatisfied( false, null ) ) {
+        ++num;
+      }
+    }
+    return num;
+  }
+
+  @Override
+  public long getNumberOfUnresolvedConstraints( boolean deep,
+                                                Set< HasConstraints > seen ) {
+    return getNumberOfConstraints( deep, seen )
+           - getNumberOfResolvedConstraints( deep, seen );
+  }
+
+  @Override
+  public long getNumberOfConstraints( boolean deep, Set< HasConstraints > seen ) {
+    return getConstraints(deep, seen).size();
+  }
+
+  @Override
+  public CollectionTree getConstraintCollection() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+      
 }

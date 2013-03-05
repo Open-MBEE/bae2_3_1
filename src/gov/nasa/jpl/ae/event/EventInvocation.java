@@ -21,11 +21,6 @@ import java.util.TreeSet;
 import junit.framework.Assert;
 
 /**
- * @author bclement
- * 
- *         TODO -- This class is not done and may need to be scrapped in favor
- *         of expressions with references (pointers to members of objects that
- *         may not yet be instantiated).
  * 
  *         REVIEW -- Consider using ConstructorCall as a replacement for
  *         EventInvocation.

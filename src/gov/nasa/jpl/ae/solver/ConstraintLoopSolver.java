@@ -160,5 +160,10 @@ public class ConstraintLoopSolver implements Solver {
   public Collection< Constraint > getConstraints() {
     return constraints;
   }
+
+  @Override
+  public int getNumberOfResolvedConstraints() {
+    return getConstraints().size() - getUnsatisfiedConstraints().size();
+  }
   
 }

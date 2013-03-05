@@ -17,6 +17,7 @@ import java.util.TreeSet;
 
 import junit.framework.Assert;
 
+import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
@@ -450,6 +451,9 @@ public class ParameterListenerImpl extends HasIdImpl
     return true;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy(boolean, java.util.Set)
+   */
   @Override
   public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
@@ -459,7 +463,85 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( isSatisfied(deep, null) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
-    int mostResolvedConstraints = 0;
+    long mostResolvedConstraints = 0;
+    int numLoopsWithNoProgress = 0;
+    
+    boolean satisfied = false;
+    long millisPassed = (long)( System.currentTimeMillis() - clockStart );
+    double curTimeLeft =
+        ( timeoutSeconds * 1000.0 - ( millisPassed ) );
+    
+    while ( !satisfied
+            && numLoopsWithNoProgress < maxLoopsWithNoProgress
+            && ( !usingTimeLimit || curTimeLeft > 0.0 )
+            && ( !usingLoopLimit || numLoops < maxPassesAtConstraints ) ) {
+      if ( Debug.isOn() || this.amTopEventToSimulate ) {
+        if ( usingTimeLimit ) {
+          System.out.println( this.getClass().getName() + " satisfy loop with "
+                              + Duration.toFormattedString( (long)curTimeLeft )
+                              + " time left" );
+        } else {
+          System.out.println( this.getClass().getName()
+                              + " satisfy loop after "
+                              + Duration.toShortFormattedStringForIdentifier( millisPassed ) );
+        }
+        if ( Debug.isOn() || this.amTopEventToSimulate ) {
+          System.out.println( this.getClass().getName()
+                              + " satisfy loop round " + ( numLoops + 1 )
+                              + " out of " + maxPassesAtConstraints );
+        } else {
+          System.out.println( this.getClass().getName()
+                              + " satisfy loop round " + ( numLoops + 1 ) );
+        }
+        Debug.out( "" );
+      }
+      if ( amTopEventToSimulate ) {
+        DurativeEvent.newMode = false; //numLoops % 2 == 0;
+      }
+      satisfied = tryToSatisfy(deep, null);
+
+      long numResolvedConstraints = this.getNumberOfResolvedConstraints( true, null );//solver.getNumberOfResolvedConstraints();
+      
+      boolean improved = numResolvedConstraints > mostResolvedConstraints; 
+      // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
+      // move it out of this class and into DurativeEvent since Events simulate.
+      if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate
+           && ( numLoops % loopsPerSnapshot == 0 ) ) {
+        doSnapshotSimulation( improved );
+      }
+      
+      if ( !satisfied && !improved ) {
+        ++numLoopsWithNoProgress;
+        if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
+             && ( Debug.isOn() || amTopEventToSimulate ) ) {
+          System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
+          System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+        }
+      } else {
+        mostResolvedConstraints = numResolvedConstraints;
+        numLoopsWithNoProgress = 0;
+      }
+      
+      millisPassed = (long)( System.currentTimeMillis() - clockStart );
+      curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
+      ++numLoops;
+    }
+    return satisfied;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy(boolean, java.util.Set)
+   */
+  //@Override
+  public boolean satisfy2(boolean deep, Set< Satisfiable > seen) {
+    Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return true;
+    seen = pair.second;
+    
+    if ( isSatisfied(deep, null) ) return true;
+    double clockStart = System.currentTimeMillis();
+    long numLoops = 0;
+    long mostResolvedConstraints = 0;
     int numLoopsWithNoProgress = 0;
     
     boolean satisfied = false;
@@ -490,10 +572,10 @@ public class ParameterListenerImpl extends HasIdImpl
                               + " satisfy loop round " + ( numLoops + 1 ) );
         }
       }
-      satisfied = tryToSatisfy(deep, null);
+      satisfied = tryToSatisfy(deep, seen);
 
-      int numResolvedConstraints = solver.getConstraints().size() -
-                                   solver.getUnsatisfiedConstraints().size();
+      long numResolvedConstraints = getNumberOfResolvedConstraints();
+      
       boolean improved = numResolvedConstraints > mostResolvedConstraints; 
       // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
       // move it out of this class and into DurativeEvent since Events simulate.
@@ -521,6 +603,10 @@ public class ParameterListenerImpl extends HasIdImpl
     return satisfied;
   }
 
+  public long getNumberOfResolvedConstraints() {
+    
+    return 0;
+  }
   // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
   // move it out of this class and into DurativeEvent.
   public void doSnapshotSimulation() {
@@ -528,6 +614,21 @@ public class ParameterListenerImpl extends HasIdImpl
   }
   public void doSnapshotSimulation( boolean improved ) {
     // override!
+  }
+  protected boolean tryToSatisfy2(boolean deep, Set< Satisfiable > seen) {
+    ground(deep, null);
+    if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
+    boolean satisfied = true;
+    if ( !Satisfiable.Helper.satisfy( getParameters(), deep, seen ) ) {
+      satisfied = false;
+    }
+    if ( !Satisfiable.Helper.satisfy( getConstraintExpressions(), false, seen ) ) {
+      satisfied = false;
+    }
+    if ( !Satisfiable.Helper.satisfy( getDependencies(), false, seen ) ) {
+      satisfied = false;
+    }
+    return satisfied;
   }
   protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
     ground(deep, null);
@@ -581,8 +682,8 @@ public class ParameterListenerImpl extends HasIdImpl
     seen = pair.second;
     Set< Constraint > set = new HashSet< Constraint >();
     set = Utils.addAll( set, HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
-    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( constraintExpressions, deep, seen ) );
-    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( dependencies, deep, seen ) );
+    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( constraintExpressions, false, seen ) );
+    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( dependencies, false, seen ) );
 //    for ( Parameter< ? > p : getParameters( false, null ) ) {
 //      set = Utils.addAll( set, p.getConstraints( deep, seen ) );
 //    }
@@ -610,9 +711,9 @@ public class ParameterListenerImpl extends HasIdImpl
                                                                   deep, seen ) );
     if ( deep ) {
       s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
-                                                                    deep, seen ) );
+                                                                    false, seen ) );
       s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
-                                                                    deep, seen ) );
+                                                                    false, seen ) );
     }
     if ( settingTimeVaryingMapOwners ) {
       for ( TimeVarying< ? > tv : s ) {
@@ -663,10 +764,10 @@ public class ParameterListenerImpl extends HasIdImpl
       s.addAll( getNonEventObjects(p.getValueNoPropagate(), deep, seen ) );
     }
     for ( Dependency<?> d : getDependencies() ) {
-      s.addAll( getNonEventObjects(d, deep, seen ) );
+      s.addAll( getNonEventObjects(d, false, seen ) );
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
-      s.addAll( getNonEventObjects(c, deep, seen ) );
+      s.addAll( getNonEventObjects(c, false, seen ) );
     }
     return s;
   }
@@ -1142,5 +1243,46 @@ public class ParameterListenerImpl extends HasIdImpl
 			boolean settingTimeVaryingMapOwners) {
 		ParameterListenerImpl.settingTimeVaryingMapOwners = settingTimeVaryingMapOwners;
 	}
+
+	/* (non-Javadoc)
+	 * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfResolvedConstraints(boolean, java.util.Set)
+	 */
+	@Override
+  public long getNumberOfResolvedConstraints( boolean deep,
+                                              Set< HasConstraints > seen ) {
+    long num = 0;
+    num += HasConstraints.Helper.getNumberOfResolvedConstraints( getParameters(), deep, seen );
+    num += HasConstraints.Helper.getNumberOfResolvedConstraints( getConstraintExpressions(), false, seen );
+    num += HasConstraints.Helper.getNumberOfResolvedConstraints( getDependencies(), false, seen );
+    return num;
+  }
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfUnresolvedConstraints(boolean, java.util.Set)
+   */
+  @Override
+  public long getNumberOfUnresolvedConstraints( boolean deep,
+                                                Set< HasConstraints > seen ) {
+    long num = 0;
+    num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( getParameters(), deep, seen );
+    num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( getConstraintExpressions(), false, seen );
+    num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( getDependencies(), false, seen );
+    return num;
+  }
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfConstraints(boolean, java.util.Set)
+   */
+  @Override
+  public long getNumberOfConstraints( boolean deep, Set< HasConstraints > seen ) {
+    long num = 0;
+    num += HasConstraints.Helper.getNumberOfConstraints( getParameters(), deep, seen );
+    num += HasConstraints.Helper.getNumberOfConstraints( getConstraintExpressions(), false, seen );
+    num += HasConstraints.Helper.getNumberOfConstraints( getDependencies(), false, seen );
+    return num;
+  }
+  @Override
+  public CollectionTree getConstraintCollection() {
+    // TODO Auto-generated method stub
+    return null;
+  }
   
 }

@@ -4,9 +4,14 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Constraint;
+import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -15,7 +20,56 @@ import junit.framework.Assert;
  * @author bclement
  *
  */
-public abstract class AbstractParameterConstraint implements ParameterConstraint {
+public abstract class AbstractParameterConstraint implements ParameterConstraint, HasConstraints {
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasConstraints#getConstraints(boolean, java.util.Set)
+   */
+  @Override
+  public Collection< Constraint > getConstraints( boolean deep,
+                                                  Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return Utils.getEmptySet();
+    seen = pair.second;
+    Set< Constraint > set = new HashSet< Constraint >();
+    set.add( this );
+    return set;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasConstraints#getNumberOfResolvedConstraints(boolean, java.util.Set)
+   */
+  @Override
+  public long getNumberOfResolvedConstraints( boolean deep,
+                                              Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return 0;
+    seen = pair.second;
+    return isSatisfied( false, null ) ? 1 : 0;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasConstraints#getNumberOfUnresolvedConstraints(boolean, java.util.Set)
+   */
+  @Override
+  public long getNumberOfUnresolvedConstraints( boolean deep,
+                                                Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return 0;
+    seen = pair.second;
+    return isSatisfied( false, null ) ? 0 : 1;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasConstraints#getNumberOfConstraints(boolean, java.util.Set)
+   */
+  @Override
+  public long getNumberOfConstraints( boolean deep, Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return 0;
+    seen = pair.second;
+    return 1;
+  }
+
   // freeParameters if not null specifies which parameters can be reassigned
   // values for satisfy().
   protected Set< Parameter< ? > > freeParameters = null;
