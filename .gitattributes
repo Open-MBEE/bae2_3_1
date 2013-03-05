@@ -4369,6 +4369,11 @@ data/meterData/meterdata_000091375097_20121110.csv -text
 data/meterData/meterdata_000091375097_20121111.csv -text
 data/meterData/meterdata_000091375097_20121112.csv -text
 data/meterData/meterdata_000091375097_20121113.csv -text
+data/test_gen.csv -text
+data/test_load.csv -text
+data/test_margin_load.csv -text
+data/test_max_buy.csv -text
+data/test_reserve.csv -text
 /projFormatterOptions.xml -text
 src/Demo_Scenario/BobCreator.java -text svneol=unset#text/plain
 src/Demo_Scenario/Customer.java -text svneol=unset#text/plain
