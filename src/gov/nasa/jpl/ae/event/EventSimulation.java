@@ -664,8 +664,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   protected void joinIoThreads() {
     if ( readStderrPlotThread != null ) {
       try {
-        readStderrPlotThread.join( 20000 ); // millis
-        readStdoutPlotThread.join( 20000 ); // millis
+        readStderrPlotThread.join( 0 ); // millis (0=forever)
+        readStdoutPlotThread.join( 0 ); // millis (0=forever)
 //        readStderrPlotThread.reader.close();
 //        readStdoutPlotThread.reader.close();
       } catch ( InterruptedException e ) {
