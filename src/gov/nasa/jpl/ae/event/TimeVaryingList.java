@@ -322,9 +322,9 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   }
   
   public boolean addIfNotContained(  Parameter<Integer> t, T value, Boolean doSend ) {
-    if ( doSend == null || !doSend.booleanValue() ) return false;
-    if ( !contains( t, value ) ) {
-      return add( t, value );
+    if ( doSend == null) return false;
+    if ( !contains( t, value ) && doSend.booleanValue() ) {
+      return add( t, value ); 
     }
     return false;
   }
@@ -485,11 +485,28 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     boolean addIfMethod = effectFunction.method.getName().contains( "addIfNotContained" );
     boolean addMethod = !addIfMethod && effectFunction.method.getName().contains( "add" );
     if ( addIfMethod || addMethod ) {
-      return isAddApplied( effectFunction );
+      if ( isConditionalAddApplicable(effectFunction) ){
+        return isAddApplied( effectFunction );
+      }
+      else return true;
     } else {
 //    if ( effectFunction.method.getName().contains( "setValue" ) ) {
       return super.isApplied( effect );
     }
+  }
+  
+  public boolean isConditionalAddApplicable( EffectFunction effectFunction ) {
+    boolean doSend = true;
+    if ( effectFunction.getArguments() == null
+         || effectFunction.getArguments().size() < 3 ) {
+      doSend = true;
+    } else {
+      Object bo = effectFunction.getArguments().get( 2 );
+      Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
+      if ( b == null ) doSend = true;
+      else doSend = b.booleanValue();
+    }
+    return doSend;
   }
   
   @Override

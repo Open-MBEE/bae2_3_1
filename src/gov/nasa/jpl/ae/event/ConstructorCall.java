@@ -233,7 +233,7 @@ public class ConstructorCall extends Call {
   }
   
   @Override
-  public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+  public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     newObject = constructor.newInstance( evaluatedArgs ); 
     return newObject;
   }

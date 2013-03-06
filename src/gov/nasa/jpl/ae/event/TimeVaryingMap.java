@@ -1335,6 +1335,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
+      } else if ( e.getValue() instanceof Float ) {
+        Float v = (Float)e.getValue();
+        v = v + n.floatValue();
+        try {
+          e.setValue( tryCastValue( v ) );
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
       } else if ( e.getValue() instanceof Integer ) {
         Integer v = (Integer)e.getValue();
         // TODO -- handle Long?
@@ -1827,6 +1835,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     V value = null;
     if ( type == Double.class || type == double.class ) {
       value = type.cast( Double.parseDouble( s ) );
+    } else if ( type == Float.class || type == float.class ) {
+      value = type.cast( Float.parseFloat( s ) );
     } else if ( type == Integer.class || type == int.class ) {
       value = type.cast( Integer.parseInt( s ) );
     } else if ( type == Boolean.class || type == boolean.class ) {

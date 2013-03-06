@@ -38,7 +38,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
   abstract public Member getMember();
-  abstract public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
+  abstract public Object invoke( Object obj, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
   
   @Override
@@ -165,13 +165,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                     propagate, false );
       //      }
     }
+    Object evaluatedObj = object;
     try {
       if ( Debug.isOn() ) Debug.outln( "About to invoke a "
                                        + getClass().getSimpleName() + ": "
                                        + this );
       // Make sure we have the right object from which to invoke the member.  
-      object = Expression.evaluate( object, getMember().getDeclaringClass(),
+      evaluatedObj = Expression.evaluate( object, getMember().getDeclaringClass(),
                                     propagate, true );
+      
 //      if ( object != null ) {
 //        boolean io = object instanceof Parameter;
 //        boolean ii1 = getMember().getDeclaringClass().isAssignableFrom( object.getClass() );
@@ -201,14 +203,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ConstructorCall cc = (ConstructorCall) this;
         if ( cc.thisClass.getEnclosingClass() != null && !Modifier.isStatic( cc.thisClass.getModifiers() )) {
           Object[] arr = new Object[evaluatedArgs.length + 1];
-          arr[0] = object;
+          arr[0] = evaluatedObj;
           for ( int i = 1; i<=evaluatedArgs.length; ++i) {
             arr[i] = evaluatedArgs[i-1];
           }
           evaluatedArgs = arr;
         }
       }
-      result = invoke( evaluatedArgs );// arguments.toArray() );
+      result = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
       //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
