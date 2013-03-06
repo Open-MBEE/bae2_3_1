@@ -224,6 +224,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( !variable.isGrounded(deepGroundable, seenGroundable) ) return false;
       if ( !variable.isSatisfied(deep, seen) ) return false;
       for ( Effect e : effects ) {
+        if ( e == null ) {
+          Debug.error( true, "Error! null effect in event " );
+          continue;
+        }
         if ( !checkIfEffectVariableMatches( variable, e ) ) return false;
         if ( !e.isApplied( variable )
              || !variable.isGrounded( deepGroundable, seenGroundable ) ) {
@@ -907,6 +911,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void addEffects( Parameter< ? > sv, Set<Effect> set ) {
+    if ( set == null || sv == null || sv.getValue( false ) == null ) {
+      Debug.error( false, "Error! null arguments to " + name + ".addEffects(" + sv + ", " + set + ")" );
+      return;
+    }
     Set< Effect > effectSet = null;
     for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
       if ( pp.first.getValue(true) != null && Utils.valuesEqual( pp.first.getValue(true), sv.getValue(true) ) ) {
@@ -985,6 +993,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
 
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#getTimeVaryingObjects(boolean, java.util.Set)
+   */
   @Override
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
