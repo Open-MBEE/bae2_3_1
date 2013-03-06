@@ -41,12 +41,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   // Constants & Types
 
   private static final long serialVersionUID = 7629618647715394322L;
-  //private static final String enthoughtPythonPath = "/usr/local/epd_free-7.3-2-rh5-x86_64/lib";
-  //private static final String enthoughtPython = "/usr/local/epd_free-7.3-2-rh5-x86_64/bin/python";
-  //private static final String enthoughtPythonPath = "/Applications/OpsRevMD1702-20120818/plugins/com.nomagic.magicdraw.jpython/scripts/magicdrawPlugin:/Library/Frameworks/Python.framework/Versions/7.3/lib";
-  //private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
-  private static final String enthoughtPythonPath = "c:\\Users\\bclement\\workspace\\CS\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;c:\\Python27\\Lib";
-  private static final String enthoughtPython = "c:\\Python27\\python.exe";
+  private static final String enthoughtPythonPath = "/Applications/OpsRevMD1702-20120818/plugins/com.nomagic.magicdraw.jpython/scripts/magicdrawPlugin:/Library/Frameworks/Python.framework/Versions/7.3/lib";
+  private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
+  //private static final String enthoughtPythonPath = "c:\\Users\\bclement\\workspace\\CS\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;c:\\Python27\\Lib";
+  //private static final String enthoughtPython = "c:\\Python27\\python.exe";
+  //private static final String enthoughtTempDir = "c:\\temp";
   public static double maxSecondsToNextEvent = 43200;
   
   // Members
@@ -60,7 +59,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   boolean tryToPlot = true;
   Timepoint.Units plotAxisTimeUnits = Timepoint.Units.seconds;
   public boolean usingSamplePeriod = true;
-  public double plotSamplePeriod = 5.0 / Units.conversionFactor( Units.minutes ); // 15 min
+  public double plotSamplePeriod = 15.0 / Units.conversionFactor( Units.minutes ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 
@@ -451,8 +450,13 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       String pythonExe = enthoughtPython;
       if ( Utils.isNullOrEmpty( pythonExe ) ) pythonExe = "python";
       //plotProcess = rt.exec( pythonExe + " test.py ");
-      plotProcess = rt.exec( pythonExe + " animatePlot.py " + port, newEnv, f );
+      try {
+        plotProcess = rt.exec( pythonExe + " animatePlot.py " + port, newEnv, f );
                              //new String[] { pythonPath, mplPath }, f );
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
       // Allow a half second for the process to start.
       readStdoutPlotThread = new Thread( new Runnable() {
         // save the debug state since it could be changed by another thread
@@ -695,13 +699,16 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }
-      assert v == null || v instanceof Double || v instanceof Integer
-             || v instanceof Boolean || v instanceof Parameter;
+      assert v == null || v instanceof Double || v instanceof Integer|| v instanceof Float
+              || v instanceof Boolean || v instanceof Parameter;
       while ( v instanceof Parameter ) {
         v = ( (Parameter<?>)v ).getValue(false);
       }
       if ( v instanceof Integer ) {
         v = ( (Integer)v ).doubleValue();
+      }
+      if ( v instanceof Float ) {
+          v = ( (Float)v ).doubleValue();
       }
       if ( v instanceof Boolean ) {
         v = ( (Boolean)v ) ? 1.0 : 0.0;

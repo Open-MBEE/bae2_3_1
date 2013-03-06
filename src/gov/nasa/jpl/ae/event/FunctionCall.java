@@ -270,8 +270,8 @@ public class FunctionCall extends Call {
   }
   
   @Override
-  public Object invoke( Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-    if ( !Modifier.isStatic( method.getModifiers() )  && object == null ) {
+  public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    if ( !Modifier.isStatic( method.getModifiers() )  && evaluatedObject == null ) {
       Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
       return null;
     }
@@ -283,7 +283,7 @@ public class FunctionCall extends Call {
     }
     Object result = null;
     try {
-      result = method.invoke( object, evaluatedArgs ); 
+      result = method.invoke( evaluatedObject, evaluatedArgs ); 
     } catch (IllegalArgumentException e) {
       System.err.println("FunctionCall.invoke(" + Utils.toString( evaluatedArgs, false )  + "): " + e.getMessage());
       e.printStackTrace();

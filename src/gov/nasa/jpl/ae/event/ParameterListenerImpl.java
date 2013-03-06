@@ -45,10 +45,10 @@ public class ParameterListenerImpl extends HasIdImpl
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  protected double timeoutSeconds = 7200.0;
-  protected int maxLoopsWithNoProgress = 500;
-  protected long maxPassesAtConstraints = 1000;
-  protected boolean usingTimeLimit = true;
+  protected double timeoutSeconds = 3600.0;
+  protected int maxLoopsWithNoProgress = 40;
+  protected long maxPassesAtConstraints = 800;
+  protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
   protected boolean snapshotSimulationDuringSolve = true;
