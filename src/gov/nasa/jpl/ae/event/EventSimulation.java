@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -210,13 +211,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     
     categories.put( tv, category );
     
-    if ( tv instanceof Plottable && ((Plottable)tv).isProjection() ) {
-      return projections.add((Plottable)tv);
+    if ( isProjectedPlottable( tv ) ) {
+      boolean alreadyAdded = projections.add((Plottable)tv);
+      return alreadyAdded;
     }
     
     boolean existingEntry = false;
-    Object lastValue = null;
-    boolean first = true;
+//    Object lastValue = null;
+//    boolean first = true;
     for ( Map.Entry< Parameter<Integer>, V > e : tv.entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
         System.err.println( "Warning: adding time varying map entry with null time key "
@@ -263,7 +265,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     //long startClock = -1;
     int lastT = -1;
     SimulatedTime simTimer = new SimulatedTime( timeScale );
-    double nextPlotSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Integer.MAX_VALUE;
+    double lastSampleSimTime = Timepoint.getEpochTimepoint().getValue(false) - 1.0;
+    double nextSampleSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Integer.MAX_VALUE;
     
     if ( tryToPlot ) {
       //Debug.turnOn();
@@ -285,19 +288,20 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           try {
             while ( true ) {
               int simTimeToSleepUntil =
-                  (int)Math.min( nextEventSimTime, nextPlotSimTime );
+                  (int)Math.min( nextEventSimTime, nextSampleSimTime );
               simTimer.sleepUntilSimTime( simTimeToSleepUntil );
               int simTime = simTimer.getSimTimePassed();
               while ( tryToPlot && usingSamplePeriod
-                      && nextPlotSimTime <= simTime
-                      && nextPlotSimTime <= Timepoint.getHorizonDuration() 
+                      && nextSampleSimTime <= simTime
+                      && nextSampleSimTime <= Timepoint.getHorizonDuration() 
                       //&& nextPlotSimTime <= 500.0
                       ) {
-                plotValues( nextPlotSimTime );
+                plotValues( lastSampleSimTime, nextSampleSimTime );
+                lastSampleSimTime = nextSampleSimTime;
                 // Recompute this in case the time scale changes during
                 // simulation.
                 assert this.plotSamplePeriod > 0.0;
-                nextPlotSimTime += this.plotSamplePeriod;
+                nextSampleSimTime += this.plotSamplePeriod;
               }
               if ( nextEventSimTime <= simTime) break;
             }
@@ -553,8 +557,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
           Object o = e.getKey();
           String nn = "?";
-          if (o instanceof TimeVaryingMap){
-            nn = ((TimeVaryingMap)o).getName();
+          if (o instanceof TimeVaryingMap) {
+            nn = ((TimeVaryingMap<?>)o).getName();
           } else {
             nn = "..." + o.toString().split( "@" )[0];
           }
@@ -595,18 +599,50 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
   }
 
-  public void plotProjections() {
+  /**
+   * @param o
+   * @return whether {@code o} is a projection of data (for visualization purposes)
+   */
+  protected boolean isProjectedPlottable( Object o ) {
+    return ( o instanceof Plottable && ( (Plottable)o ).isProjection() ) ||
+           ( o instanceof TimeVaryingMap && !( (TimeVaryingMap<?>)o ).isEmpty() &&
+             ( (TimeVaryingMap<?>)o ).firstEntry().getValue() instanceof TimeVarying );
+  }
+
+  public void plotProjectionsThatChangeAtTime( double time ) {
+    plotProjectionsThatChangeAtTime( time, time );
+  }
+  public void plotProjectionsThatChangeAtTime( double lastTime, double time ) {
     for ( Plottable plottable : projections ) {
-      if ( plottable instanceof TimeVaryingPlottableMap ) {
-        plotProjection( (TimeVaryingPlottableMap< ? >)plottable );
+      if ( plottable instanceof TimeVaryingMap ) {
+        TimeVaryingMap< ? > map = (TimeVaryingMap< ? >)plottable;
+        NavigableMap< Parameter< Integer >, ? > m = map.subMap( (int)lastTime, false, (int)time, true );
+        //if ( map.contains( (int)time ) ) {
+        if ( !m.isEmpty() ) {
+          plotProjection( map, (int)time );
+        }
       }
     }
   }
 
-  public void plotProjection( TimeVaryingPlottableMap< ? > map ) {
+  public void plotProjections() {
+    for ( Plottable plottable : projections ) {
+      if ( plottable instanceof TimeVaryingPlottableMap ) {
+        plotProjection( (TimeVaryingMap< ? >)plottable );
+      }
+    }
+  }
+
+  protected void plotProjection( TimeVaryingMap< ? > plottable ) {
+    // TODO Auto-generated method stub
+    plotProjection( plottable, 0 );
+  }
+
+  public void plotProjection( TimeVaryingMap< ? > map, Integer t) {
     if ( map == null || plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
+    Debug.outln( "Attempting to plot projection at time t=" + t + " from " + map );
     // The array will contain the map's hash code followed by key-value pairs.
     Vector<Double> doubleVector = new Vector< Double >();
     try {
@@ -615,6 +651,20 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       plotSocket.send( getCategory( map ) );
       //doubleVector.add( new Double(map.hashCode()) );
       int lastTime = Integer.MIN_VALUE;
+      if ( !map.isEmpty() &&
+           TimeVarying.class.isAssignableFrom( map.getType() ) ) {
+        TimeVarying<?> tv = (TimeVarying< ? >)map.getValue( t );
+        if ( tv != null && tv instanceof TimeVaryingMap ) {
+          map = (TimeVaryingMap< ? >)tv;
+        } else {
+          Debug.error( true, "could not extract projection from nested TimeVaryingMap at time "
+                             + t + " from " + map );
+        }
+      }
+      if ( map == null || map.isEmpty() ) {
+        throw new IllegalArgumentException( "Projection to plot is null or empty " + map );
+      }
+      Debug.outln( "plotting projection: " + map );
       for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
         Integer timeInteger = e.getKey().getValue();
         if ( timeInteger <= lastTime ) continue;
@@ -623,13 +673,15 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
             Timepoint.Units.conversionFactor( this.plotAxisTimeUnits )
                 * timeInteger.doubleValue();
         Object v = Expression.evaluate( map.getValue( timeInteger ), null, false );
-        assert v instanceof Double || v instanceof Integer
+        assert v instanceof Double || v instanceof Integer || v instanceof Float
                || v instanceof Parameter;
         while ( v instanceof Parameter ) {
           v = ( (Parameter< ? >)v ).getValue( false );
         }
-        if ( v instanceof Integer ) {
-          v = ( (Integer)v ).doubleValue();
+        if ( v instanceof Number ) {
+          v = ( (Number)v ).doubleValue();
+        } else if ( v instanceof Boolean ) {
+          v = (((Boolean)v) ? 1.0: 0.0);
         }
         if ( Double.class.isInstance( v ) ) {
           doubleVector.add( time );
@@ -680,7 +732,12 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * @param time the time, typically used as the x-axis of the plot.
    */
   protected void plotValues( double time ) {
+    plotValues( time, time );
+  }
+
+  protected void plotValues( double lastTime, double time ) {
     Debug.outln("called plotvalues @ " + time);
+    plotProjectionsThatChangeAtTime( time );
     if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
       return;
