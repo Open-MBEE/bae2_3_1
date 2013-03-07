@@ -485,7 +485,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public Parameter<Integer> getTimepointBefore( Integer t ) {
     if ( t == null ) return null;
     Parameter<Integer> tp = makeTempTimepoint( t, false );
-    return this.lowerKey( tp );
+    Parameter<Integer> k = this.lowerKey( tp );
+    return k;
   }
 
   public Parameter<Integer> getTimepointEarlier( Parameter<Integer> t ) {
@@ -516,6 +517,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( t == null ) return null;
     Parameter<Integer> tp = makeTempTimepoint( t, false );
     return this.higherKey( tp );
+  }
+
+  public Parameter<Integer> getTimepointLater( Parameter<Integer> t ) {
+    if ( t == null ) return null;
+    return getTimepointLater( t.getValue( false ) );
+  }
+
+  public Parameter<Integer> getTimepointLater( Integer t ) {
+    if ( t == null ) return null;
+    Integer justAfterTimeVal = t;
+    Parameter<Integer> justAfterTime = getTimepointAfter( t );
+    while ( justAfterTime != null ) {
+      justAfterTimeVal = justAfterTime.getValue( false ); 
+      if ( justAfterTimeVal < t ) {
+        break;
+      }
+      justAfterTime = getTimepointAfter( justAfterTime );
+    }
+    return justAfterTime;
   }
 
   public V getValueBefore( Parameter<Integer> t ) {
@@ -960,6 +980,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( tp != null && tp != t ) {
       remove( tp );
     }
+    if ( getType() != null && value != null && !(getType().isAssignableFrom( value.getClass() ) ) ) {
+      V valueBefore = value;
+      value = Expression.evaluate( value, getType(), true, true );
+      String warningMsg =
+          "Warning: tried to insert value of wrong type, "
+              + valueBefore.getClass().getSimpleName() + ". Expected type is "
+              + getType().getSimpleName() + ".  Inserting value of type "
+              + value.getClass().getSimpleName() + " instead. Value = " + value;
+      if ( valueBefore != value ) {
+        if ( !getType().isAssignableFrom( value.getClass() ) ) {
+          Debug.error( false, warningMsg );
+        } else {
+          Debug.errln( warningMsg );
+        }
+      }
+    }
     if ( tp != t ) {
       oldValue = put( t, value );
       if ( value != null &&
@@ -1210,17 +1246,153 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 //    return null;
   }
   
+
+  /**
+   * Returns a view of the portion of this map whose keys range from
+   * {@code fromKey} to {@code toKey}.  If {@code fromKey} and
+   * {@code toKey} are equal, the returned map is empty unless
+   * {@code fromExclusive} and {@code toExclusive} are both true.  The
+   * returned map is backed by this map, so changes in the returned map are
+   * reflected in this map, and vice-versa.  The returned map supports all
+   * optional map operations that this map supports.
+   *
+   * <p>The returned map will throw an {@code IllegalArgumentException}
+   * on an attempt to insert a key outside of its range, or to construct a
+   * submap either of whose endpoints lie outside its range.
+   *
+   * @param fromKey low endpoint of the keys in the returned map
+   * @param fromInclusive {@code true} if the low endpoint
+   *        is to be included in the returned view
+   * @param toKey high endpoint of the keys in the returned map
+   * @param toInclusive {@code true} if the high endpoint
+   *        is to be included in the returned view
+   * @return a view of the portion of this map whose keys range from
+   *         {@code fromKey} to {@code toKey}
+   * @throws ClassCastException if {@code fromKey} and {@code toKey}
+   *         cannot be compared to one another using this map's comparator
+   *         (or, if the map has no comparator, using natural ordering).
+   *         Implementations may, but are not required to, throw this
+   *         exception if {@code fromKey} or {@code toKey}
+   *         cannot be compared to keys currently in the map.
+   */
+  public NavigableMap< Parameter< Integer >, V > subMap( Integer timeFrom,
+                                                         boolean fromInclusive,
+                                                         Integer timeTo,
+                                                         boolean toInclusive ) {
+    if ( isEmpty() ) return this;
+    Parameter<Integer> tpe = getTimepointEarlier( timeFrom );
+    Parameter< Integer > f = firstKey();
+    if ( tpe == null ) {
+      tpe = f;
+      fromInclusive = true;
+    }
+    Parameter<Integer> tpl = getTimepointLater( timeTo );
+    if ( tpl == null ) {
+      tpl = lastKey();
+      toInclusive = true;
+    }
+    int c = tpe.compareTo( tpl );
+    
+    if ( c > 0 ) return this.subMap( f, false, f, false );
+    if ( c == 0 ) {
+      if ( tpe.valueEquals( timeFrom ) ) {
+        return subMap( f, true, f, true );
+      }
+      return this.subMap( f, false, f, false );
+    }
+    return subMap(tpe, fromInclusive, tpl, toInclusive);
+
+//    Parameter<Integer> fromKey, toKey;
+//    fromKey = getKey( timeFrom );
+//    toKey = getKey( nextTime );
+//    return this.subMap( fromKey, fromInclusive, toKey, toInclusive );
+  }
+
+  /**
+   * @param tt
+   *          the timepoint to which a key is sought to match
+   * @return all keys in the map that match the input timepoint {@code tt}.
+   */
+  public Set< Parameter< Integer > > getKeys( Parameter<Integer> tt ) {
+    return getKeys( tt.getValueNoPropagate() );
+  }
+  /**
+   * @param t
+   *          the timepoint to which a key is sought to match
+   * @return all keys in the map that match the input time value {@code t}.
+   */
+  public Set< Parameter< Integer > > getKeys( Integer t ) {
+    return subMap( t, true, t, true ).keySet();
+/*
+  if ( isEmpty() ) return Collections.emptySet();
+    Parameter<Integer> tpe = getTimepointEarlier( t );
+    boolean includeFrom = ( tpe == null ); 
+    if ( includeFrom ) {
+      tpe = firstKey();
+    }
+    Parameter<Integer> tpl = getTimepointLater( t );
+    boolean includeTo = ( tpl == null ); 
+    if ( includeTo ) {
+      tpl = lastKey();
+    }
+    int c = tpe.compareTo( tpl );
+    if ( c > 0 ) return Collections.emptySet();
+    if ( c == 0 ) {
+      if ( tpe.valueEquals( t ) ) {
+        Set< Parameter< Integer >> s = new HashSet< Parameter< Integer >>();
+        s.add( tpe );
+        return s;
+      }
+      return Collections.emptySet();
+    }
+    return subMap(tpe, includeFrom, tpl, includeTo).keySet();
+*/
+  }
+  /**
+   * @param tt
+   *          the timepoint to which a key is sought to match
+   * @param equalValuesOk
+   *          specifies whether {@code key.equals(tt)} must be true for the
+   *          returned {@code key} or if matching {@code Integer} values are
+   *          good enough.
+   * @param firstOrLast if true, the first of the set of matching keys is returned; else, the last of the set is returned.  
+   * @return the key in the map that matches the input timepoint {@code tt}.
+   */
+  public Parameter<Integer> getKey( Parameter< Integer > tt, boolean equalValuesOk,
+                                    boolean firstOrLast ) {
+    Integer v = tt.getValue(false);
+    NavigableMap< Parameter< Integer >, V > m = subMap( v, true, v, true );
+    if ( m.isEmpty() ) return null;
+    Parameter< Integer > timepoint = firstOrLast ? m.firstKey() : m.lastKey();
+    return timepoint;
+  }
+  /**
+   * @param tt
+   *          the timepoint to which a key is sought to match
+   * @param equalValuesOk
+   *          specifies whether {@code key.equals(tt)} must be true for the
+   *          returned {@code key} or if matching {@code Integer} values are
+   *          good enough.
+   * @return the key in the map that matches the input timepoint {@code tt}.
+   */
   public Parameter<Integer> getKey( Parameter< Integer > tt, boolean equalValuesOk ) {
-    if ( containsKey( tt ) ) return tt;
+    NavigableMap< Parameter< Integer >, V > m = headMap( tt, true );
+    
+    Parameter< Integer > k;
+    if ( !m.isEmpty() ) {
+      k = m.lastKey();
+      if ( k.equals( tt ) ) return k; 
+    }
+    
     if ( !equalValuesOk ) return null;
     Parameter< Integer > bk = getTimepointAfter(tt);
-    if ( bk != null && bk.equals( tt ) ) {
+    if ( bk != null && bk.valueEquals( tt ) ) {
       return bk;
     }
-    bk = getTimepointBefore( tt );
-    if ( bk != null && bk.equals( tt ) ) {
-      return bk;
-    }
+//    bk = getTimepointBefore( tt );
+//    if ( bk != null && bk.equals( tt ) ) {
+//      return bk;
+//    }
     return null;
 
 //    Parameter< Integer > bk = lowerKey(tt);
@@ -1749,7 +1921,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public boolean equals( Object o ) {
     if ( this == o ) return true;
     if ( o instanceof TimeVarying ) {
-      return ( compareTo( (TimeVarying<V>)o ) == 0 );
+      return ( compareTo( (TimeVarying<V>)o, false ) == 0 );
     }
     return false;
   }
@@ -1817,6 +1989,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public <TT> Pair< Object, TT > getTimeAndValueOfEffect( Effect effect,
                                                           Method method1,
                                                           Method method2 ) {
+    // REVIEW -- Why not use <T>?  Can't enforce it?
     if ( !( effect instanceof EffectFunction ) ) {
       return null;
     }
@@ -1833,7 +2006,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( effectFunction.arguments != null
            && effectFunction.arguments.size() >= 2 ) {
         Object t = effectFunction.arguments.get( 0 );
+        Class< ? extends Parameter<Integer> > pcls = (Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
+        t = Expression.evaluate( t, (Class<Parameter<Integer>>)pcls, false, true );
         Object o = effectFunction.arguments.get( 1 );
+        o = Expression.evaluate( o, getType(), false, true );
         TT value = null;
         try {
           value = (TT)o;
@@ -2345,8 +2521,6 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Assert.assertTrue( doubleMap2.isConsistent() );
     Assert.assertTrue( doubleMap3.isConsistent() );
     Assert.assertTrue( doubleMap6.isConsistent() );
-
-    
     
   }
 
