@@ -599,8 +599,8 @@ class actionEventClass(object):
 			prepend = ""
 			if node.context in self.constructorArgs.keys(): prepend = self.constructorArgs[node.context].name + "."
 			structSig = "x.ss" + port.getID() + "_" + sig.name
-			self.members["signalObject"] = (prepend + "Signal" + sig.name,None,"initialize place holder for constructed signal")
-			self.dependencies["signalObject"] = (prepend + "Signal" + sig.name,"x.new %sSignal%s()" % (prepend,sig.name))
+			#self.members["signalObject"] = (prepend + "Signal" + sig.name,None,)
+			self.members["signalObject"] = (prepend + "Signal" + sig.name,"x.new %sSignal%s()" % (prepend,sig.name),"initialize place holder for constructed signal")
 			self.effects.append(structSig + ".send(signalObject,endTime)")
 			for signalAttribute in sig.attribute:
 				matched = False
