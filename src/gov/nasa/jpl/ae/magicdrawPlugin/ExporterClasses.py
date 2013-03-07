@@ -121,7 +121,7 @@ class ClassifierClass(object):
 			
 			#public TimeVaryingMap( String name, String fileName, V defaultValue, Class<V> type) is best constructor. Put null in for filename when not using it. Same with defaultValue.		
 			tvmargs = '"%s",%s,%s,%s.class' % (p.name,('"'+filename+'"' if filename else "null"), (str(default) if default else "null") , EU.type2java(p.type.name))
-			if plottable and projection: tvmargs += ", true" #projection flag for time varying plottable map. 
+			#if plottable and projection: tvmargs += ", true" #projection flag for time varying plottable map. 
 			self.members[propName] = ("%s&lt;%s&gt;" % (mapType,EU.type2java(p.type.name)),'new %s(%s)' % (mapType,tvmargs),"simple property (name " + p.name + ")")
 			
 			if isinstance(system,Signal):
@@ -558,7 +558,7 @@ class actionEventClass(object):
 			if StereotypesHelper.hasStereotype(node,ASMIP): #add to structural feature map in place
 				self.effects.append("%s.add(%s,startTime)" % (featureID,v))
 			elif StereotypesHelper.hasStereotype(node,MSMIP): #multiply map in place all by some value after start Time
-				self.effects.append("%s.multiply(%s,startTime" % (featureID,v))
+				self.effects.append("%s.multiply(%s,startTime)" % (featureID,v))
 			elif StereotypesHelper.hasStereotype(node,USM): #update projection with another projection after some point
 				self.effects.append("%s.setValue(startTime,%s)" % (featureID,v))
 			else: #normal add one number to tvm
@@ -574,11 +574,11 @@ class actionEventClass(object):
 			outID = objectOut.getID()
 			try: tname = EU.type2java(sf.type.name)
 			except:tname = "Object"
+			append = ".getValue(startTime)" if StereotypesHelper.hasStereotype(sf,TVM) and EU.getStypePropValue(sf, TVM, "projection")[0] else ""
 			if StereotypesHelper.hasStereotype(node,SSMAT):
 				t = node.object.getID()
-				self.dependencies[outID] = (tname,"%s.getValue(%s)" % (sfID,t))
+				self.dependencies[outID] = (tname,"%s.getValue(%s)%s" % (sfID,t,append))
 			elif StereotypesHelper.hasStereotype(node,GSM):
-				append = ".getValue(startTime)" if EU.getStypePropValue(sf, TVM, "projection")[0] else ""
 				tvOut = ("%s&lt;%s&gt;" % (objectOut.type.name, EU.type2java(sf.type.name))) if objectOut.type else ("TimeVaryingMap&lt;%s&gt;" % sf.type.name)
 				self.dependencies[outID] = (tvOut,sfID + append)
 				if outID in self.members.keys():
@@ -588,7 +588,7 @@ class actionEventClass(object):
 			else:
 				sfContext = node.object.getID() + "." if node.object else ""
 				gl.log("SFContext2 %s" % str(sfContext))
-				if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, sfContext + sfID + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
+				if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, sfContext + sfID + ".getValue(startTime)" + append) #call the "field" of the structural feature on the incoming object, which should be correct type for that...
 				else: self.dependencies[objectOut.getID()] = (tname,sf.name)
 				#if isinstance(sf.type,DataType): self.dependencies[objectOut.getID()]=(tname, sfContext + "." + sfID + ".getValue(startTime)") #call the "field" of the structural feature on the incoming object, which should be correct type for that...
 				#else: self.dependencies[objectOut.getID()] = (tname,sfContext + "." + sf.name)
