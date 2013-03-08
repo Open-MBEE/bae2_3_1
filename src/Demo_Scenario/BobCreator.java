@@ -48,7 +48,7 @@ public class BobCreator extends DurativeEvent {
 
     public Parameter< Power_System > Bob = null;
 
-    public ElaborationRule elaborationRule651 = null;
+    public ElaborationRule elaborationRule652 = null;
 
     public void initBobCreatorMembers() {
         try {
@@ -67,10 +67,10 @@ public class BobCreator extends DurativeEvent {
 
     public void initBobCreatorElaborations() {
         initBobCreatorDependencies();
-        Expression<?>[] arguments651 = new Expression<?>[2];
-        arguments651[0] = new Expression<DurativeEvent>(this);
-        arguments651[1] = new Expression<Integer>(startTime);
-        Expression<Boolean> condition651 = new Expression<Boolean>(true);
-        elaborationRule651 = addElaborationRule(condition651, Bob, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307.class, "start_system_Activity_Power_System", arguments651);
+        Expression<?>[] arguments652 = new Expression<?>[2];
+        arguments652[0] = new Expression<DurativeEvent>(this);
+        arguments652[1] = new Expression<Integer>(startTime);
+        Expression<Boolean> condition652 = new Expression<Boolean>(true);
+        elaborationRule652 = addElaborationRule(condition652, Bob, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307.class, "start_system_Activity_Power_System", arguments652);
     }
 }
