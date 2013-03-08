@@ -155,6 +155,7 @@ def initSocket( host, port ):
     global lineNames
     global subplotForLine
     global subplotIds
+    import re
 
     sock = OneWaySocket(host, port, False, debugMode)
     sock.endianGet()
@@ -164,6 +165,8 @@ def initSocket( host, port ):
     for _ in xrange(numLines):
         name = receiveString(sock)
         subplotId = receiveString(sock)
+        if "__" in subplotId: subplotId = subplotId.split("__")[-1]
+        if re.search("\d{6}",subplotId): subplotId = subplotId[0:len(subplotId)-6]
         lineNames.append(name)
         if not doSubplots and len(subplotIds) > 0:
             subplotId = [x for x in subplotIds][0]
@@ -433,7 +436,9 @@ def addStaticLine(lineId, subplotId, xvals, yvals):
     global lineNames
     global subplotForLine
     global subplotIds
+    import re
     
+    if re.search("\d{6}",subplotId): subplotId = subplotId[0:len(subplotId)-6]
     # get x-axis values
     plotLineId = str(subplotId) + "_" + str(lineId)
     if plotLineId not in staticLines:
