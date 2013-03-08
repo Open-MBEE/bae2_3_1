@@ -227,33 +227,35 @@ def writeDependencies(dependencyOwner,l):
 	else: logAndExport(l,None,"<dependencies/>")
 
 def writeElaborations(elabOwner,l):
-	if len(elabOwner.elaborations.keys())>0:
-		logAndExport(l,None,"<elaborations>")
-		for next,stuff in elabOwner.elaborations.items():
-			logAndExport(l+1,None,"<elaboration>")
-			logAndExport(l+2,None,"<eventInvocation>")
-			logAndExport(l+3,"enclosingInstance",stuff["enclosingClass"])
-			logAndExport(l+3,"eventType",next.getID())
-			classType = str(next.getClassType()).split(".")[-1].strip("'>")
-			identifier = "%s_%s_%s" % (next.name,classType,next.owner.name)
-			logAndExport(l+3,"eventName",identifier)
-			logAndExport(l+3,None,"<arguments>")
-			for (name,value,type) in stuff["args"]:
-				logAndExport(l+4,None,"<parameter>")
-				logAndExport(l+5,"name",name)
-				logAndExport(l+5,"value",value)
-				logAndExport(l+4,None,"</parameter>")
-			logAndExport(l+3,None,"</arguments>")
-			logAndExport(l+2,None,"</eventInvocation>")
-			if "conditions" in stuff.keys() and stuff["conditions"]:
-				for name,exp in stuff["conditions"].items():
-					logAndExport(l+2,None,"<!--%s condition %s-->" % (next.name,name))
-					logAndExport(l+2,None,"<condition>")
-					logAndExport(l+3,"expression",exp)
-					logAndExport(l+2,None,"</condition>")
-			logAndExport(l+1,None,"</elaboration>")
-		logAndExport(l,None,"</elaborations>")
-	else: logAndExport(l,None,"<elaborations/>")
+    if len(elabOwner.elaborations.keys())>0:
+        logAndExport(l,None,"<elaborations>")
+        for next,stuff in elabOwner.elaborations.items():
+            logAndExport(l+1,None,"<elaboration>")
+            logAndExport(l+2,None,"<eventInvocation>")
+            logAndExport(l+3,"enclosingInstance",stuff["enclosingClass"])
+            logAndExport(l+3,"eventType",next.getID())
+            classType = str(next.getClassType()).split(".")[-1].strip("'>")
+            try: context = next.context.name
+            except: context = next.owner.context.name
+            identifier = "%s__%s__%s__%s" % (next.name,classType,next.owner.name,context)
+            logAndExport(l+3,"eventName",identifier)
+            logAndExport(l+3,None,"<arguments>")
+            for (name,value,type) in stuff["args"]:
+            	logAndExport(l+4,None,"<parameter>")
+            	logAndExport(l+5,"name",name)
+            	logAndExport(l+5,"value",value)
+            	logAndExport(l+4,None,"</parameter>")
+            logAndExport(l+3,None,"</arguments>")
+            logAndExport(l+2,None,"</eventInvocation>")
+            if "conditions" in stuff.keys() and stuff["conditions"]:
+            	for name,exp in stuff["conditions"].items():
+            		logAndExport(l+2,None,"<!--%s condition %s-->" % (next.name,name))
+            		logAndExport(l+2,None,"<condition>")
+            		logAndExport(l+3,"expression",exp)
+            		logAndExport(l+2,None,"</condition>")
+            logAndExport(l+1,None,"</elaboration>")
+        logAndExport(l,None,"</elaborations>")
+    else: logAndExport(l,None,"<elaborations/>")
 
 def makeValueString(val,tag):
 	if val is None: vString = "<%s/>" % tag

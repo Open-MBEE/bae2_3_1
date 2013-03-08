@@ -78,6 +78,8 @@ class PlotDataReader(object):
                 if projected != None:
                     projected = projected.strip()
                 category = x.groups()[1]
+                if "__" in category: category = category.split("__")[-1]
+                if re.search("\d{5}",category): category = category[0:len(category)-6]
                 interpolationType = x.groups()[2]
                 name = x.groups()[3]
                 if name != None:

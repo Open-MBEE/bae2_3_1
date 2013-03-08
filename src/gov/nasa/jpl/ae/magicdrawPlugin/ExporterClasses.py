@@ -222,6 +222,8 @@ class activityInterfaceClass(object):
 		self.id = 				str(activity.getID()) + "_interface"
 		self.enclosingClass = 	self.id + ".this"
 		self.name = 			activity.name + "_interface"
+		classType = 			str(activity.getClassType()).split(".")[-1].strip("'>")
+		self.identifier = 		"%s_interface_%s_%s_%s" % (activity.name,classType,activity.owner.name,activity.context.name)
 		self.members = 			{}
 		self.elaborations = 	{}
 		self.constraints = 		{}
@@ -243,7 +245,7 @@ class activityEventClass(object):
 		self.constructorArgs = conArgs
 		self.firstSelected = firstSelected
 		classType = 		str(activity.getClassType()).split(".")[-1].strip("'>")
-		self.identifier = 	"%s_%s_%s" % (activity,classType,activity.owner.name)
+		self.identifier = 	"%s_%s_%s_%s" % (activity.name,classType,activity.owner.name,activity.context.name)
 		self.id = 			str(activity.getID())
 		self.name =			activity.name
 		self.members = 		{} #{name: (type,value)}
@@ -401,7 +403,7 @@ class actionEventClass(object):
 		self.finalID = finalID
 		self.constructorArgs = conArgs
 		classType = str(actionNode.getClassType()).split(".")[-1].strip("'>")
-		self.identifier = "%s_%s_%s" % (actionNode.name,classType,actionNode.owner.name)
+		self.identifier = "%s_%s_%s_%s" % (actionNode.name,classType,actionNode.owner.name,actionNode.owner.context.name)
 		self.name = actionNode.name
 		self.actionType = actionNode.humanType
 		self.id = actionNode.getID()

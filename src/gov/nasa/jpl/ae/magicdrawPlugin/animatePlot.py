@@ -1,5 +1,5 @@
 # debugMode can be passed in at the command line to turn it on
-debugMode = False
+debugMode = True
 # A modes for a data sources below can be passed at the command line and
 # override these assignments 
 useSocket = True
@@ -8,7 +8,7 @@ useTable = False
 useTestData = False
 
 # separate out lines into separate plots or not
-doSubplots = False
+doSubplots = True
 
 # save animation to mp4?
 saveMovie = False
@@ -1050,8 +1050,7 @@ def main(argv=None):
     global usingTk
     global root
 
-    if argv is None:
-        argv = sys.argv
+    if argv is None: argv = sys.argv
     debugPrint( "argv = " + str(argv) )
     port = None
     handleCommandLineArgs(argv);
