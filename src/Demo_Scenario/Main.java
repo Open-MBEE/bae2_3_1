@@ -37,7 +37,7 @@ public class Main extends BobCreator {
     public static void main(String[] args) {
         Timepoint.setUnits("seconds");
         Timepoint.setEpoch("Sun Aug 05 23:30:00 PDT 2012");
-        Timepoint.setHorizonDuration(86400);
+        Timepoint.setHorizonDuration(4800);
         Main scenario = new Main();
         scenario.executeAndSimulate();
     }

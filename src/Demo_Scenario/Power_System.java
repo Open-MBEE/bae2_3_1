@@ -70,11 +70,11 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360958856427_568429_21872_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360958856427_568429_21872_existsDependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
             public Effect effect2 = null;
 
@@ -114,7 +114,7 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments3 = new Expression<?>[1];
                 arguments3[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition3 = new Expression<Boolean>(_17_0_2_1_edc0357_1360958856427_568429_21872_exists);
-                elaborationRule3 = addElaborationRule(condition3, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958856427_568429_21872.class, "_ForkNode_start_system", arguments3);
+                elaborationRule3 = addElaborationRule(condition3, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958856427_568429_21872.class, "__ForkNode__start_system__Power_System", arguments3);
             }
         }
 
@@ -142,13 +142,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public Parameter< Customer > _17_0_2_1_edc0357_1360798766470_27157_22167 = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765803_386941_21066_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765803_386941_21066_existsDependency = null;
 
-            public Dependency< Customer > _17_0_2_1_edc0357_1360798766470_27157_22167Dependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798766470_27157_22167Dependency = null;
 
             public Effect effect4 = null;
 
@@ -181,7 +181,7 @@ public class Power_System extends ParameterListenerImpl {
 
             public void init_17_0_2_1_edc0357_1360798765801_883801_21064Dependencies() {
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958739383_541838_21858, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958739383_541838_21858, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_1_edc0357_1360798765803_386941_21066_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(_17_0_2_1_edc0357_1360798766470_27157_22167, new Expression<Customer>(c));
             }
@@ -191,7 +191,7 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments5 = new Expression<?>[1];
                 arguments5[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition5 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765803_386941_21066_exists);
-                elaborationRule5 = addElaborationRule(condition5, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765803_386941_21066.class, "sobc_StartObjectBehaviorAction_start_system", arguments5);
+                elaborationRule5 = addElaborationRule(condition5, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765803_386941_21066.class, "sobc__StartObjectBehaviorAction__start_system__Power_System", arguments5);
             }
         }
 
@@ -219,13 +219,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_2_1_edc0357_1360798765803_815585_21067_exists = null;
 
-            public Dependency< Power > _17_0_2_1_edc0357_1360798766471_289951_22169Dependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798766471_289951_22169Dependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765803_815585_21067_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765803_815585_21067_existsDependency = null;
 
             public Effect effect6 = null;
 
@@ -259,7 +259,7 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360798765802_132157_21065Dependencies() {
                 addDependency(_17_0_2_1_edc0357_1360798766471_289951_22169, new Expression<Power>(p));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958861130_631052_21881, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958861130_631052_21881, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_1_edc0357_1360798765803_815585_21067_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
@@ -268,7 +268,7 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments7 = new Expression<?>[1];
                 arguments7[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition7 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765803_815585_21067_exists);
-                elaborationRule7 = addElaborationRule(condition7, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765803_815585_21067.class, "sobp_StartObjectBehaviorAction_start_system", arguments7);
+                elaborationRule7 = addElaborationRule(condition7, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765803_815585_21067.class, "sobp__StartObjectBehaviorAction__start_system__Power_System", arguments7);
             }
         }
 
@@ -300,17 +300,17 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360958878627_104372_21890_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360958878627_104372_21890_existsDependency = null;
 
-            public Dependency< Boolean > addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
+            public Dependency addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
 
-            public Dependency< Customer > _17_0_2_1_edc0357_1360798766472_955915_22171Dependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798766472_955915_22171Dependency = null;
 
-            public Dependency< Integer > myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
+            public Dependency myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
             public Effect effect8 = null;
 
@@ -361,7 +361,7 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360798765803_386941_21066Dependencies() {
                 addDependency(_17_0_2_1_edc0357_1360958878627_104372_21890_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890)))))))));
                 addDependency(addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
-                addDependency(_17_0_2_1_edc0357_1360798766472_955915_22171, new Expression<Customer>(new EffectFunction(sig_17_0_2_1_edc0357_1360798765807_756954_21078, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_1_edc0357_1360798766472_955915_22171, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360798765807_756954_21078, ClassUtils.getMethodForArgTypes("ObjectFlow<Customer>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890, new Expression<Integer>(3));
                 addDependency(duration, new Expression<Integer>(1));
                 addDependency(objectToPass, new Expression<Boolean>(true));
@@ -370,13 +370,13 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360798765803_386941_21066Elaborations() {
                 init_17_0_2_1_edc0357_1360798765803_386941_21066Dependencies();
                 Expression<?>[] arguments10 = new Expression<?>[1];
-                arguments10[0] = new Expression<Integer>(startTime);
-                Expression<Boolean> condition10 = new Expression<Boolean>(true);
-                elaborationRule10 = addElaborationRule(condition10, c, Customer._17_0_2_1_edc0357_1360798765037_222001_20270.class, "CustomerCB_Activity_Customer", arguments10);
+                arguments10[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
+                Expression<Boolean> condition10 = new Expression<Boolean>(_17_0_2_1_edc0357_1360958878627_104372_21890_exists);
+                elaborationRule10 = addElaborationRule(condition10, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958878627_104372_21890.class, "__JoinNode__start_system__Power_System", arguments10);
                 Expression<?>[] arguments11 = new Expression<?>[1];
-                arguments11[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
-                Expression<Boolean> condition11 = new Expression<Boolean>(_17_0_2_1_edc0357_1360958878627_104372_21890_exists);
-                elaborationRule11 = addElaborationRule(condition11, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958878627_104372_21890.class, "_JoinNode_start_system", arguments11);
+                arguments11[0] = new Expression<Integer>(startTime);
+                Expression<Boolean> condition11 = new Expression<Boolean>(true);
+                elaborationRule11 = addElaborationRule(condition11, c, Customer._17_0_2_1_edc0357_1360798765037_222001_20270.class, "CustomerCB__Activity__Customer__Customer", arguments11);
             }
         }
 
@@ -408,17 +408,17 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360958878627_104372_21890_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360958878627_104372_21890_existsDependency = null;
 
-            public Dependency< Power > _17_0_2_1_edc0357_1360798766473_964434_22172Dependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798766473_964434_22172Dependency = null;
 
-            public Dependency< Boolean > addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
+            public Dependency addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
 
-            public Dependency< Integer > myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
+            public Dependency myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
             public Effect effect12 = null;
 
@@ -468,7 +468,7 @@ public class Power_System extends ParameterListenerImpl {
 
             public void init_17_0_2_1_edc0357_1360798765803_815585_21067Dependencies() {
                 addDependency(_17_0_2_1_edc0357_1360958878627_104372_21890_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890)))))))));
-                addDependency(_17_0_2_1_edc0357_1360798766473_964434_22172, new Expression<Power>(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_512362_21079, ClassUtils.getMethodForArgTypes("ObjectFlow<Power>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_1_edc0357_1360798766473_964434_22172, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_512362_21079, ClassUtils.getMethodForArgTypes("ObjectFlow<Power>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890, new Expression<Integer>(2));
                 addDependency(duration, new Expression<Integer>(1));
@@ -480,11 +480,11 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments14 = new Expression<?>[1];
                 arguments14[0] = new Expression<Integer>(startTime);
                 Expression<Boolean> condition14 = new Expression<Boolean>(true);
-                elaborationRule14 = addElaborationRule(condition14, p, Power._17_0_2_1_edc0357_1360798765022_187244_20251.class, "PowerCB_Activity_Power", arguments14);
+                elaborationRule14 = addElaborationRule(condition14, p, Power._17_0_2_1_edc0357_1360798765022_187244_20251.class, "PowerCB__Activity__Power__Power", arguments14);
                 Expression<?>[] arguments15 = new Expression<?>[1];
                 arguments15[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition15 = new Expression<Boolean>(_17_0_2_1_edc0357_1360958878627_104372_21890_exists);
-                elaborationRule15 = addElaborationRule(condition15, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958878627_104372_21890.class, "_JoinNode_start_system", arguments15);
+                elaborationRule15 = addElaborationRule(condition15, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958878627_104372_21890.class, "__JoinNode__start_system__Power_System", arguments15);
             }
         }
 
@@ -512,13 +512,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public Parameter< LADWP > _17_0_2_1_edc0357_1360798766473_160708_22173 = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765805_217755_21069_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765805_217755_21069_existsDependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
-            public Dependency< LADWP > _17_0_2_1_edc0357_1360798766473_160708_22173Dependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798766473_160708_22173Dependency = null;
 
             public Effect effect16 = null;
 
@@ -552,7 +552,7 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360798765804_814855_21068Dependencies() {
                 addDependency(_17_0_2_1_edc0357_1360798765805_217755_21069_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958866507_436590_21886, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958866507_436590_21886, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_1_edc0357_1360798766473_160708_22173, new Expression<LADWP>(l));
             }
 
@@ -561,7 +561,7 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments17 = new Expression<?>[1];
                 arguments17[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition17 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765805_217755_21069_exists);
-                elaborationRule17 = addElaborationRule(condition17, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765805_217755_21069.class, "sobl_StartObjectBehaviorAction_start_system", arguments17);
+                elaborationRule17 = addElaborationRule(condition17, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765805_217755_21069.class, "sobl__StartObjectBehaviorAction__start_system__Power_System", arguments17);
             }
         }
 
@@ -593,17 +593,17 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< LADWP > _17_0_2_1_edc0357_1360798766475_673138_22175Dependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798766475_673138_22175Dependency = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360958878627_104372_21890_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360958878627_104372_21890_existsDependency = null;
 
-            public Dependency< Boolean > addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
+            public Dependency addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
 
-            public Dependency< Integer > myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
+            public Dependency myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890Dependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
             public Effect effect18 = null;
 
@@ -652,7 +652,7 @@ public class Power_System extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_1_edc0357_1360798765805_217755_21069Dependencies() {
-                addDependency(_17_0_2_1_edc0357_1360798766475_673138_22175, new Expression<LADWP>(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_997160_21082, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(_17_0_2_1_edc0357_1360798766475_673138_22175, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_997160_21082, ClassUtils.getMethodForArgTypes("ObjectFlow<LADWP>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_1_edc0357_1360958878627_104372_21890_exists, new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))), new Expression<Boolean>(new Expression<Boolean>(new Functions.And(new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "size", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "maxSize"), new Object[] {})))), new Expression<Boolean>(new Functions.Equals(new Expression(new EffectFunction(decider_17_0_2_1_edc0357_1360958878627_104372_21890, ClassUtils.getMethodForArgTypes("TimeVaryingList<Integer>", "Demo_Scenario", "lastElement", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(endTime) })), new Expression<Integer>(myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890)))))))));
                 addDependency(addToDecider__17_0_2_1_edc0357_1360958878627_104372_21890, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(myDeciderID_decider_17_0_2_1_edc0357_1360958878627_104372_21890, new Expression<Integer>(1));
@@ -665,11 +665,11 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments20 = new Expression<?>[1];
                 arguments20[0] = new Expression<Integer>(startTime);
                 Expression<Boolean> condition20 = new Expression<Boolean>(true);
-                elaborationRule20 = addElaborationRule(condition20, l, LADWP._17_0_2_1_edc0357_1360798765078_727139_20329.class, "LADWP_CB_Activity_LADWP", arguments20);
+                elaborationRule20 = addElaborationRule(condition20, l, LADWP._17_0_2_1_edc0357_1360798765078_727139_20329.class, "LADWP_CB__Activity__LADWP__LADWP", arguments20);
                 Expression<?>[] arguments21 = new Expression<?>[1];
                 arguments21[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition21 = new Expression<Boolean>(_17_0_2_1_edc0357_1360958878627_104372_21890_exists);
-                elaborationRule21 = addElaborationRule(condition21, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958878627_104372_21890.class, "_JoinNode_start_system", arguments21);
+                elaborationRule21 = addElaborationRule(condition21, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360958878627_104372_21890.class, "__JoinNode__start_system__Power_System", arguments21);
             }
         }
 
@@ -693,11 +693,11 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Integer > finalNode_startTimeDependency = null;
+            public Dependency finalNode_startTimeDependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
             public Effect effect22 = null;
 
@@ -725,7 +725,7 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360798765805_710001_21070Dependencies() {
                 addDependency(finalNode_startTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))));
                 addDependency(duration, new Expression<Integer>(18000));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_571002_21084, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_571002_21084, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
 
             public void init_17_0_2_1_edc0357_1360798765805_710001_21070Elaborations() {
@@ -753,13 +753,13 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter objectToPass = null;
 
-            public Dependency< Integer > endTimeDependency = null;
+            public Dependency endTimeDependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
-            public Dependency< Integer > finalNode_endTimeDependency = null;
+            public Dependency finalNode_endTimeDependency = null;
 
             public void init_17_0_2_1_edc0357_1360798765806_270620_21071Members() {
                 try {
@@ -776,7 +776,7 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360798765806_270620_21071Dependencies() {
                 addDependency(endTime, new Expression<Integer>(new Functions.Plus(new Expression<Integer>(startTime), new Expression<Integer>(duration))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_557409_21085, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360798765808_557409_21085, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(finalNode_endTime, new Expression<Integer>(endTime));
             }
 
@@ -811,15 +811,15 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_2_1_edc0357_1360798765801_883801_21064_exists = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765804_814855_21068_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765804_814855_21068_existsDependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765802_132157_21065_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765802_132157_21065_existsDependency = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765801_883801_21064_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765801_883801_21064_existsDependency = null;
 
             public Effect effect23 = null;
 
@@ -881,7 +881,7 @@ public class Power_System extends ParameterListenerImpl {
             public void init_17_0_2_1_edc0357_1360958856427_568429_21872Dependencies() {
                 addDependency(_17_0_2_1_edc0357_1360798765804_814855_21068_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958857864_402573_21876, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958857864_402573_21876, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_1_edc0357_1360798765802_132157_21065_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(_17_0_2_1_edc0357_1360798765801_883801_21064_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
@@ -890,16 +890,16 @@ public class Power_System extends ParameterListenerImpl {
                 init_17_0_2_1_edc0357_1360958856427_568429_21872Dependencies();
                 Expression<?>[] arguments26 = new Expression<?>[1];
                 arguments26[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
-                Expression<Boolean> condition26 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765804_814855_21068_exists);
-                elaborationRule26 = addElaborationRule(condition26, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765804_814855_21068.class, "Sys_readl_ReadStructuralFeatureAction_start_system", arguments26);
+                Expression<Boolean> condition26 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765802_132157_21065_exists);
+                elaborationRule26 = addElaborationRule(condition26, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765802_132157_21065.class, "Sys_readp__ReadStructuralFeatureAction__start_system__Power_System", arguments26);
                 Expression<?>[] arguments27 = new Expression<?>[1];
                 arguments27[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition27 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765801_883801_21064_exists);
-                elaborationRule27 = addElaborationRule(condition27, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765801_883801_21064.class, "Sys_readc_ReadStructuralFeatureAction_start_system", arguments27);
+                elaborationRule27 = addElaborationRule(condition27, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765801_883801_21064.class, "Sys_readc__ReadStructuralFeatureAction__start_system__Power_System", arguments27);
                 Expression<?>[] arguments28 = new Expression<?>[1];
                 arguments28[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
-                Expression<Boolean> condition28 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765802_132157_21065_exists);
-                elaborationRule28 = addElaborationRule(condition28, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765802_132157_21065.class, "Sys_readp_ReadStructuralFeatureAction_start_system", arguments28);
+                Expression<Boolean> condition28 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765804_814855_21068_exists);
+                elaborationRule28 = addElaborationRule(condition28, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765804_814855_21068.class, "Sys_readl__ReadStructuralFeatureAction__start_system__Power_System", arguments28);
             }
         }
 
@@ -929,15 +929,15 @@ public class Power_System extends ParameterListenerImpl {
 
             public BooleanParameter _17_0_2_1_edc0357_1360798765805_710001_21070_exists = null;
 
-            public Dependency< Boolean > objectToPass1Dependency = null;
+            public Dependency objectToPass1Dependency = null;
 
-            public Dependency< Integer > durationDependency = null;
+            public Dependency durationDependency = null;
 
-            public Dependency< Boolean > objectToPass12Dependency = null;
+            public Dependency objectToPass12Dependency = null;
 
-            public Dependency< Boolean > objectToPassDependency = null;
+            public Dependency objectToPassDependency = null;
 
-            public Dependency< Boolean > _17_0_2_1_edc0357_1360798765805_710001_21070_existsDependency = null;
+            public Dependency _17_0_2_1_edc0357_1360798765805_710001_21070_existsDependency = null;
 
             public Effect effect29 = null;
 
@@ -971,10 +971,10 @@ public class Power_System extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_1_edc0357_1360958878627_104372_21890Dependencies() {
-                addDependency(objectToPass1, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958894126_393790_21900, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass1, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958894126_393790_21900, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(duration, new Expression<Integer>(1));
-                addDependency(objectToPass12, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958897718_677891_21905, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
-                addDependency(objectToPass, new Expression<Boolean>(new EffectFunction(sig_17_0_2_1_edc0357_1360958889738_677596_21895, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass12, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958897718_677891_21905, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
+                addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360958889738_677596_21895, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
                 addDependency(_17_0_2_1_edc0357_1360798765805_710001_21070_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
             }
 
@@ -983,7 +983,7 @@ public class Power_System extends ParameterListenerImpl {
                 Expression<?>[] arguments30 = new Expression<?>[1];
                 arguments30[0] = new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2)));
                 Expression<Boolean> condition30 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765805_710001_21070_exists);
-                elaborationRule30 = addElaborationRule(condition30, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765805_710001_21070.class, "Sys_timer_AcceptEventAction_start_system", arguments30);
+                elaborationRule30 = addElaborationRule(condition30, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765805_710001_21070.class, "Sys_timer__AcceptEventAction__start_system__Power_System", arguments30);
             }
         }
 
@@ -1031,11 +1031,11 @@ public class Power_System extends ParameterListenerImpl {
 
         public Parameter< ObjectFlow<Power> > sig_17_0_2_1_edc0357_1360798765808_512362_21079 = null;
 
-        public Dependency< Boolean > _17_0_2_1_edc0357_1360798765806_270620_21071_existsDependency = null;
+        public Dependency _17_0_2_1_edc0357_1360798765806_270620_21071_existsDependency = null;
 
-        public Dependency< Integer > caller_endTimeDependency = null;
+        public Dependency caller_endTimeDependency = null;
 
-        public Dependency< Integer > endTimeDependency = null;
+        public Dependency endTimeDependency = null;
 
         public ElaborationRule elaborationRule0 = null;
 
@@ -1096,11 +1096,11 @@ public class Power_System extends ParameterListenerImpl {
             Expression<?>[] arguments0 = new Expression<?>[1];
             arguments0[0] = new Expression<Integer>(startTime);
             Expression<Boolean> condition0 = new Expression<Boolean>(true);
-            elaborationRule0 = addElaborationRule(condition0, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765799_670470_21061.class, "Sys_init_InitialNode_start_system", arguments0);
+            elaborationRule0 = addElaborationRule(condition0, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765799_670470_21061.class, "Sys_init__InitialNode__start_system__Power_System", arguments0);
             Expression<?>[] arguments1 = new Expression<?>[1];
             arguments1[0] = new Expression<Integer>(finalNode_startTime);
             Expression<Boolean> condition1 = new Expression<Boolean>(_17_0_2_1_edc0357_1360798765806_270620_21071_exists);
-            elaborationRule1 = addElaborationRule(condition1, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765806_270620_21071.class, "Sys_end_ActivityFinalNode_start_system", arguments1);
+            elaborationRule1 = addElaborationRule(condition1, _17_0_2_1_edc0357_1360798765060_634347_20307.this, Power_System._17_0_2_1_edc0357_1360798765060_634347_20307._17_0_2_1_edc0357_1360798765806_270620_21071.class, "Sys_end__ActivityFinalNode__start_system__Power_System", arguments1);
         }
     }
 
