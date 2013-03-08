@@ -4,6 +4,7 @@ debugMode = True
 # override these assignments 
 useSocket = True
 useFile = False
+liveFromFile = False
 useTable = False
 useTestData = False
 
@@ -512,7 +513,7 @@ def initFileData():
     global xdata
     global ydata
 
-    fileData = PlotDataReader(fileName)
+    fileData = PlotDataReader(fileName,False)
     if fileData == None or fileData.data == None or len(fileData.data) == 0:
         print("No data found for " + fileName)
         return
