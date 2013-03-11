@@ -74,7 +74,9 @@ class PlotDataReader(object):
             if not readingExecution:
                 continue
             
-            (category,name,m) = PlotDataReader.parseMapLine(line)
+            #UNCOMMENT HERE to go back to the old regular expression parsing!
+            #(category,name,m) = PlotDataReader.parseMapLine(line)
+            (category,name,m) = PlotDataReader.parseWholeLine(line)
             if m:
                 if category not in self.data.keys(): self.data[category] = {}
                 else:
@@ -124,8 +126,7 @@ class PlotDataReader(object):
 
             #find key-value delimiter
             m = innerPatterns[1].search(s, pos)
-            if m == None:
-                break
+            if m == None: break
             #get the key before the delimiter
             st = m.start()
             key = s[pos:st]
@@ -139,8 +140,7 @@ class PlotDataReader(object):
 
             #get the value between the key-value delimiter and the key-value suffix
             m = innerPatterns[2].search(s, pos)
-            if m == None:
-                break
+            if m == None: break
             #get the key before the delimiter
             value = s[pos:m.start()]
             pos = m.end()
@@ -195,8 +195,8 @@ class PlotDataReader(object):
             if re.search("\d{5}",category): category = category[0:len(category)-6]
             interpolationType = x.groups()[3]
             name = x.groups()[4]
-            if name != None:
-                name = name.strip()
+            if name != None: name = name.strip()
+            if interpolationType is None: interpolationType = "STEP"
             if (name == None or len(name) == 0) and interpolationType not in ["STEP", "RAMP", "LINEAR"]:
                 name = interpolationType
                 interpolationType = "STEP"
@@ -221,6 +221,57 @@ class PlotDataReader(object):
         #return PlotDataReader.parseMapWith(s, prefix0, delimiter0, suffix0, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2)
         return PlotDataReader.parseMapWith(s, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2)
     
+    @staticmethod
+    def parseWholeLine(s):
+        x = re.search("^(plottable )?(projected )?([^ {]*)( STEP|RAMP|LINEAR)?( [^ {]*)?(.*)",s)
+        debugPrint("x.groups()=" + str(x.groups()))
+        plottable = x.groups()[0]
+        if plottable != None: plottable = plottable.strip()
+        else: 
+            print "this line is not plottable: %s" % s.strip()
+            return (None,None,None)
+        projected = x.groups()[1]
+        if projected != None: projected = projected.strip()
+        category = x.groups()[2]
+        if "__" in category: category = category.split("__")[-1]
+        if re.search("\d{5}",category): category = category[0:len(category)-6]
+        interpolationType = x.groups()[3]
+        name = x.groups()[4]
+        if name != None: name = name.strip()
+        if interpolationType is None: interpolationType = "STEP"
+        if (name == None or len(name) == 0) and interpolationType not in ["STEP", "RAMP", "LINEAR"]:
+            name = interpolationType
+            interpolationType = "STEP"
+        mapString = x.groups()[5]
+        p = re.search("{[^{}]*{",mapString)
+        if p: mapString = PlotDataReader.getLastMapEntry(mapString)
+        if not mapString: return (None,None,None)
+        
+        m = PlotDataReader.parseMapEntry(mapString)
+        m.interpolationType = interpolationType
+        m.attributes["projected"] = (str(projected).lower() == "projected")
+        return (category,name,m)
+    
+    @staticmethod
+    def parseMapEntry(mapS):
+        zmap = InterpolatedMap.InterpolatedMap()
+        entries = mapS.split(",")
+        for e in entries:
+            x = re.search(".*=(.*)=(.*)\)",e)
+            if x: 
+                try: zmap[int(x.groups()[0])] = float(x.groups()[1])
+                except: 
+                    print "can't insert in entry %s ... %s " % (e, str(x.groups()))
+                    continue
+            else: print "nonconforming entry: %s" % e
+        return zmap
+    
+    @staticmethod
+    def getLastMapEntry(mapS):
+        x = re.search("{.*({.*})\)}$",mapS)
+        if x: return x.groups()[0]
+        return None
+        
     @staticmethod
     def printStackTrace(msg=None):
         import traceback
