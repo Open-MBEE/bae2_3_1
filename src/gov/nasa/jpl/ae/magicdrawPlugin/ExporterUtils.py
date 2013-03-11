@@ -67,6 +67,7 @@ def getPrev(flow):
 def getPrettyIdent(node):
 	return node.name + " (" + str(node.getClassType()).split(".")[-1].strip("'>") + ")"	
 
+# not called anywhere? remove?
 def getStypePropValue(element,stereotype,propname):
 	return StereotypesHelper.getStereotypePropertyValue(element,stereotype,propname)
 
