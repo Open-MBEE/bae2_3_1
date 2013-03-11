@@ -70,6 +70,7 @@ public class ParameterListenerImpl extends HasIdImpl
       new ArrayList< Parameter< ? > >();
   protected List< ConstraintExpression > constraintExpressions =
       new ArrayList< ConstraintExpression >();
+  protected CollectionTree constraintCollection = null;
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected ArrayList< Dependency< ? > > dependencies =
       new ArrayList< Dependency< ? > >();
@@ -694,6 +695,23 @@ public class ParameterListenerImpl extends HasIdImpl
     return set;
   }
 
+  @Override
+  public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) {
+      return null;
+    }
+    seen = pair.second;
+    if ( constraintCollection == null ) {
+      ArrayList<Object> constraintSources = new ArrayList< Object >();
+      constraintSources.add(parameters);
+      constraintSources.add(dependencies);
+      constraintSources.add(constraintExpressions);
+      constraintCollection = new CollectionTree( constraintSources );
+    }
+    return constraintCollection;
+  }
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
    */
@@ -1278,11 +1296,6 @@ public class ParameterListenerImpl extends HasIdImpl
     num += HasConstraints.Helper.getNumberOfConstraints( getConstraintExpressions(), false, seen );
     num += HasConstraints.Helper.getNumberOfConstraints( getDependencies(), false, seen );
     return num;
-  }
-  @Override
-  public CollectionTree getConstraintCollection() {
-    // TODO Auto-generated method stub
-    return null;
   }
   
 }

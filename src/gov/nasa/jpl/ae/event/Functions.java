@@ -1230,7 +1230,15 @@ public class Functions {
     public And(  FunctionCall o2, Expression< Boolean > o1 ) {
       super( o1, o2, "and" );
     }
+    /* (non-Javadoc)
+     * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
+     */
+    @Override
+    public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+      return evaluate( false ) != null;
+    }
   }
+  // REVIEW -- Should a propagate flag be added?  Currently false.
   public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) {
     if ( o1 == null && o2 == null ) return null;
     Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
@@ -1248,6 +1256,13 @@ public class Functions {
     }
     public Or( Expression< Boolean > o1, FunctionCall o2 ) {
       super( o1, o2, "or" );
+    }
+    /* (non-Javadoc)
+     * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
+     */
+    @Override
+    public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+      return evaluate( false ) != null;
     }
   }
   public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) {

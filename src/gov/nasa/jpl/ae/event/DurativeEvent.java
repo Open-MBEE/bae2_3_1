@@ -201,7 +201,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     @Override
-    public CollectionTree getConstraintCollection() {
+    public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen) {
       // TODO Auto-generated method stub
       return null;
     }
@@ -363,7 +363,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     @Override
-    public CollectionTree getConstraintCollection() {
+    public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen) {
       // TODO Auto-generated method stub
       return null;
     }
@@ -1215,6 +1215,34 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return set;
   }
 
+  @Override
+  public CollectionTree getConstraintCollection( boolean deep,
+                                                 Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) {
+      return null;
+    }
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+
+    if ( constraintCollection == null ) {
+      constraintCollection = super.getConstraintCollection( deep, seen );
+      constraintCollection.add( elaborationsConstraint );
+      constraintCollection.add( effectsConstraint );
+      if ( deep ) {
+        constraintCollection.add( elaborationsConstraint );
+        constraintCollection.add( effectsConstraint );
+        constraintCollection.add( elaborations );
+        constraintCollection.add( effects );
+      }
+    }
+    return constraintCollection;
+  }
+
+  public static void testConstraintCollection() {
+    // TODO -- HERE!
+  }
+  
   /*
    * Gather any event instances contained by this event.
    * 

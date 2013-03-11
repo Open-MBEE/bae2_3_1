@@ -425,9 +425,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     assert ( effectFunction.arguments != null &&
              effectFunction.arguments.size() == 2 );
     Pair< Parameter<Integer>, T > p =
-        getTimepointAndValueOfEffect( effectFunction,
-                                      effectFunction.method,
-                                      effectFunction.method );
+        getTimeAndValueOfEffect( effectFunction, true );
     if ( p == null ) {
       return false;
     }
@@ -624,9 +622,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
  
   public void unapplyAdd( EffectFunction effectFunction ) {
     Pair< Parameter<Integer>, T > p =
-        getTimepointAndValueOfEffect( effectFunction,
-                                      effectFunction.method,
-                                      effectFunction.method );
+        getTimeAndValueOfEffect( effectFunction, true );
     if ( p != null && isAddApplied( effectFunction ) ) {
       remove( p.first, p.second );
     }

@@ -316,7 +316,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       setType( defaultValue.getClass() );
     }
     Parameter<Integer> t = new Parameter<Integer>(null,null, 0, this);
-    put( t, defaultValue );
+    setValue( t, defaultValue );
     if ( Debug.isOn() ) isConsistent();
   }
 
@@ -399,6 +399,37 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
   
   
+  /**
+   * @param obj object to cast from 
+   * @param propagate whether to propagate dependencies as part of the evaluation
+   * @return obj cast to V or {@code null} if the cast fails
+   */
+  public V tryEvaluateValue( Object obj, boolean propagate ) {
+    try {
+      return Expression.evaluate( obj, getType(), propagate, true );
+    } catch ( ClassCastException e ) {
+      // ignore
+    }
+    return null;
+  }
+  
+  /**
+   * @param obj
+   *          object to cast or convert to a timepoint
+   * @param propagate whether to propagate dependencies as part of the evaluation
+   * @return obj evaluated as Timepoint or {@code null} if the conversion or
+   *         cast fail
+   */
+  @SuppressWarnings( "unchecked" )
+  public Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate ) {
+    try {
+      Class< ? extends Parameter<Integer> > pcls = (Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
+      return Expression.evaluate( obj, (Class<Parameter<Integer>>)pcls, propagate, true );
+    } catch ( ClassCastException e ) {
+      // ignore
+    }
+    return null;
+  }
   
   public TimeVaryingMap( String name, Method initialValueFunction,
                          Object o, int samplePeriod, int horizonDuration ) {
@@ -896,7 +927,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( tp == null ) return false;
     V v = get( tp );
     if ( value == v ) return true;
-    if ( v != null ) return value.equals( v );
+    if ( v != null ) return Expression.valuesEqual( value, v );// value.equals( v );
     // Saving this null check until later in case a null time value is
     // acceptable, and get(t) above works.
     if ( tp.getValue( false ) == null ) return false;
@@ -915,6 +946,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         entry equals value or {@code null} if there is no such Parameter<Integer>.
    */
   public Parameter<Integer> keyForValueAt( V value, Integer t ) {
+    // REVIEW -- use getKeys()?
     if ( t == null ) return null;
     Parameter<Integer> tp = makeTempTimepoint( t, false );
     Entry< Parameter<Integer>, V > e = this.floorEntry( tp );
@@ -983,12 +1015,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( getType() != null && value != null && !(getType().isAssignableFrom( value.getClass() ) ) ) {
       V valueBefore = value;
       value = Expression.evaluate( value, getType(), true, true );
-      String warningMsg =
-          "Warning: tried to insert value of wrong type, "
-              + valueBefore.getClass().getSimpleName() + ". Expected type is "
-              + getType().getSimpleName() + ".  Inserting value of type "
-              + value.getClass().getSimpleName() + " instead. Value = " + value;
+      // TODO better message for null case ..  if ( valueBefore==nu)
       if ( valueBefore != value ) {
+        String warningMsg = null;
+        if ( value == null ) {
+          warningMsg =
+          "Warning: tried to insert value of wrong type. Expected type is "
+              + getType().getSimpleName() + ".  Inserting null.";
+        } else {
+          warningMsg =
+            "Warning: tried to insert value of wrong type, "
+                + valueBefore.getClass().getSimpleName() + ". Expected type is "
+                + getType().getSimpleName() + ".  Inserting value of type "
+                + value.getClass().getSimpleName() + " instead. Value = " + value;
+        }
         if ( !getType().isAssignableFrom( value.getClass() ) ) {
           Debug.error( false, warningMsg );
         } else {
@@ -1878,9 +1918,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   public void unapply( Effect effect ) {
     Pair< Parameter<Integer>, V > p = 
-        getTimepointAndValueOfEffect( effect,
-                                      getSetValueMethod(),
-                                      getSetValueMethod() );
+        getTimeAndValueOfEffect( effect, true );
+//                                      getSetValueMethod(),
+//                                      getSetValueMethod() );
     if ( p != null ) {
       unsetValue( p.first, p.second );
     }
@@ -1964,31 +2004,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return setValueMethod1;
   }
   
-  public <TT> Pair< Parameter<Integer>, TT > getTimepointAndValueOfEffect( Effect effect,
-                                                                           Method method1,
-                                                                           Method method2 ) {
-    Pair< Object, TT > p1 = getTimeAndValueOfEffect( effect, method1, method2 );
-    if ( p1 == null ) return null;
-    Object t = p1.first;//effectFunction.arguments.get( 0 );
-    TT value = p1.second;
-    Parameter<Integer> tp = null;
-    if ( t instanceof Integer ) {
-      tp = makeTempTimepoint( (Integer)t, true );
-    } else if ( t instanceof Parameter ) {
-      tp = tryCastTimepoint( t );
-    } else {
-      System.err.println( "Effect(" + effect + ") has wrong arguments to "
-                          + method1.getName() + " for " + this );
-      return null;
-    }
-    Pair< Parameter< Integer >, TT > p2 =
-        new Pair< Parameter< Integer >, TT >( tp, value );
-    return p2;
+  public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect ) {
+    return getTimeAndValueOfEffect( effect, true );
   }
-
-  public <TT> Pair< Object, TT > getTimeAndValueOfEffect( Effect effect,
-                                                          Method method1,
-                                                          Method method2 ) {
+  public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect,
+                                                                      boolean timeFirst ) {
     // REVIEW -- Why not use <T>?  Can't enforce it?
     if ( !( effect instanceof EffectFunction ) ) {
       return null;
@@ -1996,41 +2016,71 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction == null || effectFunction.getMethod() == null ) {
       if ( Debug.isOn() ) Debug.errln( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + effect + ", Method=" + method1 + ", Method=" + method2
-                   + ") called with no effect method! " + this );
+                   + effect + ") called with no effect method! " + this );
       return null;
     }
-    boolean isMethod1 = effectFunction.getMethod().equals(method1);
-    boolean isMethod2 =  effectFunction.getMethod().equals( method2);
-    if ( isMethod1  || isMethod2 ) {
-      if ( effectFunction.arguments != null
-           && effectFunction.arguments.size() >= 2 ) {
-        Object t = effectFunction.arguments.get( 0 );
-        Class< ? extends Parameter<Integer> > pcls = (Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
-        t = Expression.evaluate( t, (Class<Parameter<Integer>>)pcls, false, true );
-        Object o = effectFunction.arguments.get( 1 );
-        o = Expression.evaluate( o, getType(), false, true );
+    if ( effectFunction.getMethod().getParameterTypes().length < 2 ) {
+      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
+                   + effect + ") Error! Method takes "
+                   + effectFunction.getMethod().getParameterTypes().length
+                   + " parameters, but 2 are required." );
+      return null;
+    }
+      if ( effectFunction.arguments == null
+           || effectFunction.arguments.size() < 2 ) {
+        Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
+            + effect + ") Error! Method has "
+            + effectFunction.getMethod().getParameterTypes().length
+            + " arguments, but 2 are required." );
+      } else {
+        Parameter<Integer> tp = null;
         TT value = null;
-        try {
-          value = (TT)o;
-        } catch( ClassCastException e ) {
-          // ignore
+        Object arg1 = effectFunction.arguments.get( timeFirst ? 0 : 1 );
+        Object arg2 = effectFunction.arguments.get( timeFirst ? 1 : 0 );
+        tp = tryEvaluateTimepoint( arg1, true );
+        TT val1 = null;
+        if ( tp == null ) {
+          tp = tryEvaluateTimepoint( arg2, true );
+          value = Expression.evaluate( arg1, null, true );//tryEvaluateValue( arg1, true );
+          val1 = value;
+        } else {
+          value = Expression.evaluate( arg2, null, true );//tryEvaluateValue( arg2, true );
         }
-        return new Pair< Object, TT >( t, value ); 
-      }
+        if ( tp == null ) {
+          Integer i = Expression.evaluate( arg1, Integer.class, true );
+          if ( i != null ) {
+            tp = makeTempTimepoint( (Integer)i, true );
+          }
+          if ( tp == null ) {
+            i = Expression.evaluate( arg2, Integer.class, true );
+            if ( i != null ) {
+              tp = makeTempTimepoint( (Integer)i, true );
+              value = val1;
+            }
+          }
+        }
+        
+        return new Pair< Parameter<Integer>, TT >( tp, value ); 
     }
     return null;
   }
   
   @Override
   public boolean isApplied( Effect effect ) {
-    return isApplied(effect, getSetValueMethod(), getSetValueMethod() );
+    return isApplied(effect, getSetValueMethod(), getSetValueMethod() );//, true );
   }
 
+  public boolean isTimeArgFirst( Effect effect ) {
+    // TODO!
+    return true;
+    // uncomment below!!!
+//    Integer ti = effect.whichArgIsTimepoint();
+//    return ti == 0 ;
+  }
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();
     if ( Debug.isOn() ) isConsistent();
-    Pair< Object, V > p = getTimeAndValueOfEffect( effect, method1, method2 );
+    Pair< Parameter<Integer>, V > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
     if ( p == null ) return false;
     Object t = p.first;
     V value = p.second;
@@ -2104,7 +2154,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
       Timepoint tp = new Timepoint( null, key, this );
       V value = valueFromString( ss.getValue() );
-      put( tp, value );
+      setValue( tp, value );
     }
   }
   

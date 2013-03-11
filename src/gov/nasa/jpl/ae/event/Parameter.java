@@ -278,27 +278,29 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     } catch ( ClassCastException cce ) {
       cce.printStackTrace();
     }
-//    if ( val instanceof Parameter && getType() != null && !getType().isInstance( val ) ) {
-//      Object valVal = ( (Parameter< ? >)val ).getValue( propagateChange );
-//      T castVal = null;
-//      try {
-//        castVal = (T)valVal;
-//        setValue( castVal, propagateChange );
-//      } catch ( ClassCastException cce ) {
-//        cce.printStackTrace();
-//      }
-//      return;
-//    }
     boolean changing = !valueEquals( val );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+                                     + "): changing = " + changing );
     if ( changing ) {
-      if ( owner != null ) {//&& propagateChange ) {
+      if ( owner != null ) {// && propagateChange ) {
+        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+                                         + "): setStaleAnyReferencesTo("
+                                         + this + ")" );
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this );
+      } else {
+        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+                                         + "): owner is null" );
       }
-     this.value = val;
+      this.value = val;
+      if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+                                       + "): value set!" );
       constraintList.clear();
-      if ( owner != null ) {//&& propagateChange ) {
-          owner.handleValueChangeEvent( this );
+      if ( owner != null ) {// && propagateChange ) {
+        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+                                         + "): handleValueChangeEvent("
+                                         + this + ")" );
+        owner.handleValueChangeEvent( this );
       }
     }
     setStale( false );
@@ -782,7 +784,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   }
 
   @Override
-  public CollectionTree getConstraintCollection() {
+  public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen) {
     // TODO Auto-generated method stub
     return null;
   }

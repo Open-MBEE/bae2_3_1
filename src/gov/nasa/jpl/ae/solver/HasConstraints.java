@@ -31,7 +31,7 @@ public interface HasConstraints extends HasId {
   public long getNumberOfUnresolvedConstraints(boolean deep, Set< HasConstraints > seen);
   public long getNumberOfConstraints(boolean deep, Set< HasConstraints > seen);
   //public Iterator<Constraint> iterator();
-  public CollectionTree getConstraintCollection();
+  public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen);
 
   /**
    * This helper class provides static methods for making calls on Objects and
