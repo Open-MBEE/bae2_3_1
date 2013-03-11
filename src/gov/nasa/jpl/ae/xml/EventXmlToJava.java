@@ -361,6 +361,7 @@ public class EventXmlToJava {
    */
   protected String fixName( String name ) {
     if ( name == null ) return null;
+    name = name.replaceAll( "[\\W]", "_" );
     return name;
 /*    StringBuffer sb = new StringBuffer();
     Pattern pattern = Pattern.compile( "\\b" ); // \b = word boundary
@@ -399,6 +400,7 @@ public class EventXmlToJava {
    * @return A translation of name into a valid Java identifier or type name.
    */
   protected String fixSimpleName( String name ) {
+    name = name.replaceAll( "[\\W]", "_" );
     return name;
 /*    if ( name == null ) return null;
     //String paramPart = Utils.parameterPartOfName( name );
@@ -645,6 +647,7 @@ public class EventXmlToJava {
     Boolean s = isEventMap.get( className );
     if ( s != null && s ) return true;
     String scopedName = getClassNameWithScope( className );
+    if ( scopedName == null ) return false;
     s = isEventMap.get( scopedName );
     return ( s != null && s );
   }
@@ -1022,6 +1025,8 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.TimeVarying" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingMap" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMap" );
+    addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMaps" );
+    addImport( "gov.nasa.jpl.ae.event.TimeVaryingProjection" );
     addImport( "gov.nasa.jpl.ae.event.Expression" );
     addImport( "gov.nasa.jpl.ae.event.Timepoint" );
 //    addImport( "event.FunctionCall" );
@@ -1950,6 +1955,8 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.TimeVarying" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingMap" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMap" );
+    addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMaps" );
+    addImport( "gov.nasa.jpl.ae.event.TimeVaryingProjection" );
     addImport( "gov.nasa.jpl.ae.util.Utils" );
     addImport( "gov.nasa.jpl.ae.util.ClassUtils" );
     addImport( "java.util.Vector" );
@@ -3132,7 +3139,7 @@ public class EventXmlToJava {
          expr instanceof ObjectCreationExpr ) {
 //      MethodCallExpr mcExpr = (MethodCallExpr)expr;
 
-      JavaForFunctionCall jffc = new JavaForFunctionCall( this, expr, false,
+      JavaForFunctionCall jffc = new JavaForFunctionCall( this, expr, true,
                                                           packageName );
 
       int myNum = counter++;
