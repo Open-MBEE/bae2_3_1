@@ -398,21 +398,22 @@ public class Expression< ResultType > extends HasIdImpl
 		if (expression instanceof Groundable) {
 			return ((Groundable)expression).isGrounded(deep, seen);
 		}
-		if ( expression == null ) {
-			return false;
-		}
+//		if ( expression == null ) {
+//			return false;
+//		}
 		switch (type) {
 		case Value:
 //		case Method:
-			return true; // since expression is not null
-		case Parameter:
-		case Function:
-    case Constructor:
+			return true; // null should be ok, right?
+		case Parameter: // Groundable -- should not get here
+		case Function: // Groundable -- should not get here
+    case Constructor: // Groundable -- should not get here
 		case None:
 		default:
 			try {
 				throw new IllegalAccessException();
 			} catch (IllegalAccessException e) {
+			  System.err.println( "Error! Expression has invalid type: " + type );
 				e.printStackTrace();
 			}
 			return false; // TODO -- REVIEW -- exit?
@@ -424,17 +425,15 @@ public class Expression< ResultType > extends HasIdImpl
 		if (expression instanceof Groundable) {
 			return ((Groundable)expression).ground(deep, seen);
 		}
-		if ( expression == null ) {
-			return false;
-		}
+//		if ( expression == null ) {
+//			return false;
+//		}
 		switch (type) {
 		case Value:
-			return true;
-//		case Method:
-//			return true; // since expression is not null
-		case Parameter:
-		case Function:
-    case Constructor:
+			return true; // null should be ok, right?
+		case Parameter: // Groundable -- should not get here
+		case Function: // Groundable -- should not get here
+    case Constructor: // Groundable -- should not get here
 		case None:
 		default:
 			try {
@@ -654,8 +653,21 @@ public class Expression< ResultType > extends HasIdImpl
                                      boolean propagate,
                                      boolean allowWrapping ) throws ClassCastException {
     if ( o1 == o2 ) return true;
-    Object v1 = evaluate( o1, cls, propagate, allowWrapping );
-    Object v2 = evaluate( o2, cls, propagate, allowWrapping );
+    if ( o1 == null || o2 == null ) return false;
+    if ( (o1 instanceof Float && o2 instanceof Double ) || (o2 instanceof Float && o1 instanceof Double ) ) {
+      Debug.out( "" );
+    }
+    Class< ? > cls1 =
+        ( cls != null ) ? cls : ( ( o1 == null ) ? null : o1.getClass() );
+    Class< ? > cls2 =
+        ( cls != null ) ? cls : ( ( o2 == null ) ? null : o2.getClass() );
+    Object v1 = evaluate( o1, cls1, propagate, allowWrapping );
+    Object v2 = evaluate( o2, cls1, propagate, allowWrapping );
+    if ( Utils.valuesEqual( v1, v2 ) ) return true;
+    if ( cls1 != cls2 ) {
+      v1 = evaluate( o1, cls2, propagate, allowWrapping );
+      v2 = evaluate( o2, cls2, propagate, allowWrapping );      
+    }
     return Utils.valuesEqual( v1, v2 );
   }
 

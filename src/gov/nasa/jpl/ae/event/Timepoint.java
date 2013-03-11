@@ -46,8 +46,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   public static final String timestampFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
   public static final String fileTimestampFormat = "yyyy-MM-dd'T'HH.mm.ss.SSSZ";
 
-  protected static IntegerDomain defaultDomain //= IntegerDomain.positiveDomain;
-                                                 = TimeDomain.horizonDomain;
+  protected static IntegerDomain defaultDomain = IntegerDomain.positiveDomain;
+                                               //= TimeDomain.horizonDomain;
   
   public static enum Units { 
     days(24*3600*1e9), hours(3600*1e9), minutes(60*1e9),

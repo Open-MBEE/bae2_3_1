@@ -311,13 +311,26 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public boolean isSetValueApplied( EffectFunction effectFunction ) {
     if ( effectFunction.getArguments() != null
          && effectFunction.getArguments().size() >= 2 ) {
-     Object o = effectFunction.getArguments().get( 0 );
-     Object t = (Parameter<Integer>)effectFunction.getArguments().get( 1 );
-     return isSetValueApplied( o, t );
+      Pair< Parameter<Integer>, Obj > p =
+          getTimeAndValueOfEffect( effectFunction, false );
+      if ( p == null ) return false;
+      Object o = p.second;
+      Object a1 = p.first;
+      Parameter< Integer > param = null;
+      param = tryCastTimepoint( a1 );
+      if ( param == null ) {
+        param = tryCastTimepoint( o );
+      }
+      if ( param != null
+           && param.getValue( false ) != null
+           && Integer.class.isAssignableFrom( param.getValue( false )
+                                                   .getClass() ) ) {
+        Object t = (Parameter< Integer >)param;
+        return isSetValueApplied( o, t );
+      }
     }
     return false;
   }
-
   
   // static functions to get Methods for this class
   

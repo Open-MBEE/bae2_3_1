@@ -135,13 +135,15 @@ public class Dependency< T > extends HasIdImpl
     if ( pair.first ) return true;
     seen = pair.second;
     boolean sat;
+    // REVIEW -- The criteria for being satisfied should be reviewed since some
+    // of these are short-circuited with false.
     if ( constraint != null ) {
       sat = constraint.isSatisfied(deep, seen);
       if ( Debug.isOn() && !sat ) Debug.outln( "Dependency.isSatisfied(): constraint not satisfied: " );// + this );
     } else if ( parameter == null ) {
       sat = false;
       if ( Debug.isOn() && !sat ) Debug.outln( "Dependency.isSatisfied(): parameter is null: " );// + this );
-    } else if ( !parameter.isGrounded(deep, null) ) {
+    } else if ( false && !parameter.isGrounded(deep, null) ) {
       sat = false;
       parameter.setStale( true );
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): parameter not grounded: " );// + this );
@@ -636,7 +638,7 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public CollectionTree getConstraintCollection() {
+  public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen) {
     // TODO Auto-generated method stub
     return null;
   }

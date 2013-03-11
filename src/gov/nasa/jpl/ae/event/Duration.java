@@ -23,13 +23,14 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 
   public static final String durationFormat = "yyyy-DDD'T'HH:mm:ss.SSS";
   public static final String durationFormatForIdentifier = "yyyy-DDD'T'HH.mm.ss.SSS";
+  public static IntegerDomain defaultDomain = Timepoint.defaultDomain;
       //Timepoint.timestampFormat.replace( "Z", "" ); //"HH:mm:ss.SSS";
 
   /**
    * @param o 
    */
   public Duration(ParameterListener o) {
-    super("duration", TimeDomain.horizonDomain, o);
+    super("duration", defaultDomain, o);
   }
 
   /**
@@ -37,7 +38,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
    * @param name
    */
   public Duration(String name, ParameterListener o) {
-    super(name, TimeDomain.horizonDomain, o);
+    super(name, defaultDomain, o);
   }
 
 	/**
@@ -45,7 +46,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	 * @param v
 	 */
 	public Duration(Integer value, ParameterListener o) {
-		super( "duration", TimeDomain.horizonDomain, value, o );
+		super( "duration", defaultDomain, value, o );
 	}
 
   /**
@@ -54,7 +55,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
    * @param v
    */
   public Duration(String name, Integer value, ParameterListener o) {
-    super( name, TimeDomain.horizonDomain, value, o );
+    super( name, defaultDomain, value, o );
   }
 
 	public Duration(Duration duration) {
@@ -63,7 +64,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	
 	public Duration( String name, double durVal,
                    Units durUnits, ParameterListener o ) {
-    super( name, TimeDomain.horizonDomain,
+    super( name, defaultDomain,
            new Integer( (int)(durVal * Timepoint.Units.conversionFactor( durUnits )) ),
            o );
   }

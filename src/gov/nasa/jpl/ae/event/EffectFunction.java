@@ -180,10 +180,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    if ( object instanceof TimeVarying ) {
-      return HasTimeVaryingObjects.Helper.getTimeVaryingObjects( object, deep, seen );
-    }
-    return Utils.getEmptySet();
+    return HasTimeVaryingObjects.Helper.getTimeVaryingObjects( object, deep, seen );
   }
 
 }

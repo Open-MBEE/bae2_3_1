@@ -515,7 +515,7 @@ import java.util.TreeMap;
       }
       for ( Object container : sources ) {
         if ( container instanceof HasConstraints ) {
-          if ( ( (HasConstraints)container ).getConstraintCollection()
+          if ( ( (HasConstraints)container ).getConstraintCollection(false, null)
                                             .remove( o ) ) {
             return true;
           }
@@ -591,7 +591,7 @@ import java.util.TreeMap;
           e.remove();
           modified = true;
         } else if ( nextObj instanceof HasConstraints ) {
-          if ( ((HasConstraints)nextObj).getConstraintCollection().retainAll( collection ) ) {
+          if ( ((HasConstraints)nextObj).getConstraintCollection(false, null).retainAll( collection ) ) {
             modified = true;
           }
         }
