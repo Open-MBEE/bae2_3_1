@@ -2136,6 +2136,7 @@ public class Customer extends ParameterListenerImpl {
             }
 
             public void init_17_0_2_1_edc0357_1360798765742_582142_20938Dependencies() {
+                addDependency( duration, new Expression(2) );
                 addDependency(_17_0_2_1_edc0357_1360798765739_210124_20933_exists, new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Expression<Boolean>(new Functions.Or(new Expression<Boolean>(new Functions.Equals(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765737_27623_20930_exists), null)), new Expression<Boolean>(new Functions.Not(new Expression<Boolean>(_17_0_2_1_edc0357_1360798765737_27623_20930_exists)))))), new Expression<Boolean>(new Functions.Less(new Expression<Integer>(new Functions.Plus(new Expression<Integer>(endTime), new Expression<Integer>(2))), new Expression<Integer>(finalNode_startTime)))))));
                 addDependency(objectToPass, new Expression(new EffectFunction(sig_17_0_2_1_edc0357_1360798765746_317210_20963, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "receive", gov.nasa.jpl.ae.event.Parameter.class), new Object[] { new Expression<Integer>(startTime) })));
             }
