@@ -82,7 +82,12 @@ class ClassifierClass(object):
 		gl.log("time to make classifier: %s" % str(time.time()-stime))
 
 	def getStypePropValue(self,element,stereotype,propname):
-		return StereotypesHelper.getStereotypePropertyValue(element,stereotype,propname)
+		propVal = StereotypesHelper.getStereotypePropertyValue(element,stereotype,propname)
+		if propVal == None or len(propVal) <= 0:
+			val = None
+		else:
+			val = propVal[0]
+		return val
 	
 	def inspectComposition(self,system):
 		signalsToBuild = []
@@ -102,14 +107,14 @@ class ClassifierClass(object):
 			#arguments for time varying map construction
 			readOnly = derived = plottable = projection = default = filename = profile = None
 			if StereotypesHelper.hasStereotype(p,TVM):
-				plottable = self.getStypePropValue(p, TVM, "plottable")[0]
-				projection = self.getStypePropValue(p, TVM, "projection")[0]
+				plottable = self.getStypePropValue(p, TVM, "plottable")
+				projection = self.getStypePropValue(p, TVM, "projection")
 				readOnly = p.isReadOnly()
 				derived = p.isDerived()
 				default = (p.default if p.default != "" else None)
-				if projection and not derived: profile = self.getStypePropValue(p, TVM, "profile")[0]
+				if projection and not derived: profile = self.getStypePropValue(p, TVM, "profile")
 				if profile: 
-					try: filename = self.getStypePropValue(profile, PF, "filename")[0]
+					try: filename = self.getStypePropValue(profile, PF, "filename")
 					except: EU.handleException("can't get filename on item %s" % str(profile))
 			gl.log("\n	readOnly: %s\n	derived: %s\n	plottable: %s\n	projection: %s\n	default: %s\n	profile: %s\n	filename: %s" \
 							% (str(readOnly), str(derived), str(plottable), str(projection), str(default), str((profile.name if profile else None)), str(filename)))
@@ -291,6 +296,7 @@ class activityEventClass(object):
 	def inspectComposition(self,activity):
 		self.translateEdgesToMembers(activity)
 		for node in activity.node:
+			if node == None: continue
 			self.allSignals[node]={"out":[],"in":[]}
 			self.nexts[node]={}
 			self.prevs[node]={}
@@ -385,11 +391,13 @@ class activityEventClass(object):
 					  signame = "sig" + param.getID()
 					  self.members[signame] = ("ObjectFlow&lt;%s&gt;" % pt,'new ObjectFlow("'+signame+'")', "object flow for return type activity parameter nodes") #used??
 			
-		for node in activity.node:	
+		for node in activity.node:
+			if node == None: continue
 			dicts = (self.flowTypes, self.allSignals, self.nexts, self.prevs)
 			r = None
 			if node in self.ranks.keys(): r = self.ranks[node]
-			aeClass = actionEventClass(node,dicts,self.id,r,self.final.getID(),self.constructorArgs)
+			fId = None if self.final == None else self.final.getID() 
+			aeClass = actionEventClass(node,dicts,self.id,r,fId,self.constructorArgs)
 			self.classes.append(aeClass)
 			if len(aeClass.errors.keys()) > 0:
 				self.errors[node] = aeClass.errors
@@ -576,7 +584,7 @@ class actionEventClass(object):
 			outID = objectOut.getID()
 			try: tname = EU.type2java(sf.type.name)
 			except:tname = "Object"
-			append = ".getValue(startTime)" if StereotypesHelper.hasStereotype(sf,TVM) and EU.getStypePropValue(sf, TVM, "projection")[0] else ""
+			append = ".getValue(startTime)" if StereotypesHelper.hasStereotype(sf,TVM) and EU.getStypePropValue(sf, TVM, "projection") else ""
 			if StereotypesHelper.hasStereotype(node,SSMAT):
 				t = node.object.getID()
 				self.dependencies[outID] = (tname,"%s.getValue(%s)%s" % (sfID,t,append))
