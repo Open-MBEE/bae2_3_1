@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -97,6 +98,11 @@ public final class FileUtils {
 //    ResourcesPlugin.getWorkspace().getRoot().getProjects();
 //  }
   
+  /**
+   * Find a file with the name, {@code fileName}, in the current working directory or some subdirectory. 
+   * @param fileName the name of the file to find
+   * @return an existing {@code File} named {@code fileName}
+   */
   public static File findFile( final String fileName ) {
     File file = existingFile( fileName );
     if ( file == null ) {
@@ -109,6 +115,14 @@ public final class FileUtils {
         File f = q.get( 0 );
         q.remove( 0 );
         if ( f.isDirectory() ) {
+          // is the file in this directory?
+          String fileInDirString = f.getAbsolutePath() + File.separator + fileName;
+          File fileInDir = new File(fileInDirString);
+          if ( fileInDir.exists() ) {
+            files.add( fileInDir );
+            break;
+          }
+          // check other files/directories
           File[] dirFiles = f.listFiles();
           q.addAll( Arrays.asList( dirFiles ) );
         }
