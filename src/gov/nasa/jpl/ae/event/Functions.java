@@ -297,19 +297,29 @@ public class Functions {
     }
   }
 
+  // TODO -- Create a plus(Double, Double) that does the overflow and call from
+  // here. add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
     Number result = null;
     Number n1 = Expression.evaluate( o1, Number.class, false );
     Number n2 = Expression.evaluate( o2, Number.class, false );
     if ( n1 != null && n2 != null ) {
       if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = n1.doubleValue() + n2.doubleValue();
+        result = ((Double)n1.doubleValue()) + ((Double)n2.doubleValue());
+      } else if ( n1 instanceof Float || n2 instanceof Float ) {
+        result = ((Float)n1.floatValue()) + ((Float)n2.floatValue());
+      } else if ( n1 instanceof Long || n2 instanceof Long ) {
+        result = ((Long)n1.longValue()) + ((Long)n2.longValue());
+      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
+        result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
       } else {
-        // TODO -- what if they are longs?
-        result = n1.intValue() + n2.intValue();
+        result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
       }
     }
     try {
+      if ( o1 != null ) {
+        return (V1)Expression.evaluate( result, o1.getClass(), false );
+      }
       return (V1)result;
     } catch (ClassCastException e) {
       e.printStackTrace();
@@ -336,6 +346,9 @@ public class Functions {
       }
     }
     try {
+      if ( o1 != null ) {
+        return (V1)Expression.evaluate( result, o1.getClass(), false );
+      }
       return (V1)result;
     } catch (ClassCastException e) {
       e.printStackTrace();
@@ -362,6 +375,9 @@ public class Functions {
       }
     }
     try {
+      if ( o1 != null ) {
+        return (V1)Expression.evaluate( result, o1.getClass(), false );
+      }
       return (V1)result;
     } catch (ClassCastException e) {
       e.printStackTrace();
@@ -435,6 +451,18 @@ public class Functions {
       } else {
         result = ( (Double)r1 ) - ( (Double)r2 );
       }
+    } else if ( r1.getClass().isAssignableFrom( java.lang.Float.class ) &&
+          r2.getClass().isAssignableFrom( java.lang.Float.class ) ) {
+       double rd1 = ( (Float) r1).floatValue();
+       double rd2 = ( (Float) r2).floatValue();
+       // check for overflow
+       if ( rd1 >= 0.0 && Double.MAX_VALUE - rd1 <= - rd2 ) {
+         result = Float.MAX_VALUE;
+       } else if ( rd1 <= 0.0 && -Float.MAX_VALUE - rd1 >= - rd2 ) {
+         result = -Double.MAX_VALUE;
+       } else {
+         result = ( (Float)r1 ) - ( (Float)r2 );
+       }
     } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) &&
                 r2.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
       int rd1 = ( (Integer) r1).intValue();

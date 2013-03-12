@@ -279,12 +279,14 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   @Override
   public Double setValue( Parameter< Integer > t, Double value ) {
     if ( value == null ) return null;
-    assert minCap <= maxCap;
-    if ( value < minCap ) {
+    if ( minCap != null && maxCap != null ) {
+      assert minCap <= maxCap;
+    }
+    if ( minCap != null && value < minCap ) {
       if ( Debug.isOn() ) Debug.errln("hit minCap!");
       value = minCap;
     }
-    if ( value > maxCap ) {
+    if ( maxCap != null && value > maxCap ) {
       if ( Debug.isOn() ) Debug.errln("hit maxCap!");
       value = maxCap;
     }

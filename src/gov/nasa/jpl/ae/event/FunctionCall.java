@@ -256,6 +256,7 @@ public class FunctionCall extends Call {
   
   @Override
   public Class<?>[] getParameterTypes() {
+    if ( method == null ) return null;
     return method.getParameterTypes();
   }
   
@@ -266,11 +267,16 @@ public class FunctionCall extends Call {
 
   @Override
   public boolean isVarArgs() {
+    if ( method == null ) return false;
     return method.isVarArgs();
   }
   
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    if ( method == null ) {
+      Debug.errln( "Warning! Tried to invoke a null method! " + this );
+      return null;
+    }
     if ( !Modifier.isStatic( method.getModifiers() )  && evaluatedObject == null ) {
       Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
       return null;
@@ -295,6 +301,7 @@ public class FunctionCall extends Call {
   // TODO -- delete this when version is stable -- the same implementation is in Call
   // Try to match arguments to parameters by evaluating or creating expressions.
   protected Object[] evaluateArgs( boolean propagate ) {
+    if ( method == null ) return null;
     Class< ? >[] paramTypes = method.getParameterTypes();
     return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs() );
   }

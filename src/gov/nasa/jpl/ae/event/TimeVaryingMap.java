@@ -1656,6 +1656,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this {@code TimeVaryingMap} after subtracting {@code tvm}
    */
   public <VV> TimeVaryingMap< V > subtract( TimeVaryingMap< VV > tvm ) {
+    if ( tvm == null ) return null;
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
