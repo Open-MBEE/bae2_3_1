@@ -5,8 +5,14 @@ import os
 
 class InterpolatedMap(SortedDict):
     
-    interpolationType = "STEP" # legal values are "STEP", "RAMP", and "LINEAR"
-    attributes = {} # for storing attributes of the map with external meaning
+
+    
+    """A map from time to value"""
+    def __init__(self):
+        super(InterpolatedMap,self).__init__()
+        #self={}
+        self.interpolationType = "STEP" # legal values are "STEP", "RAMP", and "LINEAR"
+        self.attributes = {} # for storing attributes of the map with external meaning
     
     @staticmethod
     def getNumPattern():
@@ -14,9 +20,6 @@ class InterpolatedMap(SortedDict):
         numPattern = r"\d+"
         return numPattern
     
-    """A map from time to value"""
-    # def __init__(self):
-    #     self={}
     def __getitem__(self, k=None):
         size = len(self._sorted_keys)
         if size == 0:
