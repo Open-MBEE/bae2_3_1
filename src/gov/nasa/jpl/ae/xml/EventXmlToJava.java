@@ -238,7 +238,7 @@ public class EventXmlToJava {
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
     }
-    Debug.turnOn();
+    //Debug.turnOn();
     init();
     if ( translate ) {
       translate();
