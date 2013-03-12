@@ -238,6 +238,7 @@ public class EventXmlToJava {
     if ( pkgName != null && !pkgName.equals( "" ) ) {
       this.packageName = pkgName;
     }
+    Debug.turnOn();
     init();
     if ( translate ) {
       translate();
@@ -443,8 +444,13 @@ public class EventXmlToJava {
       if ( classNode == null ) classNode = classOrEventNode;  // warning?
     }
     while ( classNode != null ) {
-      name =
-          fixName( XmlUtils.getChildElementText( classNode, "name" ) ) + "."
+      //name = XmlUtils.getChildElementText( classNode, "name" );
+
+      String rawName = XmlUtils.getChildElementText( classNode, "name" );
+      if ( rawName.contains( "25431" ) ) {
+        Debug.out( "" );
+      }
+      name  =  fixName( rawName ) + "."
                    + name;
       classNode =
           XmlUtils.getEnclosingNodeWithName( classNode.getParentNode(),
@@ -1156,7 +1162,11 @@ public class EventXmlToJava {
                                            + " for event class " + eventType
                                            + "!",
                                        memberDecl ) ) {
-                p.type = memberDecl.type;
+               p.type = memberDecl.type;
+              } else {
+                // delete 1 line below -- just for debug
+                memberDecl = lookupMemberByName( eventType, p.name,
+                                                       true, false );
               }
             }
             japa.parser.ast.body.Parameter param =
