@@ -22,6 +22,7 @@ fileName = 'C:\Users\bclement\workspace\CS\simulationSnapshot.example.txt'
 
 plotLines = True
 allLinesSameStyle = True # linestyle="-" for all lines
+makeProjectionsDashed = True
 plotMarkers = False
 allMarkersSameStyle = False # linestyle="-" for all lines
 
@@ -43,8 +44,7 @@ timeout = 20 # seconds of no data over socket before closing socket
 dataModes = None
 
 usingTk = True
-if saveMovie:
-    usingTk = False
+if saveMovie: usingTk = False
 
 # To keep time=now in center and scroll with time, set zoomToFitX=False and centerAtNow=True
 zoomToFitX = True
@@ -54,7 +54,6 @@ centerAtNow = False
 horizonDurationHours = 24
 xAxisUnits = None
 redrawEveryNthTime = 1
-
 timeNow = horizonDurationHours / 1.6
 
 
@@ -128,8 +127,7 @@ defaultSubplotTitle = ""
 
 
 def debugPrint( s ):
-    if debugMode:
-        print "[animatePlot]" + s
+    if debugMode: print "[animatePlot]" + s
 
 def receiveString( sock ):
     ''' We don't have Java code for packaging data like Python's struct.pack(),
@@ -169,8 +167,7 @@ def initSocket( host, port ):
         if "__" in subplotId: subplotId = subplotId.split("__")[-1]
         if re.search("\d{6}",subplotId): subplotId = subplotId[0:len(subplotId)-6]
         lineNames.append(name)
-        if not doSubplots and len(subplotIds) > 0:
-            subplotId = [x for x in subplotIds][0]
+        if not doSubplots and len(subplotIds) > 0: subplotId = [x for x in subplotIds][0]
         subplotForLine.append(subplotId)
         subplotIds.add(subplotId)
     debugPrint( "numLines = " + str(numLines) )
@@ -197,18 +194,15 @@ def interpolateForAllX():
                 done = False
                 curX = xdata[i][indices[i]]
                 if x < curX:
-                    if indices[i] > 0:
-                        value = ydata[i][indices[i]-1]
+                    if indices[i] > 0: value = ydata[i][indices[i]-1]
                 else:
                     value = ydata[i][indices[i]]
                     indices[i] = indices[i] + 1
-            elif len(xdata[i]) > 0 and len(newYdata[i]) > 0:
-                value = newYdata[i][-1]
+            elif len(xdata[i]) > 0 and len(newYdata[i]) > 0: value = newYdata[i][-1]
             if value != None:
                 newXdata[i].append(x)
                 newYdata[i].append(value)
-        if x == lastx:
-            break
+        if x == lastx: break
         x = myMin([xdata[i][indices[i]] for i in range(len(xdata)) if indices[i] < len(xdata[i])])
     xdata = newXdata
     ydata = newYdata
@@ -242,10 +236,8 @@ def updateBounds(subId, datx, daty, updateLimits=True):
             tmx = mx + xGrow*(mx - mn)
             tmn = mn - xGrow*(mx - mn)
 #        else:
-        if mx > xmax[subId]:
-            xmax[subId] = myMax((tmx, xmax[subId] + xGrow*(xmax[subId] - xmin[subId])))
-        if mn < xmin[subId]:
-            xmin[subId] = myMin((tmn, xmin[subId] - xGrow*(xmax[subId] - xmin[subId])))
+        if mx > xmax[subId]: xmax[subId] = myMax((tmx, xmax[subId] + xGrow*(xmax[subId] - xmin[subId])))
+        if mn < xmin[subId]: xmin[subId] = myMin((tmn, xmin[subId] - xGrow*(xmax[subId] - xmin[subId])))
     if zoomToFitY and daty != None and len(daty) > 0:
 #        mn = myMin([ymin[subId], daty])
 #        mx = myMax([ymax[subId], daty])
@@ -257,12 +249,9 @@ def updateBounds(subId, datx, daty, updateLimits=True):
             tmx = mx + yGrow*(mx - mn)
             tmn = mn - yGrow*(mx - mn)
 #        else:
-        if mx >= ymax[subId]:
-            ymax[subId] = myMax((tmx, ymax[subId] + yGrow*(ymax[subId] - ymin[subId])))
-        if mn < ymin[subId]:
-            ymin[subId] = myMin((tmn, ymin[subId] - yGrow*(ymax[subId] - ymin[subId])))
-    if not updateLimits:
-        return
+        if mx >= ymax[subId]: ymax[subId] = myMax((tmx, ymax[subId] + yGrow*(ymax[subId] - ymin[subId])))
+        if mn < ymin[subId]: ymin[subId] = myMin((tmn, ymin[subId] - yGrow*(ymax[subId] - ymin[subId])))
+    if not updateLimits: return
     # Need to keep x-axis (time) the same for everyone
     if zoomToFitX or centerAtNow:
         curmin, curmax = axs[subId].get_xlim()
@@ -276,8 +265,7 @@ def updateBounds(subId, datx, daty, updateLimits=True):
                     ax.set_xlim(xmin[sId], xmax[sId])
 #    if zoomToFitX or centerAtNow:
 #        axs[subId].set_xlim(xmin[subId], xmax[subId])
-    if zoomToFitY:
-        axs[subId].set_ylim(ymin[subId], ymax[subId])
+    if zoomToFitY: axs[subId].set_ylim(ymin[subId], ymax[subId])
     return
 
 def queueSocketData(sock, queue):
@@ -286,8 +274,7 @@ def queueSocketData(sock, queue):
     doneRecv = False
 
     while 1:
-        if doneRecv:
-            break
+        if doneRecv: break
         try:
             # receive a string telling whether receiving data at timepoint or 
             # update a series of data
@@ -301,8 +288,7 @@ def queueSocketData(sock, queue):
                 debugPrint("try to receive data for plot")
                 arr = sock.receive()
                 debugPrint("received data for plot: " + str(arr))
-                if arr == None:
-                    break
+                if arr == None: break
                 dat.append(arr)
             else:
                 #if len(arr) != expectedLength: # HACK -- what if the size were coincidentally the same?
@@ -314,8 +300,7 @@ def queueSocketData(sock, queue):
                 dat.append(lineId)
                 debugPrint("received lineId=" + str(lineId))
                 subplotId = receiveString(sock) #sock.receive()
-                if not doSubplots and len(subplotIds) > 0:
-                    subplotId = [x for x in subplotIds][0]
+                if not doSubplots and len(subplotIds) > 0: subplotId = [x for x in subplotIds][0]
                 dat.append(subplotId)
                 debugPrint("received subplotId=" + str(subplotId))
                 debugPrint("try to receive data for plot")
@@ -341,12 +326,10 @@ def spawnQueue():
     global queue
     global qthread
     global sock
-
     queue = Queue.Queue()
     qthread = threading.Thread(target=queueSocketData, args=(sock, queue))
     qthread.daemon = True
     qthread.start()
-
     return qthread
 
 
@@ -363,30 +346,21 @@ def socketDataGen():
     #global nowLines
     #global doneReceiving
     global queue
-    
     global timeout
 
     doneReceiving = False
-
     cnt = 0
-    if genXValues:
-        yRange = range(1,numLines+1)
-    else:
-        yRange = range(numLines)
+    if genXValues: yRange = range(1,numLines+1)
+    else: yRange = range(numLines)
     #yield 0, [0.0 for n in yRange]
     while 1:
-        if doneReceiving:
-            break
+        if doneReceiving: break
         try:
-            if queue == None:
-                break
+            if queue == None: break
             dat = None
-            try:
-                dat = queue.get(True, timeout)
-            except:
-                pass
-            if dat == None:
-                break
+            try: dat = queue.get(True, timeout)
+            except: pass
+            if dat == None: break
             # receive a string telling whether receiving data at timepoint or 
             # update a series of data
             dataType = dat[0]
@@ -398,12 +372,9 @@ def socketDataGen():
                 debugPrint("try to receive data for plot")
                 arr = dat[1]
                 debugPrint("received data for plot: " + str(arr))
-                if arr == None:
-                    break
-                if genXValues and len(arr) > 0:
-                    xVal = arr[0]
-                else:
-                    xVal = cnt
+                if arr == None: break
+                if genXValues and len(arr) > 0: xVal = arr[0]
+                else: xVal = cnt
                 timeNow = xVal
                 yield xVal, [arr[i] for i in yRange]
                 cnt+=1
@@ -425,8 +396,7 @@ def socketDataGen():
                 xvals = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 0]
                 yvals = [arr[i] for i in range(0,len(arr)) if np.mod(i,plotDimension) == 1]
                 addStaticLine(lineId, subplotId, xvals, yvals)
-        except RuntimeError:
-            break
+        except RuntimeError: break
     debugPrint("finished yielding data")
 
 
@@ -449,10 +419,8 @@ def addStaticLine(lineId, subplotId, xvals, yvals):
         debugPrint("ADDING EXTRA LINE to lines with names " + str(lineNames))
         lineNames.append(lineId)
         subplotForLine.append(subplotId)
-        if subplotId not in subplotIds:
-            ax = addAx(subplotId)
-        else:
-            ax = axs[subplotId]
+        if subplotId not in subplotIds: ax = addAx(subplotId)
+        else: ax = axs[subplotId]
         addLine(ax, idx)
         debugPrint("adding line " + lineNames[idx] + " for subplot " + subplotId + ", ax=" + str(ax))
         ax.legend(loc="upper right")
@@ -484,13 +452,11 @@ def testDataGen():
         cnt+=1
 
 def dataFromTable():
-    global timeNow
-    
+    global timeNow 
     table = InterpolatedMap()
     table[0]=[3,4,1,0]
     table[10]=[7,4,8,4]
     table[15]=[5,10,1,10]
-    
     debugPrint("dataFromTable()")
     cnt = 0
     #subplotIds.add("tableData")
@@ -544,12 +510,9 @@ def flatten(lst, useValuesInsteadOfKeys=False):
     print("flatten(" + str(lst) + ")")
     newLst = []
     for e in lst:
-        if useValuesInsteadOfKeys and isinstance(e, dict):
-            newLst.extend(flatten(e.values()))
-        if isinstance(e, Iterable) and not isinstance(e, str):
-            newLst.extend(flatten(e))
-        else:
-            newLst.append(e)
+        if useValuesInsteadOfKeys and isinstance(e, dict): newLst.extend(flatten(e.values()))
+        if isinstance(e, Iterable) and not isinstance(e, str): newLst.extend(flatten(e))
+        else: newLst.append(e)
     return newLst
 
 # TODO - needs testing
@@ -568,8 +531,7 @@ def dataFromFile():
     mapLists = [ namedMaps.values() for namedMaps in file.data.values() if namedMaps != None ]
     keys = flatten([[ m.keys() for m in mList if len(m.keys()) > 0] for mList in mapLists])
     s = set()
-    for k in keys():
-        s.add(k)
+    for k in keys(): s.add(k)
     keys = [k for k in s]
     keys.sort()
     for k in keys:
@@ -582,8 +544,7 @@ def dataFromFile():
                 lineData = lineItems[1]
                 if "projected" in lineData.attributes.keys() and lineData.attributes["projected"] == True:
                     addStaticLine(lineName, subplotId, lineData.keys(), lineData.values())
-                else:
-                    dat.append(lineData[timeNow])
+                else: dat.append(lineData[timeNow])
         yield timeNow, dat
         debugPrint("tried to yield data for plot: " + str(dat))
 
@@ -610,14 +571,10 @@ def addNowLine(subplotId):
     moveNowLine(nowLine)
 
 def convertHoursTo(numHours, units):
-    if units == None or units == 'seconds':
-        return numHours * 3600
-    if units == 'minutes':
-        return numHours * 60
-    if units == 'hours':
-        return numHours
-    if units == 'days':
-        return numHours / 24
+    if units == None or units == 'seconds': return numHours * 3600
+    if units == 'minutes': return numHours * 60
+    if units == 'hours': return numHours
+    if units == 'days': return numHours / 24
 
 def initializePlotBounds(subplotId = None):
     global numLines
@@ -643,16 +600,11 @@ def initializePlotBounds(subplotId = None):
         xmin = {}
         xmax = {}
         ymin = {}
-        ymax = {}
-    
-    if subplotId == None:
-        subs = axs.keys()
-    else:
-        subs = [subplotId]
-    
+        ymax = {}    
+    if subplotId == None: subs = axs.keys()
+    else: subs = [subplotId]
     for subId in subs:
         ax = axs[subId]
-    
         xmin[subId], xmax[subId] = ax.get_xlim()
         ymin[subId], ymax[subId] = ax.get_ylim()
         
@@ -686,8 +638,7 @@ def initializePlotBounds(subplotId = None):
                 yvals.append([staticLines[dat][1] for dat in staticLines if subplotForLine[lineIdToIndex[dat]] == subId])
             updateBounds(subId, None, yvals, False)
     if axs.keys() != None and len(axs.keys()) > 0:
-        for subId in axs.keys():
-            updateBounds(subId, None, None, True)
+        for subId in axs.keys(): updateBounds(subId, None, None, True)
     interpolateForAllX()
     for subId in axs.keys():
         debugPrint("plot bounds for " + subId + ":")
@@ -695,10 +646,8 @@ def initializePlotBounds(subplotId = None):
         debugPrint("xmax = " + str(xmax[subId]))
         debugPrint("ymin = " + str(ymin[subId]))
         debugPrint("ymax = " + str(ymax[subId]))
-        if xAxisUnits == None and xmax[subId] - xmin[subId] > 5000:
-            xAxisUnits = 'seconds'
-    if xAxisUnits == None:
-        xAxisUnits = 'hours'
+        if xAxisUnits == None and xmax[subId] - xmin[subId] > 5000: xAxisUnits = 'seconds'
+    if xAxisUnits == None: xAxisUnits = 'hours'
     return
 
 def updateData(data = (None, None)):
@@ -713,16 +662,12 @@ def updateData(data = (None, None)):
     if data == None:
         t = None
         y = None
-    else:
-        t,y = data
-
-    if xmin == None:
-        initializePlotBounds()
+    else: t,y = data
+    if xmin == None: initializePlotBounds()
     elif t != None and y != None:
         if len(y) > 0:
             updateBounds(subplotForLine[0], [t], None)
-            for i in range(len(y)):
-                updateBounds(subplotForLine[i], None, [y[i]])
+            for i in range(len(y)): updateBounds(subplotForLine[i], None, [y[i]])
 
     debugPrint("try to update data for plot")
     # update the plot data
@@ -747,10 +692,7 @@ def updateData(data = (None, None)):
         # apply the data to the plot lines
         debugPrint(str(lines))
         lines[i].set_data(xdata[i], ydata[i])
-    
-        if showLabels:
-            plt.annotate(('%0.3f' % (y[i])), (t,y[i]))
-
+        if showLabels: plt.annotate(('%0.3f' % (y[i])), (t,y[i]))
     replaceInitValues = False
 
     # update nowLines
@@ -764,37 +706,27 @@ def addLine(ax = None, index = None):
     global lines
     
     # specify options for plot data display
-    
-    if ax == None and axs != None and len(axs) > 0:
-        return None
+    if ax == None and axs != None and len(axs) > 0: return None
         #ax = axs.values()[0]
-    if ax == None:
-        return None
+    if ax == None: return None
     n = len(lines)
     col = colors[index % len(colors)] if index else 'y'
     if plotLines:
-        if allLinesSameStyle:
-            lineStyle = lineStyles[0]
-        else:
-            lineStyle = lineStyles[index % len(lineStyles)] if index else lineStyles[0]
-    else:
-        lineStyle = None
+        if allLinesSameStyle: lineStyle = lineStyles[0]
+        #elif makeProjectionsDashed:  
+        else: lineStyle = lineStyles[index % len(lineStyles)] if index else lineStyles[0]
+    else: lineStyle = None
     if plotMarkers:
-        if allMarkersSameStyle:
-            marker = markers[0]
-        else:
-            marker = markers[index % len(markers)] if index else markers[0]
-    else:
-        marker = None
+        if allMarkersSameStyle: marker = markers[0]
+        else: marker = markers[index % len(markers)] if index else markers[0]
+    else: marker = None
     newLine = ax.plot([0], [0], "-", lw=4, \
                       markeredgecolor=colors[n % len(colors)], \
                       markeredgewidth=1, markersize=7, \
                       markerfacecolor='y', color=col, linestyle=lineStyle,
                       marker=marker)[0]
-    if index != None:
-        newLine.set_label(str(lineNames[index]))
-    else:
-        index = n
+    if index != None: newLine.set_label(str(lineNames[index]))
+    else: index = n
     lines[index] = newLine
     debugPrint("new line = " + str(newLine) + " on ax=" + str(ax) )
     return newLine
@@ -817,11 +749,9 @@ def addAx(subplotId):
     debugPrint("ax.get_geometry() = " + str(ax.get_geometry()))
     ii = 0
     if len(subplotForLine) == 0:
-        for _ in xrange(numLines):
-            subplotForLine.append(subplotId)
+        for _ in xrange(numLines): subplotForLine.append(subplotId)
     if len(lineNames) == 0:
-        for _ in xrange(numLines):
-            lineNames.append('_nolegend_')        
+        for _ in xrange(numLines): lineNames.append('_nolegend_')        
     for _ in xrange(numLines):
         if subplotForLine[ii] == subplotId:
             debugPrint("adding line " + lineNames[ii] + ", index " + str(ii) + ", for subplot " + subplotId + ", ax=" + str(ax))
@@ -838,29 +768,19 @@ def addAx(subplotId):
 
 def pickDataMode(dataModes):
     #global dataModes
-
     selectedMode = None
-    
-    for mode in dataModes:
-        exec("global " + mode)
-
+    for mode in dataModes: exec("global " + mode)
     numDataModesChosen = sum([(1 if eval(x) else 0) for x in dataModes])
-
     if numDataModesChosen == 0:
         exec dataModes[0] + " = True" #in globals() # may not be needed bc of global cmds exec'd above 
         return dataModes[0]
-
-    if numDataModesChosen > 1:
-        print "Warning! Multiple data source modes chosen!"
+    if numDataModesChosen > 1: print "Warning! Multiple data source modes chosen!"
     for mode in dataModes:
         if eval(mode):
             if selectedMode == None:
-                if numDataModesChosen == 1:
-                    return mode
+                if numDataModesChosen == 1: return mode
                 selectedMode = mode
-            else:
-                exec(mode + " = False")
-
+            else: exec(mode + " = False")
     return selectedMode
 
 def handleCommandLineArgs(argv=None):
@@ -875,31 +795,19 @@ def handleCommandLineArgs(argv=None):
     
     dataModes = ["useSocket", "useFile", "useTable", "useTestData"]
     modes = dataModes + ["debugMode"]
-    
     selectedMode = pickDataMode(dataModes)
-
-    for mode in dataModes:
-        exec mode + ' = False' in globals()
-
+    for mode in dataModes: exec mode + ' = False' in globals()
     if argv != None and len(argv) >= 2:
         for arg in argv[1:]:
-            if arg in modes:
-                exec arg + ' = True' in globals()
-            elif arg.isdigit():
-                port = int(arg)
+            if arg in modes: exec arg + ' = True' in globals()
+            elif arg.isdigit(): port = int(arg)
             else: # fileName must not be just digits
                 fileName = arg
                 debugPrint("setting file to read to " + fileName)
-
     numDataModesChosen = sum([(1 if eval(x) else 0) for x in dataModes])
-    
-    if numDataModesChosen == 0:
-        exec selectedMode + " = True" in globals()
-    else:
-        selectedMode = pickDataMode(dataModes)
-
-    for mode in modes:
-        debugPrint(mode + " = " + str(eval(mode)))
+    if numDataModesChosen == 0: exec selectedMode + " = True" in globals()
+    else: selectedMode = pickDataMode(dataModes)
+    for mode in modes: debugPrint(mode + " = " + str(eval(mode)))
 
     if useSocket:
         if port == None:
@@ -910,31 +818,25 @@ def handleCommandLineArgs(argv=None):
         if port == None:
             port = defaultPort
             debugPrint("using default port = " + str(port) )
-        else:
-            debugPrint("got arg for port = " + str(port) )
-
+        else: debugPrint("got arg for port = " + str(port) )
     return
 
 def myMin(a):
-    if type(a) not in [list, tuple, set]:
-        return a
+    if type(a) not in [list, tuple, set]: return a
     else:
         minnest = None
         for x in a:
             z = myMin(x)
-            if minnest == None or z < minnest:
-                minnest = z
+            if minnest == None or z < minnest: minnest = z
         return minnest
 
 def myMax(a):
-    if type(a) not in [list, tuple, set]:
-        return a
+    if type(a) not in [list, tuple, set]: return a
     else:
         maxxest = None
         for x in a:
             z = myMax(x)
-            if maxxest == None or z > maxxest:
-                maxxest = z
+            if maxxest == None or z > maxxest: maxxest = z
         return maxxest
 
 count = 0
@@ -953,17 +855,13 @@ def run(data = (None, None)):
     global centerAtNow
     global horizonDurationHours
     global timeNow
-
     global showLabels
-    
     global count
     global redrawEveryNthTime
     global queue
     
     debugPrint( "data = " + str(data) )
-    
     updateData(data)
-        
     debugPrint("xdata=" + str(xdata))
     debugPrint("ydata=" + str(ydata))
     debugPrint("lines=" + str([y.get_data() for y in lines.values()]))
@@ -971,18 +869,12 @@ def run(data = (None, None)):
 
     if count % redrawEveryNthTime == 0:
         for ax in axs.values():
-            try:
-                ax.figure.canvas.draw()
-            except:
-                print("error")
+            try: ax.figure.canvas.draw()
+            except: print("error")
     count = count + 1
-
-    if queue != None and not queue.empty():
-        redrawEveryNthTime = int(1 + queue.qsize() / 2)
-
+    if queue != None and not queue.empty(): redrawEveryNthTime = int(1 + queue.qsize() / 2)
     debugPrint("updated lines = " + str([str(line.get_data()) + "\n" for line in lines.values()]))
     return lines.values()
-
     # end of run()
 
 def initTk():
@@ -993,8 +885,7 @@ def initTk():
 
 def quit():
     global root
-    if usingTk:
-        root.quit()
+    if usingTk: root.quit()
         #root.destroy()
 
 def makeTkCanvas():
@@ -1016,7 +907,6 @@ def update_task(gen):
     global root
 
     debugPrint("updateTask()")
-
     time_period = 20
 
     # read line without blocking
@@ -1027,8 +917,7 @@ def update_task(gen):
             run(data)
         root.update_idletasks()
         root.after(time_period, update_task, gen)
-    except:
-        debugPrint("no more data")
+    except: debugPrint("no more data")
     return
 
 #
@@ -1066,8 +955,7 @@ def main(argv=None):
         # connect with data source for plot
         initSocket( host, port )
     
-    elif useFile:
-        initFileData()
+    elif useFile: initFileData()
     
     if numLines < 1:
         print("no lines!")
@@ -1078,12 +966,9 @@ def main(argv=None):
     fig.subplots_adjust(hspace=0.05)
     fig.subplots_adjust(left=0.05)
     fig.subplots_adjust(right=0.95)
-    if len(subplotIds) == 0:
-        subplotIds.add(defaultSubplotTitle)
-    for subplotId in subplotIds:
-        addAx(subplotId)
-    for subplotId in subplotIds:
-        addNowLine(subplotId)
+    if len(subplotIds) == 0: subplotIds.add(defaultSubplotTitle)
+    for subplotId in subplotIds: addAx(subplotId)
+    for subplotId in subplotIds: addNowLine(subplotId)
 
     if xdata == None:
         xdata = [[0] for _ in xrange(numLines)] #can't be empty
@@ -1097,27 +982,19 @@ def main(argv=None):
         makeTkCanvas()
 
     gen = testDataGen
-    if useSocket:
-        gen = socketDataGen
-    elif useTable:
-        gen = dataFromTable
-    elif useFile:
-        gen = dataFromFile
+    if useSocket: gen = socketDataGen
+    elif useTable: gen = dataFromTable
+    elif useFile: gen = dataFromFile
         
-    if useFile:
-        run()
+    if useFile: run()
     else:
-        if usingTk:
-                root.after(1, update_task, gen())
+        if usingTk: root.after(1, update_task, gen())
         else:
             # must store return value, even if unused, or else it will stop plotting after the first point
             ani = animation.FuncAnimation(fig, run, gen, blit=True, interval=0, repeat=False, save_count=1000)
-            if saveMovie:
-                ani.save(movieFilePrefix + '.' + movieFileExtension, fps=10)
-    if usingTk:
-        root.mainloop()
-    else:
-        plt.show()
+            if saveMovie: ani.save(movieFilePrefix + '.' + movieFileExtension, fps=10)
+    if usingTk: root.mainloop()
+    else: plt.show()
     print("done with main()")
     #end of main()
 
