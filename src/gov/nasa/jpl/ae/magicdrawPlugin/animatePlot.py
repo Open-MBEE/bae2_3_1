@@ -478,6 +478,7 @@ def initFileData():
     global subplotIds
     global xdata
     global ydata
+    global projectedMap
 
     fileData = PlotDataReader(fileName,False)
     if fileData == None or fileData.data == None or len(fileData.data) == 0:
@@ -487,16 +488,22 @@ def initFileData():
 
     xdata = []
     ydata = []
+    projectedMap = {}
     for subplotItem in fileData.data.items():
         subplotId = subplotItem[0]
         if not doSubplots and len(subplotIds) > 0:
             subplotId = [x for x in subplotIds][0]
         subplotIds.add(subplotId)
         for lineItems in subplotItem[1].items():
+            #print lineItems.interpolationType
             lineNames.append(lineItems[0])
             subplotForLine.append(subplotId)
             #i = len(lineNames) - 1
             lineData = lineItems[1]
+            print lineData.interpolationType
+            print "(%s) projected: %s" % (lineItems[0],str(lineData.attributes["projected"]))
+            print str(lineData.attributes)
+            projectedMap[lineItems[0]] = lineData.attributes["projected"]
             xdata.append(lineData.keys())
             ydata.append(lineData.values())
     numLines = len(lineNames)
@@ -710,10 +717,12 @@ def addLine(ax = None, index = None):
         #ax = axs.values()[0]
     if ax == None: return None
     n = len(lines)
-    col = colors[index % len(colors)] if index else 'y'
+    col = colors[index % len(colors)] if index is not None else 'y'
     if plotLines:
-        if allLinesSameStyle: lineStyle = lineStyles[0]
-        #elif makeProjectionsDashed:  
+        try: havePmap = True if len(projectedMap.keys())>0 and index is not None else False
+        except: havePmap = False
+        if makeProjectionsDashed and havePmap and projectedMap[lineNames[index]]: lineStyle = lineStyles[1]  
+        elif allLinesSameStyle: lineStyle = lineStyles[0]
         else: lineStyle = lineStyles[index % len(lineStyles)] if index else lineStyles[0]
     else: lineStyle = None
     if plotMarkers:

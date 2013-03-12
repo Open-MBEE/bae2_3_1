@@ -78,6 +78,8 @@ class PlotDataReader(object):
             #(category,name,m) = PlotDataReader.parseMapLine(line)
             (category,name,m) = PlotDataReader.parseWholeLine(line)
             if m:
+                #print name
+                #print "    %s" % str(m.attributes)
                 if category not in self.data.keys(): self.data[category] = {}
                 else:
                     originalName = str(name)
@@ -87,12 +89,17 @@ class PlotDataReader(object):
                         ctr = ctr + 1
 #                self.data[category].append(tvm)
                 self.data[category][name] = m
+                #print "    %s" % str(self.data[category][name].attributes)
                 debugPrint( "PlotDataReader: found " + name + " " + category + " " + str(m) )
-                for p in m:
-                    debugPrint(str(p))
+                for p in m: debugPrint(str(p))
+                #print "    %s" % str(self.data[category][name].attributes)
             elif readingExecution and line.startswith("^--- simulation start"):
                 readingExecution = False
         print( "PlotDataReader: finished loading plottables from " + str(fileName) )
+        #for cat in self.data.keys():
+        #    print "category: %s" % cat
+        #    for nam in self.data[cat].keys():
+        #        print "    line: %s: %s" % (nam, str(self.data[cat][nam].attributes))
 
     @staticmethod
    # def parseMapWith(s, prefix0, delimiter0, suffix0, prefix1, delimiter1, suffix1, prefix2, delimiter2, suffix2):
@@ -249,7 +256,10 @@ class PlotDataReader(object):
         
         m = PlotDataReader.parseMapEntry(mapString)
         m.interpolationType = interpolationType
-        m.attributes["projected"] = (str(projected).lower() == "projected")
+        proj = str(projected).lower() == "projected"
+        #print str(proj)
+        m.attributes["projected"] = proj
+        #print str(m.attributes["projected"])
         return (category,name,m)
     
     @staticmethod
