@@ -361,9 +361,14 @@ public class EventXmlToJava {
    * @return A translation of name into a valid Java identifier or type name.
    */
   protected String fixName( String name ) {
-    if ( name == null ) return null;
-    name = name.replaceAll( "[\\W]", "_" );
     return name;
+    /*
+    if ( name == null ) return null;
+    String oldName = name.trim();
+    String newName = name.trim().replaceAll( "[\\s:;{}()\\[\\]-]", "_" );
+    if ( Debug.isOn() ) if ( !newName.equals( oldName ) ) Debug.outln( "fixName(" + oldName + ") --> " + newName );
+    return newName;
+    */
 /*    StringBuffer sb = new StringBuffer();
     Pattern pattern = Pattern.compile( "\\b" ); // \b = word boundary
     Matcher matcher = pattern.matcher( name );
@@ -447,6 +452,7 @@ public class EventXmlToJava {
       //name = XmlUtils.getChildElementText( classNode, "name" );
 
       String rawName = XmlUtils.getChildElementText( classNode, "name" );
+      if ( rawName == null ) return null;
       if ( rawName.contains( "25431" ) ) {
         Debug.out( "" );
       }
