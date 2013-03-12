@@ -604,9 +604,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * @return whether {@code o} is a projection of data (for visualization purposes)
    */
   protected boolean isProjectedPlottable( Object o ) {
-    return ( o instanceof Plottable && ( (Plottable)o ).isProjection() ) ||
-           ( o instanceof TimeVaryingMap && !( (TimeVaryingMap<?>)o ).isEmpty() &&
-             ( (TimeVaryingMap<?>)o ).firstEntry().getValue() instanceof TimeVarying );
+    return ( o instanceof Plottable && ( (Plottable)o ).isProjection() );
   }
 
   public void plotProjectionsThatChangeAtTime( double time ) {

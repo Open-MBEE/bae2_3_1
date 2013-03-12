@@ -522,7 +522,7 @@ public class Expression< ResultType > extends HasIdImpl
       } catch (IllegalAccessException e) {
         e.printStackTrace();
       }
-      return null; // TODO -- REVIEW -- exit?
+      return null;
     }
   }
 
