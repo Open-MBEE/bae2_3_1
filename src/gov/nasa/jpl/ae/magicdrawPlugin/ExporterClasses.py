@@ -450,7 +450,9 @@ class actionEventClass(object):
 				self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % f.source.getID())
 				self.members[f.source.getID()] = (EU.type2java(obtypename),None,"NEW initialize output pin members")
 			else:
-				if isinstance(node,DecisionNode): self.effects.append("sig" + f.getID() + ".sendIf(%s,endTime,%s_exists)" % ("objectToPass",next.getID()))
+				if isinstance(node,DecisionNode):
+					sendCondition = ("addToDecider_%s" % next.getID()) if len(self.prevs[next].keys())>1 else ("%s_exists" % next.getID())
+					self.effects.append("sig" + f.getID() + ".sendIf(%s,endTime,%s)" % ("objectToPass",sendCondition))
 				else: self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % "objectToPass")
 				if obtype is "Control":	self.dependencies["objectToPass"]=("Boolean","true")
 				self.members["objectToPass"] = (EU.type2java(obtypename),None,"NEW initialize objectToPass")
