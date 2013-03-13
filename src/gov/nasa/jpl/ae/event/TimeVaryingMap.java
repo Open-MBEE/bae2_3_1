@@ -294,7 +294,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     this(name);
     this.type = type;
   }
-  public TimeVaryingMap( String name, String fileName, Class<V> type ) {
+  protected TimeVaryingMap( String name, String fileName, Class<V> type ) {
     this(name);
     this.type = type;
     if ( fileName != null ) {
@@ -307,16 +307,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
   }
 
-  public TimeVaryingMap( String name, V defaultValue, Class<V> type ) {
+  protected TimeVaryingMap( String name, V defaultValue, Class<V> type ) {
     super(new TimeComparator());
     this.name = name;
     this.type = type;
     // REVIEW -- consider forcing all constructors to provide non-null type
-    if ( this.type == null && defaultValue != null ) {
-      setType( defaultValue.getClass() );
+    V valueToInsert = null;
+    if ( this.type == null ) {
+      if ( defaultValue != null ) {
+        setType( defaultValue.getClass() );
+      }
+      valueToInsert = defaultValue;
+    } else {
+      valueToInsert = Expression.evaluate( defaultValue, this.type, false, true );
     }
-    Parameter<Integer> t = new Parameter<Integer>(null,null, 0, this);
-    setValue( t, defaultValue );
+    Parameter<Integer> t = new Parameter<Integer>(null, null, 0, this);
+    setValue( t, valueToInsert );
     if ( Debug.isOn() ) isConsistent();
   }
 
@@ -1027,9 +1033,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
             "Warning: tried to insert value of wrong type, "
                 + valueBefore.getClass().getSimpleName() + ". Expected type is "
                 + getType().getSimpleName() + ".  Inserting value of type "
-                + value.getClass().getSimpleName() + " instead. Value = " + value;
+                + value.getClass().getSimpleName() + " instead. value = " + value
+                + "; this = " + this.toString( true, true, null );
         }
-        if ( !getType().isAssignableFrom( value.getClass() ) ) {
+        if ( value != null && !getType().isAssignableFrom( value.getClass() ) ) {
           Debug.error( false, warningMsg );
         } else {
           Debug.errln( warningMsg );
