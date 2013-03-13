@@ -6,15 +6,11 @@ package gov.nasa.jpl.ae.event;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Formatter;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-
 import junit.framework.Assert;
 
 import gov.nasa.jpl.ae.solver.CollectionTree;
@@ -28,7 +24,6 @@ import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
