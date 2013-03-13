@@ -41,8 +41,7 @@ public class TimeVaryingProjection< V > extends
                                 Class< V > cls ) {
     //super( name, fileName, null, null, true );
     super( name, (String)null,
-           (TimeVaryingMap<V>)(new TimeVaryingPlottableMap< V >( name, fileName, defaultValue,
-                                             cls, true )),
+           (TimeVaryingMap<V>)(new TimeVaryingMap< V >( name, fileName, defaultValue, cls )),
                                              (Class<TimeVaryingMap<V>>)(Class<?>)TimeVaryingMap.class,//ClassUtils.getClassForName( "Class<TimeVarying<V>>", "java.lang", false ), //null,//(Class<TimeVaryingMap<V>>)TimeVaryingMap.class,
            true );
   }
