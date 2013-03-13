@@ -80,14 +80,6 @@ class ClassifierClass(object):
 		self.inspectComposition(system)
 				
 		gl.log("time to make classifier: %s" % str(time.time()-stime))
-
-	def getStypePropValue(self,element,stereotype,propname):
-		propVal = StereotypesHelper.getStereotypePropertyValue(element,stereotype,propname)
-		if propVal == None or len(propVal) <= 0:
-			val = None
-		else:
-			val = propVal[0]
-		return val
 	
 	def inspectComposition(self,system):
 		signalsToBuild = []
@@ -107,14 +99,15 @@ class ClassifierClass(object):
 			#arguments for time varying map construction
 			readOnly = derived = plottable = projection = default = filename = profile = None
 			if StereotypesHelper.hasStereotype(p,TVM):
-				plottable = self.getStypePropValue(p, TVM, "plottable")
-				projection = self.getStypePropValue(p, TVM, "projection")
+				plottable = EU.getStypePropValue(p, TVM, "plottable")[0]
+				projection = EU.getStypePropValue(p, TVM, "projection")[0]
 				readOnly = p.isReadOnly()
 				derived = p.isDerived()
 				default = (p.default if p.default != "" else None)
-				if projection and not derived: profile = self.getStypePropValue(p, TVM, "profile")
-				if profile: 
-					try: filename = self.getStypePropValue(profile, PF, "filename")
+				if projection and not derived: profile = EU.getStypePropValue(p, TVM, "profile")
+				if profile and len(profile)>0: 
+					profile = profile[0]
+					try: filename = EU.getStypePropValue(profile, PF, "filename")[0]
 					except: EU.handleException("can't get filename on item %s" % str(profile))
 			gl.log("\n	readOnly: %s\n	derived: %s\n	plottable: %s\n	projection: %s\n	default: %s\n	profile: %s\n	filename: %s" \
 							% (str(readOnly), str(derived), str(plottable), str(projection), str(default), str((profile.name if profile else None)), str(filename)))
@@ -451,7 +444,7 @@ class actionEventClass(object):
 				self.members[f.source.getID()] = (EU.type2java(obtypename),None,"NEW initialize output pin members")
 			else:
 				if isinstance(node,DecisionNode):
-					sendCondition = ("addToDecider_%s" % next.getID()) if len(self.prevs[next].keys())>1 else ("%s_exists" % next.getID())
+					sendCondition = ("addToDecider_%s" % next.getID()) if len(self.prevs[next].keys())>1 and not isinstance(next,MergeNode) else ("%s_exists" % next.getID())
 					self.effects.append("sig" + f.getID() + ".sendIf(%s,endTime,%s)" % ("objectToPass",sendCondition))
 				else: self.effects.append("sig" + f.getID() + ".send(%s,endTime)" % "objectToPass")
 				if obtype is "Control":	self.dependencies["objectToPass"]=("Boolean","true")
@@ -586,7 +579,7 @@ class actionEventClass(object):
 			outID = objectOut.getID()
 			try: tname = EU.type2java(sf.type.name)
 			except:tname = "Object"
-			append = ".getValue(startTime)" if StereotypesHelper.hasStereotype(sf,TVM) and EU.getStypePropValue(sf, TVM, "projection") else ""
+			append = ".getValue(startTime)" if StereotypesHelper.hasStereotype(sf,TVM) and EU.getStypePropValue(sf, TVM, "projection")[0] else ""
 			if StereotypesHelper.hasStereotype(node,SSMAT):
 				t = node.object.getID()
 				self.dependencies[outID] = (tname,"%s.getValue(%s)%s" % (sfID,t,append))
