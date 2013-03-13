@@ -657,10 +657,32 @@ public class Expression< ResultType > extends HasIdImpl
     if ( (o1 instanceof Float && o2 instanceof Double ) || (o2 instanceof Float && o1 instanceof Double ) ) {
       Debug.out( "" );
     }
+    Object v1 = evaluate( o1, cls, propagate, false );
+    Object v2 = evaluate( o2, cls, propagate, false );
+    if ( Utils.valuesEqual( v1, v2 ) ) return true;
+    Class< ? > cls1 = null;
+    if ( v1 != null ) {
+      cls1 = v1.getClass();
+    }
+    if ( cls1 != null && cls1 != cls ) {
+      if ( valuesEqual( v2, v1, cls1 ) ) return true;
+    } else if ( v2 != null ) {
+      Class< ? > cls2 = v2.getClass();
+      if ( cls2 != cls && cls != cls1 && valuesEqual( v1, v2, cls2 ) ) return true;
+    }
+    return false;
+    /*
     Class< ? > cls1 =
-        ( cls != null ) ? cls : ( ( o1 == null ) ? null : o1.getClass() );
+        ( cls != null ) ? cls : ( ( v1 == null ) ? null : v1.getClass() );
     Class< ? > cls2 =
-        ( cls != null ) ? cls : ( ( o2 == null ) ? null : o2.getClass() );
+        ( cls != null ) ? cls : ( ( v2 == null ) ? null : v2.getClass() );
+    v1 = evaluate( v1, cls1, propagate, allowWrapping );
+    v2 = evaluate( v2, cls1, propagate, allowWrapping );
+    if ( Utils.valuesEqual( v1, v2 ) ) return true;
+    Class< ? > cls1 =
+        ( cls != null ) ? cls : ( ( v1 == null ) ? null : v1.getClass() );
+    Class< ? > cls2 =
+        ( cls != null ) ? cls : ( ( v2 == null ) ? null : v2.getClass() );
     Object v1 = evaluate( o1, cls1, propagate, allowWrapping );
     Object v2 = evaluate( o2, cls1, propagate, allowWrapping );
     if ( Utils.valuesEqual( v1, v2 ) ) return true;
@@ -669,6 +691,7 @@ public class Expression< ResultType > extends HasIdImpl
       v2 = evaluate( o2, cls2, propagate, allowWrapping );      
     }
     return Utils.valuesEqual( v1, v2 );
+    */
   }
 
   /**
