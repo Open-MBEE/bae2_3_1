@@ -38,11 +38,19 @@
           <parameter><name>LoadReductionNeeded</name><type>Double</type></parameter>
           <parameter><name>numberOfCustomers</name><type>Integer</type></parameter>
           <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>null</value></parameter>
+          <parameter>
+            <name>n</name><type>String</type><value>null</value>
+          </parameter>
         </members>
         <constraints></constraints>
+        <dependencies>
+          <dependency>
+            <name>n</name><value>getName()</value>
+          </dependency>
+        </dependencies>
         </class>
       <effects>
-        <effect>DRState.setValue(startTime,getName())</effect>
+        <effect>DRState.setValue(startTime,n)</effect>
       </effects>
     </event>
     <event>
@@ -61,6 +69,18 @@
           <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
           <parameter><name>theGrid</name><type>Grid</type><value>null</value></parameter>
           <parameter><name>generator</name><type>Generator</type><value>null</value></parameter>
+          <parameter><name>tvmTvm</name><type>TimeVaryingPlottableMap&lt;TimeVaryingMap&lt;Double&gt;&gt;</type>
+            <value>new TimeVaryingPlottableMap&lt;TimeVaryingMap&lt;Double&gt;&gt;("tvmTvm", null, (new TimeVaryingPlottableMap&lt;Double&gt;("tvm","all.csv", null, Double.class, true)).dividedBy(100.0), TimeVaryingMap.class, true )</value>
+          </parameter>
+          <parameter><name>tvProj</name><type>TimeVaryingProjection&lt;Double&gt;</type>
+            <value>(new TimeVaryingProjection&lt;Double&gt;("tvProj", "allGen.csv", null, Double.class )).divideBy(100.0)</value>
+          </parameter>
+          <parameter>
+            <name>tmp</name><type>TimeVaryingMap&lt;Double&gt;</type><value>null</value>
+          </parameter>
+          <parameter>
+            <name>hourAfter</name><type>Integer</type><value>null</value>
+          </parameter>
         </members>
         <constraints>
           <!-- TODO: Add a constraint that AssessDRCommitmentEvent.startTime >= GenerateDRRequest.startTime -->
@@ -76,9 +96,22 @@
           <dependency><name>theGrid</name><value>new Grid(numberOfCustomers)</value></dependency>
           <dependency><name>endTime</name><value>DREventEndTime</value></dependency>
           <dependency><name>testX</name><value>sq(12)</value></dependency>
+          <dependency>
+            <name>tmp</name><value>theGrid.customerLoads.minus( tvProj.getValue( endTime ) )</value>
+          </dependency>
+          <dependency>
+            <name>hourAfter</name><value>endTime + 3600</value>
+          </dependency>
         </dependencies>
       </class>
-      <effects></effects>
+      <effects>
+        <effect>
+          tvmTvm.setValue( endTime, tmp )
+        </effect>
+        <effect>
+          tvProj.setValue(hourAfter, theGrid.customerLoads)
+        </effect>
+      </effects>
       <elaborations>
         <elaboration>
           <eventInvocation>
