@@ -7,19 +7,10 @@ import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
-import java.util.Vector;
-
-import org.python.antlr.PythonParser.return_stmt_return;
-
-import sferyx.administration.editors.HTMLEditor.newParagraphAction;
 
 /**
  * 
