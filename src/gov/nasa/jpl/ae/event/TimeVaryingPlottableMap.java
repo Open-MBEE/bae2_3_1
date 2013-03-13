@@ -66,7 +66,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    * @param cls
    */
   public TimeVaryingPlottableMap( String name, String fileName, V defaultValue, Class<V> cls ) {
-    super( name, fileName, defaultValue );
+    super( name, fileName, defaultValue, cls );
   }
 
   /**
