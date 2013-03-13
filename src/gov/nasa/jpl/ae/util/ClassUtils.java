@@ -61,7 +61,7 @@ public class ClassUtils {
         numMatching = 0;
         numDeps = 0;
         boolean debugWasOn = Debug.isOn();
-        Debug.turnOff();
+        if ( debugWasOn ) Debug.turnOff();
   //      double score = numArgsCost + argMismatchCost * argTypes.length;
         int candidateArgsLength =
             candidateArgTypes == null ? 0 : candidateArgTypes.length;
