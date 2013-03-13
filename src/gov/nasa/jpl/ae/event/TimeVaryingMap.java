@@ -322,7 +322,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       valueToInsert = Expression.evaluate( defaultValue, this.type, false, true );
     }
     Parameter<Integer> t = new Parameter<Integer>(null, null, 0, this);
-    setValue( t, valueToInsert );
+    Debug.errorOnNull(true,"this should neeeever be null", t.getValue(false) );
+    put( t, valueToInsert );
     if ( Debug.isOn() ) isConsistent();
   }
 
@@ -448,8 +449,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         // unnecessary overhead with constraint processing. If modified while in
         // the map, it can corrupt the map.
         Object v = initialValueFunction.invoke( o, t );
-        setValue( makeTempTimepoint( t, false ),//new Parameter<Integer>( "", t, this ),
-                  tryCastValue( v ) );
+        Parameter< Integer > tp = makeTempTimepoint( t, false );
+        if (tp == null || tp.getValue(false) == null) {
+          System.err.println("Error - inserting null timepoint!");
+        } else {
+          put( tp,//new Parameter<Integer>( "", t, this ),
+               tryCastValue( v ) );
+        }
       }
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
