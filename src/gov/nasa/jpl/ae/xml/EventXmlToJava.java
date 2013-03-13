@@ -1046,7 +1046,8 @@ public class EventXmlToJava {
     
     // Create statements for executing & simulating the scenario event.
     //stmtsSB.append( instanceName + ".executeAndSimulate();\n" );
-    stmtsMain.append( "scenario.executeAndSimulate();\n" );
+    stmtsMain.append( "double animationDuration = 30.0;\n" );
+    stmtsMain.append( "scenario.executeAndSimulate( Timepoint.getHorizonDuration() / animationDuration );\n" );
     
     // Put the statements in the constructor.
     //addStatements( ctorBody, stmtsCtor.toString() );
