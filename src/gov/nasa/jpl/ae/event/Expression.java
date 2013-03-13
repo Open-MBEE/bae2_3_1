@@ -664,11 +664,10 @@ public class Expression< ResultType > extends HasIdImpl
     if ( v1 != null ) {
       cls1 = v1.getClass();
     }
-    if ( cls1 != null && cls1 != cls ) {
-      if ( valuesEqual( v2, v1, cls1 ) ) return true;
-    } else if ( v2 != null ) {
+    if ( cls1 != null && cls1 != cls && valuesEqual( o2, o1, cls1 ) ) return true;
+    if ( v2 != null ) {
       Class< ? > cls2 = v2.getClass();
-      if ( cls2 != cls && cls != cls1 && valuesEqual( v1, v2, cls2 ) ) return true;
+      if ( cls2 != cls && cls2 != cls1 && valuesEqual( v1, v2, cls2 ) ) return true;
     }
     return false;
     /*
