@@ -4535,6 +4535,11 @@ src/gov/nasa/jpl/ae/tests/TestJythonAdder.java -text
 src/gov/nasa/jpl/ae/tests/aggregateLoad.csv -text
 src/gov/nasa/jpl/ae/tests/aggregatePlan.csv -text
 src/gov/nasa/jpl/ae/tests/integerTimeline.csv -text
+src/gov/nasa/jpl/ae/tests/test_gen.csv -text
+src/gov/nasa/jpl/ae/tests/test_load.csv -text
+src/gov/nasa/jpl/ae/tests/test_margin_load.csv -text
+src/gov/nasa/jpl/ae/tests/test_max_buy.csv -text
+src/gov/nasa/jpl/ae/tests/test_reserve.csv -text
 src/gov/nasa/jpl/ae/util/ClassUtils.java -text
 src/gov/nasa/jpl/ae/util/CompareUtils.java -text
 src/gov/nasa/jpl/ae/util/Debug.java -text
