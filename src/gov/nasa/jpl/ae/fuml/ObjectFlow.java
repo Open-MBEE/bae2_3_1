@@ -312,7 +312,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( effectFunction.getArguments() != null
          && effectFunction.getArguments().size() >= 2 ) {
       Pair< Parameter<Integer>, Obj > p =
-          getTimeAndValueOfEffect( effectFunction, false );
+          getTimeAndValueOfEffect( effectFunction, !isASendEffect( effectFunction ) );
       if ( p == null ) return false;
       Object o = p.second;
       Object a1 = p.first;
@@ -332,6 +332,13 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return false;
   }
   
+  public boolean isASendEffect( EffectFunction effectFunction ) {
+    if ( effectFunction.getMethod() == getSendMethod() ) return true;
+    if ( effectFunction.getMethod() == getSendIfMethod() ) return true;
+    assert( !effectFunction.getMethod().getName().toLowerCase().contains("send") );
+    return false;
+  }
+
   // static functions to get Methods for this class
   
   
