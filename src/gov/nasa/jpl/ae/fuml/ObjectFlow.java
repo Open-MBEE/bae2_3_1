@@ -340,8 +340,8 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
   
   public boolean isASendEffect( EffectFunction effectFunction ) {
-    if ( effectFunction.getMethod() == getSendMethod() ) return true;
-    if ( effectFunction.getMethod() == getSendIfMethod() ) return true;
+    if ( effectFunction.getMethod().equals( getSendMethod() ) ) return true;
+    if ( effectFunction.getMethod().equals( getSendIfMethod() ) ) return true;
     assert( !effectFunction.getMethod().getName().toLowerCase().contains("send") );
     return false;
   }
