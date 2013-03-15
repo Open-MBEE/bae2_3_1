@@ -254,6 +254,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       return isSendIfApplied( effectFunction );
     }
 
+    // Is receive() applied
+    if ( effectFunction.getMethod().getName().equals("receive") ) {
+      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArguments().get( 0 ) );
+    }
+
     // Is method (send()?) applied?
     boolean isMethod1 = effectFunction.getMethod().equals(method1);
     boolean isMethod2 =  effectFunction.getMethod().equals( method2);
@@ -261,10 +266,6 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       return isSetValueApplied( effectFunction );
     }
     
-    // Is receive() applied
-    if ( effectFunction.getMethod().getName().equals("receive") ) {
-      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArguments().get( 0 ) );
-    }
     return false;
   }
 
@@ -309,6 +310,12 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   // TODO -- This looks like it would work generically in TimeVaryingMap.
   // TODO -- Move it out of here.
   public boolean isSetValueApplied( EffectFunction effectFunction ) {
+    if ( effectFunction.getMethod() == null ) return false;
+    if ( effectFunction.getMethod().getName().startsWith( "receive" ) &&
+         effectFunction.getArguments().size() < 2 ) {
+      Debug.error(true, "Error!  isSetValueApplied() is not applicable for this receive effects with one argument! This call is a bug.");
+      return true;
+    }
     if ( effectFunction.getArguments() != null
          && effectFunction.getArguments().size() >= 2 ) {
       Pair< Parameter<Integer>, Obj > p =
