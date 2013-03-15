@@ -6,6 +6,11 @@
 .settings/org.eclipse.jdt.core.prefs -text
 /AE.jar -text
 /build.xml -text
+data/DR_attempt_1/test_gen_dr.csv -text
+data/DR_attempt_1/test_gen_res_dr.csv -text
+data/DR_attempt_1/test_load_dr.csv -text
+data/DR_attempt_1/test_max_dr.csv -text
+data/DR_attempt_1/test_reserve_dr.csv -text
 data/all.csv -text
 data/allGen.csv -text
 data/meterData/meterdata_000091373833_20120926.csv -text
