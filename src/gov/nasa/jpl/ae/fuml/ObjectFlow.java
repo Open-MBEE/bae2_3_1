@@ -107,8 +107,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     boolean needToUnapply = true;
     if ( effect instanceof EffectFunction ) {
       EffectFunction effunc = (EffectFunction)effect;
-      if ( effunc.getMethod().equals( getSendMethod() ) ||
-           effunc.getMethod().equals( getSendIfMethod() ) ) {
+      if ( isASendEffect(effunc) ) {
         for ( ObjectFlow<Obj> of : getListeners() ) {
           of.unapply( effect );
         }
@@ -116,9 +115,18 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
           
         }
       }
+      if ( needToUnapply  ) {
+        Pair< Parameter<Integer>, Obj > p = 
+          getTimeAndValueOfEffect( effect, !isASendEffect(effunc) );
+  //                                      getSetValueMethod(),
+  //                                      getSetValueMethod() );
+        if ( p != null ) {
+          unsetValue( p.first, p.second );
+          return;
+        }
+      }
     }
-    if ( needToUnapply  ) super.unapply( effect );
-      
+    super.unapply( effect );  
   }
   
 
