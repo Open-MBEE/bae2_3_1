@@ -35,6 +35,10 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.SetUtils;
+
+import com.nomagic.magicdraw.uml.actions.SetEmptyTagsDefaultsAction;
+
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
@@ -114,6 +118,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   protected static Method setValueMethod1 = getSetValueMethod();
   //protected static Method setValueMethod2 = getSetValueMethod2();
+  protected static Method addNumberMethod = null;
+  protected static Method addNumberAtTimeMethod = null;
+  protected static Method addNumberForTimeRangeMethod = null;
+  protected static Method addMapMethod = null;
+  protected static Method subtractNumberMethod = null;
+  protected static Method subtractNumberAtTimeMethod = null;
+  protected static Method subtractNumberForTimeRangeMethod = null;
+  protected static Method subtractMapMethod = null;
+  protected static Method multiplyNumberMethod = null;
+  protected static Method multiplyNumberAtTimeMethod = null;
+  protected static Method multiplyNumberForTimeRangeMethod = null;
+  protected static Method multiplyMapMethod = null;
+
+  
   /**
    * Floating effects are those whose time or duration is changing. They must be
    * removed from TimeVaryingMap's map before they change; else, they will
@@ -127,7 +145,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   protected Class<V> type = null;
 
-  protected static Collection< Method > effectMethods = initEffectMethods();
+  protected static Map< Method, Integer > effectMethods = initEffectMethods();
+
+  protected static Map< Method, Method > inverseMethods;
+
+  protected static Comparator< Method > methodComparator;
+
+  protected static Collection< Method > arithmeticMethods;
+
+
 
   public class TimeValue extends Pair< Parameter<Integer>, V >
                                implements HasParameters {
@@ -1112,6 +1138,30 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /**
+   * Multiply this map with another. This achieves for all {@code t} in
+   * {@code thisBefore.keySet()} and {@code tvm.keySet()},
+   * {@code thisAfter.get(t) == thisBefore.get(t) * tvm.get(t)}.
+   * 
+   * @param tvm
+   *          the {@code TimeVaryingMap} with which this map is multiplied
+   * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > multiply( TimeVaryingMap< VV > tvm ) {
+    if ( tvm == null ) return null;
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      //if ( n != null ) {// n.doubleValue() != 0 ) {
+      subtract( n, k, k );
+      //}
+    }
+    return removeDuplicates();
+  }
+  /**
    * @param n the number by which the map is multiplied
    * @param fromKey
    *          the key from which all values are multiplied by {@code n}.
@@ -1639,6 +1689,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   /**
    * @param n
+   * @return this map after subtracting {@code n} from each value
+   */
+  public TimeVaryingMap<V> subtract( Number n ) {
+    return subtract( n, firstKey(), null );
+  }
+  
+  /**
+   * @param n
    * @param fromKey
    *          the key from which {@code n} is subtracted from all values.
    * @return this map after subtracting {@code n} from each value in the range [{@code fromKey},
@@ -1931,8 +1989,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public void unapply( Effect effect ) {
+    if ( isArithmeticEffect( effect ) ) {
+      Effect inverseEffect = getInverseEffect( effect );
+      inverseEffect.applyTo( this, true );
+    }
     Pair< Parameter<Integer>, V > p = 
-        getTimeAndValueOfEffect( effect, true );
+        getTimeAndValueOfEffect( effect, true );  // this arg is wrong for arithmetic effects
 //                                      getSetValueMethod(),
 //                                      getSetValueMethod() );
     if ( p != null ) {
@@ -1940,6 +2002,23 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
   }
   
+  public Effect getInverseEffect( Effect effect ) {
+    if ( isArithmeticEffect( effect ) && effect instanceof EffectFunction) {
+      EffectFunction eff = (EffectFunction)effect;
+      Method inverseMethod = getInverseMethod( eff.getMethod() );
+      if ( inverseMethod == null ) return null;
+      EffectFunction invEff = new EffectFunction( eff );
+      invEff.setMethod( inverseMethod );
+      return invEff;
+    }
+    return null;
+  }
+  
+  public Method getInverseMethod( Method method ) {
+    if ( method == null ) return null;  // REVIEW -- complain?
+    Method inv = getInverseMethods().get( method );
+    return inv;
+  }
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListener#detach(gov.nasa.jpl.ae.event.Parameter)
    */
@@ -2017,6 +2096,141 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     return setValueMethod1;
   }
+
+  protected static void setArithmeticMethods() {
+    //Parameter<Integer> t = new Parameter< Integer >( null );
+    Class< TimeVaryingMap > cls = TimeVaryingMap.class;
+    if ( arithmeticMethods == null ) {
+      arithmeticMethods = new TreeSet< Method >( methodComparator );
+    } else {
+      arithmeticMethods.clear();
+    }
+    try {
+      addNumberMethod =
+          cls.getMethod( "add", new Class<?>[] { Number.class } );
+      arithmeticMethods.add( addNumberMethod );
+      addNumberAtTimeMethod =
+          cls.getMethod( "add", new Class<?>[] { Number.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( addNumberAtTimeMethod );
+      addNumberForTimeRangeMethod =
+          cls.getMethod( "add", new Class<?>[] { Number.class,
+                                                 Parameter.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( addNumberForTimeRangeMethod );
+      addMapMethod =
+          cls.getMethod( "add", new Class<?>[] { TimeVaryingMap.class } );
+      arithmeticMethods.add( addMapMethod );
+
+      subtractNumberMethod =
+          cls.getMethod( "subtract", new Class<?>[] { Number.class } );
+      arithmeticMethods.add( subtractNumberMethod );
+      subtractNumberAtTimeMethod =
+          cls.getMethod( "subtract", new Class<?>[] { Number.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( subtractNumberAtTimeMethod );
+      subtractNumberForTimeRangeMethod =
+          cls.getMethod( "subtract", new Class<?>[] { Number.class,
+                                                 Parameter.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( subtractNumberForTimeRangeMethod );
+      subtractMapMethod =
+          cls.getMethod( "subtract", new Class<?>[] { TimeVaryingMap.class } );
+      arithmeticMethods.add( subtractMapMethod );
+
+      multiplyNumberMethod =
+          cls.getMethod( "multiply", new Class<?>[] { Number.class } );
+      arithmeticMethods.add( multiplyNumberMethod );
+      multiplyNumberAtTimeMethod =
+          cls.getMethod( "multiply", new Class<?>[] { Number.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( multiplyNumberAtTimeMethod );
+      multiplyNumberForTimeRangeMethod =
+          cls.getMethod( "multiply", new Class<?>[] { Number.class,
+                                                 Parameter.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( multiplyNumberForTimeRangeMethod );
+      multiplyMapMethod =
+          cls.getMethod( "multiply", new Class<?>[] { TimeVaryingMap.class } );
+      arithmeticMethods.add( multiplyMapMethod );
+    
+    } catch ( SecurityException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( NoSuchMethodException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+  
+  protected static Method getAddNumberAtTimeMethod() {
+    if ( addNumberAtTimeMethod == null ) {
+      setArithmeticMethods();
+    }
+    return addNumberAtTimeMethod;
+  }
+  protected static Method getAddNumberForTimeRangeMethod() {
+    if ( addNumberForTimeRangeMethod == null ) {
+      setArithmeticMethods();
+    }
+    return null;
+  }
+  public static Method getAddNumberMethod() {
+    if ( addNumberMethod == null ) {
+      setArithmeticMethods();
+    }
+    return addNumberMethod;
+  }
+  public static Method getAddMapMethod() {
+    if ( addMapMethod == null ) {
+      setArithmeticMethods();
+    }
+    return addMapMethod;
+  }
+  
+  public Interpolation getInterpolation() {
+    return interpolation;
+  }
+  public static Method getSubtractNumberMethod() {
+    return subtractNumberMethod;
+  }
+  public static Method getSubtractNumberAtTimeMethod() {
+    return subtractNumberAtTimeMethod;
+  }
+  public static Method getSubtractNumberForTimeRangeMethod() {
+    return subtractNumberForTimeRangeMethod;
+  }
+  public static Method getSubtractMapMethod() {
+    return subtractMapMethod;
+  }
+  public static Method getMultiplyNumberMethod() {
+    return multiplyNumberMethod;
+  }
+  public static Method getMultiplyNumberAtTimeMethod() {
+    return multiplyNumberAtTimeMethod;
+  }
+  public static Method getMultiplyNumberForTimeRangeMethod() {
+    return multiplyNumberForTimeRangeMethod;
+  }
+  public static Method getMultiplyMapMethod() {
+    return multiplyMapMethod;
+  }
+  public static Map< Method, Method > getInverseMethods() {
+    if ( inverseMethods == null ) {
+      initEffectMethods();
+    }
+    return inverseMethods;
+  }
+  public static Comparator< Method > getMethodComparator() {
+    return methodComparator;
+  }
+  public Integer getIndexOfTimepointArgument( EffectFunction effectFunction ) {
+    Integer i = effectMethods.get( effectFunction.getMethod() );
+    if ( Debug.isOn() ) Debug.outln( "getIndexOfTimepointArgument("
+                                     + effectFunction.getMethod().getName()
+                                     + ") = " + i );
+    return i;
+  }
   
   public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect ) {
     return getTimeAndValueOfEffect( effect, true );
@@ -2049,6 +2263,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       } else {
         Parameter<Integer> tp = null;
         TT value = null;
+        Integer idx = getIndexOfTimepointArgument( effectFunction );
+        if ( idx != null ) {
+//          Object arg = effectFunction.arguments.get( idx );
+//          if ( isTimepoint( arg ) ) {
+//            tp = tryEvaluateTimepoint(arg, true);
+            timeFirst = ( idx == 0 ); 
+//          }
+        }
         Object arg1 = effectFunction.arguments.get( timeFirst ? 0 : 1 );
         Object arg2 = effectFunction.arguments.get( timeFirst ? 1 : 0 );
         tp = tryEvaluateTimepoint( arg1, true );
@@ -2079,11 +2301,31 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return null;
   }
   
+  public boolean isTimepoint( Object tp ) {
+    boolean isParam = tp instanceof Parameter;
+    if ( !isParam ) return false;
+    Parameter<?> p = (Parameter<?>)tp;
+    boolean isIntParam = p.getValueNoPropagate() instanceof Integer;
+    return isIntParam;
+  }
   @Override
   public boolean isApplied( Effect effect ) {
     return isApplied(effect, getSetValueMethod(), getSetValueMethod() );//, true );
   }
 
+  public static boolean isArithmeticEffect( Effect effect ) {
+    if ( effect instanceof EffectFunction ) {
+      EffectFunction f = (EffectFunction)effect;
+      if (getArithmeticMethods().contains(f.getMethod())) return true;
+    }
+    return false;
+  }
+  public static Collection<Method> getArithmeticMethods() {
+    if ( arithmeticMethods == null ) {
+      setArithmeticMethods();
+    }
+    return arithmeticMethods;
+  }
   public boolean isTimeArgFirst( Effect effect ) {
     // TODO!
     return true;
@@ -2094,6 +2336,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();
     if ( Debug.isOn() ) isConsistent();
+    if ( isArithmeticEffect( effect ) ) {
+      return true; // HACK! We have a problem here! We can't know if it's
+                   // applied unless we keep track of all effects here!
+    }
+
     Pair< Parameter<Integer>, V > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
     if ( p == null ) return false;
     Object t = p.first;
@@ -2394,10 +2641,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return sb.toString();
   }
 
-  @Override
-  public Collection< Method > getEffectMethods() {
+  public Map< Method, Integer > getEffectMethodsMap() {
     if ( effectMethods == null ) effectMethods = initEffectMethods();
     return effectMethods;
+  }
+
+  @Override
+  public Collection< Method > getEffectMethods() {
+    Map< Method, Integer > m = getEffectMethodsMap();
+    if ( m == null ) return null;
+    return effectMethods.keySet();
   }
 
   @Override
@@ -2405,13 +2658,50 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return getEffectMethods().contains( method );
   }
 
-  protected static Collection< Method > initEffectMethods() {
-    effectMethods = new HashSet<Method>();
+  protected static Map< Method, Integer > initEffectMethods() {
+    methodComparator = new Comparator< Method >() {
+
+      @Override
+      public int compare( Method o1, Method o2 ) {
+        int cmp;
+        cmp = o1.getName().compareTo( o2.getName() );
+        if ( cmp != 0 ) return cmp;
+        cmp = o1.getDeclaringClass().getName()
+                .compareTo( o2.getDeclaringClass().getName() );
+        if ( cmp != 0 ) return cmp;
+        cmp = CompareUtils.compareCollections( o1.getParameterTypes(),
+                                               o2.getParameterTypes(),
+                                               true, true );
+        return cmp;
+      }
+    };
+    effectMethods = new TreeMap< Method, Integer >( methodComparator  );
+    if ( inverseMethods == null ) {
+      inverseMethods = new TreeMap< Method, Method >( methodComparator );
+    }
+    inverseMethods.clear();
+
     Method m = getSetValueMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
+    m = getAddNumberAtTimeMethod();
+    if ( m != null ) effectMethods.put( m, 1 );
+    m = getAddNumberForTimeRangeMethod();
+    if ( m != null ) effectMethods.put( m, 1 );
+    m = getSubtractNumberAtTimeMethod();
+    if ( m != null ) effectMethods.put( m, 1 );
+    m = getSubtractNumberForTimeRangeMethod();
+    if ( m != null ) effectMethods.put( m, 1 );
+    m = getMultiplyNumberAtTimeMethod();
+    if ( m != null ) effectMethods.put( m, 1 );
+    m = getMultiplyNumberForTimeRangeMethod();
+    if ( m != null ) effectMethods.put( m, 1 );
     //m = getSetValueMethod2();
     //m = TimeVaryingMap.class.getMethod("unsetValue");
     //m = TimeVaryingMap.class.getMethod("unapply");
+    
+    
+    
+    
     return effectMethods;
   }
 
