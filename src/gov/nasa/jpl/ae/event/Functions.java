@@ -495,8 +495,8 @@ public class Functions {
     if ( r1 == null || r2 == null ) return null;
     Number result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ) {
-      double rd1 = ( (Double) r1).doubleValue();
-      double rd2 = ( (Double) r2).doubleValue();
+      double rd1 = ( (Number) r1).doubleValue();
+      double rd2 = ( (Number) r2).doubleValue();
       // check for overflow
       if ( Double.MAX_VALUE / rd1 <= rd2 ) {
         result = Double.MAX_VALUE;
