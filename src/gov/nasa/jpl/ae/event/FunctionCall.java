@@ -10,6 +10,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -291,8 +292,13 @@ public class FunctionCall extends Call {
     try {
       result = method.invoke( evaluatedObject, evaluatedArgs ); 
     } catch (IllegalArgumentException e) {
-      System.err.println("FunctionCall.invoke(" + Utils.toString( evaluatedArgs, false )  + "): " + e.getMessage());
-      e.printStackTrace();
+      System.err.println( "FunctionCall.invoke " + method.getName() + "("
+                          + Utils.toString( evaluatedArgs, false )
+                          + "): FunctionCall{" + this + "}" + e.getMessage() );
+      if ( method.getParameterTypes().length != evaluatedArgs.length ||
+           !Arrays.asList( evaluatedArgs ).contains( null ) ) {
+        e.printStackTrace();
+      }
     }
    
     return result;

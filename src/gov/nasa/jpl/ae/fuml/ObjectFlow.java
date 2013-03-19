@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
@@ -25,7 +27,7 @@ import gov.nasa.jpl.ae.util.Pair;
 public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   private static final long serialVersionUID = 5278616069238729814L;
-  private static Collection< Method > effectMethods = ObjectFlow.initEffectMethods();
+  private static Map< Method, Integer > effectMethods = ObjectFlow.initEffectMethods();
 
   /**
    * For the convenience of referring to the effect methods.
@@ -409,17 +411,18 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return receiveWithParameterMethod;
   }
   
-	protected static Collection< Method > initEffectMethods() {
+	protected static Map< Method, Integer > initEffectMethods() {
 	  // copy to avoid polluting the superclass's list
-    effectMethods = new HashSet<Method>(TimeVaryingMap.initEffectMethods());
+    effectMethods = new TreeMap<Method, Integer>( methodComparator );
+    effectMethods.putAll( TimeVaryingMap.initEffectMethods() );
     Method m = getSendMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 1 );
 //    m = getSendMethod2();
 //    if ( m != null ) effectMethods.add( m );
     m = getSendIfMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 1 );
     m = getReceiveMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
 //    m = getReceiveWithIntegerMethod();
 //    if ( m != null ) effectMethods.add( m );
     return effectMethods;
@@ -430,7 +433,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   @Override
   public Collection< Method > getEffectMethods() {
     if ( effectMethods == null ) initEffectMethods();
-    return effectMethods;
+    return effectMethods.keySet();
   }
 
   

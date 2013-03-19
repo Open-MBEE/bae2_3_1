@@ -3,21 +3,17 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.fuml.ObjectFlow;
 import gov.nasa.jpl.ae.util.Debug;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
-
-import junit.framework.Assert;
+import java.util.TreeMap;
 
 /**
  *
@@ -29,7 +25,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   private static final long serialVersionUID = 6930722265307957963L;
   
-  private static Collection< Method > effectMethods = Consumable.initEffectMethods();
+  private static Map< Method, Integer > effectMethods = Consumable.initEffectMethods();
   private static Method addMethod = getAddMethod();
   private static Method setValueMethod = getSetValueMethod();
 
@@ -298,14 +294,15 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
 //    return super.getValue( t );
   }
   
-  protected static Collection< Method > initEffectMethods() {
+  protected static Map< Method, Integer > initEffectMethods() {
     // copy to avoid polluting the superclass's list
-    effectMethods = new HashSet<Method>(TimeVaryingMap.initEffectMethods());
+    effectMethods = new TreeMap<Method,Integer>(methodComparator);
+    effectMethods.putAll( TimeVaryingMap.initEffectMethods()) ;
     Method m = getAddMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     effectMethods.remove( TimeVaryingMap.getSetValueMethod() );
     m = Consumable.getSetValueMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     return effectMethods;
   }
 
@@ -314,7 +311,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   @Override
   public Collection< Method > getEffectMethods() {
     if ( effectMethods == null ) initEffectMethods();
-    return effectMethods;
+    return effectMethods.keySet();
   }
 
 

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import junit.framework.Assert;
 
@@ -24,7 +25,8 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
 
   private static final long serialVersionUID = 5136649915412969932L;
 
-  private static Collection< Method > effectMethods = TimeVaryingList.initEffectMethods();
+  private static Map< Method,Integer > effectMethods =
+      TimeVaryingList.initEffectMethods();
 
   private static Method addMethod = getAddMethod();
   private static Method addWithListMethod = getAddWithListMethod();
@@ -769,21 +771,22 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     assert removeWithListMethod != null;
     return removeWithListMethod;
   }
-  protected static Collection< Method > initEffectMethods() {
+  protected static Map< Method,Integer > initEffectMethods() {
     // copy to avoid polluting the superclass's list
-    effectMethods = new HashSet<Method>(TimeVaryingMap.initEffectMethods());
+    effectMethods = new TreeMap<Method,Integer>( methodComparator );
+    effectMethods.putAll(TimeVaryingMap.initEffectMethods());
     Method m = getAddMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     m = getAddWithListMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m,0 );
     m = getAddIfNotContainedMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     m = getAddIfNotContainedIfMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     m = getRemoveMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     m = getRemoveWithListMethod();
-    if ( m != null ) effectMethods.add( m );
+    if ( m != null ) effectMethods.put( m, 0 );
     return effectMethods;
   }
 
@@ -792,7 +795,7 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   @Override
   public Collection< Method > getEffectMethods() {
     if ( effectMethods == null ) effectMethods = initEffectMethods();
-    return effectMethods;
+    return effectMethods.keySet();
   }
   
   /**
