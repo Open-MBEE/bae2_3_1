@@ -563,6 +563,7 @@ class actionEventClass(object):
 			if StereotypesHelper.hasStereotype(node,ASMIP): #add to structural feature map in place
 				self.effects.append("%s.add(%s,startTime)" % (featureID,v))
 			elif StereotypesHelper.hasStereotype(node,MSMIP): #multiply map in place all by some value after start Time
+				need to do a get value on the projection first... #FIX
 				self.effects.append("%s.multiply(%s,startTime)" % (featureID,v))
 			elif StereotypesHelper.hasStereotype(node,USM): #update projection with another projection after some point
 				self.effects.append("%s.setValue(startTime,%s)" % (featureID,v))
