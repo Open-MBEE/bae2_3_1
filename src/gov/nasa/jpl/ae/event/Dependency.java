@@ -560,7 +560,7 @@ public class Dependency< T > extends HasIdImpl
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
-    seen.remove( this ); // because getParameters checks seen set, too.
+    if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
     return getParameters( deep, seen ).contains( parameter );
   }
 
