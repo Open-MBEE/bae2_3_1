@@ -40,6 +40,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   abstract public Member getMember();
   abstract public Object invoke( Object obj, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
+  abstract public boolean isStatic();
   
   @Override
   public void deconstruct() {
@@ -135,7 +136,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
-    return compare;    
+    return compare;
   }
   
   // TODO -- consider an abstract Call class

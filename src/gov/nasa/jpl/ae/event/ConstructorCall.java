@@ -8,6 +8,7 @@ import gov.nasa.jpl.ae.util.Utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -29,6 +30,28 @@ public class ConstructorCall extends Call {
     return object;
   }
   
+  public boolean hasEnclosingClass() {
+    if ( thisClass == null ) return false;
+    return thisClass.getEnclosingClass() != null;
+  }
+  public boolean isNestedClass() {
+    return hasEnclosingClass();
+  }
+  public boolean isInnerClass() {
+    return hasEnclosingClass() && !isStatic();
+  }
+  public static boolean isStatic( Class<?> cls ) {
+    if ( cls == null ) return false;
+    return Modifier.isStatic( cls.getModifiers() );
+  }
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#isStatic()
+   */
+  @Override
+  public boolean isStatic() {
+    return isStatic( thisClass );
+  }
+
   /**
    * Construct a call to a static constructor.
    * @param constructor
