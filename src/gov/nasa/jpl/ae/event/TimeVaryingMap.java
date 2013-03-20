@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -449,15 +450,31 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param obj
    *          object to cast or convert to a timepoint
-   * @param propagate whether to propagate dependencies as part of the evaluation
+   * @param propagate
+   *          whether to propagate dependencies as part of the evaluation
+   * @return obj evaluated as Timepoint or {@code null} if the conversion or
+   *         cast fail
+   */
+  public Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate ) {
+    return tryEvaluateTimepoint( obj, propagate, true );
+  }
+  
+  /**
+   * @param obj
+   *          object to cast or convert to a timepoint
+   * @param propagate
+   *          whether to propagate dependencies as part of the evaluation
+   * @param okToWrap
+   *          whether a Parameter may be created to wrap an Integer value into a
+   *          timepoint
    * @return obj evaluated as Timepoint or {@code null} if the conversion or
    *         cast fail
    */
   @SuppressWarnings( "unchecked" )
-  public Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate ) {
+  public Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate, boolean okToWrap ) {
     try {
       Class< ? extends Parameter<Integer> > pcls = (Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
-      return Expression.evaluate( obj, (Class<Parameter<Integer>>)pcls, propagate, true );
+      return Expression.evaluate( obj, (Class<Parameter<Integer>>)pcls, propagate, okToWrap );
     } catch ( ClassCastException e ) {
       // ignore
     }
@@ -1093,6 +1110,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after multiplying each value by {@code n}
    */
   public TimeVaryingMap<V> multiply( Number n ) {
+    if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+      for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+        V v = e.getValue();
+        if ( v instanceof TimeVaryingMap ) {
+          TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)v;
+          tvm.multiply( n );
+        }
+      }
+      return this;
+    }
     return multiply( n, firstKey(), null );
   }
   
@@ -1114,6 +1141,78 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey ) {
     return multiply( n, fromKey, null );
   }
+
+  /**
+   * For nested TimeVaryingMaps, an operation on elements is called recursively
+   * on sub-maps. If the call is non-static, then it is assumed that the sub-map
+   * is the object whose method or enclosed member's constructor is called. If
+   * the call is static, then the sub-map replaces an argument to the call. The
+   * argument chosen is the first whose type is compatible with TimeVaryingMap
+   * and is null (if any such arguments are null). If there are no such
+   * arguments, then the object is replaced if the type is compatible; else, an
+   * IllegalArgumentException is raised.
+   * 
+   * @param call
+   *          the Call to apply to sub-maps
+   * @return this or a copy of this depending on the call
+   */
+  public TimeVaryingMap< V > applyToSubMaps( Call call ) {
+    // if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+    Integer indexOfBestArgumentToReplace = null;
+    boolean isStatic = call.isStatic();
+    for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+      V v = e.getValue();
+      Object retVal = null;
+      if ( v instanceof TimeVaryingMap ) {
+        TimeVaryingMap< ? > tvm = (TimeVaryingMap< ? >)v;
+        // TODO -- REVIEW -- it would be good to be sure that this
+        // substitution makes sense.
+        if ( !isStatic ) {
+          call.setObject( tvm );
+          retVal = call.evaluate( true );
+        } else {
+          boolean gotTVM = false, gotNullTVM = false;
+          for ( int i = 0; i < call.getArguments().size(); ++i ) {
+            Object arg = call.getArguments().get( i );
+            Class< ? > argType = call.getParameterTypes()[ i ];
+            if ( arg == null && argType.isAssignableFrom( TimeVaryingMap.class ) ) {
+              if ( indexOfBestArgumentToReplace == null && !gotNullTVM ) {
+                indexOfBestArgumentToReplace = i;
+                gotNullTVM = true;
+                call.getArguments().set( i, tvm );
+                break;
+              }
+            } else if ( arg instanceof TimeVaryingMap && !gotTVM ) {
+              if ( indexOfBestArgumentToReplace == null && !gotTVM && !gotNullTVM ) {
+                indexOfBestArgumentToReplace = i;
+                gotTVM = true;
+              }
+            }
+          }
+          if ( indexOfBestArgumentToReplace != null ) {
+            call.getArguments().set( indexOfBestArgumentToReplace, tvm );
+          } else {
+            // TODO -- REVIEW -- it would be good to be sure that this
+            // substitution makes sense.
+            if ( ( TimeVaryingMap.class.isAssignableFrom( call.getMember()
+                                                           .getDeclaringClass() ) )
+                 || call.getObject() instanceof TimeVaryingMap ) {
+              call.setObject( tvm );
+            } else {
+              throw new IllegalArgumentException( "Warning! cannot apply call, "
+                                                  + call + ", to map value, " + v );
+            }
+          }
+        }
+        retVal = call.evaluate( true );
+      } else {
+        Debug.error( false, "Warning! cannot apply call, " + call
+                            + ", to non-map value, " + v );
+      }
+    }
+    // }
+    return this;
+  }
   
   /**
    * @param n the number by which the map is multiplied
@@ -1123,6 +1222,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey,
                                         Parameter< Integer > toKey ) {
+    
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
@@ -1196,11 +1296,39 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return divide( n, firstKey(), null );
   }
   
+  
+  
+  public Call getCallForThisMethod(Object...args) {
+    String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+    FunctionCall c = new FunctionCall( null, getClass(), methodName, args );
+    return c;
+  }
+
+  public static Call getCallForThisMethod( Class<?> cls, Object...args ) {
+    String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+    if ( cls == null ) {
+      String className = Thread.currentThread().getStackTrace()[2].getClassName();
+      try {
+        cls = Class.forName( className );
+      } catch ( ClassNotFoundException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    FunctionCall c = new FunctionCall( null, cls, methodName, args );
+    return c;
+  }
+  
   /**
    * @param n the number by which the map is divided
    * @return a copy of the map whose values are each divided by {@code n}
    */
   public TimeVaryingMap<V> dividedBy( Number n ) {
+    Call c = getCallForThisMethod( n );
+    if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+      applyToSubMaps( c );
+      return this;
+    }
     return dividedBy( n, firstKey(), null );
   }
   
@@ -1970,6 +2098,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     V oldValue = null;
     Parameter<Integer> tpInMap = keyForValueAt( value, t.getValueNoPropagate() );
+// possible fix to a bug, but fixing it elsewhere
+//    Parameter<Integer> tI = tryCastTimepoint( t );
+//    Parameter<Integer> tpInMap = keyForValueAt( value, tI.getValueNoPropagate() );
     if ( tpInMap != t ) {
       if ( Debug.isOn() ) Debug.error( false, "Warning! unsetValue(" + t + ", " + value 
                           + "): Parameter<Integer> key is not in the map for TimeVaryingMap "
@@ -2233,27 +2364,108 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
   
   public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect ) {
-    return getTimeAndValueOfEffect( effect, true );
+    return getTimeAndValueOfEffect( effect, null );
   }
+
+  /**
+   * The time of the effect and the value applied are picked from the effect
+   * functions arguments according to their types and whether the first argument
+   * is suggested (by {@code timeFirst}) to be the timepoint. the arguments.
+   * 
+   * @param effect
+   *          the effect, from whose arguments the time and value are identified
+   * @param timeFirst
+   *          is a suggestion by the caller as to whether it believes that the
+   *          first argument is the time argument as it is for setValue() and
+   *          other effect methods. If it is null, then the timepoint is
+   *          identified more carefully and the first argument is chosen in the
+   *          case that there appear to be multiple viable candidates, from
+   *          which no more evidence is found for one over others.
+   * @return the timepoint at which the effect takes place and the value applied
+   *         in a Pair
+   */
   public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect,
-                                                                      boolean timeFirst ) {
-    // REVIEW -- Why not use <T>?  Can't enforce it?
+                                                                      Boolean timeFirst ) {
+    // REVIEW -- Why not use <T>? Can't enforce it?
     if ( !( effect instanceof EffectFunction ) ) {
       return null;
     }
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction == null || effectFunction.getMethod() == null ) {
-      if ( Debug.isOn() ) Debug.errln( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + effect + ") called with no effect method! " + this );
+      if ( Debug.isOn() ) Debug.errln( getName()
+                                       + ".getTimeAndValueOfEffect(Effect="
+                                       + effect
+                                       + ") called with no effect method! "
+                                       + this );
       return null;
     }
     if ( effectFunction.getMethod().getParameterTypes().length < 2 ) {
-      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + effect + ") Error! Method takes "
+      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect=" + effect
+                   + ") Error! Method takes "
                    + effectFunction.getMethod().getParameterTypes().length
                    + " parameters, but 2 are required." );
       return null;
     }
+    if ( effectFunction.arguments == null
+         || effectFunction.arguments.size() < 2 ) {
+      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect=" + effect
+                   + ") Error! Method has "
+                   + effectFunction.getMethod().getParameterTypes().length
+                   + " arguments, but 2 are required." );
+      return null;
+    }
+    Parameter< Integer > tp = null, tp1 = null, tp2 = null;
+    TT value = null;
+    Integer tParamI = getFirstTimepointParameter( effectFunction );
+    boolean complainIfNotTimepoint = timeFirst != null;
+    timeFirst = ( timeFirst == null ) || timeFirst;
+    Object arg1 = effectFunction.arguments.get( timeFirst ? 0 : 1 );
+    Object arg2 = effectFunction.arguments.get( timeFirst ? 1 : 0 );
+    
+    tp = tryEvaluateTimepoint( arg1, true, true );
+    value = (TT)tryEvaluateValue( arg2, true );
+    if ( arg1 == effectFunction.arguments.get( timeFirst ? 0 : 1 ) ) {
+      // FIXME!!!!!!!
+      // this is always true!  short circuiting on purpose for debug
+        return new Pair< Parameter< Integer >, TT >( tp, value );
+    }
+    
+    Pair< Object, Parameter< Integer >> p =
+        whichIsTheTimepoint( arg1, arg2, timeFirst && complainIfNotTimepoint,
+                             !timeFirst && complainIfNotTimepoint, timeFirst );
+    if ( p == null ) {
+      return null;
+    }
+    tp = p.second;
+    Object tpArg = ( p.first == arg1 ) ? arg1 : arg2;
+    Object valueArg = ( p.first == arg1 ) ? arg2 : arg1;
+    value = (TT)tryEvaluateValue( valueArg, true );
+    Pair< Parameter< Integer >, TT > pair =
+        new Pair< Parameter< Integer >, TT >( tp, value );
+    if ( value == null ) {
+      if ( valueArg != null ) {
+        Parameter< Integer > otp = tryEvaluateTimepoint( valueArg, true, true );
+        if ( otp != null ) {
+          TT ov = (TT)tryEvaluateValue( tpArg, true );
+          Debug.error( ov != null,
+                       "Looks like timepoint and value are reversed in call to getTimeAndValueOfEffect( Effect "
+                           + effect+ ", " + "Boolean " + timeFirst + ") = "
+                           + pair );
+        }
+      }
+    }
+    return pair;
+    /*      tp1 = tryEvaluateTimepoint( arg1, true );
+        tp2 = tryEvaluateTimepoint( arg2, true );
+        boolean isTp1 = isTimepoint( tp1 );
+        boolean isTp2 = isTimepoint( tp2 );
+        tp = tp1;
+        if ( !isTp1 && isTp2 ) {
+          tp = tp2;
+        } else if ( !isTp1 && !isTp2 ) {
+          // tryToEvaluateTimepoint should wrap an integer with a Parameter, so hunting for an Integer shouldn't help
+        }
+=======
       if ( effectFunction.arguments == null
            || effectFunction.arguments.size() < 2 ) {
         Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
@@ -2274,6 +2486,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         Object arg1 = effectFunction.arguments.get( timeFirst ? 0 : 1 );
         Object arg2 = effectFunction.arguments.get( timeFirst ? 1 : 0 );
         tp = tryEvaluateTimepoint( arg1, true );
+>>>>>>> .r432
         TT val1 = null;
         if ( tp == null ) {
           tp = tryEvaluateTimepoint( arg2, true );
@@ -2295,11 +2508,494 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
             }
           }
         }
-        
-        return new Pair< Parameter<Integer>, TT >( tp, value ); 
+*/        
+  }
+
+  
+  public Integer getFirstParameterOfType( Method method, Object clsOrObj ) {
+    if ( clsOrObj instanceof Class ) {
+      Class<?> cls = (Class<?>)clsOrObj;
+      Integer pos = getFirstParameterOfType( method, cls );
+      if ( pos != null && pos >= 0 ) {
+        return pos;
+      }
+    }
+    return null;  // TODO -- HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  }
+
+  public Integer getFirstParameterOfType( Method method, Class<?> cls ) {
+    if ( method == null ) return null;
+    Class< ? >[] pTypes = method.getParameterTypes();
+    if ( pTypes == null || pTypes.length <= 0 ) {
+      return null;
+    }
+    Integer best = null;
+    //boolean assigned = false;
+    for ( Integer i = 0; i < pTypes.length; ++i ) {
+      Class<?> pType = pTypes[i];
+      if ( pType == null ) continue;
+      if ( !cls.isAssignableFrom( pType ) ) continue;
+      if ( best == null ) {
+        best = i;
+      }
+      TypeVariable< ? >[] gTypes = pType.getTypeParameters();
+      if ( gTypes == null ) continue;
+      for ( TypeVariable< ? > typeVar : gTypes ) {
+        if ( typeVar == null ) continue;
+      }
     }
     return null;
   }
+
+  public Integer getFirstTimepointParameter( Method method ) {
+    Parameter<Integer> p = new Parameter< Integer >("objForCls", null, this );
+    Class< Parameter<Integer> > cls = (Class< Parameter< Integer >>)p.getClass();
+    return getFirstParameterOfType( method, cls );
+//    if ( method == null ) return null;
+//    Class< ? >[] pTypes = method.getParameterTypes();
+//    if ( pTypes == null || pTypes.length <= 0 ) {
+//      return null;
+//    }
+//    Integer best = null;
+//    for ( Integer i = 0; i < pTypes.length; ++i ) {
+//      Class<?> pType = pTypes[i];
+//      if ( pType == null ) continue;
+//      if ( !Parameter.class.isAssignableFrom( pType ) ) continue;
+//      if ( best == null ) best = i;
+//      TypeVariable< ? >[] gTypes = pType.getTypeParameters();
+//      if ( gTypes == null ) continue;
+//      for ( TypeVariable< ? > typeVar : gTypes ) {
+//        if ( typeVar == null ) continue;
+//      }
+//    }
+//    return null;
+  }
+
+  public Integer getFirstTimepointParameter( EffectFunction effectFunction ) {
+    return getFirstTimepointParameter( effectFunction.getMethod() );
+  }
+
+  public static boolean testGetFirstTimepointParameter() {
+    boolean debugWasOn = Debug.isOn();
+    if ( !debugWasOn ) Debug.turnOn();
+    
+    boolean succ = true;
+    TimeVaryingMap tvm = new TimeVaryingMap< Integer >("imap", null, 0, Integer.class);
+    EffectFunction f =
+        new EffectFunction( tvm,
+                            TimeVaryingMap.getSetValueMethod(),
+                            new Object[] { new Parameter< Integer >( "four",
+                                                                     null, tvm ),
+                                           new Integer( 14 ) } );
+    assert ( 0 == tvm.getFirstTimepointParameter( f ) );
+    Method.setAccessible( TimeVaryingMap.class.getDeclaredMethods(), true );
+    for ( Method method : TimeVaryingMap.class.getDeclaredMethods() ) {
+      f = new EffectFunction( tvm, method );
+      Debug.outln( "method " + method.getName()
+                   + " has first timepoint parameter at position "
+                   + tvm.getFirstTimepointParameter( f ) );
+      Class<?> clss = ParameterListenerImpl.class;
+      Class< ? >[] pTypes = method.getParameterTypes();
+      if ( pTypes == null || pTypes.length <= 0 ) {
+        return false;
+      }
+      for ( Integer i = 0; i < pTypes.length; ++i ) {
+        Class<?> pType = pTypes[i];
+        if ( pType == null ) continue;
+        //if ( !clss.isAssignableFrom( pType ) ) continue;
+        TypeVariable< ? >[] gTypes = pType.getTypeParameters();
+        if ( gTypes == null ) continue;
+        for ( TypeVariable< ? > typeVar : gTypes ) {
+          if ( typeVar == null ) continue;
+          Debug.outln( "method=" + method.getName() + ", parameter type="
+                       + pType + ", type variable=" + typeVar
+                       + ", typeVar.getName()=" + typeVar.getName()
+          + ", typeVar.getBounds()=" + typeVar.getBounds()
+          + ", typeVar.getGenericDeclaration()=" + typeVar.getGenericDeclaration()
+          );
+        }
+      }
+    }
+    
+    
+    if ( !debugWasOn ) Debug.turnOff();
+    return succ;
+  }
+  
+
+  /**
+   * Struct used to help compare objects to tell which is a timepoint key and
+   * which is a V value for the enclosing map.  The object may be a timepoint
+   * and will be checked.  Boolean attributes may be null to indicate that they
+   * have not been evaluated.
+   */
+  class CandidateTimepoint {
+    /**
+     * object to evaluate
+     */
+    protected Object o = null;
+    /**
+     * conversion of object to timepoint
+     */
+    protected Parameter<Integer> tp = null;
+    /**
+     * whether tp is actually a timepoint
+     */
+    protected Boolean isATimepoint = null;
+    /**
+     *  whether the value of the timepoint is valid
+     */
+    protected Boolean inDomain = null;
+    /**
+     * whether or not the object needed to be converted to get the timepoint
+     */
+    protected Boolean neededConversion = null;
+    /**
+     * whether or not the object needed to be wrapped with a Parameter to be
+     * converted to a timepoint
+     */
+    protected Boolean neededWrapping = null;
+
+    /**
+     * The default constructor
+     */
+    public CandidateTimepoint() {}
+
+    /**
+     * Constructor with all fields.
+     * 
+     * @param o
+     *          object to evaluate
+     * @param tp
+     *          conversion of object to timepoint
+     * @param isATimepoint
+     *          whether tp is actually a timepoint
+     * @param inDomain
+     *          whether the value of the timepoint is valid
+     */
+    public CandidateTimepoint( Object o, Parameter< Integer > tp ) {
+      super();
+      if ( tp == null ) {
+        setObject(o);
+      } else {
+        this.o = o;
+        setTp(tp);
+      }
+    }
+
+    /**
+     * @return the candidate object
+     */
+    public Object getObject() {
+      if ( o == null && tp != null ) {
+        return tp;
+      }
+      return o;
+    }
+
+    /**
+     * @return the converted timepoint
+     */
+    public Parameter< Integer > getTimepoint() {
+      if ( tp == null && o != null ) {
+        setTimepointToObject();
+      }
+      return tp;
+    }
+
+    public void setObject( Object o ) {
+      this.o = o;
+//      Assert.assertNull(tp);
+//      setTimepointToObject();
+      isATimepoint = null;//isTimepoint( o );
+      inDomain = null;
+    }
+    public void setTp( Parameter< Integer > tp) {
+      this.tp = tp;
+      isATimepoint = null;//isTimepoint( tp );
+      inDomain = null;
+//      if ( o == null ) o = tp;
+    }
+    public boolean knowIfIsATimepoint() {
+      return ( isATimepoint != null );
+    }
+    public boolean knowIfInDomain() {
+      return ( inDomain != null );
+    }
+    protected boolean setTimepointToObject() {
+      if ( tp != null ) {
+        Debug.err( "Warning! Trying to replace existing tp with o." );
+      }
+      tp = tryCastTimepoint( o );
+      if ( tp == o ) {
+        setNeededConversion( false );
+        setNeededWrapping( false );
+      }
+      return tp == o;
+    }
+    public boolean isInDomain() {
+      if ( inDomain == null ) {
+        if ( tp == null && o != null ) {
+          setTimepointToObject();
+        }
+        inDomain = Timepoint.defaultDomain.contains( tp.getValue(false) );
+      }
+      return inDomain;
+    }
+    public boolean isATimepoint() {
+      if ( isATimepoint == null ) {
+        if ( tp == null ) {
+          isATimepoint = setTimepointToObject();
+        } else {
+          isATimepoint = isTimepoint( tp );
+        }
+      }
+      return isATimepoint;
+    }
+
+    public boolean knowIfNeededConversion() {
+      return ( neededConversion != null );
+    }
+    public boolean knowIfNeededWrapping() {
+      return ( neededWrapping != null );
+    }
+    /**
+     * @return neededConversion
+     */
+    public Boolean neededConversion() {
+      return neededConversion;
+    }
+
+    /**
+     * @param neededConversion the neededConversion to set
+     */
+    public void setNeededConversion( Boolean neededConversion ) {
+      this.neededConversion = neededConversion;
+    }
+
+    /**
+     * @return neededWrapping
+     */
+    public Boolean neededWrapping() {
+      return neededWrapping;
+    }
+
+    /**
+     * @param neededWrapping the neededWrapping to set
+     */
+    public void setNeededWrapping( Boolean neededWrapping ) {
+      this.neededWrapping = neededWrapping;
+    }
+
+//    public boolean isWrapped() {
+//      if ( tp == null || o == null ) return false;
+//      return false;
+//    }
+    
+    /**
+     * Just try to convert using wrapping.
+     * @param propagate
+     * @return
+     */
+    public boolean tryWrapping( boolean propagate ) {
+      setTp( tryEvaluateTimepoint( o, propagate, true ) );
+      return isATimepoint();
+    }
+
+    public boolean doConversion( boolean propagate, boolean okToWrap ) {
+      setTimepointToObject();
+      if ( isATimepoint() ) {
+        setNeededConversion( false );
+        setNeededWrapping( false );
+        return true;
+      }
+      setTp( tryEvaluateTimepoint( o, propagate, false ) );
+      if ( isATimepoint() ) {
+        setNeededConversion( true );
+        setNeededWrapping( false );
+        return true;
+      }
+      if ( okToWrap ) {
+        if ( tryWrapping( propagate ) ) {
+          setNeededWrapping( true );
+        }
+      }
+      return isATimepoint();
+    }
+
+  }
+  
+  /**
+   * @param o1
+   *          candidate timepoint
+   * @param o2
+   *          candidate timepoint
+   * @param o1ShouldBe
+   * @param o2ShouldBe
+   * @param o1WinsTie
+   * @return the object, call it A, paired with its successful conversion to a
+   *         timepoint, iff A meets higher priority criteria than the other object, B, for the following
+   *         (with 1=highest priority, 4=lowest): (1)
+   *         the other, B, cannot be converted successfully, (2) A is expected
+   *         to be a timepoint ([A]ShouldBe=True and [B]ShouldBe=False), (3) The timepoint value of one is not in the default timepoint domain. (4) A
+   *         is more easily transformed into a Timepoint than B (casting is
+   *         easier than evaluating, which is easier than wrapping with a
+   *         Parameter ), or (5) A wins in the tie (o1WinsTie == (A==o1));
+   *         otherwise, neither can be converted, and null is returned.
+   */
+  public Pair< Object, Parameter< Integer > > whichIsTheTimepoint( Object o1,
+                                                                   Object o2,
+                                                                   boolean o1ShouldBe,
+                                                                   boolean o2ShouldBe,
+                                                                   boolean o1WinsTie ) {
+    // check for null values
+    if ( o1 == null && o2 == null ) return null;
+    if ( o1 != null && o2 == null ) {
+      return new Pair< Object, Parameter< Integer >>(o1, tryEvaluateTimepoint( o1, true ));
+    }
+    if ( o1 == null && o2 != null ) {
+      return new Pair< Object, Parameter< Integer >>(o2, tryEvaluateTimepoint( o2, true ));
+    }
+    // make some convenient inferences
+    boolean strongPreference = o1WinsTie ? o1ShouldBe : o2ShouldBe;
+    boolean strongPreferenceFor1 = strongPreference && o1ShouldBe;
+    boolean strongPreferenceFor2 = strongPreference && o2ShouldBe;
+    boolean o1IsPreferred = strongPreferenceFor1 || (!strongPreferenceFor2 && o1WinsTie );
+    boolean o2IsPreferred = !o1IsPreferred;
+    boolean inconsistent = o1WinsTie ? o2IsPreferred : o1IsPreferred;
+    if ( inconsistent ) {
+      Debug.error( true, "Error! Inconsistent arguments. The expected object is not also the tie breaker." );
+    }
+ 
+    // make oi the preferred choice and oii the other
+    Object preferredObj = o1IsPreferred ? o1 : o2;
+    Object nonPreferredObj = o1IsPreferred ? o2 : o1;
+
+    CandidateTimepoint preferred = new CandidateTimepoint( preferredObj, null );
+    CandidateTimepoint nonPreferred = new CandidateTimepoint( nonPreferredObj, null );
+    
+    // Check if one is already a timepoint, and
+    // see if one is not in the default time domain and the other is.
+    Pair< Object, Parameter< Integer > > p =
+        selectTimepoint(preferred, nonPreferred, strongPreference, true, true );
+    if ( p != null ) return p;
+
+    // Try to get a timepoint from evaluation of the object and check domains.
+    preferred.doConversion( true, false );
+    nonPreferred.doConversion( true, false );
+    p = selectTimepoint( preferred, nonPreferred, strongPreference, true, true );
+    if ( p != null ) return p;
+
+    // Try to get a timepoint from evaluation of the object while allowing
+    // wrapping and check domains.
+    preferred.tryWrapping( true );
+    nonPreferred.tryWrapping( true );
+    p = selectTimepoint( preferred, nonPreferred, strongPreference, true, true );
+    if ( p != null ) return p;
+
+    // If couldn't make either on a timepoint, fail--no more magic tricks.
+    if ( !preferred.isATimepoint() && !nonPreferred.isATimepoint() ) return null;
+    
+    // See if one works as a value and not the other
+    if ( strongPreference ) {
+      V valPref = tryEvaluateValue( nonPreferredObj, true );
+      if ( valPref != null ) {
+        return new Pair< Object, Parameter< Integer > >( preferred.getObject(),
+                                                         preferred.getTimepoint() );
+      }
+    } else {
+      V valNonPref = tryEvaluateValue( preferredObj, true );
+      if ( valNonPref != null ) {
+        return new Pair< Object, Parameter< Integer > >( nonPreferred.getObject(),
+                                                         nonPreferred.getTimepoint() );
+      }
+    }
+    
+    if ( preferred.isATimepoint() ) {
+      return new Pair< Object, Parameter< Integer > >( preferred.getObject(),
+                                                       preferred.getTimepoint() );
+    }
+    return null;
+  }
+  
+  /**
+   * Determine which of the two candidates better resembles a timepoint
+   * according to preferences.
+   * 
+   * @param pref
+   *          the preferred candidate
+   * @param nonPref
+   *          the non-preferred candidate
+   * @param strongPreference
+   *          whether or not the preferred candidate wins in a tie
+   * @return the preferred object paired with its conversion to a timepoint, the
+   *         non-preferred object and timepoint if the preferred isn't
+   *         available, or null
+   */
+  protected Pair< Object, Parameter< Integer > >
+      selectTimepoint( CandidateTimepoint pref, CandidateTimepoint nonPref,
+                       boolean strongPreference ) {
+    return selectTimepoint( pref, nonPref, strongPreference, true, false );
+  }
+
+  /**
+   * Determine which of the two candidates better resembles a timepoint
+   * according to preferences.
+   * 
+   * @param pref
+   *          the preferred candidate
+   * @param nonPref
+   *          the non-preferred candidate
+   * @param strongPreference
+   *          whether or not the preferred candidate wins in a tie
+   * @param checkIfTimepoint
+   * @param checkIfInDomain
+   * @return the preferred object paired with its conversion to a timepoint, the
+   *         non-preferred object and timepoint if the preferred isn't
+   *         available, or null
+   */
+  protected Pair< Object, Parameter< Integer > >
+      selectTimepoint( CandidateTimepoint pref, CandidateTimepoint nonPref,
+                       boolean strongPreference, boolean checkIfTimepoint,
+                       boolean checkIfInDomain ) {
+    if ( pref == null || nonPref == null ) return null;
+    // check whether the candidates are found to be timepoints (Parameter<Integer>)
+    if ( checkIfTimepoint ) {
+      if ( pref.isATimepoint()
+           && ( strongPreference || !nonPref.isATimepoint() ) ) {
+        return new Pair< Object, Parameter< Integer >>( pref.getObject(),
+                                                        pref.getTimepoint() );
+      }
+      if ( !strongPreference && nonPref.isATimepoint() ) { // !isPrefTp
+        return new Pair< Object, Parameter< Integer >>( nonPref.getObject(),
+                                                        nonPref.getTimepoint() );
+      }
+    }
+    boolean bothAreTimepoints = pref.isATimepoint() && nonPref.isATimepoint();
+    if ( bothAreTimepoints  ) {
+      // check if an actual Timepoint (as opposed to just Parameter<Integer>)
+      if ( strongPreference && pref.getTimepoint() instanceof Timepoint
+           && !( nonPref.getTimepoint() instanceof Timepoint ) ) {
+        return new Pair< Object, Parameter< Integer >>( pref.getObject(),
+                                                        pref.getTimepoint() );
+      }
+      // check if value is a legal time value 
+      if ( checkIfInDomain ) {
+        if ( pref.isInDomain() && ( strongPreference || !nonPref.isInDomain() ) ) {
+          return new Pair< Object, Parameter< Integer >>( pref.getObject(),
+                                                          pref.getTimepoint() );
+        }
+        if ( !strongPreference && nonPref.isInDomain() ) { // !isPrefTp is known
+          return new Pair< Object, Parameter< Integer >>(
+                                                          nonPref.getObject(),
+                                                          nonPref.getTimepoint() );
+        }
+      }
+    }
+    return null;
+
+  }
+
   
   public boolean isTimepoint( Object tp ) {
     boolean isParam = tp instanceof Parameter;
@@ -2308,6 +3004,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     boolean isIntParam = p.getValueNoPropagate() instanceof Integer;
     return isIntParam;
   }
+
   @Override
   public boolean isApplied( Effect effect ) {
     return isApplied(effect, getSetValueMethod(), getSetValueMethod() );//, true );
@@ -2684,12 +3381,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Method m = getSetValueMethod();
     if ( m != null ) effectMethods.put( m, 0 );
     m = getAddNumberAtTimeMethod();
+    inverseMethods.put( m, getSubtractNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
     m = getAddNumberForTimeRangeMethod();
+    inverseMethods.put( m, getSubtractNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
     m = getSubtractNumberAtTimeMethod();
+    inverseMethods.put( m, getAddNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
     m = getSubtractNumberForTimeRangeMethod();
+    inverseMethods.put( m, getAddNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
     m = getMultiplyNumberAtTimeMethod();
     if ( m != null ) effectMethods.put( m, 1 );
@@ -2698,15 +3399,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     //m = getSetValueMethod2();
     //m = TimeVaryingMap.class.getMethod("unsetValue");
     //m = TimeVaryingMap.class.getMethod("unapply");
-    
-    
-    
-    
     return effectMethods;
   }
 
   // TODO -- make this a JUnit
   public static void main( String[] args ) {
+    
+    boolean succ = testGetFirstTimepointParameter();
+    Assert.assertTrue( succ );
+    
     String fileName1 = "integerTimeline.csv";
     String fileName2 = "aggregateLoad.csv";
     TimeVaryingMap< Integer > intMap1 =
