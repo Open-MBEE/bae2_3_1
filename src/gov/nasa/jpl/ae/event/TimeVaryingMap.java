@@ -132,6 +132,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   protected static Method multiplyNumberForTimeRangeMethod = null;
   protected static Method multiplyMapMethod = null;
 
+  protected static Method divideNumberMethod = null;
+  protected static Method divideNumberAtTimeMethod = null;
+  protected static Method divideNumberForTimeRangeMethod = null;
+  protected static Method divideMapMethod = null;
   
   /**
    * Floating effects are those whose time or duration is changing. They must be
@@ -2346,6 +2350,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static Method getMultiplyMapMethod() {
     return multiplyMapMethod;
   }
+
+  public static Method getDivideNumberMethod() {
+    return divideNumberMethod;
+  }
+  public static Method getDivideNumberAtTimeMethod() {
+    return divideNumberAtTimeMethod;
+  }
+  public static Method getDivideNumberForTimeRangeMethod() {
+    return divideNumberForTimeRangeMethod;
+  }
+  public static Method getDivideMapMethod() {
+    return divideMapMethod;
+  }
+
+  
   public static Map< Method, Method > getInverseMethods() {
     if ( inverseMethods == null ) {
       initEffectMethods();
@@ -3393,9 +3412,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     inverseMethods.put( m, getAddNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
     m = getMultiplyNumberAtTimeMethod();
+    inverseMethods.put( m, getDivideNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
     m = getMultiplyNumberForTimeRangeMethod();
+    inverseMethods.put( m, getDivideNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    m = getDivideNumberAtTimeMethod();
+    inverseMethods.put( m, getMultiplyNumberAtTimeMethod() );
+    if ( m != null ) effectMethods.put( m, 1 );
+    m = getDivideNumberForTimeRangeMethod();
+    inverseMethods.put( m, getMultiplyNumberForTimeRangeMethod() );
+    if ( m != null ) effectMethods.put( m, 1 );
+
     //m = getSetValueMethod2();
     //m = TimeVaryingMap.class.getMethod("unsetValue");
     //m = TimeVaryingMap.class.getMethod("unapply");
