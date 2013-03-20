@@ -34,20 +34,21 @@ public class FunctionCall extends Call {
 //  protected Parameter<FunctionCall> nestedCall = null;
   
   /**
-   * Construct a call to a static method.
+   * Construct a call to a method.
    * @param method
    */
   public FunctionCall( Method method ) {
-    this.method = method; // the method must be static
+    this.method = method;
   }
 
   /**
-   * Construct a call to a static method.
+   * Construct a call to a method.
    * @param cls
    * @param methodName
    */
   public FunctionCall( Class<?> cls, String methodName ) {
-    this.method = ClassUtils.getMethodForArgTypes( cls, methodName, (Class<?>[])null ); 
+    this.method = ClassUtils.getMethodForArgTypes( cls, methodName,
+                                                   (Class<?>[])null ); 
   }
 
   /**
@@ -272,13 +273,22 @@ public class FunctionCall extends Call {
     return method.isVarArgs();
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#isStatic()
+   */
+  @Override
+  public boolean isStatic() {
+    if ( method == null ) return false;
+    return Modifier.isStatic( method.getModifiers() );
+  }
+  
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     if ( method == null ) {
       Debug.errln( "Warning! Tried to invoke a null method! " + this );
       return null;
     }
-    if ( !Modifier.isStatic( method.getModifiers() )  && evaluatedObject == null ) {
+    if ( !isStatic() && evaluatedObject == null ) {
       Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
       return null;
     }
