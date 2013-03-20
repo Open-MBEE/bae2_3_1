@@ -498,24 +498,26 @@ public class Functions {
       double rd1 = ( (Number) r1).doubleValue();
       double rd2 = ( (Number) r2).doubleValue();
       // check for overflow
-      if ( Double.MAX_VALUE / rd1 <= rd2 ) {
-        result = Double.MAX_VALUE;
-      } else if ( -Double.MAX_VALUE / rd1 >= rd2 ) {
-        result = -Double.MAX_VALUE;
-      } else {
-        result = ( (Double)r1 ) * ( (Double)r2 );
+      boolean signsEqual = (rd1 > 0) == (rd2 > 0);
+      double ad1 = Math.abs( rd1 );
+      double ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
+      if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
+        if ( Double.MAX_VALUE / ad1 <= ad2 ) result = Double.MAX_VALUE * ( signsEqual? 1 : -1);
+        else result = ( (Double)rd1 ) * ( (Double)rd2 );
       }
+      else  result = ( (Double)rd1 ) * ( (Double)rd2 );
     } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
       int rd1 = ( (Integer) r1).intValue();
       int rd2 = ( (Integer) r2).intValue();
       // check for overflow
-      if ( Integer.MAX_VALUE / rd1 <= rd2 ) {
-        result = Integer.MAX_VALUE;
-      } else if ( Integer.MIN_VALUE / rd1 >= rd2 ) {
-        result = Integer.MIN_VALUE;
-      } else {
-        result = ( (Integer)r1 ) * ( (Integer)r2 );
+      boolean signsEqual = (rd1 > 0) == (rd2 > 0);
+      int ad1 = Math.abs( rd1 );
+      int ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
+      if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
+        if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
+        else result = ( (Integer)rd1 ) * ( (Integer)rd2 );
       }
+      else  result = ( (Integer)rd1 ) * ( (Integer)rd2 );
     } else {
       try {
         throw new IllegalAccessException();
