@@ -1260,7 +1260,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       VV v = tvm.getValue( k, false );
       Number n = Expression.evaluate( v, Number.class, false );
       //if ( n != null ) {// n.doubleValue() != 0 ) {
-      subtract( n, k, k );
+      multiply( n, k, k );
       //}
     }
     return removeDuplicates();
@@ -1369,6 +1369,31 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return this;
   }
   
+  /**
+   * Multiply this map with another. This achieves for all {@code t} in
+   * {@code thisBefore.keySet()} and {@code tvm.keySet()},
+   * {@code thisAfter.get(t) == thisBefore.get(t) * tvm.get(t)}.
+   * 
+   * @param tvm
+   *          the {@code TimeVaryingMap} with which this map is multiplied
+   * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > divide( TimeVaryingMap< VV > tvm ) {
+    if ( tvm == null ) return null;
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      //if ( n != null ) {// n.doubleValue() != 0 ) {
+      divide( n, k, k );
+      //}
+    }
+    return removeDuplicates();
+  }
+
   /**
    * @param n the number by which the map is divided
    * @param fromKey
