@@ -911,7 +911,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void addEffects( Parameter< ? > sv, Set<Effect> set ) {
-    if ( set == null || sv == null || sv.getValue( false ) == null ) {
+    if ( set == null || sv == null ){//||  sv.getValue( false ) == null ) {
       Debug.error( false, "Error! null arguments to " + name + ".addEffects(" + sv + ", " + set + ")" );
       return;
     }
