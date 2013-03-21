@@ -937,8 +937,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( v1 == null ) return null;
       if ( v2 == null ) return v1;
       // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-      v1 = plus( v1, dividedBy( times( minus( v2, v1 ), minus( t, t1 ) ),
-                                      minus( t2, t1 ) ) );
+      v1 = Functions.plus( v1,
+                           Functions.divide( Functions.times( Functions.minus( v2, v1 ),
+                                                              Functions.minus( t, t1 ) ),
+                                             Functions.minus( t2, t1 ) ) );
       return v1;
     }
     Debug.error( true,
@@ -1235,7 +1237,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       map = subMap( fromKey, true, toKey, same );
     }
     for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
-      e.setValue( times(e.getValue(), n ) );
+      e.setValue( Functions.times(e.getValue(), n ) );
     }
     return this;
   }
@@ -1363,7 +1365,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       map = subMap( fromKey, true, toKey, same );
     }
     for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
-      e.setValue( dividedBy(e.getValue(), n ) );
+      e.setValue( Functions.divide(e.getValue(), n ) );
     }
     return this;
   }
@@ -1428,65 +1430,6 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return plus( n, firstKey(), null );
   }
   
-  // TODO -- THESE ARE ALL DEFINED IN FUNCTIONS!  ALSO CHECK DOMAIN!
-  public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
-    return Functions.times( o1, o2 );
-/*    Number result = null;
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = n1.doubleValue() * n2.doubleValue();
-      } else {
-        // TODO -- what if they are longs?
-        result = n1.intValue() * n2.intValue();
-      }
-    }
-    return (V1)result;
-*/  }
-  
-  public static <V1, V2> V1 minus( V1 o1, V2 o2 ) {
-    return Functions.minus( o1, o2 );
-//    return plus( o1, times( -1, o2 ) );
-  }
-  public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
-    return Functions.plus( o1, o2 );
-/*    Number result = null;
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = n1.doubleValue() + n2.doubleValue();
-      } else {
-        // TODO -- what if they are longs?
-        result = n1.intValue() + n2.intValue();
-      }
-    }
-    return (V1)result;
-*/  }
-  
-  public static <V1, V2> V1 dividedBy( V1 o1, V2 o2 ) {
-    return Functions.divide( o1, o2 );
-/*    Number result = null;
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        if ( n2.doubleValue() == 0 ) {
-          return (V1)o1.getClass().cast( Double.NaN );
-        }
-        result = n1.doubleValue() / n2.doubleValue();
-      } else {
-        if ( n2.doubleValue() == 0 ) {
-          return (V1)o1.getClass().cast( Integer.MAX_VALUE );
-        }
-        // TODO -- what if they are longs?
-        result = n1.intValue() / n2.intValue();
-      }
-    }
-    return (V1)result;
-*/  }
-
   public boolean contains( Integer t ) {
     return getKey( t ) != null;
   }
@@ -1873,7 +1816,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey,
                                        Parameter< Integer > toKey ) {
-    return add( times(n, -1), fromKey, toKey );
+    return add( Functions.times(n, -1), fromKey, toKey );
   }
   
   /**
