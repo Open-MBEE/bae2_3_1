@@ -28,22 +28,41 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   protected T upperBound = null;
   protected boolean lowerIncluded;
   protected boolean upperIncluded;
+  protected boolean nullInDomain = false;
+  
   //protected DomainListener owner;  // REVIEW ??
   //protected static Object typeMinValue;
   //protected static Object typeMaxValue;
   protected static Method isGroundedMethod = getIsGroundedMethod();
   
 	
+  public AbstractRangeDomain( T lowerBound, T upperBound,
+                              boolean includeLowerBound,
+                              boolean includeUpperBound,
+                              boolean nullInDomain ) {
+    setBounds( lowerBound, upperBound );
+    this.lowerIncluded = includeLowerBound;
+    this.upperIncluded = includeUpperBound;
+    setNullInDomain(nullInDomain);
+  }
+
   public AbstractRangeDomain() {
 //    this( getTypeMinValue(), getTypeMaxValue() );
   }
   
-  public AbstractRangeDomain(T lowerBound, T upperBound) {
+  public AbstractRangeDomain(T lowerBound, T upperBound ) {
     setBounds( lowerBound, upperBound );
   }
 
+  public AbstractRangeDomain(T lowerBound, T upperBound, boolean nullInDomain ) {
+    setBounds( lowerBound, upperBound );
+    this.nullInDomain = nullInDomain;
+  }
+
 	public AbstractRangeDomain( RangeDomain<T> domain ) {
-	  this( domain.getLowerBound(), domain.getUpperBound() );
+	  this( domain.getLowerBound(), domain.getUpperBound(),
+	        domain.includeLowerBound(), domain.includeUpperBound(),
+	        domain.isNullInDomain() );
   }
 
   public void restrictToValue( T v ) {
@@ -452,5 +471,12 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return cList;
   }
 
+  @Override
+  public boolean isNullInDomain() {
+    return nullInDomain;
+  }
+  public void setNullInDomain( boolean b ) {
+    nullInDomain = b;
+  }
 
 }

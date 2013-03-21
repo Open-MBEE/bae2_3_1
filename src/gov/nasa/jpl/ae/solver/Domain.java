@@ -15,6 +15,8 @@ public interface Domain< T > extends Cloneable, HasId {
   
   public boolean isInfinite();
   
+  public boolean isNullInDomain();
+  
   public Domain< T > getDefaultDomain();
   public void setDefaultDomain( Domain< T > domain );
   
