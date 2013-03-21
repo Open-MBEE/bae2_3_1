@@ -109,13 +109,18 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     boolean needToUnapply = true;
     if ( effect instanceof EffectFunction ) {
       EffectFunction effunc = (EffectFunction)effect;
+      
+      if (isAReceiveEffect(effunc)) {
+        Parameter<Integer> tp = tryEvaluateTimepoint(effunc.getArguments().get( 0 ),true);
+        unsetValue(tp,null);
+        return;
+      }
+      
       if ( isASendEffect(effunc) ) {
         for ( ObjectFlow<Obj> of : getListeners() ) {
           of.unapply( effect );
         }
-        if ( effunc.getMethod().equals( getSendIfMethod() ) ) {
-          
-        }
+
       }
       if ( needToUnapply  ) {
         Pair< Parameter<Integer>, Obj > p = 
@@ -140,9 +145,6 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   protected Obj receive( Parameter<Integer> t, boolean noSetValue,
                          boolean noSetIfNull ) {
     breakpoint();
-    if (name.contains( "q" )){
-      breakpoint();
-    }
     if ( t == null ) return null;
     Obj o = getValueEarlier( t );
     boolean noSet = noSetValue || ( noSetIfNull && o == null ); 
@@ -355,6 +357,13 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     assert( !effectFunction.getMethod().getName().toLowerCase().contains("send") );
     return false;
   }
+  
+  public boolean isAReceiveEffect( EffectFunction effectFunction ) {
+    if ( effectFunction.getMethod().equals( getReceiveMethod() ) ) return true;
+    assert( !effectFunction.getMethod().getName().toLowerCase().contains("receive") );
+    return false;
+  }
+  
 
   // static functions to get Methods for this class
   
