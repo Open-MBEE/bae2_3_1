@@ -36,7 +36,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.collections.SetUtils;
 
 import com.nomagic.magicdraw.uml.actions.SetEmptyTagsDefaultsAction;
 
@@ -2480,8 +2479,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return the timepoint at which the effect takes place and the value applied
    *         in a Pair
    */
-  public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect,
-                                                                      Boolean timeFirst ) {
+  public < TT > Pair< Parameter< Integer >, TT >
+      getTimeAndValueOfEffect( Effect effect, Boolean timeFirst ) {
     // REVIEW -- Why not use <T>? Can't enforce it?
     if ( !( effect instanceof EffectFunction ) ) {
       return null;
@@ -2502,28 +2501,37 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                    + " parameters, but 2 are required." );
       return null;
     }
-    if ( effectFunction.arguments == null
-         || effectFunction.arguments.size() < 2 ) {
+
+    if ( effectFunction.arguments == null || effectFunction.arguments.size() < 2 ) {
       Debug.error( getName() + ".getTimeAndValueOfEffect(Effect=" + effect
                    + ") Error! Method has "
                    + effectFunction.getMethod().getParameterTypes().length
                    + " arguments, but 2 are required." );
       return null;
     }
-    Parameter< Integer > tp = null, tp1 = null, tp2 = null;
-    TT value = null;
-    Integer tParamI = getFirstTimepointParameter( effectFunction );
     boolean complainIfNotTimepoint = timeFirst != null;
+    
     timeFirst = ( timeFirst == null ) || timeFirst;
+    Parameter< Integer > tp = null;
+    TT value = null;
+    
+    Integer idx = getIndexOfTimepointArgument( effectFunction );
+    if ( idx != null ) {
+      // Object arg = effectFunction.arguments.get( idx );
+      // if ( isTimepoint( arg ) ) {
+      // tp = tryEvaluateTimepoint(arg, true);
+      timeFirst = ( idx == 0 );
+      // }
+    }
+    
     Object arg1 = effectFunction.arguments.get( timeFirst ? 0 : 1 );
     Object arg2 = effectFunction.arguments.get( timeFirst ? 1 : 0 );
+    tp = tryEvaluateTimepoint( arg1, true );
     
-    tp = tryEvaluateTimepoint( arg1, true, true );
     value = (TT)tryEvaluateValue( arg2, true );
-    if ( arg1 == effectFunction.arguments.get( timeFirst ? 0 : 1 ) ) {
-      // FIXME!!!!!!!
-      // this is always true!  short circuiting on purpose for debug
-        return new Pair< Parameter< Integer >, TT >( tp, value );
+    
+    if ( isTimepoint(arg1) ) {
+      return new Pair< Parameter< Integer >, TT >( tp, value );
     }
     
     Pair< Object, Parameter< Integer >> p =
@@ -2543,68 +2551,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         Parameter< Integer > otp = tryEvaluateTimepoint( valueArg, true, true );
         if ( otp != null ) {
           TT ov = (TT)tryEvaluateValue( tpArg, true );
-          Debug.error( ov != null,
-                       "Looks like timepoint and value are reversed in call to getTimeAndValueOfEffect( Effect "
+          Debug.err("Looks like timepoint and value are reversed in call to getTimeAndValueOfEffect( Effect "
                            + effect+ ", " + "Boolean " + timeFirst + ") = "
                            + pair );
         }
       }
     }
-    return pair;
-    /*      tp1 = tryEvaluateTimepoint( arg1, true );
-        tp2 = tryEvaluateTimepoint( arg2, true );
-        boolean isTp1 = isTimepoint( tp1 );
-        boolean isTp2 = isTimepoint( tp2 );
-        tp = tp1;
-        if ( !isTp1 && isTp2 ) {
-          tp = tp2;
-        } else if ( !isTp1 && !isTp2 ) {
-          // tryToEvaluateTimepoint should wrap an integer with a Parameter, so hunting for an Integer shouldn't help
-        }
-=======
-      if ( effectFunction.arguments == null
-           || effectFunction.arguments.size() < 2 ) {
-        Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
-            + effect + ") Error! Method has "
-            + effectFunction.getMethod().getParameterTypes().length
-            + " arguments, but 2 are required." );
-      } else {
-        Parameter<Integer> tp = null;
-        TT value = null;
-        Integer idx = getIndexOfTimepointArgument( effectFunction );
-        if ( idx != null ) {
-//          Object arg = effectFunction.arguments.get( idx );
-//          if ( isTimepoint( arg ) ) {
-//            tp = tryEvaluateTimepoint(arg, true);
-            timeFirst = ( idx == 0 ); 
-//          }
-        }
-        Object arg1 = effectFunction.arguments.get( timeFirst ? 0 : 1 );
-        Object arg2 = effectFunction.arguments.get( timeFirst ? 1 : 0 );
-        tp = tryEvaluateTimepoint( arg1, true );
->>>>>>> .r432
-        TT val1 = null;
-        if ( tp == null ) {
-          tp = tryEvaluateTimepoint( arg2, true );
-          value = Expression.evaluate( arg1, null, true );//tryEvaluateValue( arg1, true );
-          val1 = value;
-        } else {
-          value = Expression.evaluate( arg2, null, true );//tryEvaluateValue( arg2, true );
-        }
-        if ( tp == null ) {
-          Integer i = Expression.evaluate( arg1, Integer.class, true );
-          if ( i != null ) {
-            tp = makeTempTimepoint( (Integer)i, true );
-          }
-          if ( tp == null ) {
-            i = Expression.evaluate( arg2, Integer.class, true );
-            if ( i != null ) {
-              tp = makeTempTimepoint( (Integer)i, true );
-              value = val1;
-            }
-          }
-        }
-*/        
+    return pair;        
   }
 
   
@@ -3457,6 +3410,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       @Override
       public int compare( Method o1, Method o2 ) {
         int cmp;
+        if (o1 == o2) return 0;
+        if (o1 == null) return -1;
+        if (o2 == null) return 1;
         cmp = o1.getName().compareTo( o2.getName() );
         if ( cmp != 0 ) return cmp;
         cmp = o1.getDeclaringClass().getName()
