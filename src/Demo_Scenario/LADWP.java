@@ -5213,7 +5213,7 @@ public class LADWP extends ParameterListenerImpl {
                     addDependency(effect387Var, new Expression(effect387VarV));
                     effect387 = new EffectFunction(new EffectFunction(effect387Var, ClassUtils.getMethodForArgTypes("ObjectFlow<Boolean>", "Demo_Scenario", "send", java.lang.Object.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { objectToPass, endTime })); 
                     FunctionCall f2 = new FunctionCall(projected_customer_load__17_0_2_1_edc0357_1360798765090_793282_20342, ClassUtils.getMethodForArgTypes("Parameter<TimeVaryingProjection<Float>>", "Demo_Scenario", "getValue"),  (Object[]) null);
-                    FunctionCall f1 = new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingProjection<Float>", "Demo_Scenario", "getValue", Integer.class), new Object[] { f2, startTime }, f2);
+                    FunctionCall f1 = new FunctionCall(null, ClassUtils.getMethodForArgTypes("TimeVaryingProjection<Float>", "Demo_Scenario", "getValue", Integer.class), new Object[] { startTime }, f2);
                     effect388Var = new Parameter("effect388Var", null, null, this);
                     addDependency(effect388Var, new Expression(f1));
                     effect388 = new EffectFunction(new EffectFunction(effect388Var, ClassUtils.getMethodForArgTypes("TimeVaryingProjection<Float>", "Demo_Scenario", "multiply", java.lang.Number.class, gov.nasa.jpl.ae.event.Parameter.class), new Object[] { _17_0_2_1_edc0357_1360881719514_678367_16225, startTime }));
