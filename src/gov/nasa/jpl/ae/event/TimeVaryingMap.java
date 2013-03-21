@@ -2289,6 +2289,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           cls.getMethod( "multiply", new Class<?>[] { TimeVaryingMap.class } );
       arithmeticMethods.add( multiplyMapMethod );
     
+      divideNumberMethod =
+          cls.getMethod( "divide", new Class<?>[] { Number.class } );
+      arithmeticMethods.add( divideNumberMethod );
+      divideNumberAtTimeMethod =
+          cls.getMethod( "divide", new Class<?>[] { Number.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( divideNumberAtTimeMethod );
+      divideNumberForTimeRangeMethod =
+          cls.getMethod( "divide", new Class<?>[] { Number.class,
+                                                 Parameter.class,
+                                                 Parameter.class } );
+      arithmeticMethods.add( divideNumberForTimeRangeMethod );
+      divideMapMethod =
+          cls.getMethod( "divide", new Class<?>[] { TimeVaryingMap.class } );
+      arithmeticMethods.add( divideMapMethod );
+    
     } catch ( SecurityException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -2308,7 +2324,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( addNumberForTimeRangeMethod == null ) {
       setArithmeticMethods();
     }
-    return null;
+    return addNumberForTimeRangeMethod;
   }
   public static Method getAddNumberMethod() {
     if ( addNumberMethod == null ) {
@@ -2327,40 +2343,76 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return interpolation;
   }
   public static Method getSubtractNumberMethod() {
+    if ( subtractNumberMethod == null ) {
+      setArithmeticMethods();
+    }
     return subtractNumberMethod;
   }
   public static Method getSubtractNumberAtTimeMethod() {
+    if ( subtractNumberAtTimeMethod == null ) {
+      setArithmeticMethods();
+    }
     return subtractNumberAtTimeMethod;
   }
   public static Method getSubtractNumberForTimeRangeMethod() {
+    if ( subtractNumberForTimeRangeMethod == null ) {
+      setArithmeticMethods();
+    }
     return subtractNumberForTimeRangeMethod;
   }
   public static Method getSubtractMapMethod() {
+    if ( subtractMapMethod == null ) {
+      setArithmeticMethods();
+    }
     return subtractMapMethod;
   }
   public static Method getMultiplyNumberMethod() {
+    if ( multiplyNumberMethod == null ) {
+      setArithmeticMethods();
+    }
     return multiplyNumberMethod;
   }
   public static Method getMultiplyNumberAtTimeMethod() {
+    if ( multiplyNumberAtTimeMethod == null ) {
+      setArithmeticMethods();
+    }
     return multiplyNumberAtTimeMethod;
   }
   public static Method getMultiplyNumberForTimeRangeMethod() {
+    if ( multiplyNumberForTimeRangeMethod == null ) {
+      setArithmeticMethods();
+    }
     return multiplyNumberForTimeRangeMethod;
   }
   public static Method getMultiplyMapMethod() {
+    if ( multiplyMapMethod == null ) {
+      setArithmeticMethods();
+    }
     return multiplyMapMethod;
   }
 
   public static Method getDivideNumberMethod() {
+    if ( divideNumberMethod == null ) {
+      setArithmeticMethods();
+    }
     return divideNumberMethod;
   }
   public static Method getDivideNumberAtTimeMethod() {
+    if ( divideNumberAtTimeMethod == null ) {
+      setArithmeticMethods();
+    }
     return divideNumberAtTimeMethod;
   }
   public static Method getDivideNumberForTimeRangeMethod() {
+    if ( divideNumberForTimeRangeMethod == null ) {
+      setArithmeticMethods();
+    }
     return divideNumberForTimeRangeMethod;
   }
   public static Method getDivideMapMethod() {
+    if ( divideMapMethod == null ) {
+      setArithmeticMethods();
+    }
     return divideMapMethod;
   }
 
