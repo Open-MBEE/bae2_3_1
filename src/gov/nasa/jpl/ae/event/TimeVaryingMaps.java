@@ -98,12 +98,12 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
         }
         this.add( tvm );
       }
-      numberOfSubmaps = plus(numberOfSubmaps, numInstances);
+      numberOfSubmaps = Functions.plus(numberOfSubmaps, numInstances);
     }
     if ( computeAvg ) {
       for ( Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
 //        Number v = Expression.evaluate( e.getValue(), Number.class, false );
-        e.setValue( TimeVaryingMap.dividedBy( e.getValue(), numberOfSubmaps ) );
+        e.setValue( Functions.divide( e.getValue(), numberOfSubmaps ) );
       }
     }
   }
