@@ -563,7 +563,7 @@ class actionEventClass(object):
 			if StereotypesHelper.hasStereotype(node,ASMIP): #add to structural feature map in place
 				self.effects.append("%s.add(%s,startTime)" % (featureID,v))
 			elif StereotypesHelper.hasStereotype(node,MSMIP): #multiply map in place all by some value after start Time
-				need to do a get value on the projection first... #FIX
+				#need to do a get value on the projection first... #FIX
 				self.effects.append("%s.multiply(%s,startTime)" % (featureID,v))
 			elif StereotypesHelper.hasStereotype(node,USM): #update projection with another projection after some point
 				self.effects.append("%s.setValue(startTime,%s)" % (featureID,v))
@@ -641,10 +641,15 @@ class actionEventClass(object):
 			else: 
 				when = event.when
 				w = str(when.expr.value)
-				if not w[-1] in ["s","m","h"]: raise
-				tm = int(w[0:-1]) #should throw a type error if it's not an int...
-				if w[-1] is not "s" : tm = EU.convertTime(w[-1],"s",tm)
+				tm = str(when.expr.value)
+				try: 
+					assert w[-1] in ["s","m","h"]
+					tm = int(w[0:-1]) #should throw a type error if it's not an int...
+					if w[-1] is not "s" : tm = EU.convertTime(w[-1],"s",tm)
+				except:
+					EU.handleException("**** YOUR TIME EXPRESSION DOES NOT HAVE TIME UNITS!")
 				self.dependencies["duration"] = ("Integer", tm)
+				gl.log("finished time event")
 		
 		elif myType =="Value Specification Action" :
 			val = node.value
