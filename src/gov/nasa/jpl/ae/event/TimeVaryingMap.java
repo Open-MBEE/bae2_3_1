@@ -149,6 +149,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   protected Class<V> type = null;
 
+  protected Set<Effect> appliedSet = new HashSet<Effect>();
+
   protected static Map< Method, Integer > effectMethods = initEffectMethods();
 
   protected static Map< Method, Method > inverseMethods;
@@ -1721,10 +1723,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     } else {
       map = subMap( fromKey, true, toKey, same );
     }
+    boolean succeededSomewhere = false;
     for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
       if ( e.getValue() == null ) {
         try {
           e.setValue( tryCastValue( n ) );
+          succeededSomewhere = true;
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
@@ -1734,6 +1738,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         v = v + n.doubleValue();
         try {
           e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
@@ -1743,6 +1748,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         v = v + n.floatValue();
         try {
           e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
@@ -1752,6 +1758,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         v = (int)( v + n.doubleValue() );
         try {
           e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
@@ -1761,11 +1768,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         v = (long)( v + n.doubleValue() );
         try {
           e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
       }
     }
+    //if (succeededSomewhere) appliedSet.add(  )
     return this;
   }
 
@@ -2094,6 +2103,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( isArithmeticEffect( effect ) ) {
       Effect inverseEffect = getInverseEffect( effect );
       inverseEffect.applyTo( this, true );
+      appliedSet.remove(effect);
+      return;
     }
     Pair< Parameter<Integer>, V > p = 
         getTimeAndValueOfEffect( effect, true );  // this arg is wrong for arithmetic effects
@@ -2101,6 +2112,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 //                                      getSetValueMethod() );
     if ( p != null ) {
       unsetValue( p.first, p.second );
+      appliedSet.remove(effect);
     }
   }
   
@@ -3026,7 +3038,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     breakpoint();
     if ( Debug.isOn() ) isConsistent();
     if ( isArithmeticEffect( effect ) ) {
-      return true; // HACK! We have a problem here! We can't know if it's
+      return appliedSet.contains(effect); // HACK! We have a problem here! We can't know if it's
                    // applied unless we keep track of all effects here!
     }
 
@@ -3581,6 +3593,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Assert.assertTrue( doubleMap3.isConsistent() );
     Assert.assertTrue( doubleMap6.isConsistent() );
     
+  }
+  public boolean wasApplied( Effect effect ) {
+    return !appliedSet.add(effect);
   }
 
 }

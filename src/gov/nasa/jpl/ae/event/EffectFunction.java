@@ -129,6 +129,9 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 		*/
 		//T result = (T) evaluate();
     evaluate(propagate);
+    if (tv instanceof TimeVaryingMap) {
+      ((TimeVaryingMap) tv).wasApplied(this);
+    }
 		//tv.setValue( t, result );//setValueAtTime( t, result );
 		return tv;
 	}
