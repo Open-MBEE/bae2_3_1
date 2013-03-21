@@ -126,4 +126,9 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
     return null;
   }
 
+  @Override
+  public boolean isNullInDomain() {
+    return value == null;
+  }
+
 }

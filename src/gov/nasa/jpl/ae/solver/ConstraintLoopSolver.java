@@ -46,6 +46,7 @@ public class ConstraintLoopSolver implements Solver {
       lastSize = numConstrs;
       if ( Debug.isOn() ) Debug.outln( numConstrs + " remaining constraints to satisfy: " + unsatisfiedConstraints );
       if ( Debug.isOn() ) Debug.outln(""); 
+      //Debug.turnOff();
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
         if ( Debug.isOn() ) Debug.outln( "checking constraint " + i + ": " + c );
