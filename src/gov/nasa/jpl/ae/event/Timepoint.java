@@ -240,8 +240,19 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     return super.compareTo( o, checkId );
   }
 	
-	public static synchronized Timepoint fromString( String timestamp ) {
-	  return new Timepoint( "timepoint" + (counter ++), (int)fromTimestamp( timestamp ), null );
+  public static synchronized Timepoint fromMillis( long millis ) {
+    return new Timepoint( "timepoint" + ( counter++ ),
+                          fromMillisToInteger( millis ), null );
+  }
+
+  public static synchronized Timepoint fromDate( Date date) {
+    return new Timepoint( "timepoint" + ( counter++ ),
+                          fromDateToInteger( date ), null );
+  }
+
+	public static synchronized Timepoint fromTimestamp( String timestamp ) {
+    return new Timepoint( "timepoint" + ( counter++ ),
+                          fromTimestampToInteger( timestamp ), null );
     // REVIEW -- other formats?
 	}
 
@@ -291,7 +302,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     return null;
   }
 
-  public static long fromTimestamp( String timestamp ) {
+  public static long fromTimestampToMillis( String timestamp ) {
     long t = 0;
     DateFormat df = new SimpleDateFormat( timestampFormat );
     try {
@@ -299,6 +310,30 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
       assert ( d != null );
       t = (long)( Units.conversionFactor( Units.milliseconds, Timepoint.units )
                   * d.getTime() );
+    } catch ( java.text.ParseException e1 ) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    return t;
+  }
+  
+  public static Integer fromMillisToInteger( long millis ) {
+    int t = (int)( Units.conversionFactor( Units.milliseconds, Timepoint.units )
+                   * ( millis - epoch.getTime() ) );
+    return t;
+  }
+
+  public static Integer fromDateToInteger( Date date ) {
+    return fromMillisToInteger( date.getTime() );
+  }
+
+  public static Integer fromTimestampToInteger( String timestamp ) {
+    Integer t = null;
+    DateFormat df = new SimpleDateFormat( timestampFormat );
+    try {
+      Date d = df.parse( timestamp );
+      assert ( d != null );
+      t = fromDateToInteger(d);
     } catch ( java.text.ParseException e1 ) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
@@ -431,6 +466,11 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
    */
   public static Integer getHorizonDuration() {
     return horizonDuration;
+  }
+
+
+  public static Timepoint now() {
+    return fromDate( Calendar.getInstance().getTime() );
   }
 
 }

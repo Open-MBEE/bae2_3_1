@@ -6,7 +6,6 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
-import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.FileUtils;
@@ -33,8 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.Vector;
+
+import com.nomagic.uml2.ext.jmi.helpers.CanBeDeletedHelper;
 
 import junit.framework.Assert;
 
@@ -262,7 +262,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects,
         		                                    deep, seen); 
         	  } else if (value instanceof TimeVarying) {
-        		  e.applyTo( (TimeVarying<?>) variable.getValueNoPropagate(), true );
+        	    TimeVarying<?> tv = (TimeVarying<?>) value;
+        	    if ( tv.canBeApplied( e ) ) {
+        	      e.applyTo( tv, true );
+        	    } else {
+        	      satisfied = false;
+        	    }
         	  }
           }
         }
@@ -1223,9 +1228,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       return null;
     }
     seen = pair.second;
-    if ( seen != null ) seen.remove( this );
 
     if ( constraintCollection == null ) {
+      if ( seen != null ) seen.remove( this );
       constraintCollection = super.getConstraintCollection( deep, seen );
       constraintCollection.add( elaborationsConstraint );
       constraintCollection.add( effectsConstraint );
@@ -1866,5 +1871,58 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
   }
+  public static void doEditCommandFile(DurativeEvent d) throws IOException {
+    Runtime.getRuntime().exec( "xterm –e 'vi commandFile'" );
+    d.addObservation( Timepoint.now(), d.endTime, Timepoint.now().getValue() );
+  } 
+//  {
+//  
+//    DurativeEvent commandEditing = this;
+//    addObservation(Timepoint.now(), commandEditing .endTime, Timepoint.now().getValue());
+//    Command.
+//commandSequence.add(Timepoint.fromTimestamp("2012-08-05T11:00:00-07:00"),
+//                    new Command(Runtime.getRuntime(), Runtime.class, "exec",
+//                                new Object[] { "xterm –e 'vi commandFile'" }));
+//
+//  }
+////    Timepoint startTime = Timepoint.fromTimestamp("2012-08-05T11:00:00-07:00"); 
+////    commandSequence.add( startTime,
+////                         new Command( Runtime.getRuntime(),
+////                                      Runtime.class,
+////                                      "exec",
+////                                      new Object[] { "xterm –e 'vi commandFile'" },
+////                                      (Call)null ) );
+////    
+////  }
+
+  public <V> Constraint addObservation( Parameter<Integer> timeSampled,
+                                        Parameter< V > systemVariable,
+                                        V value ) {
+//    String exprString =
+//        systemVariable.getOwner().getName() + "." + systemVariable.getName()
+//            + ".getValue( timeSampled ) == value";
+//    String xmlFileName = "";
+//    String pkgName = "";
+//    EventXmlToJava xmlToJava = new EventXmlToJava( xmlFileName, pkgName );
+//    Expression<V> eqExpr =  xmlToJava.javaToAeExpr( exprString, null, true );
+    FunctionCall evalFunc =
+        new FunctionCall( null, Expression.class, "evaluate",
+                          new Object[] { systemVariable, TimeVarying.class,
+                                        true, true } );
+    Expression< V > getValExpr =
+        new Expression< V >( new FunctionCall( null,
+                                               TimeVarying.class, "getValue",
+                                               new Object[] { timeSampled },
+                                               evalFunc ) );
+    Functions.Equals< V > eqExpr = new Functions.Equals< V >( value, getValExpr );
+    ConstraintExpression c = new ConstraintExpression( eqExpr );
+    constraintExpressions.add( c );
+    return c;
+  }
+//  public <V> Constraint addObservation( Parameter<Integer> timeSampled,
+//                                        Parameter<V> systemVariable,
+//                                        V value ) {
+//    return null;
+//  }
 
 }

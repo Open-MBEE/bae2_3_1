@@ -26,6 +26,7 @@ public interface TimeVarying< V > extends Comparable< TimeVarying< V > >, HasId 
 ////	// allows iteration through values
 ////	public Timepoint timeOfNextValue( Timepoint t );
   boolean isApplied( Effect effect );
+  public boolean canBeApplied( Effect effect );
   public Object getOwner();
   public void setOwner( Object owner );
 }

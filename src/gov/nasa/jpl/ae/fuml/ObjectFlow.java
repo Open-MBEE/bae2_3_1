@@ -340,10 +340,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       if ( param == null ) {
         param = tryCastTimepoint( o );
       }
-      if ( param != null
-           && param.getValue( false ) != null
-           && Integer.class.isAssignableFrom( param.getValue( false )
-                                                   .getClass() ) ) {
+      if ( isTimepoint( param ) //param != null
+           //&& param.getValue( false ) != null
+           //&& Integer.class.isAssignableFrom( param.getValue( false )
+           //                                        .getClass() )
+        ) {
         Object t = (Parameter< Integer >)param;
         return isSetValueApplied( o, t );
       }

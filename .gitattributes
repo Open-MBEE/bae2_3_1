@@ -4431,6 +4431,7 @@ src/gov/nasa/jpl/ae/event/Affectable.java -text
 src/gov/nasa/jpl/ae/event/AspenTimelineWritable.java -text
 src/gov/nasa/jpl/ae/event/BooleanParameter.java -text
 src/gov/nasa/jpl/ae/event/Call.java -text
+src/gov/nasa/jpl/ae/event/Command.java -text
 src/gov/nasa/jpl/ae/event/ConstraintExpression.java -text
 src/gov/nasa/jpl/ae/event/ConstraintNetwork.java -text
 src/gov/nasa/jpl/ae/event/ConstructorCall.java -text
