@@ -26,7 +26,7 @@ import java.util.TreeMap;
  * certain types without adding them to a new container--just accessing them
  * from the collections they're already in.
  */
-  public class CollectionTree extends java.util.AbstractCollection<Object> implements MoreToString {
+  public class CollectionTree<C> extends java.util.AbstractCollection<C> implements MoreToString {
 
     /**
      * Combines {@code Iterator} for an Iterable with indexing for an array. 
@@ -122,15 +122,19 @@ import java.util.TreeMap;
    * target {@code types} and if it branches into an array or {@code Iterable},
    * for which it will recursively check sub-elements.
    */
-    public class Iterator implements java.util.Iterator<Object> {
+    public class Iterator implements java.util.Iterator<C> {
 
-      public Set<Object> seen = new HashSet<Object>();
+      public Set<?> seen = null;//new HashSet<Object>();
       
       public Stack< CollectionTree.IterationState< ? > > stack =
           new Stack< CollectionTree.IterationState< ? > >();
       Object lastObj = null;
       
       public Iterator() {
+        stack.push( new CollectionTree.IterationState< Object >( sources.iterator() ) );
+      }
+      public Iterator( Set<?> seen ) {
+        this.seen = seen;
         stack.push( new CollectionTree.IterationState< Object >( sources.iterator() ) );
       }
       
@@ -164,7 +168,7 @@ import java.util.TreeMap;
             if ( result instanceof Iterable ) {
               stack.push( IterationState.getIterationState( (Iterable<?>)result ) );
               added = true;
-            } else if ( result instanceof Iterator ) {
+            } else if ( result instanceof java.util.Iterator ) {
               stack.push( IterationState.getIterationState( (java.util.Iterator<?>)result ) );
               added = true;
             }
@@ -179,13 +183,13 @@ import java.util.TreeMap;
      * @see java.util.Iterator#next()
      */
     @Override
-    public Object next() {
+    public C next() {
       Object nextObj = null;
       while ( hasNext() && nextObj == null ) {
         Object o = stack.peek().next();
 
         // Don't revisit the same object -- could result in infinite recursion
-        Pair< Boolean, Set< Object > > p = Utils.seen( o, true, seen );
+        Pair< Boolean, Set< Object > > p = Utils.seen( o, true, (Set<Object>)seen );
         boolean alreadyVisited = p.first;
         if ( alreadyVisited && !allowDuplicates ) continue;
 
@@ -200,7 +204,7 @@ import java.util.TreeMap;
           stack.pop();
         }
       }
-      return nextObj;
+      return (C)nextObj;
     }
 
     /*
@@ -250,6 +254,8 @@ import java.util.TreeMap;
   
 
   protected boolean allowDuplicates = false;
+
+  private Set< ? > seen = null;
 
   public CollectionTree( Object... objects ) {
     sources.addAll( Arrays.asList( objects ) );
@@ -368,6 +374,62 @@ import java.util.TreeMap;
     return pairToListMethod;
   }
 
+  /**
+   * @return the sources
+   */
+  public Collection< Object > getSources() {
+    return sources;
+  }
+
+  /**
+   * @param sources the sources to set
+   */
+  public void setSources( Collection< Object > sources ) {
+    this.sources = sources;
+  }
+
+  /**
+   * @return the types
+   */
+  public Collection< Class< ? >> getTypes() {
+    return types;
+  }
+
+  /**
+   * @param types the types to set
+   */
+  public void setTypes( Collection< Class< ? >> types ) {
+    this.types = types;
+  }
+
+  /**
+   * @return the branchMethods
+   */
+  public Map< Class< ? >, Method > getBranchMethods() {
+    return branchMethods;
+  }
+
+  /**
+   * @param branchMethods the branchMethods to set
+   */
+  public void setBranchMethods( Map< Class< ? >, Method > branchMethods ) {
+    this.branchMethods = branchMethods;
+  }
+
+  /**
+   * @return the allowDuplicates
+   */
+  public boolean isAllowDuplicates() {
+    return allowDuplicates;
+  }
+
+  /**
+   * @param allowDuplicates the allowDuplicates to set
+   */
+  public void setAllowDuplicates( boolean allowDuplicates ) {
+    this.allowDuplicates = allowDuplicates;
+  }
+
   private void init() {
     // Treat array as a List
     Method m = getAsListMethod();
@@ -397,7 +459,7 @@ import java.util.TreeMap;
    */
   @Override
   public int size() {
-    java.util.Iterator<Object> i = iterator();
+    java.util.Iterator<C> i = iterator();
     int size = 0;
     while (i.hasNext()) {
       ++size;
@@ -486,8 +548,8 @@ import java.util.TreeMap;
      * @see java.util.AbstractCollection#iterator()
      */
     @Override
-    public Iterator iterator() {
-      return this.new Iterator();
+    public java.util.Iterator< C > iterator() {
+      return (java.util.Iterator< C >)this.new Iterator( getSeen()  );
     }
 
     /* (non-Javadoc)
@@ -554,7 +616,7 @@ import java.util.TreeMap;
      * @see java.util.AbstractCollection#addAll(java.util.Collection)
      */
     @Override
-    public boolean addAll( Collection< ? extends Object > c ) {
+    public boolean addAll( Collection< ? extends C > c ) {
       return super.addAll( c );
     }
 
@@ -634,12 +696,27 @@ import java.util.TreeMap;
       ct.add(h);
       h.add( "e" );
       h.add( 2.71 );
+      h.add( (double)9.8 );
       TreeMap<String,Object> tm = new TreeMap< String, Object >();
       h.add( tm );
       tm.put( "foo", "bar" );
       tm.put( "gravity", new Float(9.8) );
-      Iterator i = ct.iterator();
+      java.util.Iterator i = ct.iterator();
       System.out.println("ct = " + ct );
+    }
+
+    /**
+     * @return the seen
+     */
+    public Set< ? > getSeen() {
+      return seen;
+    }
+
+    /**
+     * @param seen the seen to set
+     */
+    public void setSeen( Set< ? > seen ) {
+      this.seen = seen;
     }
 
   }

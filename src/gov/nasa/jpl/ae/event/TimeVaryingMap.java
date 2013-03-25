@@ -2102,14 +2102,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public void unapply( Effect effect ) {
     if ( isArithmeticEffect( effect ) ) {
       Effect inverseEffect = getInverseEffect( effect );
-      inverseEffect.applyTo( this, true );
-      appliedSet.remove(effect);
+      if ( canBeApplied( inverseEffect ) ) {
+        inverseEffect.applyTo( this, true );
+        appliedSet.remove(effect);
+      } else {
+        Debug.error(true, "Error! Cannot unapply effect: " + effect );
+      }
       return;
     }
     Pair< Parameter<Integer>, V > p = 
-        getTimeAndValueOfEffect( effect, true );  // this arg is wrong for arithmetic effects
-//                                      getSetValueMethod(),
-//                                      getSetValueMethod() );
+        getTimeAndValueOfEffect( effect, true );
     if ( p != null ) {
       unsetValue( p.first, p.second );
       appliedSet.remove(effect);
@@ -2405,6 +2407,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static Comparator< Method > getMethodComparator() {
     return methodComparator;
   }
+
+  Parameter<Integer> getTimeOfEffect( EffectFunction effectFunction ) {
+    Integer i = getIndexOfTimepointArgument( effectFunction );
+    if ( i == null ) {
+      i = getIndexOfFirstTimepointParameter( effectFunction );
+    }
+    if ( i != null ) {
+      return tryEvaluateTimepoint( effectFunction.arguments.get( i ), false );
+    }
+    return null;
+  }
+
   public Integer getIndexOfTimepointArgument( EffectFunction effectFunction ) {
     Integer i = effectMethods.get( effectFunction.getMethod() );
     if ( Debug.isOn() ) Debug.outln( "getIndexOfTimepointArgument("
@@ -2519,7 +2533,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public Integer getFirstParameterOfType( Method method, Object clsOrObj ) {
     if ( clsOrObj instanceof Class ) {
       Class<?> cls = (Class<?>)clsOrObj;
-      Integer pos = getFirstParameterOfType( method, cls );
+      Integer pos = getIndexOfFirstParameterOfType( method, cls );
       if ( pos != null && pos >= 0 ) {
         return pos;
       }
@@ -2527,7 +2541,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return null;  // TODO -- HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 
-  public Integer getFirstParameterOfType( Method method, Class<?> cls ) {
+  public Integer getIndexOfFirstParameterOfType( Method method, Class<?> cls ) {
     if ( method == null ) return null;
     Class< ? >[] pTypes = method.getParameterTypes();
     if ( pTypes == null || pTypes.length <= 0 ) {
@@ -2542,19 +2556,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( best == null ) {
         best = i;
       }
-      TypeVariable< ? >[] gTypes = pType.getTypeParameters();
-      if ( gTypes == null ) continue;
-      for ( TypeVariable< ? > typeVar : gTypes ) {
-        if ( typeVar == null ) continue;
-      }
+//      TypeVariable< ? >[] gTypes = pType.getTypeParameters();
+//      if ( gTypes == null ) continue;
+//      for ( TypeVariable< ? > typeVar : gTypes ) {
+//        if ( typeVar == null ) continue;
+//      }
     }
-    return null;
+    return best;
   }
 
-  public Integer getFirstTimepointParameter( Method method ) {
+  public Integer getIndexOfFirstTimepointParameter( Method method ) {
     Parameter<Integer> p = new Parameter< Integer >("objForCls", null, this );
     Class< Parameter<Integer> > cls = (Class< Parameter< Integer >>)p.getClass();
-    return getFirstParameterOfType( method, cls );
+    return getIndexOfFirstParameterOfType( method, cls );
 //    if ( method == null ) return null;
 //    Class< ? >[] pTypes = method.getParameterTypes();
 //    if ( pTypes == null || pTypes.length <= 0 ) {
@@ -2575,8 +2589,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 //    return null;
   }
 
-  public Integer getFirstTimepointParameter( EffectFunction effectFunction ) {
-    return getFirstTimepointParameter( effectFunction.getMethod() );
+  public Integer getIndexOfFirstTimepointParameter( EffectFunction effectFunction ) {
+    return getIndexOfFirstTimepointParameter( effectFunction.getMethod() );
   }
 
   public static boolean testGetFirstTimepointParameter() {
@@ -2591,13 +2605,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                             new Object[] { new Parameter< Integer >( "four",
                                                                      null, tvm ),
                                            new Integer( 14 ) } );
-    assert ( 0 == tvm.getFirstTimepointParameter( f ) );
+    assert ( 0 == tvm.getIndexOfFirstTimepointParameter( f ) );
     Method.setAccessible( TimeVaryingMap.class.getDeclaredMethods(), true );
     for ( Method method : TimeVaryingMap.class.getDeclaredMethods() ) {
       f = new EffectFunction( tvm, method );
       Debug.outln( "method " + method.getName()
                    + " has first timepoint parameter at position "
-                   + tvm.getFirstTimepointParameter( f ) );
+                   + tvm.getIndexOfFirstTimepointParameter( f ) );
       Class<?> clss = ParameterListenerImpl.class;
       Class< ? >[] pTypes = method.getParameterTypes();
       if ( pTypes == null || pTypes.length <= 0 ) {
@@ -3594,6 +3608,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Assert.assertTrue( doubleMap6.isConsistent() );
     
   }
+
+  @Override
+  public boolean canBeApplied( Effect effect ) {
+    // checks to see if the timepoint is valid
+    if ( effect instanceof EffectFunction ) {
+      EffectFunction effectFunction = (EffectFunction)effect;
+      Parameter< Integer > t = getTimeOfEffect( effectFunction );
+      return isTimepoint( t );
+    }
+    return true;
+  }
+
   public boolean wasApplied( Effect effect ) {
     return !appliedSet.add(effect);
   }

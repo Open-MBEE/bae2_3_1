@@ -65,7 +65,7 @@ public class ParameterListenerImpl extends HasIdImpl
       new ArrayList< Parameter< ? > >();
   protected List< ConstraintExpression > constraintExpressions =
       new ArrayList< ConstraintExpression >();
-  protected CollectionTree constraintCollection = null;
+  protected CollectionTree<Constraint> constraintCollection = null;
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected ArrayList< Dependency< ? > > dependencies =
       new ArrayList< Dependency< ? > >();
@@ -75,6 +75,7 @@ public class ParameterListenerImpl extends HasIdImpl
 
   protected Set< TimeVarying< ? > > timeVaryingObjects =
       new HashSet< TimeVarying< ? > >();
+  protected boolean usingCollectionTree = false;
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
@@ -676,6 +677,10 @@ public class ParameterListenerImpl extends HasIdImpl
       return Utils.getEmptySet();
     }
     seen = pair.second;
+    if ( usingCollectionTree  ) {
+      if ( seen != null ) seen.remove( this ); 
+      return getConstraintCollection( deep, seen );
+    }
     Set< Constraint > set = new HashSet< Constraint >();
     set = Utils.addAll( set, HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
     set = Utils.addAll( set, HasConstraints.Helper.getConstraints( constraintExpressions, false, seen ) );
@@ -691,7 +696,8 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   @Override
-  public CollectionTree getConstraintCollection(boolean deep, Set< HasConstraints > seen) {
+  public CollectionTree<Constraint> getConstraintCollection(boolean deep,
+                                                Set< HasConstraints > seen) {
     Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) {
       return null;
@@ -702,8 +708,11 @@ public class ParameterListenerImpl extends HasIdImpl
       constraintSources.add(parameters);
       constraintSources.add(dependencies);
       constraintSources.add(constraintExpressions);
-      constraintCollection = new CollectionTree( constraintSources );
+      constraintCollection = new CollectionTree<Constraint>( constraintSources );
+      constraintCollection.getTypes().add( Constraint.class );
     }
+    constraintCollection.setSeen( seen );
+
     return constraintCollection;
   }
 
