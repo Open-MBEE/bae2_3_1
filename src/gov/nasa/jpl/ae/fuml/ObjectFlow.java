@@ -6,20 +6,22 @@ package gov.nasa.jpl.ae.fuml;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Utils;
 
 /**
  *
@@ -73,17 +75,132 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public void addListener( ObjectFlow< Obj > objectFlow ) {
     getListeners().add( objectFlow );
   }
+
+  @Override
+  public void deconstruct() {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.deconstruct();
+    }
+    getListeners().clear();
+    super.deconstruct();
+  }
+
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.detach( parameter );
+    }
+    super.detach( parameter );
+  }
+
+  @Override
+  protected void floatEffects( Parameter<Integer> t ) {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.floatEffects( t );
+    }
+    super.floatEffects( t );
+  }
+
+  @Override
+  protected void unfloatEffects( Parameter<?> t ) {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.unfloatEffects( t );
+    }
+    super.unfloatEffects( t );
+  }
+
+  @Override
+  public void handleDomainChangeEvent( Parameter< ? > p ) {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.handleDomainChangeEvent( p );
+    }
+    super.handleDomainChangeEvent( p );
+  }
+
+  @Override
+  public void handleValueChangeEvent( Parameter< ? > p ) {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.handleValueChangeEvent( p );
+    }
+    super.handleValueChangeEvent( p );
+  }
+
+  @Override
+  public boolean hasParameter( Parameter< ? > parameter, boolean deep,
+                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+
+    boolean does = super.hasParameter( parameter, deep, seen );
+    if ( does || !deep ) return does;
+
+    does = HasParameters.Helper.hasParameter( getListeners(), parameter, deep, seen, true );
+    return does;
+  }
+
+  @Override
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    for ( ObjectFlow<Obj> of : getListeners() ) {
+      of.setStaleAnyReferencesTo( changedParameter );
+    }
+    super.setStaleAnyReferencesTo( changedParameter );
+  }
+
+  @Override
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                             Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    if ( seen != null ) seen.remove( this );
+
+    boolean didSub = super.substitute( p1, p2, deep, seen );
+
+    if ( deep ) {
+      if ( HasParameters.Helper.substitute( getListeners(), p1, p2, deep, seen,
+                                            true ) ) {
+        didSub = true;
+      }
+    }
+    return didSub;
+  }
+
+  // REVIEW -- The relationship between an ObjectFlow and it's listeners is just
+  // to pass on messages.
   
-  public void sendIf( Obj o, Parameter<Integer> t, Boolean doSend ) {
+  // REVIEW -- should compareTo() (used by equals()) be redefined to check
+  // listeners? No
+
+  // REVIEW -- should arithmetic functions be redefined to apply to listeners?
+  // Yes, if messages are affected -- TODO
+
+  // REVIEW -- Should a seen list be passed in case of cycle in listeners?
+  // YES! TODO
+  
+  // REVIEW -- Should toString(), toCsvString(), fromString(), fromCsvString()
+  // include listeners?
+  
+  // TODO -- isConsistent() should be redefined to check if listeners' sends
+  // correspond to this one's, assuming it's determinable.
+
+  // REVIEW -- Should isStale() check listeners?  Well, staleness should at least
+  // be checked in isConsistent() for listeners. TODO
+
+  public void sendIf( Obj o, Parameter< Integer > t, Boolean doSend ) {
     if ( doSend == null ) return;
     if ( doSend.booleanValue() ) {
       send( o, t );
-    } else if ( isSetValueApplied(o, t) ) {
-      unsetValue(t, o);
+    } else if ( isSetValueApplied( o, t ) ) {
+      for ( ObjectFlow< Obj > f : listeners ) {
+        f.unsetValue( t, o );
+      }
+      unsetValue( t, o );
     }
   }
   
-  public void send( Obj o, Parameter<Integer> t ) {
+  public void send( Obj o, Parameter< Integer > t ) {
     breakpoint();
     Obj thing = Expression.evaluate( o, type, true ); //REVIEW -- This shouldn't be necessary.  Change prototype to send(Object o, IntegerParameter t)? 
     if ( type == null || type.isInstance( thing ) ) {  
@@ -106,7 +223,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   @Override
   public void unapply( Effect effect ) {
-    boolean needToUnapply = true;
+//    boolean needToUnapply = true;
     if ( effect instanceof EffectFunction ) {
       EffectFunction effunc = (EffectFunction)effect;
       
@@ -120,27 +237,23 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
         for ( ObjectFlow<Obj> of : getListeners() ) {
           of.unapply( effect );
         }
-
       }
-      if ( needToUnapply  ) {
-        Pair< Parameter<Integer>, Obj > p = 
-          getTimeAndValueOfEffect( effect, !isASendEffect(effunc) );
-  //                                      getSetValueMethod(),
-  //                                      getSetValueMethod() );
-        if ( p != null ) {
-          unsetValue( p.first, p.second );
-          return;
-        }
-      }
+//      if ( needToUnapply  ) {
+//        Pair< Parameter<Integer>, Obj > p = 
+//          getTimeAndValueOfEffect( effect, !isASendEffect(effunc) );
+//        if ( p != null ) {
+//          unsetValue( p.first, p.second );
+//          return;
+//        }
+//      }
     }
-    super.unapply( effect );  
+    super.unapply( effect, !isASendEffect(effect) );  
   }
   
 
   
   public Obj receive( Parameter<Integer> t ) {
     return receive( t, false, !receiveSetsEvenIfNull );
-    
   }
   protected Obj receive( Parameter<Integer> t, boolean noSetValue,
                          boolean noSetIfNull ) {
@@ -352,6 +465,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return false;
   }
   
+  public boolean isASendEffect( Effect effect ) {
+    // isASendEffect( EffectFunction ) doesn't override this.
+    if ( effect instanceof EffectFunction ) return isASendEffect( (EffectFunction)effect );
+    return false;
+  }
   public boolean isASendEffect( EffectFunction effectFunction ) {
     if ( effectFunction.getMethod().equals( getSendMethod() ) ) return true;
     if ( effectFunction.getMethod().equals( getSendIfMethod() ) ) return true;
@@ -359,6 +477,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return false;
   }
   
+  public boolean isAReceiveEffect( Effect effect ) {
+    // isARecevieEffect( EffectFunction ) doesn't override this.
+    if ( effect instanceof EffectFunction ) return isAReceiveEffect( (EffectFunction)effect );
+    return false;
+  }
   public boolean isAReceiveEffect( EffectFunction effectFunction ) {
     if ( effectFunction.getMethod().equals( getReceiveMethod() ) ) return true;
     assert( !effectFunction.getMethod().getName().toLowerCase().contains("receive") );

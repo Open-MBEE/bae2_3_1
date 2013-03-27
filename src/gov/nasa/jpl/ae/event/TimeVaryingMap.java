@@ -429,7 +429,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return obj cast to V or {@code null} if the cast fails
    */
   @SuppressWarnings( "unchecked" )
-  public Parameter<Integer> tryCastTimepoint( Object obj ) {
+  public static Parameter<Integer> tryCastTimepoint( Object obj ) {
     if ( obj instanceof Parameter ) {
       Parameter<?> p = (Parameter< ? >)obj;
       Object val = p.getValueNoPropagate();
@@ -467,6 +467,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return tryEvaluateTimepoint( obj, propagate, true );
   }
   
+  private static Parameter<Integer> param = new Parameter< Integer >( "", null, 0, null ); 
+  private static Class< ? extends Parameter > pcls = param.getClass();
+      //(Class< ? extends Parameter< Integer >>)param.getClass();
+
+  //(Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
+  
   /**
    * @param obj
    *          object to cast or convert to a timepoint
@@ -479,16 +485,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         cast fail
    */
   @SuppressWarnings( "unchecked" )
-  public Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate, boolean okToWrap ) {
+  public static Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate, boolean okToWrap ) {
     try {
-      Class< ? extends Parameter<Integer> > pcls = (Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
       return Expression.evaluate( obj, (Class<Parameter<Integer>>)pcls, propagate, okToWrap );
     } catch ( ClassCastException e ) {
       // ignore
     }
     return null;
   }
-  
+
   public TimeVaryingMap( String name, Method initialValueFunction,
                          Object o, int samplePeriod, int horizonDuration ) {
     super(new TimeComparator());
@@ -726,7 +731,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     assert t.getValueNoPropagate() != null;
     if ( !containsKey( t ) ) return;
     V value = get( t );
-    if ( Debug.isOn() ) Debug.out( getName() + ": floating effect, (" + t + ", " + value + ")" );
+    if ( Debug.isOn() ) Debug.outln( getName() + ": floating effect, (" + t + ", " + value + ")" );
     floatingEffects.add( new TimeValue( t, value ) );
     remove( t );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -740,7 +745,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     for ( TimeValue e : copy ) {
       if ( e.first.compareTo( t ) == 0 ) {
         put( e.first, e.second );
-        if ( Debug.isOn() ) Debug.out( getName() + ": unfloated effect, " + e );
+        if ( Debug.isOn() ) Debug.outln( getName() + ": unfloated effect, " + e );
       }
       floatingEffects.remove( e );
     }
@@ -832,9 +837,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   @Override
-  public boolean
-      substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
-                  Set< HasParameters > seen ) {
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                             Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+
     breakpoint();
     if ( HasParameters.Helper.substitute( this, p1, p2, deep, seen, false ) ) {
       if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -2204,6 +2212,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public void unapply( Effect effect ) {
+    unapply( effect, true );
+  }
+  public void unapply( Effect effect, boolean timeArgFirst ) {
     if ( isArithmeticEffect( effect ) ) {
       Effect inverseEffect = getInverseEffect( effect );
       if ( canBeApplied( inverseEffect ) ) {
@@ -2216,7 +2227,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       return;
     }
     Pair< Parameter<Integer>, V > p = 
-        getTimeAndValueOfEffect( effect, true );
+        getTimeAndValueOfEffect( effect, timeArgFirst );
     if ( p != null ) {
       unsetValue( p.first, p.second );
       appliedSet.remove(effect);
@@ -2232,6 +2243,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       invEff.setMethod( inverseMethod );
       return invEff;
     }
+    // REVIEW -- Should we include setValue() & unsetValue()?
     return null;
   }
   
