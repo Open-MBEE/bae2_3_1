@@ -312,7 +312,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
     if ( value != null ) {
       if ( timepoint instanceof Parameter ) {
-        return hasValueAt( value, (Parameter)timepoint );
+        return hasValueAt( value, (Parameter)timepoint, true );
       } if ( timepoint instanceof Integer ) {
         return hasValueAt( value, (Integer)timepoint );
       }

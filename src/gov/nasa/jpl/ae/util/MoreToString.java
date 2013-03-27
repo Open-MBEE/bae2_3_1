@@ -141,6 +141,19 @@ public interface MoreToString {
       return toString( object, false, false, null, null );
     }
 
+    /**
+     * Helper function for MoreToString.toString() when it is not known whether
+     * the input object implements MoreToString and default parameter values are
+     * fine.
+     * 
+     * @param object
+     * @return
+     */
+    public static String toLongString( Object object ) {
+      // Below works for array or other non-collection object.
+      return toString( object, true, true, null );
+    }
+
     public static String toShortString( Object object ) {
       if ( object == null ) return "null";
       
