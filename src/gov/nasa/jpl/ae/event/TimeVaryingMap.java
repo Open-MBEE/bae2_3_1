@@ -987,15 +987,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /**
-   * Return the Parameter<Integer>1 for an entry (Parameter<Integer>1, value1) such that
-   * Parameter<Integer>1.value equals {@code tp}.value, and value1 equals value.
+   * Return whether there exists a Parameter<Integer>1 for an entry
+   * (Parameter<Integer>1, value1) such that
+   * {@code Parameter<Integer>1 == tp} or, if
+   * {@code mustBeAtSameTimepoint} is false, {@code Parameter<Integer>1.value}
+   * equals {@code tp.value}, and value1 equals value.
    * 
    * @param value
    *          the value to match with a value in the map
    * @param tp
    *          the time value required for the returned key
-   * @return a Parameter<Integer> key in the map, whose time value equals {@code tp}'s value and
-   *         whose map entry equals value or {@code null} if there is no such Parameter<Integer>.
+   * @param mustBeSameTimepoint
+   *          if true, the matching entry must have this timepoint key (tested
+   *          with ==)
+   * @return true iff the {@code Parameter<Integer>} key in the map, whose time
+   *         value equals {@code tp}'s value and whose map entry equals value or
+   *         {@code null} if there is no such Parameter<Integer>.
    */
   public boolean hasValueAt( V value, Parameter<Integer> tp,
                              boolean mustBeSameTimepoint ) {
@@ -1075,8 +1082,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   /**
    * @param value
+   *          the value to match
    * @param t
-   * @return
+   *          the time value to match
+   * @return whether there is a key with a time value equal to {@code t} and and
+   *         a value equal to {@code value}.
    */
   public boolean hasValueAt( V value, Integer t ) {
     return keyForValueAt( value, t ) != null;
