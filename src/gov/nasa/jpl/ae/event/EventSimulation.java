@@ -461,6 +461,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       catch (Exception e) {
         e.printStackTrace();
       }
+      if ( plotProcess == null ) {
+        tryToPlot = false;
+        return;
+      }
       // Allow a half second for the process to start.
       readStdoutPlotThread = new Thread( new Runnable() {
         // save the debug state since it could be changed by another thread
