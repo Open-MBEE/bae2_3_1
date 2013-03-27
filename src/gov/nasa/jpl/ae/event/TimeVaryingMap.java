@@ -36,9 +36,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-import com.nomagic.magicdraw.uml.actions.SetEmptyTagsDefaultsAction;
-
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
@@ -103,8 +100,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       } else if ( s.toLowerCase().equals( "ramp" ) ) {
         type = RAMP;
       } else {
-        Debug.error( true, "Can't parse interpolation string! "
-                           + MoreToString.Helper.toLongString( s ) );
+        Debug.error(true, "Can't parse interpolation string! " + s );
       }
     }
   }
@@ -3155,19 +3151,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     return false;
   }
+
   public static Collection<Method> getArithmeticMethods() {
     if ( arithmeticMethods == null ) {
       setArithmeticMethods();
     }
     return arithmeticMethods;
   }
-  public boolean isTimeArgFirst( Effect effect ) {
-    // TODO!
-    return true;
-    // uncomment below!!!
-//    Integer ti = effect.whichArgIsTimepoint();
-//    return ti == 0 ;
-  }
+
   public boolean isApplied( Effect effect, Method method1, Method method2 ) {
     breakpoint();
     if ( Debug.isOn() || checkConsistency ) isConsistent();
