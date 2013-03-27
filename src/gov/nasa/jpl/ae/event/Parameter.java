@@ -268,43 +268,48 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   // setValue( value, false ) is lazy/passive updating
   // setValue( value, true ) is proactive updating
   protected void setValue( T val, boolean propagateChange ) {
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val + ") start: " + this );
+    String valString = null;
+    if ( Debug.isOn() ) {
+      valString = MoreToString.Helper.toLongString( val );
+      Debug.outln( "Parameter.setValue(" + valString + ") start: " + this.toString( true, true, null ) );
+    }
     assert !propagateChange || mayPropagate;
     assert mayChange;
     T castVal = null;
     try {
       castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
       val = castVal;
+      if ( Debug.isOn() ) valString = MoreToString.Helper.toLongString( val );
     } catch ( ClassCastException cce ) {
       cce.printStackTrace();
     }
     boolean changing = !valueEquals( val );
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                      + "): changing = " + changing );
     if ( changing ) {
       if ( owner != null ) {// && propagateChange ) {
-        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): setStaleAnyReferencesTo("
-                                         + this + ")" );
+                                         + this.toString( true, false, null ) + ")" );
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this );
       } else {
-        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
       }
       this.value = val;
-      if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+      if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
       constraintList.clear();
       if ( owner != null ) {// && propagateChange ) {
-        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val
+        if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): handleValueChangeEvent("
-                                         + this + ")" );
+                                         + this.toString( true, false, null ) + ")" );
         owner.handleValueChangeEvent( this );
       }
     }
     setStale( false );
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + val + ") finish: " + this );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString + ") finish: " + this.toString( true, true, null ) );
   }
 
   /**
