@@ -60,7 +60,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   // Other Members
 
-  protected boolean writeConstraintsOut = false;
+  protected static boolean writeConstraintsOut = false;
   
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
@@ -1371,15 +1371,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return;
     }
-    if ( Debug.isOn() ) Debug.outln( "Deconstructing event: " + this.toString( true, true, null ) );
-    System.err.println( "Deconstructing event: " + this.toString( true, true, null ) );
-    if ( getId() == 2443 ) {
-      Debug.out( "" );
-    }
+    String msg = "Deconstructing event: " + this.toString( true, true, null );
+    if ( Debug.isOn() ) Debug.outln( msg );
+    System.err.println( msg );
     
     // Get time varying objects to use later before potentially disconnecting
     // them.
-    Set< TimeVarying< ? >> timeVaryingObjs = getTimeVaryingObjects( true, null );
+    Set< TimeVarying< ? > > timeVaryingObjs = getTimeVaryingObjects( true, null );
 
     // Detach elaborations.
     if ( elaborations != null ) {
