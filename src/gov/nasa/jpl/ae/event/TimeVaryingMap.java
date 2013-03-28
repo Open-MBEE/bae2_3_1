@@ -1647,7 +1647,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                            + " in TimeVaryingMap: "
                            + MoreToString.Helper.toLongString( this ) );
       }
-      if ( k.equals( tt ) ) return k;
+      if ( k == tt || ( equalValuesOk && k.equals( tt ) ) ) return k;
     }
     
     if ( !equalValuesOk ) return null;
@@ -2731,7 +2731,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       Class<?> clss = ParameterListenerImpl.class;
       Class< ? >[] pTypes = method.getParameterTypes();
       if ( pTypes == null || pTypes.length <= 0 ) {
-        return false;
+        continue;
       }
       for ( Integer i = 0; i < pTypes.length; ++i ) {
         Class<?> pType = pTypes[i];
@@ -3615,6 +3615,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Timepoint two = new Timepoint( "two", 2, null );
     Timepoint four = new Timepoint( "four", 4, null );
     Timepoint eight = new Timepoint( "eight", 8, null );
+    Timepoint zero2 = new Timepoint( "zero", 0, null );
+    Timepoint one2 = new Timepoint( "one", 1, null );
+    Timepoint two2 = new Timepoint( "two", 2, null );
+    Timepoint four2 = new Timepoint( "four", 4, null );
+    Timepoint eight2 = new Timepoint( "eight", 8, null );
     
     intMap1.setValue( zero, 0 );
     intMap1.setValue( one, 2 );
@@ -3690,10 +3695,33 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     System.out.println( "\nmap6 = map3 - map2 = " + doubleMap3 + " - " + doubleMap2
                         + " = " + doubleMap6 );
 
+    // multiple timepoints with the same time value
+    System.out.println("\nmultiple timepoints with the same time value");
+    doubleMap2.putAll( doubleMap3 );
+    doubleMap2.removeDuplicates();
+    doubleMap2.substitute( zero, zero2, false, null );
+    doubleMap2.substitute( two, two2, false, null );
+    doubleMap3.substitute( eight, eight2, false, null );
+    
+    doubleMap6 = doubleMap2.plus( doubleMap3 );
+    System.out.println( "\nmap6 = map2 + map3 = " + doubleMap2 + " + " + doubleMap3
+                        + " = " + doubleMap6 );
+    doubleMap6 = doubleMap2.minus( doubleMap3 );
+    System.out.println( "\nmap6 = map2 - map3 = " + doubleMap2 + " - " + doubleMap3
+                        + " = " + doubleMap6 );
+    doubleMap6 = doubleMap3.plus( doubleMap2 );
+    System.out.println( "\nmap6 = map3 + map2 = " + doubleMap3 + " + " + doubleMap2
+                        + " = " + doubleMap6 );
+    doubleMap6 = doubleMap3.minus( doubleMap2 );
+    System.out.println( "\nmap6 = map3 - map2 = " + doubleMap3 + " - " + doubleMap2
+                        + " = " + doubleMap6 );
+
     Assert.assertTrue( doubleMap2.isConsistent() );
     Assert.assertTrue( doubleMap3.isConsistent() );
     Assert.assertTrue( doubleMap6.isConsistent() );
 
+
+    System.out.println("\nmaps with nulls");
 
     doubleMap3.setValue( zero, null);
     doubleMap3.setValue( one, null );
