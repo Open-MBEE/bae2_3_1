@@ -23,6 +23,7 @@ import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.TimeVarying;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
+import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import java.util.Vector;
@@ -37,8 +38,20 @@ public class Main extends BobCreator {
     public static void main(String[] args) {
         Timepoint.setUnits("seconds");
         Timepoint.setEpoch("Sun Aug 05 23:30:00 PDT 2012");
-        Timepoint.setHorizonDuration(21600);
+        Timepoint.setHorizonDuration(3600*12);
+        Debug.turnOff();
         Main scenario = new Main();
-        scenario.executeAndSimulate();
+
+        scenario.setTimeoutSeconds( 14400 );
+        scenario.setUsingTimeLimit( true );
+        scenario.setMaxPassesAtConstraints( 10000 );
+        scenario.setUsingLoopLimit( true );
+        scenario.setLoopsPerSnapshot( 5 );
+        scenario.setMaxLoopsWithNoProgress( 300 );
+        scenario.setBaseSnapshotFileName( "DemoScenarioTimerAt4hrs.txt" );
+
+        double simDuration = 40.0;
+        double speedup = Timepoint.getHorizonDuration() / simDuration;
+        scenario.executeAndSimulate( speedup );
     }
 }
