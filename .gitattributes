@@ -4484,6 +4484,8 @@ src/gov/nasa/jpl/ae/event/TimeVaryingProjection.java -text
 src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE/main.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE/script.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAE.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAnalysisEngine_v2.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExporterClasses.py -text svneol=unset#text/plain
@@ -4503,8 +4505,6 @@ src/gov/nasa/jpl/ae/magicdrawPlugin/PlotDataReader.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/SortedDict.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/getCustomerData.py -text
-src/gov/nasa/jpl/ae/magicdrawPlugin/main.py -text svneol=unset#text/plain
-src/gov/nasa/jpl/ae/magicdrawPlugin/script.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/testPython.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/whatsMyId.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
