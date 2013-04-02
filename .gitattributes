@@ -4380,6 +4380,12 @@ data/test_margin_load.csv -text
 data/test_max_buy.csv -text
 data/test_reserve.csv -text
 /projFormatterOptions.xml -text
+src/DIFF_SCENARIO/BobCreator.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Customer.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/LADWP.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Main.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Power.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Power_System.java -text svneol=unset#text/plain
 src/Demo_Scenario/BobCreator.java -text svneol=unset#text/plain
 src/Demo_Scenario/Customer.java -text svneol=unset#text/plain
 src/Demo_Scenario/LADWP.java -text svneol=unset#text/plain
