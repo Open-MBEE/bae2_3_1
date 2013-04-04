@@ -4573,6 +4573,7 @@ src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
 src/gov/nasa/jpl/ae/xml/NameTranslator.java -text
 src/gov/nasa/jpl/ae/xml/PowerSystem2_2013-01-23.xml -text
 src/gov/nasa/jpl/ae/xml/PowerSystem3_2013-01-30_4.xml -text
+src/gov/nasa/jpl/ae/xml/Round_Trip_Scenario.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/xml/Scenario_latest.xml -text
 src/gov/nasa/jpl/ae/xml/Scenario_med_caller.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/xml/Scenario_medium.xml -text
