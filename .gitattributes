@@ -43,6 +43,12 @@ src/PowerSystem3/LADWP.java -text
 src/PowerSystem3/Main.java -text
 src/PowerSystem3/Power.java -text
 src/PowerSystem3/Power_System.java -text
+src/ROUND_TRIP_TEST/BobCreator.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Customer.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/LADWP.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Main.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Power.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Power_System.java -text svneol=unset#text/plain
 src/demandResponse/AssessDRCommitmentEvent.java -text
 src/demandResponse/Computer.java -text
 src/demandResponse/ControlRealTimeLoadReductionEvent.java -text
