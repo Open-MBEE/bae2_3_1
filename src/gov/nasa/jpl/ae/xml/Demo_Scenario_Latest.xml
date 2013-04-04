@@ -13592,7 +13592,7 @@
 								</class>
 								<effects>
 									<effect>sig_17_0_2_1_edc0357_1360956002072_812625_21124.send(objectToPass,endTime)</effect>
-									<effect>expected_load__17_0_2_1_edc0357_1360798765090_793282_20342.multiply(_17_0_2_1_edc0357_1360881719514_678367_16225,startTime</effect>
+									<effect>expected_load__17_0_2_1_edc0357_1360798765090_793282_20342.multiply(_17_0_2_1_edc0357_1360881719514_678367_16225,startTime)</effect>
 								</effects>
 								<elaborations>
 									<elaboration>
