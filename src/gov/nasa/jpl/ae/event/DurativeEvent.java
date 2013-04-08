@@ -34,8 +34,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
-import com.nomagic.uml2.ext.jmi.helpers.CanBeDeletedHelper;
-
 import junit.framework.Assert;
 
 
@@ -44,10 +42,6 @@ import junit.framework.Assert;
  * 
  */
 
-/**
- * @author bclement
- * 
- */
 public class DurativeEvent extends ParameterListenerImpl implements Event, Cloneable,
                            HasEvents, Groundable, Satisfiable,
                            //Comparable< Event >, 
@@ -1870,7 +1864,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
   }
   public static void doEditCommandFile(DurativeEvent d) throws IOException {
-    Runtime.getRuntime().exec( "xterm –e 'vi commandFile'" );
+    Runtime.getRuntime().exec( "xterm ï¿½e 'vi commandFile'" );
     d.addObservation( Timepoint.now(), d.endTime, Timepoint.now().getValue() );
   } 
 //  {
@@ -1880,7 +1874,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //    Command.
 //commandSequence.add(Timepoint.fromTimestamp("2012-08-05T11:00:00-07:00"),
 //                    new Command(Runtime.getRuntime(), Runtime.class, "exec",
-//                                new Object[] { "xterm –e 'vi commandFile'" }));
+//                                new Object[] { "xterm ï¿½e 'vi commandFile'" }));
 //
 //  }
 ////    Timepoint startTime = Timepoint.fromTimestamp("2012-08-05T11:00:00-07:00"); 
@@ -1888,7 +1882,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 ////                         new Command( Runtime.getRuntime(),
 ////                                      Runtime.class,
 ////                                      "exec",
-////                                      new Object[] { "xterm –e 'vi commandFile'" },
+////                                      new Object[] { "xterm ï¿½e 'vi commandFile'" },
 ////                                      (Call)null ) );
 ////    
 ////  }
