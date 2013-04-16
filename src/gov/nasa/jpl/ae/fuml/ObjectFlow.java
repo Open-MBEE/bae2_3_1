@@ -299,9 +299,6 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   public int nextTimeHasStuff( Integer t ) {
     breakpoint();
-    if (name.contains("q_LADWP_receiveGenReading")) {
-      breakpoint();
-    }
     if ( t == null ) {
       return Timepoint.getHorizonDuration();
     }
