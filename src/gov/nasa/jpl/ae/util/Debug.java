@@ -15,13 +15,17 @@ public class Debug {
   public static StringBuffer glErrBuf = new StringBuffer();
 
   public static GUILog getGuiLog() {
-    Application app = Application.getInstance();
-    if ( app == null ) return null;
-    if ( app.getMainFrame() == null ) return null;
-    GUILog glt = app.getGUILog();
-    if ( glt == null ) return null;
+    GUILog glt = null;
     try {
+      Application app = Application.getInstance();
+      if ( app == null ) return null;
+      if ( app.getMainFrame() == null ) return null;
+      glt = app.getGUILog();
+      if ( glt == null ) return null;
       glt.log("initializing log");
+    } catch (NoClassDefFoundError e) {
+      glt = null;
+      System.out.println("Failed to get MagicDraw GUI log; continuing without.");
     } catch (NullPointerException e) {
       glt = null;
       System.out.println("Failed to get MagicDraw GUI log; continuing without.");
