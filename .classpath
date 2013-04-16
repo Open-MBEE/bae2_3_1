@@ -6,5 +6,7 @@
 	<classpathentry excluding="douglascrockford-JSON-java-d15e776/|javaparser-1.0.8-src/" kind="src" path="thirdParty"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<!-- <classpathentry kind="var" path="MD/plugins/com.nomagic.magicdraw.jpython/jython2.5.1/jython.jar"/> -->
+	<classpathentry kind="con" path="gov.nasa.jpl.magicdraw.CLASSPATH_LIB_CONTAINER/,lib"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
