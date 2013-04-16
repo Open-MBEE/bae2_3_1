@@ -120,6 +120,7 @@ src/gov/nasa/jpl/ae/event/ParameterListener.java -text
 src/gov/nasa/jpl/ae/event/ParameterListenerImpl.java -text
 src/gov/nasa/jpl/ae/event/Plottable.java -text
 src/gov/nasa/jpl/ae/event/Query.java -text
+src/gov/nasa/jpl/ae/event/RelationQuery.java -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/event/Simulator.java -text
 src/gov/nasa/jpl/ae/event/StringParameter.java -text
 src/gov/nasa/jpl/ae/event/Suggester.java -text
