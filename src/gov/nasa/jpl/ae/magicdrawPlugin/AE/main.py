@@ -18,7 +18,8 @@ home = expanduser("~")
 
 workspacePath = home + os.sep + 'workspace'
 #mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
-mdPath = 'C:\\Program Files\\MagicDraw\\OpsRevMD1702-20120912'
+mdPath = 'C:\\Program Files\\MagicDraw\\SSCAE-MD17.0.2SP3-PackageK-build994-20130327'
+aePluginDirName = 'AE'
 
 if home == '/Users/mjackson': 
     workspacePath = '/Users/mjackson/Documents/workspace-Helios/'
@@ -30,7 +31,7 @@ projectPath = workspacePath + os.sep + 'CS'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
 aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
-             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'LADWP'
+             'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + aePluginDirName
 
 
 import sys
