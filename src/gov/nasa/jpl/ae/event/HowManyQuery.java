@@ -10,8 +10,8 @@ class HowManyQuery extends Query {
 
     // EDIT HERE: make calls to problem translation here
     makeFreeVariable( numVarParam1 );
-    addConstraint( new Functions.DoesThereExist< Number >( numVarParam1,
-                                                           boolExprParam2 ) );
+    addConstraint( new Expression< Boolean >( new Functions.DoesThereExist< Number >( numVarParam1,
+                                                                                      boolExprParam2 ) ) );
   }
 
   public String toString() {
