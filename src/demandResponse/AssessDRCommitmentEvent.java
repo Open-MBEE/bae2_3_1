@@ -14,7 +14,6 @@ import gov.nasa.jpl.ae.event.EventInvocation;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.Functions.LT;
 import gov.nasa.jpl.ae.event.Functions.Sub;
-import gov.nasa.jpl.ae.event.Functions.Sum;
 
 /**
  * @author bclement
@@ -102,7 +101,7 @@ public class AssessDRCommitmentEvent extends DurativeEvent {
       Expression< Double > mm = new Expression< Double >( maximumMargin );
       Sub< Double, Double > s = new Sub< Double, Double >( dlr, plrbor );
       LT< Double > lt = new LT< Double >( s, mm );
-      rule = new ElaborationRule( lt, invocation );
+      rule = new ElaborationRule( new Expression<Boolean>( lt ), invocation );
       if ( rule != null ) {
         elaborations.put( rule, eventVector );
       }

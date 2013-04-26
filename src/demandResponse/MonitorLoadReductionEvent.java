@@ -43,7 +43,7 @@ public class MonitorLoadReductionEvent extends DurativeEvent {
 	    projectedLoadReduction = 
 	        new DoubleParameter( "projectedLoadReductionBasedOnResponse",
 	                             defaultProjectedLoadReduction, this );
-	  } else if ( projectedLoadReductionExpression.type == Expression.Type.Parameter ) {
+	  } else if ( projectedLoadReductionExpression.form == Expression.Form.Parameter ) {
 	    projectedLoadReduction = 
 	        (Parameter< Double >)projectedLoadReductionExpression.expression;
 	  }  else {
@@ -59,7 +59,8 @@ public class MonitorLoadReductionEvent extends DurativeEvent {
     Expression< Double > alr = new Expression< Double >( actualLoadReduction );
     Expression< Double > plr = new Expression< Double >( projectedLoadReduction );
     Expression< Double > subtractExpression = null;
-    subtractExpression = new Functions.Sub< Double, Double >( alr, plr );
+    subtractExpression =
+        new Expression< Double >( new Functions.Sub< Double, Double >( alr, plr ) );
     
     addDependency( actualMargin, subtractExpression );
 	  parameters.add( projectedLoadReduction );
