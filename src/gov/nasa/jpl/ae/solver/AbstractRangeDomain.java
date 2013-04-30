@@ -106,6 +106,77 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 		return upperBound;
 	}
 
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getValue(boolean)
+   */
+  @Override
+  public T getValue( boolean propagate ) {
+    if ( this.size() == 1 ) {
+      if ( getLowerBound() != null && lowerIncluded ) return getLowerBound();
+      if ( getUpperBound() != null && upperIncluded ) return getUpperBound();
+      return getLowerBound();
+    }
+    Debug.error( true ,"" );
+    return null;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#setValue(java.lang.Object)
+   */
+  @Override
+  public void setValue( T value ) {
+    setBounds( value, value );
+    lowerIncluded = true;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see gov.nasa.jpl.ae.solver.Wraps#getPrimitiveType()
+   */
+  @Override
+  public Class< ? > getPrimitiveType() {
+    Class< ? > c = null;
+    if ( getType() != null ) {
+      c = ClassUtils.primitiveForClass( getType() );
+      if ( c == null && getLowerBound() != null
+           && Wraps.class.isInstance( getLowerBound() )
+//           && ( lowerIncluded || !upperIncluded || upperBound == null ) 
+           ) {
+        c = ( (Wraps< ? >)getLowerBound() ).getPrimitiveType();
+      }
+      if ( (c == null || !lowerIncluded )&& getUpperBound() != null
+           && Wraps.class.isInstance( getUpperBound() ) ) {
+        Class<?> cu = ( (Wraps< ? >)getUpperBound() ).getPrimitiveType();
+        if ( cu != null && ( c == null || !lowerIncluded ) ) {
+          c = cu;
+        }
+      }
+    }
+    return c;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getType()
+   */
+  @Override
+  public Class< ? > getType() {
+    if ( lowerBound != null && ( lowerIncluded || upperBound == null ) ) {
+      return lowerBound.getClass();
+    }
+    if ( upperBound != null ) return upperBound.getClass();
+    return null;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   */
+  @Override
+  public String getTypeNameForClassName( String className ) {
+    return ClassUtils.parameterPartOfName( className, false );
+  }
+
   /**
    * @param n
    * @return the nth element in the domain counting from zero if there are at
@@ -372,12 +443,6 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public abstract void setDefaultDomain( Domain< T > domain );
 
   
-  @Override
-  public abstract Class< T > getType();
-
-  @Override
-  public abstract Class< ? > getPrimitiveType();
- 
   @Override
   public boolean setLowerBound( T lowerBound ) {
     if ( lessEquals(lowerBound, this.upperBound ) ) {

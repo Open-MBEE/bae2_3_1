@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
+
 /**
  *
  */
@@ -100,12 +102,31 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
     return null;
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Domain#getPrimitiveType()
+  /*
+   * (non-Javadoc)
+   * 
+   * @see gov.nasa.jpl.ae.solver.Wraps#getPrimitiveType()
    */
   @Override
   public Class< ? > getPrimitiveType() {
-    return null;
+    Class< ? > c = null;
+    if ( getType() != null ) {
+      c = ClassUtils.primitiveForClass( getType() );
+      if ( c == null && value != null
+           && Wraps.class.isInstance( value ) ) {// isAssignableFrom( getType() ) ) {
+        c = ( (Wraps< ? >)value ).getPrimitiveType();
+      }
+    }
+    return c;
+  }
+
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   */
+  @Override
+  public String getTypeNameForClassName( String className ) {
+    return ClassUtils.parameterPartOfName( className, false );
   }
 
   /* (non-Javadoc)
@@ -129,6 +150,16 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   @Override
   public boolean isNullInDomain() {
     return value == null;
+  }
+
+  @Override
+  public T getValue( boolean propagate ) {
+    return value;
+  }
+
+  @Override
+  public void setValue( T value ) {
+    this.value = value;
   }
 
 }

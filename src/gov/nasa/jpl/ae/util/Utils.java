@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.ElaborationRule;
 import gov.nasa.jpl.ae.event.Event;
+import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Random;
@@ -330,8 +331,12 @@ public class Utils {
   public static < T > int occurrences( T value, Collection< T > c ) {
     if ( c == null ) return 0;
     int ct = 0;
+    // TODO -- shouldn't be calling event.Expression here--make
+    // Expression.evaluate() work for Wraps and include Wraps in src/util
+    Object v = Expression.evaluate( value, null, false );
     for ( T o : c ) {
-      if ( valuesEqual( o, value ) ) ct++;
+      Object ov = Expression.evaluate( o, null, false );
+      if ( valuesEqual( ov, v ) ) ct++;
     }
     return ct;
   }

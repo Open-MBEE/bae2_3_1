@@ -39,6 +39,19 @@ public class Debug {
   public static synchronized void turnOff() {
     on = false;
   }
+  
+  /**
+   * Place a breakpoint here and call breakpoint() wherever you need to add a
+   * command to break on. For example:<br>
+   * {@code if ( input.equals("x") ) Debug.breakpoint();}<br>
+   * This makes it easy to clean up after debugging since you can show the Call
+   * Hierarchy (Ctrl-Alt-h while breakpoint() is selected) to see where it's
+   * being called.
+   */
+  public static void breakpoint() {
+    if ( Debug.isOn() ) out( "" );
+  }
+  
   public static void out( String s ) {
     if (on) {
       if ( gl != null ) {
