@@ -793,6 +793,11 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   // This looks the same as parent's getEffectMethods(), but it uses its own
   // effectMethods and initEffectMethods(). So, DO NOT DELETE.
   @Override
+  public Map< Method, Integer > getEffectMethodsMap() {
+    if ( effectMethods == null ) effectMethods = initEffectMethods();
+    return effectMethods;
+  }
+  @Override
   public Collection< Method > getEffectMethods() {
     if ( effectMethods == null ) effectMethods = initEffectMethods();
     return effectMethods.keySet();

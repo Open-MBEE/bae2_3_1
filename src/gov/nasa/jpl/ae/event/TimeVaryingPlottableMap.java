@@ -135,6 +135,16 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     dataProjected = projected;
   }
 
+  public TimeVaryingPlottableMap( TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
+    super( timeVaryingPlottableMap );
+    dataProjected = timeVaryingPlottableMap.dataProjected;
+  }
+
+  public TimeVaryingPlottableMap<V> clone() {
+    TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this);
+    return tvm;
+  }
+  
   @Override
   public boolean okToSample() {
     return true;

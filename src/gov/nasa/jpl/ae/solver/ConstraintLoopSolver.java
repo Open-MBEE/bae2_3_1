@@ -50,6 +50,10 @@ public class ConstraintLoopSolver implements Solver {
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
         Constraint c = unsatisfiedConstraints.get( i );
         if ( Debug.isOn() ) Debug.outln( "checking constraint " + i + ": " + c );
+        String cstr = c.toString();
+        if ( cstr.endsWith( "onstraint" ) ) {
+          Debug.breakpoint();
+        }
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
           thisSatisfied = c.satisfy( deep, null );

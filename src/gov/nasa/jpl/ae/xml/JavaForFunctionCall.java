@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import junit.framework.Assert;
+
 public class JavaForFunctionCall {
   /**
    * 
@@ -123,6 +125,9 @@ public class JavaForFunctionCall {
     // Get object from scope
     Expression scope = getScope();
     object = this.xmlToJava.getObjectFromScope( scope );
+    if ( scope != null && scope.toString().contains("getValue") ) {
+      Debug.out("");
+    }
     objectTypeName = this.xmlToJava.astToAeExprType( scope, true, true );
     if ( objectTypeName != null ) {
       className = objectTypeName;
@@ -167,8 +172,21 @@ public class JavaForFunctionCall {
       }
     }
     if ( methodOrConstructor ) {
-      methodJavaSb.append( "ClassUtils.getMethodForArgTypes(\"" + className
-                           + "\", \"" + preferredPackageName + "\", \""
+      String classNameString;
+      if ( Utils.isNullOrEmpty( className ) ) {
+        classNameString = "null";
+      } else {
+        classNameString = "\"" + className + "\"";
+      }
+      String preferredPackageNameString;
+      if ( Utils.isNullOrEmpty( preferredPackageName ) ) {
+        preferredPackageNameString = "null";
+      } else {
+        preferredPackageNameString = "\"" + preferredPackageName + "\"";
+      }
+      Assert.assertFalse( Utils.isNullOrEmpty( callName ) );
+      methodJavaSb.append( "ClassUtils.getMethodForArgTypes(" + classNameString
+                           + ", " + preferredPackageNameString + ", \""
                            + callName + "\"" );
 
       // Get the list of methods with the same name (callName).

@@ -22,6 +22,7 @@ import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -50,6 +51,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   protected boolean stale;
   protected List< Constraint > constraintList = new ArrayList< Constraint >();
   
+  public Parameter() {}
+
   public Parameter( String n, Domain< T > d, ParameterListener o ) {
     name = n;
     domain = d;
@@ -793,5 +796,34 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     // TODO Auto-generated method stub
     return null;
   }
-      
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see gov.nasa.jpl.ae.solver.Wraps#getPrimitiveType()
+   */
+  @Override
+  public Class< ? > getPrimitiveType() {
+    Class< ? > c = null;
+    if ( getType() != null ) {
+      c = ClassUtils.primitiveForClass( getType() );
+      if ( c == null && getValueNoPropagate() != null
+           && Wraps.class.isInstance( getValueNoPropagate() ) ) {// isAssignableFrom( getType() ) ) {
+        c = ( (Wraps< ? >)getValueNoPropagate() ).getPrimitiveType();
+      }
+      if ( c == null && getDomain() != null ) {
+        c = getDomain().getPrimitiveType();
+      }
+    }
+    return c;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   */
+  @Override
+  public String getTypeNameForClassName( String className ) {
+    return ClassUtils.parameterPartOfName( className, false );
+  }
+
 }

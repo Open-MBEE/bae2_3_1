@@ -21,7 +21,7 @@
 					<parameter>
 						<name>Bob</name>
 						<type>Power_System</type>
-						<value>new_Power_System()</value>
+						<value>new Power_System()</value>
 					</parameter>
 				</members>
 			</class>
@@ -814,6 +814,19 @@
 								<elaborations>
 									<elaboration>
 										<eventInvocation>
+											<enclosingInstance>l</enclosingInstance>
+											<eventType>_17_0_2_1_edc0357_1360798765078_727139_20329</eventType>
+											<eventName>LADWP_CB__Activity__LADWP__LADWP</eventName>
+											<arguments>
+												<parameter>
+													<name>startTime</name>
+													<value>startTime</value>
+												</parameter>
+											</arguments>
+										</eventInvocation>
+									</elaboration>
+									<elaboration>
+										<eventInvocation>
 											<enclosingInstance>_17_0_2_1_edc0357_1360798765060_634347_20307.this</enclosingInstance>
 											<eventType>_17_0_2_1_edc0357_1360958878627_104372_21890</eventType>
 											<eventName>f_end__JoinNode__start_system__Power_System</eventName>
@@ -828,19 +841,6 @@
 										<condition>
 											<expression>_17_0_2_1_edc0357_1360958878627_104372_21890_exists</expression>
 										</condition>
-									</elaboration>
-									<elaboration>
-										<eventInvocation>
-											<enclosingInstance>l</enclosingInstance>
-											<eventType>_17_0_2_1_edc0357_1360798765078_727139_20329</eventType>
-											<eventName>LADWP_CB__Activity__LADWP__LADWP</eventName>
-											<arguments>
-												<parameter>
-													<name>startTime</name>
-													<value>startTime</value>
-												</parameter>
-											</arguments>
-										</eventInvocation>
 									</elaboration>
 								</elaborations>
 							</event>

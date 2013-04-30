@@ -3,6 +3,9 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.Utils;
+
 import java.util.Collections;
 
 /**
@@ -63,6 +66,18 @@ public class TimeVaryingProjection< V > extends
     this.dataProjected = true;
   }
 
+  public TimeVaryingProjection( TimeVaryingProjection< V > timeVaryingProjection ) {
+    super( timeVaryingProjection );
+    for ( java.util.Map.Entry< Parameter< Integer >, TimeVaryingMap< V > > e : entrySet() ) {
+      e.setValue( e.getValue().clone() );
+    }
+  }
+
+  public TimeVaryingProjection<V> clone() {
+    TimeVaryingProjection<V> tvm = new TimeVaryingProjection<V>(this);
+    return tvm;
+  }
+  
   public void setValue( Timepoint t1, Timepoint t2, V value ) {
     
     TimeVaryingMap< V > newMap = getValue( t1 );
@@ -82,6 +97,28 @@ public class TimeVaryingProjection< V > extends
     }
     return newMap.getValue( t2 );
   }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.TimeVaryingMap#getValue(java.lang.Integer)
+   */
+  @Override
+  public TimeVaryingMap< V > getValue( Integer t ) {
+    return super.getValue( t );
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   */
+  @Override
+  public String getTypeNameForClassName( String className ) {
+    // There should only be one generic parameter of type V
+    String parameters = ClassUtils.parameterPartOfName( className, true );
+    // must have angle brackets with something in them, "<V>"
+    if ( Utils.isNullOrEmpty( parameters ) || parameters.length() < 3 ) parameters = "";
+    return "TimeVaryingMap" + parameters;
+  }
+
+
   
   /**
    * @param args

@@ -192,7 +192,12 @@ public final class FileUtils {
   }
   
   public static String fileToString( File file ) throws FileNotFoundException {
-    String s = new Scanner(file).useDelimiter("\\Z").next();
+    String s = null;
+    try {
+      s = new Scanner(file).useDelimiter("\\Z").next();
+    } catch ( FileNotFoundException e ) {
+      e.printStackTrace();
+    }
     return s;
   }
 

@@ -182,6 +182,7 @@ src/gov/nasa/jpl/ae/solver/TimeDependentConstraint.java -text
 src/gov/nasa/jpl/ae/solver/TimeVariable.java -text
 src/gov/nasa/jpl/ae/solver/Uncollection.java -text
 src/gov/nasa/jpl/ae/solver/Variable.java -text
+src/gov/nasa/jpl/ae/solver/Wraps.java -text
 src/gov/nasa/jpl/ae/tests/Adder.java -text
 src/gov/nasa/jpl/ae/tests/GenerateInputsFromMeterData.java -text
 src/gov/nasa/jpl/ae/tests/JythonAdderFactory.java -text

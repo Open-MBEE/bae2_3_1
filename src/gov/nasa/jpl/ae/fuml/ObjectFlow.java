@@ -565,6 +565,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( effectMethods == null ) initEffectMethods();
     return effectMethods.keySet();
   }
+  @Override
+  public Map< Method, Integer > getEffectMethodsMap() {
+    if ( effectMethods == null ) effectMethods = initEffectMethods();
+    return effectMethods;
+  }
 
   
   // accessors
