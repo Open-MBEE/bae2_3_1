@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -39,16 +40,16 @@ public class Expression< ResultType > extends HasIdImpl
                                     implements HasParameters, Groundable,
                                                LazyUpdate, Satisfiable,
                                                HasDomain, HasTimeVaryingObjects,
-                                               MoreToString {//, Comparable< Expression< ? > > {
+                                               MoreToString, Wraps< ResultType > {//, Comparable< Expression< ? > > {
 	public Object expression = null;
-  public Type type = Type.None;
+  public Form form = Form.None;
 	public Class<? extends ResultType> resultType = null;//Type.None;
   // freeParameters if not null specifies which parameters can be reassigned
   // values for satisfy().
   protected Set< Parameter< ? > > freeParameters = null;
 
 
-	public enum Type {
+	public enum Form {
 		None(null), Value(Object.class),
 		Parameter(Parameter.class),
 		//Method(Method.class),
@@ -56,10 +57,10 @@ public class Expression< ResultType > extends HasIdImpl
     Constructor(ConstructorCall.class);
 		
 		private Class<?> myClass;
-		Type( Class<?> c ) {
+		Form( Class<?> c ) {
 			myClass = c;
 		}
-		public Class<?> getTypeClass() {
+		public Class<?> getFormClass() {
 			return myClass;
 		}
 	}
@@ -81,7 +82,7 @@ public class Expression< ResultType > extends HasIdImpl
 		if ( value != null ) {
 		  resultType = (Class< ? extends ResultType >)value.getClass();
 		}
-		type = Type.Value;
+		form = Form.Value;
 	}
 
 	/**
@@ -92,7 +93,7 @@ public class Expression< ResultType > extends HasIdImpl
 		if ( parameter != null && parameter.getValueNoPropagate() != null ) {
 		  resultType = (Class< ? extends ResultType >)parameter.getValueNoPropagate().getClass();
 		}
-		type = Type.Parameter;
+		form = Form.Parameter;
 	}
 
 //	/**
@@ -107,35 +108,55 @@ public class Expression< ResultType > extends HasIdImpl
 	 * @param function
 	 */
 	public Expression( FunctionCall function ) {
+    init(function);
+  }
+  public void init( FunctionCall function ) {
 		this.expression = function;
 		if ( function != null && function.method != null ) {
 		  resultType = (Class< ? extends ResultType >)function.method.getReturnType();
 		}
-		type = Type.Function;
+		form = Form.Function;
 	}
 	
   /**
    * @param constructor
    */
   public Expression( ConstructorCall constructor ) {
+    init(constructor);
+  }
+  public void init( ConstructorCall constructor ) {
     this.expression = constructor;
     if ( constructor != null ) {
       resultType = (Class< ? extends ResultType >)constructor.thisClass;
     }
-    type = Type.Constructor;
+    form = Form.Constructor;
   }
   
-//	public Expression( Expression<ResultType> e ) {
+  /**
+   * @param call
+   */
+  public Expression( Call call ) {
+    if ( call instanceof ConstructorCall ) {
+      init((ConstructorCall)call);
+    } else if (call == null || call instanceof FunctionCall ) {
+      init((FunctionCall)call);
+    } else {
+      Debug.error( true, "Error! Unknown Call type passed to Expression(Call call) constructor!" );
+      this.expression = call;
+    }
+  }
+
+  //	public Expression( Expression<ResultType> e ) {
 //		this.expression = e.expression;
 //		this.type = e.type;
 //	}
 	public Expression( Expression<ResultType> e, boolean deep ) {
-		this.type = e.type;
+		this.form = e.form;
 		this.resultType = e.resultType;
 		if ( !deep ) {
 		  expression = e.expression;
 		} else {
-			switch (type) {
+			switch (form) {
 			case None:
 //			case Method:
 			case Value:  // TODO -- is this right for Value?
@@ -165,8 +186,8 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public void deconstruct() {
     if ( expression instanceof Deconstructable ) {
-      if ( type != Type.None && type != Type.Value &&
-          ( type != Type.Parameter || ((Parameter<?>)expression).getOwner() == null ) ) {
+      if ( form != Form.None && form != Form.Value &&
+          ( form != Form.Parameter || ((Parameter<?>)expression).getOwner() == null ) ) {
         ( (Deconstructable)expression ).deconstruct();
       }
     }
@@ -177,11 +198,11 @@ public class Expression< ResultType > extends HasIdImpl
   
   // REVIEW -- What if resultType == Expression.class?
 	public ResultType evaluate( boolean propagate ) {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-	  if ( type == null || ( type != Type.None && expression == null ) ) {
+	  if ( form == null || ( form != Form.None && expression == null ) ) {
 	    return null;
 	  }
 		try {
-		switch (type) {
+		switch (form) {
 		case None:
 			try {
 				throw new IllegalAccessException();
@@ -266,7 +287,7 @@ public class Expression< ResultType > extends HasIdImpl
     Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) deep = false;
     seen = pair.second;
-		switch (type) {
+		switch (form) {
 		case None:
 			try {
 				throw new IllegalAccessException();
@@ -311,7 +332,7 @@ public class Expression< ResultType > extends HasIdImpl
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
 		boolean subbed = false;
-		if ( type == Type.Parameter ) {
+		if ( form == Form.Parameter ) {
 			if ( p1 == expression ) {
 				expression = p2;
 				subbed = true;
@@ -333,7 +354,7 @@ public class Expression< ResultType > extends HasIdImpl
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
 		Set< Parameter<?> > set = new HashSet< Parameter<?> >();
-		if ( type == Type.Parameter ) {
+		if ( form == Form.Parameter ) {
 		  if ( expression != null ) {
 		    Parameter<?> p = (Parameter<?>) this.expression; 
 		    set.add( p );
@@ -401,7 +422,7 @@ public class Expression< ResultType > extends HasIdImpl
 //		if ( expression == null ) {
 //			return false;
 //		}
-		switch (type) {
+		switch (form) {
 		case Value:
 //		case Method:
 			return true; // null should be ok, right?
@@ -413,7 +434,7 @@ public class Expression< ResultType > extends HasIdImpl
 			try {
 				throw new IllegalAccessException();
 			} catch (IllegalAccessException e) {
-			  System.err.println( "Error! Expression has invalid type: " + type );
+			  System.err.println( "Error! Expression has invalid type: " + form );
 				e.printStackTrace();
 			}
 			return false; // TODO -- REVIEW -- exit?
@@ -428,7 +449,7 @@ public class Expression< ResultType > extends HasIdImpl
 //		if ( expression == null ) {
 //			return false;
 //		}
-		switch (type) {
+		switch (form) {
 		case Value:
 			return true; // null should be ok, right?
 		case Parameter: // Groundable -- should not get here
@@ -451,7 +472,7 @@ public class Expression< ResultType > extends HasIdImpl
   public int compareTo( Expression< ? > o ) {
     if ( this == o ) return 0;
     if ( o == null ) return 1;
-    int compare = CompareUtils.compare( type.ordinal(), o.type.ordinal() );
+    int compare = CompareUtils.compare( form.ordinal(), o.form.ordinal() );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( expression, o.expression, true );
     if ( compare != 0 ) return compare;
@@ -501,12 +522,12 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public Domain< ResultType > getDomain( boolean propagate, Set< HasDomain > seen ) {
     if ( expression == null ) {
-      if ( type == Type.Value ) {
+      if ( form == Form.Value ) {
         return SingleValueDomain.getNullDomain();
       }
       return null;
     }
-    switch (type) {
+    switch (form) {
     case Value:
 //    case Method:
       return new SingleValueDomain<ResultType>( (ResultType)expression ); // since expression is not null
@@ -540,7 +561,7 @@ public class Expression< ResultType > extends HasIdImpl
     // like everybody has to know about everybody!
     // What about a general Has that has a get( Class<?> c, deep, seen )?
     // Consider again using reflection to go through members?
-    if ( deep && ( type == Type.Function || type == Type.Constructor ) ) {
+    if ( deep && ( form == Form.Function || form == Form.Constructor ) ) {
       Call call = (Call)expression;
       set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getObject(), deep, seen ) );
       set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getArguments(), deep, seen ) );
@@ -581,7 +602,7 @@ public class Expression< ResultType > extends HasIdImpl
     else if ( object instanceof Expression ) {
       Expression< ? > expr = (Expression<?>)object;
       if ( cls != null && cls.isInstance( expr.expression ) &&
-           expr.type != Type.Function) {
+           expr.form != Form.Function) {
         return (TT)expr.expression;
       }
       value = expr.evaluate( propagate );
@@ -697,10 +718,60 @@ public class Expression< ResultType > extends HasIdImpl
    * A deep search looking for FunctionCalls
    */
   public List<FunctionCall> getFunctionCalls() {
-    if ( type == Type.Function ) {
+    if ( form == Form.Function ) {
       return ((FunctionCall)expression).getFunctionCallsRecursively();
     }
     return Utils.getEmptyList();
+  }
+
+  public Class< ? extends ResultType > getResultType() {
+    if ( this.resultType != null ) return this.resultType;
+    ResultType r = evaluate( false );
+    if ( r != null ) {
+      resultType = (Class< ? extends ResultType >)r.getClass();
+    }
+    return resultType;
+  }
+  
+  @Override
+  public Class< ? > getType() {
+    return getResultType();
+  }
+
+  @Override
+  public Class< ? > getPrimitiveType() {
+    Class< ? > c = null;
+    if ( getType() != null ) {
+      c = ClassUtils.primitiveForClass( getType() );
+      ResultType r = evaluate( false );
+      if ( c == null && r != null
+           && Wraps.class.isInstance( r ) ) {// isAssignableFrom( getType() ) ) {
+        c = ( (Wraps< ? >)r ).getPrimitiveType();
+      }
+      if ( c == null && expression != null && Wraps.class.isInstance( expression ) ) {
+        c = ( (Wraps< ? >)expression).getPrimitiveType();
+      }
+    }
+    return c;
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   */
+  @Override
+  public String getTypeNameForClassName( String className ) {
+    return ClassUtils.parameterPartOfName( className, false );
+  }
+
+  @Override
+  public ResultType getValue( boolean propagate ) {
+    return evaluate( propagate );
+  }
+
+  @Override
+  public void setValue( ResultType value ) {
+    // TODO Auto-generated method stub
+    
   }
 
 }

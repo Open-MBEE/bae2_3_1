@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import junit.framework.Assert;
 
+import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
@@ -52,11 +53,11 @@ public class Dependency< T > extends HasIdImpl
                         LazyUpdate, HasConstraints, HasTimeVaryingObjects {
 
   protected Parameter< T > parameter;
-  protected Expression< T > expression;
+  protected Expression< ? > expression;
   private ConstraintExpression constraint = null;
   protected boolean refreshing = false; // to prevent propagation cycles
 
-  public Dependency( Parameter< T > p, Expression< T > e ) {
+  public <T2> Dependency( Parameter< T > p, Expression< T2 > e ) {
     parameter = p;
     parameter.setStale( true );
     expression = e;
@@ -64,7 +65,7 @@ public class Dependency< T > extends HasIdImpl
 
   public Dependency( Dependency< T > d ) {
     parameter = new Parameter< T >( d.parameter );
-    expression = new Expression< T >( d.expression, true );
+    expression = new Expression( d.expression, true );
   }
 
   @Override
@@ -92,9 +93,10 @@ public class Dependency< T > extends HasIdImpl
     if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
-    T val = expression.evaluate(propagate);
+    Object val = expression.evaluate(propagate);
     if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
-      parameter.setValue( val, propagate );
+      T valT = Expression.evaluate( val, getType(), propagate, true );
+      parameter.setValue( valT, propagate );
       return true;
     }
     if ( Debug.isOn() ) Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
@@ -108,7 +110,8 @@ public class Dependency< T > extends HasIdImpl
   public boolean apply( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
     if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
-    T value = expression.evaluate(propagate);
+    Object val = expression.evaluate(propagate);
+    T value = Expression.evaluate( val, getType(), propagate, true );
     // Avoid setting to bad value.  How can we know if it's bad? Is null always bad?
     if ( value == null
         && parameter.isSatisfied( false, null )
@@ -206,7 +209,16 @@ public class Dependency< T > extends HasIdImpl
     //} else {
     //  parameter.satisfy(deep, seen);
     //}
-    return isSatisfied( false, null );
+    boolean succ = isSatisfied( false, null );
+    if ( expression.form == Form.Function
+         && ( (FunctionCall)expression.expression ).getMethod() != null
+         && ( (FunctionCall)expression.expression ).getMethod().getName()
+                                                   .contains( "minus" ) ) {
+      System.out.println( "minus dep was" + ( applied ? "" : " not" )
+                          + " applied," + ( succ ? "" : " not" )
+                          + " satisfied: " + this );
+    }
+    return succ;
   }
 
   public ConstraintExpression getConstraintExpression() {
@@ -368,7 +380,8 @@ public class Dependency< T > extends HasIdImpl
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
     if ( v == parameter ) {
-      T val = expression.evaluate(true);
+      Object ov = expression.evaluate(true);
+      T val = Expression.evaluate( ov, getType(), false, true );
       Domain<T1> d = v.getDomain().clone();
       d.restrictToValue( (T1)val );
       v.setDomain( d );
@@ -633,7 +646,7 @@ public class Dependency< T > extends HasIdImpl
   /**
    * @return the expression to whose value the Dependency's parameter is set
    */
-  public Expression< T > getExpression() {
+  public Expression< ? > getExpression() {
     return expression;
   }
 

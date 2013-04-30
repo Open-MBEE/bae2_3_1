@@ -18,7 +18,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
+
+import junit.framework.Assert;
 
 /**
  * @author bclement
@@ -36,6 +39,7 @@ public class ClassUtils {
   //    public boolean isVarArgs = false;
   
       public int numMatching = 0;
+      public int numNull = 0;
       public int numDeps = 0;
       public boolean okNumArgs = false;
   
@@ -44,6 +48,7 @@ public class ClassUtils {
       public int mostMatchingArgs = 0;
       public int mostDeps = 0;
       public boolean allArgsMatched = false;
+      public boolean allNonNullArgsMatched = false;
       public double bestScore = Double.MAX_VALUE;
   
       /**
@@ -59,6 +64,7 @@ public class ClassUtils {
       public void compare( T o, Class<?>[] candidateArgTypes,
                            boolean isVarArgs ) {
         numMatching = 0;
+        numNull = 0;
         numDeps = 0;
         boolean debugWasOn = Debug.isOn();
         if ( debugWasOn ) Debug.turnOff();
@@ -83,6 +89,7 @@ public class ClassUtils {
           if ( candidateArgTypes[ i ] == null ) {
             if ( Debug.isOn() ) Debug.outln( "null arg for args[ " + i
                 + " ].getClass()=" + referenceArgTypes[ i ] );
+            ++numNull;
             ++numDeps;
           } else if ( candidateArgTypes[ i ].isAssignableFrom( referenceArgTypes[ i ] ) ) {
               if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
@@ -120,6 +127,7 @@ public class ClassUtils {
          mostMatchingArgs = numMatching;
          mostDeps = numDeps;
          allArgsMatched = ( numMatching >= candidateArgsLength );
+         allNonNullArgsMatched = ( numMatching + numNull >= candidateArgsLength );
            if ( Debug.isOn() ) Debug.outln( "new match " + o + ", mostMatchingArgs="
                         + mostMatchingArgs + ",  allArgsMatched = "
                         + allArgsMatched + " = numMatching(" + numMatching
@@ -137,34 +145,172 @@ public class ClassUtils {
 //    return value;
 //  }
     
+//    // boolean, byte, char, short, int, long, float, and double
+//    public static Class< ? > primitiveForClass( Class< ? > nonPrimClass ) {
+//      if ( nonPrimClass == Integer.class ) {
+//        return int.class;
+//      }
+//      if ( nonPrimClass == Double.class ) {
+//        return double.class;
+//      }
+//      if ( nonPrimClass == Boolean.class ) {
+//        return boolean.class;
+//      }
+//      if ( nonPrimClass == Long.class ) {
+//        return long.class;
+//      }
+//      if ( nonPrimClass == Float.class ) {
+//        return float.class;
+//      }
+//      if ( nonPrimClass == Character.class ) {
+//        return char.class;
+//      }
+//      if ( nonPrimClass == Short.class ) {
+//        return short.class;
+//      }
+//      if ( nonPrimClass == Byte.class ) {
+//        return byte.class;
+//      }
+//      return null;
+//    }
+    
   // boolean, byte, char, short, int, long, float, and double
   public static Class< ? > classForPrimitive( Class< ? > primClass ) {
-    if ( !primClass.isPrimitive() ) return null;
-    if ( primClass == int.class ) {
-      return Integer.class;
+    return getPrimToNonPrim().get( primClass );
+  }
+  // boolean, byte, char, short, int, long, float, and double
+  public static Class< ? > primitiveForClass( Class< ? > nonPrimClass ) {
+    return getNonPrimToPrim().get( nonPrimClass );
+  }
+  
+  
+  private static Map<String,Class<?>> nonPrimitives = initializeNonPrimitives();
+  private static Map<String,Class<?>> primitives = initializePrimitives();
+  private static Map<Class<?>,Class<?>> primToNonPrim = initializePrimToNonPrim();
+  private static Map<Class<?>,Class<?>> nonPrimToPrim = initializeNonPrimToPrim();
+  
+  public static Map<String,Class<?>> getPrimitives() {
+    if ( primitives == null ) initializePrimitives();
+    return primitives;
+  }
+  public static Map<String,Class<?>> getNonPrimitives() {
+    if ( nonPrimitives == null ) initializeNonPrimitives();
+    return nonPrimitives;
+  }
+  public static Map< Class< ? >,Class< ? > > getPrimToNonPrim() {
+    if ( primToNonPrim == null ) initializePrimToNonPrim();
+    return primToNonPrim;
+  }
+  public static Map< Class< ? >,Class< ? > > getNonPrimToPrim() {
+    if ( nonPrimToPrim == null ) initializeNonPrimToPrim();
+    return nonPrimToPrim;
+  }
+  
+  // boolean, byte, char, short, int, long, float, and double
+  public static Class< ? > classForPrimitive( String primClass ) {
+    return getPrimitives().get( primClass );
+  }
+
+  // boolean, byte, char, short, int, long, float, and double
+  private static Map< String, Class< ? > > initializeNonPrimitives() {
+    nonPrimitives = new TreeMap< String, Class<?> >();
+    for ( Class< ? > c : getNonPrimToPrim().keySet() ) {
+      nonPrimitives.put( c.getSimpleName(), c );
     }
-    if ( primClass == double.class ) {
-      return Double.class;
+    return nonPrimitives;
+  }
+  
+  // boolean, byte, char, short, int, long, float, and double
+  private static Map< String, Class< ? > > initializePrimitives() {
+    primitives = new TreeMap< String, Class<?> >();
+    for ( Class< ? > c : getPrimToNonPrim().keySet() ) {
+      primitives.put( c.getSimpleName(), c );
     }
-    if ( primClass == boolean.class ) {
-      return Boolean.class;
+//    primitives.put( "boolean", boolean.class );
+//    primitives.put( "byte", byte.class );
+//    primitives.put( "char", char.class );
+//    primitives.put( "short", short.class );
+//    primitives.put( "int", int.class );
+//    primitives.put( "long", long.class );
+//    primitives.put( "float", float.class );
+//    primitives.put( "double", double.class );
+//    primitives.put( "void", void.class );
+    return primitives;
+  }
+  
+  // boolean, byte, char, short, int, long, float, and double
+  private static Map< Class< ? >, Class< ? > > initializePrimToNonPrim() {
+    primToNonPrim = new HashMap< Class< ? >, Class<?> >();
+    primToNonPrim.put( boolean.class, Boolean.class );
+    primToNonPrim.put( byte.class, Byte.class );
+    primToNonPrim.put( char.class, Character.class );
+    primToNonPrim.put( short.class, Short.class );
+    primToNonPrim.put( int.class, Integer.class );
+    primToNonPrim.put( long.class, Long.class );
+    primToNonPrim.put( float.class, Float.class );
+    primToNonPrim.put( double.class, Double.class );
+    primToNonPrim.put( void.class, Void.class );
+    return primToNonPrim;
+  }
+
+  // boolean, byte, char, short, int, long, float, and double
+  private static Map< Class< ? >, Class< ? > > initializeNonPrimToPrim() {
+    nonPrimToPrim = new HashMap< Class< ? >, Class<?> >();
+    for ( Entry< Class< ? >, Class< ? > > e : getPrimToNonPrim().entrySet() ) {
+      nonPrimToPrim.put( e.getValue(), e.getKey() );
     }
-    if ( primClass == long.class ) {
-      return Long.class;
+    return nonPrimToPrim;
+  }
+
+
+  public static Class< ? > getNonPrimitiveClass( String type, String preferredPackage ) {
+    if ( type == null ) return null;
+    Class< ? > cls = null;
+    cls = getClassForName( type, preferredPackage, false );
+    return getNonPrimitiveClass( cls );
+  }
+
+  public static Class< ? > getNonPrimitiveClass( Class< ? > cls ) {
+    if ( cls == null ) return null;
+    Class< ? > result = ClassUtils.classForPrimitive( cls );
+    if ( result == null ) return cls;
+    return result;
+  }
+
+  public static String addBackParametersToQualifiedName( String className,
+                                                  String qualifiedName ) {
+    String parameters = parameterPartOfName( className, true );
+    String strippedName = ClassUtils.noParameterName( className );
+    if ( !Utils.isNullOrEmpty( parameters ) ) {
+      String parameters2 = ClassUtils.parameterPartOfName( qualifiedName, true );
+      if ( Utils.isNullOrEmpty( parameters2 )
+           && qualifiedName.endsWith( strippedName ) ) {
+        return qualifiedName + parameters;
+      }
     }
-    if ( primClass == float.class ) {
-      return Float.class;
-    }
-    if ( primClass == char.class ) {
-      return Character.class;
-    }
-    if ( primClass == short.class ) {
-      return Short.class;
-    }
-    if ( primClass == byte.class ) {
-      return Byte.class;
-    }
-    return null;
+    return qualifiedName;
+  }
+  
+  public static String getNonPrimitiveClassName( String type ) {
+    String simpleName = simpleName( type );
+    Class<?> prim = getPrimitives().get( simpleName );
+    String newName = type;
+    if ( prim != null ) {
+      Class<?> nonPrim = getPrimToNonPrim().get( prim );
+      Assert.assertNotNull( nonPrim );
+      newName = nonPrim.getSimpleName();
+    }    
+//    Class< ? > cls = getNonPrimitiveClass( type );
+//    String newName = type;
+//    if ( cls != null ) {
+//      if ( cls.isArray() ) {
+//        newName = cls.getSimpleName();
+//      } else {
+//        newName = cls.getName();
+//      }
+//      newName = addBackParametersToQualifiedName( type, newName );
+//    }
+    return newName;
   }
 
   public static boolean isSubclassOf( Class<?> c1, Class<?> c2 ) {
@@ -206,15 +352,50 @@ public class ClassUtils {
     return classForName;
   }
 
-  public static Class<?> getClassOfClass( String clsOfClsName,
+  public static String replaceAllGenericParameters( String className, char replacement ) {
+    if ( Utils.isNullOrEmpty( className ) ) return className;
+    StringBuffer newName = new StringBuffer( className );
+    int parameterDepth = 0;
+    for ( int i=0; i<className.length(); ++i ) {
+      char c = className.charAt( i );
+      boolean replace = false;
+      switch( c ) {
+        case '>':
+          --parameterDepth;
+          replace = true;
+          break;
+        case '<':
+          ++parameterDepth;
+          replace = true;
+          break;
+        default:
+          if ( parameterDepth > 0 ) replace = true;
+      }
+      if ( replace ) {
+        newName.setCharAt( i, replacement );
+      }
+      if ( parameterDepth < 0 ) {
+        Debug.error( false,
+                     "Error! Generic parameter nesting is invalid for class name:\n  \""
+                         + className + "\" at char #" + Integer.toString( i )
+                         + "\n" + Utils.spaces( i + 3 ) + "^" );
+      }
+    }
+    return newName.toString();
+  }
+  
+  public static Class<?> getClassOfClass( String longClassName,
                                           String preferredPackageName,
                                           boolean initialize ) {
     Class< ? > classOfClass = null;
+    String clsOfClsName = replaceAllGenericParameters( longClassName, '~' );
     int pos = clsOfClsName.lastIndexOf( '.' );
     if ( pos >= 0 ) {
-      classOfClass = getClassOfClass( clsOfClsName.substring( 0, pos ),
-                                      clsOfClsName.substring( pos+1 ),
-                                      preferredPackageName, initialize );
+      String clsOfClsName1 = longClassName.substring( 0, pos );
+      String clsOfClsName2 = longClassName.substring( pos+1 );
+      classOfClass =
+          getClassOfClass( clsOfClsName1, clsOfClsName2, preferredPackageName,
+                           initialize );
     }
     return classOfClass;
   }
@@ -267,7 +448,14 @@ public class ClassUtils {
   public static Class<?> getClassForName( String className,
                                             String preferredPackage,
                                             boolean initialize ) {
-    Class<?> cls = classCache.get( className );
+    if ( Utils.isNullOrEmpty( className ) ) return null;
+    Class<?> cls = null;
+    char firstChar = className.charAt( 0 );
+    if ( firstChar >= 'a' && firstChar <= 'z' ) {
+      cls = classForPrimitive( className );
+      if ( cls != null ) return cls;
+    }
+    cls = classCache.get( className );
     if ( cls != null ) return cls;
       List< Class<?>> classList = getClassesForName( className, initialize );
       if ( !Utils.isNullOrEmpty( classList ) ) {
@@ -280,7 +468,8 @@ public class ClassUtils {
         }
       }
       cls = getClassFromClasses( classList );
-      if ( cls != null ) classCache.put( className, cls );
+      if ( cls != null )
+        classCache.put( className, cls );
       return cls;
     }
   //  public static Class<?> getClassForName( String className,
@@ -384,12 +573,16 @@ public class ClassUtils {
     String typeParameters = "";
     if ( classOrInterfaceName.contains( "<" )
          && classOrInterfaceName.contains( ">" ) ) {
-      typeParameters =
-          classOrInterfaceName.substring( classOrInterfaceName.indexOf( '<' ) + 1,
-                                          classOrInterfaceName.lastIndexOf( '>' ) ).trim();
+      typeParameters = parameterPartOfName( classOrInterfaceName, false );
+      // TODO -- how does this work for multiple parameters? e.g., Map<String,Float>
+      String check = replaceAllGenericParameters( typeParameters, '~' );
+      Assert.assertFalse( check.contains( "," ) );
+      if ( typeParameters != null && typeParameters.contains( "Customer" ) ) {
+        Debug.breakpoint();
+      }
       typeParameters = "<" + ( doTypeParameters
                                ? getFullyQualifiedName( typeParameters, true )
-                               : typeParameters ) + ">";
+                               : ClassUtils.getNonPrimitiveClassName( typeParameters ) ) + ">";
       classOrInterfaceName =
           classOrInterfaceName.substring( 0, classOrInterfaceName.indexOf( '<' ) );
     }
@@ -906,6 +1099,10 @@ public class ClassUtils {
   }
 
   public static String parameterPartOfName( String longName ) {
+    return parameterPartOfName( longName, true );
+  }
+  public static String parameterPartOfName( String longName,
+                                            boolean includeBrackets ) {
     int pos1 = longName.indexOf( '<' );
     if ( pos1 == -1 ) {
       return null;
@@ -913,7 +1110,11 @@ public class ClassUtils {
     int pos2 = longName.lastIndexOf( '>' );
     assert( pos2 >= 0 );
     if ( pos2 == -1 ) return null;
-    String paramPart = longName.substring( pos1, pos2+1 );
+    if ( !includeBrackets ) {
+      pos1 += 1;
+      pos2 -=1;
+    }
+    String paramPart = longName.substring( pos1, pos2+1 ).trim();
     return paramPart;
   }
 

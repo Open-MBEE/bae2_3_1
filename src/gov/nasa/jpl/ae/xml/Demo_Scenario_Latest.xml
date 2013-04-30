@@ -1540,7 +1540,7 @@
 					<!--simple property (name customer_load_profile)-->
 					<name>customer_load_profile__17_0_2_1_edc0357_1360798765043_677547_20278</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("customer_load_profile","test_load.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("customer_load_profile","test_load.csv",null,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name reduction_level)-->
@@ -5340,7 +5340,7 @@
 					<!--simple property (name genProfile)-->
 					<name>genProfile__17_0_2_1_edc0357_1360798765028_430905_20259</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("genProfile","test_gen.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("genProfile","test_gen.csv",null,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to Power-->
@@ -7965,7 +7965,7 @@
 					<!--simple property (name original_power_margin)-->
 					<name>original_power_margin__17_0_2_1_edc0357_1360798765092_989485_20346</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("original_power_margin",null,0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("original_power_margin",null,0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -7977,13 +7977,13 @@
 					<!--simple property (name contracted_power)-->
 					<name>contracted_power__17_0_2_1_edc0357_1360868839392_705029_15332</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("contracted_power","test_gen.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("contracted_power","test_gen.csv",null,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name expected_power_margin)-->
 					<name>expected_power_margin__17_0_2_1_edc0357_1360799121208_716050_24883</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_power_margin",null,0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_power_margin",null,0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -8001,7 +8001,7 @@
 					<!--simple property (name expected_load)-->
 					<name>expected_load__17_0_2_1_edc0357_1360798765090_793282_20342</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_load","test_load.csv",0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_load","test_load.csv",0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -8025,7 +8025,7 @@
 					<!--simple property (name max_reserve_power)-->
 					<name>max_reserve_power__17_0_2_1_edc0357_1360798949731_160370_24866</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("max_reserve_power","test_reserve.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("max_reserve_power","test_reserve.csv",null,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--Classifier Behavior for LADWP is LADWP_CB-->
@@ -8067,13 +8067,13 @@
 					<!--simple property (name expected_reserve_margin)-->
 					<name>expected_reserve_margin__17_0_2_1_edc0357_1360870148850_682196_15342</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_reserve_margin",null,0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_reserve_margin",null,0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name original_reserve_margin)-->
 					<name>original_reserve_margin__17_0_2_1_edc0357_1360798765093_620866_20347</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("original_reserve_margin",null,0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("original_reserve_margin",null,0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name dr_endTime)-->
@@ -8091,7 +8091,7 @@
 					<!--simple property (name expected_power)-->
 					<name>expected_power__17_0_2_1_edc0357_1360869431772_303852_15335</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_power","test_gen.csv",0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_power","test_gen.csv",0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name dr_reduction_policy)-->
@@ -8103,7 +8103,7 @@
 					<!--simple property (name buyable_power)-->
 					<name>buyable_power__17_0_2_1_edc0357_1360798840328_87479_24862</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("buyable_power","test_max_buy.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("buyable_power","test_max_buy.csv",null,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name actual_reserve_margin)-->
@@ -8145,13 +8145,13 @@
 					<!--simple property (name expected_margin)-->
 					<name>expected_margin__17_0_2_1_edc0357_1360870125532_453113_15340</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("expected_margin","test_margin_load.csv",0.0,Float.class, true)</value>
+					<value>new TimeVaryingProjection("expected_margin","test_margin_load.csv",0.0,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--simple property (name contracted_margin)-->
 					<name>contracted_margin__17_0_2_1_edc0357_1360954498520_242954_20503</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("contracted_margin","test_margin_load.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("contracted_margin","test_margin_load.csv",null,Float.class)</value>
 				</parameter>
 				<parameter>
 					<!--Create New objectflow for signal to LADWP-->
@@ -8163,7 +8163,7 @@
 					<!--simple property (name predicted_load)-->
 					<name>predicted_load__17_0_2_1_edc0357_1360798765091_333592_20344</name>
 					<type>TimeVaryingProjection&lt;Float&gt;</type>
-					<value>new TimeVaryingProjection("predicted_load","test_load.csv",null,Float.class, true)</value>
+					<value>new TimeVaryingProjection("predicted_load","test_load.csv",null,Float.class)</value>
 				</parameter>
 			</members>
 			<constructors>
@@ -18819,7 +18819,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360955503441_991581_20847</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -18860,7 +18860,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955503441_991581_20847</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value>sig_17_0_2_1_edc0357_1360955545364_135598_20874.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -19258,7 +19258,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360955742818_919651_20991</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value/>
 										</parameter>
 										<parameter>
@@ -19304,7 +19304,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360955742818_919651_20991</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value>sig_17_0_2_1_edc0357_1360955775474_808663_21012.receive(startTime)</value>
 										</dependency>
 										<dependency>
@@ -20143,7 +20143,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360958237750_312225_21588</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value/>
 										</parameter>
 									</members>
@@ -20186,7 +20186,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237750_312225_21588</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value>sig_17_0_2_1_edc0357_1360958237736_315226_21568.receive(startTime)</value>
 										</dependency>
 									</dependencies>
@@ -20582,7 +20582,7 @@
 										<parameter>
 											<!--NEW initialize input pin members-->
 											<name>_17_0_2_1_edc0357_1360958237754_562642_21595</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value/>
 										</parameter>
 									</members>
@@ -20625,7 +20625,7 @@
 										</dependency>
 										<dependency>
 											<name>_17_0_2_1_edc0357_1360958237754_562642_21595</name>
-											<type>TimeVaryingProjection</type>
+											<type>TimeVaryingMap</type>
 											<value>sig_17_0_2_1_edc0357_1360958237737_985067_21573.receive(startTime)</value>
 										</dependency>
 									</dependencies>

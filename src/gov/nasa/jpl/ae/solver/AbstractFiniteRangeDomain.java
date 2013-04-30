@@ -137,11 +137,11 @@ public abstract class AbstractFiniteRangeDomain< T extends Comparable< T > >
 //    return domain;
 //  }
 
-  @Override
-  public abstract Class< T > getType();
-
-  @Override
-  public abstract Class< ? > getPrimitiveType();
+//  @Override
+//  public abstract Class< T > getType();
+//
+//  @Override
+//  public abstract Class< ? > getPrimitiveType();
  
 //  @Override
 //  public boolean setLowerBound( T lowerBound ) {

@@ -1,6 +1,6 @@
 package gov.nasa.jpl.ae.solver;
 
-public interface Domain< T > extends Cloneable, HasId {
+public interface Domain< T > extends Cloneable, HasId, Wraps< T > {
 
   public Domain< T > clone();
 
@@ -19,10 +19,6 @@ public interface Domain< T > extends Cloneable, HasId {
   
   public Domain< T > getDefaultDomain();
   public void setDefaultDomain( Domain< T > domain );
-  
-  public Class< ? > getType();
-
-  public Class< ? > getPrimitiveType();
   
   public void restrictToValue( T v );
 }

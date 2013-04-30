@@ -3,7 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.event.Expression.Type;
+import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
@@ -42,9 +42,13 @@ public class Functions {
   public static class SuggestiveFunctionCall extends FunctionCall implements Suggester {
     public FunctionCall pickFunctionCall = null;
     public FunctionCall reversePickFunctionCall = null;
-    public SuggestiveFunctionCall( Object object, Method method,
+    public FunctionCall isGrounded = null;
+    
+    public SuggestiveFunctionCall( //Method isGroundedMethod,
+                                   Object object, Method method,
                                    Object[] arguments ) {
       super( object, method, arguments );
+      //if 
     }
 
     public SuggestiveFunctionCall( SuggestiveFunctionCall suggestiveFunctionCall ) {
@@ -78,25 +82,28 @@ public class Functions {
 
   }
   
-  public static class Binary< T , R > extends Expression< R > implements Suggester {
-    public SuggestiveFunctionCall functionCall = null;
+  public static class Binary< T , R > extends SuggestiveFunctionCall implements Suggester {
+    //public SuggestiveFunctionCall functionCall = null;
     //public SuggestiveFunctionCall pickFunctionCall = null;
     //public SuggestiveFunctionCall reversePickFunctionCall = null;
 
     public Binary( Variable< T > o1, Expression< T > o2,
                    String functionMethod ) {
-      super( new SuggestiveFunctionCall( (Object)null,
+      super( (Object)null,
                                          getFunctionMethod( functionMethod ),
-                                         new Object[]{ o1, o2 } ) );
-      functionCall = (SuggestiveFunctionCall)this.expression;
+                                         new Object[]{ o1, o2 } );
+      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
 
     public Binary( Expression< T > o1, Expression< T > o2,
                    String functionMethod ) {
-      super( new SuggestiveFunctionCall( (Object)null,
+      super( //new SuggestiveFunctionCall( 
+             (Object)null,
                                          getFunctionMethod( functionMethod ),
-                                         new Object[]{ o1, o2 } ) );
-      functionCall = (SuggestiveFunctionCall)this.expression;
+                                         new Object[]{ o1, o2 } 
+             //)
+             );
+      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
 
     public Binary( Expression< T > o1, Expression< T > o2,
@@ -104,13 +111,17 @@ public class Functions {
                    String pickFunctionMethod1,
                    String pickFunctionMethod2 ) {
       this( o1, o2, functionMethod );
-      functionCall.pickFunctionCall =
+      //functionCall.
+      pickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
-                            functionCall.getArguments().toArray() );
-      Vector< Object > args = new Vector<Object>( functionCall.getArguments() );
+                            //functionCall.
+                            getArguments().toArray() );
+      Vector< Object > args = new Vector<Object>( //functionCall.
+          getArguments() );
       Collections.reverse( args );
-      functionCall.reversePickFunctionCall =
+      //functionCall.
+      reversePickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod2 ),
                             args.toArray() );
@@ -146,7 +157,8 @@ public class Functions {
     
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
-      return pickValueBF2( functionCall, variable );
+      return pickValueBF2( this,//functionCall, 
+                           variable );
     }
   }
 
@@ -246,7 +258,8 @@ public class Functions {
   public static class Plus< T , R > extends Sum< T, R > {
     public Plus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     public Plus( Object o1, Object c ) {
       super( o1, c );
@@ -257,43 +270,51 @@ public class Functions {
                            R > extends Binary< T, R > {
     public Sub( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "subtract" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     public Sub( Object o1, Object c ) {
       super( o1, c, "subtract" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
   }
   public static class Minus< T  extends Comparable< ? super T >,
                              R  extends Comparable< ? super R > > extends Sub< T, R > {
     public Minus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     public Minus( Object o1, Object c ) {
       super( o1, c );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
   }
 
   public static class Times< T , R > extends Binary< T, R > {
     public Times( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "times" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     public Times( Object o1, Object c ) {
       super( o1, c, "times" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
   }
   public static class Divide< T , R > extends Binary< T, R > {
     public Divide( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "divide" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     public Divide( Object o1, Object c ) {
       super( o1, c, "divide" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
   }
 
@@ -739,72 +760,90 @@ public class Functions {
     }
     */
   }
+
   public static class NotEquals< T > extends NEQ< T > {
     public NotEquals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
+
     public NotEquals( Object o1, Object o2 ) {
       super( o1, o2 );
     }
   }
 
-  public static class LT< T >
-                        extends BooleanBinary< T > {
+  public static class LT< T > extends BooleanBinary< T > {
     public LT( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThan" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public LT( Object o1, Object o2 ) {
       super( o1, o2, "lessThan" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
   }
+
   public static class Less< T > extends LT< T > {
     public Less( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public Less( Object o1, Object o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
   }
 
-  public static class LTE< T >
-                        extends BooleanBinary< T > {
+  public static class LTE< T > extends BooleanBinary< T > {
     public LTE( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThanOrEqual" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public LTE( Object o1, Object o2 ) {
       super( o1, o2, "lessThanOrEqual" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
   }
+
   public static class LessEquals< T > extends LTE< T > {
     public LessEquals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public LessEquals( Object o1, Object o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
   }
 
-  public static class GT< T extends Comparable< ? super T > >
-                        extends BooleanBinary< T > {
+  public static class GT< T extends Comparable< ? super T > > extends
+                                                              BooleanBinary< T > {
     public GT( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "greaterThan", "pickGreaterThan", "pickLessThanOrEqual" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public GT( Object o1, Object o2 ) {
       super( o1, o2, "greaterThan", "pickGreaterThan", "pickLessThanOrEqual" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
-//    @Override
+    //    @Override
 //    public < T1 > T1 pickValue( Variable< T1 > variable ) {
-//      Vector< Object > args = this.functionCall.getArguments();
+//      Vector< Object > args = this.//functionCall.
+//                                   getArguments();
 //      if ( args.size() < 2 ) return null;
 //      Object arg1 = args.get( 0 );
 //      Object arg2 = args.get( 1 );
@@ -823,25 +862,34 @@ public class Functions {
 //      return pickValueBB(this, variable, getClass().getMethod( "pickGreaterThan", parameterTypes ) );
 //    }
   }
-  public static class Greater< T extends Comparable< ? super T > > extends GT< T > {
+
+  public static class Greater< T extends Comparable< ? super T > > extends
+                                                                   GT< T > {
     public Greater( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public Greater( Object o1, Object o2 ) {
       super( o1, o2 );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public boolean restrictDomains( boolean targetResult ) {
-      if ( functionCall.arguments.size() < 2 ) return false;
-      Expression<T> e1 = (Expression<T>)functionCall.arguments.get( 0 );
-      Expression<T> e2 = (Expression<T>)functionCall.arguments.get( 1 );
-      Domain<T> d1 = e1.getDomain(false, null); 
-      Domain<T> d2 = e2.getDomain(false, null); 
+      if ( // functionCall.
+      arguments.size() < 2 ) return false;
+      Expression< T > e1 = (Expression< T >)// functionCall.
+          arguments.get( 0 );
+      Expression< T > e2 = (Expression< T >)// functionCall.
+          arguments.get( 1 );
+      Domain< T > d1 = e1.getDomain( false, null );
+      Domain< T > d2 = e2.getDomain( false, null );
       if ( d1 instanceof AbstractRangeDomain ) {
-        AbstractRangeDomain<T> ard1 = (AbstractRangeDomain< T >)d1; 
-        if ( e2.getDomain(false, null) instanceof AbstractRangeDomain ) {
-          AbstractRangeDomain<T> ard2 = (AbstractRangeDomain< T >)d2; 
+        AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
+        if ( e2.getDomain( false, null ) instanceof AbstractRangeDomain ) {
+          AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
           if ( targetResult == true ) {
             if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
               ard1.setLowerBound( ard2.getLowerBound() );
@@ -859,50 +907,57 @@ public class Functions {
   }
 
   public static class GTE< T extends Comparable< ? super T > >
-                        extends BooleanBinary< T > {
+                                                               extends
+                                                               BooleanBinary< T > {
     public GTE( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "greaterThanOrEqual" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
+
     public GTE( Object o1, Object o2 ) {
       super( o1, o2, "greaterThanOrEqual" );
-      functionCall.setMonotonic( true );
+      // functionCall.
+      setMonotonic( true );
     }
   }
 
-  public static class GreaterEquals< T extends Comparable< ? super T > > extends
-                                                                 GTE< T > {
+  public static class GreaterEquals< T extends Comparable< ? super T > >
+                                                                         extends
+                                                                         GTE< T > {
 
     public GreaterEquals( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
     }
+
     public GreaterEquals( Object o1, Object o2 ) {
       super( o1, o2 );
     }
   }
 
-  public static class DoesThereExist<T> extends BooleanBinary<T> {
+  public static class DoesThereExist< T > extends BooleanBinary< T > {
 
-    public DoesThereExist( Variable<T> variable,
-//                         Domain<T> d,
+    public DoesThereExist( Variable< T > variable,
+    // Domain<T> d,
                            Expression< Boolean > o ) {
       super( variable, o, "thereExists" );
-      functionCall.setMonotonic( isMonotonic(o) );
+      // functionCall.
+      setMonotonic( Functions.isMonotonic( o ) );
     }
-  }
-  
+  }  
 
-  public static class ForAll<T> extends BooleanBinary< T > {
-    //Collection<?> quantifiedVariables = null;
-    //public ForAll( Collection< Variable<?> > variables,
-    //               Expression< Boolean > o ) {
-    //  super( variables, o, "forAll" );
-    //}
-    public ForAll( Variable<T> variable,
-//                   Domain<T> d,
+  public static class ForAll< T > extends BooleanBinary< T > {
+    // Collection<?> quantifiedVariables = null;
+    // public ForAll( Collection< Variable<?> > variables,
+    // Expression< Boolean > o ) {
+    // super( variables, o, "forAll" );
+    // }
+    public ForAll( Variable< T > variable,
+    // Domain<T> d,
                    Expression< Boolean > o ) {
       super( variable, o, "forAll" );
-      functionCall.setMonotonic( isMonotonic(o) );
+      // functionCall.
+      setMonotonic( Functions.isMonotonic( o ) );
     }
   }
 
@@ -944,7 +999,7 @@ public class Functions {
 
 
   public static boolean isMonotonic( Expression< ? > o ) {
-    if ( o.type == Type.Function ) {
+    if ( o.form == Form.Function ) {
       if ( ((FunctionCall)o.expression).isMonotonic() ) {
         return true;
       }
@@ -1366,8 +1421,10 @@ public class Functions {
 
   protected static <T, T1> T1 pickValueBB2( BooleanBinary< T > booleanBinary,
                                             Variable< T1 > variable ) {
-    T1 newValue = pickValueBF2( variable, booleanBinary.functionCall.pickFunctionCall,
-                                booleanBinary.functionCall.reversePickFunctionCall );
+    T1 newValue = pickValueBF2( variable, booleanBinary.//functionCall.
+                                pickFunctionCall,
+                                booleanBinary.//functionCall.
+                                reversePickFunctionCall );
     return newValue;
   }
   protected static <T1> T1 pickValueBF2( Variable< T1 > variable,
@@ -1415,7 +1472,8 @@ public class Functions {
   // delete this function
   private static <T, T1> T1 pickValueBB( BooleanBinary< T > booleanBinary,
                                          Variable< T1 > variable ) {
-    T1 newValue = pickValueBF( booleanBinary.functionCall, variable );
+    T1 newValue = pickValueBF( booleanBinary,//.functionCall, 
+                               variable );
     return newValue;
   }
   // delete this function
@@ -1447,7 +1505,7 @@ public class Functions {
           if ( otherArg instanceof Variable ) {
             otherVariable = (Variable< T1 >)otherArg;
           } else if ( otherArg instanceof Expression ) {
-            if ( ( (Expression< T1 >)otherArg ).type == Expression.Type.Parameter ) {
+            if ( ( (Expression< T1 >)otherArg ).form == Expression.Form.Parameter ) {
               otherVariable =
                   (Variable< T1 >)( (Expression< T1 >)otherArg ).expression;
             }

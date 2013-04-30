@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -25,7 +26,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                         Groundable,
                                                         Comparable< Call >,
                                                         MoreToString,
-                                                        Cloneable {
+                                                        Cloneable,
+                                                        Wraps<Object> {
 
   /**
    * A function call on the result of this function call.
@@ -41,6 +43,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   abstract public Object invoke( Object obj, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
   abstract public boolean isStatic();
+  
+  public Call() {}
   
   @Override
   public void deconstruct() {
@@ -269,6 +273,44 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(" + args + ") = "
                  + Utils.toString( argObjects ) );
     return argObjects;
+  }
+  
+  @Override
+  public Class< ? > getType() {
+    return getReturnType();
+  }
+
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   */
+  @Override
+  public String getTypeNameForClassName( String className ) {
+    return getType().getSimpleName();
+  }
+
+  @Override
+  public Class< ? > getPrimitiveType() {
+    Class< ? > c = null;
+    if ( getType() != null ) {
+      c = ClassUtils.primitiveForClass( getType() );
+      Object r = evaluate( false );
+      if ( c == null && r != null
+           && Wraps.class.isInstance( r ) ) {// isAssignableFrom( getType() ) ) {
+        c = ( (Wraps< ? >)r ).getPrimitiveType();
+      }
+    }
+    return c;
+  }
+
+  @Override
+  public Object getValue( boolean propagate ) {
+    return evaluate( propagate );
+  }
+
+  @Override
+  public void setValue( Object value ) {
+    // TODO -- this could be used to set free values when inverting the function
+    Debug.error( false, "Error! Call.setValue() is not yeet supported!" );
   }
   
   @Override

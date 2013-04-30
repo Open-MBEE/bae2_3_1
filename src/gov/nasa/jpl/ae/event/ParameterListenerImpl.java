@@ -212,9 +212,14 @@ public class ParameterListenerImpl extends HasIdImpl
     return toString( withHash, deep, seen, null );
   }
 
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Call e, boolean fire ) {
+    return addDependency( p, new Expression<T2>(e), fire );
+  }
+
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e, boolean fire ) {
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Expression< T2 > e, boolean fire ) {
+  //public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e, boolean fire ) {
     Debug.errorOnNull( "try to add a dependency on null", p );
     
     // Check if p is in enclosing class and call the enclosing class's addDependency() 
@@ -228,7 +233,7 @@ public class ParameterListenerImpl extends HasIdImpl
       Debug.error(getName() + " adding a dependency on a parameter it doesn't own.");
     }
     removeDependenciesForParameter( p );
-    Dependency< T > d = new Dependency< T >( p, e );
+    Dependency< ? > d = new Dependency< T1 >( p, e );
 // Default domains are shared.  The domains need to be cloned before intersecting them.
 //    if ( e.type == Expression.Type.Parameter ) {
 //      Parameter< T > ep = (Parameter< T >)e.expression;
@@ -245,11 +250,12 @@ public class ParameterListenerImpl extends HasIdImpl
     return d;
   }
 
-  public < T > Dependency< ? > addDependency( Parameter< T > p, Parameter< T > source ) {
-    return addDependency( p, new Expression< T >( source ) );
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Parameter< T2 > source ) {
+    return addDependency( p, new Expression< T2 >( source ) );
   }
   
-  public < T > Dependency< ? > addDependency(  Parameter< T > p, Expression< T > e ) {
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Expression< T2 > e ) {
+//  public < T > Dependency< ? > addDependency(  Parameter< T > p, Expression< T > e ) {
     return addDependency( p, e, true );
   }
 
