@@ -85,22 +85,20 @@ public class Timer implements StopWatch< Vector< Long > > {
       return timeSinceStart;
     }
     
+    /**
+     * @return the system time as a Long integer (possibly the number of
+     *         milliseconds since the epoch)
+     */
     public Long getSystemTime() {
       Object t;
-      try {
-        t = getTimeMethod.invoke( getTimeObject, getTimeArgs );
-        if ( t instanceof Long ) {
-          return ( (Long)t ).longValue();
-        }
-      } catch ( IllegalArgumentException e ) {
-        e.printStackTrace();
-      } catch ( IllegalAccessException e ) {
-        e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        e.printStackTrace();
+      t = ClassUtils.runMethod( false, getTimeObject, getTimeMethod,
+                                getTimeArgs ).second;
+      if ( t instanceof Long ) {
+        return (Long)t;
       }
       return -1L;
     }
+    
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.util.StopWatch#stop()
      */

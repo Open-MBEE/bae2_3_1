@@ -36,7 +36,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected Object object = null; // object from which constructor is invoked
   protected Vector< Object > arguments = null; // arguments to constructor
   protected Vector< Object > evaluatedArguments = null; // arguments to constructor
-
+  protected boolean evaluationSucceeded = false;
+  
   abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
   abstract public Member getMember();
@@ -145,6 +146,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   // TODO -- consider an abstract Call class
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
+    evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( propagate ) {
       if ( !ground( propagate, null ) ) {
@@ -219,15 +221,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       result = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
       //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
     } catch ( IllegalAccessException e ) {
+      evaluationSucceeded = false;
       // TODO Auto-generated catch block
       e.printStackTrace();
     } catch ( IllegalArgumentException e ) {
+      evaluationSucceeded = false;
       // TODO Auto-generated catch block
       e.printStackTrace();
     } catch ( InvocationTargetException e ) {
+      evaluationSucceeded = false;
       // TODO Auto-generated catch block
       e.printStackTrace();
     } catch ( InstantiationException e ) {
+      evaluationSucceeded = false;
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -236,6 +242,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //      result = nestedCall.getValue().evaluate( propagate );
 //    }
     if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + result );
+    
     return result;
   }
 
@@ -313,6 +320,13 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Debug.error( false, "Error! Call.setValue() is not yeet supported!" );
   }
   
+  /**
+   * @return the evaluationSucceeded
+   */
+  public boolean didEvaluationSucceed() {
+    return evaluationSucceeded;
+  }
+
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
                              Set<HasParameters> seen ) {

@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="CS" default="makejar" basedir=".">
 	<!-- Customize properties below for your installation. -->
-	<property name="junitJarFile" value="/Applications/eclipseHelios/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar"/>
+	<property name="junitJarFile" value="C:\Users\bclement\.yoxoslauncher\plugins\org.junit_4.8.2.v4_8_2_v20110321-1705\junit.jar"/>
   <property name="xmlFile" value="src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml"/>
+  <property name="scriptXmlFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/script.xml"/>
+  <property name="pluginXmlFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/plugin.xml"/>
+  <property name="mainPyFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/main.py"/>
+  <property name="md" value="C:\Program Files\MagicDraw\SSCAE-MD17.0.2SP3-PackageK-build994-20130327"/>
+  <loadproperties srcFile="build.properties"/>
   <!-- Customize properties above for your installation. -->
+
+  <!-- set global properties for this build -->
+  <!-- <property name="md" location="${mdpath}"/> -->
+  <!-- Conditional properties to load based on whether or not this is being called from jenkins build -->
+
   <target name ="makejar" description="Create a jar for the Analysis Engine">
     <jar destfile="AE.jar">
     	<fileset includes="**/*.class"  excludes="generated**/*" dir="bin"/>
@@ -27,5 +37,13 @@
     <echo>Started running generated.Main</echo>
     <java classpath="AE.jar;bin" classname="generated.Main" fork="true"/>
   	<echo>Finished running generated.Main</echo>
+  </target>
+  <target name="copyTestPlugin" depends="makejar">
+ 	<copy todir="${md}/plugins/gov.nasa.jpl.ae.test" file="AE.jar"/>
+  	<copy todir="${md}/plugins/gov.nasa.jpl.ae.test" file="${pluginXmlFile}"/>
+  </target>
+  <target name="copyAePlugin" depends="makejar">
+  	<copy todir="${md}/plugins/scripts/AE" file="${scriptXmlFile}"/>
+  	<copy todir="${md}/plugins/scripts/AE" file="${mainPyFile}"/>
   </target>
 </project>

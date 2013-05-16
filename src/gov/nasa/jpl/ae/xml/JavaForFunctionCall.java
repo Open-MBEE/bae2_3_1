@@ -5,8 +5,11 @@ import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 import gov.nasa.jpl.ae.event.Affectable;
+import gov.nasa.jpl.ae.event.Call;
+import gov.nasa.jpl.ae.event.ConstructorCall;
+import gov.nasa.jpl.ae.event.EffectFunction;
+import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.TimeVarying; // don't remove!!
 import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove!!
 import japa.parser.ast.body.ConstructorDeclaration;
@@ -35,11 +38,13 @@ public class JavaForFunctionCall {
   /**
    * 
    */
-  private final EventXmlToJava xmlToJava;
+  //private final EventXmlToJava xmlToJava;
+  private final JavaToConstraintExpression exprXlator;//.expressionTranslator;
   public MethodCallExpr methodCallExpr = null;
   public ObjectCreationExpr objectCreationExpr = null;
   public boolean methodOrConstructor = true; 
   public String object = null;
+  public gov.nasa.jpl.ae.event.Expression< ? > objectExpr = null;
   public String objectTypeName;
   public Class<?> objectType;
   public String className = null;
@@ -63,19 +68,36 @@ public class JavaForFunctionCall {
   public ArrayList<FieldDeclaration> generatedDependencies =
       new ArrayList< FieldDeclaration >();
   
-  public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
+  public JavaForFunctionCall( JavaToConstraintExpression expressionTranslator,
                               Expression expression,
                               boolean convertArgumentsToExpressions,
                               String preferredPackageName ) {
-    this( eventXmlToJava, expression, convertArgumentsToExpressions,
+    this( expressionTranslator, expression, convertArgumentsToExpressions,
           preferredPackageName, false );
   }
                               
-  public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
-                              Expression expression,
-                              boolean convertArgumentsToExpressions,
-                              String preferredPackageName,
-                              boolean evaluateCall ) {
+//  public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
+//                              Expression expression,
+//                              boolean convertArgumentsToExpressions,
+//                              String preferredPackageName,
+//                              boolean evaluateCall ) {
+//    this( eventXmlToJava.expressionTranslator, eventXmlToJava, expression,
+//          convertArgumentsToExpressions, preferredPackageName, evaluateCall );
+//    
+//  }
+//  public JavaForFunctionCall( JavaToConstraintExpression exprTranslator,
+//                              EventXmlToJava eventXml2Java,
+//                              Expression expression,
+//                              boolean convertArgumentsToExpressions,
+//                              String preferredPackageName,
+//                              boolean evaluateCall ) {
+
+    public JavaForFunctionCall( JavaToConstraintExpression exprTranslator,
+                                Expression expression,
+                                boolean convertArgumentsToExpressions,
+                                String preferredPackageName,
+                                boolean evaluateCall ) {
+
     // Arguments may be Expressions, Parameters, or other. Method parameter
     // types may also be Expressions, Parameters, or other.
     //
@@ -111,7 +133,8 @@ public class JavaForFunctionCall {
       assert false;
     }
     
-    this.xmlToJava = eventXmlToJava;
+    this.exprXlator = exprTranslator;
+    //this.xmlToJava = eventXml2Java;
     // REVIEW -- How do we know when we want to convert args to Expressions?
     // Constructors of events (and probably classes) convert args to
     // Expressions.  For now, do not convert args for any other calls.
@@ -120,26 +143,26 @@ public class JavaForFunctionCall {
     callName =
         methodOrConstructor ? methodCallExpr.getName()
                             : objectCreationExpr.getType().toString();
-    className = this.xmlToJava.currentClass;
+    className = this.exprXlator.currentClass;
     
     // Get object from scope
     Expression scope = getScope();
-    object = this.xmlToJava.getObjectFromScope( scope );
+    object = ( (JavaToConstraintExpression)this.exprXlator ).getObjectFromScope( scope );
     if ( scope != null && scope.toString().contains("getValue") ) {
       Debug.out("");
     }
-    objectTypeName = this.xmlToJava.astToAeExprType( scope, true, true );
+    objectTypeName = this.exprXlator.astToAeExprType( scope, true, true );
     if ( objectTypeName != null ) {
       className = objectTypeName;
     }
-    pkg = this.xmlToJava.packageName + ".";
+    pkg = exprXlator.classData.packageName + ".";
     if ( pkg.length() == 1 ) {
       pkg = "";
     }
     
     if ( Utils.isNullOrEmpty( object ) ) {
       if ( methodOrConstructor ||
-          xmlToJava.isInnerClass( objectTypeName ) ) {
+          exprXlator.classData.isInnerClass( objectTypeName ) ) {
         object = "this";
       } else {
         object = "null";
@@ -147,7 +170,7 @@ public class JavaForFunctionCall {
     }
 
     if ( !Utils.isNullOrEmpty( className ) &&
-         className != xmlToJava.currentClass ) {
+         className != exprXlator.currentClass ) {
       objectType = ClassUtils.getClassForName( className, preferredPackageName, true );
     }
 
@@ -165,7 +188,7 @@ public class JavaForFunctionCall {
       argTypesArr = new Class< ? >[ args.size() ];
       for ( int i = 0; i < args.size(); ++i ) {
         argTypesArr[ i ] =
-            ClassUtils.getClassForName( xmlToJava.astToAeExprType( args.get( i ),
+            ClassUtils.getClassForName( exprXlator.astToAeExprType( args.get( i ),
                                                               true, true ),
                                                               preferredPackageName,
                                                               false );
@@ -191,7 +214,7 @@ public class JavaForFunctionCall {
 
       // Get the list of methods with the same name (callName).
       Set< MethodDeclaration > classMethods =
-          this.xmlToJava.getClassMethodsWithName( callName, className );
+          this.exprXlator.classData.getClassMethodsWithName( callName, className );
       // Find the right MethodDeclaration if it exists.
       if ( !Utils.isNullOrEmpty( classMethods ) ) {
 
@@ -220,7 +243,7 @@ public class JavaForFunctionCall {
         matchingMethod =
             ClassUtils.getMethodForArgTypes( className, preferredPackageName,
                                         callName, argTypesArr, false );
-        if ( matchingMethod == null && className.equals( xmlToJava.currentClass ) ) {
+        if ( matchingMethod == null && className.equals( exprXlator.currentClass ) ) {
           matchingMethod = ClassUtils.getJavaMethodForCommonFunction( callName,
                                                                  argTypesArr );
 
@@ -239,9 +262,13 @@ public class JavaForFunctionCall {
       methodJavaSb.append( "ClassUtils.getConstructorForArgTypes(" 
                            + ClassUtils.noParameterName( callName )
                            + ".class" );
-      // Find the right MethodDeclaration if it exists.
+      // Find the right ConstructorDeclaration if it exists.
       Set< ConstructorDeclaration > ctors =
-          xmlToJava.getConstructors( callName );
+          ( exprXlator == null
+            ? null 
+            : ( exprXlator.classData == null
+                ? null 
+                : exprXlator.classData.getConstructors( callName ) ) );
       constructorDecl  = null;
       if ( !Utils.isNullOrEmpty( ctors ) ) {
         constructorDecl =
@@ -287,6 +314,7 @@ public class JavaForFunctionCall {
     // Determine whether the function is regular or actually an effect.
     // For example, TimeVaryingMap.setValue(...) is an effect function, but
     // TimeVaryingMap.getValue(...) is not.
+    // TODO -- REVIEW -- type is never used! -- is it supposed to be used in assigning isEffectFunction???
     Class<?> type = null;
     if ( matchingMethod != null ) {
       type = matchingMethod.getDeclaringClass();
@@ -318,7 +346,7 @@ public class JavaForFunctionCall {
         }
         if ( convertArgumentsToExpressions ) {
           String e = 
-              xmlToJava.astToAeExpr( a, convertArgumentsToExpressions, true, true );
+              exprXlator.astToAeExpr( a, convertArgumentsToExpressions, true, true );
           if ( Utils.isNullOrEmpty( e ) || e.matches( "[(][^()]*[)]null" ) ) {
             argumentArraySb.append( a );
           } else {
@@ -385,8 +413,8 @@ public class JavaForFunctionCall {
 
   public boolean isStatic() {
     if ( methodOrConstructor ) {
-      if ( xmlToJava.knowIfStatic( callName ) ) {
-        return xmlToJava.isStatic( callName );
+      if ( exprXlator.classData.knowIfStatic( callName ) ) {
+        return exprXlator.classData.isStatic( callName );
       }
       if ( matchingMethod != null &&
            Modifier.isStatic( matchingMethod.getModifiers() ) ) {
@@ -397,8 +425,8 @@ public class JavaForFunctionCall {
         return true;
       }
     } else {
-      if ( xmlToJava.knowIfClassIsStatic( callName ) ) {
-        return xmlToJava.isClassStatic( callName );
+      if ( exprXlator.classData.knowIfClassIsStatic( callName ) ) {
+        return exprXlator.classData.isClassStatic( callName );
       }
       if ( matchingConstructor != null &&
            Modifier.isStatic( matchingConstructor.getModifiers() ) ) {
@@ -420,6 +448,28 @@ public class JavaForFunctionCall {
     this.convertingArgumentsToExpressions = convertArgumentsToExpressions;
   }
   
+  public Call toNewFunctionCall() {
+    Call c = null;
+    objectExpr = exprXlator.javaToAeExpression( object, objectTypeName, false );
+    gov.nasa.jpl.ae.event.Expression< ? > methodExpr =
+        exprXlator.javaToAeExpression( methodJava, null, false );
+    gov.nasa.jpl.ae.event.Expression< ? > argumentArrayExpr =
+        exprXlator.javaToAeExpression( argumentArrayJava, "Object[]", false );
+    if ( methodCallExpr == null ) {
+      c = new ConstructorCall( objectExpr,
+                               (Constructor< ? >)methodExpr.evaluate( true ),
+                               (Object[])argumentArrayExpr.evaluate( true ) );
+    } else if ( isEffectFunction ) {
+      c = new EffectFunction( objectExpr,
+                               (Method)methodExpr.evaluate( true ),
+                               (Object[])argumentArrayExpr.evaluate( true ) );
+    } else {
+      c = new FunctionCall( objectExpr,
+                            (Method)methodExpr.evaluate( true ),
+                            (Object[])argumentArrayExpr.evaluate( true ) );
+    }
+    return c;
+  }
   public String toNewFunctionCallString() {
     String fcnCallStr = null;
     String callTypeName = 
@@ -454,6 +504,10 @@ public class JavaForFunctionCall {
   @Override
   public String toString() {
     return toNewFunctionCallString();
+  }
+
+  public <T> gov.nasa.jpl.ae.event.Expression< T > toNewExpression() {
+    return new gov.nasa.jpl.ae.event.Expression< T >( toNewFunctionCall() );
   }
   
 }

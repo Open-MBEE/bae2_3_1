@@ -263,7 +263,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     return null;
   }
-  
+
+  public Parameter< T > assignValue( T value ) {
+    setValue( value ); // TODO -- REVIEW -- use a global usingLazyUpdate?
+    return this;
+  }
+
   @Override
   public void setValue( T value ) {
     setValue( value, true ); // TODO -- REVIEW -- use a global usingLazyUpdate?
