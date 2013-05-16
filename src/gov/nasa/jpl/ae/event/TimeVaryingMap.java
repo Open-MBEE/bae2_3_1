@@ -498,30 +498,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     super(new TimeComparator());
     this.name = name;
     samplePeriod = correctSamplePeriod( samplePeriod, horizonDuration );
-    try {
       for ( int t = 0; t < horizonDuration; t += samplePeriod ) {
         // WARNING: creating Parameter<Integer> with no owner in order to avoid
         // unnecessary overhead with constraint processing. If modified while in
         // the map, it can corrupt the map.
-        Object v = initialValueFunction.invoke( o, t );
-        Parameter< Integer > tp = makeTempTimepoint( t, false );
-        if (tp == null || tp.getValue(false) == null) {
-          System.err.println("Error - inserting null timepoint!");
-        } else {
-          put( tp,//new Parameter<Integer>( "", t, this ),
-               tryCastValue( v ) );
+        Pair< Boolean, Object > p = ClassUtils.runMethod( false, o, initialValueFunction, t );
+        if ( p.first ) {
+          Parameter< Integer > tp = makeTempTimepoint( t, false );
+          if ( tp == null || tp.getValue( false ) == null ) {
+            System.err.println( "Error - inserting null timepoint!" );
+          } else {
+            put( tp,// new Parameter<Integer>( "", t, this ),
+                 tryCastValue( p.second ) );
+          }
         }
       }
-    } catch ( IllegalAccessException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( IllegalArgumentException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( InvocationTargetException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 

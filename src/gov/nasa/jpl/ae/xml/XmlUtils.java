@@ -61,7 +61,6 @@ import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.FileUtils;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.EventXmlToJava.Param;
 
 @SuppressWarnings( "unused" )
 public class XmlUtils {

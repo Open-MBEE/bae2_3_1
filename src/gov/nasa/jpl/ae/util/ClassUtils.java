@@ -8,8 +8,10 @@ import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -270,6 +272,12 @@ public class ClassUtils {
     return getNonPrimitiveClass( cls );
   }
 
+  /**
+   * @param cls the possibly primitive Class object
+   * @return the non-primitive class (e.g. Integer.class) corresponding to the
+   *         input cls if cls is a primitive class (e.g. int.class); otherwise,
+   *         cls (e.g. String.class)
+   */
   public static Class< ? > getNonPrimitiveClass( Class< ? > cls ) {
     if ( cls == null ) return null;
     Class< ? > result = ClassUtils.classForPrimitive( cls );
@@ -313,6 +321,11 @@ public class ClassUtils {
     return newName;
   }
 
+  /**
+   * @param c1
+   * @param c2
+   * @return whether a class, c1, is a subclass of another class, c2
+   */
   public static boolean isSubclassOf( Class<?> c1, Class<?> c2 ) {
     try {
       c1.asSubclass( c2 );
@@ -322,6 +335,75 @@ public class ClassUtils {
     return true;
   }
 
+  /**
+   * @param cls
+   * @return the class of the single generic Type parameter for the input Class
+   *         or null if there is not exactly one.
+   */
+  public static Class< ? > getSingleGenericParameterType( Class< ? > cls ) {
+    if ( cls == null ) return null;
+    TypeVariable< ? >[] params = cls.getTypeParameters();
+    if ( params != null && params.length == 1 ) {
+      Class< ? > cls2;
+      try {
+        cls2 = Class.forName( params[ 0 ].getName() );
+        return cls2;
+      } catch ( ClassNotFoundException e ) {
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * @see gov.nasa.jpl.ae.util.ClassUtil#mostSpecificCommonSuperclass(Collection)
+   * @param coll
+   *          the collection
+   * @return the lowest upper bound superclass assignable from all elements in
+   *         the collection.
+   *         <p>
+   *         For example, If coll contains Integer.class and Double.class,
+   *         leastUpperBoundSuperclass( coll ) returns Number.class because they
+   *         both inherit from Number and Object, and Number is lower (more
+   *         specific) than Object.
+   */
+  public static Class<?> leastUpperBoundSuperclass( Collection< ? > coll ) {
+    return mostSpecificCommonSuperclass( coll );
+  }
+  
+  /**
+   * @param coll
+   *          the collection
+   * @return the most specific (lowest) common superclass assignable from all
+   *         elements in the collection.
+   *         <p>
+   *         For example, If coll contains Integer.class and Double.class,
+   *         leastUpperBoundSuperclass( coll ) returns Number.class because they
+   *         both inherit from Number and Object, and Number is lower (more
+   *         specific) than Object.
+   *         <p>
+   *         Note that if the the classes implement several common interfaces
+   *         but directly extend Object, Object.class will be returned.
+   */
+  public static Class<?> mostSpecificCommonSuperclass( Collection< ? > coll ) {
+    if ( Utils.isNullOrEmpty( coll ) ) return null; 
+    Class<?> most = null;
+    for ( Object o : coll ) {
+      if ( o == null ) continue;
+      Class<?> cls = getNonPrimitiveClass( o.getClass() );
+      if ( most == null ) {
+        most = cls;
+        continue;
+      }
+      while ( cls != null && !cls.isAssignableFrom( most ) ) {
+        cls = cls.getSuperclass();
+      }
+      if ( cls != null && cls.isAssignableFrom( most ) ) {
+        most = cls;
+      }
+    }
+    return most;
+  }
+  
   public static Class< ? > tryClassForName( String className, 
                                             boolean initialize ) {
     return tryClassForName( className, initialize, null );
@@ -446,8 +528,8 @@ public class ClassUtils {
   public static HashMap< String, Class<?> > classCache = new HashMap< String, Class<?> >();
 
   public static Class<?> getClassForName( String className,
-                                            String preferredPackage,
-                                            boolean initialize ) {
+                                          String preferredPackage,
+                                          boolean initialize ) {
     if ( Utils.isNullOrEmpty( className ) ) return null;
     Class<?> cls = null;
     char firstChar = className.charAt( 0 );
@@ -458,6 +540,9 @@ public class ClassUtils {
     cls = classCache.get( className );
     if ( cls != null ) return cls;
       List< Class<?>> classList = getClassesForName( className, initialize );
+      if ( !Utils.isNullOrEmpty( classList ) && initialize ) {  // REVIEW
+        classList = getClassesForName( className, !initialize );
+      }
       if ( !Utils.isNullOrEmpty( classList ) ) {
         for ( Class< ? > c : classList ) {
           if ( c.getPackage().getName().equals( preferredPackage ) ) {
@@ -1069,7 +1154,133 @@ public class ClassUtils {
       return (Method)atc.best;
     }
 
+  /**
+   * Find and invoke the named method from the given object with the given
+   * arguments.
+   * 
+   * @param o
+   * @param methodName
+   * @param args
+   * @param suppressErrors
+   * @return in a Pair whether the invocation was successful and the return
+   *         value (or null)
+   */
+  public static Pair< Boolean, Object > runMethod( boolean suppressErrors,
+                                                   Object o, String methodName,
+                                                   Object... args ) {
+    Method m = getMethodForArgs( o.getClass(), methodName, args );
+    return runMethod( suppressErrors, o, m, args );
+  }
+
+  /**
+   * Invoke the method from the given object with the given arguments.
+   * 
+   * @param o
+   * @param methodName
+   * @param args
+   * @param suppressErrors
+   * @return in a Pair whether the invocation was successful and the return
+   *         value (or null)
+   */
+  public static Pair< Boolean, Object > runMethod( boolean suppressErrors,
+                                                   Object o, Method method,
+                                                   Object... args ) {
+    Pair< Boolean, Object > p = new Pair< Boolean, Object >( false, null );
+    List<Throwable> errors = new ArrayList< Throwable >();
+    try {
+      p = runMethod( o, method, args );
+    } catch ( IllegalArgumentException e ) {
+      if ( !suppressErrors ) {
+        errors.add( e );
+      }
+    } catch ( IllegalAccessException e ) {
+      if ( !suppressErrors ) {
+        errors.add( e );
+      }
+    } catch ( InvocationTargetException e ) {
+      if ( !suppressErrors ) {
+        errors.add( e );
+      }
+    }
+    if ( !suppressErrors && !p.first ) {
+      Debug.error( false, "ClassUtils.runMethod( " + o + ", " + args +
+                          " ) failed!" );
+    }
+    for ( Throwable e : errors ) {
+      e.printStackTrace();
+    }
+    return p;
+  }
+  
+  /**
+   * Find and invoke the named method from the given object with the given
+   * arguments.
+   * 
+   * @param o
+   * @param methodName
+   * @param args
+   * @return in a Pair whether the invocation was successful and the return
+   *         value (or null)
+   * @throws IllegalArgumentException
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   */
+  public static Pair< Boolean, Object >
+      runMethod( Object o, String methodName,
+                 Object... args ) throws IllegalArgumentException,
+                                         IllegalAccessException,
+                                         InvocationTargetException {
+    Method m = getMethodForArgs( o.getClass(), methodName, args );
+    return runMethod( o, m, args );
+  }
+  
+  /**
+   * Invoke the method from the given object with the given arguments.
+   * 
+   * @param o
+   * @param m
+   * @param args
+   * @return in a Pair whether the invocation was successful and the return
+   *         value (or null)
+   * @throws IllegalArgumentException
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   */
+  public static Pair< Boolean, Object >
+    runMethod( Object o, Method m,
+               Object... args ) throws IllegalArgumentException,
+                                       IllegalAccessException,
+                                       InvocationTargetException {
+    Pair< Boolean, Object > p = new Pair< Boolean, Object >( false, null );
+    if ( m == null ) {
+      return p;
+    }
+    p.second = m.invoke( o, args );
+    p.first = true;
+    return p;
+  }
+  
+  /**
+   * @param o
+   * @param fieldName
+   * @return
+   */
   public static Object getFieldValue( Object o, String fieldName ) {
+    return getFieldValue( o, fieldName, false );
+  }
+
+  /**
+   * Get the value of the object's field with with the given fieldName using
+   * reflection.
+   * 
+   * @param o
+   *          the object whose field value is sought
+   * @param fieldName
+   * @param suppressExceptions
+   * @return the value of the field
+   */
+  public static Object getFieldValue( Object o, String fieldName,
+                                      boolean suppressExceptions ) {
     if ( o == null || Utils.isNullOrEmpty( fieldName ) ) {
       return null;
     }
@@ -1077,6 +1288,7 @@ public class ClassUtils {
     Field f = null;
     try {
       f = o.getClass().getField( fieldName );
+      if ( !f.isAccessible() ) f.setAccessible( true );
       return f.get( o );
     } catch ( NoSuchFieldException e ) {
       ex = e;
@@ -1091,8 +1303,55 @@ public class ClassUtils {
         return getFieldValue( ( (gov.nasa.jpl.ae.event.Parameter)o ).getValueNoPropagate(),
                               fieldName );
     }
-    if ( f == null && ex != null ) {
+    if ( !suppressExceptions && f == null && ex != null ) {
       // TODO Auto-generated catch block
+      ex.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * Return true if and only if the object has a field with the given name.
+   * @param o
+   * @param fieldName
+   * @return
+   */
+  public static boolean hasField( Object o, String fieldName ) {
+    return getField( o, fieldName, true ) != null;
+  }
+
+  /**
+   * Get the Field of the Class of the object with the given fieldName using
+   * reflection.
+   * 
+   * @param o
+   *          the object whose field is sought
+   * @param fieldName
+   * @param suppressExceptions
+   *          if true, do not throw or write out any exceptions
+   * @return the Field of the Class
+   */
+  public static Field getField( Object o, String fieldName, boolean suppressExceptions ) {
+    if ( o == null || Utils.isNullOrEmpty( fieldName ) ) {
+      return null;
+    }
+    Exception ex = null;
+    Field f = null;
+    try {
+      f = o.getClass().getField( fieldName );
+      return f;
+    } catch ( NoSuchFieldException e ) {
+      ex = e;
+    } catch ( SecurityException e ) {
+      ex = e;
+    } catch ( IllegalArgumentException e ) {
+      ex = e;
+    }
+    if ( f == null && o instanceof gov.nasa.jpl.ae.event.Parameter ) {
+        return getField( ( (gov.nasa.jpl.ae.event.Parameter)o ).getValueNoPropagate(),
+                         fieldName, suppressExceptions );
+    }
+    if ( !suppressExceptions && f == null && ex != null ) {
       ex.printStackTrace();
     }
     return null;
@@ -1128,6 +1387,8 @@ public class ClassUtils {
     return noParamName;
   }
 
+  
+  
   /**
    * @param type
    * @return whether the input type is a number class or a number primitive.
@@ -1149,4 +1410,41 @@ public class ClassUtils {
 //    Class<?> forPrim = classForPrimitive( type );
 //    if ( forPrim != null ) type = forPrim;
   }
+
+  /**
+   * @param cls
+   * @param methodName
+   * @return all public methods of {@code cls} (or inherited by {@code cls})
+   *         that have the simple name, {@code methodName}.
+   */
+  public static Method[] getMethodsForName( Class< ? > cls, String methodName ) {
+    List< Method > methods = new ArrayList< Method >();
+    for ( Method m : cls.getMethods() ) {
+      if ( m.getName().equals(methodName) ) {
+        methods.add( m );
+      }
+    }
+    return (Method[])methods.toArray();
+  }
+
+  /**
+   * @param o
+   * @param methodName
+   * @return whether the named method can be called from the Object, o
+   */
+  public static boolean hasMethod( Object o, String methodName ) {
+    return !Utils.isNullOrEmpty( getMethodsForName( o.getClass(), methodName ) );
+  }
+
+  /**
+   * @param o
+   * @param methodName
+   * @param args
+   * @return whether the named method can be called from the given Object with
+   *         the given arguments
+   */
+  public static boolean hasMethod( Object o, String methodName, Object[] args ) {
+    return ClassUtils.getMethodForArgs( o.getClass(), methodName, args ) != null;
+  }
+
 }

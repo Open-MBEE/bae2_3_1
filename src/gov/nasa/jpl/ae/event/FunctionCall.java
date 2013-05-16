@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.MoreToString;
+import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -285,23 +286,33 @@ public class FunctionCall extends Call {
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     if ( method == null ) {
+      evaluationSucceeded = false;
       Debug.errln( "Warning! Tried to invoke a null method! " + this );
       return null;
     }
     if ( !isStatic() && evaluatedObject == null ) {
       Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
+      evaluationSucceeded = false;
       return null;
     }
     if ( hasTypeErrors( evaluatedArgs ) ) {
       Debug.errln( "Warning! Tried calling " + this
                    + " with bad argument types! "
                    + MoreToString.Helper.toString( evaluatedArgs ) );
+      evaluationSucceeded = false;
       return null;
     }
     Object result = null;
+// TODO -- Try this shorter form?
+//    Pair< Boolean, Object > p =
+//        ClassUtils.runMethod( false, evaluatedObject, method, evaluatedArgs );
+//    result = p.second;
+//    evaluationSucceeded = p.first;
     try {
       result = method.invoke( evaluatedObject, evaluatedArgs ); 
+      evaluationSucceeded = true;
     } catch (IllegalArgumentException e) {
+      evaluationSucceeded = false;
       System.err.println( "FunctionCall.invoke " + method.getName() + "("
                           + Utils.toString( evaluatedArgs, false )
                           + "): FunctionCall{" + this + "}" + e.getMessage() );

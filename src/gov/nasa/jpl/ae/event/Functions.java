@@ -11,7 +11,9 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1544,19 +1546,11 @@ public class Functions {
       Boolean r = false;
       for ( int i=0; i < 5; ++i ) {
         T1 v = variable.pickRandomValue();
-        try {
-          r = (Boolean)f.method.invoke( null, new Expression<T1>(v), otherArg );
-        } catch ( IllegalAccessException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( IllegalArgumentException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( InvocationTargetException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        if ( r ) {
+        Pair< Boolean, Object > p =
+            ClassUtils.runMethod( false, (Object)null, f.method,
+                                  new Expression< T1 >( v ), otherArg );
+        r = (Boolean)p.second;
+        if ( p.first && r ) {
           if ( newValue == null ) {
             newValue = v;
           } else if ( otherVariable != null && otherVariable.getDomain() == null || otherVariable.getDomain().contains( v ) ) {

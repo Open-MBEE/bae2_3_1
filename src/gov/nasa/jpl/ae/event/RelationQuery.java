@@ -73,8 +73,8 @@ public class RelationQuery extends Query {
    * respective types {@code R} and {@code T}) may be a {@link String},
    * MagicDraw {@link Element}, EMF {@link EObject}, array, {@link List}, or
    * {@code null}. Arrays and {@link List}s are interpreted as choices for the
-   * relation or tuple item. So, <quote> relations(new Object[]{ “partProperty”,
-   * “characterization”}, 1, new Object[]{powerSystem, battery})}</quote> would
+   * relation or tuple item. So, <quote> relations(new Object[]{ "partProperty",
+   * "characterization"}, 1, new Object[]{powerSystem, battery})}</quote> would
    * return {@code (true, true)} if {@code battery} is a {@code partProperty}
    * and a {@code characterization} of {@code powerSystem}. For a null relation
    * or a null entry in the tuple list the result contains a collection

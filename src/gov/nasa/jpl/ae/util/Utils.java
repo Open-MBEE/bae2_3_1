@@ -85,7 +85,6 @@ public class Utils {
     return sb.toString();
   }
 
-  // Translate a string to an integer.  Return null if not an integer. 
   /**
    * Translate a string s to an Integer.
    * 
@@ -102,6 +101,24 @@ public class Utils {
       // leave i = null
     }
     return i;
+  }
+
+  /**
+   * Translate a string s to an Long.
+   * 
+   * @param s
+   *          is the string to parse as an Long
+   * @return the long translation of string s, or return null if s is not a
+   *         long.
+   */
+  public static Long toLong( String s ) {
+    Long l = null;
+    try {
+      l = Long.parseLong( s );
+    } catch ( NumberFormatException e ) {
+      // leave i = null
+    }
+    return l;
   }
 
   /**
@@ -385,5 +402,96 @@ public class Utils {
 //    }
     return o.toString().replace( Integer.toHexString(o.hashCode()), "" );
   }
+
   
+  /**
+   * @param s1
+   * @param s2
+   * @return the length of the longest common substring which is also a prefix of one of the strings.
+   */
+  public static int longestPrefixSubstring( String subcontext, String subc ) {
+    int numMatch = 0;
+    if ( subcontext.contains( subc ) ) {
+      if ( numMatch < subc.length() ) {
+        //subcontextKey = subc;
+        numMatch = subc.length();
+        //numDontMatch = subcontext.length() - subc.length(); 
+//      } else if ( numMatch == subc.length() ) {
+//        if ( subcontext.length() - subc.length() < numDontMatch ) {
+//          subcontextKey = subc;
+//          numDontMatch = subcontext.length() - subc.length(); 
+//        }
+      }
+    } else if ( subc.contains( subcontext ) ) {
+      if ( numMatch < subcontext.length() ) {
+        //subcontextKey = subcontext;
+        numMatch = subcontext.length();
+        //numDontMatch = subc.length() - subcontext.length(); 
+//      } else if ( numMatch == subcontext.length() ) {
+//        if ( subc.length() - subcontext.length() < numDontMatch ) {
+//          subcontextKey = subcontext;
+//          numDontMatch = subc.length() - subcontext.length(); 
+//        }
+      }
+    }
+    return numMatch;
+  }
+
+  
+  /**
+   * This implementation appears {@code O(n^2)}. This is slower than a suffix
+   * trie implementation, which is {@code O(n+m)}.  This is copied from wikipedia.
+   * 
+   * @param s1
+   * @param s2
+   * @return the length of the longest common substring
+   * 
+   * 
+   */
+  public static int longestCommonSubstr( String s1, String s2 ) {
+    if ( s1.isEmpty() || s2.isEmpty() ) {
+      return 0;
+    }
+
+    int m = s1.length();
+    int n = s2.length();
+    int cost = 0;
+    int maxLen = 0;
+    int[] p = new int[ n ];
+    int[] d = new int[ n ];
+
+    for ( int i = 0; i < m; ++i ) {
+      for ( int j = 0; j < n; ++j ) {
+        if ( s1.charAt( i ) != s2.charAt( j ) ) {
+          cost = 0;
+        } else {
+          if ( ( i == 0 ) || ( j == 0 ) ) {
+            cost = 1;
+          } else {
+            cost = p[ j - 1 ] + 1;
+          }
+        }
+        d[ j ] = cost;
+
+        if ( cost > maxLen ) {
+          maxLen = cost;
+        }
+      } // for {}
+
+      int[] swap = p;
+      p = d;
+      d = swap;
+    }
+
+    return maxLen;
+  }
+  public static String capitalize( String specifier ) {
+    String capitalizedSpec = specifier;
+    if ( Character.isLowerCase( specifier.charAt( 0 ) ) ) {
+      capitalizedSpec =
+          "" + Character.toUpperCase( specifier.charAt( 0 ) )
+              + specifier.substring( 1 );
+    }
+    return capitalizedSpec;
+  }
 }

@@ -5,7 +5,10 @@
 /.pydevproject -text
 .settings/org.eclipse.jdt.core.prefs -text
 /AE.jar -text
+META-INF/MANIFEST.MF -text
+/build.properties -text
 /build.xml -text
+/contexts.txt -text
 data/DR_attempt_1/test_gen_dr.csv -text
 data/DR_attempt_1/test_gen_res_dr.csv -text
 data/DR_attempt_1/test_load_dr.csv -text
@@ -18,6 +21,7 @@ data/test_load.csv -text
 data/test_margin_load.csv -text
 data/test_max_buy.csv -text
 data/test_reserve.csv -text
+/javadoc.xml -text
 /projFormatterOptions.xml -text
 src/DIFF_SCENARIO/BobCreator.java -text svneol=unset#text/plain
 src/DIFF_SCENARIO/Customer.java -text svneol=unset#text/plain
@@ -137,6 +141,7 @@ src/gov/nasa/jpl/ae/event/Timepoint.java -text
 src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE/main.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE/plugin.xml -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/AE/script.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAE.py -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAnalysisEngine_v2.py -text svneol=unset#text/plain
@@ -157,6 +162,13 @@ src/gov/nasa/jpl/ae/magicdrawPlugin/PlotDataReader.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/SortedDict.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/getCustomerData.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/Configurator.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/EmfUtils.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/JavaModelQueryParser.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/MDPlugin.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/MQActivator.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/ModelReference.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/TestPlugin.java -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/testPython.py -text
 src/gov/nasa/jpl/ae/magicdrawPlugin/whatsMyId.py -text
 src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
@@ -213,10 +225,12 @@ src/gov/nasa/jpl/ae/util/Timer.java -text
 src/gov/nasa/jpl/ae/util/Utils.java -text
 src/gov/nasa/jpl/ae/util/runaspen.cmd -text
 src/gov/nasa/jpl/ae/util/runaspen.sh -text
+src/gov/nasa/jpl/ae/xml/ClassData.java -text
 src/gov/nasa/jpl/ae/xml/Demo_Scenario_Latest.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/xml/Diff_Scenario.xml -text svneol=unset#text/plain
 src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
 src/gov/nasa/jpl/ae/xml/JavaForFunctionCall.java -text
+src/gov/nasa/jpl/ae/xml/JavaToConstraintExpression.java -text
 src/gov/nasa/jpl/ae/xml/NameTranslator.java -text
 src/gov/nasa/jpl/ae/xml/PowerSystem2_2013-01-23.xml -text
 src/gov/nasa/jpl/ae/xml/PowerSystem3_2013-01-30_4.xml -text
@@ -240,6 +254,7 @@ src/powersystem/LADWP.java -text svneol=unset#text/plain
 src/powersystem/Main.java -text svneol=unset#text/plain
 src/powersystem/Power.java -text svneol=unset#text/plain
 src/powersystem/Power_System.java -text svneol=unset#text/plain
+/target.target -text
 thirdParty/douglascrockford-JSON-java-d15e776/README -text
 thirdParty/douglascrockford-JSON-java-d15e776/org/json/CDL.java -text
 thirdParty/douglascrockford-JSON-java-d15e776/org/json/Cookie.java -text
