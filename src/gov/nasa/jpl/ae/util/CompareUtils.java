@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.solver.HasId;
+import gov.nasa.jpl.ae.util.CompareUtils.GenericComparator;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -16,10 +17,19 @@ import java.util.Map;
 public class CompareUtils {
 
   public static class GenericComparator< T > implements Comparator< T > {
+
+    protected static GenericComparator<?> instance = new CompareUtils.GenericComparator();
+    
     @Override
     public int compare( T o1, T o2 ) {
       return CompareUtils.compare( o1, o2, true, true );
     }
+
+    public static <TT> GenericComparator< TT > instance() {
+      // TODO Auto-generated method stub
+      return (GenericComparator< TT >)instance;
+    }
+
   }
   
   public static <T1, T2> int compare( T1 o1, T2 o2, boolean checkComparable ) {

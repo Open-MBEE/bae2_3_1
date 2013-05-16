@@ -257,7 +257,9 @@ public class ConstructorCall extends Call {
   
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-    newObject = constructor.newInstance( evaluatedArgs ); 
+    evaluationSucceeded = false;
+    newObject = constructor.newInstance( evaluatedArgs );
+    evaluationSucceeded = true;
     return newObject;
   }
   
@@ -266,6 +268,7 @@ public class ConstructorCall extends Call {
     // REVIEW -- if this is buggy, consider making this a dependency.
     // Nested call can also be a dependency.
     if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
+      evaluationSucceeded = true;
       return newObject;
     }
     newObject = null;

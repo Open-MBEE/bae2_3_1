@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
@@ -489,15 +490,7 @@ import java.util.TreeMap;
            || ( m.getParameterTypes().length == 2 && m.isVarArgs() ) ) {
         args = new Object[] { o };
       }
-      try {
-        result = m.invoke( ( isStatic ? null : o ), args );
-      } catch ( IllegalArgumentException e ) {
-        e.printStackTrace();
-      } catch ( IllegalAccessException e ) {
-        e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        e.printStackTrace();
-      }
+      ClassUtils.runMethod( true, ( isStatic ? null : o ), m, args );
     }
     return result;
   }
