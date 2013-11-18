@@ -4,11 +4,13 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.TypeVariable;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -104,13 +107,13 @@ public class ClassUtils {
                          + candidateArgTypes[ i ] + " matches args[ " + i
                          + " ].getClass()=" + referenceArgTypes[ i ] );
             ++numMatching;
-          } else if ( Parameter.class.isAssignableFrom( candidateArgTypes[ i ] ) &&
-                      Expression.class.isAssignableFrom( referenceArgTypes[ i ] ) ) {
-              if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
-                           + candidateArgTypes[ i ]
-                           + " could be made dependent on args[ " + i
-                           + " ].getClass()=" + referenceArgTypes[ i ] );
-            ++numDeps;
+//          } else if ( Parameter.class.isAssignableFrom( candidateArgTypes[ i ] ) &&
+//                      Expression.class.isAssignableFrom( referenceArgTypes[ i ] ) ) {
+//              if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
+//                           + candidateArgTypes[ i ]
+//                           + " could be made dependent on args[ " + i
+//                           + " ].getClass()=" + referenceArgTypes[ i ] );
+//            ++numDeps;
           } else {
               if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
                            + candidateArgTypes[ i ]
@@ -240,7 +243,7 @@ public class ClassUtils {
     return primitives;
   }
   
-  // boolean, byte, char, short, int, long, float, and double
+  // boolean, byte, char, short, int, long, float, double, and void
   private static Map< Class< ? >, Class< ? > > initializePrimToNonPrim() {
     primToNonPrim = new HashMap< Class< ? >, Class<?> >();
     primToNonPrim.put( boolean.class, Boolean.class );
@@ -265,6 +268,11 @@ public class ClassUtils {
   }
 
 
+  /**
+   * @param type
+   * @param preferredPackage
+   * @return the Class corresponding to the string
+   */
   public static Class< ? > getNonPrimitiveClass( String type, String preferredPackage ) {
     if ( type == null ) return null;
     Class< ? > cls = null;
@@ -280,15 +288,36 @@ public class ClassUtils {
    */
   public static Class< ? > getNonPrimitiveClass( Class< ? > cls ) {
     if ( cls == null ) return null;
-    Class< ? > result = ClassUtils.classForPrimitive( cls );
+    Class< ? > result = classForPrimitive( cls );
     if ( result == null ) return cls;
     return result;
+  }
+
+  /**
+   * @param o
+   * @return whether the object is a primitive class (like int or Integer) or an instance of one 
+   */
+  public static boolean isPrimitive( Class<?> c ) {
+    return ( getNonPrimitives().containsKey( c.getSimpleName() ) ||
+             getPrimitives().containsKey( c.getSimpleName() ) );
+  }
+  
+  
+  /**
+   * @param o
+   * @return whether the object is a primitive class (like int or Integer) or an instance of one 
+   */
+  public static boolean isPrimitive( Object o ) {
+    if ( o instanceof Class ) {
+      return isPrimitive( (Class<?>)o ); 
+    }
+    return isPrimitive( o.getClass() );
   }
 
   public static String addBackParametersToQualifiedName( String className,
                                                   String qualifiedName ) {
     String parameters = parameterPartOfName( className, true );
-    String strippedName = ClassUtils.noParameterName( className );
+    String strippedName = noParameterName( className );
     if ( !Utils.isNullOrEmpty( parameters ) ) {
       String parameters2 = ClassUtils.parameterPartOfName( qualifiedName, true );
       if ( Utils.isNullOrEmpty( parameters2 )
@@ -409,23 +438,55 @@ public class ClassUtils {
     return tryClassForName( className, initialize, null );
   }
 
+  public static Class< ? > classForName( String className ) throws ClassNotFoundException {
+    if (Utils.isNullOrEmpty( className )) return null;
+    Thread t = Thread.currentThread();
+    Class< ? > cls = null;
+    ClassLoader[] loaders = new ClassLoader[] { t.getContextClassLoader(), 
+                                                ClassLoader.getSystemClassLoader(),
+                                                ClassUtils.class.getClassLoader() };
+    for ( ClassLoader cl : loaders ) {
+        if ( cl != null ) {
+            try {
+                cls = cl.loadClass(className);
+                if ( cls != null ) {
+                    Debug.outln( "classForName(" + className + ") = " + cls.getSimpleName() );
+                    break;
+                }
+            } catch ( Throwable e ) {
+                Debug.errln( "classForName(" + className
+                             + ") failed for loader: " + cl + "\n"
+                             + e.getLocalizedMessage() );
+            }
+        }
+    }
+    return cls;
+  }
+
   public static Class< ? > tryClassForName( String className, 
                                             boolean initialize,
                                             ClassLoader myLoader ) {
     if ( Debug.isOn() ) Debug.outln( "trying tryClassForName( " + className + " )");
     Class< ? > classForName = null;
     if ( myLoader == null ) myLoader = Utils.loader; 
-    if ( myLoader == null ) myLoader = gov.nasa.jpl.ae.event.Expression.class.getClassLoader(); 
+    //if ( myLoader == null ) myLoader = gov.nasa.jpl.ae.event.Expression.class.getClassLoader(); 
     try {
-      if ( myLoader == null ) {
-        classForName = Class.forName( className );
-      } else {
-        classForName = Class.forName( className, initialize, myLoader );//, initialize, Utils.class.getClassLoader() );
+      classForName = classForName( className );
+    } catch ( ClassNotFoundException e1 ) {
+      // ignore
+    }
+    if ( classForName == null ) {
+      try {
+        if ( myLoader == null ) {
+          classForName = Class.forName( className );
+        } else {
+          classForName = Class.forName( className, initialize, myLoader );
+        }
+      } catch ( NoClassDefFoundError e ) {
+        // ignore
+      } catch ( ClassNotFoundException e ) {
+        // ignore
       }
-    } catch ( Exception e ) {
-      // ignore
-    } catch ( NoClassDefFoundError e) {
-      // ignore
     }
     if ( classForName == null ) {
       classForName = getClassOfClass( className, "", initialize );
@@ -540,7 +601,7 @@ public class ClassUtils {
     cls = classCache.get( className );
     if ( cls != null ) return cls;
       List< Class<?>> classList = getClassesForName( className, initialize );
-      if ( !Utils.isNullOrEmpty( classList ) && initialize ) {  // REVIEW
+      if ( !Utils.isNullOrEmpty( classList ) && initialize && !isPackageName( className ) ) {  // REVIEW
         classList = getClassesForName( className, !initialize );
       }
       if ( !Utils.isNullOrEmpty( classList ) ) {
@@ -590,7 +651,7 @@ public class ClassUtils {
       if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " )" );
       Class< ? > classForName = tryClassForName( className, initialize );//, loader );
       if ( classForName != null ) classList.add( classForName );
-      String strippedClassName = ClassUtils.noParameterName( className );
+      String strippedClassName = noParameterName( className );
       if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " ): strippedClassName = "
                    + strippedClassName );
       boolean strippedWorthTrying = false;
@@ -667,13 +728,13 @@ public class ClassUtils {
       }
       typeParameters = "<" + ( doTypeParameters
                                ? getFullyQualifiedName( typeParameters, true )
-                               : ClassUtils.getNonPrimitiveClassName( typeParameters ) ) + ">";
+                               : getNonPrimitiveClassName( typeParameters ) ) + ">";
       classOrInterfaceName =
           classOrInterfaceName.substring( 0, classOrInterfaceName.indexOf( '<' ) );
     }
-    List< String > names = ClassUtils.getFullyQualifiedNames( classOrInterfaceName );
+    List< String > names = getFullyQualifiedNames( classOrInterfaceName );
     if ( Utils.isNullOrEmpty( names ) ) {
-      names = ClassUtils.getFullyQualifiedNames( ClassUtils.simpleName( classOrInterfaceName ) );
+      names = getFullyQualifiedNames( simpleName( classOrInterfaceName ) );
     }
     if ( !Utils.isNullOrEmpty( names ) ) {
       for ( String n : names ) {
@@ -694,8 +755,8 @@ public class ClassUtils {
     Collection<String> packageStrings = getPackageStrings( packages );
   
     List<String> fqns = new ArrayList<String>();
-    if ( Debug.isOn() ) Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
-                 + " ): packages = " + packageStrings );
+    //if ( Debug.isOn() ) Debug.outln( "getFullyQualifiedNames( " + simpleClassOrInterfaceName
+    //             + " ): packages = " + packageStrings );
     for (String aPackage : packageStrings) {
         try {
             String fqn = aPackage + "." + simpleClassOrInterfaceName;
@@ -1005,6 +1066,7 @@ public class ClassUtils {
   }
 
   private static int lengthOfCommonPrefix( String s1, String s2 ) {
+    if ( s1 == null || s2 == null ) return 0;
     int i=0;
     for ( ; i < Math.min( s1.length(), s2.length() ); ++i ) {
       if ( s1.charAt(i) != s2.charAt(i) ) {
@@ -1202,9 +1264,18 @@ public class ClassUtils {
         errors.add( e );
       }
     }
+    if ( !p.first && isStatic( method ) && o != null ) {
+      List< Object > l = Utils.newList( o );
+      l.addAll( Arrays.asList( args ) );
+      p = runMethod( true, null, method, l.toArray() );
+      if ( !p.first && l.size() > 1 ) {
+        p = runMethod( true, null, method, new Object[] { o } );
+      }
+    }
     if ( !suppressErrors && !p.first ) {
-      Debug.error( false, "ClassUtils.runMethod( " + o + ", " + args +
-                          " ) failed!" );
+      Debug.error( false,
+                   "runMethod( " + o + ", " + method + ", " +
+                       Utils.toString( args, true ) + " ) failed!" );
     }
     for ( Throwable e : errors ) {
       e.printStackTrace();
@@ -1212,6 +1283,16 @@ public class ClassUtils {
     return p;
   }
   
+  public static boolean isStatic( Class method ) {
+    if ( method == null ) return false;
+    return ( Modifier.isStatic( method.getModifiers() ) );
+  }
+
+  public static boolean isStatic( Member method ) {
+    if ( method == null ) return false;
+    return ( Modifier.isStatic( method.getModifiers() ) );
+  }
+
   /**
    * Find and invoke the named method from the given object with the given
    * arguments.
@@ -1387,7 +1468,27 @@ public class ClassUtils {
     return noParamName;
   }
 
-  
+  public static String toString( Class<?> type ) {
+      if (type == null) return "";
+      if ( type.isArray() ) {
+        Class<?> compType = type.getComponentType();
+        String compString = toString( compType );
+        if ( Utils.isNullOrEmpty( compString ) ) {
+            return "";
+        }
+        int pos = compString.lastIndexOf( ".class" );
+        if ( pos == compString.length() - 6 ) {
+            compString = compString.substring( 0, pos );
+        }
+        return compString + "[]" + ".class";
+      }
+      StringBuffer sb = new StringBuffer();
+      String typeName = type.getName();
+      if ( typeName != null ) typeName = typeName.replace( '$', '.' );
+      sb.append( ClassUtils.noParameterName( typeName ) 
+                           + ".class" );
+      return sb.toString();
+  }
   
   /**
    * @param type
@@ -1412,6 +1513,33 @@ public class ClassUtils {
   }
 
   /**
+   * Convert a number of one type to a number of another type.
+   * 
+   * @param n
+   *            the number to convert
+   * @param cls
+   *            the type of number to which to convert
+   * @return the converted number or null if the cast fails or an exception is
+   *         caught
+   */
+  public static Number castNumber( Number n, Class<? extends Number> cls ) {
+    try {
+      Class<?> c = ClassUtils.classForPrimitive( cls );
+      if ( c == null ) c = cls;
+      if ( c == Long.class ) return (Long)n.longValue(); 
+      if ( c == Short.class ) return (Short)n.shortValue(); 
+      if ( c == Double.class ) return (Double)n.doubleValue(); 
+      if ( c == Integer.class ) return (Integer)n.intValue(); 
+      if ( c == Float.class ) return (Float)n.floatValue(); 
+//          if ( c == Character.class ) return (TT)(Character)n.shortValue();
+//        if ( c == Long.class ) return cls.cast( n.longValue() ); 
+    } catch ( Exception e ) {
+      // ignore
+    }
+    return null;
+  }
+
+  /**
    * @param cls
    * @param methodName
    * @return all public methods of {@code cls} (or inherited by {@code cls})
@@ -1424,7 +1552,13 @@ public class ClassUtils {
         methods.add( m );
       }
     }
-    return (Method[])methods.toArray();
+    Method[] mArr = new Method[methods.size()];
+    boolean succ = Utils.toArrayOfType( methods, mArr, Method.class );
+    if ( !succ ) {
+      Debug.error( "Error! Cast to Method[] failed for getMethodsForName(" +
+                   cls + ", " + methodName + ")" );
+    }
+    return mArr;
   }
 
   /**
@@ -1444,7 +1578,305 @@ public class ClassUtils {
    *         the given arguments
    */
   public static boolean hasMethod( Object o, String methodName, Object[] args ) {
-    return ClassUtils.getMethodForArgs( o.getClass(), methodName, args ) != null;
+    return getMethodForArgs( o.getClass(), methodName, args ) != null;
+  }
+  /**
+   * This function helps avoid compile warnings by just having the warning here.
+   * @param tt
+   * @return Collection.class cast as having a type parameter
+   */
+  public static <TT> Class< Collection<TT> > getCollectionClass( TT tt ) {
+    return (Class< Collection<TT> >)Collection.class.asSubclass( Collection.class  );
+//    Collection<TT> coll = new ArrayList< TT >();
+//    Class< Collection<TT> > ccls = (Class< Collection<TT> >)coll.getClass();
+//    return ccls;
   }
 
+  /**
+   * This function helps avoid compile warnings by just having the warning here.
+   * @param ttcls
+   * @return Collection.class cast as having a type parameter
+   */
+  public static <TT> Class< Collection<TT> > getCollectionClass( Class<TT> ttcls ) {
+    return (Class< Collection<TT> >)Collection.class.asSubclass( Collection.class  );
+//    Collection<TT> coll = new ArrayList< TT >();
+//    //Class< Collection<TT> > ccls = (Class< Collection<TT> >)coll.getClass();
+//    Class< Collection<TT> > ccls = (Class< Collection<TT> >)coll.getClass().asSubclass( Collection.class );
+//    return ccls;
+  }
+
+  //  public static <TT> Collection<TT> makeCollection( TT tt, Class<TT> cls ) {
+  //    ArrayList< TT > ttList = new ArrayList< TT >();
+  //    ttList.add( tt );
+  //    return ttList;
+  //  }
+
+  public static < TT > Collection< TT >
+      makeCollection( TT tt, Class< ? extends TT > cls ) {
+    // return Utils2.newList( tt );
+    ArrayList< TT > ttList = new ArrayList< TT >();
+    ttList.add( tt );
+    return ttList;
+  }
+
+//  public static < TT > Collection< TT >
+//      makeCollection( Parameter< TT > tt, Class< ? extends TT > cls ) {
+//    // return Utils2.newList( tt.getValue() );
+//    ArrayList< TT > ttList = new ArrayList< TT >();
+//    ttList.add( tt.getValue() );
+//    return ttList;
+//  }
+  
+  private static class A {
+    int a;
+    public A( int a ) { this.a = a; }
+    public int get() { return a; }
+  }
+  private static class B extends A {
+    int b;
+    public B( int a, int b ) { super(a); this.b = b; }
+    public int get() { return b; }
+  }
+  public static void main( String[] args ) {
+    A a = new A(1);
+    System.out.println("A.class = " + A.class );
+    B b = new B(2,3);
+    Collection<B> collB = new ArrayList<B>();
+    ArrayList<B> arrListB = new ArrayList<B>();
+
+    Class<?> cls1 = collB.getClass();
+    System.out.println("collB.getClass() as Class<?> = " + cls1 );
+
+    Class< ? extends Collection > clsb = collB.getClass();
+    System.out.println("collB.getClass() as Class< ? extends Collection > = " + clsb );
+
+    Class< ? extends ArrayList > clsa = arrListB.getClass();
+    System.out.println("arrListB.getClass() as Class< ? extends ArrayList > = " + clsa );
+
+    Class< ? extends Collection > clssb = arrListB.getClass().asSubclass( Collection.class );
+    System.out.println("arrListB.getClass().asSubclass( Collection.class ) as Class< ? extends Collection > = " + clssb );
+    
+  }
+  public static Field[] getAllFields( Class< ? extends Object > cls ) {
+    List<Field> fieldList =  getListOfAllFields( cls );
+    Field[] fieldArr = new Field[fieldList.size()];
+    fieldList.toArray( fieldArr );
+    return fieldArr;
+  }
+  public static List<Field> getListOfAllFields( Class< ? extends Object > cls ) {
+    if ( cls == null ) return null;
+    ArrayList<Field> fieldList = new ArrayList< Field >();
+    for ( Field f : cls.getDeclaredFields() ) {
+      f.setAccessible( true );
+      fieldList.add( f );
+    }
+    List< Field > superFields = getListOfAllFields( cls.getSuperclass() );
+    if ( superFields != null ) fieldList.addAll( superFields );
+    return fieldList;
+  }
+  
+  /**
+   * Try to convert an object into one of the specified class.
+   * 
+   * @param o
+   *          the object to convert into type cls
+   * @param cls
+   *          the {@link Class} of the object to return
+   * @param propagate
+   * @return an object of the type specified or null if the conversion was
+   *         unsuccessful.
+   */
+  public static <T> Pair<Boolean, T> coerce( Object o, Class<T> cls, boolean propagate ) {
+    // REVIEW -- How is Wraps involved in wrapping in Expression? Can evaluate()
+    // be moved out of Expression into a Wraps factory helper, or part into
+    // ClassUtils and the other to Wraps?
+    // TODO -- REVIEW -- Can null be a valid return value? Should
+    // Expression.evaluate() also return a pair?
+    if ( o == null ) return new Pair< Boolean, T >( false, null );
+    Object v = //Expression.
+        evaluate( o, cls, propagate );
+    Boolean succ = null;
+    T t = null;
+    if ( v != null ) {
+      succ = true;
+      try {
+        if ( cls == null ) {
+          t = (T)v;
+        } else {
+          t = cls.cast( v );
+        }
+      } catch ( ClassCastException e ) {
+        succ = false;
+      }
+      if ( t == null ) succ = false;
+    }
+    return new Pair< Boolean, T >( succ, t );
+  }
+
+  /**
+   * Evaluate/dig or wrap the object of the given type cls from the object o,
+   * which may be a Parameter or an Expression.
+   * 
+   * @param object
+   *          the object to evaluate
+   * @param cls
+   *          the type of the object to find
+   * @return o if o is of type cls, an object of type cls that is an evaluation
+   *         of o, or null otherwise.
+   */
+  public static <TT> TT evaluate( Object object, Class< TT > cls,
+                                  boolean propagate ) throws ClassCastException {
+    if ( object == null ) return null;
+    // Check if object is already what we want.
+    if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
+      return (TT)object;
+    }
+    
+    // Try to evaluate object or dig inside to get the object of the right type. 
+    Object value = null;
+//    if ( object instanceof Parameter ) {
+//      value = ( (Parameter)object ).getValue( propagate );
+//      return evaluate( value, cls, propagate, allowWrapping );  
+//    } 
+//    else if ( object instanceof Expression ) {
+//      Expression< ? > expr = (Expression<?>)object;
+//      if ( cls != null && cls.isInstance( expr.expression ) &&
+//           expr.form != Form.Function) {
+//        return (TT)expr.expression;
+//      }
+//      value = expr.evaluate( propagate );
+//      return evaluate( value, cls, propagate, allowWrapping );  
+//    }
+//    else if ( object instanceof Call) {
+//      value = ( (Call)object ).evaluate( propagate );
+//      return evaluate( value, cls, propagate, allowWrapping );  
+//    } else 
+    if ( cls != null && ClassUtils.isNumber( cls ) &&
+                ClassUtils.isNumber( object.getClass() ) ) {
+      try {
+//        int f = 5;
+//        Integer t = 3;
+//        f = (int)(Integer)t.intValue();
+        Number n = (Number)object;
+        Class<?> c = ClassUtils.classForPrimitive( cls );
+        if ( c == null ) c = cls;
+        // TODO -- instead of returning here, assign to object and reuse try/catch below
+        if ( c == Long.class ) return (TT)(Long)n.longValue(); 
+        if ( c == Short.class ) return (TT)(Short)n.shortValue(); 
+        if ( c == Double.class ) return (TT)(Double)n.doubleValue(); 
+        if ( c == Integer.class ) return (TT)(Integer)n.intValue(); 
+        if ( c == Float.class ) return (TT)(Float)n.floatValue(); 
+//        if ( c == Character.class ) return (TT)(Character)n.shortValue();
+//      if ( c == Long.class ) return cls.cast( n.longValue() ); 
+//      if ( c == Short.class ) return cls.cast( n.shortValue() ); 
+//      if ( c == Double.class ) return cls.cast( n.doubleValue() ); 
+//      if ( c == Integer.class ) return cls.cast( n.intValue() ); 
+//      if ( c == Float.class ) return cls.cast( n.floatValue() ); 
+//      if ( c == Character.class ) return cls.cast( n );
+      } catch ( Exception e ) {
+        // ignore
+      }
+    }
+//    else if ( allowWrapping && cls != null ){
+//      // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
+//      if ( cls.isAssignableFrom( Parameter.class ) ) {
+//        if ( Debug.isOn() ) Debug.error( false, "Warning: wrapping value with a parameter with null owner!" );
+//        return (TT)( new Parameter( null, null, object, null ) );
+//      } else if ( cls.isAssignableFrom( Expression.class ) ) {
+//        return (TT)( new Expression( object ) );
+//      }
+//    }
+    TT r = null;
+    try {
+      r = (TT)object;
+    } catch ( ClassCastException cce ) {
+      Debug.errln( "Warning! No evaluation of " + object + " with type " + cls.getName() + "!" );
+      throw cce;
+    }
+    return r;
+  }
+  
+  /**
+   * Determine whether the values of two objects are equal by evaluating them. 
+   * @param o1
+   * @param o2
+   * @return whether the evaluations of o1 and o2 are equal.
+   * @throws ClassCastException
+   */
+  public static boolean valuesEqual( Object o1, Object o2 ) throws ClassCastException {
+    return valuesEqual( o1, o2, null, false, false );
+  }
+  public static boolean valuesEqual( Object o1, Object o2, Class<?> cls ) throws ClassCastException {
+    return valuesEqual( o1, o2, cls, false, false );
+  }
+  public static boolean valuesEqual( Object o1, Object o2, Class<?> cls,
+                                     boolean propagate,
+                                     boolean allowWrapping ) throws ClassCastException {
+    if ( o1 == o2 ) return true;
+    if ( o1 == null || o2 == null ) return false;
+    if ( (o1 instanceof Float && o2 instanceof Double ) || (o2 instanceof Float && o1 instanceof Double ) ) {
+      Debug.out( "" );
+    }
+    Object v1 = evaluate( o1, cls, propagate );//, false );
+    Object v2 = evaluate( o2, cls, propagate );//, false );
+    if ( Utils.valuesEqual( v1, v2 ) ) return true;
+    Class< ? > cls1 = null;
+    if ( v1 != null ) {
+      cls1 = v1.getClass();
+    }
+    if ( v1 != o1 || v2 != o2 ) {
+      if ( cls1 != null && cls1 != cls && valuesEqual( v2, v1, cls1 ) ) return true;
+    }
+    if ( v2 != null ) {
+      if ( v1 != o2 || v2 != o1 ) {
+        Class< ? > cls2 = v2.getClass();
+        if ( cls2 != cls && cls2 != cls1 && valuesEqual( v1, v2, cls2 ) ) return true;
+      }
+    }
+    return false;
+    /*
+    Class< ? > cls1 =
+        ( cls != null ) ? cls : ( ( v1 == null ) ? null : v1.getClass() );
+    Class< ? > cls2 =
+        ( cls != null ) ? cls : ( ( v2 == null ) ? null : v2.getClass() );
+    v1 = evaluate( v1, cls1, propagate, allowWrapping );
+    v2 = evaluate( v2, cls1, propagate, allowWrapping );
+    if ( Utils.valuesEqual( v1, v2 ) ) return true;
+    Class< ? > cls1 =
+        ( cls != null ) ? cls : ( ( v1 == null ) ? null : v1.getClass() );
+    Class< ? > cls2 =
+        ( cls != null ) ? cls : ( ( v2 == null ) ? null : v2.getClass() );
+    Object v1 = evaluate( o1, cls1, propagate, allowWrapping );
+    Object v2 = evaluate( o2, cls1, propagate, allowWrapping );
+    if ( Utils.valuesEqual( v1, v2 ) ) return true;
+    if ( cls1 != cls2 ) {
+      v1 = evaluate( o1, cls2, propagate, allowWrapping );
+      v2 = evaluate( o2, cls2, propagate, allowWrapping );      
+    }
+    return Utils.valuesEqual( v1, v2 );
+    */ 
+  }
+
+  /**
+   * @param o
+   * @return a collection of o's Class, superclasses, and interfaces
+   */
+  public static List< Class< ? > > getAllClasses( Object o ) {
+    Class< ? > cls = (Class< ? >)(o instanceof Class ? o : o.getClass() );
+    HashSet< Class< ? > > set = new HashSet< Class< ? > >();
+    List< Class< ? > > classes = new ArrayList< Class< ? > >();
+    List<Class<?>> queue = new ArrayList< Class<?> >();
+    queue.add( cls );
+    while ( !queue.isEmpty() ) { // REVIEW -- could probably use iterator and use classes as the queue
+      Class< ? > c = queue.get( 0 );
+      queue.remove( 0 );
+      if ( set.contains( c ) ) continue;
+      Class< ? > parent = cls.getSuperclass();
+      if ( parent != null && !set.contains( parent ) ) queue.add( parent );
+      queue.addAll( Arrays.asList( cls.getInterfaces() ) );
+      classes.add( 0, c );
+      set.add( c );
+    }
+    return classes;
+  }
 }

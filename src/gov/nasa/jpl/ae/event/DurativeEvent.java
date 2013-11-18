@@ -10,10 +10,10 @@ import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.FileUtils;
 import gov.nasa.jpl.ae.util.MoreToString;
+import gov.nasa.jpl.ae.util.NameTranslator;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Timer;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.NameTranslator;
 
 import java.io.File;
 import java.io.FileNotFoundException;

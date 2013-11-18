@@ -259,6 +259,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                        Class< ? >[] paramTypes,
                                        Vector< Object > args,
                                        boolean isVarArgs ) {
+    if( args == null ) {
+      Debug.error("Error! args is null!");
+      return null;
+    }
     boolean wasDebugOn = Debug.isOn();
     //Debug.turnOff();
     assert ( args.size() == paramTypes.length
@@ -273,8 +277,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         break;
       }
       Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
+      if ( c != null ) {
+          Class< ? > np = ClassUtils.classForPrimitive( c );
+          if ( np != null ) c = np;
+      }
+      if ( c != null && c.equals( Object.class ) ) c = null;
       argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
-      assert( argObjects[i] == null || c.isInstance( argObjects[i] ) );
+      if (!( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
+        Debug.error( true, argObjects[ i ] +
+                           ( argObjects[ i ] == null ?
+                             "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
+                           + " is not an instance of " + c.getSimpleName() );
+//      } else if ( argObjects[i] != null && c != null && !c.equals( argObjects[i].getClass() ) ) {
+//          Object x = null;
+//          x = ClassUtils.coerce( argObjects[ i ], c, true );
+//          if ( x != null ) argObjects[ i ] = x;
+      }
     }
     if ( wasDebugOn ) Debug.turnOn();
     if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(" + args + ") = "

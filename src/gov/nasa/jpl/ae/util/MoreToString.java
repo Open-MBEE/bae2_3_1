@@ -95,6 +95,12 @@ public interface MoreToString {
       
       // We have to make sure we get to the right method since collections
       // require an extra boolean argument.
+      if ( object.getClass().isArray() ) {
+          return toString( (Object[])object, withHash, deep, seen, otherOptions, SQUARE_BRACES );
+      }
+      if ( object instanceof Class ) {
+        return ClassUtils.toString( (Class<?>)object );
+      }
       if ( object instanceof Collection ) {
         return toString( (Collection<?>)object, withHash, deep, seen, otherOptions, true );
       }

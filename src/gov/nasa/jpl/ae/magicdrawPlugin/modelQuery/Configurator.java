@@ -338,13 +338,15 @@ public class Configurator implements BrowserContextAMConfigurator,
       Method addMethod = c.getAddConfiguratorMethod( "asdfghjkl" );
       Class<?> cls = Configurator.class;
       int j;
-      for ( j = 0; j < addMethod.getParameterTypes().length; ++j ) {
-        if ( Configurator.class.isAssignableFrom( addMethod.getParameterTypes()[j] ) ) {
-          cls = addMethod.getParameterTypes()[j];
-          break;
+      if ( addMethod != null && addMethod.getParameterTypes() != null ) {
+        for ( j = 0; j < addMethod.getParameterTypes().length; ++j ) {
+          if ( Configurator.class.isAssignableFrom( addMethod.getParameterTypes()[j] ) ) {
+            cls = addMethod.getParameterTypes()[j];
+            break;
+          }
         }
+        assert( j < addMethod.getParameterTypes().length );
       }
-      assert( j < addMethod.getParameterTypes().length );
       typeForContext.put( c, cls );
     }
     return typeForContext;
