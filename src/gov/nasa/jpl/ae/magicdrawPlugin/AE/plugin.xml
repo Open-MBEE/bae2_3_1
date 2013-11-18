@@ -4,7 +4,7 @@
     internalVersion="@release.version.internal@"
 	version="@release.version@"
 	provider-name="NASA / Jet Propulsion Laboratory / Caltech"
-	class="gov.nasa.jpl.ae.magicdrawPlugin.TestPlugin"
+	class="gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.TestPlugin"
 	ownClassLoader="true"
 	class-lookup="LocalFirst"
 	>

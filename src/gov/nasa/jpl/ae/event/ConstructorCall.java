@@ -183,6 +183,7 @@ public class ConstructorCall extends Call {
   public ConstructorCall( Object object, Class<?> cls,
                           Object argumentsA[] ) {
     this.object = object;
+    this.thisClass = cls;
     this.arguments = new Vector<Object>();
     if ( argumentsA != null ) {
       for ( Object o : argumentsA ) {

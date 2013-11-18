@@ -1,10 +1,5 @@
-package gov.nasa.jpl.ae.xml;
+package gov.nasa.jpl.ae.util;
 
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
 import gov.nasa.jpl.ae.event.Affectable;
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
@@ -53,13 +48,14 @@ public class JavaForFunctionCall {
   public ConstructorDeclaration constructorDecl = null;
   public Method matchingMethod = null;
   public MethodDeclaration methodDecl = null;
-  public String pkg = null;
   public String methodJava = null;  // Java text for getting java.reflect.Method
   public boolean isEffectFunction = false;
   public String argumentArrayJava = null;
-  public Vector<String> args = null;
+  public Vector<Object> args = new Vector<Object>();
   private boolean convertingArgumentsToExpressions = false;
   public boolean evaluateCall = false;
+  
+  protected Call call = null;
   
   /**
    * When expressions are passed to functions that are expecting parameters, a
@@ -143,7 +139,7 @@ public class JavaForFunctionCall {
     callName =
         methodOrConstructor ? methodCallExpr.getName()
                             : objectCreationExpr.getType().toString();
-    className = this.exprXlator.currentClass;
+    className = this.exprXlator.getCurrentClass();
     
     // Get object from scope
     Expression scope = getScope();
@@ -155,14 +151,10 @@ public class JavaForFunctionCall {
     if ( objectTypeName != null ) {
       className = objectTypeName;
     }
-    pkg = exprXlator.classData.packageName + ".";
-    if ( pkg.length() == 1 ) {
-      pkg = "";
-    }
     
     if ( Utils.isNullOrEmpty( object ) ) {
       if ( methodOrConstructor ||
-          exprXlator.classData.isInnerClass( objectTypeName ) ) {
+          exprXlator.getClassData().isInnerClass( objectTypeName ) ) {
         object = "this";
       } else {
         object = "null";
@@ -170,28 +162,40 @@ public class JavaForFunctionCall {
     }
 
     if ( !Utils.isNullOrEmpty( className ) &&
-         className != exprXlator.currentClass ) {
+         className != exprXlator.getCurrentClass() ) {
       objectType = ClassUtils.getClassForName( className, preferredPackageName, true );
     }
 
     // Assemble Java text for finding the java.reflect.Method for callName
+    // TODO -- move most of this to ClassData, instantiate this.call, and
+    // use it to generate methodJava text.
 
     StringBuffer methodJavaSb = new StringBuffer();
     Class< ? >[] argTypesArr = null;
-    List<Expression> args = null;
+    List<Expression> argExprs = null;
     if ( methodOrConstructor ) {
-      args = methodCallExpr.getArgs();
+      argExprs = methodCallExpr.getArgs();
     } else {
-      args = objectCreationExpr.getArgs();      
+      argExprs = objectCreationExpr.getArgs();      
     }
-    if ( args != null ) {
-      argTypesArr = new Class< ? >[ args.size() ];
-      for ( int i = 0; i < args.size(); ++i ) {
+    if ( argExprs != null ) {
+      argTypesArr = new Class< ? >[ argExprs.size() ];
+      for ( int i = 0; i < argExprs.size(); ++i ) {
         argTypesArr[ i ] =
-            ClassUtils.getClassForName( exprXlator.astToAeExprType( args.get( i ),
+            ClassUtils.getClassForName( exprXlator.astToAeExprType( argExprs.get( i ),
                                                               true, true ),
                                                               preferredPackageName,
                                                               false );
+        Object arg = exprXlator.astToAeExpression( argExprs.get( i ),
+                                                   ClassUtils.toString( argTypesArr[ i ] ),
+                                                   null,
+                                                   isConvertArgumentsToExpressions(),
+                                                   true, true, evaluateCall );
+        if ( isConvertArgumentsToExpressions() &&
+             !( arg instanceof gov.nasa.jpl.ae.event.Expression ) ) {
+          arg = new gov.nasa.jpl.ae.event.Expression( arg );
+        }
+        this.args.add( arg );
       }
     }
     if ( methodOrConstructor ) {
@@ -212,9 +216,15 @@ public class JavaForFunctionCall {
                            + ", " + preferredPackageNameString + ", \""
                            + callName + "\"" );
 
+      // Try using reflection to find the method, but class may not exist.
+      matchingMethod  = null;
+      matchingMethod =
+          ClassUtils.getMethodForArgTypes( className, preferredPackageName,
+                                           callName, argTypesArr, false );
+
       // Get the list of methods with the same name (callName).
       Set< MethodDeclaration > classMethods =
-          this.exprXlator.classData.getClassMethodsWithName( callName, className );
+          this.exprXlator.getClassData().getClassMethodsWithName( callName, className );
       // Find the right MethodDeclaration if it exists.
       if ( !Utils.isNullOrEmpty( classMethods ) ) {
 
@@ -237,24 +247,16 @@ public class JavaForFunctionCall {
           methodJavaSb.append( ClassUtils.noParameterName( parameter.getType().toString() )
                                + ".class" );
         }
-      } else { // if ( !classMethods.isEmpty() ) {
-        // Try using reflection to find the method, but class may not exist.
-        matchingMethod  = null;
-        matchingMethod =
-            ClassUtils.getMethodForArgTypes( className, preferredPackageName,
-                                        callName, argTypesArr, false );
-        if ( matchingMethod == null && className.equals( exprXlator.currentClass ) ) {
-          matchingMethod = ClassUtils.getJavaMethodForCommonFunction( callName,
-                                                                 argTypesArr );
 
-        }
+      } else { // if ( !classMethods.isEmpty() ) {
         if ( matchingMethod != null && matchingMethod.getParameterTypes() != null ) {
           for ( Class< ? > type : matchingMethod.getParameterTypes() ) {
-            methodJavaSb.append( ", " );
-            String typeName = type.getName();
-            if ( typeName != null ) typeName = typeName.replace( '$', '.' );
-            methodJavaSb.append( ClassUtils.noParameterName( typeName )
-                                 + ".class" );
+            methodJavaSb.append( ", " + ClassUtils.toString( type ) );
+//            methodJavaSb.append( ", " );
+//            String typeName = type.getName();
+//            if ( typeName != null ) typeName = typeName.replace( '$', '.' );
+//            methodJavaSb.append( ClassUtils.noParameterName( typeName )
+//                                 + ".class" );
           }
         }
       }
@@ -266,9 +268,9 @@ public class JavaForFunctionCall {
       Set< ConstructorDeclaration > ctors =
           ( exprXlator == null
             ? null 
-            : ( exprXlator.classData == null
+            : ( exprXlator.getClassData() == null
                 ? null 
-                : exprXlator.classData.getConstructors( callName ) ) );
+                : exprXlator.getClassData().getConstructors( callName ) ) );
       constructorDecl  = null;
       if ( !Utils.isNullOrEmpty( ctors ) ) {
         constructorDecl =
@@ -294,16 +296,17 @@ public class JavaForFunctionCall {
       }
       if ( constructorDecl == null ) {
         // Try using reflection to find the method, but class may not exist.
-        matchingConstructor  =
+        matchingConstructor =
             ClassUtils.getConstructorForArgTypes( callName, argTypesArr,
-                                             preferredPackageName );
+                                                  preferredPackageName );
         if ( matchingConstructor != null ) {
           for ( Class< ? > type : matchingConstructor.getParameterTypes() ) {
-            methodJavaSb.append( ", " );
-            String typeName = type.getName();
-            if ( typeName != null ) typeName = typeName.replace( '$', '.' );
-            methodJavaSb.append( ClassUtils.noParameterName( typeName ) 
-                                 + ".class" );
+            methodJavaSb.append( ", " + ClassUtils.toString( type ) );
+//            if ( type.isArray() ) 
+//            String typeName = type.getName();
+//            if ( typeName != null ) typeName = typeName.replace( '$', '.' );
+//            methodJavaSb.append( ClassUtils.noParameterName( typeName ) 
+//                                 + ".class" );
           }
         }
       }
@@ -337,8 +340,8 @@ public class JavaForFunctionCall {
     StringBuffer argumentArraySb = new StringBuffer();
     argumentArraySb.append( "new Object[]{ " );
     boolean first = true;
-    if ( args != null ) {
-      for ( Expression a : args ) {
+    if ( argExprs != null ) {
+      for ( Expression a : argExprs ) {
         if ( first ) {
           first = false;
         } else {
@@ -413,8 +416,8 @@ public class JavaForFunctionCall {
 
   public boolean isStatic() {
     if ( methodOrConstructor ) {
-      if ( exprXlator.classData.knowIfStatic( callName ) ) {
-        return exprXlator.classData.isStatic( callName );
+      if ( exprXlator.getClassData().knowIfStatic( callName ) ) {
+        return exprXlator.getClassData().isStatic( callName );
       }
       if ( matchingMethod != null &&
            Modifier.isStatic( matchingMethod.getModifiers() ) ) {
@@ -425,8 +428,8 @@ public class JavaForFunctionCall {
         return true;
       }
     } else {
-      if ( exprXlator.classData.knowIfClassIsStatic( callName ) ) {
-        return exprXlator.classData.isClassStatic( callName );
+      if ( exprXlator.getClassData().knowIfClassIsStatic( callName ) ) {
+        return exprXlator.getClassData().isClassStatic( callName );
       }
       if ( matchingConstructor != null &&
            Modifier.isStatic( matchingConstructor.getModifiers() ) ) {
@@ -449,27 +452,45 @@ public class JavaForFunctionCall {
   }
   
   public Call toNewFunctionCall() {
-    Call c = null;
+    call = null;
     objectExpr = exprXlator.javaToAeExpression( object, objectTypeName, false );
-    gov.nasa.jpl.ae.event.Expression< ? > methodExpr =
-        exprXlator.javaToAeExpression( methodJava, null, false );
+    // This call causes infinite recursion!
+    // The problem is that we may be trying to create a method that does not yet exist!
+    // In Call, object and args are expressions; make the method/constructor an expression, too!
+//    gov.nasa.jpl.ae.event.Expression< ? > methodExpr =
+//        exprXlator.javaToAeExpression( methodJava, null, false );
     gov.nasa.jpl.ae.event.Expression< ? > argumentArrayExpr =
         exprXlator.javaToAeExpression( argumentArrayJava, "Object[]", false );
     if ( methodCallExpr == null ) {
-      c = new ConstructorCall( objectExpr,
-                               (Constructor< ? >)methodExpr.evaluate( true ),
-                               (Object[])argumentArrayExpr.evaluate( true ) );
-    } else if ( isEffectFunction ) {
-      c = new EffectFunction( objectExpr,
-                               (Method)methodExpr.evaluate( true ),
-                               (Object[])argumentArrayExpr.evaluate( true ) );
+      if ( matchingConstructor == null ) {
+        Debug.error( true, "Cannot create constructor! " + this );
+      } else {
+          call = new ConstructorCall( objectExpr,
+                                      matchingConstructor,
+                                      //(Constructor< ? >)methodExpr.evaluate( true ),
+                                      //(Object[])argumentArrayExpr.evaluate( true ) );
+                                      args );
+      }
     } else {
-      c = new FunctionCall( objectExpr,
-                            (Method)methodExpr.evaluate( true ),
-                            (Object[])argumentArrayExpr.evaluate( true ) );
+      if ( matchingMethod == null ) {
+        Debug.error( true, "Cannot create method! " + this );
+      } else if ( isEffectFunction ) {
+        call = new EffectFunction( objectExpr,
+                                   matchingMethod,
+                                   //(Method)methodExpr.evaluate( true ),
+                                   //(Object[])argumentArrayExpr.evaluate( true ) );
+                                   args );
+      } else {
+        call = new FunctionCall( objectExpr,
+                                 matchingMethod,
+                                 //(Method)methodExpr.evaluate( true ),
+                                 //(Object[])argumentArrayExpr.evaluate( true ) );
+                                 args );
+      }
     }
-    return c;
+    return call;
   }
+
   public String toNewFunctionCallString() {
     String fcnCallStr = null;
     String callTypeName = 

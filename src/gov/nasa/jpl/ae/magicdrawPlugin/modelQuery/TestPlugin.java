@@ -1,11 +1,10 @@
 package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
 import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.Configurator;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.JavaToConstraintExpression;
 
 import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
@@ -14,12 +13,10 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 
 import com.nomagic.magicdraw.actions.ActionsConfiguratorsManager;
 import com.nomagic.magicdraw.evaluation.EvaluationConfigurator;
-import com.nomagic.magicdraw.plugins.Plugin;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Constraint;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
 
