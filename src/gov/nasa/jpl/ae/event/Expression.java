@@ -86,13 +86,13 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
 	/**
-	 * @param value
+	 * @param object
 	 */
-	public Expression( ResultType value ) {
-	  this( value, null );
-		if ( value != null ) {
-		  resultType = (Class< ? extends ResultType >)value.getClass();
-		}
+	public Expression( Object object ) {
+	  this( object, null );
+	  if ( object != null && resultType == null ) {
+		resultType = (Class< ? extends ResultType >)object.getClass();
+	  }
 	}
 
   /**
@@ -100,8 +100,22 @@ public class Expression< ResultType > extends HasIdImpl
    * @param cls
    */
   public <T> Expression( T value, Class< ResultType > cls ) {
-    this.expression = value;
     resultType = cls;
+    if ( cls == null ) {
+        Expression<ResultType> e = null;
+        if ( value instanceof Expression ) {
+            e = new Expression<ResultType>( (Expression<ResultType>)value );
+        } else if ( value instanceof Parameter ) {
+            e = new Expression<ResultType>( (Parameter<ResultType>)value );
+        } else if ( value instanceof Call ) {
+            e = new Expression<ResultType>( (Call)value );
+        }
+        if ( e != null ) {
+            copyMembers( e );
+            return;            
+        }
+    }
+    this.expression = value;
     if ( cls != null && value != null && !cls.isInstance( value ) ) {
       Debug.error( true,
                    "Expression initialized with incompatible value arg in Expression("
@@ -235,6 +249,7 @@ public class Expression< ResultType > extends HasIdImpl
     this(e, false);
   }
 
+  
   @Override
   public Expression<ResultType> clone() throws CloneNotSupportedException {
     Expression<ResultType> e = new Expression< ResultType >( this );
@@ -716,6 +731,7 @@ public class Expression< ResultType > extends HasIdImpl
                                   boolean propagate ) throws ClassCastException {
     return evaluate( object, cls, propagate, false );
   }
+  
   public static <TT> TT evaluate( Object object, Class< TT > cls,
                                   boolean propagate,
                                   boolean allowWrapping ) throws ClassCastException {
@@ -744,28 +760,12 @@ public class Expression< ResultType > extends HasIdImpl
       value = ( (Call)object ).evaluate( propagate );
       return evaluate( value, cls, propagate );  
     }
-    else if ( cls != null 
-        && ClassUtils.isNumber( cls )
-        && ClassUtils.isNumber( object.getClass() ) ) {
+    else if ( cls != null && ClassUtils.isNumber( cls ) && 
+              ClassUtils.isNumber( object.getClass() ) ) {
       try {
-        int f = 5;
-        Integer t = 3;
-        f = (int)(Integer)t.intValue();
         Number n = (Number)object;
-        Class<?> c = ClassUtils.classForPrimitive( cls );
-        if ( c == null ) c = cls;
-        if ( c == Long.class ) return (TT)(Long)n.longValue(); 
-        if ( c == Short.class ) return (TT)(Short)n.shortValue(); 
-        if ( c == Double.class ) return (TT)(Double)n.doubleValue(); 
-        if ( c == Integer.class ) return (TT)(Integer)n.intValue(); 
-        if ( c == Float.class ) return (TT)(Float)n.floatValue(); 
-//        if ( c == Character.class ) return (TT)(Character)n.shortValue();
-//      if ( c == Long.class ) return cls.cast( n.longValue() ); 
-//      if ( c == Short.class ) return cls.cast( n.shortValue() ); 
-//      if ( c == Double.class ) return cls.cast( n.doubleValue() ); 
-//      if ( c == Integer.class ) return cls.cast( n.intValue() ); 
-//      if ( c == Float.class ) return cls.cast( n.floatValue() ); 
-//      if ( c == Character.class ) return cls.cast( n );
+        TT r = (TT)ClassUtils.castNumber( n, (Class< ? extends Number >)cls );
+        return r;
       } catch ( Exception e ) {
         // ignore
       }

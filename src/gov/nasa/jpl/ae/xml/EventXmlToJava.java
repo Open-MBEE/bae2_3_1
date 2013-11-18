@@ -77,9 +77,13 @@ import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
+import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.JavaForFunctionCall;
+import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
+import gov.nasa.jpl.ae.util.NameTranslator;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Timer;
 import gov.nasa.jpl.ae.util.Utils;
@@ -249,8 +253,8 @@ public class EventXmlToJava {
                         + Timepoint.getUnits() );
     
     // build tables
-    buildParamTable( xmlDocDOM, classData.paramTable );
-    buildMethodTable( xmlDocDOM, classData.methodTable );  
+    buildParamTable( xmlDocDOM, classData.getParamTable() );
+    buildMethodTable( xmlDocDOM, classData.getMethodTable() );  
   }
   
   public void translate()
@@ -341,7 +345,7 @@ public class EventXmlToJava {
         boolean classIsStatic = isNodeOfDeclarationStatic( classNode );
         if ( Debug.isOn() ) Debug.outln( className + " is " + ( classIsStatic ? "" : "not" )
                      + " static" );
-        expressionTranslator.classData.isStaticMap.put( className, classIsStatic );
+        expressionTranslator.getClassData().getIsStaticMap().put( className, classIsStatic );
         String superClass =
             fixName( XmlUtils.getChildElementText( classNode, "inheritsFrom" ) );
         Node parentNode = classNode.getParentNode();
@@ -394,7 +398,7 @@ public class EventXmlToJava {
           Node pNode = pNodes.get( j );
           ClassData.Param p = makeParam( pNode );
           if ( isNodeOfDeclarationStatic( pNode ) ) {
-            expressionTranslator.classData.isStaticMap.put( className + "." + p.name, true );
+            expressionTranslator.getClassData().getIsStaticMap().put( className + "." + p.name, true );
           }
           ClassData.Param ep = params.get( p.name );
           if ( ep == null ) {
@@ -474,7 +478,7 @@ public class EventXmlToJava {
   protected TypeDeclaration getTypeDeclaration( String name ) {
     String simpleName = ClassUtils.simpleName( name );
     if ( name == null ) return null;
-    CompilationUnit cu = classData.classes.get( simpleName );
+    CompilationUnit cu = classData.getClasses().get( simpleName );
     if ( cu != null ) {
       for ( TypeDeclaration type : cu.getTypes() ) {
         if ( type.getName().equals( simpleName ) ) {
@@ -482,7 +486,7 @@ public class EventXmlToJava {
         }
       }
     } else {
-      for ( CompilationUnit c : classData.classes.values() ) {
+      for ( CompilationUnit c : classData.getClasses().values() ) {
         for ( TypeDeclaration t : c.getTypes() ) {
           TypeDeclaration td = getTypeDeclarationFrom( simpleName, t );
           if ( td != null ) {
@@ -501,7 +505,7 @@ public class EventXmlToJava {
     // + xmlFileName.substring( 0, xmlFileName.lastIndexOf( '.' ) )
     // .replaceAll( "[^A-Za-z0-9_]+", "_" );
     if ( Debug.isOn() ) Debug.outln("setting package for current compilation unit to " + packageName );
-    classData.currentCompilationUnit.setPackage( new PackageDeclaration( ASTHelper.createNameExpr( packageName ) ) );
+    classData.getCurrentCompilationUnit().setPackage( new PackageDeclaration( ASTHelper.createNameExpr( packageName ) ) );
   }
 
   protected ClassOrInterfaceDeclaration processEvent( Node eventNode,
@@ -517,13 +521,13 @@ public class EventXmlToJava {
   protected void processExecutionEvent( Node invocationNode ) {
     assert( invocationNode != null );
 
-    classData.currentClass = "Main";
-    initClassCompilationUnit( classData.currentClass );
+    classData.setCurrentClass( "Main" );
+    initClassCompilationUnit( classData.getCurrentClass() );
 
     ClassOrInterfaceDeclaration newClassDecl =
         new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false,
-                                         classData.currentClass );
-    ASTHelper.addTypeDeclaration( classData.currentCompilationUnit, newClassDecl );
+                                         classData.getCurrentClass() );
+    ASTHelper.addTypeDeclaration( classData.getCurrentCompilationUnit(), newClassDecl );
 
     // Create public static main( String args[] ) { }
     // First, create main() { }
@@ -735,7 +739,7 @@ public class EventXmlToJava {
           for ( ClassData.Param p : arguments ) {
             if ( p.type == null ) {
               ClassData.Param memberDecl = 
-                  expressionTranslator.classData.lookupMemberByName( eventType,
+                  expressionTranslator.getClassData().lookupMemberByName( eventType,
                                                                      p.name,
                                                                      true, false );
               if ( !Debug.errorOnNull( "Error! Can't find member " + p.name
@@ -746,7 +750,7 @@ public class EventXmlToJava {
               } else {
                 // delete 1 line below -- just for debug
                 memberDecl = 
-                    expressionTranslator.classData.lookupMemberByName( eventType,
+                    expressionTranslator.getClassData().lookupMemberByName( eventType,
                                                                        p.name,
                                                                        true, false );
               }
@@ -1136,28 +1140,28 @@ public class EventXmlToJava {
                                                               boolean isNested,
                                                               boolean justClassDeclarations ) {
     // Get class name.
-    classData.currentClass = getClassName( clsNode );
+    classData.setCurrentClass( getClassName( clsNode ) );
     
     if ( justClassDeclarations ) if ( Debug.isOn() ) Debug.out( "pre-" );
-    if ( Debug.isOn() ) Debug.outln( "processing class " + classData.currentClass );
+    if ( Debug.isOn() ) Debug.outln( "processing class " + classData.getCurrentClass() );
     if ( !isNested ) { 
       if ( justClassDeclarations ) {
-        classData.currentCompilationUnit = initClassCompilationUnit( classData.currentClass );
+        classData.setCurrentCompilationUnit( initClassCompilationUnit( classData.getCurrentClass() ) );
       } else {
-        classData.currentCompilationUnit = classData.classes.get( classData.currentClass );
+        classData.setCurrentCompilationUnit( classData.getClasses().get( classData.getCurrentClass() ) );
       }
-      assert classData.currentCompilationUnit != null;
+      assert classData.getCurrentCompilationUnit() != null;
     }
     ClassOrInterfaceDeclaration newClassDecl = null;
     if ( justClassDeclarations ) {
       newClassDecl =
           new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, 
-                                           ClassUtils.simpleName( classData.currentClass ) );
-      if ( expressionTranslator.classData.isClassStatic( classData.currentClass ) ) {
+                                           ClassUtils.simpleName( classData.getCurrentClass() ) );
+      if ( expressionTranslator.getClassData().isClassStatic( classData.getCurrentClass() ) ) {
         makeStatic( newClassDecl );
       }
     } else {
-      newClassDecl = classData.getClassDeclaration( ClassUtils.simpleName( classData.currentClass ) );
+      newClassDecl = classData.getClassDeclaration( ClassUtils.simpleName( classData.getCurrentClass() ) );
     }
     
     if ( justClassDeclarations ) {
@@ -1166,7 +1170,7 @@ public class EventXmlToJava {
       getImports( clsNode );
     
       if ( !isNested ) {
-        ASTHelper.addTypeDeclaration( classData.currentCompilationUnit, newClassDecl );
+        ASTHelper.addTypeDeclaration( classData.getCurrentCompilationUnit(), newClassDecl );
       }
       if ( newClassDecl != null && newClassDecl.getName().startsWith( "Power_System" )) {
         Debug.out( "" );
@@ -1195,7 +1199,7 @@ public class EventXmlToJava {
     //  [Maybe no: can make into a Function expression and only pass evaluated values.]
     // TODO -- Can some args be Expressions and not others?
     // TODO -- Maybe we need to check and see whether the function is invoked with Expressions from events?  This might even determine whether class members should be Parameters.
-    Collection< MethodDeclaration > methods = getMethodsForClass( classData.currentClass );
+    Collection< MethodDeclaration > methods = getMethodsForClass( classData.getCurrentClass() );
     for ( MethodDeclaration methodDecl : methods ) {
 //      if ( asEvent ) {
 //        // TODO
@@ -1342,7 +1346,7 @@ public class EventXmlToJava {
             String childClassName = getClassName( classNode );
             if ( isNested ) {
               if ( justClassDeclarations ) {
-                expressionTranslator.classData.nestedToEnclosingClassNames.put( childClassName, parentClassName );
+                expressionTranslator.getClassData().getNestedToEnclosingClassNames().put( childClassName, parentClassName );
                 if ( Debug.isOn() ) Debug.outln( "nestedToEnclosingClassNames.put( "
                              + childClassName + ", " + parentClassName + " )" );
               }
@@ -1365,14 +1369,14 @@ public class EventXmlToJava {
   }
 
   private CompilationUnit initCompilationUnit( String name ) {
-    classData.currentCompilationUnit = new CompilationUnit();
-    classData.classes.put( ClassUtils.simpleName(name), classData.currentCompilationUnit );
+    classData.setCurrentCompilationUnit( new CompilationUnit() );
+    classData.getClasses().put( ClassUtils.simpleName(name), classData.getCurrentCompilationUnit() );
     setPackage();
-    return classData.currentCompilationUnit;
+    return classData.getCurrentCompilationUnit();
   }
   
   private CompilationUnit initClassCompilationUnit( String name ) {
-    classData.currentCompilationUnit = initCompilationUnit( ClassUtils.simpleName(name) );
+    classData.setCurrentCompilationUnit( initCompilationUnit( ClassUtils.simpleName(name) ) );
     // REVIEW -- How can we access eclipse's ability to auto-remove unused
     // imports?
     //addImport( "gov.nasa.jpl.ae.event.*" );
@@ -1405,21 +1409,21 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.util.ClassUtils" );
     addImport( "java.util.Vector" );
     addImport( "java.util.Map" );
-    return classData.currentCompilationUnit;
+    return classData.getCurrentCompilationUnit();
   }
 
   private void addImport( String impName ) {
     NameExpr ne = new NameExpr( impName );
     ImportDeclaration d = new ImportDeclaration( ne, false, false );
-    if ( classData.currentCompilationUnit.getImports() == null ) {
-      classData.currentCompilationUnit.setImports( new ArrayList< ImportDeclaration >() );
+    if ( classData.getCurrentCompilationUnit().getImports() == null ) {
+      classData.getCurrentCompilationUnit().setImports( new ArrayList< ImportDeclaration >() );
     }
     // check for duplicates -- REVIEW - inefficient linear search
     // TODO -- never finds duplicates!
-    for ( ImportDeclaration i : classData.currentCompilationUnit.getImports() ) {
+    for ( ImportDeclaration i : classData.getCurrentCompilationUnit().getImports() ) {
       if ( i.getName().getName().equals( impName ) ) return;
     }
-    classData.currentCompilationUnit.getImports().add( d );
+    classData.getCurrentCompilationUnit().getImports().add( d );
   }
 
   public List< ClassOrInterfaceType > getInheritsFrom( Node cls ) {
@@ -1540,7 +1544,7 @@ public class EventXmlToJava {
         createFieldOfGenericType( p.name, args[ 0 ],
                                   args[ 1 ],
                                   null );
-    if ( expressionTranslator.classData.isMemberStatic( p.name ) ) {
+    if ( expressionTranslator.getClassData().isMemberStatic( p.name ) ) {
       makeStatic( f );
     }
     return f;
@@ -1865,7 +1869,7 @@ public class EventXmlToJava {
       String type = JavaToConstraintExpression.typeToClass( p.type );
       if ( Utils.isNullOrEmpty( type ) ) {
         ClassData.Param param = 
-            expressionTranslator.classData.lookupMemberByName( eventType, p.name,
+            expressionTranslator.getClassData().lookupMemberByName( eventType, p.name,
                                                                true, false );
         if ( param != null ) {
           type = param.type;
@@ -1889,7 +1893,7 @@ public class EventXmlToJava {
                                                              "Boolean", true )
                         + ";\n" );
 
-    String scopeName = expressionTranslator.classData.getClassNameWithScope( eventType );
+    String scopeName = expressionTranslator.getClassData().getClassNameWithScope( eventType );
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "
                         + enclosingInstance + ", "
                         + ClassUtils.noParameterName( scopeName  )
@@ -2083,7 +2087,7 @@ public class EventXmlToJava {
   
   public Set< MethodDeclaration > getMethodsForClass( String className ) {
     Map< String, Set< MethodDeclaration > > classMethods =
-        classData.methodTable.get( className );
+        classData.getMethodTable().get( className );
     if ( classMethods == null ) return ClassData.emptyMethodDeclarationSet;
     Set< MethodDeclaration > methodsForClass = new TreeSet<MethodDeclaration>(new CompareUtils.GenericComparator< MethodDeclaration >());
     for ( Set< MethodDeclaration > methodsByName : classMethods.values() ) {
@@ -2093,7 +2097,7 @@ public class EventXmlToJava {
   }
 
   public Set< MethodDeclaration > getMethodsWithName( String methodName ) {
-    return classData.getClassMethodsWithName( methodName, classData.currentClass );
+    return classData.getClassMethodsWithName( methodName, classData.getCurrentClass() );
   }
 
   public static MethodDeclaration parseMethodDeclaration( String methodText ) {
@@ -2144,7 +2148,7 @@ public class EventXmlToJava {
              && !ModifierSet.isProtected( methodDecl.getModifiers() ) ) {
           methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
                                                             ModifierSet.PUBLIC ) );
-          if ( expressionTranslator.classData.isClassStatic( getClassName( classNode ) ) ) {
+          if ( expressionTranslator.getClassData().isClassStatic( getClassName( classNode ) ) ) {
             makeStatic(methodDecl);
             methodDecl.setModifiers( ModifierSet.addModifier( methodDecl.getModifiers(),
                                                               ModifierSet.STATIC ) );
@@ -2191,14 +2195,14 @@ public class EventXmlToJava {
   public void writeJavaFile( String fileName ) throws IOException {
     File f = new File( fileName );
     FileWriter w = new FileWriter( f );
-    w.write( classData.currentCompilationUnit.toString() );
+    w.write( classData.getCurrentCompilationUnit().toString() );
     w.close();
   }
 
   public void writeJavaFiles( String javaPath ) throws IOException {
-    for ( Entry< String, CompilationUnit > e : classData.classes.entrySet() ) {
-      classData.currentClass = e.getKey();
-      classData.currentCompilationUnit = e.getValue();
+    for ( Entry< String, CompilationUnit > e : classData.getClasses().entrySet() ) {
+      classData.setCurrentClass( e.getKey() );
+      classData.setCurrentCompilationUnit( e.getValue() );
       String fileName =
           ( javaPath.trim() + File.separator + e.getKey() + ".java" );
       writeJavaFile( fileName );
@@ -2334,10 +2338,10 @@ public class EventXmlToJava {
       return fileArr;
     }
 
-    fileArr = new File[ classData.classes.size() ];
-    if ( !classData.classes.isEmpty() ) {
+    fileArr = new File[ classData.getClasses().size() ];
+    if ( !classData.getClasses().isEmpty() ) {
       int ctr = 0;
-      for ( String clsName : classData.classes.keySet() ) {
+      for ( String clsName : classData.getClasses().keySet() ) {
         String filePathName =
             javaPath.trim() + File.separator + clsName
                 + ( sourceOrClass ? ".java" : ".class" );
@@ -2658,14 +2662,14 @@ public class EventXmlToJava {
    * @return the compilationUnit
    */
   public CompilationUnit getCurrentCompilationUnit() {
-    return classData.currentCompilationUnit;
+    return classData.getCurrentCompilationUnit();
   }
 
   /**
    * @return the currentClass
    */
   public String getCurrentClass() {
-    return classData.currentClass;
+    return classData.getCurrentClass();
   }
 
   /**
@@ -2673,9 +2677,9 @@ public class EventXmlToJava {
    *          the currentClass to set
    */
   public void setCurrentClass( String currentClass ) {
-    classData.currentClass = currentClass;
-    if ( classData.classes.containsKey( currentClass ) ) {
-      classData.currentCompilationUnit = classData.classes.get( currentClass );
+    classData.setCurrentClass( currentClass );
+    if ( classData.getClasses().containsKey( currentClass ) ) {
+      classData.setCurrentCompilationUnit( classData.getClasses().get( currentClass ) );
     }
   }
 }

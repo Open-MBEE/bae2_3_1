@@ -1,15 +1,10 @@
-package gov.nasa.jpl.ae.xml;
+package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.EmfUtils;
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.ClassData.Param;
+import gov.nasa.jpl.ae.util.ClassData.Param;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
@@ -135,13 +130,13 @@ public class ClassData {
   /**
    * Map: simpleName -> javaparser.CompilationUnit
    */
-  protected Map< String, CompilationUnit > classes =
+  private Map< String, CompilationUnit > classes =
       new TreeMap< String, CompilationUnit >();
 
   /**
    * The javaparser.CompilationUnit for the class currently being processed.
    */
-  protected CompilationUnit currentCompilationUnit = null;
+  private CompilationUnit currentCompilationUnit = null;
 
 
   
@@ -209,6 +204,7 @@ public class ClassData {
 
   public String getClassNameWithScope( String classOrInterfaceName,
                                        boolean doTypeParameters ) {
+    if ( Utils.isNullOrEmpty( classOrInterfaceName ) ) return null;
     String typeParameters = "";
     if ( classOrInterfaceName.contains( "<" )
          && classOrInterfaceName.contains( ">" ) ) {
@@ -315,11 +311,12 @@ public class ClassData {
    * @param lookOutsideClassData
    * @return
    */
-  protected Parameter<?> getParameter( String className, String paramName,
+  public Parameter<?> getParameter( String className, String paramName,
                                        boolean lookOutsideClassData,
-                                       boolean setCurrentClass ) {
+                                       boolean setCurrentClass,
+                                       boolean addIfNotFound ) {
     Param param = getParam( className, paramName, lookOutsideClassData,
-                            setCurrentClass );
+                            setCurrentClass, addIfNotFound );
     Parameter<?> parameter = parameterMap.get( param );
     return parameter;
   }
@@ -334,8 +331,9 @@ public class ClassData {
    * @param lookOutsideClassData
    * @return the found or created Param or null if the paramName is null or "".
    */
-  protected Param getParam( String className, String paramName,
-                            boolean lookOutsideClassData, boolean setCurrentClass ) {
+  public Param getParam( String className, String paramName,
+                         boolean lookOutsideClassData, boolean setCurrentClass,
+                         boolean addIfNotFound ) {
     if ( className == null ) className = getCurrentClass();
     ParameterListenerImpl aeClass = getAeClass( className, true );
     className = aeClass.getName();
@@ -343,11 +341,12 @@ public class ClassData {
       setCurrentAeClass( aeClass );
     }
     Param p = lookupMemberByName( className, paramName, lookOutsideClassData, false );
-    if ( p == null && paramName != null ) {
+    if ( p == null && paramName != null && addIfNotFound ) {
       p = makeParam( className, paramName, null, null );
     }
-    Debug.errorOnNull( true, "Could not create parameter " + className + "."
-                             + paramName, p );
+      Debug.errorOnNull( true, "Could not " +
+                               ( addIfNotFound ? "create" : "find" ) +
+                               " parameter " + className + "." + paramName, p );
     return p;
   }
   
@@ -462,7 +461,7 @@ public class ClassData {
     String type = "Parameter";
     String parameterTypes = paramTypeName;
 
-    if ( paramTypeName.equals( "Generation" ) ) {
+    if ( paramType != null && paramTypeName.equals( "Generation" ) ) {
       Debug.out( "" );
     }
 
@@ -596,7 +595,7 @@ public class ClassData {
     return lookupMemberByName( className, paramName, lookOutsideClassData, true );
   }
 
-  protected Param lookupMemberByName( String className, String paramName,
+  public Param lookupMemberByName( String className, String paramName,
                                       boolean lookOutsideClassData,
                                       boolean complainIfNotFound ) {
     if ( Debug.errorOnNull( "Passing null in lookupMemberByName(" + className
@@ -906,7 +905,7 @@ public class ClassData {
   public ClassOrInterfaceDeclaration getClassDeclaration( String className ) {
     className = ClassUtils.simpleName( className );
     ClassOrInterfaceDeclaration classDecl = null;
-    CompilationUnit cu = classes.get( className );
+    CompilationUnit cu = getClasses().get( className );
     if ( cu == null ) {
       // See if enclosing class declaration has this one's.
       String parentClassName = getEnclosingClassName( className );
@@ -921,7 +920,7 @@ public class ClassData {
     }
     classDecl = getClassDeclaration( className, cu );
     if ( classDecl == null ) {
-      for ( CompilationUnit cu2 : classes.values() ) {
+      for ( CompilationUnit cu2 : getClasses().values() ) {
         if ( cu == cu2 ) continue;
         classDecl = getClassDeclaration( className, cu );
         if ( classDecl != null ) {
@@ -1077,5 +1076,33 @@ public class ClassData {
     }
     return type;
   }
+
+/**
+ * @return the classes
+ */
+public Map< String, CompilationUnit > getClasses() {
+    return classes;
+}
+
+/**
+ * @param classes the classes to set
+ */
+public void setClasses( Map< String, CompilationUnit > classes ) {
+    this.classes = classes;
+}
+
+/**
+ * @return the currentCompilationUnit
+ */
+public CompilationUnit getCurrentCompilationUnit() {
+    return currentCompilationUnit;
+}
+
+/**
+ * @param currentCompilationUnit the currentCompilationUnit to set
+ */
+public void setCurrentCompilationUnit( CompilationUnit currentCompilationUnit ) {
+    this.currentCompilationUnit = currentCompilationUnit;
+}
 
 }

@@ -1,10 +1,9 @@
 /**
  * 
  */
-package gov.nasa.jpl.ae.xml;
+package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.solver.Random;
-import gov.nasa.jpl.ae.util.Utils;
 
 import java.util.Map;
 import java.util.Set;
