@@ -758,7 +758,7 @@ public class Expression< ResultType > extends HasIdImpl
     }
     else if ( object instanceof Call) {
       value = ( (Call)object ).evaluate( propagate );
-      return evaluate( value, cls, propagate );  
+      return evaluate( value, cls, propagate, allowWrapping );  
     }
     else if ( cls != null && ClassUtils.isNumber( cls ) && 
               ClassUtils.isNumber( object.getClass() ) ) {
