@@ -16,9 +16,9 @@ from os.path import expanduser
 
 home = expanduser("~")
 
-workspacePath = home + os.sep + 'workspace'
+workspacePath = home + os.sep + 'workspaceYoxos'
 #mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
-mdPath = 'C:\\Program Files\\MagicDraw\\SSCAE-MD17.0.2SP3-PackageK-build994-20130327'
+mdPath = 'C:\\MD'
 aePluginDirName = 'AE'
 
 if home == '/Users/mjackson': 
@@ -47,7 +47,7 @@ addToPath(projectPath + os.sep + 'bin');
 
 class ExampleAction( MDAction ):
     def __init__(self, name, s):
-        gl = Application.getInstance().getGUILog()
+        #gl = Application.getInstance().getGUILog()
         self.s = s
         MDAction.__init__( self,"", name, None, None )
         #gl.log(str(s))
@@ -70,25 +70,25 @@ class ExampleAction( MDAction ):
 # Configurator adds new menu item to First menu in main menu
 class MainMenuConfigurator( AMConfigurator):
     def configure( self,manager ):
-        gl.log("configuring main menu!")
+        #gl.log("configuring main menu!")
         active = True
         try:
             if active:
-                gl.log("active - configurating categories!")
+                #gl.log("active - configurating categories!")
                 category=MDActionsCategory("LADWP_Animations","LADWP_Animations")
                 category.setNested(True)
                 category.addAction(ExampleAction("MagicDrawAnimator",None))
                 category.addAction(ExampleAction("MagicDrawAnimator2",None))
                 category.addAction(ExampleAction("FindElementByID",None))
                 manager.addCategory(category)
-                gl.log("done adding categories!")
+                #gl.log("done adding categories!")
             else: pass
         except:
             exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
-            gl.log("*** EXCEPTION:")
+            #gl.log("*** EXCEPTION:")
             messages=traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback)
-            for message in messages:
-                gl.log(message)
+            #for message in messages:
+                #gl.log(message)
     def getPriority(self):
         return AMConfigurator.LOW_PRIORITY
 

@@ -4,7 +4,6 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.ae.util.ClassUtils;
 import japa.parser.ast.body.Parameter;
 
 import java.lang.reflect.Constructor;
@@ -89,13 +88,19 @@ public class ClassUtils {
                                        referenceArgsLength ); ++i ) {
           if ( referenceArgTypes[ i ] == null ) {
             if ( Debug.isOn() ) Debug.outln( "null arg[ " + i + " ]" );
+            ++numNull;
+            ++numDeps;
+            //++numMatching;
             continue;
           }
           if ( candidateArgTypes[ i ] == null ) {
             if ( Debug.isOn() ) Debug.outln( "null arg for args[ " + i
                 + " ].getClass()=" + referenceArgTypes[ i ] );
-            ++numNull;
-            ++numDeps;
+            Debug.error(false, true, "null arg for args[ " + i
+                + " ].getClass()=" + referenceArgTypes[ i ] );
+            //++numNull;
+            //++numDeps;
+            continue;
           } else if ( candidateArgTypes[ i ].isAssignableFrom( referenceArgTypes[ i ] ) ) {
               if ( Debug.isOn() ) Debug.outln( "argTypes1[ " + i + " ]="
                            + candidateArgTypes[ i ] + " matches args[ " + i
@@ -319,7 +324,7 @@ public class ClassUtils {
     String parameters = parameterPartOfName( className, true );
     String strippedName = noParameterName( className );
     if ( !Utils.isNullOrEmpty( parameters ) ) {
-      String parameters2 = ClassUtils.parameterPartOfName( qualifiedName, true );
+      String parameters2 = parameterPartOfName( qualifiedName, true );
       if ( Utils.isNullOrEmpty( parameters2 )
            && qualifiedName.endsWith( strippedName ) ) {
         return qualifiedName + parameters;
@@ -329,6 +334,7 @@ public class ClassUtils {
   }
   
   public static String getNonPrimitiveClassName( String type ) {
+    if ( type == null ) return null;
     String simpleName = simpleName( type );
     Class<?> prim = getPrimitives().get( simpleName );
     String newName = type;
@@ -480,7 +486,7 @@ public class ClassUtils {
         if ( myLoader == null ) {
           classForName = Class.forName( className );
         } else {
-          classForName = Class.forName( className, initialize, myLoader );
+        classForName = Class.forName( className, initialize, myLoader );//, initialize, Utils.class.getClassLoader() );
         }
       } catch ( NoClassDefFoundError e ) {
         // ignore
@@ -710,6 +716,7 @@ public class ClassUtils {
   }
 
   public static String simpleName( String longName ) {
+    if ( longName == null ) return null;
     int pos = longName.lastIndexOf( "." );
     return longName.substring( pos+1 ); // pos is -1 if no '.'
   }
@@ -779,7 +786,7 @@ public class ClassUtils {
     Class< ? > classForName = getClassForName( className, preferredPackage, false );
     if ( classForName == null ) {
       System.err.println( "Couldn't find the class " + className
-                          + " to get constructor with args=" + Utils.toString( args ) );
+                          + " to get constructor with args=" + Utils.toString( args, false ) );
       return null;
     }
     return getConstructorForArgs( classForName, args );
@@ -791,14 +798,14 @@ public class ClassUtils {
     Class< ? > classForName = getClassForName( className, preferredPackage, false );
     if ( classForName == null ) {
       System.err.println( "Couldn't find the class " + className
-                          + " to get constructor with args=" + Utils.toString( argTypes ) );
+                          + " to get constructor with args=" + Utils.toString( argTypes, false ) );
       return null;
     }
     return getConstructorForArgTypes( classForName, argTypes );
   }
 
   public static Class<?>[] getClasses( Object[] objects ) {
-    //return ClassUtils.toClass( objects );
+    //return toClass( objects );
     Class< ? > argTypes[] = null;
     if ( objects != null ) {
       argTypes = new Class< ? >[ objects.length ];
@@ -883,7 +890,7 @@ public class ClassUtils {
   public static Pair< Constructor< ? >, Object[] >
       getConstructorForArgs( Class< ? > eventClass, Object[] arguments,
                              Object enclosingInstance ) {
-    boolean nonStaticInnerClass = ClassUtils.isInnerClass( eventClass );
+    boolean nonStaticInnerClass = isInnerClass( eventClass );
     if ( Debug.isOn() ) Debug.outln( eventClass.getName() + ": nonStaticInnerClass = " + nonStaticInnerClass );
     Object newArgs[] = arguments;
     if ( nonStaticInnerClass ) {
@@ -895,7 +902,7 @@ public class ClassUtils {
       }
     }
     Constructor< ? > constructor =
-        ClassUtils.getConstructorForArgs( eventClass, newArgs );
+        getConstructorForArgs( eventClass, newArgs );
     return new Pair< Constructor< ? >, Object[] >(constructor, newArgs );
   }
 
@@ -907,7 +914,7 @@ public class ClassUtils {
     for ( Entry< T, Pair< Class< ? >[], Boolean > > e : candidates.entrySet() ) {
       atc.compare( e.getKey(), e.getValue().first, e.getValue().second );
     }
-    if ( atc.best != null && !atc.allArgsMatched ) {
+    if ( atc.best != null && !atc.allNonNullArgsMatched ) {
       System.err.println( "constructor returned (" + atc.best
                           + ") only matches " + atc.mostMatchingArgs
                           + " args: " + Utils.toString( argTypes, false ) );
@@ -925,7 +932,7 @@ public class ClassUtils {
       for ( Constructor< ? > aCtor : ctors) {
         atc.compare( aCtor, aCtor.getParameterTypes(), aCtor.isVarArgs() );
       }
-      if ( atc.best != null && !atc.allArgsMatched ) {
+      if ( atc.best != null && !atc.allNonNullArgsMatched ) {
         System.err.println( "constructor returned (" + atc.best
                             + ") only matches " + atc.mostMatchingArgs
                             + " args: " + Utils.toString( argTypes, false ) );
@@ -1034,7 +1041,7 @@ public class ClassUtils {
                                          Object... args ) {
     Class< ? > classForName = getClassForName( className, preferredPackage, false );
     if ( Debug.errorOnNull( "Couldn't find the class " + className + " for method "
-                      + callName + ( args == null ? "" : Utils.toString( args ) ),
+                      + callName + ( args == null ? "" : Utils.toString( args, false ) ),
                       classForName ) ) {
       return null;
     }
@@ -1085,14 +1092,15 @@ public class ClassUtils {
     Debug.outln("=========================start===============================");
     //Debug.errln("=========================start===============================");
     //Class< ? > classForName = getClassForName( className, preferredPackage, false );
-    List< Class< ? > > classesForName = getClassesForName( className, false );
+    String classNameNoParams = noParameterName( className );
+    List< Class< ? > > classesForName = getClassesForName( classNameNoParams, false );
     //Debug.err("classForName = " + classForName );
     Debug.err("classesForName = " + classesForName );
     if ( Utils.isNullOrEmpty( classesForName ) ) {
       if ( complainIfNotFound ) {
         System.err.println( "Couldn't find the class " + className + " for method "
                      + callName
-                     + ( argTypes == null ? "" : Utils.toString( argTypes ) ) );
+                     + ( argTypes == null ? "" : Utils.toString( argTypes, false ) ) );
       }
       Debug.outln("===========================end==============================");
       //Debug.errln("===========================end==============================");
@@ -1146,7 +1154,7 @@ public class ClassUtils {
       if ( complainIfNotFound ) {
         System.err.println( "Couldn't find the class " + className + " for method "
                      + callName
-                     + ( argTypes == null ? "" : Utils.toString( argTypes ) ) );
+                     + ( argTypes == null ? "" : Utils.toString( argTypes, false ) ) );
       }
       return null;
     }
@@ -1283,9 +1291,9 @@ public class ClassUtils {
     return p;
   }
   
-  public static boolean isStatic( Class method ) {
-    if ( method == null ) return false;
-    return ( Modifier.isStatic( method.getModifiers() ) );
+  public static boolean isStatic( Class<?> cls ) {
+    if ( cls == null ) return false;
+    return ( Modifier.isStatic( cls.getModifiers() ) );
   }
 
   public static boolean isStatic( Member method ) {
@@ -1627,12 +1635,12 @@ public class ClassUtils {
 //    return ttList;
 //  }
   
-  private static class A {
+  public static class A {
     int a;
     public A( int a ) { this.a = a; }
     public int get() { return a; }
   }
-  private static class B extends A {
+  public static class B extends A {
     int b;
     public B( int a, int b ) { super(a); this.b = b; }
     public int get() { return b; }
@@ -1793,7 +1801,10 @@ public class ClassUtils {
       Debug.errln( "Warning! No evaluation of " + object + " with type " + cls.getName() + "!" );
       throw cce;
     }
-    return r;
+    if ( cls != null && cls.isInstance( r ) || ( r != null && cls == r.getClass() ) ) {
+      return r;
+    }
+    return null;
   }
   
   /**

@@ -12,24 +12,16 @@ import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
-import java.lang.reflect.TypeVariable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.emf.ecore.EObject;
-
 import junit.framework.Assert;
 
 /**
  * 
- */
-
-/**
- * @author bclement
- * 
- *         TODO -- REVIEW -- This is a little awkward. What about an Expression
+ *         TODO -- REVIEW -- What about an Expression
  *         interface with implementations of Value, Parameter, MethodExpression,
  *         and Function? Would it make sense to put constructors in an
  *         expression factory?

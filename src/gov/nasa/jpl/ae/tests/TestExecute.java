@@ -8,6 +8,7 @@ import java.lang.reflect.ParameterizedType;
 import demandResponse.PlanAndControlLoadReductionEvent;
 
 import gov.nasa.jpl.ae.event.StringParameter;
+import gov.nasa.jpl.ae.event.Timepoint;
 
 /**
  * @author bclement
@@ -36,7 +37,8 @@ public class TestExecute {
     top.DREventEndTime.setValue( 1800 );
     top.startTime.setValue( 0 );
     top.duration.setValue( 10000 );
-    top.execute();
-    System.out.println( "execution:\n" + top.executionToString() );
+    double animationDuration = 30.0;
+    top.executeAndSimulate(Timepoint.getHorizonDuration() / animationDuration);
+    //System.out.println( "execution:\n" + top.executionToString() );
   }
 }

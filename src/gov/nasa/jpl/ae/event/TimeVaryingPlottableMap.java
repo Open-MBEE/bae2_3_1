@@ -135,9 +135,13 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     dataProjected = projected;
   }
 
-  public TimeVaryingPlottableMap( TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
-    super( timeVaryingPlottableMap );
+  public TimeVaryingPlottableMap( String name, TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
+    super( name, timeVaryingPlottableMap );
     dataProjected = timeVaryingPlottableMap.dataProjected;
+  }
+
+  public TimeVaryingPlottableMap( TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
+    this( timeVaryingPlottableMap.getName(), timeVaryingPlottableMap );
   }
 
   public TimeVaryingPlottableMap<V> clone() {

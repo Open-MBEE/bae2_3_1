@@ -2,7 +2,6 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
-import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -89,7 +88,7 @@ public class ConstraintExpression extends Expression< Boolean >
     if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied(deep, seen) ) return true;
     HasParameters.Helper.satisfy( this, true, null );
-    if ( Solver.allowPickValue && !isSatisfied(deep, seen) ) {
+    if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
       Set< Variable< ? > > vars = getVariables();
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
