@@ -7,20 +7,14 @@ import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
-import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.RangeDomain;
-import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -72,6 +66,8 @@ public class Functions {
       this.reversePickFunctionCall = reversePickFunctionCall;
     }
 
+    // TODO -- Need a value argument -- the target return value! Then, this can
+    // be renamed "inverse()."
     @Override
     public < T > T pickValue( Variable< T > variable ) {
       return pickValueBF2( this, variable );
@@ -238,6 +234,55 @@ public class Functions {
 //    }
   }
 
+  public static class Conditional< T > extends SuggestiveFunctionCall implements Suggester {
+    public Conditional( Expression<Boolean> condition, Expression< T > thenExpr, Expression< T > elseExpr ) {
+      super( null, getIfThenElseMethod(), new Object[] {condition, thenExpr, elseExpr} );
+    }
+
+    public static Method getIfThenElseMethod() {
+      Method m = null;
+      try {
+        m = Functions.class.getMethod( "ifThenElse", 
+                                       Expression.class,
+                                       Expression.class,
+                                       Expression.class );
+      } catch ( SecurityException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return m;
+    }
+  }
+
+  public static < T > T ifThenElse( boolean b, T thenT, T elseT ) {
+    if ( b ) return thenT;
+    return elseT;
+  }
+  
+  /**
+   * Evaluate if-then-else conditional function. If the condition evaluates to
+   * null, it is interpreted as "false."
+   * 
+   * @param conditionExpr
+   * @param thenExpr
+   * @param elseExpr
+   * @return the evaluation of thenExpr if conditionExpr evaluates to true, else
+   *         the evaluation of elseExpr
+   */
+  public static < T > T ifThenElse( Expression< Boolean > conditionExpr,
+                                    Expression< T > thenExpr,
+                                    Expression< T > elseExpr ) {
+    if ( conditionExpr == null && elseExpr == null ) return null;
+    Boolean b = (conditionExpr == null ? null : conditionExpr.evaluate( false ) );
+    T thenT = (thenExpr == null ? null : thenExpr.evaluate( false ) );
+    T elseT = (elseExpr == null ? null : elseExpr.evaluate( false ) );
+    if ( b == null || !b.booleanValue() ) return elseT;
+    return thenT;
+  }
+  
   
   // Simple math functions
 
@@ -324,11 +369,27 @@ public class Functions {
   // TODO -- Create a plus(Double, Double) that does the overflow and call from
   // here. add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
+    if ( o1 == null || o2 == null ) return null;
       Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) {
         String s = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
+      TimeVaryingMap<?> map = null;
+      try {
+        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+      } catch ( ClassCastException e ) {
+        //ignore
+      }
+      if ( map != null ) result = plus( map, o2 );
+      else {
+        try {
+        map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+        } catch ( ClassCastException e ) {
+          //ignore
+        }
+        if ( map != null ) result = plus( o1, map );
+        else {
     Number n1 = Expression.evaluate( o1, Number.class, false );
     Number n2 = Expression.evaluate( o2, Number.class, false );
     if ( n1 != null && n2 != null ) {
@@ -345,13 +406,13 @@ public class Functions {
       }
     }
     }
+      }
+    }
     try {
       if ( o1 != null ) {
         Object x = (V1)Expression.evaluate( result, o1.getClass(), false );
         if ( x == null ) x = result;
         return (V1)x;
-      } else {
-        return (V1)result;
       }
     } catch (ClassCastException e) {
       e.printStackTrace();
@@ -360,7 +421,23 @@ public class Functions {
   }
 
   public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
-    Number result = null;
+    if ( o1 == null || o2 == null ) return null;
+    Object result = null;
+    TimeVaryingMap<?> map = null;
+    try {
+      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+    } catch ( ClassCastException e ) {
+      //ignore
+    }
+    if ( map != null ) result = times( map, o2 );
+    else {
+      try {
+      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+      } catch ( ClassCastException e ) {
+        //ignore
+      }
+      if ( map != null ) result = times( o1, map );
+      else {
     Number n1 = Expression.evaluate( o1, Number.class, false );
     Number n2 = Expression.evaluate( o2, Number.class, false );
     if ( n1 != null && n2 != null ) {
@@ -377,6 +454,8 @@ public class Functions {
         result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
       }
     }
+      }
+    }
     try {
       if ( o1 != null ) {
         Object x = (V1)Expression.evaluate( result, o1.getClass(), false );
@@ -391,7 +470,22 @@ public class Functions {
   }
   
   public static <V1, V2> V1 divide( V1 o1, V2 o2 ) {
-    Number result = null;
+    Object result = null;
+    TimeVaryingMap<?> map = null;
+    try {
+      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+    } catch ( ClassCastException e ) {
+      //ignore
+    }
+    if ( map != null ) result = divide( map, o2 );
+    else {
+      try {
+      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+      } catch ( ClassCastException e ) {
+        //ignore
+      }
+      if ( map != null ) result = divide( o1, map );
+      else {
     Number n1 = Expression.evaluate( o1, Number.class, false );
     Number n2 = Expression.evaluate( o2, Number.class, false );
     if ( n1 != null && n2 != null ) {
@@ -406,6 +500,8 @@ public class Functions {
         result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
       } else {
         result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
+      }
+    }
       }
     }
     try {
@@ -425,13 +521,14 @@ public class Functions {
     return plus( o1, times( -1, o2 ) );
   }
   
-  public static < T > Object add( Expression< T > o1,
-                                  Expression< T > o2 ) {
+  public static < T, TT > T add( Expression< T > o1,
+                                  Expression< TT > o2 ) {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
+    TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    Object result = null;
+    return plus(r1,r2);
+/*    Object result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.String.class ) ||
          r2.getClass().isAssignableFrom( java.lang.String.class ) ) {
       String s = "" + r1 + r2;
@@ -482,15 +579,16 @@ public class Functions {
     }
     if ( Debug.isOn() ) Debug.outln( r1 + " + " + r2 + " = " + result );
     return result;
-  }
+*/  }
   
-  public static < T > java.lang.Number subtract( Expression< T > o1, 
-                                                 Expression< T > o2 ) {
+  public static < T, TT > T subtract( Expression< T > o1, 
+                                      Expression< TT > o2 ) {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
+    TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    Number result = null;
+    return minus( r1, r2 );  // REVIEW -- should this be subtract(r1,r2)?
+/*    Number result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
          r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
@@ -539,16 +637,19 @@ public class Functions {
     }
     if ( Debug.isOn() ) Debug.outln( r1 + " - " + r2 + " = " + result );
     return result;
-  }
+*/  }
 
-  public static < T > java.lang.Number times( Expression< T > o1,
-                                              Expression< T > o2 ) {
+  public static < T, TT > T times( Expression< T > o1,
+                                                  Expression< TT > o2 ) {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
+    TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    Number result = null;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
+    return times(r1, r2);
+/*    Number result = null;
+    if ( r1.getClass().isAssignableFrom( TimeVaryingMap.class ) ) {
+    } else if ( r2.getClass().isAssignableFrom( TimeVaryingMap.class ) ) {
+    } if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
          r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
       double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
       double rd2 = ClassUtils.castNumber( (Number)r2, Double.class ).doubleValue();
@@ -596,15 +697,16 @@ public class Functions {
     }
     if ( Debug.isOn() ) Debug.outln( r1 + " * " + r2 + " = " + result );
     return result;
-  }
+*/  }
   
-  public static < T > java.lang.Number divide( Expression< T > o1,
-                                               Expression< T > o2 ) {
+  public static < T, TT > T divide( Expression< T > o1,
+                                    Expression< TT > o2 ) {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
+    TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    Number result = null;
+    return divide(o1, o2);
+/*    Number result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
          r2.getClass().isAssignableFrom( java.lang.Double.class )) {
       double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
@@ -649,7 +751,7 @@ public class Functions {
     }
     if ( Debug.isOn() ) Debug.outln( r1 + " / " + r2 + " = " + result );
     return result;
-  }
+*/  }
   
   public static class Negative<T> extends Unary< T, T > {
     public Negative( Expression< T > o ) {
@@ -1470,6 +1572,90 @@ public class Functions {
     return b;
   }
 
+  // TimeVaryingMap functions
+//  public static < T > TimeVaryingMap< T > times( Object o1,
+//                                                 Object o2 ) {
+//    if ( o1 == null || o2 == null ) return null;
+//    Number n = Expression.evaluate( o1, Number.class, false );
+//    if ( n != null ) return times( n, o2 );
+//    TimeVaryingMap< ? extends Number > tvm =
+//        Expression.evaluate( o, TimeVaryingMap.class, false );
+//    if ( tvm != null ) return times( tv, tvm );
+//    return null;
+//  }
+  public static < T > TimeVaryingMap< T > times( Object o,
+                                                 TimeVaryingMap< T > tv ) {
+    return times(tv, o);
+  }
+  public static < T > TimeVaryingMap< T > times( TimeVaryingMap< T > tv,
+                                                 Object o ) {
+    if ( tv == null || o == null ) return null;
+    Number n = Expression.evaluate( o, Number.class, false );
+    if ( n != null ) return tv.times( n );
+    TimeVaryingMap< ? extends Number > tvm =
+        Expression.evaluate( o, TimeVaryingMap.class, false );
+    if ( tvm != null ) return times( tv, tvm );
+    return null;
+  }
+  public static < T, TT extends Number > TimeVaryingMap< T > times( TimeVaryingMap< T > tv1,
+                                                                    TimeVaryingMap< TT > tv2 ) {
+    return TimeVaryingMap.times( tv1, tv2 );
+  }
+
+  public static < T > TimeVaryingMap< T > divide( TimeVaryingMap< T > tv,
+                                                  Object o ) {
+    if ( tv == null || o == null ) return null;
+    Number n = Expression.evaluate( o, Number.class, false );
+    if ( n != null ) return tv.divide( n );
+    TimeVaryingMap< ? extends Number > tvm =
+        Expression.evaluate( o, TimeVaryingMap.class, false );
+    if ( tvm != null ) return divide( tv, tvm );
+    return null;
+  }
+  public static < T, TT extends Number > TimeVaryingMap< T > divide( TimeVaryingMap< T > tv1,
+                                                                     TimeVaryingMap< TT > tv2 ) {
+    return TimeVaryingMap.dividedBy( tv1, tv2 );
+  }
+
+  
+  public static < T > TimeVaryingMap< T > plus( Object o,
+                                                TimeVaryingMap< T > tv ) {
+    return plus( tv, o );
+  }
+  public static < T > TimeVaryingMap< T > plus( TimeVaryingMap< T > tv,
+                                                Object o ) {
+    if ( tv == null || o == null ) return null;
+    Number n = Expression.evaluate( o, Number.class, false );
+    if ( n != null ) return tv.plus( n );
+    TimeVaryingMap< ? extends Number > tvm =
+        Expression.evaluate( o, TimeVaryingMap.class, false );
+    if ( tvm != null ) return plus( tv, tvm );
+    return null;
+  }   
+  public static < T, TT extends Number > TimeVaryingMap< T > plus( TimeVaryingMap< T > tv1,
+                                                                   TimeVaryingMap< TT > tv2 ) {
+     return TimeVaryingMap.plus( tv1, tv2 );
+   }
+  
+  public static < T > TimeVaryingMap< T > minus( Object o,
+                                                 TimeVaryingMap< T > tv ) {
+    return minus( tv, o );
+  }
+  public static < T > TimeVaryingMap< T > minus( TimeVaryingMap< T > tv,
+                                                 Object o ) {
+    if ( tv == null || o == null ) return null;
+    Number n = Expression.evaluate( o, Number.class, false );
+    if ( n != null ) return tv.minus( n );
+    TimeVaryingMap< ? extends Number > tvm =
+        Expression.evaluate( o, TimeVaryingMap.class, false );
+    if ( tvm != null ) return minus( tv, tvm );
+    return null;
+  }   
+  public static < T, TT extends Number > TimeVaryingMap< T > minus( TimeVaryingMap< T > tv1,
+                                                                    TimeVaryingMap< TT > tv2 ) {
+     return TimeVaryingMap.minus( tv1, tv2 );
+   }
+  
   public static <T1> T1 pickValueE( Variable< T1 > variable,
                                         Object object ) {
     if ( object instanceof Suggester ) {

@@ -59,15 +59,20 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     this.maxCap = maxCap;
     samplePeriod =
         TimeVaryingMap.correctSamplePeriod( samplePeriod, horizonDuration );
-    int lastT = 0;
-    double lastValue = initialValue;
-    if ( Debug.isOn() ) Debug.errln( "minCap=" + minCap + "; maxCap=" + maxCap );
-    for ( int t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
+    try {
+      int lastT = 0;
+      double lastValue = initialValue; 
+      if ( Debug.isOn() ) Debug.errln("minCap=" + minCap + "; maxCap=" + maxCap );
+      for ( int t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
       double value =
           (Double)ClassUtils.runMethod( false, o, deltaValueFunction, lastT,
                                         lastValue, t ).second;
-      lastValue = add( makeTempTimepoint( t, false ), value );
-      lastT = t;
+        lastValue = add( makeTempTimepoint( t, false ), value );
+        lastT = t;
+      }
+	  } catch ( IllegalArgumentException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
   }
   /**

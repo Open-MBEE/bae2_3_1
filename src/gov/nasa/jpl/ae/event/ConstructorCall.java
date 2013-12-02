@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.MoreToString;
 import gov.nasa.jpl.ae.util.Pair;
@@ -264,6 +265,23 @@ public class ConstructorCall extends Call {
     return newObject;
   }
   
+  protected static boolean possiblyStale( Object obj ) {
+    if ( obj == null || obj instanceof TimeVarying ) return true;
+    if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
+    if ( obj instanceof Variable ) {
+      Object v = ((Variable<?>)obj).getValue( false );
+      if ( possiblyStale( v ) ) return true;
+    }
+    return false;
+  }
+  
+  @Override
+  public boolean isStale() {
+    if ( super.isStale() ) return true;
+    if ( possiblyStale( newObject ) ) return true;
+    return false;
+  }
+
   @Override
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
     // REVIEW -- if this is buggy, consider making this a dependency.

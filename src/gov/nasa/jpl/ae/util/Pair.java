@@ -1,19 +1,30 @@
 package gov.nasa.jpl.ae.util;
 
-import gov.nasa.jpl.ae.event.EventInvocation;
 import gov.nasa.jpl.ae.solver.HasId;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Pair<A,B> implements Comparable< Pair< A, B > > {
+public class Pair<A,B> implements Comparable< Pair< A, B > >, Cloneable {
   public A first;
   public B second;
 
   public Pair(A a, B b) {
     first = a;
     second = b;
+  }
+  
+  public Pair( Pair< ? extends A, ? extends B > p ) {
+    if ( p != null ) {
+      first = p.first;
+      second = p.second;
+    }
+  }
+
+  @Override
+  public Pair< A, B > clone() {
+    return new Pair< A, B >( this );
   }
   
   @Override
