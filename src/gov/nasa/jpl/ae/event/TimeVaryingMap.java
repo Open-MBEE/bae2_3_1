@@ -17,7 +17,6 @@ import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
@@ -301,26 +300,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
   }
 
-  public TimeVaryingMap() {}
+  public TimeVaryingMap() {
+    super(new TimeComparator());
+  }
 
   /**
    * 
    */
   public TimeVaryingMap( String name ) {
-    super(new TimeComparator());
+    this();
     this.name = name;
   }
   public TimeVaryingMap( String name, String fileName ) {
-    super(new TimeComparator());
-    this.name = name;
-    if ( fileName != null ) {
-      try {
+    this(name);
         fromCsvFile( fileName, type );
-      } catch ( FileNotFoundException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
   }
 
 
@@ -329,22 +322,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     this.type = type;
   }
   protected TimeVaryingMap( String name, String fileName, Class<V> type ) {
-    this(name);
-    this.type = type;
-    if ( fileName != null ) {
-      try {
+    this(name, type);
         fromCsvFile( fileName, type );
-      } catch ( FileNotFoundException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
   }
 
   protected TimeVaryingMap( String name, V defaultValue, Class<V> type ) {
-    super(new TimeComparator());
-    this.name = name;
-    this.type = type;
+    this(name,type);
     // REVIEW -- consider forcing all constructors to provide non-null type
     V valueToInsert = null;
     if ( this.type == null ) {
@@ -364,15 +347,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap( String name, String fileName,
                          V defaultValue, Class<V> type ) {
     this( name, defaultValue, type );
-    if ( fileName != null ) {
-      try {
         fromCsvFile( fileName, type );
-      } catch ( FileNotFoundException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
       }
-    }
-  }
 
 //  public TimeVaryingMap( String name, V defaultValue ) {
 //    this(name, defaultValue, null);
@@ -380,14 +356,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 //
   public TimeVaryingMap( String name, String fileName, V defaultValue ) {
     this(name, defaultValue, null);
-    if ( fileName != null ) {
-      try {
-        fromCsvFile( fileName, type );
-      } catch ( FileNotFoundException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
+    fromCsvFile( fileName, type );
   }
   
   /**
@@ -516,8 +485,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
-  public TimeVaryingMap( TimeVaryingMap<V> tvm ) {
-    this( tvm.name, null, null, tvm.type );
+  public TimeVaryingMap( String name, TimeVaryingMap<V> tvm ) {
+    this( name, null, null, tvm.type );
     owner = tvm.owner;
     interpolation = tvm.interpolation;
     floatingEffects.clear();
@@ -526,6 +495,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     appliedSet.addAll( tvm.appliedSet );
     clear(); // clears the default value.
     putAll( tvm );
+  }
+
+  public TimeVaryingMap( TimeVaryingMap<V> tvm ) {
+    this( tvm.getName(), tvm );
   }
 
   public TimeVaryingMap<V> clone() {
@@ -1170,6 +1143,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after multiplying each value by {@code n}
    */
   public TimeVaryingMap<V> multiply( Number n ) {
+    if ( isEmpty() ) return this;
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
       for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
         V v = e.getValue();
@@ -1188,6 +1162,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return a copy of the map whose values are each multiplied by {@code n}
    */
   public TimeVaryingMap<V> times( Number n ) {
+    if ( isEmpty() ) return this.clone();
     return times( n, firstKey(), null );
   }
   
@@ -1335,10 +1310,27 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
   
   /**
-   * @param n the number by which the map is multiplied
-   * @param fromKey the first key whose value is multiplied by {@code n}
-   * @param toKey
-   *          is not multiplied. To include the last key, pass {@code null} for {@code toKey}.
+   * Return the product of this map with another. This achieves for all
+   * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
+   * {@code newTvm.get(t) == this.get(t) * tvm.get(t)}.
+   * 
+   * @param n
+   *          the number by which the map is multiplied
+   * @return a copy of this map multiplied by {@code tvm}
+   */
+  public < VV > TimeVaryingMap< V > times( TimeVaryingMap< VV > tvm ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.multiply( tvm );
+    return newTvm;
+  }
+
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > times( TimeVaryingMap< VV1 > tvm1,
+                                                                         TimeVaryingMap< VV2 > tvm2 ) {
+    return tvm1.times( tvm2 );
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} with which this map is multiplied
    * @return a copy of this map for which each value in the range [fromKey,
    *         toKey) is multiplied by {@code n}
    */
@@ -1355,6 +1347,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after dividing each value by {@code n}
    */
   public TimeVaryingMap<V> divide( Number n ) {
+    if ( isEmpty() ) return this;
     return divide( n, firstKey(), null );
   }
   
@@ -1386,6 +1379,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return a copy of the map whose values are each divided by {@code n}
    */
   public TimeVaryingMap<V> dividedBy( Number n ) {
+    if ( isEmpty() ) return this.clone();
     Call c = getCallForThisMethod( n );
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
       applyToSubMaps( c );
@@ -1472,18 +1466,57 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         toKey) is divided by {@code n}
    */
   public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey,
-                                     Parameter< Integer > toKey ) {
+                                        Parameter< Integer > toKey ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.divide( n, fromKey, toKey );
     return newTvm;
   }
 
+  /**
+   * Return the quotient of this map with another. This achieves for all
+   * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
+   * {@code newTvm.get(t) == this.get(t) / tvm.get(t)}.
+   * 
+   * @param tvm
+   *          the map by which this map is divided
+   * @return a copy of this map multiplied by {@code tvm}
+   */
+  public < VV extends Number > TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > tvm ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.divide( tvm );
+    return newTvm;
+  }
 
+  /**
+   * Return the quotient of two maps. This achieves for all
+   * {@code t} in {@code tvm1.keySet()} and {@code tvm2.keySet()},
+   * {@code newTvm.get(t) == tvm1.get(t) / tvm2.get(t)}.
+   * 
+   * @param tvm1
+   * @param tvm1
+   * @return a copy of {@code tvm1} divided by {@code tvm2}
+   */
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > dividedBy( TimeVaryingMap< VV1 > tvm1,
+                                                                             TimeVaryingMap< VV2 > tvm2 ) {
+    return tvm1.dividedBy( tvm2 );
+  }
+
+
+  /**
+   * @param n
+   * @return a this map after adding {@code n} to each value
+   */
   public TimeVaryingMap<V> add( Number n ) {
+    if ( isEmpty() ) return this;
     return add( n, firstKey(), null );
   }
   
+  /**
+   * @param n
+   * @return a copy of this map for which {@code n} is added to each value
+   */
   public TimeVaryingMap<V> plus( Number n ) {
+    if ( isEmpty() ) return this.clone();
     return plus( n, firstKey(), null );
   }
   
@@ -1861,6 +1894,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after subtracting {@code n} from each value
    */
   public TimeVaryingMap<V> subtract( Number n ) {
+    if ( isEmpty() ) return this;
     return subtract( n, firstKey(), null );
   }
   
@@ -1974,7 +2008,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} added to it
    */
-  public TimeVaryingMap< V > plus( TimeVaryingMap< V > map ) {
+  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( map );
     return newTvm;
@@ -1985,17 +2019,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map2
    * @return a new map that sums {@code map1} and {@code map2}
    */
-  public static <VV> TimeVaryingMap< VV > plus( TimeVaryingMap< VV > map1, TimeVaryingMap< VV > map2 ) {
-    TimeVaryingMap< VV > newTvm = map1.clone();
-    newTvm.add( map2 );
-    return newTvm;
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > plus( TimeVaryingMap< VV1 > map1,
+                                                                        TimeVaryingMap< VV2 > map2 ) {
+    return map1.plus( map2 );
   }
 
   /**
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} subtracted from it
    */
-  public TimeVaryingMap< V > minus( TimeVaryingMap< V > map ) {
+  public < VV extends Number > TimeVaryingMap< V > minus( TimeVaryingMap< VV > map ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.subtract( map );
     return newTvm;
@@ -2006,12 +2039,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map2
    * @return a new map that is {@code map1} minus {@code map2}
    */
-  public static <VV> TimeVaryingMap< VV > minus( TimeVaryingMap< VV > map1, TimeVaryingMap< VV > map2 ) {
-    TimeVaryingMap< VV > newTvm = map1.clone();
-    newTvm.subtract( map2 );
-    return newTvm;
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > minus( TimeVaryingMap< VV1 > map1,
+                                                                         TimeVaryingMap< VV2 > map2 ) {
+    return map1.minus( map2 );
   }
 
+  /**
+   * @param n
+   * @return a copy of this map for which {@code n} is subtracted from each value
+   */
+  public TimeVaryingMap<V> minus( Number n ) {
+    if ( isEmpty() ) return this.clone();
+    return minus( n, firstKey(), null );
+  }
+  
   /**
    * @param n
    * @param fromKey
@@ -2282,6 +2323,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return HasParameters.Helper.isFreeParameter( this, parameter, deep, seen, false );
   }
 
+  /* (non-Javadoc)
+   * @see java.util.AbstractMap#equals(java.lang.Object)
+   * Note: this class has a natural ordering that is inconsistent with equals.
+   */
   @Override
   public boolean equals( Object o ) {
     if ( this == o ) return true;
@@ -3275,16 +3320,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     fromStringMap( map, cls );
   }
   
-  public void fromCsvFile( String fileName ) throws FileNotFoundException {
+  public void fromCsvFile( String fileName ) {
     fromCsvFile( fileName, null );
   }
-  public void fromCsvFile( String fileName, Class<V> cls ) throws FileNotFoundException {
+  public void fromCsvFile( String fileName, Class<V> cls ) {
+    if ( fileName == null ) return;
+    try {
     File f = FileUtils.findFile( fileName );
     String s = FileUtils.fileToString( f );
     Map<String,String> map = new HashMap<String,String>();
     MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
     fromStringMap( map, cls );
     Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
+    } catch ( FileNotFoundException e ) {
+      e.printStackTrace();
+    }
   }
   public void toCsvFile( String fileName ) {
     String s = toCsvString();
@@ -3826,6 +3876,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return true;
   }
 
+  /**
+   * Both checks and asserts that an effect was applied.
+   * @param effect
+   * @return whether the effect was applied before this call
+   */
   public boolean wasApplied( Effect effect ) {
     return !appliedSet.add(effect);
   }

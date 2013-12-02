@@ -22,6 +22,7 @@ data/test_margin_load.csv -text
 data/test_max_buy.csv -text
 data/test_reserve.csv -text
 /javadoc.xml -text
+/pom.xml -text
 /projFormatterOptions.xml -text
 src/DIFF_SCENARIO/BobCreator.java -text svneol=unset#text/plain
 src/DIFF_SCENARIO/Customer.java -text svneol=unset#text/plain
@@ -223,6 +224,8 @@ src/gov/nasa/jpl/ae/util/MoreToString.java -text
 src/gov/nasa/jpl/ae/util/NameTranslator.java -text
 src/gov/nasa/jpl/ae/util/Pair.java -text
 src/gov/nasa/jpl/ae/util/RunAspen.java -text
+src/gov/nasa/jpl/ae/util/Seen.java -text
+src/gov/nasa/jpl/ae/util/SeenHashSet.java -text
 src/gov/nasa/jpl/ae/util/SimulatedTime.java -text
 src/gov/nasa/jpl/ae/util/SocketClient.java -text
 src/gov/nasa/jpl/ae/util/StopWatch.java -text

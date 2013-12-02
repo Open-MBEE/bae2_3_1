@@ -1,0 +1,66 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>gov.nasa.jpl.ae</groupId>
+  <artifactId>AE</artifactId>
+  <name>Behavior Analysis Engine</name>
+  <dependencies>
+  	<dependency>
+  		<groupId>junit</groupId>
+  		<artifactId>junit</artifactId>
+  		<version>4.8.2</version>
+  	</dependency>
+  </dependencies>
+  <version>1.0</version>
+<!--   <systemPath>C:\Users\bclement\workspaceYoxos\CSQuery\AE.jar</systemPath> -->
+  <build>
+    <plugins>
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>build-helper-maven-plugin</artifactId>
+    <version>1.8</version>
+    <executions>
+        <execution>
+            <phase>gather-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+                <sources>
+                    <source>src/gov/nasa/jpl/ae/**</source>
+                    <source>src/thirdParty/**</source>
+                </sources>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+<!--       <plugin> -->
+<!--         <groupId>org.apache.maven.plugins</groupId> -->
+<!--         <artifactId>maven-dependency-plugin</artifactId> -->
+<!--         <version>2.8</version> -->
+<!--         <executions> -->
+<!--           <execution> -->
+<!--             <id>copy</id> -->
+<!--             <phase>compile</phase> -->
+<!--             <goals> -->
+<!--               <goal>copy</goal> -->
+<!--             </goals> -->
+<!--             <configuration> -->
+<!--               <artifactItems> -->
+<!--                 <artifactItem> -->
+<!--                   <groupId>AE</groupId> -->
+<!--                   <artifactId>AE</artifactId> -->
+<!--                   <version>1.0</version> -->
+<!--                   <type>jar</type> -->
+<!--                   <overWrite>false</overWrite> -->
+<!--                   <outputDirectory>${project.build.directory}</outputDirectory> -->
+<!--                   <destFileName>AE-1.0.jar</destFileName> -->
+<!--                 </artifactItem> -->
+<!--               </artifactItems> -->
+<!--               <outputDirectory>${project.build.directory}/wars</outputDirectory> -->
+<!--               <overWriteReleases>false</overWriteReleases> -->
+<!--               <overWriteSnapshots>true</overWriteSnapshots> -->
+<!--             </configuration> -->
+<!--           </execution> -->
+<!--         </executions> -->
+<!--       </plugin> -->
+    </plugins>
+  </build>
+</project>

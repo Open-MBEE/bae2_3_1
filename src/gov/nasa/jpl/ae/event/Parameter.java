@@ -20,7 +20,6 @@ import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
-import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.ae.util.ClassUtils;
@@ -40,6 +39,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
   
+  /**
+   * Can values be selected or changed for Parameters when not grounded or in
+   * order to satisfy a constraint.
+   */
+  public static boolean allowPickValue = false;
+  
   // These are for debug validation.
   public static boolean mayPropagate = true;
   public static boolean mayChange = true;
@@ -50,7 +55,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   protected ParameterListener owner = null; // REVIEW -- Only one listener!
   protected boolean stale;
   protected List< Constraint > constraintList = new ArrayList< Constraint >();
-  
+
   public Parameter() {}
 
   public Parameter( String n, Domain< T > d, ParameterListener o ) {
@@ -396,7 +401,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( isGrounded(deep, null) ) return true;
     if ( refresh() ) return true;
     if ( isDependent()) return false;
-    if (Solver.allowPickValue ){
+    if (Parameter.allowPickValue ){
     	T newValue = pickRandomValue();
     	if ( newValue != null ) {
     		setValue( newValue );
@@ -539,7 +544,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       ((Satisfiable)value).satisfy(deep, seen);
     }
     if ( isSatisfied(deep, null) ) return true;
-    if ( !isDependent() && Solver.allowPickValue){
+    if ( !isDependent() && Parameter.allowPickValue){
       T newValue = pickRandomValue();
       if ( newValue != null ) {
         setValue( newValue, true );

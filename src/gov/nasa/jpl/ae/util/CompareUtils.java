@@ -4,7 +4,6 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.solver.HasId;
-import gov.nasa.jpl.ae.util.CompareUtils.GenericComparator;
 
 import java.util.Collection;
 import java.util.Comparator;

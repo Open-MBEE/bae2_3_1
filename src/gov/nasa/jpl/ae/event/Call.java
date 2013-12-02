@@ -282,6 +282,13 @@ public abstract class Call extends HasIdImpl implements HasParameters,
           if ( np != null ) c = np;
       }
       if ( c != null && c.equals( Object.class ) ) c = null;
+      if ( c != null && i >= paramTypes.length-1 && isVarArgs ) {
+        if ( !c.isArray() ) {
+          Debug.error( true, true, "class " + c.getSimpleName() + " should be a var arg array!" );
+        } else {
+          c = c.getComponentType();
+        }
+      }
       argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
       if (!( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
         Debug.error( true, argObjects[ i ] +

@@ -17,7 +17,6 @@ import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
-import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.CompareUtils;
 import gov.nasa.jpl.ae.util.Debug;
@@ -314,7 +313,7 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean pickValue( Variable< T1 > variable ) {
-    if ( variable == null || !Solver.allowPickValue) return false;
+    if ( variable == null || !Parameter.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
       Object value = variable.getValue( false ); // DON'T CHANGE false

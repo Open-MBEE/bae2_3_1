@@ -9,8 +9,6 @@ import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.solver.Wraps;
-import gov.nasa.jpl.ae.util.ClassData.PTA;
-import gov.nasa.jpl.ae.util.ClassData.Param;
 import japa.parser.ASTParser;
 import japa.parser.ParseException;
 import japa.parser.ast.expr.ArrayCreationExpr;
@@ -255,6 +253,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     return ctorCall;
   }
 
+  public static < T, R > ConstructorCall getIfThenElseConstructorCall() {
+    Class< Functions.Conditional > cls = Functions.Conditional.class;
+    ConstructorCall ctorCall =
+    new ConstructorCall( null, cls, new Object[] { aeExprCls, aeExprCls, aeExprCls } );
+    return ctorCall;
+  }
+
   /**
    * Translate the input type/class name to the corresponding non-primitive
    * Class name. The case of the letters is largely ignored, and some
@@ -401,6 +406,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         if ( evaluateCall ) {
           middle = "(" + middle + ").evaluate(true)"; 
         }
+    } else
+    /*** ConditionalExpr ***/
+    if ( expr.getClass() == ConditionalExpr.class ) {
+      ConditionalExpr be = ( (ConditionalExpr)expr );
+      middle = "new Functions.Conditional(" + 
+               astToAeExpr( be.getCondition(), true, lookOutsideClassDataForTypes, complainIfDeclNotFound ) + ", " + 
+               astToAeExpr( be.getThenExpr(), true, lookOutsideClassDataForTypes, complainIfDeclNotFound ) + ", " +
+               astToAeExpr( be.getElseExpr(), true, lookOutsideClassDataForTypes, complainIfDeclNotFound ) + " ) ";
+      if ( evaluateCall ) {
+        middle = "(" + middle + ").evaluate(true)"; 
+      }
     } else
     /*** EnclosedExpr ***/
     if ( expr.getClass() == EnclosedExpr.class ) {
@@ -585,6 +601,30 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           }
           //return aeExpr;
      } else
+     /*** ConditionalExpr ***/
+     if ( expr.getClass() == ConditionalExpr.class ) {
+       ConditionalExpr be = ( (ConditionalExpr)expr );
+       ConstructorCall call = getIfThenElseConstructorCall();
+       Debug.errorOnNull( true, "A Functions class must exist for every Java binary operator", call );
+       Vector< Object > args = new Vector< Object >();
+       args.add(astToAeExpression( be.getCondition(), true,
+                                   lookOutsideClassDataForTypes,
+                                   complainIfDeclNotFound ) );
+       args.add(astToAeExpression( be.getThenExpr(), 
+                                   true,
+                                   lookOutsideClassDataForTypes,
+                                   complainIfDeclNotFound ) );
+       args.add(astToAeExpression( be.getElseExpr(), 
+                                   true,
+                                   lookOutsideClassDataForTypes,
+                                   complainIfDeclNotFound ) );
+       call.setArguments( args );
+       if ( evaluateCall ) {
+         aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+       } else {
+         aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
+       }
+     } else
       /*** EnclosedExpr ***/
       if ( expr.getClass() == EnclosedExpr.class ) {
           Object o =
@@ -760,6 +800,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           result =
               JavaToConstraintExpression.operatorResultType( ue.getOperator(),
                                   astToAeExprType( ue.getExpr(), lookOutsideClassData, complainIfNotFound ) );
+      } else if ( expr.getClass() == ConditionalExpr.class ) {
+        ConditionalExpr be = ( (ConditionalExpr)expr );
+        result =
+            dominantType( astToAeExprType( be.getThenExpr(), lookOutsideClassData, complainIfNotFound ),
+                          astToAeExprType( be.getElseExpr(), lookOutsideClassData, complainIfNotFound ) );
       } else if ( expr.getClass() == EnclosedExpr.class ) {
           result = astToAeExprType( ( (EnclosedExpr)expr ).getInner(), lookOutsideClassData, complainIfNotFound );
       } else if ( expr.getClass() == MethodCallExpr.class ) {

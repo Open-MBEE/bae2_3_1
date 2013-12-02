@@ -3,7 +3,6 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.MoreToString;
-import gov.nasa.jpl.ae.util.Pair;
 import gov.nasa.jpl.ae.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
