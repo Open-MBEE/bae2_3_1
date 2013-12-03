@@ -33,7 +33,7 @@
 	<variableList>
 		<variable>
 			<name>MAGIC_DRAW_INSTALL</name>
-			<value>file:/C:/Program%20Files/MagicDraw</value>
+			<value>file:/home/bclement/apps/MD</value>
 		</variable>
 	</variableList>
 </projectDescription>
