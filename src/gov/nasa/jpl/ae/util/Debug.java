@@ -3,7 +3,7 @@
  */
 package gov.nasa.jpl.ae.util;
 
-import java.awt.Color;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -11,16 +11,41 @@ import java.io.StringWriter;
  *
  */
 public class Debug {
-  protected static boolean on = false;
+  protected boolean on = false;
+  protected static Debug instance;
+
+  /**
+   * Specify whether debug logging is turned on or off
+   * @param on the new value for on
+   */
+  public void setOn( boolean on ) { this.on = on; }
+  
+  /**
+   * @return true if on, else false
+   */
+  public boolean getOn() { return on; }  
 
   public static synchronized void turnOn() {
-    on = true;
-    MdDebug.gl = MdDebug.getGuiLog();
+    getInstance().setOn( true );
   }
   public static synchronized void turnOff() {
-    on = false;
+    getInstance().setOn( false );
   }
   
+  /**
+   * @return the instance
+   */
+  public static Debug getInstance() {
+    if ( instance == null ) instance = new Debug();
+    return instance;
+  }
+  /**
+   * @param instance the instance to set
+   */
+  public static void setInstance( Debug instance ) {
+    Debug.instance = instance;
+  }
+
   /**
    * Place a breakpoint here and call breakpoint() wherever you need to add a
    * command to break on. For example:<br>
@@ -34,49 +59,47 @@ public class Debug {
   }
   
   public static void out( String s ) {
-    MdDebug.log( s, false, false );
-//    if (on) {
-//      if ( gl != null ) {
-//        glBuf.append( s );
-//      }
-//      System.out.print( s );
-//    }
+    getInstance().log( s, false, false );
   }
   public static void outln( String s ) {
-    MdDebug.log( s, true, false );
-//    if (on) {
-//      if ( gl != null ) {
-//        gl.log( glBuf.toString() + s );
-//      }
-//      System.out.println( s );
-//      glBuf = new StringBuffer();
-//    }
+    getInstance().log( s, true, false );
   }
   public static void err( String s ) {
-    MdDebug.log( s, false, true );
-//    if (on) {
-//      if ( gl != null ) {
-//        glBuf.append( s );
-//      }
-//      System.err.print( s );
-//    }
-//    //if (on) System.err.print( s );
+    getInstance().log( s, false, true );
   }
   public static void errln( String s ) {
-    MdDebug.log( s, true, true, Color.RED );
-//    if (on) {
-//      if ( gl != null ) {
-//        gl.log( "ERR: " + glErrBuf.toString() + s );
-//      }
-//      System.err.println( s );
-//      glErrBuf = new StringBuffer();
-//    }
-//    //if (on) System.err.println( s );
+    getInstance().log( s, true, true );
   }
   public static boolean isOn() {
-    return on;
+    return getInstance().on;
   }
 
+  public void log( final String s ) {
+    log( s, true, false );
+  }
+  public void logForce( final String s ) {
+    logForce( s, true, false );
+  }
+
+
+  public void log( final String s, final boolean addNewLine,
+                   final boolean isErr ) {
+      log( s, addNewLine, isErr, false );
+  }
+
+  public void log( final String s, final boolean addNewLine,
+                   final boolean isErr, boolean force ) {
+      if ( !force && !on ) return;
+      logForce( s, addNewLine, isErr );
+  }
+  public void logForce( final String s, final boolean addNewLine,
+                        final boolean isErr ) {
+    String ps = s;
+    PrintStream stream = ( isErr ? System.err : System.out );
+    if ( addNewLine ) ps = ps + "\n";
+    stream.print( ps );
+    stream.flush();
+  }
   /**
    * Throws and catches an exception and prints a supplied message and stack
    * trace to stderr if any of the input objects are null.
@@ -121,7 +144,7 @@ public class Debug {
       for ( Object o : maybeNullObjects ) {
         if ( o == null ) {
           throw new Exception();
-        } 
+        }
       }
     } catch ( Exception e ) {
       boolean wasOn = isOn();
@@ -130,12 +153,10 @@ public class Debug {
       if ( stackTrace ) {
         String stackTraceString = stackTrace(e);
         Debug.errln( stackTraceString );
-        if ( Debug.isOn() ) {
-          Debug.err( "" ); // good place for a breakpoint
-          //breakpoint();
-        }
+        Debug.err( "" ); // good place for a breakpoint
+        //breakpoint();
       }
-      if ( !wasOn ) turnOff(); 
+      if ( forceOutput && !wasOn ) turnOff(); 
       return true;
     }
     return false;
