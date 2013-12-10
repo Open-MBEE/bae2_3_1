@@ -314,9 +314,10 @@ public class ClassData {
   public Parameter<?> getParameter( String className, String paramName,
                                        boolean lookOutsideClassData,
                                        boolean setCurrentClass,
-                                       boolean addIfNotFound ) {
+                                       boolean addIfNotFound,
+                                       boolean complainIfNotFound ) {
     Param param = getParam( className, paramName, lookOutsideClassData,
-                            setCurrentClass, addIfNotFound );
+                            setCurrentClass, addIfNotFound, complainIfNotFound );
     Parameter<?> parameter = parameterMap.get( param );
     return parameter;
   }
@@ -333,7 +334,7 @@ public class ClassData {
    */
   public Param getParam( String className, String paramName,
                          boolean lookOutsideClassData, boolean setCurrentClass,
-                         boolean addIfNotFound ) {
+                         boolean addIfNotFound, boolean complainIfNotFound ) {
     if ( className == null ) className = getCurrentClass();
     ParameterListenerImpl aeClass = getAeClass( className, true );
     className = aeClass.getName();
@@ -344,9 +345,9 @@ public class ClassData {
     if ( p == null && paramName != null && addIfNotFound ) {
       p = makeParam( className, paramName, null, null );
     }
-      Debug.errorOnNull( true, "Could not " +
-                               ( addIfNotFound ? "create" : "find" ) +
-                               " parameter " + className + "." + paramName, p );
+      Debug.errorOnNull( complainIfNotFound, complainIfNotFound, "Could not " +
+                         ( addIfNotFound ? "create" : "find" ) +
+                         " parameter " + className + "." + paramName, p );
     return p;
   }
   
@@ -598,7 +599,8 @@ public class ClassData {
   public Param lookupMemberByName( String className, String paramName,
                                       boolean lookOutsideClassData,
                                       boolean complainIfNotFound ) {
-    if ( Debug.errorOnNull( "Passing null in lookupMemberByName(" + className
+    if ( Debug.errorOnNull( complainIfNotFound, complainIfNotFound,
+                            "Passing null in lookupMemberByName(" + className
                             + ", " + paramName + ")", className, paramName ) ) {
       return null;
     }
