@@ -636,10 +636,18 @@ public class ClassUtils {
                                                         boolean initialize ) {
   //                                                    ClassLoader loader,
   //                                                    Package[] packages) {
+    if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " )" );
     List< Class< ? > > classList = classesCache.get( className );
-    if ( !Utils.isNullOrEmpty( classList ) ) return classList;
+    if ( Debug.isOn() ) Debug.outln("classList " + classList + " from classesCache " + classesCache );
+    if ( !Utils.isNullOrEmpty( classList ) ) {
+      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " ) returning " + classList );
+      return classList;
+    }
     classList = new ArrayList< Class< ? > >();
-    if ( Utils.isNullOrEmpty( className ) ) return null;
+    if ( Utils.isNullOrEmpty( className ) ) {
+      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " ) rempty className - returning null" );
+      return null;
+    }
   //    ClassLoader loader = Utils.class.getClassLoader();
   //    if ( loader != null ) {
   //      for ( String pkgName : packagesToForceLoad ) {
@@ -654,7 +662,6 @@ public class ClassUtils {
   //        }
   //      }
   //    }
-      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " )" );
       Class< ? > classForName = tryClassForName( className, initialize );//, loader );
       if ( classForName != null ) classList.add( classForName );
       String strippedClassName = noParameterName( className );
@@ -683,6 +690,7 @@ public class ClassUtils {
       if ( !Utils.isNullOrEmpty( classList ) ) {
         classesCache.put( className, classList );
       }
+      if ( Debug.isOn() ) Debug.outln( "getClassesForName( " + className + " ) returning " + classList );
       return classList;
     }
 
@@ -1095,7 +1103,7 @@ public class ClassUtils {
     String classNameNoParams = noParameterName( className );
     List< Class< ? > > classesForName = getClassesForName( classNameNoParams, false );
     //Debug.err("classForName = " + classForName );
-    Debug.err("classesForName = " + classesForName );
+    Debug.outln("classesForName = " + classesForName );
     if ( Utils.isNullOrEmpty( classesForName ) ) {
       if ( complainIfNotFound ) {
         System.err.println( "Couldn't find the class " + className + " for method "

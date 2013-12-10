@@ -638,7 +638,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           //return aeExpr;
       /*** NameExpr ***/
       } else if ( expr.getClass() == NameExpr.class ) {
-        aeExpr = nameExprToAeExpression( (NameExpr)expr, true, evaluateCall, false, true );
+        aeExpr = nameExprToAeExpression( (NameExpr)expr, true, evaluateCall, false, true, false );
         //return aeExpr;
       /*** ThisExpr ***/
       } else if ( expr.getClass() == ThisExpr.class ) {
@@ -666,7 +666,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           Parameter< Object > parameter =
             (Parameter< Object >)getClassData().getParameter( null,ae.getTarget().toString(),
                                                          lookOutsideClassDataForTypes,
-                                                         true, true );
+                                                         true, true, complainIfDeclNotFound );
           if ( ae.getOperator() == AssignExpr.Operator.assign ) {
             Object value = astToAeExpression(ae.getValue(), false,
                                              lookOutsideClassDataForTypes,
@@ -1121,7 +1121,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       parentExpr =
           nameExprToAeExpression( (NameExpr)fieldAccessExpr.getScope(),
                                   wrapInFunction, evaluateCall,
-                                  addIfNotFound, propagate );
+                                  addIfNotFound, propagate, complainIfDeclNotFound );
     } else {
       Object o =
           astToAeExpression( fieldAccessExpr.getScope(), null,
@@ -1168,7 +1168,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       NameExpr nameExpr = new NameExpr( fieldAccessExpr.getField() );
       aeExpr =
           nameExprToAeExpression( nameExpr, wrapInFunction, evaluateCall,
-                                  wrapInFunction, propagate );
+                                  wrapInFunction, propagate, complainIfDeclNotFound );
     } else {
       parentExpr =
           fieldExprScopeToAeExpression( fieldAccessExpr,
@@ -1180,7 +1180,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         FunctionCall functionCall =
             new FunctionCall( parentExpr.expression, Parameter.class,
                               "getMember",
-                              new Object[] { "" + fieldAccessExpr.getField() } );
+                              new Object[] { "" + fieldAccessExpr.getField(), true } );
         aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
         String parentType =
             astToAeExprType( fieldAccessExpr.getScope(),
@@ -1432,12 +1432,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   public < T > gov.nasa.jpl.ae.event.Expression< T >
       nameExprToAeExpression( NameExpr nameExpr, boolean wrapInFunction,
                               boolean evaluateCall, boolean addIfNotFound,
-                              boolean propagate ) {
+                              boolean propagate, boolean complainIfNotFound ) {
       
       String aeString = nameExpr.getName();
       //ClassData.Param p = classData.lookupCurrentClassMember( aeString, false, false );
       //if ( p == null ) 
-      ClassData.Param p = getClassData().getParam( null, aeString, true, true, addIfNotFound );
+      ClassData.Param p = getClassData().getParam( null, aeString, true, true,
+                                                   addIfNotFound, complainIfNotFound );
       Parameter< T > parameter =
           (Parameter< T >)( p == null ? null : getClassData().getParameterMap().get( p ) );
 

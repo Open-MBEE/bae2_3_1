@@ -3,7 +3,6 @@ package gov.nasa.jpl.ae.util;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 
 import javax.swing.JDialog;
@@ -19,10 +18,17 @@ import com.nomagic.magicdraw.core.GUILog;
 
 public class MdDebug extends Debug {
 
+    public static MdDebug instance;
     public static GUILog gl = getGuiLog();
     public static StringBuffer glBuf = new StringBuffer();
     public static StringBuffer glErrBuf = new StringBuffer();
-
+    
+    // static initialization - set Debug's instance to MdDebug's
+    {
+      MdDebug.instance = new MdDebug();
+      Debug.setInstance( instance );
+    }
+    
     /**
        * Iterative deepening search for a Component of a specified type contained by
        * the Container c or a subcomponent of c.
@@ -160,27 +166,27 @@ public class MdDebug extends Debug {
       }
 
     protected static boolean isGuiThread() {
-          return javax.swing.SwingUtilities.isEventDispatchThread();
-      }
+        return javax.swing.SwingUtilities.isEventDispatchThread();
+    }
 
-    public static void logUnsafe( final String s, final boolean addNewLine,
-                                  final boolean isErr, final Color color ) {
-        if ( !Debug.isOn() ) return;
+    public void logUnsafe( final String s, final boolean addNewLine,
+                           final boolean isErr, final Color color ) {
+        if ( !on ) return;
         logUnsafeForce( s, addNewLine, isErr, color );
     }
-    public static void logUnsafeForce( final String s, final boolean addNewLine,
-                                       final boolean isErr, final Color color ) {
+    public void logUnsafeForce( final String s, final boolean addNewLine,
+                                final boolean isErr, final Color color ) {
+        super.logForce( s, addNewLine, isErr );
+      
         String ss = s;
-        String ps = s;
         Color newColor = color;
         StringBuffer sb = ( isErr ? glErrBuf : glBuf );
-    
+        
         if ( !addNewLine ) {
           if ( sb != null ) sb.append( ss );
         } else { // if ( addNewLine ) {
           String sbString = sb == null ? "" : sb.toString();
           ss = sbString + ss + "\n";
-          ps = ps + "\n";
           
           if ( isErr ) ss = "ERR: " + ss;
           if ( newColor == null ) {
@@ -202,30 +208,25 @@ public class MdDebug extends Debug {
             else glBuf = new StringBuffer();
           }
         }
-    
-        PrintStream stream = ( isErr ? System.err : System.out );
-        stream.print( ps );
-        stream.flush();
     }
 
-    public static void log( final String s ) {
-        log( s, true, false );
-    }
-    public static void logForce( final String s ) {
-        logForce( s, true, false, null );
+    @Override
+    public void logForce( final String s ) {
+      logForce( s, true, false, null );
     }
 
-    public static void log( final String s, final boolean addNewLine,
+    @Override
+    public void log( final String s, final boolean addNewLine,
                             final boolean isErr ) {
         log( s, addNewLine, isErr, null );
     }
 
-    public static void log( final String s, final boolean addNewLine,
-                            final boolean isErr, final Color color ) {
-        if ( !Debug.on ) return;
+    public void log( final String s, final boolean addNewLine,
+                     final boolean isErr, final Color color ) {
+        if ( !on ) return;
         logForce( s, addNewLine, isErr, color );
     }
-    public static void logForce( final String s, final boolean addNewLine,
+    public void logForce( final String s, final boolean addNewLine,
                                  final boolean isErr, final Color color ) {
         if ( isGuiThread() ) {
             logUnsafeForce( s, addNewLine, isErr, color );
@@ -243,7 +244,7 @@ public class MdDebug extends Debug {
         }
     }
 
-    public static void logWithColor( String msg, Color color ) {
+    public void logWithColor( String msg, Color color ) {
         JDialog log = gl.getLog();
         //JPanel jp = getComponentOfType( log, JPanel.class );//(JPanel)((java.awt.Container)log).getComponent( 0 ); //.getComponents();
         //JEditorPane jep = getComponentOfType( jp, JEditorPane.class );//(JEditorPane)jp.getComponent( 0 );

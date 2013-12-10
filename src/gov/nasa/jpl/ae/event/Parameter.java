@@ -248,10 +248,13 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return null;
   }
   
-  public Object getMember( String fieldName ) {
+//  public Object getMember( String fieldName ) {
+//    return getMember( fieldName, false );
+//  }
+  public Object getMember( String fieldName, boolean suppressExceptions ) {
     T v = getValueNoPropagate();
     if ( v == null ) return null;
-    Object f = ClassUtils.getFieldValue( v, fieldName );
+    Object f = ClassUtils.getFieldValue( v, fieldName, suppressExceptions );
     return f;
   }
   
