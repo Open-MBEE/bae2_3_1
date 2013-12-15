@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="BAE" default="makejar" basedir=".">
+<project name="bae" default="makejar" basedir=".">
   <!-- Customize properties below for your installation. -->
   <property name="junitJarFile" value="C:\Users\bclement\.yoxoslauncher\plugins\org.junit_4.8.2.v4_8_2_v20110321-1705\junit.jar"/>
   <property name="xmlFile" value="src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml"/>

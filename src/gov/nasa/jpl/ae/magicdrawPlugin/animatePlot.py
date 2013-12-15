@@ -17,8 +17,8 @@ movieFilePrefix = "plotAnimation"
 movieFileExtension = "mp4"
 
 # default file to read if useFile
-#fileName = "/home/bclement/proj/ae/workspace/CS/simulationSnapshot.example.txt"
-fileName = 'C:\Users\bclement\workspace\CS\simulationSnapshot.example.txt'
+#fileName = "/home/bclement/proj/ae/workspace/bae/simulationSnapshot.example.txt"
+fileName = 'C:\Users\bclement\git\bae\simulationSnapshot.example.txt'
 
 plotLines = True
 allLinesSameStyle = True # linestyle="-" for all lines
