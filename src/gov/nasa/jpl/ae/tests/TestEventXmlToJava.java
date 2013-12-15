@@ -83,7 +83,7 @@ public class TestEventXmlToJava {
     if ( directory == null ) directory = "";
     if ( Debug.isOn() ) Debug.outln( "initialize( ): 6 directory = " + directory );
     if ( Debug.isOn() ) Debug.outln( "initialize( ): 7 directory = " + directory );
-    int pos = directory.indexOf("CS");
+    int pos = directory.indexOf("bae");
     if ( pos == -1 ) {
       pos = 1;
     } else {

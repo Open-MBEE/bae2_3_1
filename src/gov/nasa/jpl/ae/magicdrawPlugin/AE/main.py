@@ -27,7 +27,7 @@ if home == '/Users/mjackson':
     aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \
              'com.nomagic.magicdraw.jpython' + os.sep + 'scripts' + os.sep + 'magicdrawPlugin'
 
-projectPath = workspacePath + os.sep + 'CS'
+projectPath = workspacePath + os.sep + 'bae'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
 aePluginDir = mdPath + os.sep + 'plugins' + os.sep + \

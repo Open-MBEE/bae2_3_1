@@ -103,7 +103,7 @@ class highlighterThread(Thread):
         gl.log("running MagicDrawAnimator2")
         mode = 0
         if mode == 0:
-            #filepath = "c:\\Users\\bclement\\workspace\\CS\\simulationSnapshot.Scenario_medium_2012.txt"
+            #filepath = "c:\\Users\\bclement\\git\\bae\\simulationSnapshot.Scenario_medium_2012.txt"
             #filepath = "c:\\Users\\bclement\\Desktop\\large6.txt"
             #filepath = "c:\\Users\\bclement\\Desktop\\foo12.txt"
             filepath = "/Users/mjackson/Desktop/testSim.txt"
