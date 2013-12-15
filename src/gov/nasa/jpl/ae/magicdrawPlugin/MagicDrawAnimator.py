@@ -62,8 +62,8 @@ class highlighterThread(Thread):
             if mode == 0:
                 mda = MagicDrawAnimatorUtils2.MagicDrawAnimator2()
                 #filepath = "c:\\Users\\bclement\\Desktop\\medium2.txt"
-                #filepath = "c:\\Users\\bclement\\workspace\\CS\\simulationSnapshot.Scenario_Smaller_2012.txt"
-                #filepath = "c:\\Users\\bclement\\workspace\\CS\\Smaller2012_2.console.txt"
+                #filepath = "c:\\Users\\bclement\\git\\bae\\simulationSnapshot.Scenario_Smaller_2012.txt"
+                #filepath = "c:\\Users\\bclement\\git\\bae\\Smaller2012_2.console.txt"
                 filepath = "/Users/mjackson/Desktop/MedSim.txt"
                 gl.log("default filepath = %s" % filepath)
                 #possibilities = None

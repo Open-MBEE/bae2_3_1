@@ -11,7 +11,7 @@
   	</dependency>
   </dependencies>
   <version>1.0</version>
-<!--   <systemPath>C:\Users\bclement\workspaceYoxos\CSQuery\AE.jar</systemPath> -->
+<!--   <systemPath>C:\Users\bclement\git\bae\AE.jar</systemPath> -->
   <build>
     <plugins>
 <plugin>

@@ -9,11 +9,12 @@ applicationsDir = "C:\Program Files"
 homeDir = os.getenv('HOME')
 if homeDir == None:
     homeDir = "C:\Users\bclement"
-workspacePath = homeDir + os.sep + 'proj' + os.sep + 'ae' + os.sep + 'workspace'
+#workspacePath = homeDir + os.sep + 'proj' + os.sep + 'ae' + os.sep + 'workspace'
+workspacePath = homeDir + os.sep + 'git'
 if not os.path.isdir(workspacePath):
-    workspacePath = homeDir + os.sep + 'workspace'
+    workspacePath = homeDir + os.sep + 'git'
     #workspacePath = homeDir + os.sep + 'proj/ae/workspace'
-mdPath = homeDir + os.sep + 'apps' + os.sep + 'MagicDraw' + os.sep + 'OpsRevMD1702-20120912'#"C:\Program Files\MagicDraw\OpsRevMD1702-20120912\bin\mduml.exe"
+mdPath = "C:" + os.sep + 'MD' + os.sep + 'bin\mduml.exe"
 if not os.path.isdir(mdPath):
     mdPath = applicationsDir + 'MagicDraw' + os.sep + 'OpsRevMD1702-20120912'
 
@@ -23,7 +24,7 @@ if 'mjackson' in homeDir:
     mdpath = '/Applications/OpsRevMD1702-20120818/'
     pluginDirName = 'magicdrawPlugin'
 
-projectPath = workspacePath + os.sep + 'CS'
+projectPath = workspacePath + os.sep + 'bae'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
 

@@ -46,7 +46,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   //private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
   //private static final String enthoughtPythonPath = "/usr/local/epd_free-7.3-2-rh5-x86_64/";
   //private static final String enthoughtPython = "/usr/local/epd_free-7.3-2-rh5-x86_64/bin/python";
-  private static final String enthoughtPythonPath = "c:\\Users\\bclement\\workspaceYoxos\\CS\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;c:\\Python27\\Lib";
+  private static final String enthoughtPythonPath = "c:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
   private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\python.exe";
   //private static final String enthoughtPython = "c:\\Python27\\python.exe";
   private static final String enthoughtTempDir = "c:\\temp";
