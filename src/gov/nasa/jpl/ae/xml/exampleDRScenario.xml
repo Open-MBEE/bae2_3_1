@@ -45,7 +45,7 @@
         <constraints></constraints>
         <dependencies>
           <dependency>
-            <name>n</name><value>getName()</value>
+            <name>n</name><value>this.getName()</value>
           </dependency>
         </dependencies>
         </class>

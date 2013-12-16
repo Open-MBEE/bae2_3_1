@@ -111,7 +111,19 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 	public < T > TimeVarying< T > applyTo( TimeVarying< T > tv, boolean propagate ) {//, Timepoint t, Duration d ) {
 	  //setStartTimeArgument( t );
 	  //setDurationArgument( d );
-	  object = tv;
+    if ( object != tv && tv != null
+         && ( object == null ||
+              ( object instanceof Parameter && 
+                ((Parameter)object).getValue( true ) == null ) ) ) {
+      Debug.error( true, "Warning! Assigning object of EffectFunction=(" + this
+                         + ") to " + tv + "!" );
+      object = tv;
+    }
+    if ( tv != null && object instanceof Parameter
+         && !( (Parameter)object ).getValue( true ).equals( tv ) ) {
+      Debug.error( true, "Object of EffectFunction=(" + this
+                         + ") does not match " + tv + "!" );
+    }
     /*
 		if ( arguments == null ) {
 			arguments = new Vector<Object>();

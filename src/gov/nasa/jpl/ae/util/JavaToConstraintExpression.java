@@ -90,7 +90,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   // This is for handling class names outside Java syntax.
   protected NameTranslator nameTranslator = new NameTranslator();
 
-  private String currentClass = null;
+  //private String currentClass = null;
 
   private ClassData classData = new ClassData();
 
@@ -1701,14 +1701,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
      * @return the currentClass
      */
     public String getCurrentClass() {
-        return currentClass;
-    }
-
-    /**
-     * @param currentClass the currentClass to set
-     */
-    public void setCurrentClass( String currentClass ) {
-        this.currentClass = currentClass;
+      if ( getClassData() == null ) return null;
+      return getClassData().getCurrentClass();
     }
 
     /**
