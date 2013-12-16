@@ -13,7 +13,9 @@ src/example
 src/generated
 src/gov/nasa/jpl/ae/magicdrawPlugin/*.mdr
 src/gov/nasa/jpl/ae/magicdrawPlugin/*.mdzip
-src/gov/nasa/jpl/ae/magicdrawPlugin/ActivityHighlighter.py
 src/gov/nasa/jpl/ae/magicdrawPlugin/unusedPlot
 src/gov/nasa/jpl/ae/xml/Scenario_XML_201*.xml
 src/latester
+bin
+*.pyc
+*~

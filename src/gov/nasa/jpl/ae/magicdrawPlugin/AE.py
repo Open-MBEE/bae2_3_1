@@ -82,8 +82,8 @@ from gov.nasa.jpl.ae.event import EventSimulation
 reload(EventSimulation)
 ##TestEventXmlToJava as TestEventXmlToJava
 #from generated import TestEventXmlToJava as TestEventXmlToJava
-from gov.nasa.jpl.ae.util import Utils
-reload(Utils)
+from gov.nasa.jpl.ae.util import CompareUtils
+reload(CompareUtils)
 
 #for testing jython link to java
 from java.util import TreeSet as TreeSet
@@ -217,7 +217,7 @@ def testJava():
     foo.add(hello)
     foo.add("world")
     print foo
-    print Utils.intCompare(3, 4)
+    print CompareUtils.compare(3, 4)
     print "Goodbye world!"
     print "sys.path = " + str(sys.path)
 
