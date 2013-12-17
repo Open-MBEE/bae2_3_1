@@ -3,7 +3,6 @@
  */
 package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +12,10 @@ import java.util.TreeMap;
 
 import javax.swing.KeyStroke;
 
-import org.junit.Assert;
-
-import gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.Configurator.Context;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Utils;
 
-import com.nomagic.actions.ActionsCategory;
 import com.nomagic.magicdraw.actions.ActionsConfiguratorsManager;
 import com.nomagic.magicdraw.actions.MDAction;
 import com.nomagic.magicdraw.plugins.Plugin;

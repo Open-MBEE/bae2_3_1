@@ -3219,14 +3219,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( p == null ) return false;
     Object t = p.first;
     V value = p.second;
-    if ( value != null ) {
+//    if ( value != null ) {
       if ( t instanceof Parameter
            && ( (Parameter<?>)t ).getValueNoPropagate() instanceof Integer ) {
         return hasValueAt( value, tryCastTimepoint( t ), true );
       } if ( t instanceof Integer ) {
         return hasValueAt( value, (Integer)t );
       }
-    }
+//    }
     return false;
   }
   

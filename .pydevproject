@@ -14,6 +14,6 @@
 <key>mdJython</key>
 <value>${InstalledMagicDraw}/plugins/com.nomagic.magicdraw.jpython/jython2.5.1</value>
 <key>InstalledMagicDraw</key>
-<value>C:\Program Files\MagicDraw\SSCAE-MD17.0.2SP3-PackageK-build994-20130327</value>
+<value>C:\MD</value>
 </pydev_variables_property>
 </pydev_project>

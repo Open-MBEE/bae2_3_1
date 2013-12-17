@@ -1,4 +1,10 @@
-package gov.nasa.jpl.ae.util;
+package gov.nasa.jpl.ae.magicdrawPlugin;
+
+import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.ae.util.Seen;
+import gov.nasa.jpl.ae.util.Utils;
 
 import java.awt.Color;
 import java.awt.Component;
