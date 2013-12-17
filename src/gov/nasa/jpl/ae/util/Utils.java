@@ -190,7 +190,24 @@ public class Utils {
   }
 
   // generic map<X, map<Y, Z> >.put(x, y, z)
-  public static <T1 extends Comparable<T1>, T2 extends Comparable<T2>, T3 > T3 put( Map< T1, Map< T2, T3 > > map, T1 t1, T2 t2, T3 t3 ) {
+  /**
+   * A generic method for putting a triple into a map of a map to emulate
+   * map&ltX, map&ltY, Z> >.put(x, y, z). For both keys (x and y), if no entry
+   * exists, an entry is created.
+   * 
+   * @param map
+   *          the target map to receive the new entry
+   * @param t1
+   *          the outer map key
+   * @param t2
+   *          the inner map key
+   * @param t3
+   *          the inner map value
+   * @return the pre-existing value mapped to t2 in the inner map or null if
+   *         there is no such entry/
+   */
+  public static < T1 extends Comparable< T1 >, T2 extends Comparable< T2 >, T3 >
+      T3 put( Map< T1, Map< T2, T3 > > map, T1 t1, T2 t2, T3 t3 ) {
     if ( Debug.errorOnNull( "Error! Called Utils.put() with null argument!",
                             map, t1, t2, t3 ) ) {
       return null;
@@ -204,7 +221,21 @@ public class Utils {
   }
 
   // generic map<X, map<Y, Z> >.get(x, y) --> z
-  public static <T1 extends Comparable<T1>, T2 extends Comparable<T2>, T3 > T3 get( Map< T1, Map< T2, T3 > > map, T1 t1, T2 t2 ) {
+  /**
+   * A generic method for getting a value from a map in a map to emulate
+   * map&ltX, map&ltY, Z> >.get(x, y) --> z.
+   * 
+   * @param map
+   *          the map of map from which to retrieve the value
+   * @param t1
+   *          the outer map key
+   * @param t2
+   *          the inner map key
+   * @return the value mapped to t2 in the inner map that is mapped to t1 or
+   *         null if either entry does not exist.
+   */
+  public static < T1 extends Comparable< T1 >, T2 extends Comparable< T2 >, T3 >
+      T3 get( Map< T1, Map< T2, T3 > > map, T1 t1, T2 t2 ) {
     if ( Debug.errorOnNull( "Error! Called Utils.get() with null argument!",
                             map, t1, t2 ) ) {
       return null;
