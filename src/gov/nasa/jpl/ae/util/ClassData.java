@@ -3,8 +3,6 @@ package gov.nasa.jpl.ae.util;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
-import gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.EmfUtils;
-import gov.nasa.jpl.ae.util.ClassData.Param;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
@@ -19,9 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
-
-import org.w3c.dom.Node;
 
 public class ClassData {
 
@@ -402,7 +397,7 @@ public class ClassData {
   public Param makeParam( String className, String paramName, String type,
                            String value ) {
     Param p = new Param( paramName, type, value );
-    Param existingParam = EmfUtils.put( paramTable, className, paramName, p );
+    Param existingParam = Utils.put( paramTable, className, paramName, p );
     Parameter< ? > parameter = parameterMap.get( p );
     if ( parameter == null ) {
       parameter = makeParameter(className, p );// constructParameter( className, p );

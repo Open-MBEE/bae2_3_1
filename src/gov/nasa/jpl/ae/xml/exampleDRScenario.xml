@@ -80,6 +80,9 @@
             <name>tmp</name><type>TimeVaryingMap&lt;Double&gt;</type><value>null</value>
           </parameter>
           <parameter>
+            <name>tmp2</name><type>TimeVaryingMap&lt;Double&gt;</type><value>null</value>
+          </parameter>
+          <parameter>
             <name>hourAfter</name><type>Integer</type><value>null</value>
           </parameter>
         </members>
@@ -101,7 +104,11 @@
             <value>(new TimeVaryingProjection&lt;Double&gt;("tvProj", "allGen.csv", null, Double.class )).dividedBy(100.0)</value>
           </dependency>
           <dependency>
-            <name>tmp</name><value>theGrid.customerLoads.minus( tvProj.getValue( endTime ) )</value>
+            <name>tmp</name><value>theGrid.customerLoads.minus( tmp2 )</value>
+          </dependency>
+          <!-- Had to break out tmp2 because the translation got the wrong minus, the one that takes a Number argument instead of a TimeVaryingMap argument. -->
+          <dependency>
+            <name>tmp2</name><value>tvProj.getValue( endTime )</value>
           </dependency>
           <dependency>
             <name>hourAfter</name><value>endTime + 3600</value>
