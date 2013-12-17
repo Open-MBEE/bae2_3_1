@@ -3,8 +3,6 @@
  */
 package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
-import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.Configurator.Context;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.Pair;
@@ -12,7 +10,6 @@ import gov.nasa.jpl.ae.util.Utils;
 
 import java.awt.AWTEvent;
 import java.awt.event.ActionEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EventObject;

@@ -445,118 +445,118 @@ public final class EmfUtils {
 
   // Container utilities
 
-  // Check if string has really got something.
-  public static boolean isNullOrEmpty(String s) {
-    return (s == null || s.isEmpty() || s.trim().toLowerCase()
-        .equals("null"));
-  }
-
-  // Check if array has really got something.
-  public static boolean isNullOrEmpty(Object[] s) {
-    return (s == null || s.length == 0);
-  }
-
-  // Check if Collection has really got something.
-  public static boolean isNullOrEmpty(Collection<?> s) {
-    return (s == null || s.isEmpty());
-  }
-
-  // Check if Map has really got something.
-  public static boolean isNullOrEmpty(Map<?, ?> s) {
-    return (s == null || s.isEmpty());
-  }
-
-  /**
-   * A generic method for putting a triple into a map of a map to emulate
-   * map&ltX, map&ltY, Z> >.put(x, y, z). For both keys (x and y), if no entry
-   * exists, an entry is created.
-   * 
-   * @param map
-   *            the target map to receive the new entry
-   * @param t1
-   *            the outer map key
-   * @param t2
-   *            the inner map key
-   * @param t3
-   *            the inner map value
-   * @return the pre-existing value mapped to t2 in the inner map or null if
-   *         there is no such entry/
-   */
-  public static <T1, T2, T3> T3 put(Map<T1, Map<T2, T3>> map, T1 t1, T2 t2,
-      T3 t3) {
-    if (Debug.errorOnNull("Error! Called Utils.put() with null argument!",
-        map, t1, t2)) {
-      return null;
-    }
-    Map<T2, T3> innerMap = map.get(t1);
-    if (innerMap == null) {
-      if (t2 instanceof Comparable) {
-        innerMap = new TreeMap<T2, T3>();
-      } else {
-        innerMap = new HashMap<T2, T3>();
-      }
-      map.put(t1, innerMap);
-    }
-    return innerMap.put(t2, t3);
-  }
-
-  /**
-   * A generic method for getting a value from a map in a map to emulate
-   * map&ltX, map&ltY, Z> >.get(x, y) --> z.
-   * 
-   * @param map
-   *            the map of map from which to retrieve the value
-   * @param t1
-   *            the outer map key
-   * @param t2
-   *            the inner map key
-   * @return the value mapped to t2 in the inner map that is mapped to t1 or
-   *         null if either entry does not exist.
-   */
-  public static <T1, T2, T3> T3 get(Map<T1, Map<T2, T3>> map, T1 t1, T2 t2) {
-    if (Debug.errorOnNull("Error! Called Utils.get() with null argument!",
-        map, t1, t2)) {
-      return null;
-    }
-    Map<T2, T3> innerMap = map.get(t1);
-    if (innerMap != null) {
-      return innerMap.get(t2);
-    }
-    return null;
-  }
-
-  // generic map< W, map<X, map<Y, Z> >.put(w, x, y, z)
-  public static <T1, T2, T3, T4> T4 put(Map<T1, Map<T2, Map<T3, T4>>> map,
-      T1 t1, T2 t2, T3 t3, T4 t4) {
-    if (Debug.errorOnNull("Error! Called Utils.put() with null argument!",
-        map, t1, t2, t3)) {
-      return null;
-    }
-    Map<T2, Map<T3, T4>> innerMap = map.get(t1);
-    if (innerMap == null) {
-      if (t2 instanceof Comparable) {
-        innerMap = new TreeMap<T2, Map<T3, T4>>();
-      } else {
-        innerMap = new HashMap<T2, Map<T3, T4>>();
-      }
-      map.put(t1, innerMap);
-    }
-    return put(innerMap, t2, t3, t4);
-  }
-
-  // generic map< W, map<X, map<Y, Z> >.get(w, x, y) --> z
-  public static <T1, T2, T3, T4> T4 get(Map<T1, Map<T2, Map<T3, T4>>> map,
-      T1 t1, T2 t2, T3 t3) {
-    if (Debug.errorOnNull("Error! Called Utils.get() with null argument!",
-        map, t1, t2, t3)) {
-      return null;
-    }
-    Map<T2, Map<T3, T4>> innerMap = map.get(t1);
-    if (innerMap != null) {
-      return get(innerMap, t2, t3);
-    }
-    return null;
-  }
+//  // Check if string has really got something.
+//  public static boolean isNullOrEmpty(String s) {
+//    return (s == null || s.isEmpty() || s.trim().toLowerCase()
+//        .equals("null"));
+//  }
+//
+//  // Check if array has really got something.
+//  public static boolean isNullOrEmpty(Object[] s) {
+//    return (s == null || s.length == 0);
+//  }
+//
+//  // Check if Collection has really got something.
+//  public static boolean isNullOrEmpty(Collection<?> s) {
+//    return (s == null || s.isEmpty());
+//  }
+//
+//  // Check if Map has really got something.
+//  public static boolean isNullOrEmpty(Map<?, ?> s) {
+//    return (s == null || s.isEmpty());
+//  }
+//
+//  /**
+//   * A generic method for putting a triple into a map of a map to emulate
+//   * map&ltX, map&ltY, Z> >.put(x, y, z). For both keys (x and y), if no entry
+//   * exists, an entry is created.
+//   * 
+//   * @param map
+//   *            the target map to receive the new entry
+//   * @param t1
+//   *            the outer map key
+//   * @param t2
+//   *            the inner map key
+//   * @param t3
+//   *            the inner map value
+//   * @return the pre-existing value mapped to t2 in the inner map or null if
+//   *         there is no such entry/
+//   */
+//  public static <T1, T2, T3> T3 put(Map<T1, Map<T2, T3>> map, T1 t1, T2 t2,
+//      T3 t3) {
+//    if (Debug.errorOnNull("Error! Called Utils.put() with null argument!",
+//        map, t1, t2)) {
+//      return null;
+//    }
+//    Map<T2, T3> innerMap = map.get(t1);
+//    if (innerMap == null) {
+//      if (t2 instanceof Comparable) {
+//        innerMap = new TreeMap<T2, T3>();
+//      } else {
+//        innerMap = new HashMap<T2, T3>();
+//      }
+//      map.put(t1, innerMap);
+//    }
+//    return innerMap.put(t2, t3);
+//  }
+//
+//  /**
+//   * A generic method for getting a value from a map in a map to emulate
+//   * map&ltX, map&ltY, Z> >.get(x, y) --> z.
+//   * 
+//   * @param map
+//   *            the map of map from which to retrieve the value
+//   * @param t1
+//   *            the outer map key
+//   * @param t2
+//   *            the inner map key
+//   * @return the value mapped to t2 in the inner map that is mapped to t1 or
+//   *         null if either entry does not exist.
+//   */
+//  public static <T1, T2, T3> T3 get(Map<T1, Map<T2, T3>> map, T1 t1, T2 t2) {
+//    if (Debug.errorOnNull("Error! Called Utils.get() with null argument!",
+//        map, t1, t2)) {
+//      return null;
+//    }
+//    Map<T2, T3> innerMap = map.get(t1);
+//    if (innerMap != null) {
+//      return innerMap.get(t2);
+//    }
+//    return null;
+//  }
+//
+//  // generic map< W, map<X, map<Y, Z> >.put(w, x, y, z)
+//  public static <T1, T2, T3, T4> T4 put(Map<T1, Map<T2, Map<T3, T4>>> map,
+//      T1 t1, T2 t2, T3 t3, T4 t4) {
+//    if (Debug.errorOnNull("Error! Called Utils.put() with null argument!",
+//        map, t1, t2, t3)) {
+//      return null;
+//    }
+//    Map<T2, Map<T3, T4>> innerMap = map.get(t1);
+//    if (innerMap == null) {
+//      if (t2 instanceof Comparable) {
+//        innerMap = new TreeMap<T2, Map<T3, T4>>();
+//      } else {
+//        innerMap = new HashMap<T2, Map<T3, T4>>();
+//      }
+//      map.put(t1, innerMap);
+//    }
+//    return put(innerMap, t2, t3, t4);
+//  }
+//
+//  // generic map< W, map<X, map<Y, Z> >.get(w, x, y) --> z
+//  public static <T1, T2, T3, T4> T4 get(Map<T1, Map<T2, Map<T3, T4>>> map,
+//      T1 t1, T2 t2, T3 t3) {
+//    if (Debug.errorOnNull("Error! Called Utils.get() with null argument!",
+//        map, t1, t2, t3)) {
+//      return null;
+//    }
+//    Map<T2, Map<T3, T4>> innerMap = map.get(t1);
+//    if (innerMap != null) {
+//      return get(innerMap, t2, t3);
+//    }
+//    return null;
+//  }
 
   public static String getBundleFilename(Bundle bundle, String filename) {
     assert (bundle != null);

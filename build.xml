@@ -19,9 +19,31 @@
   <!-- <property name="md" location="${mdpath}"/> -->
   <!-- Conditional properties to load based on whether or not this is being called from jenkins build -->
 
+	  <target name ="makeMdJar" description="Create a jar for the Analysis Engine, including support for MagicDraw plugins and requiring MagicDraw libraries.">
+	    <tstamp>
+	       <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+	    </tstamp>
+	    <echo message="started ${current.time}" />
+	    <jar destfile="AE_MD.jar">
+	      <fileset includes="**/*.class"  excludes="generated**/*" dir="bin"/>
+	      <zipfileset includes="**/*.class" src="${junitJarFile}"/>
+	      <manifest>
+	        <attribute name="Main-Class" value="tests/TestEventXmlToJava"/>
+	      </manifest>
+	    </jar>
+	    <tstamp>
+	       <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+	    </tstamp>
+	    <echo message="finished ${current.time}" />
+	  </target>
+
   <target name ="makejar" description="Create a jar for the Analysis Engine">
+    <tstamp>
+       <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+    </tstamp>
+    <echo message="started ${current.time}" />
     <jar destfile="AE.jar">
-      <fileset includes="**/*.class"  excludes="generated**/*" dir="bin"/>
+      <fileset includes="**/*.class"  excludes="generated**/* **/magicdrawPlugin**/*" dir="bin"/>
       <zipfileset includes="**/*.class" src="${junitJarFile}"/>
       <manifest>
         <attribute name="Main-Class" value="tests/TestEventXmlToJava"/>
@@ -31,13 +53,21 @@
     <tstamp>
        <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
     </tstamp>
-    <echo message="${current.time}" />  
+    <echo message="finished ${current.time}" />  
   </target>
 
   <target name="copyAeJar">
+    <tstamp>
+       <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+    </tstamp>
+    <echo message="started ${current.time}" />
     <copy todir="${view_repo_web_lib}" file="AE.jar"/>
     <copy todir="${view_repo_lib}" file="AE.jar"/>
     <!-- <copy todir="${view_repo_AE1}" toFile="AE-1.0.jar" file="AE.jar"/> -->
+    <tstamp>
+       <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+    </tstamp>
+    <echo message="finished ${current.time}" />
   </target>
 	
   <target name="xml2java" depends="makejar">
@@ -57,12 +87,12 @@
   	<echo>Finished running generated.Main</echo>
   </target>
   
-  <target name="copyTestPlugin" depends="makejar">
- 	<copy todir="${md}/plugins/gov.nasa.jpl.ae.test" file="AE.jar"/>
+  <target name="copyTestPlugin" depends="makeMdJar">
+ 	<copy todir="${md}/plugins/gov.nasa.jpl.ae.test" file="AE_MD.jar"/>
   	<copy todir="${md}/plugins/gov.nasa.jpl.ae.test" file="${pluginXmlFile}"/>
   </target>
   
-  <target name="copyAePlugin" depends="makejar">
+  <target name="copyAePlugin" depends="makeMdJar">
   	<copy todir="${md}/plugins/scripts/AE" file="${scriptXmlFile}"/>
   	<copy todir="${md}/plugins/scripts/AE" file="${mainPyFile}"/>
   </target>

@@ -6,7 +6,6 @@ package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
-import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.CompareUtils;
@@ -36,7 +35,6 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EGenericType;
 import org.eclipse.emf.ecore.EModelElement;
-import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EReference;
@@ -45,7 +43,6 @@ import org.eclipse.emf.ecore.ETypeParameter;
 
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
 import com.nomagic.magicdraw.uml.BaseElement;
-import com.nomagic.magicdraw.uml.ElementImpl;
 
 /**
  * A ModelReference is a reference to elements in a model (like a UML model, for
