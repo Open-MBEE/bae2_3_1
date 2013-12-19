@@ -994,6 +994,32 @@ public class ClassUtils {
     }
     if ( classList.size() > 1 ) {
       System.err.println( "Error! Got multiple class candidates for constructor! " + classList );
+      Class<?> bestCls = null;
+      int bestLength = Integer.MAX_VALUE;
+      int bestLengthOfCommonPkgPrefix = 0;
+      for ( Class<?> c : classList ) {
+        boolean best = false;
+        int lengthOfCommonPkgPrefix = lengthOfCommonPrefix( c.getPackage().getName(), ClassUtils.class.getPackage().getName() );
+        int length = lengthOfCommonPrefix( c.getPackage().getName(), ClassUtils.class.getPackage().getName() );
+        if ( bestCls == null ) {
+          best = true;
+        } else if ( lengthOfCommonPkgPrefix > bestLengthOfCommonPkgPrefix ) {
+          best = true;
+        } else if ( lengthOfCommonPkgPrefix == bestLengthOfCommonPkgPrefix ) {
+          if ( length < bestLength ) best = true;
+        }
+        if ( best ) {
+          bestCls = c;
+          bestLength = length;
+          bestLengthOfCommonPkgPrefix = lengthOfCommonPkgPrefix;
+        }
+      }
+      System.out.println( "Best class " + bestCls.getCanonicalName() + " has length, "
+                   + bestLength + ", and common prefix length of packages, "
+                   + bestLengthOfCommonPkgPrefix + ", pkg="
+                   + bestCls.getPackage().getName() + ", ClassUtils pkg="
+                   + ClassUtils.class.getPackage().getName() );
+      return bestCls;
     }
     return classList.get( 0 );
   }
