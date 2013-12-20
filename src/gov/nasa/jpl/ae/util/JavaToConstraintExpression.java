@@ -534,11 +534,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
    * @param evaluateCall
    * @return
    */
-  public Object //gov.nasa.jpl.ae.event.Expression< ? >
-      astToAeExpression( Expression expr, String type,
-                         String specifier,
-                         boolean convertFcnCallArgsToExprs,
-                         boolean lookOutsideClassDataForTypes, boolean complainIfDeclNotFound, boolean evaluateCall ) {
+  public Object astToAeExpression( Expression expr,
+                                   String type,
+                                   String specifier, // TODO -- this is never used!!!!
+                                   boolean convertFcnCallArgsToExprs,
+                                   boolean lookOutsideClassDataForTypes,
+                                   boolean complainIfDeclNotFound,
+                                   boolean evaluateCall ) {
       if ( expr == null ) return null;
       type = JavaToConstraintExpression.typeToClass( type );
       if ( Utils.isNullOrEmpty( type ) ) {
@@ -816,6 +818,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           Class<?> type = mm.getReturnType(); 
           Class<?> cls = mm.getDeclaringClass();
           boolean typeWasObject = type == Object.class;
+          // TODO -- REVIEW -- Should below be something like Utils.replaceSuffix(ClassUtils.toString( expression.getType() ), ".class", "" );
           if ( type != null && !typeWasObject ) {
             result = ( type.isArray() ? type.getSimpleName() : type.getName() );
           }
@@ -1065,34 +1068,38 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                             wrapInFunction, evaluateCall, !wrapInFunction,
                             propagate );
         }
-        if ( wrapInFunction ) {
-          aeString =
-              "new FunctionCall(" + parentString
-                  + ", Parameter.class, \"getMember\", " + "new Object[]{\""
-                  + fieldAccessExpr.getField() + "\"})";
-        } else {
-          aeString = parentString + "." + fieldAccessExpr.getField();
-        }
-        if ( p != null && getParameterValue ) {
-          if ( wrapInFunction ) {
-            // nesting function calls
-            aeString =
-                "new FunctionCall(null, Parameter.class, \"getValue\", "
-                    + "new Object[]{ true }, " + aeString + ")";
-          } else {
-            aeString += ".getValue(" + propagate + ")";
-          }
-        }
-        if ( wrapInFunction && evaluateCall ) {
-          aeString = "(" + aeString + ").evaluate(" + propagate + ")";
-        }
+        aeString =
+            packageExpressionString( parentString, fieldAccessExpr,
+                                     wrapInFunction, evaluateCall,
+                                     p != null && getParameterValue, propagate );
+//        if ( wrapInFunction ) {
+//          aeString =
+//              "new FunctionCall(" + parentString
+//                  + ", Parameter.class, \"getMember\", " + "new Object[]{\""
+//                  + fieldAccessExpr.getField() + "\"})";
+//        } else {
+//          aeString = parentString + "." + fieldAccessExpr.getField();
+//        }
+//        if ( p != null && getParameterValue ) {
+//          if ( wrapInFunction ) {
+//            // nesting function calls
+//            aeString =
+//                "new FunctionCall(null, Parameter.class, \"getValue\", "
+//                    + "new Object[]{ true }, " + aeString + ")";
+//          } else {
+//            aeString += ".getValue(" + propagate + ")";
+//          }
+//        }
+//        if ( wrapInFunction && evaluateCall ) {
+//          aeString = "(" + aeString + ").evaluate(" + propagate + ")";
+//        }
       }
     } else if ( fieldAccessExpr.getScope() instanceof ThisExpr ) {
       aeString = fieldAccessExpr.toString();
     }
     return aeString;
   }
-
+  
   public gov.nasa.jpl.ae.event.Expression< ? >
     fieldExprScopeToAeExpression( FieldAccessExpr fieldAccessExpr,
                                   boolean convertFcnCallArgsToExprs,
@@ -1189,27 +1196,91 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             getClassData().lookupMemberByName( parentType,
                                           fieldAccessExpr.getField(), false,
                                           false );
-        if ( p != null && getParameterValue ) {
-          // if ( wrapInFunction ) {
-          // nesting function calls
-          functionCall =
-              new FunctionCall( aeExpr, Parameter.class, "getValue",
-                                new Object[] { true } );
-          aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
-        }
-        if ( evaluateCall ) { // && wrapInFunction ) {
-          Object result = null;
-          result = aeExpr.evaluate( propagate );
-          if ( !aeExpr.didEvaluationSucceed() ) {
-            aeExpr = null;
-          } else if ( !( result instanceof gov.nasa.jpl.ae.event.Expression ) ) {
-            aeExpr = new gov.nasa.jpl.ae.event.Expression( result );
-          }
-        }
+        aeExpr =
+            packageExpression( aeExpr, wrapInFunction, evaluateCall,
+                               p != null && getParameterValue, propagate );
+//        if ( p != null && getParameterValue ) {
+//          // if ( wrapInFunction ) {
+//          // nesting function calls
+//          functionCall =
+//              new FunctionCall( aeExpr, Parameter.class, "getValue",
+//                                new Object[] { true } );
+//          aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
+//        }
+//        if ( evaluateCall ) { // && wrapInFunction ) {
+//          Object result = null;
+//          result = aeExpr.evaluate( propagate );
+//          if ( !aeExpr.didEvaluationSucceed() ) {
+//            aeExpr = null;
+//          } else if ( !( result instanceof gov.nasa.jpl.ae.event.Expression ) ) {
+//            aeExpr = new gov.nasa.jpl.ae.event.Expression( result );
+//          }
+//        }
       }
     }
     return aeExpr;
   }
+  
+  public gov.nasa.jpl.ae.event.Expression< ? >
+      packageExpression( Object object,
+                         boolean wrapInFunction, boolean evaluateCall,
+                         boolean getParameterValue, boolean propagate ) {
+    gov.nasa.jpl.ae.event.Expression< ? > aeExpr =
+        ( object instanceof Expression ) ? (gov.nasa.jpl.ae.event.Expression< ? >)object
+                                         : null;
+    if ( getParameterValue || wrapInFunction ) {
+      // nesting function calls
+      FunctionCall functionCall =
+          new FunctionCall( object, Parameter.class, "getValue",
+                            new Object[] { true } );
+      aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
+    }
+    if ( evaluateCall && aeExpr != null ) { // && wrapInFunction ) {
+      Object result = null;
+      result = aeExpr.evaluate( propagate );
+      if ( !aeExpr.didEvaluationSucceed() ) {
+        aeExpr = null;
+      } else if ( !( result instanceof gov.nasa.jpl.ae.event.Expression ) ) {
+        aeExpr = new gov.nasa.jpl.ae.event.Expression( result );
+      }
+    }
+    if ( aeExpr == null && !wrapInFunction && object instanceof Parameter ) {
+      aeExpr = new gov.nasa.jpl.ae.event.Expression( ((Parameter< ? >)object).getValue( propagate ) );
+    }
+    return aeExpr;
+  }
+
+  public String packageExpressionString( String parentString,
+                                         FieldAccessExpr fieldAccessExpr,
+                                         boolean wrapInFunction,
+                                         boolean evaluateCall,
+                                         boolean getParameterValue,
+                                         boolean propagate ) {
+    String aeString;
+    if ( wrapInFunction ) {
+      aeString =
+          "new FunctionCall(" + parentString
+              + ", Parameter.class, \"getMember\", " + "new Object[]{\""
+              + fieldAccessExpr.getField() + "\"})";
+    } else {
+      aeString = parentString + "." + fieldAccessExpr.getField();
+    }
+    if ( getParameterValue ) {
+      if ( wrapInFunction ) {
+        // nesting function calls
+        aeString =
+            "new FunctionCall(null, Parameter.class, \"getValue\", "
+                + "new Object[]{ true }, " + aeString + ")";
+      } else {
+        aeString += ".getValue(" + propagate + ")";
+      }
+    }
+    if ( wrapInFunction && evaluateCall ) {
+      aeString = "(" + aeString + ").evaluate(" + propagate + ")";
+    }
+    return aeString;
+  }
+  
 
     protected Expression fixExpression( Expression expr ) {
       if ( expr == null ) return null;
@@ -1447,28 +1518,35 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         return null;
       }
 
-      gov.nasa.jpl.ae.event.Expression< T > aeExpression = null;
-      
-      if ( wrapInFunction ) {
-        aeExpression =
-            new gov.nasa.jpl.ae.event.Expression<T>( new FunctionCall( parameter,
-                                                                    Parameter.class,
-                                                                    "getValue",
-                                                                    new Object[] { true } ) );
-        if ( evaluateCall ) {
-          aeExpression =
-              new gov.nasa.jpl.ae.event.Expression<T>( aeExpression.evaluate( propagate ) );
-        }
-      } else {
-        aeExpression =
-            new gov.nasa.jpl.ae.event.Expression<T>( parameter.getValue( propagate ) );
-      }
+    gov.nasa.jpl.ae.event.Expression< T > aeExpression =
+        (gov.nasa.jpl.ae.event.Expression< T >)packageExpression( parameter,
+                                                                  wrapInFunction,
+                                                                  evaluateCall,
+                                                                  false,
+                                                                  propagate );
+//      gov.nasa.jpl.ae.event.Expression< T > aeExpression = null;
+//      
+//      if ( wrapInFunction ) {
+//        aeExpression =
+//            new gov.nasa.jpl.ae.event.Expression<T>( new FunctionCall( parameter,
+//                                                                    Parameter.class,
+//                                                                    "getValue",
+//                                                                    new Object[] { true } ) );
+//        if ( evaluateCall ) {
+//          aeExpression =
+//              new gov.nasa.jpl.ae.event.Expression<T>( aeExpression.evaluate( propagate ) );
+//        }
+//      } else {
+//        aeExpression =
+//            new gov.nasa.jpl.ae.event.Expression<T>( parameter.getValue( propagate ) );
+//      }
       return aeExpression;
     }
 
   public String nameExprToAe( NameExpr nameExpr, boolean wrapInFunction,
                               boolean evaluateCall, boolean getParameterValue,
                               boolean propagate ) {
+    if ( nameExpr == null ) return null;
     if ( !getParameterValue ) return nameExpr.getName();
     String aeString = nameExpr.getName();
     ClassData.Param p =

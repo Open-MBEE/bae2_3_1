@@ -251,7 +251,7 @@ public class ClassData {
     }
     if ( Utils.isNullOrEmpty( methodSet ) && classMethods == null ) {
       if ( Debug.isOn() ) Debug.outln( "getClassMethodsWithName(" + methodName + ", " + className
-                   + ") couldn't find class!\nmethodTable="
+                   + ") couldn't find class in ClassData cache!\nmethodTable="
                    + methodTable.toString() );
       return methodSet;
     }

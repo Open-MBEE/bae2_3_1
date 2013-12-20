@@ -1518,10 +1518,7 @@ public class ClassUtils {
         if ( Utils.isNullOrEmpty( compString ) ) {
             return "";
         }
-        int pos = compString.lastIndexOf( ".class" );
-        if ( pos == compString.length() - 6 ) {
-            compString = compString.substring( 0, pos );
-        }
+        compString = Utils.replaceSuffix(compString, ".class", "" );
         return compString + "[]" + ".class";
       }
       StringBuffer sb = new StringBuffer();

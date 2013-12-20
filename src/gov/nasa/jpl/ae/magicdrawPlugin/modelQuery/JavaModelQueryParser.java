@@ -5,15 +5,19 @@ package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
 import java.util.List;
 
+import org.apache.axis.encoding.FieldTarget;
 import org.eclipse.emf.ecore.EObject;
+
+import com.nomagic.magicdraw.ui.ae;
 
 import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.NameExpr;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.Parameter;
+import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
 import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.xml.JavaToConstraintExpression;
 
 /**
  * As a JavaToConstraintExpression, this class parses Java. JavaModelQueryParser
@@ -45,24 +49,28 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
   public String fieldExprToAeType( japa.parser.ast.expr.FieldAccessExpr expr,
                                    boolean lookOutsideClassData ) {
     String type = super.fieldExprToAeType( expr, lookOutsideClassData );
-    if ( Utils.isNullOrEmpty( type ) ) {
+    if ( !Utils.isNullOrEmpty( type ) ) return type;
       // Could not determine the type based on Java reflection alone.  See if
       // the type can be determined with respect to model elements.
-      
-      ModelReference< ? > ref1 = new ModelReference( expr.toString(), "Java", null );
-      ModelReference< ? > ref2 =
-          new ModelReference( null, expr.getScope().toString(),
-                              expr.getField(), null,
-                              new Parameter< EObject >( "", null, model, null ),
-                              null, null, null, true );
-      @SuppressWarnings( { "unchecked", "rawtypes" } )
-      ModelReference< ? > ref3 =
-          new ModelReference( model, expr.getScope().toString(), null, null, true );
-      List< ModelReference< ? > > ref4 =
-          ModelReference.getAlternatives( ref3, expr.getField(), null );
-      HERE!!!;
-    }
-    return type;
+      Expression< ? > expression =
+          fieldExprToAeExpression( expr, false,
+                                   lookOutsideClassData,
+                                   false, false,
+                                   false, false, false );
+      if ( expression == null ) return null;
+      return Utils.replaceSuffix(ClassUtils.toString( expression.getType() ), ".class", "" );
+//      ModelReference< ? > ref1 = new ModelReference( expr.toString(), "Java", null );
+//      ModelReference< ? > ref2 =
+//          new ModelReference( null, expr.getScope().toString(),
+//                              expr.getField(), null,
+//                              new Parameter< EObject >( "", null, model, null ),
+//                              null, null, null, true );
+//      @SuppressWarnings( { "unchecked", "rawtypes" } )
+//      ModelReference< ? > ref3 =
+//          new ModelReference( model, expr.getScope().toString(), null, null, true );
+//      List< ModelReference< ? > > ref4 =
+//          ModelReference.getAlternatives( ref3, expr.getField(), null );
+//    return type;
   }
 
   /* (non-Javadoc)
@@ -74,16 +82,23 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
                                boolean complainIfDeclNotFound,
                                boolean wrapInFunction, boolean evaluateCall,
                                boolean getParameterValue, boolean propagate ) {
-    // TODO Auto-generated method stub
+//    boolean convertFcnCallArgsToExprs = true; // TODO -- should this be passed in?
+//    Expression<?> expression = fieldExprToAeExpression( fieldAccessExpr, convertFcnCallArgsToExprs, lookOutsideClassDataForTypes, complainIfDeclNotFound, wrapInFunction, evaluateCall, getParameterValue, propagate );
     String aeExpr = super.fieldExprToAe( fieldAccessExpr, lookOutsideClassDataForTypes,
                                          complainIfDeclNotFound, wrapInFunction,
                                          evaluateCall, getParameterValue, propagate );
     if ( Utils.isNullOrEmpty( aeExpr ) ) {
       // Could not convert the expression based on Java reflection alone.  See if
       // the type can be determined with respect to model elements.
-      HERE!! TODO!!;
+      boolean convertFcnCallArgsToExprs = true; // TODO -- should this be passed in?
+      Expression< ? > expression =
+          fieldExprToAeExpression( fieldAccessExpr, convertFcnCallArgsToExprs,
+                                   lookOutsideClassDataForTypes,
+                                   complainIfDeclNotFound, wrapInFunction,
+                                   evaluateCall, getParameterValue, propagate );
+      return expression.toString(); // TODO -- TEST -- REVIEW
     }
-    return type;
+    return aeExpr;
   }
 
   /* (non-Javadoc)
@@ -109,10 +124,13 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
     // Could not parse the expression based on Java reflection alone.  See if
     // parent and field can be identified as model elements.
     Object parentExpr = 
-        super.astToAeExpression( fieldAccessExpr.getScope(), null,
+        super.astToAeExpression( fieldAccessExpr.getScope(),
+                                 null,
                                  fieldAccessExpr.getField(),
                                  convertFcnCallArgsToExprs,
-                                 lookOutsideClassDataForTypes, complainIfDeclNotFound, evaluateCall );
+                                 lookOutsideClassDataForTypes,
+                                 complainIfDeclNotFound,
+                                 evaluateCall );
     ModelReference< ? > dotReference = null;
     if ( parentExpr instanceof ModelReference ) {
       ModelReference< ? > mr = (ModelReference< ? >)parentExpr;
@@ -122,23 +140,19 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
         aeExpr = dotReference;
       }
     }
-    Object result = null;
-    if ( aeExpr != null ) result = aeExpr.evaluate( propagate );
     if ( ( complainIfDeclNotFound || Debug.isOn() ) && ( aeExpr == null || !aeExpr.didEvaluationSucceed() ) ) {
       Debug.error( complainIfDeclNotFound, "Could not parse FieldAccessExpr = " + fieldAccessExpr +
                    "; aeExpr = " + aeExpr + "; parentExpr = " + parentExpr +
                    "; dotReference = " + dotReference );
     } else {
+      // TODO -- remove result since it's only used for debug output and the
+      // evaluation might have an unintended side-effect
+      Object result = ( aeExpr == null ) ? null : aeExpr.evaluate( propagate );
       Debug.outln( "Parsed FieldAccessExpr = " + fieldAccessExpr +
                    " as a ModelReference: aeExpr = " + aeExpr +
                    "; parentExpr = " + parentExpr + "; result = " + result );
     }
-    
-//    Object o = 
-//        super.astToAeExpression( fieldAccessExpr.getScope(), null,
-//                                 convertFcnCallArgsToExprs,
-//                                 lookOutsideClassDataForTypes,
-//                                 complainIfDeclNotFound, evaluateCall );
+
     return aeExpr;
   }
 
@@ -151,20 +165,19 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
                                                        boolean wrapInFunction,
                                                        boolean evaluateCall,
                                                        boolean addIfNotFound,
-                                                       boolean propagate ) {
+                                                       boolean propagate,
+                                                       boolean complainIfNotFound ) {
     Expression< ? > aeExpr =
         super.nameExprToAeExpression( nameExpr, wrapInFunction, evaluateCall,
-                                      addIfNotFound, propagate );
-    if ( aeExpr == null ) {
-      // Could not convert the expression based on Java reflection alone.  See if
-      // the type can be determined with respect to model elements.
-      String name = nameExpr.getName();
-      ModelReference< ? > tmpMR =
-          new ModelReference( getModel(), currentClass, null, null, false );
-      ModelReference< ? > mr =
-          tmpMR.findAlternatives( name, null, propagate );
-      aeExpr = mr;
-    }
+                                      addIfNotFound, propagate, complainIfNotFound );
+    if ( aeExpr != null ) return (Expression< T >)aeExpr;
+    // Could not convert the expression based on Java reflection alone.  See if
+    // the type can be determined with respect to model elements.
+    String name = nameExpr.getName();
+    ModelReference< ? > tmpMR =
+        new ModelReference( getModel(), getCurrentClass(), null, null, false );
+    ModelReference< ? > mr = tmpMR.findAlternatives( name, null, propagate );
+    aeExpr = mr;
     return (Expression< T >)aeExpr;
   }
 
@@ -176,14 +189,18 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
                               boolean evaluateCall, boolean getParameterValue,
                               boolean propagate ) {
     String aeExpr = super.nameExprToAe( nameExpr, wrapInFunction, evaluateCall,
-                               getParameterValue, propagate );
-    if ( Utils.isNullOrEmpty( aeExpr ) ) {
-      // Could not convert the expression based on Java reflection alone.  See if
-      // the type can be determined with respect to model elements.
-      
-      { HERE!!;}
-      // TODO!!!
-    }
+                                        getParameterValue, propagate );
+    if ( !Utils.isNullOrEmpty( aeExpr ) ) return aeExpr;
+    // Could not convert the expression based on Java reflection alone.  See if
+    // the type can be determined with respect to model elements.
+    boolean addIfNotFound = false;
+    boolean complainIfNotFound = false;
+    Expression< ? > aeExpression =
+        nameExprToAeExpression( nameExpr, wrapInFunction, evaluateCall,
+                                addIfNotFound, propagate, complainIfNotFound );
+    if ( aeExpression == null ) return null;
+    //aeExpr = aeExpression.toString(); // REVIEW????
+    aeExpr = nameExpr.getName();  // REVIEW????
     return aeExpr;
   }
 
