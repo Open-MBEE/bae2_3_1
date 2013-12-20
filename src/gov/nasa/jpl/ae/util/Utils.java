@@ -758,4 +758,15 @@ public class Utils {
     }
     return count;
   }
+  public static String replaceSuffix( String source, String str, String replacement ) {
+    if ( source == null ) return null;
+    if (replacement == null) replacement = "";
+    if ( isNullOrEmpty( str ) ) return source + replacement;
+    String compString = source;
+    int pos = compString.lastIndexOf( str );
+    if ( pos == compString.length() - str.length() ) {
+        compString = compString.substring( 0, pos ) + replacement;
+    }
+    return compString;
+  }
 }
