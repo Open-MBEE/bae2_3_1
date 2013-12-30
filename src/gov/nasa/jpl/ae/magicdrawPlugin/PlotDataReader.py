@@ -5,21 +5,29 @@ import os
 
 liveUpdating = False
 debug = False
+
+from os.path import expanduser
+homeDir = expanduser("~")
+#homeDir = '/home/bclement'
+gitDir = homeDir + os.sep + 'git'
+projectPath = gitDir + os.sep + 'bae'
+filepath = projectPath + os.sep + 'simulationSnapshot.example.txt'
+
 applicationsDir = "C:\Program Files" 
 homeDir = os.getenv('HOME')
 if homeDir == None:
     homeDir = "C:\Users\bclement"
 #workspacePath = homeDir + os.sep + 'proj' + os.sep + 'ae' + os.sep + 'workspace'
-workspacePath = homeDir + os.sep + 'git'
+workspacePath = gitDir
 if not os.path.isdir(workspacePath):
     workspacePath = homeDir + os.sep + 'git'
     #workspacePath = homeDir + os.sep + 'proj/ae/workspace'
-mdPath = "C:" + os.sep + 'MD' + os.sep + 'bin\mduml.exe"
+mdPath = homeDir + os.sep + 'apps' + os.sep + 'MD'
 if not os.path.isdir(mdPath):
     mdPath = applicationsDir + 'MagicDraw' + os.sep + 'OpsRevMD1702-20120912'
 
 pluginDirName = 'LADWP'
-if 'mjackson' in homeDir: 
+if 'mjackson' in homeDir:
     workspacePath = homeDir + os.sep + 'Documents/workspace-Helios/'
     mdpath = '/Applications/OpsRevMD1702-20120818/'
     pluginDirName = 'magicdrawPlugin'

@@ -19,6 +19,14 @@ reload (MagicDrawAnimatorUtils2)
 import MPUtils
 reload (MPUtils)
 
+import os
+from os.path import expanduser
+homeDir = expanduser("~")
+#homeDir = '/home/bclement'
+gitDir = homeDir + os.sep + 'git'
+projectPath = gitDir + os.sep + 'bae'
+filepath = projectPath + os.sep + 'simulationSnapshot.example.txt'
+
 global gl
 gl = Application.getInstance().getGUILog()
         
@@ -57,6 +65,7 @@ class highlighterThread(Thread):
         self.timeStep = 0.3
         
     def run(self):
+        global filepath
         try:
             mode = 0
             if mode == 0:
@@ -64,7 +73,7 @@ class highlighterThread(Thread):
                 #filepath = "c:\\Users\\bclement\\Desktop\\medium2.txt"
                 #filepath = "c:\\Users\\bclement\\git\\bae\\simulationSnapshot.Scenario_Smaller_2012.txt"
                 #filepath = "c:\\Users\\bclement\\git\\bae\\Smaller2012_2.console.txt"
-                filepath = "/Users/mjackson/Desktop/MedSim.txt"
+                #filepath = "/Users/mjackson/Desktop/MedSim.txt"
                 gl.log("default filepath = %s" % filepath)
                 #possibilities = None
                 filepath = JOptionPane.showInputDialog(
