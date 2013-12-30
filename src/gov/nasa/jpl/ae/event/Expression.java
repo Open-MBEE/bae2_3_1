@@ -122,6 +122,7 @@ public class Expression< ResultType > extends HasIdImpl
 	 * @param parameter
 	 */
 	public Expression( Parameter< ResultType > parameter, Class< ResultType > cls ) {
+	  // REVIEW -- why not use parameter.getType()????
 		this.expression = parameter;
     ResultType value = ( parameter == null ? null : parameter.getValue() );
     if ( value != null && cls == null ) {
@@ -204,39 +205,53 @@ public class Expression< ResultType > extends HasIdImpl
     }
   }
 
-  //	public Expression( Expression<ResultType> e ) {
-//		this.expression = e.expression;
-//		this.type = e.type;
-//	}
 	public Expression( Expression<ResultType> e, boolean deep ) {
-		this.form = e.form;
-		this.resultType = e.resultType;
-		if ( !deep ) {
-		  expression = e.expression;
-		} else {
-			switch (form) {
-			case None:
-//			case Method:
-			case Value:  // TODO -- is this right for Value?
-			case Parameter:
-				expression = e.expression;
-				break;
-			case Function:
-				expression = (Object) ((FunctionCall)e.expression).clone();
-				break;
-      case Constructor:
-        expression = (Object) ((ConstructorCall)e.expression).clone();
-        break;
-//			case Parameter:
-//				expression = (Object) new Parameter<ResultType>((Parameter<ResultType>)e.expression);
-//				break;
-			default:
-				Assert.assertTrue( "Error! Bad expression type!", false );
-			}
-		}
+	  this( e.expression, e.form, e.resultType, e.freeParameters, e.evaluationSucceeded, deep );
 	}
 	
-	// default shallow
+
+  public Expression( Object expression, Form form,
+                     Class< ? extends ResultType > resultType,
+                     Set< Parameter< ? > > freeParameters,
+                     boolean evaluationSucceeded ) {
+    this( expression, form, resultType, freeParameters, evaluationSucceeded, false );
+  }
+	
+	public Expression( Object expression, Form form,
+                     Class< ? extends ResultType > resultType,
+                     Set< Parameter< ? > > freeParameters,
+                     boolean evaluationSucceeded,
+                     boolean deep ) {
+    super();
+    this.form = form;
+    this.resultType = resultType;
+    this.evaluationSucceeded = evaluationSucceeded;
+    this.expression = expression;
+    if ( !deep ) {
+      //this.freeParameters = freeParameters;
+    } else {
+      switch (form) {
+      case None:
+      case Value:  // TODO -- is this right for Value?
+      case Parameter:
+        this.expression = expression; // REVIEW -- why is this not a deep copy?
+        break;
+      case Function:
+        this.expression = (Object) ((FunctionCall)expression).clone();
+        break;
+      case Constructor:
+        this.expression = (Object) ((ConstructorCall)expression).clone();
+        break;
+//      case Parameter:
+//        expression = (Object) new Parameter<ResultType>((Parameter<ResultType>)e.expression);
+//        break;
+      default:
+        Assert.assertTrue( "Error! Bad expression type!", false );
+      }
+    }
+  }
+
+  // default shallow
   public Expression( Expression<ResultType> e ) {
     this(e, false);
   }
