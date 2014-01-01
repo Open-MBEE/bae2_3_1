@@ -3,10 +3,15 @@ Created on Sep 5, 2012
 
 '''
 import os
-workspacePath = 'C:\\Users\\bclement\\workspaceFresh'
-#mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
-mdPath = 'C:\\Program Files\\MagicDraw\\OpsRevMD1702-20120912'
-projectPath = workspacePath + os.sep + 'bae'
+from os.path import expanduser
+homeDir = expanduser("~")
+#homeDir = '/home/bclement'
+gitDir = homeDir + os.sep + 'git'
+#workspacePath = homeDir + os.sep + 'workspace' + 'Indigo' 
+workspacePath = gitDir + os.sep + 'bae'
+projectPath = workspacePath
+#mdPath = 'C:\\Program Files\\MagicDraw\\OpsRevMD1702-20120912'
+mdPath = homeDir + os.sep + 'apps' + os.sep + 'MD'
 pluginSrcPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \
                 'nasa' + os.sep + 'jpl' + os.sep + 'ae' + os.sep + 'magicdrawPlugin'
 workspaceXmlPath = projectPath + os.sep + 'src' + os.sep + 'gov' + os.sep + \

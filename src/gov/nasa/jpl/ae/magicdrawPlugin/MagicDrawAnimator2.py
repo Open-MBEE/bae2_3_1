@@ -20,6 +20,14 @@ from java.awt import Color
 from java.lang import *
 from javax.swing import JOptionPane
 
+import os
+from os.path import expanduser
+homeDir = expanduser("~")
+#homeDir = '/home/bclement'
+gitDir = homeDir + os.sep + 'git'
+projectPath = gitDir + os.sep + 'bae'
+filepath = projectPath + os.sep + 'simulationSnapshot.example.txt'
+
 usingDialogs = True
 if usingDialogs:
     from javax.swing import JOptionPane
@@ -100,13 +108,14 @@ class highlighterThread(Thread):
             self.frame = Application.getInstance().getMainFrame();
 
     def run(self):
+        global filepath
         gl.log("running MagicDrawAnimator2")
         mode = 0
         if mode == 0:
             #filepath = "c:\\Users\\bclement\\git\\bae\\simulationSnapshot.Scenario_medium_2012.txt"
             #filepath = "c:\\Users\\bclement\\Desktop\\large6.txt"
             #filepath = "c:\\Users\\bclement\\Desktop\\foo12.txt"
-            filepath = "/Users/mjackson/Desktop/testSim.txt"
+            #filepath = "/Users/mjackson/Desktop/testSim.txt"
             gl.log("default filepath = %s" % filepath)
             filepath = JOptionPane.showInputDialog(
                                             None,

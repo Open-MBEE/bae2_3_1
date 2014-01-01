@@ -51,7 +51,7 @@ public class TestDate {
       System.err.println("should not have worked! " + format + " " + tString + " = " + d);
       (new Exception()).printStackTrace();
     } catch ( java.text.ParseException e1 ) {
-      System.out.println("Did not work as expected! " + format + " " + tString);
+      System.out.println("Correctly did not work! " + format + " " + tString);
       //e1.printStackTrace();
     }
 
