@@ -1793,7 +1793,7 @@ public class EventXmlToJava {
       // REVIEW -- might need a dependency instead of an assignment,
       //   timeVarying <-- new Expresion(timeVaryingV) 
       
-      stmtString.append( "Object " + timeVaryingName + "V = " + jffc.object
+      stmtString.append( "Object " + timeVaryingName + "V = " + jffc.getObject()
                          + ";\n" );
       stmtString.append( timeVaryingName + " = new Parameter(\""
                          + timeVaryingName + "\", null, null, this);\n" );
@@ -1802,7 +1802,7 @@ public class EventXmlToJava {
       stmtString.append( effectName
                          + " = new EffectFunction( "
                          + jffc.toNewFunctionCallString()
-                               .replaceAll( "([^A-Za-z0-9_])" + jffc.object.replaceAll( "[\\]\\[{}()*+?^$#-]", "." )
+                               .replaceAll( "([^A-Za-z0-9_])" + jffc.getObject().replaceAll( "[\\]\\[{}()*+?^$#-]", "." )
                                                 + "([^A-Za-z0-9_])",
                                             "$1" + timeVaryingName + "$2" )
                          + " );" );
