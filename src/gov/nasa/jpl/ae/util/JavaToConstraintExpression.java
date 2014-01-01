@@ -813,7 +813,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, expr, false,
                                      getClassData().getPackageName(), false );
-        Method mm = javaForFunctionCall.matchingMethod;
+        Method mm = javaForFunctionCall.getMatchingMethod();
         if ( mm != null ) {
           Class<?> type = mm.getReturnType(); 
           Class<?> cls = mm.getDeclaringClass();
@@ -836,7 +836,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
               // ignore
             }
             if ( n != null && n instanceof Wraps ) {
-              result = ( (Wraps< ? >)n ).getTypeNameForClassName( javaForFunctionCall.className );
+              result = ( (Wraps< ? >)n ).getTypeNameForClassName( javaForFunctionCall.getClassName() );
               if ( result != null && result.endsWith( "Object" ) ) {
                 typeWasObject = false;
               }
@@ -845,7 +845,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           }
           if ( type == null ) {
             if ( result == null ) {
-              result = ClassUtils.parameterPartOfName( javaForFunctionCall.className, false );
+              result = ClassUtils.parameterPartOfName( javaForFunctionCall.getClassName(), false );
             }
   //          if ( result == null && typeWasObject ) {
   //            result = "Object";
@@ -1451,6 +1451,14 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       String object = null;
       if ( scopeExpr != null) {
         object = astToAeExpr( scopeExpr, false, true, false );
+      }
+      if ( object == null ) object = "null";
+      return object;
+    }
+    public Object getObjectExpressionFromScope( Expression scopeExpr ) {
+      Object object = null;
+      if ( scopeExpr != null) {
+        object = astToAeExpression( scopeExpr, false, true, false );
       }
       if ( object == null ) object = "null";
       return object;
