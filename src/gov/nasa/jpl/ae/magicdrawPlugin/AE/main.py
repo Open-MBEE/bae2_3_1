@@ -15,10 +15,12 @@ import os
 from os.path import expanduser
 
 home = expanduser("~")
-
-workspacePath = home + os.sep + 'workspaceYoxos'
-#mdPath = 'C:\\Program Files\\MagicDraw\\IMCE-GENPROF-17.0sp5-build99-20120615'
-mdPath = 'C:\\MD'
+gitDir = home + os.sep + 'git'
+workspacePath = gitDir
+projectPath = workspacePath + os.sep + 'bae'
+#workspacePath = home + os.sep + 'workspaceYoxos'
+#mdPath = 'C:\\MD'
+mdPath = home + os.sep + 'apps' + os.sep + 'MD'
 aePluginDirName = 'AE'
 
 if home == '/Users/mjackson': 
