@@ -3,17 +3,11 @@
  */
 package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
-import java.util.List;
-
-import org.apache.axis.encoding.FieldTarget;
 import org.eclipse.emf.ecore.EObject;
-
-import com.nomagic.magicdraw.ui.ae;
 
 import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.NameExpr;
 import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassUtils;
 import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
