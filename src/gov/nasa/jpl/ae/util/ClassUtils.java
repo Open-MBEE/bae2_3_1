@@ -16,6 +16,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -281,7 +282,7 @@ public class ClassUtils {
   public static Class< ? > getNonPrimitiveClass( String type, String preferredPackage ) {
     if ( type == null ) return null;
     Class< ? > cls = null;
-    cls = getClassForName( type, preferredPackage, false );
+    cls = getClassForName( type, null, preferredPackage, false );
     return getNonPrimitiveClass( cls );
   }
 
@@ -555,7 +556,7 @@ public class ClassUtils {
                                           boolean initialize ) {
     Class< ? > classOfClass = null;
     Class< ? > classForName =
-        getClassForName( className, preferredPackageName, initialize );
+        getClassForName( className, null, preferredPackageName, initialize );
     if ( classForName == null ) {
       classForName =
           getClassOfClass( className, preferredPackageName, initialize );
@@ -592,38 +593,52 @@ public class ClassUtils {
       return null;
     }
 
-  public static HashMap< String, Class<?> > classCache = new HashMap< String, Class<?> >();
-
-  public static Class<?> getClassForName( String className,
-                                          String preferredPackage,
-                                          boolean initialize ) {
+  // TODO -- expand to include member names, too: className -> memberName -> Class
+  public static Map< String, Class< ? > > classCache =
+      Collections.synchronizedMap( new HashMap< String, Class< ? > >() );
+  
+  public static Class<?> getClassForName( String className, String memberName,
+                                          String preferredPackage, boolean initialize ) {
     if ( Utils.isNullOrEmpty( className ) ) return null;
     Class<?> cls = null;
     char firstChar = className.charAt( 0 );
     if ( firstChar >= 'a' && firstChar <= 'z' ) {
       cls = classForPrimitive( className );
-      if ( cls != null ) return cls;
-    }
-    cls = classCache.get( className );
-    if ( cls != null ) return cls;
-      List< Class<?>> classList = getClassesForName( className, initialize );
-      if ( !Utils.isNullOrEmpty( classList ) && initialize && !isPackageName( className ) ) {  // REVIEW
-        classList = getClassesForName( className, !initialize );
+      if ( cls != null
+           && ( Utils.isNullOrEmpty( memberName ) || hasMember( cls, memberName ) ) ) {
+        return cls;
       }
-      if ( !Utils.isNullOrEmpty( classList ) ) {
-        for ( Class< ? > c : classList ) {
-          if ( c.getPackage().getName().equals( preferredPackage ) ) {
-            if ( Debug.isOn() ) Debug.errln("Found preferred package! " + preferredPackage );
-            classCache.put( className, c );
-            return c;
-          }
-        }
-      }
-      cls = getClassFromClasses( classList );
-      if ( cls != null )
-        classCache.put( className, cls );
-      return cls;
     }
+    Class< ? > cls2 = classCache.get( className );
+    if ( cls2 != null ) {
+      if ( Utils.isNullOrEmpty( memberName ) || hasMember( cls2, memberName ) ) {
+        return cls2;
+      }
+      if ( cls == null ) cls = cls2;
+    }
+    List< Class<?>> classList = getClassesForName( className, initialize );
+    if ( !Utils.isNullOrEmpty( classList ) && initialize && !isPackageName( className ) ) {  // REVIEW
+      classList = getClassesForName( className, !initialize );
+    }
+    if ( !Utils.isNullOrEmpty( classList ) ) {
+//        Class< ? > best = null;
+//        boolean bestHasSpecifier = false;
+//        boolean bestInPreferredPackage = false;
+//        for ( Class< ? > c : classList ) {
+//          boolean inPreferredPackage = false;
+//          boolean hasSpecifier = hasMember( c, specifier );
+//          if ( inPackage( c, preferredPackage ) ) {
+//            classCache.put( className, c );
+//            if ( hasSpecifier ) return c;
+//            inPreferredPackage = true;
+//          }
+//        }
+      cls2 = getClassFromClasses( classList, memberName, preferredPackage );
+      if ( cls2 != null ) cls = cls2;
+    }
+    if ( cls != null ) classCache.put( className, cls );
+    return cls;
+  }
   //  public static Class<?> getClassForName( String className,
   //                                          boolean initialize ) {    
   //    return getClassFromClasses( getClassesForName( className, initialize ) );
@@ -722,6 +737,27 @@ public class ClassUtils {
 //    }
     return false;
   }
+  
+  /**
+   * @param c
+   * @param packageName
+   * @return whether the Class is in the package with the given name
+   */
+  public static boolean inPackage( Class<?> c, String packageName ) {
+    return isInPackage( c, packageName );
+  }
+  /**
+   * @param c
+   * @param packageName
+   * @return whether the Class is in the package with the given name
+   */
+  public static boolean isInPackage( Class<?> c, String packageName ) {
+    if ( c.getPackage().getName().equals( packageName ) ) {
+      if ( Debug.isOn() ) Debug.errln("Found package! " + packageName );
+      return true;
+    }
+    return false;
+  }
 
   public static String simpleName( String longName ) {
     if ( longName == null ) return null;
@@ -791,7 +827,7 @@ public class ClassUtils {
   public static Constructor< ? > getConstructorForArgs( String className,
                                                         Object[] args,
                                                         String preferredPackage ) {
-    Class< ? > classForName = getClassForName( className, preferredPackage, false );
+    Class< ? > classForName = getClassForName( className, null, preferredPackage, false );
     if ( classForName == null ) {
       System.err.println( "Couldn't find the class " + className
                           + " to get constructor with args=" + Utils.toString( args, false ) );
@@ -803,7 +839,7 @@ public class ClassUtils {
   public static Constructor< ? > getConstructorForArgTypes( String className,
                                                             Class<?>[] argTypes,
                                                             String preferredPackage ) {
-    Class< ? > classForName = getClassForName( className, preferredPackage, false );
+    Class< ? > classForName = getClassForName( className, null, preferredPackage, false );
     if ( classForName == null ) {
       System.err.println( "Couldn't find the class " + className
                           + " to get constructor with args=" + Utils.toString( argTypes, false ) );
@@ -988,39 +1024,75 @@ public class ClassUtils {
              && eventClass.getEnclosingClass() != null );
   }
 
-  public static Class<?> getClassFromClasses( List< Class< ? > > classList ) {
+  public static Class< ? > getClassFromClasses( List< Class< ? > > classList,
+                                                String specifier,
+                                                String preferredPackage ) {
     if ( Utils.isNullOrEmpty( classList ) ) {
       return null;
     }
     if ( classList.size() > 1 ) {
-      System.err.println( "Error! Got multiple class candidates for constructor! " + classList );
+      if ( Debug.isOn() ) {
+        Debug.outln( "getClassFromClasses(" + classList + ", specifier="
+                     + specifier + ", preferredPackage=" + preferredPackage
+                     + ")" );
+        Debug.outln( "Got multiple class candidates for constructor! "
+                     + classList );
+      }
       Class<?> bestCls = null;
       int bestLength = Integer.MAX_VALUE;
+      int bestLengthOfCommonPreferredPkgPrefix = 0;
       int bestLengthOfCommonPkgPrefix = 0;
+      //boolean bestHasMember = false;
+      boolean bestHasSpecifier = false;
+      boolean bestInPreferredPackage = false;
+      
       for ( Class<?> c : classList ) {
         boolean best = false;
-        int lengthOfCommonPkgPrefix = lengthOfCommonPrefix( c.getPackage().getName(), ClassUtils.class.getPackage().getName() );
-        int length = lengthOfCommonPrefix( c.getPackage().getName(), ClassUtils.class.getPackage().getName() );
-        if ( bestCls == null ) {
-          best = true;
-        } else if ( lengthOfCommonPkgPrefix > bestLengthOfCommonPkgPrefix ) {
-          best = true;
-        } else if ( lengthOfCommonPkgPrefix == bestLengthOfCommonPkgPrefix ) {
-          if ( length < bestLength ) best = true;
+        int lengthOfCommonPkgPrefix = Integer.MAX_VALUE;
+        int lengthOfCommonPreferredPkgPrefix = Integer.MAX_VALUE;
+        int length = 0;
+        boolean hasSpecifier = hasMember( c, specifier );
+        boolean inPreferredPackage = inPackage( c, preferredPackage );
+        if ( !inPreferredPackage ) {
+          lengthOfCommonPreferredPkgPrefix =
+              lengthOfCommonPrefix( c.getPackage().getName(), preferredPackage );
+          lengthOfCommonPkgPrefix =
+              lengthOfCommonPrefix( c.getPackage().getName(),
+                                    ClassUtils.class.getPackage().getName() );
+          length = c.getPackage().getName().length();
         }
+        best = ( bestCls == null ||
+                 ( hasSpecifier && !bestHasSpecifier ) ||
+                 ( inPreferredPackage && !bestInPreferredPackage ) ||
+                 ( lengthOfCommonPreferredPkgPrefix > bestLengthOfCommonPreferredPkgPrefix ) ||
+                 ( ( lengthOfCommonPreferredPkgPrefix == bestLengthOfCommonPreferredPkgPrefix ) &&
+                     ( ( lengthOfCommonPkgPrefix > bestLengthOfCommonPkgPrefix ) || 
+                       ( ( lengthOfCommonPkgPrefix == bestLengthOfCommonPkgPrefix ) &&
+                         ( length < bestLength ) ) ) ) );
         if ( best ) {
           bestCls = c;
-          bestLength = length;
+          bestLengthOfCommonPreferredPkgPrefix = lengthOfCommonPreferredPkgPrefix;
           bestLengthOfCommonPkgPrefix = lengthOfCommonPkgPrefix;
+          bestLength = length;
         }
       }
-      System.out.println( "Best class " + bestCls.getCanonicalName() + " has length, "
-                   + bestLength + ", and common prefix length of packages, "
-                   + bestLengthOfCommonPkgPrefix + ", pkg="
-                   + bestCls.getPackage().getName() + ", ClassUtils pkg="
-                   + ClassUtils.class.getPackage().getName() );
+      System.out.println( "Best class " + bestCls.getCanonicalName()
+                          + " has length, " + bestLength
+                          + ", and common prefix length of packages, "
+                          + bestLengthOfCommonPkgPrefix + ", pkg="
+                          + bestCls.getPackage().getName()
+                          + ", ClassUtils pkg="
+                          + ClassUtils.class.getPackage().getName()
+                          + ", and common prefix length of packages, "
+                          + bestLengthOfCommonPreferredPkgPrefix
+                          + ", preferredPackage pkg=" + preferredPackage );
+      if ( Debug.isOn() && !bestHasSpecifier && !bestInPreferredPackage ) {
+        Debug.errln( "Warning! Picked non-matching candidate from multiple class candidates! " + classList );
+      }
+
       return bestCls;
     }
+    assert( classList.size() == 1 );
     return classList.get( 0 );
   }
 
@@ -1073,7 +1145,7 @@ public class ClassUtils {
                                          String preferredPackage,
                                          String callName,
                                          Object... args ) {
-    Class< ? > classForName = getClassForName( className, preferredPackage, false );
+    Class< ? > classForName = getClassForName( className, callName, preferredPackage, false );
     if ( Debug.errorOnNull( "Couldn't find the class " + className + " for method "
                       + callName + ( args == null ? "" : Utils.toString( args, false ) ),
                       classForName ) ) {
@@ -1179,11 +1251,11 @@ public class ClassUtils {
   }
 
   public static Method oldGetMethodForArgTypes( String className,
-                                             String preferredPackage,
-                                             String callName,
-                                             Class<?>[] argTypes,
-                                             boolean complainIfNotFound ) {
-    Class< ? > classForName = getClassForName( className, preferredPackage, false );
+                                                String preferredPackage,
+                                                String callName,
+                                                Class<?>[] argTypes,
+                                                boolean complainIfNotFound ) {
+    Class< ? > classForName = getClassForName( className, callName, preferredPackage, false );
     if ( classForName == null ) {
       if ( complainIfNotFound ) {
         System.err.println( "Couldn't find the class " + className + " for method "
@@ -1456,12 +1528,51 @@ public class ClassUtils {
    */
   public static Field getField( Object o, String fieldName, boolean suppressExceptions ) {
     if ( o == null || Utils.isNullOrEmpty( fieldName ) ) {
+      if ( !suppressExceptions ) {
+        Debug.error("Null input not allowed! getField(" + o + ", " + fieldName + ")");
+      }
+      return null;
+    }
+    Field f = null;
+    Class< ? > cls = null;
+    if ( o instanceof Class< ? > ) {
+      cls = (Class< ? >)o;
+      f = getField(cls, fieldName, true );
+    }
+    if ( f == null ) {
+      cls = o.getClass();
+      f = getField(cls, fieldName, true );
+    }
+    // TODO -- remove this and handle from caller!
+    if ( f == null && o instanceof gov.nasa.jpl.ae.event.Parameter ) {
+      f = getField( ( (gov.nasa.jpl.ae.event.Parameter)o ).getValueNoPropagate(),
+                    fieldName, suppressExceptions );
+    }
+    return f;
+  }
+
+  /**
+   * Get the Field of the Class with the given fieldName using reflection.
+   * 
+   * @param cls
+   *          the Class whose field is sought
+   * @param fieldName
+   * @param suppressExceptions
+   *          if true, do not throw or write out any exceptions
+   * @return the Field of the Class
+   */
+  public static Field getField( Class< ? > cls, String fieldName, boolean suppressExceptions ) {
+
+    if ( cls == null || Utils.isNullOrEmpty( fieldName ) ) {
+      if ( !suppressExceptions ) {
+        Debug.error("Null input not allowed! getField(" + cls + ", " + fieldName + ")");
+      }
       return null;
     }
     Exception ex = null;
     Field f = null;
     try {
-      f = o.getClass().getField( fieldName );
+      f = cls.getField( fieldName );
       return f;
     } catch ( NoSuchFieldException e ) {
       ex = e;
@@ -1470,16 +1581,19 @@ public class ClassUtils {
     } catch ( IllegalArgumentException e ) {
       ex = e;
     }
-    if ( f == null && o instanceof gov.nasa.jpl.ae.event.Parameter ) {
-        return getField( ( (gov.nasa.jpl.ae.event.Parameter)o ).getValueNoPropagate(),
-                         fieldName, suppressExceptions );
-    }
     if ( !suppressExceptions && f == null && ex != null ) {
       ex.printStackTrace();
     }
     return null;
   }
 
+  public static boolean hasMember( Class< ? > c, String memberName ) {
+    boolean has = hasField( c, memberName );
+    if ( !has ) has = hasMethod( c, memberName );
+    return has;
+  }
+
+  
   public static String parameterPartOfName( String longName ) {
     return parameterPartOfName( longName, true );
   }
@@ -1606,7 +1720,17 @@ public class ClassUtils {
    * @return whether the named method can be called from the Object, o
    */
   public static boolean hasMethod( Object o, String methodName ) {
-    return !Utils.isNullOrEmpty( getMethodsForName( o.getClass(), methodName ) );
+    if ( o instanceof Class && hasMethod( (Class< ? >)o, methodName ) ) return true;
+    return hasMethod( o.getClass(), methodName );
+  }
+
+  /**
+   * @param cls
+   * @param methodName
+   * @return whether the Class has a method with the given name 
+   */
+  public static boolean hasMethod( Class< ? > cls, String methodName ) {
+    return !Utils.isNullOrEmpty( getMethodsForName( cls, methodName ) );
   }
 
   /**
@@ -1617,8 +1741,21 @@ public class ClassUtils {
    *         the given arguments
    */
   public static boolean hasMethod( Object o, String methodName, Object[] args ) {
-    return getMethodForArgs( o.getClass(), methodName, args ) != null;
+    if ( o instanceof Class && hasMethod( (Class< ? >)o, methodName, args ) ) return true;
+    return hasMethod( o.getClass(), methodName, args );
   }
+
+  /**
+   * @param cls
+   * @param methodName
+   * @param args
+   * @return whether the Class has a method with the given name that can be called with the
+   *         the given arguments
+   */
+  public static boolean hasMethod( Class< ? > cls, String methodName, Object[] args ) {
+    return getMethodForArgs( cls, methodName, args ) != null;
+  }
+
   /**
    * This function helps avoid compile warnings by just having the warning here.
    * @param tt
