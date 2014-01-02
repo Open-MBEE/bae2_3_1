@@ -412,7 +412,7 @@ public class JavaForFunctionCall {
         for ( Parameter param : params ) {
           Class< ? > c =
               ClassUtils.getClassForName( param.getType().toString(),
-                                     preferredPackageName, true );
+                                          null, preferredPackageName, true );
           ctorArgTypes[ ct++ ] = c;
         }
       }
@@ -652,7 +652,7 @@ public class JavaForFunctionCall {
    */
   public String getObjectTypeName() {
     if ( objectTypeName == null ) {
-      setObjectTypeName( this.exprXlator.astToAeExprType( getScope(), true, true ) );
+      setObjectTypeName( this.exprXlator.astToAeExprType( getScope(), null, true, true ) );
     }
     return objectTypeName;
   }
@@ -677,7 +677,7 @@ public class JavaForFunctionCall {
     if ( objectType == null ) {
       if ( !Utils.isNullOrEmpty( getClassName() ) &&
           getClassName() != exprXlator.getCurrentClass() ) {
-        setObjectType( ClassUtils.getClassForName( getClassName(), getPreferredPackageName(), true ) );
+        setObjectType( ClassUtils.getClassForName( getClassName(), getCallName(), getPreferredPackageName(), true ) );
       }
     }
     return objectType;
@@ -735,6 +735,7 @@ public class JavaForFunctionCall {
    */
   public void setCallName( String callName ) {
     if ( this.callName != callName ) {
+      setObjectType( null );
       setMatchingMethod( null );
       setMatchingConstructor( null );
       setMethodDecl( null );
@@ -899,8 +900,8 @@ public class JavaForFunctionCall {
       for ( int i = 0; i < argExprs.size(); ++i ) {
         argTypes[ i ] =
             ClassUtils.getClassForName( exprXlator.astToAeExprType( argExprs.get( i ),
-                                                                    true, true ),
-                                        getPreferredPackageName(), false );
+                                                                    null, true, true ),
+                                        null, getPreferredPackageName(), false );
         Object arg = exprXlator.astToAeExpression( argExprs.get( i ),
                                                    ClassUtils.toString( argTypes[ i ] ),
                                                    null,
