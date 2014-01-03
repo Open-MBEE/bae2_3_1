@@ -251,7 +251,7 @@ public class ClassData {
     }
     if ( Utils.isNullOrEmpty( methodSet ) && classMethods == null ) {
       if ( Debug.isOn() ) Debug.outln( "getClassMethodsWithName(" + methodName + ", " + className
-                   + ") couldn't find class in ClassData cache!\nmethodTable="
+                   + ") couldn't find class and method in ClassData methodTable cache!\nmethodTable="
                    + methodTable.toString() );
       return methodSet;
     }
@@ -434,13 +434,13 @@ public class ClassData {
   /**
    * Determines the AE translated parameter type, generic parameter types, and arguments.  
    * @param p
-   * @param classOfParameterName
+   * @param classNameOfParameter
    * @return
    */
   public PTA
       convertToParameterTypeAndConstructorArguments( String paramName,
                                                      String paramTypeName,
-                                                     String classOfParameterName ) {
+                                                     String classNameOfParameter ) {
     PTA typesAndArgs = null;
     
     Class< ? extends Parameter< ? > > paramType = null;
@@ -449,7 +449,7 @@ public class ClassData {
     
     if ( Utils.isNullOrEmpty( paramTypeName ) ) {
       Param pDef =
-          lookupMemberByName( classOfParameterName, paramName, true, true );
+          lookupMemberByName( classNameOfParameter, paramName, true, true );
       if ( pDef != null ) {
         paramTypeName = pDef.type;
       }
@@ -552,9 +552,10 @@ public class ClassData {
     type = type + ( Utils.isNullOrEmpty( parameterTypes ) ? "" : "<" + parameterTypes + ">" );
     paramType =
         (Class< ? extends Parameter< ? > >)ClassUtils.getClassForName( type,
+                                                                       null,
                                                                        getPackageName(),
                                                                        false );
-    genericParamType = ClassUtils.getClassForName( parameterTypes, getPackageName(), false );
+    genericParamType = ClassUtils.getClassForName( parameterTypes, null, getPackageName(), false );
 
     //types = (T)new Pair< Class<? extends Parameter<?>>, Class<?> >( paramType, genericParamType );
     //typesAndArgs = (R)new Pair< T, Object[] >( types, argArr );
@@ -564,9 +565,9 @@ public class ClassData {
 
   public ClassData.PTA
   convertToEventParameterTypeAndConstructorArguments( ClassData.Param p,
-                                                      String classOfParameterName ) {
+                                                      String classNameOfParameter ) {
     return convertToParameterTypeAndConstructorArguments( p.name, p.type,
-                                                          classOfParameterName );
+                                                          classNameOfParameter );
   }
   
   /**
@@ -636,23 +637,13 @@ public class ClassData {
     Class< ? > classForName = null;
     if ( p == null && lookOutsideClassData ) {
       classForName =
-          ClassUtils.getClassForName( className, this.packageName, false );// ,
-                                                                           // getClass().getClassLoader(),
-                                                                           // Package.getPackages()
-                                                                           // );
+          ClassUtils.getClassForName( className, paramName, getPackageName(),
+                                      false );
       if ( classForName != null ) {
-        Field field = null;
-        try {
-          field = classForName.getField( paramName );
-        } catch ( NoSuchFieldException e ) {
-          // ignore
-        } catch ( SecurityException e ) {
-          // ignore
-        }
+        Field field = ClassUtils.getField( classForName, paramName, true );
         if ( field != null ) {
-          p =
-              new Param( paramName, field.getType().getName()
-                                         .replace( '$', '.' ), null );
+          p = new Param( paramName, ClassUtils.toString( field.getType() ),
+                         null );
         }
       }
     }
