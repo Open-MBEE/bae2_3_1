@@ -78,18 +78,32 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   public Boolean hasTypeErrors( Object[] evaluatedArgs ) {
     boolean gotErrors = hasTypeErrors();
-    for ( int i = 0; !gotErrors && i < getParameterTypes().length; i++ ) {
-      Class< ? > c = getParameterTypes()[ i ];
+    int numEvalArgs = 0;
+    if ( evaluatedArgs != null ) {
+      numEvalArgs = evaluatedArgs.length;
+    }
+    if ( gotErrors || evaluatedArgs == null || numEvalArgs == 0 ) return gotErrors;
+    for ( int i = 0; !gotErrors && i < evaluatedArgs.length; i++ ) {
+      //Class< ? > c = getParameterTypes()[ i ];
+      Class< ? > c = getParameterTypes()[ Math.min(i,getParameterTypes().length-1) ];
+      if ( c != null ) {
+          Class< ? > np = ClassUtils.classForPrimitive( c );
+          if ( np != null ) c = np;
+      }
+      if ( c == null || c.equals( Object.class ) ) continue;
+      if ( i >= getParameterTypes().length-1 && isVarArgs() ) {
+        if ( !c.isArray() ) {
+          Debug.error( true, true, "class " + c.getSimpleName() + " should be a var arg array!" );
+        } else {
+          c = c.getComponentType();
+        }
+      }
       if ( evaluatedArgs[ i ] == null ) {
         if ( c.isPrimitive() ) {
           gotErrors = true; 
         }
       } else if ( !c.isAssignableFrom( evaluatedArgs[ i ].getClass() ) ) {
-        if ( !c.isPrimitive()
-             || !ClassUtils.classForPrimitive( c )
-                           .isAssignableFrom( evaluatedArgs[ i ].getClass() ) ) {
-          gotErrors = true;
-        }
+        gotErrors = true;
       }
     }
     return gotErrors;
@@ -104,7 +118,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         return true;
       }
     } else if ( arguments.size() < paramTypes.length - 1 ) {
-      this.compareTo( this );
+      //this.compareTo( this );  // why was this here? to see if any exceptions would be raised?
       return true;
     }
     // Code below is not right! The arguments may be expressions, the results of
