@@ -307,6 +307,11 @@ public class FunctionCall extends Call {
 //        ClassUtils.runMethod( false, evaluatedObject, method, evaluatedArgs );
 //    result = p.second;
 //    evaluationSucceeded = p.first;
+    // FIXME -- cannot pass an empty array to a function with a single variable
+    // number argument parameter. For example, Utils.newList(new Object[]{}).
+    // FIXME -- cannot pass a null as a single argument to to a function with a
+    // single variable number argument parameter. For example,
+    // Utils.newList(new Object[]{(Object)null}).
     try {
       result = method.invoke( evaluatedObject, evaluatedArgs ); 
       evaluationSucceeded = true;
