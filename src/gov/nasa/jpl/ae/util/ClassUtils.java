@@ -1133,7 +1133,8 @@ public class ClassUtils {
                            Double.class, Character.class, Boolean.class,
                            String.class,
                            //org.apache.commons.lang.ArrayUtils.class,
-                           Arrays.class };
+                           Arrays.class,
+                           Collections.class };
     for ( Class<?> c : classes ) {
       Method m = getMethodForArgTypes( c, functionName, argTypes );
       if ( m != null ) return m;
@@ -1156,8 +1157,11 @@ public class ClassUtils {
 
   public static Method getMethodForArgs( Class< ? > cls, String callName,
                                            Object... args ) {
-      if ( Debug.isOn() ) Debug.outln( "getMethodForArgs( cls=" + cls.getName() + ", callName="
-          + callName + ", args=" + Utils.toString( args ) + " )" );
+        if ( Debug.isOn() ) Debug.outln( "getMethodForArgs( cls="
+                                         + ( cls == null ? "null"
+                                                         : cls.getName() )
+                                         + ", callName=" + callName + ", args="
+                                         + Utils.toString( args ) + " )" );
       Class< ? > argTypes[] = null;
   //    boolean allClasses = areClasses( args ); 
   //    if ( allClasses ) {
@@ -1284,8 +1288,11 @@ public class ClassUtils {
   //                                             double argMismatchCost,
   //                                             Map< Class< ? >, Map< Class< ? >, Double > > transformCost ) {
       if ( argTypes == null ) argTypes = new Class<?>[] {};
-      if ( Debug.isOn() ) Debug.outln( "getMethodForArgTypes( cls=" + cls.getName() + ", callName="
-                   + callName + ", argTypes=" + Utils.toString( argTypes ) + " )" );
+      String clsName = ( cls == null ? "null" : cls.getName() );
+        if ( Debug.isOn() ) Debug.outln( "getMethodForArgTypes( cls=" + clsName
+                                         + ", callName=" + callName
+                                         + ", argTypes="
+                                         + Utils.toString( argTypes ) + " )" );
   //    Method matchingMethod = null;
   //    boolean gotOkNumArgs = false;
   //    int mostMatchingArgs = 0;
@@ -1295,11 +1302,12 @@ public class ClassUtils {
       boolean debugWasOn = Debug.isOn();
       //Debug.turnOff();
       Method[] methods = null;
-      if ( Debug.isOn() ) Debug.outln( "calling getMethods() on class " + cls.getName() );
+      if ( Debug.isOn() ) Debug.outln( "calling getMethods() on class "
+                                       + clsName );
       try {
-        methods = cls.getMethods();
+        methods = cls == null ? null : cls.getMethods();
       } catch ( Exception e ) {
-        System.err.println( "Got exception calling " + cls.getName()
+        System.err.println( "Got exception calling " + clsName
                             + ".getMethod(): " + e.getMessage() );
       }
       if ( Debug.isOn() ) Debug.outln( "--> got methods: " + Utils.toString( methods ) );
@@ -1316,7 +1324,7 @@ public class ClassUtils {
       }
       if ( atc.best != null && !atc.allArgsMatched ) {
       if ( Debug.isOn() ) Debug.errln( "getMethodForArgTypes( cls="
-                                       + cls.getName() + ", callName="
+                                       + clsName + ", callName="
                                        + callName + ", argTypes="
                                        + Utils.toString( argTypes )
                                        + " ): method returned (" + atc.best
@@ -1325,7 +1333,7 @@ public class ClassUtils {
                                        + Utils.toString( argTypes ) );
       } else if ( atc.best == null && complain ) {
         System.err.println( "method " + callName + "(" + Utils.toString( argTypes ) + ")"
-                            + " not found for " + cls.getSimpleName() );
+                            + " not found for " + clsName );
       }
       return (Method)atc.best;
     }
