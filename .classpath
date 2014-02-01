@@ -8,5 +8,6 @@
 	<classpathentry excluding="douglascrockford-JSON-java-d15e776/|javaparser-1.0.8-src/" kind="src" path="thirdParty"/>
 	<classpathentry kind="con" path="gov.nasa.jpl.magicdraw.CLASSPATH_LIB_CONTAINER/,lib/,lib/graphics/,lib/webservice"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sysml"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
