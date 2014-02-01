@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.util;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
+import gov.nasa.jpl.ae.event.Functions.Binary;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.solver.Wraps;
@@ -205,58 +206,129 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
 
   public static < T, R > ConstructorCall
       javaUnaryOpToEventFunction( UnaryExpr.Operator operator ) {
-    String fName = astUnaryOpToEventFunctionName( operator );
-    Class< Functions.Unary< T, R > > cls = null;
+    if ( operator == null ) return null;
+    return unaryOpNameToEventFunction( operator.toString() );
+  }
+  public static < T, R > ConstructorCall
+      unaryOpNameToEventFunction( String fName ) {
+    Class< ? extends Functions.Unary< T, R > > cls = null;
     try {
-      cls = (Class< Functions.Unary< T, R > >)Class.forName( fName );
+      cls = (Class< ? extends Functions.Unary< T, R > >)Class.forName( fName );
     } catch ( ClassNotFoundException e ) {
       e.printStackTrace();
     }
-    Debug.errorOnNull( "javaUnaryOpToEventFunction( " + operator
+    Debug.errorOnNull( "javaUnaryOpToEventFunction( " + fName
                        + "): no function found!", cls );
     if ( cls == null ) return null;
     ConstructorCall ctorCall =
-        new ConstructorCall( null, cls, new Object[] { aeExprCls } );
+        new ConstructorCall( null, cls, new Object[] { emptyExpression } );
     return ctorCall;
   }
 
+    protected static List< Class< ? extends FunctionCall > > functionClasses =
+            null;
+    /**
+     * @return a list of built-in, common FunctionCall classes. 
+     */
+    public static List< Class< ? extends FunctionCall > > getFunctionClasses() {
+        if ( functionClasses != null ) return functionClasses;
+        Class< ? >[] classes = Functions.class.getClasses();
+        for ( Class< ? > cls : classes ) {
+            if ( FunctionCall.class.isAssignableFrom( cls ) ) {
+                @SuppressWarnings( "unchecked" )
+                Class< ? extends FunctionCall > fcls =
+                        (Class< ? extends FunctionCall >)cls;
+                functionClasses.add( fcls );
+            }
+        }
+        return functionClasses;
+    }
+
   // \([A-Za-z]*\), //\(.*\)
   // case \1: // \2
-  public static String
-      javaBinaryOpToEventFunctionName( BinaryExpr.Operator operator ) {
-    return "" + Character.toUpperCase( operator.toString().charAt( 0 ) )
-           + operator.toString().substring( 1 );
-  }
+    protected static < T, R > Class< ? extends Binary< T, R > > 
+      binaryOpNameToFunctionClass( String opName ) {
+        Class< ? extends Binary > foo = 
+                getFunctionClassOfType( opName, Binary.class );;
+        return (Class< ? extends Binary< T, R > >)foo ;
+    }
+
+    public static < T extends FunctionCall > Class< ? extends T >
+            getFunctionClassOfType( String opName, Class< T > type ) {
+        if ( Utils.isNullOrEmpty( opName ) ) return null;
+        String fName = opName;
+        Class< ? extends T > cls = null;
+        fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
+                        + fName.toString().substring( 1 );
+        for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {
+            if ( ( type == null || type.isAssignableFrom( fcls ) ) && 
+                 fcls.getSimpleName().equalsIgnoreCase( fName ) ) {
+                @SuppressWarnings( "unchecked" )
+                Class< ? extends T > tcls = (Class< ? extends T >)fcls;
+                return tcls;
+            }
+        }
+
+        try {
+            Class< ? > foo =
+                    ClassUtils.getClassForName( fName, null,
+                                                "gov.nasa.jpl.ae.event", false );
+            @SuppressWarnings( "unchecked" )
+            Class< ? extends T > tcls = (Class< ? extends T >)foo;
+            cls = tcls;
+            if ( cls == null ) {
+                foo = ClassUtils.getClassForName( "Functions." + fName, null,
+                                                  "gov.nasa.jpl.ae.event",
+                                                  false );
+                @SuppressWarnings( "unchecked" )
+                Class< ? extends T > ttcls = (Class< ? extends T >)foo;
+                cls = ttcls;
+            }
+          } catch ( ClassCastException e ) {
+            e.printStackTrace();
+          }
+        return cls;
+    }
+  
+    public static String
+            javaBinaryOpToEventFunctionName( BinaryExpr.Operator operator ) {
+        if ( operator == null ) return null;
+        Class< ? extends Binary< ?, ? > > cls = 
+                binaryOpNameToFunctionClass( operator.toString() );
+        return cls.getSimpleName();
+    }  
 
   static final Class< gov.nasa.jpl.ae.event.Expression > aeExprCls =
       gov.nasa.jpl.ae.event.Expression.class;
 
+  public static < T, R > ConstructorCall javaBinaryOpToEventFunction( BinaryExpr.Operator operator ) {
+      //String fName = javaBinaryOpToEventFunctionName( operator );
+      if ( operator == null ) return null;
+      return binaryOpNameToEventFunction( operator.toString() );
+  }
   public static < T, R > ConstructorCall
-      javaBinaryOpToEventFunction( BinaryExpr.Operator operator ) {
-    String fName = javaBinaryOpToEventFunctionName( operator );
-    Class< Functions.Binary< T, R >> cls = null;
-    try {
-      cls = (Class< Functions.Binary< T, R > >)ClassUtils.getClassForName( fName, null, "gov.nasa.jpl.ae.event", false );
-      if ( cls == null ) {
-          cls = (Class< Functions.Binary< T, R > >)ClassUtils.getClassForName( "Functions." + fName, null, "gov.nasa.jpl.ae.event", false );          
-      }
-    } catch ( ClassCastException e ) {
-      e.printStackTrace();
-    }
-    Debug.errorOnNull( "javaBinaryOpToEventFunction( " + operator
-                       + "): no function found!", cls );
+      binaryOpNameToEventFunction( String fName ) {
+    Class< ? extends Functions.Binary< T, R > > cls = null;
+    cls = binaryOpNameToFunctionClass( fName );
     if ( cls == null ) {
+        Debug.error( "javaBinaryOpToEventFunction( " + fName +
+                     "): no function found!" );
         return null;
     }
     ConstructorCall ctorCall =
-        new ConstructorCall( null, cls, new Object[] { aeExprCls, aeExprCls } );
+        new ConstructorCall( null, cls, new Object[] { emptyExpression,
+                                                       emptyExpression } );
     return ctorCall;
   }
 
+  protected static gov.nasa.jpl.ae.event.Expression< Object > emptyExpression =
+          new gov.nasa.jpl.ae.event.Expression< Object >( (Object)null );  
   public static < T, R > ConstructorCall getIfThenElseConstructorCall() {
     Class< Functions.Conditional > cls = Functions.Conditional.class;
     ConstructorCall ctorCall =
-    new ConstructorCall( null, cls, new Object[] { aeExprCls, aeExprCls, aeExprCls } );
+        new ConstructorCall( null, cls, new Object[] { emptyExpression, 
+                                                       emptyExpression,
+                                                       emptyExpression } );
     return ctorCall;
   }
 
