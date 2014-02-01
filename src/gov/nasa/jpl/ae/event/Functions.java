@@ -286,12 +286,14 @@ public class Functions {
   
   // Simple math functions
 
-  public static class Sum< T , R > extends Binary< T, R > {
+  public static class Sum< T, R > extends Binary< T, R > {
     public Sum( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "add" );
+      setMonotonic( true );
     }
     public Sum( Object o1, Object c ) {
       super( o1, c, "add" );
+      setMonotonic( true );
     }
   }
   public static class Add< T , R > extends Sum< T, R > {
@@ -307,7 +309,6 @@ public class Functions {
     public Plus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
       //functionCall.
-      setMonotonic( true );
     }
     public Plus( Object o1, Object c ) {
       super( o1, c );
