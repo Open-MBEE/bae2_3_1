@@ -1,7 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.solver.HasId;
 import gov.nasa.jpl.ae.solver.Wraps;
+import gov.nasa.jpl.mbee.util.HasId;
 
 import java.util.Iterator;
 import java.util.Map;

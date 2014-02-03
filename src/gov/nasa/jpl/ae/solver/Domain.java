@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.mbee.util.HasId;
+
 public interface Domain< T > extends Cloneable, HasId, Wraps< T > {
 
   public Domain< T > clone();

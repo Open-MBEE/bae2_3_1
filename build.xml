@@ -26,6 +26,7 @@
 	    <echo message="started ${current.time}" />
 	    <jar destfile="AE_MD.jar">
 	      <fileset includes="**/*.class"  excludes="generated**/*" dir="bin"/>
+          <fileset includes="rebel.xml" dir="."/>
 	      <zipfileset includes="**/*.class" src="${junitJarFile}"/>
 	      <manifest>
 	        <attribute name="Main-Class" value="tests/TestEventXmlToJava"/>
@@ -44,6 +45,7 @@
     <echo message="started ${current.time}" />
     <jar destfile="AE.jar">
       <fileset includes="**/*.class"  excludes="generated**/* **/magicdrawPlugin**/*" dir="bin"/>
+      <fileset includes="rebel.xml" dir="src"/>
       <zipfileset includes="**/*.class" src="${junitJarFile}"/>
       <manifest>
         <attribute name="Main-Class" value="tests/TestEventXmlToJava"/>

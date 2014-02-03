@@ -9,7 +9,7 @@ import gov.nasa.jpl.ae.event.LinearTimeline;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
-import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.mbee.util.Debug;
 
 /**
  * @author bclement

@@ -23,9 +23,10 @@ import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.TimeVarying;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
+
 import java.util.Vector;
 import java.util.Map;
 

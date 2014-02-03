@@ -3,8 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.Collections;
 

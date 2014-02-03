@@ -23,8 +23,6 @@ import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.TimeVarying;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
-import gov.nasa.jpl.ae.util.Utils;
-import gov.nasa.jpl.ae.util.ClassUtils;
 import java.util.Vector;
 import java.util.Map;
 import java.util.Queue;
@@ -35,6 +33,8 @@ import java.lang.Math;
 import java.util.Set;
 import java.util.TreeSet;
 import gov.nasa.jpl.ae.event.EffectFunction;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Utils;
 
 public class Power extends ParameterListenerImpl {
 
