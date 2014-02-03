@@ -19,8 +19,8 @@ import gov.nasa.jpl.ae.event.Functions.LessEquals;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 /**
  *

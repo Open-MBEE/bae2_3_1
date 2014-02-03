@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.mbee.util.HasId;
+
 import java.util.Set;
 
 public interface Variable< T > extends HasDomain, HasId, Wraps< T > {

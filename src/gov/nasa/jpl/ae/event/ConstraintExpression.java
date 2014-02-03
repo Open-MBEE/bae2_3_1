@@ -3,9 +3,9 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.CompareUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.Set;
 

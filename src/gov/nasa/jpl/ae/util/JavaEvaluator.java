@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.util;
 
+import gov.nasa.jpl.mbee.util.Debug;
 import junit.framework.Assert;
 
 /**

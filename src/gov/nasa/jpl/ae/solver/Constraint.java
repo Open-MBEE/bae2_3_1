@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.solver;
 
 import gov.nasa.jpl.ae.event.LazyUpdate;
+import gov.nasa.jpl.mbee.util.HasId;
 
 import java.util.Set;
 

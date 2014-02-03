@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.mbee.util.HasId;
+
 /**
  *
  */

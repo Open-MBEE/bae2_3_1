@@ -7,8 +7,8 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.Collection;
 import java.util.HashSet;

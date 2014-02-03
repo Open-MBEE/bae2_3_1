@@ -4,9 +4,9 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasIdImpl;
-import gov.nasa.jpl.ae.util.MoreToString;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.MoreToString;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.HashSet;
 import java.util.Map;

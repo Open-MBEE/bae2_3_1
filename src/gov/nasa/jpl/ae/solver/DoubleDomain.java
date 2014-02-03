@@ -3,7 +3,7 @@
  */
 package gov.nasa.jpl.ae.solver;
 
-import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.mbee.util.Debug;
 
 import org.junit.Assert;
 

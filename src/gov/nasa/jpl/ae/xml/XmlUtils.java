@@ -58,9 +58,9 @@ import gov.nasa.jpl.ae.event.Event;
 import gov.nasa.jpl.ae.event.EventInvocation;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.FileUtils;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.FileUtils;
+import gov.nasa.jpl.mbee.util.Utils;
 
 @SuppressWarnings( "unused" )
 public class XmlUtils {

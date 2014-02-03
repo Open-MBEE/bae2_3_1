@@ -7,9 +7,9 @@ import java.util.Vector;
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
 import sysml.SystemModel;
 
 public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T, P, N, ?, ?, ?, ?, ?, ? > > {

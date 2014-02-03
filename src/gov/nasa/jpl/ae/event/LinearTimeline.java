@@ -3,7 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.mbee.util.Debug;
 
 import java.lang.reflect.Method;
 import java.util.Map.Entry;
