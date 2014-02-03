@@ -2,8 +2,8 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.mbee.util.CompareUtils;
+import gov.nasa.jpl.mbee.util.Debug;
 
 import java.text.DateFormat;
 import java.text.ParseException;

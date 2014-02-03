@@ -19,9 +19,9 @@ import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 /**
  *

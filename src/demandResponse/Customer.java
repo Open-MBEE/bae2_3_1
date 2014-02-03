@@ -14,7 +14,7 @@ import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
-import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.mbee.util.Debug;
 
 /**
  * 

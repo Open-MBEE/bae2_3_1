@@ -4,7 +4,7 @@
 package gov.nasa.jpl.ae.tests;
 
 import gov.nasa.jpl.ae.event.TimeVaryingMaps;
-import gov.nasa.jpl.ae.util.MoreToString;
+import gov.nasa.jpl.mbee.util.MoreToString;
 
 import java.util.Arrays;
 import java.util.Map;

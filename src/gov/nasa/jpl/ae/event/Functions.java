@@ -9,9 +9,9 @@ import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
 
 import java.lang.reflect.Method;
 import java.util.Collections;

@@ -3,17 +3,13 @@
  */
 package gov.nasa.jpl.ae.solver;
 
-import gov.nasa.jpl.ae.event.Parameter;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
-
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.HasId;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * @author bclement
  *
  */
 public interface Satisfiable extends HasId {

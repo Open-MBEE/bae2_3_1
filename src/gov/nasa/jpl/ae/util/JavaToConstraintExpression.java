@@ -10,6 +10,10 @@ import gov.nasa.jpl.ae.event.Functions.Binary;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.solver.Wraps;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.NameTranslator;
+import gov.nasa.jpl.mbee.util.Utils;
 import japa.parser.ASTParser;
 import japa.parser.ParseException;
 import japa.parser.ast.expr.ArrayCreationExpr;
@@ -211,6 +215,14 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   }
   public static < T, R > ConstructorCall
       unaryOpNameToEventFunction( String fName ) {
+    String op2func = unaryOperatorSymbolToFunctionName( fName );
+    if ( op2func != null ) {
+      fName = op2func;
+    } else {
+      //HERE!! TODO!! fName = Utils.toCamelCase( fName );
+      fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
+          + fName.toString().substring( 1 );
+    }
     Class< ? extends Functions.Unary< T, R > > cls = null;
     try {
       cls = (Class< ? extends Functions.Unary< T, R > >)Class.forName( fName );
@@ -244,6 +256,82 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         return functionClasses;
     }
 
+    public static String binaryOperatorSymbolToFunctionName( String op ) {
+      int length = op.trim().length();
+      char first = length >= 1 ? op.trim().charAt( 0 ) : 0;
+      char second = length >= 2 ? op.trim().charAt( 1 ) : 0;
+      if ( length == 2 ) {
+        switch ( first ) {
+          case '&':
+            if ( second == '&' ) return "And";
+            return null;
+          case '|':
+            if ( second == '|' ) return "Or";
+            return null;
+          default:
+            // unknown
+            return null;
+        }
+      }
+      if ( length == 1 ) {
+        switch ( first ) {
+          case '+':
+            return "Plus";
+          case '-':
+            return "Minus";
+          case '*':
+            return "Times";
+          case '/':
+            return "DividedBy";
+          case '&':
+            return "And"; // bitwise?
+          case '|':
+            return "Or"; // bitwise?
+          case '^':
+            return "Xor"; // bitwise?
+          case '%':
+            return "Mod"; // TODO -- add to Functions.java
+          default:
+            // unknown
+            return null;
+        }
+      }
+      return null;
+    }
+    
+    public static String unaryOperatorSymbolToFunctionName( String op ) {
+      int length = op.trim().length();
+      char first = length >= 1 ? op.trim().charAt( 0 ) : 0;
+      char second = length >= 2 ? op.trim().charAt( 1 ) : 0;
+      if ( length == 2 ) {
+        switch ( first ) {
+          case '+':
+            if ( second == '+' ) return "Increment"; // TODO -- add to Functions.java
+            return null;
+          case '-':
+            if ( second == '-' ) return "Decrement"; // TODO -- add to Functions.java
+            return null;
+          default:
+            // unknown
+            return null;
+        }
+      }
+      if ( length == 1 ) {
+        switch ( first ) {
+          case '+':
+            return "Noop"; // TODO -- add to Functions.java
+          case '-':
+            return "Neg"; // TODO -- add to Functions.java?
+          case '!':
+            return "Not";
+          default:
+            // unknown
+            return null;
+        }
+      }
+      return null;
+    }
+    
   // \([A-Za-z]*\), //\(.*\)
   // case \1: // \2
     protected static < T, R > Class< ? extends Binary< T, R > > 

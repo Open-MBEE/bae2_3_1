@@ -1,10 +1,10 @@
 package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
 import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.ae.util.Debug;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;

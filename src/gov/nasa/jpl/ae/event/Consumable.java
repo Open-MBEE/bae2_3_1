@@ -3,8 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.Debug;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

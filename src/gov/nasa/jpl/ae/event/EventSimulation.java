@@ -4,13 +4,13 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.event.Timepoint.Units;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.MoreToString;
-import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.ae.util.SimulatedTime;
-import gov.nasa.jpl.ae.util.SocketClient;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.CompareUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.MoreToString;
+import gov.nasa.jpl.mbee.util.SocketClient;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -46,10 +46,17 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   //private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
   //private static final String enthoughtPythonPath = "/usr/local/epd_free-7.3-2-rh5-x86_64/";
   //private static final String enthoughtPython = "/usr/local/epd_free-7.3-2-rh5-x86_64/bin/python";
-  private static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
-  private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
+  public static final String homeDir = "/home/bclement";
+  public static final String gitDir = homeDir + "/git";
+  public static final String enthoughtDir = "/opt/Canopy/appdata/canopy-1.0.3.1262.rh5-x86_64";
+  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
+  //private static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
+  public static final String enthoughtPython = enthoughtDir + "/bin/python";
+  //private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
   //private static final String enthoughtPython = "c:\\Python27\\python.exe";
-  private static final String enthoughtTempDir = "c:\\temp";
+  public static final String enthoughtTempDir = "/tmp";
+  //private static final String enthoughtTempDir = "c:\\temp";
+
   public static double maxSecondsToNextEvent = 43200;
   
   // Members

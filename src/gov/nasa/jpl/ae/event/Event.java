@@ -1,7 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasConstraints;
-import gov.nasa.jpl.ae.util.Pair;
+import gov.nasa.jpl.mbee.util.Pair;
 
 import java.lang.reflect.Method;
 import java.util.Collection;

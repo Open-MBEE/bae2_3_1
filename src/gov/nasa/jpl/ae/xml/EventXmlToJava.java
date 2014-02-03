@@ -73,21 +73,21 @@ import org.xml.sax.SAXException;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Timepoint;
 import gov.nasa.jpl.ae.event.Timepoint.Units;
-import gov.nasa.jpl.ae.util.ClassData;
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.JavaForFunctionCall;
-import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
-import gov.nasa.jpl.ae.util.NameTranslator;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.Timer;
-import gov.nasa.jpl.ae.util.Utils;
 
 // Keep these for resolving class references. 
 import gov.nasa.jpl.ae.event.*;
 import gov.nasa.jpl.ae.solver.*;
+import gov.nasa.jpl.ae.util.ClassData;
+import gov.nasa.jpl.ae.util.JavaForFunctionCall;
+import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.ae.fuml.*;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.CompareUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.NameTranslator;
+import gov.nasa.jpl.mbee.util.Timer;
+import gov.nasa.jpl.mbee.util.Utils;
 import demandResponse.*;
 
 /*

@@ -3,8 +3,8 @@
  */
 package gov.nasa.jpl.ae.solver;
 
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
