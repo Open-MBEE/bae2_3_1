@@ -18,17 +18,9 @@ public class JavaEvaluator {
     }
     
     public static Object evaluate( String javaString ) {
-        Debug.turnOn();
         return evaluate( javaString, null );
     }
     public static Object evaluate( String javaString, String packageName ) {
-        Debug.turnOn();
-//        try {
-//            Thread.sleep( 10000 );
-//        } catch ( InterruptedException e ) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
         JavaEvaluator evaluator = new JavaEvaluator( packageName );
         gov.nasa.jpl.ae.event.Expression< ? > expression =
                 evaluator.javaToConstraintExpression.javaToAeExpression( javaString,

@@ -94,7 +94,7 @@ public class TestPlugin extends MDPlugin {
 
   @Override
   public void init() {
-    Debug.turnOn();
+//    Debug.turnOn();
     Debug.errln("initializing TestPlugin!");
     Debug.outln("initializing TestPlugin!");
 //    Configurator c = new Configurator();

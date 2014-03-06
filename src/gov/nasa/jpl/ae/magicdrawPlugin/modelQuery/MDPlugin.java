@@ -124,7 +124,7 @@ public class MDPlugin extends Plugin {
    */
   @Override
   public void init() {
-    Debug.turnOn();
+//    Debug.turnOn();
     Debug.errln( "initializing " + getClass().getSimpleName() );
     Debug.outln( "initializing " + getClass().getSimpleName() );
 
