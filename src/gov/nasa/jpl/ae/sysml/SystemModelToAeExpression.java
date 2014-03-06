@@ -18,30 +18,38 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
         setModel(model);
     }
 
+    public <X> X evaluateExpression( Object expressionElement ) {
+      Expression<X> expression = toAeExpression( expressionElement );
+      return expression.evaluate( true );
+    }
+    
     public <X> Expression<X> toAeExpression( Object expressionElement ) {
         if ( expressionElement == null ) return null;
         if ( model == null ) {
             Debug.error( "Model cannot be null!" );
         }
         Expression<X> expression = null;
+        // get all properties of the element
         Collection< P > properties = model.getProperty( expressionElement, null );
         
         Vector< Object > arguments = new Vector< Object >();
         Collection< T > operandTypes = model.getType( null, "Operand" );
         N operationName = null;
-        for ( P p : properties ) {
-            Collection< T > type = model.getType( p, null );
-            if ( operationName == null && 
-                 ( operandTypes.contains( type ) ||
-                   model.getName( type ).equals("Operand") ) ) {
-                Collection< N > operationNames = model.getName( p );
-                if ( operationNames != null ) {
-                    operationName = operationNames.iterator().next();
-                }
-            } else {
-                // assume this is an argument
-                arguments.add( toAeExpression( p ) );
-            }
+        if ( properties != null ) {
+          for ( P p : properties ) {
+              Collection< T > type = model.getType( p, null );
+              if ( operationName == null && 
+                   ( operandTypes.contains( type ) ||
+                     model.getName( type ).equals("Operand") ) ) {
+                  Collection< N > operationNames = model.getName( p );
+                  if ( operationNames != null ) {
+                      operationName = operationNames.iterator().next();
+                  }
+              } else {
+                  // assume this is an argument
+                  arguments.add( toAeExpression( p ) );
+              }
+          }
         }
         
         //Class< Function>

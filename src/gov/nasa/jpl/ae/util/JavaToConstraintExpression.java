@@ -219,9 +219,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     if ( op2func != null ) {
       fName = op2func;
     } else {
-      //HERE!! TODO!! fName = Utils.toCamelCase( fName );
-      fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
-          + fName.toString().substring( 1 );
+      fName = Utils.toCamelCase( fName );
     }
     Class< ? extends Functions.Unary< T, R > > cls = null;
     try {
@@ -244,9 +242,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
      */
     public static List< Class< ? extends FunctionCall > > getFunctionClasses() {
         if ( functionClasses != null ) return functionClasses;
+        functionClasses = new ArrayList< Class< ? extends FunctionCall > >();
         Class< ? >[] classes = Functions.class.getClasses();
         for ( Class< ? > cls : classes ) {
-            if ( FunctionCall.class.isAssignableFrom( cls ) ) {
+            System.out.println("cls = " + cls );
+            if ( cls != null && FunctionCall.class.isAssignableFrom( cls ) ) {
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends FunctionCall > fcls =
                         (Class< ? extends FunctionCall >)cls;

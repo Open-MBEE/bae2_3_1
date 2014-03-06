@@ -7,12 +7,12 @@ import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
-import gov.nasa.jpl.ae.util.ClassUtils;
-import gov.nasa.jpl.ae.util.CompareUtils;
-import gov.nasa.jpl.ae.util.Pair;
-import gov.nasa.jpl.ae.util.CompareUtils.GenericComparator;
-import gov.nasa.jpl.ae.util.Debug;
-import gov.nasa.jpl.ae.util.Utils;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.CompareUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.CompareUtils.GenericComparator;
 
 import japa.parser.ast.expr.FieldAccessExpr;
 
@@ -82,7 +82,7 @@ import com.nomagic.magicdraw.uml.BaseElement;
  * field may contain alternative interpretations of the reference.
  * 
  */
-public class ModelReference< T > extends Expression< Collection< T > > implements Cloneable {
+public class ModelReference< T > extends Expression< Collection< T > > implements Cloneable, KillMeNow< T > {
 
   // REVIEW -- Should other members be wrapped in Parameters, like model???
 
