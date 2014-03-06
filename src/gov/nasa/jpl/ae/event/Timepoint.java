@@ -20,7 +20,6 @@ import junit.framework.Assert;
  */
 
 /**
- * @author bclement
  *
  */
 public class Timepoint extends IntegerParameter implements TimeVariable {
