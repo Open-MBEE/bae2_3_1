@@ -3,7 +3,6 @@
   <!-- Customize properties below for your installation. -->
   <loadproperties srcFile="build.properties"/>
 
-  <property name="junitJarFile" value="${home}/.yoxoslauncher/plugins/org.junit_4.8.2.v4_8_2_v20110321-1705/junit.jar"/>
   <property name="xmlFile" value="src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml"/>
   <property name="scriptXmlFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/script.xml"/>
   <property name="pluginXmlFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/plugin.xml"/>
@@ -27,7 +26,6 @@
 	    <jar destfile="AE_MD.jar">
 	      <fileset includes="**/*.class"  excludes="generated**/*" dir="bin"/>
           <fileset includes="rebel.xml" dir="."/>
-	      <zipfileset includes="**/*.class" src="${junitJarFile}"/>
 	      <manifest>
 	        <attribute name="Main-Class" value="tests/TestEventXmlToJava"/>
 	      </manifest>
@@ -46,7 +44,6 @@
     <jar destfile="AE.jar">
       <fileset includes="**/*.class"  excludes="generated**/* **/magicdrawPlugin**/*" dir="bin"/>
       <fileset includes="rebel.xml" dir="src"/>
-      <zipfileset includes="**/*.class" src="${junitJarFile}"/>
       <manifest>
         <attribute name="Main-Class" value="tests/TestEventXmlToJava"/>
       </manifest>
