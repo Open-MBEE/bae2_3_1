@@ -321,7 +321,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           case '+':
             return "Noop"; // TODO -- add to Functions.java
           case '-':
-            return "Neg"; // TODO -- add to Functions.java?
+            return "Negative";
           case '!':
             return "Not";
           default:
@@ -751,15 +751,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
 //            middle = "(" + middle + ").evaluate(true)"; 
 //          }
           ConstructorCall call = javaUnaryOpToEventFunction( ue.getOperator() );
-          Vector< Object > args = new Vector< Object >(1);
-          args.set(0, astToAeExpr( ue.getExpr(), true,
-                                   lookOutsideClassDataForTypes,
-                                   complainIfDeclNotFound ) );
-          call.setArguments( args );
-          if ( evaluateCall ) {
-            aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
-          } else {
-            aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
+          if ( call != null ) {
+              Vector< Object > args = new Vector< Object >(1);
+              args.add( astToAeExpr( ue.getExpr(), true,
+                                     lookOutsideClassDataForTypes,
+                                     complainIfDeclNotFound ) );
+              call.setArguments( args );
+              if ( evaluateCall ) {
+                aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+              } else {
+                aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
+              }
           }
           //return aeExpr;
      } else
