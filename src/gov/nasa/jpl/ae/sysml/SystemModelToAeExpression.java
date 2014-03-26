@@ -47,9 +47,16 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
           for (P operandProp : properties) {
             
             // TODO finish
+            
+            // Get the valueOfElementProperty node:
+            
+            // If it is a Operation type then get the operator name:
+            
+            // Otherwise, it must be a command arg, so get the argument values:
+           
           }
           
-          // This is all wrong:
+          // This is all wrong (see EmsSystemModeTest)
           Collection< ? > values = model.getValue(properties.iterator().next(), null);
           System.out.println( "\n*toAeExpression() values: "
               + MoreToString.Helper.toLongString( values ) );
