@@ -706,7 +706,7 @@ public class Functions {
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    return divide(o1, o2);
+    return divide(r1, r2);
 /*    Number result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
          r2.getClass().isAssignableFrom( java.lang.Double.class )) {
