@@ -39,7 +39,8 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
         // get all operand property of the element
         // TODO: should be using Acm.ACM_OPERAND in getProperty but they have Acm in view_repo.util package
         Collection< P > properties = model.getProperty( expressionElement, "sysml:operand");
-        
+        Debug.outln( "toAeExpression(" + expressionElement + " ): operands = "
+                     + properties );
         if (!Utils.isNullOrEmpty(properties)) {
       
           // Loop through all of the operand property values to find the operand arguments
@@ -47,13 +48,17 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
           for (P operandProp : properties) {
                         
             // Get the valueOfElementProperty node:
-            Collection< P > valueOfElemNodes = model.getProperty(operandProp, "sysml:elementValueOfElement");
-            
+            Collection< P > valueOfElemNodes = 
+                    model.getProperty(operandProp, "sysml:elementValueOfElement");
+            Debug.outln( "elementValueOfElement property of operand prop = "
+                         + valueOfElemNodes );
             if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
                             
               // valueOfElemNodes should always be size 1 b/c elementValueOfElement is a single NodeRef
               P valueOfElementNode = valueOfElemNodes.iterator().next();
-            
+              Debug.outln( "valueOfElementNode = " + valueOfElementNode );
+              String typeString = model.getTypeString(valueOfElementNode, null);
+              Debug.outln( "typeString of valueOfElementNode = " + typeString );
               // TODO replace w/ model.getType() once we fix it
               // If it is a Operation type then get the operator name:
               if (model.getTypeString(valueOfElementNode, null).contains("Operation")) {
@@ -61,18 +66,22 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
                 // TODO: we need to implement model.getName() (perhaps call it getSysmlName())
                 Collection<P> operNameNodes = model.getProperty(valueOfElementNode, "sysml:name");
                 //operationName = operNameNodes.iterator().next();
+                Debug.outln( "operNameNodes = " + operNameNodes );
               }
               
               // Otherwise, it must be a command arg, so get the argument values:
               else {
                                 
                 // Get the argument Node:
-                Collection< P > argValueNodes = model.getProperty(valueOfElementNode, "sysml:value");
+                Collection< P > argValueNodes = 
+                        model.getProperty(valueOfElementNode, "sysml:value");
+                Debug.outln( "argValueNodes = " + argValueNodes );
                 
                 if (!Utils.isNullOrEmpty(argValueNodes)) {
                   
                   // TODO can we assume this will always be size one?
                   P argValueNode = argValueNodes.iterator().next();
+                  Debug.outln( "argValueNode = " + argValueNode );
                   
                   // Get the value of the argument based on type:
                   Collection<P> argValPropNodes = null;
