@@ -45,114 +45,99 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
           // Loop through all of the operand property values to find the operand arguments
           // and Operation:
           for (P operandProp : properties) {
-            
-            // TODO finish
-            
+                        
             // Get the valueOfElementProperty node:
+            Collection< P > valueOfElemNodes = model.getProperty(operandProp, "sysml:elementValueOfElement");
             
-            // If it is a Operation type then get the operator name:
+            if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
+                            
+              // valueOfElemNodes should always be size 1 b/c elementValueOfElement is a single NodeRef
+              P valueOfElementNode = valueOfElemNodes.iterator().next();
             
-            // Otherwise, it must be a command arg, so get the argument values:
-           
-          }
-          
-          // This is all wrong (see EmsSystemModeTest)
-          Collection< ? > values = model.getValue(properties.iterator().next(), null);
-          System.out.println( "\n*toAeExpression() values: "
-              + MoreToString.Helper.toLongString( values ) );
-            
-          
-          //Collection< T > operandTypes = model.getType( null, "Operation" );
-          if ( values != null ) {
-            for ( Object val : values ) {
-              
-                Collection< T > types = model.getType( val, null );
+              // TODO replace w/ model.getType() once we fix it
+              // If it is a Operation type then get the operator name:
+              if (model.getTypeString(valueOfElementNode, null).contains("Operation")) {
                 
-                if (types != null && !types.isEmpty()) {
+                // TODO: we need to implement model.getName() (perhaps call it getSysmlName())
+                Collection<P> operNameNodes = model.getProperty(valueOfElementNode, "sysml:name");
+                //operationName = operNameNodes.iterator().next();
+              }
+              
+              // Otherwise, it must be a command arg, so get the argument values:
+              else {
+                                
+                // Get the argument Node:
+                Collection< P > argValueNodes = model.getProperty(valueOfElementNode, "sysml:value");
+                
+                if (!Utils.isNullOrEmpty(argValueNodes)) {
                   
-                  T type =  types.iterator().next(); // TODO can we assume there is exactly one type?
-                  if ( operationName == null && type != null &&
-                       model.getName(type).equals("sysml:operand") ) { // TODO NPE
+                  // TODO can we assume this will always be size one?
+                  P argValueNode = argValueNodes.iterator().next();
+                  
+                  // Get the value of the argument based on type:
+                  Collection<P> argValPropNodes = null;
+                  if (model.getTypeString(argValueNode, null).contains("LiteralInteger")) {
                     
-                      Collection< N > operationNames = model.getName( val );
-                      if ( operationNames != null && !operationNames.isEmpty() ) {
-                          operationName = operationNames.iterator().next();
-                      }
-                  } 
-                  else {
-                      // assume this is an argument
-                      arguments.add( toAeExpression( val ) );
+                    // TODO: this isnt going to work b/c we get an integer back, but want a EmsScriptNode
+                    //       need to figure out how we want to do this
+                    argValPropNodes = model.getProperty(argValueNode, "sysml:integer");
                   }
-                }
-                else {
-                  // assume this is an argument
-                  arguments.add( toAeExpression( val ) );
-                }
-            }
+                  else {
+                    // TODO rest of the argument types (double, etc)
+                  }
+                  
+                  if (!Utils.isNullOrEmpty(argValPropNodes)) {
+                    P argValProp = argValPropNodes.iterator().next();
+                    arguments.add(argValProp);
+                  }
+                  
+                } // ends !Utils.isNullOrEmpty(argValueNodes)
+
+              } // ends else it is a command arg
+                
+            } // ends !Utils.isNullOrEmpty(valueOfElemNodes
+           
+          } // ends for loop
+          
+        } // ends !Utils.isNullOrEmpty(properties)
+          
+        //Class< Function>
+        //System.out.println("\n\n!!!!arguments: "+ arguments);
             
-            //Class< Function>
-            
-            Call call = null; 
-            if ( operationName != null ) {
-                if ( arguments.size() == 1 ) {
-                    call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
-                } else if ( arguments.size() == 2 ) {
-                    call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
-                } else if ( arguments.size() == 3
-                            && operationName.toString().equalsIgnoreCase( "if" ) ) {
-                    call = JavaToConstraintExpression.getIfThenElseConstructorCall();
-                }
-                if ( call != null ) {
-                    call.setArguments( arguments );
-                } else {
-                    Object object = null;
-                    Method method =
-                            ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
-                                                                       arguments.toArray() );
-                    if ( method == null ) {
-                        method = ClassUtils.getMethodForArgs( model.getClass(),
-                                                              operationName.toString(),
-                                                              arguments.toArray() );
-                        if ( method != null ) object = model;
-                    }
-                    if ( method != null ) {
-                        // Check for a call to the SysML API.
-                        call = new FunctionCall( object, method, arguments );
-                    }
-                }
+        Call call = null; 
+        if ( operationName != null ) {
+            if ( arguments.size() == 1 ) {
+                call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+            } else if ( arguments.size() == 2 ) {
+                call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+            } else if ( arguments.size() == 3
+                        && operationName.toString().equalsIgnoreCase( "if" ) ) {
+                call = JavaToConstraintExpression.getIfThenElseConstructorCall();
             }
             if ( call != null ) {
-                expression = new Expression< X >( call );
-                return expression;
+                call.setArguments( arguments );
+            } else {
+                Object object = null;
+                Method method =
+                        ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
+                                                                   arguments.toArray() );
+                if ( method == null ) {
+                    method = ClassUtils.getMethodForArgs( model.getClass(),
+                                                          operationName.toString(),
+                                                          arguments.toArray() );
+                    if ( method != null ) object = model;
+                }
+                if ( method != null ) {
+                    // Check for a call to the SysML API.
+                    call = new FunctionCall( object, method, arguments );
+                }
             }
-            
         }
-          
-          // Old:
-//        // get all properties of the element
-//        Collection< P > properties = model.getProperty( expressionElement, null );
-//        
-//        Vector< Object > arguments = new Vector< Object >();
-//        Collection< T > operandTypes = model.getType( null, "Operation" );
-//        N operationName = null;
-//        if ( properties != null ) {
-//          for ( P p : properties ) {
-//              Collection< T > type = model.getType( p, null );
-//              if ( operationName == null && 
-//                   ( operandTypes.contains( type ) ||
-//                     model.getName( type ).equals("operand") ) ) {
-//                  Collection< N > operationNames = model.getName( p );
-//                  if ( operationNames != null ) {
-//                      operationName = operationNames.iterator().next();
-//                  }
-//              } else {
-//                  // assume this is an argument
-//                  arguments.add( toAeExpression( p ) );
-//              }
-//          }
+        if ( call != null ) {
+            expression = new Expression< X >( call );
+            return expression;
         }
         
-
         expression = new Expression< X >( expressionElement );
         return expression;
     }
