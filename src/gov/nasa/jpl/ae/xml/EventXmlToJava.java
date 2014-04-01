@@ -1401,8 +1401,8 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMap" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMaps" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingProjection" );
-    addImport( "gov.nasa.jpl.ae.util.Utils" );
-    addImport( "gov.nasa.jpl.ae.util.ClassUtils" );
+    addImport( "gov.nasa.jpl.mbee.util.Utils" );
+    addImport( "gov.nasa.jpl.mbee.util.ClassUtils" );
     addImport( "java.util.Vector" );
     addImport( "java.util.Map" );
     return getClassData().getCurrentCompilationUnit();
