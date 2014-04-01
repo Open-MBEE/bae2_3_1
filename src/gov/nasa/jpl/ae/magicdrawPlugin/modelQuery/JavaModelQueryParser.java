@@ -125,9 +125,9 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
                                  lookOutsideClassDataForTypes,
                                  complainIfDeclNotFound,
                                  evaluateCall );
-    ModelReference< ? > dotReference = null;
+    ModelReference< ?, ? > dotReference = null;
     if ( parentExpr instanceof ModelReference ) {
-      ModelReference< ? > mr = (ModelReference< ? >)parentExpr;
+      ModelReference< ?, ? > mr = (ModelReference< ?, ? >)parentExpr;
       dotReference = 
           new ModelReference( mr, fieldAccessExpr.getField(), null, null, true );
       if ( dotReference.numberOfAlternatives() > 0 ) {
@@ -168,9 +168,9 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
     // Could not convert the expression based on Java reflection alone.  See if
     // the type can be determined with respect to model elements.
     String name = nameExpr.getName();
-    ModelReference< ? > tmpMR =
+    ModelReference< ?, ? > tmpMR =
         new ModelReference( getModel(), getCurrentClass(), null, null, false );
-    ModelReference< ? > mr = tmpMR.findAlternatives( name, null, propagate );
+    ModelReference< ?, ? > mr = tmpMR.findAlternatives( name, null, propagate );
     aeExpr = mr;
     return (Expression< T >)aeExpr;
   }
