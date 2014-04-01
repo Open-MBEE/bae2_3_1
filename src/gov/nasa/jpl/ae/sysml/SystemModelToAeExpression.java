@@ -14,8 +14,10 @@ import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 import sysml.SystemModel;
 
-public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T, P, N, ?, ?, ?, ?, ?, ? > > {
+public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
+    
     protected SM model = null;
+    
     public SystemModelToAeExpression(SM model) {
         setModel(model);
     }
@@ -36,7 +38,7 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
         Expression<X> expression = null;
         Vector< Object > arguments = new Vector< Object >();
         
-        // get all operand property of the element
+        // Get all operand properties of the element
         // TODO: should be using Acm.ACM_OPERAND in getProperty but they have Acm in view_repo.util package
         Collection< P > properties = model.getProperty( expressionElement, "sysml:operand");
         Debug.outln( "toAeExpression(" + expressionElement + " ): operands = "
@@ -54,50 +56,68 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
                          + valueOfElemNodes );
             if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
                             
-              // valueOfElemNodes should always be size 1 b/c elementValueOfElement is a single NodeRef
+              // valueOfElemNodes should always be size 1 b/c elementValueOfElement
+              // is a single NodeRef
               P valueOfElementNode = valueOfElemNodes.iterator().next();
               Debug.outln( "valueOfElementNode = " + valueOfElementNode );
               String typeString = model.getTypeString(valueOfElementNode, null);
               Debug.outln( "typeString of valueOfElementNode = " + typeString );
-              // TODO replace w/ model.getType() once we fix it
+              
               // If it is a Operation type then get the operator name:
-              if (model.getTypeString(valueOfElementNode, null).contains("Operation")) {
+              if (typeString.equals("sysml:Operation")) {
                 
-                // TODO: we need to implement model.getName() (perhaps call it getSysmlName())
-                Collection<P> operNameNodes = model.getProperty(valueOfElementNode, "sysml:name");
-                //operationName = operNameNodes.iterator().next();
-                Debug.outln( "operNameNodes = " + operNameNodes );
+                Collection<N> operNames = model.getName(valueOfElementNode);
+                
+                if (!Utils.isNullOrEmpty(operNames)) {
+                  operationName = operNames.iterator().next();
+                  Debug.outln( "operationName = " + operationName);
+                }
+                
               }
               
               // Otherwise, it must be a command arg, so get the argument values:
               else {
                                 
                 // Get the argument Node:
-                Collection< P > argValueNodes = 
-                        model.getProperty(valueOfElementNode, "sysml:value");
-                Debug.outln( "argValueNodes = " + argValueNodes );
+                Collection<U > argValueNodes = 
+                    model.getValue(valueOfElementNode, null);
                 
                 if (!Utils.isNullOrEmpty(argValueNodes)) {
                   
+                  Debug.outln( "argValueNodes = " + argValueNodes );
+
                   // TODO can we assume this will always be size one?
-                  P argValueNode = argValueNodes.iterator().next();
+                  Object argValueNode = argValueNodes.iterator().next();
                   Debug.outln( "argValueNode = " + argValueNode );
                   
                   // Get the value of the argument based on type:
-                  Collection<P> argValPropNodes = null;
-                  if (model.getTypeString(argValueNode, null).contains("LiteralInteger")) {
+                  Collection<U> argValPropNodes = null;
+                  if (model.getTypeString(argValueNode, null).equals("sysml:LiteralInteger")) {
                     
-                    // TODO: this isnt going to work b/c we get an integer back, but want a EmsScriptNode
-                    //       need to figure out how we want to do this
-                    argValPropNodes = model.getProperty(argValueNode, "sysml:integer");
+                    argValPropNodes = model.getValue(argValueNode, "sysml:integer");
+                  }
+                  else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralReal")) {
+                    
+                    argValPropNodes = model.getValue(argValueNode, "sysml:double");
+                  }
+                  else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralBoolean")) {
+                    
+                    argValPropNodes = model.getValue(argValueNode, "sysml:boolean");
+                  }
+                  else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralUnlimitedNatural")) {
+                    
+                    argValPropNodes = model.getValue(argValueNode, "sysml:naturalValue");
                   }
                   else {
-                    // TODO rest of the argument types (double, etc)
+                    // TODO rest of the argument types if we need them
                   }
                   
                   if (!Utils.isNullOrEmpty(argValPropNodes)) {
-                    P argValProp = argValPropNodes.iterator().next();
+                    
+                    Object argValProp = argValPropNodes.iterator().next();
                     arguments.add(argValProp);
+                    Debug.outln( "argValProp = " + argValProp );
+
                   }
                   
                 } // ends !Utils.isNullOrEmpty(argValueNodes)
@@ -110,9 +130,7 @@ public class SystemModelToAeExpression< T, P, N, SM extends SystemModel< ?, ?, T
           
         } // ends !Utils.isNullOrEmpty(properties)
           
-        //Class< Function>
-        //System.out.println("\n\n!!!!arguments: "+ arguments);
-            
+        //Class< Function>            
         Call call = null; 
         if ( operationName != null ) {
             if ( arguments.size() == 1 ) {
