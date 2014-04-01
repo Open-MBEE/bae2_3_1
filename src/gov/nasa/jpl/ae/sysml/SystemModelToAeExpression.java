@@ -36,6 +36,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         if ( expressionElement == null ) return null;
         if ( model == null ) {
             Debug.error( "Model cannot be null!" );
+            return null;
         }
         Expression<X> expression = null;
         Vector< Object > arguments = new Vector< Object >();
@@ -45,6 +46,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Collection< P > properties = model.getProperty( expressionElement, "sysml:operand");
         Debug.outln( "toAeExpression(" + expressionElement + " ): operands = "
                      + properties );
+        
         if (!Utils.isNullOrEmpty(properties)) {
       
           // Loop through all of the operand property values to find the operand arguments
@@ -56,6 +58,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                     model.getProperty(operandProp, "sysml:elementValueOfElement");
             Debug.outln( "elementValueOfElement property of operand prop = "
                          + valueOfElemNodes );
+            
             if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
                             
               // valueOfElemNodes should always be size 1 b/c elementValueOfElement
@@ -77,9 +80,20 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                 
               }
               
+              // If it is a Expression type then process that Expression
+              // and add to argument list:
+              else if (typeString.equals("sysml:Expression")) {
+                
+                // TODO 
+                //      Consider subclassing JavaToContrainstExpression for
+                //      operations and properties
+                
+                arguments.add(toAeExpression(valueOfElementNode));
+              }
+              
               // Otherwise, it must be a command arg, so get the argument values:
               else {
-                                
+                       
                 // Get the argument Node:
                 Collection<U > argValueNodes = 
                     model.getValue(valueOfElementNode, null);
