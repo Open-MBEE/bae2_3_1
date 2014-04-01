@@ -22,9 +22,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         setModel(model);
     }
 
-    public <X> X evaluateExpression( Object expressionElement ) {
+    public <X> X evaluateExpression( Object expressionElement, Class<X> cls ) {
       Expression<X> expression = toAeExpression( expressionElement );
-      return expression.evaluate( true );
+      Object object = expression.evaluate( true );
+      return Expression.evaluate( object, cls, true );
+      //return expression.evaluate( true );
     }
     
     public <X> Expression<X> toAeExpression( Object expressionElement ) {
