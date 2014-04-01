@@ -24,9 +24,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
     public <X> X evaluateExpression( Object expressionElement, Class<X> cls ) {
       Expression<X> expression = toAeExpression( expressionElement );
-      Object object = expression.evaluate( true );
-      return Expression.evaluate( object, cls, true );
-      //return expression.evaluate( true );
+//      Object object = expression.evaluate( true );
+//      return Expression.evaluate( object, cls, true );
+      return expression.evaluate( true );
     }
     
     public <X> Expression<X> toAeExpression( Object expressionElement ) {
@@ -116,6 +116,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   
                   if (!Utils.isNullOrEmpty(argValPropNodes)) {
                     
+                    // TODO can we assume this is always size 1?  
                     Object argValProp = argValPropNodes.iterator().next();
                     arguments.add(argValProp);
                     Debug.outln( "argValProp = " + argValProp );
@@ -163,7 +164,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             }
         }
         if ( call != null ) {
-            expression = new Expression< X >( call );
+            expression = new Expression< X >( call.evaluate( true ) );
             return expression;
         }
         
