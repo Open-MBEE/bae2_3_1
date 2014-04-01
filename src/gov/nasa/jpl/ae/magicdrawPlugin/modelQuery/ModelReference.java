@@ -13,7 +13,6 @@ import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.CompareUtils.GenericComparator;
-
 import japa.parser.ast.expr.FieldAccessExpr;
 
 import java.lang.reflect.Method;
@@ -40,6 +39,9 @@ import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.ETypeParameter;
+
+import sysml.Reference;
+import sysml.SystemModel;
 
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
 import com.nomagic.magicdraw.uml.BaseElement;
@@ -82,11 +84,11 @@ import com.nomagic.magicdraw.uml.BaseElement;
  * field may contain alternative interpretations of the reference.
  * 
  */
-public class ModelReference< T > extends Expression< Collection< T > > implements Cloneable, KillMeNow< T > {
+public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? > > extends Expression< Collection< T > > implements Cloneable, Reference< T, SM > {
 
   // REVIEW -- Should other members be wrapped in Parameters, like model???
 
-  // protected ModelReference< ? > scopeReference = null;
+  // protected ModelReference< ?, ? > scopeReference = null;
   /**
    * An expression representing a reference to a single object.
    */
@@ -136,7 +138,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
   /**
    * Alternative interpretations of this reference.
    */
-  protected List< ModelReference< ? > > alternatives = null;
+  protected List< ModelReference< ?, ? > > alternatives = null;
 
   public Class< T > singleResultType = null;
   
@@ -167,9 +169,9 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param t
    * @return
    */
-  public static <TT, TTT> ModelReference<TT> parseModelReference( String expressionString,
+  public static <TT, TTT, SS extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? > > ModelReference<TT, SS> parseModelReference( String expressionString,
                                                                   String expressionLanguage ) {
-    ModelReference< TTT > mr = new ModelReference< TTT >( expressionString, expressionLanguage, null );
+    ModelReference< TTT, SS > mr = new ModelReference< TTT, SS >( expressionString, expressionLanguage, null );
     
     if ( mr.singleResultType == null ) {
       
@@ -177,8 +179,8 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     if ( mr.resultType == null ) {
       
     }
-    ModelReference< TT > mrNew =
-        new ModelReference< TT >( mr.scopeReference, mr.scopeReferenceString,
+    ModelReference< TT, SS > mrNew =
+        new ModelReference< TT, SS >( mr.scopeReference, mr.scopeReferenceString,
                                   mr.specifier, mr.nextSpecifier, mr.model,
                                   mr.alternatives,
                                   (Class< ? extends Collection< TT >>)mr.resultType,
@@ -263,7 +265,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
                          Class< Collection< T > > resultType, boolean resolve ) {
     this( (String)null, (String)null, (Object)scopeRef, (String)null,
           specifier, nextSpecifier, (Parameter< EObject >)null,
-          (List< ModelReference< ? >>)null, resultType, null, resolve );
+          (List< ModelReference< ?, ? > >)null, resultType, null, resolve );
   }
 
   /**
@@ -282,7 +284,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     this( (String)null, (String)null, (Object)null, (String)null, specifier,
           nextSpecifier,
           new Parameter< EObject >( "", null, scope, null ),
-          (List< ModelReference< ? >>)null,
+          (List< ModelReference< ?, ? >>)null,
           resultType, null, resolve );
     // this( scope, null, specifier, scope, null, resultType, resolve );
     setModel( scope );
@@ -304,7 +306,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
   public ModelReference( Object scopeReference, String scopeReferenceString,
                          String specifier, Object nextSpecifier,
                          Parameter< EObject > model,
-                         List< ModelReference< ? > > alternatives,
+                         List< ModelReference< ?, ? > > alternatives,
                          Class<? extends Collection< T > > resultType,
                          Class< T > singleResultType, boolean resolve ) {
     super( new FunctionCall( scopeReference, (Method)null ) );
@@ -353,7 +355,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
                          String scopeReferenceString, String specifier,
                          Object nextSpecifier,
                          Parameter< EObject > model,
-                         List< ModelReference< ? > > alternatives,
+                         List< ModelReference< ?, ? > > alternatives,
                          Class< ? extends Collection< T > > resultType,
                          Class< T > singleResultType, boolean resolve ) {
     super( expressionString, expressionLanguage,
@@ -393,7 +395,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
                          Object scopeReference,
                          String scopeReferenceString, String specifier,
                          Object nextSpecifier, EObject model,
-                         List< ModelReference< ? > > alternatives,
+                         List< ModelReference< ?, ? > > alternatives,
                          Class< ? extends Collection< T > > resultType,
                          Class< T > singleResultType, boolean resolve ) {
     this( expressionString, expressionLanguage, scopeReference,
@@ -406,7 +408,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * Create a ModelReference as a shallow copy of another.
    * @param modelReference
    */
-  public ModelReference( ModelReference< T > modelReference ) {
+  public ModelReference( ModelReference< T, SM > modelReference ) {
     super( modelReference );
     copyLocalMembers( modelReference );
   }
@@ -415,7 +417,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * Create a ModelReference as a shallow copy of another.
    * @param modelReference
    */
-  public ModelReference( ModelReference< T > modelReference, boolean deep ) {
+  public ModelReference( ModelReference< T, SM > modelReference, boolean deep ) {
     super( modelReference );
     copyLocalMembers( modelReference, deep );
   }
@@ -440,7 +442,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * 
    * @param modelReference
    */
-  public void copyMembers( ModelReference< T > modelReference ) {
+  public void copyMembers( ModelReference< T, SM > modelReference ) {
     super.copyMembers( modelReference );
     copyLocalMembers( modelReference );
   }
@@ -451,7 +453,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
   @Override
   public void copyMembers( Expression< Collection< T > > expression ) {
     if ( expression instanceof ModelReference ) {
-      copyMembers( (ModelReference< T >)expression );
+      copyMembers( (ModelReference< T, SM >)expression );
     } else {
       super.copyMembers( expression );
     }
@@ -462,10 +464,10 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * 
    * @param modelReference
    */
-  public void copyLocalMembers( ModelReference< T > modelReference ) {
+  public void copyLocalMembers( ModelReference< T, SM > modelReference ) {
     copyLocalMembers( modelReference, false );
   }
-  public void copyLocalMembers( ModelReference< T > modelReference,
+  public void copyLocalMembers( ModelReference< T, SM > modelReference,
                                 boolean deep ) {
     if ( deep && modelReference.singleExpression != null ) {
       try {
@@ -494,9 +496,9 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     this.nextSpecifierString = modelReference.nextSpecifierString;
     this.model = modelReference.model;
     if ( deep && modelReference.alternatives != null ) {
-      this.alternatives = new ArrayList< ModelReference<?> >();
+      this.alternatives = new ArrayList< ModelReference< ?, ? > >();
       
-      for ( ModelReference< ? > mr :  modelReference.alternatives ) {
+      for ( ModelReference< ?, ? > mr :  modelReference.alternatives ) {
         this.alternatives.add( new ModelReference( mr, deep ) );
       }
     } else {
@@ -510,8 +512,8 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @see gov.nasa.jpl.ae.event.Expression#clone()
    */
   @Override
-  public ModelReference< T > clone() throws CloneNotSupportedException {
-    return new ModelReference< T >( this );
+  public ModelReference< T, SM > clone() throws CloneNotSupportedException {
+    return new ModelReference< T, SM >( this );
   }
 
   public static <TT> Class< Collection<TT> > makeCollectionClass( TT tt ) {
@@ -608,7 +610,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
       list.add( evaluation );
     }
     if ( !Utils.isNullOrEmpty( alternatives ) ) {
-      for ( ModelReference< ? > r : alternatives ) {
+      for ( ModelReference< ?, ? > r : alternatives ) {
         List< Collection< ? >> rList = r.evaluateAndGetAlternatives( propagate );
         if ( !Utils.isNullOrEmpty( rList ) ) {
           list.addAll( rList );
@@ -674,7 +676,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
       evaluationSucceeded = false;
     }
     if ( !Utils.isNullOrEmpty( alternatives ) ) {
-      for ( ModelReference< ? > r : alternatives ) {
+      for ( ModelReference< ?, ? > r : alternatives ) {
         //T o = Expression.evaluate( r, resultType, propagate );
 //        try {
           Object o = r.evaluate( propagate );
@@ -760,7 +762,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
       evaluationSucceeded = false;
     }
     if ( !Utils.isNullOrEmpty( alternatives ) ) {
-      for ( ModelReference< ? > r : alternatives ) {
+      for ( ModelReference< ?, ? > r : alternatives ) {
         //T o = Expression.evaluate( r, resultType, propagate );
 //        try {
           T t = null;
@@ -849,12 +851,12 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     // If there is just one alternative, use this reference to refer to its
     // singleExpression.
     if ( !isSingleExpressionAnAlternative() && alternativesSize() == 1 ) {
-      copyMembers((ModelReference< T >)alternatives.get( 0 ));
+      copyMembers((ModelReference< T, SM >)alternatives.get( 0 ));
       alternatives.clear();
     }
 //    if ( scopeReference == null ) {
 //      if ( scopeReferenceString == null ) {
-//        ModelReference<?> mr = findAlternatives( specifier, null, true );
+//        ModelReference< ?, ? > mr = findAlternatives( specifier, null, true );
 //        
 //      } else {
 //        scopeReference = findAlternatives( scopeReferenceString, specifier, true );
@@ -905,19 +907,19 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @return a ModelReference for the specifier in the context of the existing
    *         ModelReference.
    */
-  public ModelReference< ? > findAlternatives( String specifier,
+  public <TTT, SS extends SystemModel > ModelReference< TTT, SS > findAlternatives( String specifier,
                                             Object nextSpecifier,
                                             boolean propagate) {
-//    ModelReference< ? > mr =
+//    ModelReference< ?, ? > mr =
 //        new ModelReference( this, specifier, nextSpecifier, resultType,
 //                            propagate );
-//    List< ModelReference< ? > > newAlternatives =
-//        new ArrayList< ModelReference< ? > >();
+//    List< ModelReference< ?, ? > > newAlternatives =
+//        new ArrayList< ModelReference< ?, ? > >();
 //    List< Collection< ? > > evaluations =
 //        this.evaluateAndGetAlternatives( propagate );
 //    for ( Collection<?> refs : evaluations ) {
 //      for ( Object scopeRef : refs ) {
-//        ModelReference< ? > mr =
+//        ModelReference< ?, ? > mr =
 //            new ModelReference( scopeRef, specifier, nextSpecifier, resultType,
 //                                propagate );
 //        Object result = ((Expression)mr).evaluate( propagate );
@@ -933,9 +935,9 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
 //      }
 //    }
     Object scopeRef = null;
-    ModelReference< ? > specRef = null;
+    ModelReference< TTT, SS > specRef = null;
     if ( scopeRef == null && model != null ) {
-      scopeRef = new ModelReference< EObject >( model );
+      scopeRef = new ModelReference< EObject, SM >( model );
     }
     if ( scopeRef == null ) {
       return null;
@@ -944,14 +946,14 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     // specRef
     // TODO -- REVIEW -- How about wrapping these getAlternatives() calls
     // FunctionCalls?
-    List< ModelReference< ? > > alternativeRefs =
+    List< ModelReference< ?, ? > > alternativeRefs =
         getAlternatives( scopeRef, specifier, nextSpecifier );
     if ( alternativeRefs.size() == 1 ) {
-      specRef = alternativeRefs.get( 0 );
+      specRef = (ModelReference< TTT, SS >)alternativeRefs.get( 0 );
     } else if ( alternativeRefs.size() > 1 ) {
       Class< Collection< ? > > cls = null;
-      //      Class< List< ModelReference< ? > > > cls =
-//          (Class< List< ModelReference< ? > > >)alternativeRefs.getClass();
+      //      Class< List< ModelReference< ?, ? > > > cls =
+//          (Class< List< ModelReference< ?, ? > > >)alternativeRefs.getClass();
       specRef = new ModelReference( scopeRef, specifier, nextSpecifier, cls, false );
       specRef.alternatives = alternativeRefs;
     }
@@ -995,7 +997,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
   protected int alternativesSize() {
     if ( Utils.isNullOrEmpty( alternatives ) ) return 0;
     int count = 0;
-    for ( ModelReference< ? > mr : alternatives ) {
+    for ( ModelReference< ?, ? > mr : alternatives ) {
       count += mr.numberOfAlternatives();
     }
     return count;
@@ -1020,12 +1022,12 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @return a ModelReference for the specifier in the context of the existing
    *         scopeReference or (if the scopeReference is null), the model.
    */
-  public ModelReference< ? > findReferenceFromScope( String specifier,
+  public ModelReference< ?, ? > findReferenceFromScope( String specifier,
                                                      Object nextSpecifier ) {
     Object scopeRef = getScope();
-    ModelReference< ? > specRef = null;
+    ModelReference< ?, ? > specRef = null;
     if ( scopeRef == null && model != null ) {
-      scopeRef = new ModelReference< EObject >( model );
+      scopeRef = new ModelReference< EObject, SM >( model );
     }
     if ( scopeRef == null ) {
       return null;
@@ -1034,14 +1036,14 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     // specRef
     // TODO -- REVIEW -- How about wrapping these getAlternatives() calls
     // FunctionCalls?
-    List< ModelReference< ? > > alternativeRefs =
+    List< ModelReference< ?, ? > > alternativeRefs =
         getAlternatives( scopeRef, specifier, nextSpecifier );
     if ( alternativeRefs.size() == 1 ) {
       specRef = alternativeRefs.get( 0 );
     } else if ( alternativeRefs.size() > 1 ) {
       Class< Collection< ? > > cls = null;
-      //      Class< List< ModelReference< ? > > > cls =
-//          (Class< List< ModelReference< ? > > >)alternativeRefs.getClass();
+      //      Class< List< ModelReference< ?, ? > > > cls =
+//          (Class< List< ModelReference< ?, ? > > >)alternativeRefs.getClass();
       specRef = new ModelReference( scopeRef, specifier, nextSpecifier, cls, false );
       specRef.alternatives = alternativeRefs;
     }
@@ -1169,12 +1171,13 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param nextSpecifier
    * @return
    */
-  public static List< ModelReference< ? > >
+  //public static <TT, SS extends SystemModel > List< ModelReference< ?, ? > >
+  public static List< ModelReference< ?, ? > >
       getAlternatives( Object scope, String specifier, Object nextSpecifier ) {
     return getAlternatives( scope, specifier, nextSpecifier, 1, null ); 
   }
   
-  public static List< ModelReference< ? > >
+  public static <TT, SS extends SystemModel > List< ModelReference< ?, ? > >
     getAlternatives( Object scope, String specifier, Object nextSpecifier,
                      int maxRecurseDepth, Set<Object> seen ) {
     if ( scope == null ) return Collections.emptyList();
@@ -1185,7 +1188,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     seen = p.second;
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
-    List< ModelReference< ? > > alternatives =
+    List< ModelReference< ?, ? > > alternatives =
         getObjectAlternatives( scope, specifier, nextSpecifier,
                                maxRecurseDepth, seen );
     if ( scope instanceof Collection ) {
@@ -1220,7 +1223,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param nextSpecifier
    * @return different interpretations for applying a specifier to a Collection
    */
-  public static List< ModelReference< ? > >
+  public static List< ModelReference< ?, ? > >
       getAlternatives( Collection< ? > scope, String specifier,
                        String nextSpecifier, int maxRecurseDepth,
                        Set<Object> seen) {
@@ -1232,11 +1235,11 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     seen = p.second;
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
-    List< ModelReference< ? > > list = new ArrayList< ModelReference<?> >();
+    List< ModelReference< ?, ? > > list = new ArrayList< ModelReference< ?, ? > >();
 
     if ( matchesString("this", specifier) || matchesString("self", specifier) ) {
       tryAddDirectReferenceToList( null, scope, specifier, nextSpecifier, list );
-//      ModelReference< ? > mr = new ModelReference( scope, scope.getClass() );
+//      ModelReference< ?, ? > mr = new ModelReference( scope, scope.getClass() );
 //      list.add( mr );
     }
     
@@ -1244,16 +1247,16 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
         CompareUtils.GenericComparator.instance();
 //    GenericComparator< Class< ? > > classComparator =
 //        new CompareUtils.GenericComparator< Class< ? > >();
-    GenericComparator< ModelReference< ? > > modelReferenceComparator = 
+    GenericComparator< ModelReference< ?, ? > > modelReferenceComparator = 
         CompareUtils.GenericComparator.instance();
-//    Map< Class< ? >, Set< ModelReference< ? > > > alternativesForClass =
-//        new TreeMap< Class< ? >, Set< ModelReference< ? > > >( classComparator );
-//    Map< ModelReference< ? >, Set< Class< ? > > > classesForAlternative =
-//        new TreeMap< ModelReference< ? >, Set< Class< ? > > >( modelReferenceComparator );
-//    Map< Object, Set< ModelReference< ? > > > alternativesForObject =
-//        new TreeMap< Object, Set< ModelReference< ? > > >( objectComparator );
-    Map< ModelReference< ? >, Set< Object > > objectsForAlternative =
-        new TreeMap< ModelReference< ? >, Set< Object > >( modelReferenceComparator );
+//    Map< Class< ? >, Set< ModelReference< ?, ? > > > alternativesForClass =
+//        new TreeMap< Class< ? >, Set< ModelReference< ?, ? > > >( classComparator );
+//    Map< ModelReference< ?, ? >, Set< Class< ? > > > classesForAlternative =
+//        new TreeMap< ModelReference< ?, ? >, Set< Class< ? > > >( modelReferenceComparator );
+//    Map< Object, Set< ModelReference< ?, ? > > > alternativesForObject =
+//        new TreeMap< Object, Set< ModelReference< ?, ? > > >( objectComparator );
+    Map< ModelReference< ?, ? >, Set< Object > > objectsForAlternative =
+        new TreeMap< ModelReference< ?, ? >, Set< Object > >( modelReferenceComparator );
     // Should we match subalternatives?
     // For example, getAlternatives({x1, y1, y2}, "zap", null );
     // If there is a getZap() method applicable to x1 and a zap() method
@@ -1262,17 +1265,17 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     // {(x1.getZap()),(x1.zap(), y1.zap(), y2.zap())}.
     for ( Object o : scope ) {
       // o = x1 
-      List< ModelReference< ? > > oneList =
+      List< ModelReference< ?, ? > > oneList =
           getAlternatives( o, specifier, nextSpecifier, maxRecurseDepth, seen );
       // oneList = (getZap(x1), zap(x1)) 
       // oneList = (x1.getZap(), x1.zap()) 
       // oneList = (zap(y1), zap(y2)) 
       // oneList = (y1.zap(), y2.zap()) 
       if ( oneList != null ) {
-//        Set<ModelReference<?>> mrSet = new TreeSet< ModelReference<?> >( modelReferenceComparator );
+//        Set<ModelReference< ?, ? >> mrSet = new TreeSet< ModelReference< ?, ? > >( modelReferenceComparator );
 //        mrSet.addAll( oneList );
         //alternativesForObject.put( o, mrSet );
-        for ( ModelReference< ? > mr : oneList ) {
+        for ( ModelReference< ?, ? > mr : oneList ) {
           // mr = getZap(x1)
           // mr = x1.getZap()
           mr = new ModelReference( mr, true );
@@ -1281,7 +1284,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
           // mr = null.getZap()
 //          mrSet = alternativesForClass.get( o.getClass() );
 //          if ( mrSet == null ) {
-//            mrSet = new TreeSet< ModelReference<?> >( modelReferenceComparator );
+//            mrSet = new TreeSet< ModelReference< ?, ? > >( modelReferenceComparator );
 //            alternativesForClass.put( o.getClass(), mrSet );  // put(X, {null.getZap()})
 //          }
 //          mrSet.add( mr );
@@ -1301,9 +1304,9 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
         }
       }
     }
-    for ( Entry< ModelReference< ? >, Set< Object > > e : objectsForAlternative.entrySet() ) {
-      ModelReference< ? > mr = e.getKey();
-      ModelReference< ? > mrCopy = new ModelReference( mr );
+    for ( Entry< ModelReference< ?, ? >, Set< Object > > e : objectsForAlternative.entrySet() ) {
+      ModelReference< ?, ? > mr = e.getKey();
+      ModelReference< ?, ? > mrCopy = new ModelReference( mr );
       mrCopy.setScope( e.getValue() );
       list.add( mrCopy ); // add((x1.getZap()))  // add((x1.zap(), y1.zap(), y2.zap()))
     }
@@ -1344,7 +1347,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
         }
       }
     }
-    for ( ModelReference< ? > mr : alternatives ) {
+    for ( ModelReference< ?, ? > mr : alternatives ) {
       mr.removeNonStaticScope();
     }
   }
@@ -1369,7 +1372,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
         }
       }
     }
-    for ( ModelReference< ? > mr : alternatives ) {
+    for ( ModelReference< ?, ? > mr : alternatives ) {
       mr.removeNonStaticScope();
     }
   }
@@ -1450,7 +1453,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    *          scope/specifier reference
    * @return alternative interpretations for a specifier applied to a map
    */
-  public static List< ModelReference< ? > >
+  public static List< ModelReference< ?, ? > >
       getAlternatives( Map< ?, ? > scope, String specifier, String nextSpecifier,
                        int maxRecurseDepth, Set<Object> seen ) {
     if ( scope == null ) return Collections.emptyList();
@@ -1461,11 +1464,11 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
     // Just add for keys and values as separate alternatives
-    List< ModelReference< ? > > list =
+    List< ModelReference< ?, ? > > list =
         getAlternatives( scope.keySet(), specifier, nextSpecifier,
                          maxRecurseDepth, seen );
 
-    if ( list == null ) list = new ArrayList< ModelReference<?> >();
+    if ( list == null ) list = new ArrayList< ModelReference< ?, ? > >();
     
     list.addAll( getAlternatives( scope.values(), specifier, nextSpecifier,
                                   maxRecurseDepth, seen ) );
@@ -1478,7 +1481,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param specifier
    * @return alternatives specific to Objects (not any of their subclasses)
    */
-  public static < O > List< ModelReference< ? > >
+  public static < O, TT, SS extends SystemModel > List< ModelReference< ?, ? > >
       getObjectAlternatives( O object, String specifier, Object nextSpecifier,
                              int maxRecurseDepth, Set<Object> seen ) {
     if ( object == null ) return Collections.emptyList();
@@ -1489,7 +1492,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     seen = p.second;
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
-    List< ModelReference< ? > > list =
+    List< ModelReference< ?, ? > > list =
         getFieldAlternatives( object, specifier, nextSpecifier );
 
     list.addAll( getMethodAlternatives( object, specifier, nextSpecifier ) );
@@ -1546,7 +1549,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param nextSpecifier
    * @return alternative references specified as methods
    */
-  public static < O > List< ModelReference< ? > >
+  public static < O > List< ModelReference< ?, ? > >
       getMethodAlternatives( O object, String specifier, Object nextSpecifier ) {
     if ( object == null ) return Collections.emptyList();
     // get methods with matching names
@@ -1561,19 +1564,19 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param possibleMethodNames
    * @return alternative references specified as methods for 
    */
-  protected static < O > List< ModelReference< ? > >
+  protected static < O > List< ModelReference< ?, ? > >
       getMethodAlternatives( O object, String specifier, Object nextSpecifier,
                              List< String > possibleMethodNames ) {
     if ( object == null ) return Collections.emptyList();
 
-    ArrayList< ModelReference< ? > > list =
-        new ArrayList< ModelReference< ? > >();
+    ArrayList< ModelReference< ?, ? > > list =
+        new ArrayList< ModelReference< ?, ? > >();
 
     for ( String name : possibleMethodNames ) {
       Method[] methods = ClassUtils.getMethodsForName( object.getClass(), name );
       if ( methods != null ) {
         for ( Method method : methods ) {
-          ModelReference< ? > mr =
+          ModelReference< ?, ? > mr =
               getMethodAlternative( object, method, nextSpecifier );
           if ( mr != null && mr.numberOfAlternatives() > 0 ) {
             list.add( mr );
@@ -1589,16 +1592,16 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param specifier
    * @return alternatives specific to Objects (not any of their subclasses)
    */
-  public static < O > List< ModelReference< ? > >
+  public static < O, TT, SS extends SystemModel > List< ModelReference< ?, ? > >
       getFieldAlternatives( O object, String specifier, Object nextSpecifier ) {
     if ( object == null ) return Collections.emptyList();
-    ArrayList< ModelReference< ? > > list =
-        new ArrayList< ModelReference< ? > >();
+    ArrayList< ModelReference< ?, ? > > list =
+        new ArrayList< ModelReference< ?, ? > >();
     List< String > possibleFieldNames = getPossibleFieldNames( specifier );
 
     // get field(s) with matching name
     for ( String name : possibleFieldNames ) {
-      ModelReference< ? > mr = getFieldAlternative( object, name, nextSpecifier );
+      ModelReference< TT, SS > mr = getFieldAlternative( object, name, nextSpecifier );
       if ( mr != null && mr.numberOfAlternatives() > 0 ) {
         list.add( mr );
       }
@@ -1606,10 +1609,10 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     return list;
   }
   
-  public static ModelReference< ? >
+  public static <TT, SS extends SystemModel > ModelReference< TT, SS >
       getFunctionCallAlternative( Object object, FunctionCall fc,
                                   String specifier, Object nextSpecifier ) {
-    ModelReference< ? > mr = null;
+    ModelReference< TT, SS > mr = null;
     if ( object instanceof EObject ) {
       mr = new ModelReference( (EObject)object, specifier, nextSpecifier,
                                makeCollectionClass(fc.getReturnType()), false );
@@ -1622,16 +1625,16 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     return mr;
   }
 
-  public static ModelReference< ? > getMethodAlternative( Object object,
+  public static ModelReference< ?, ? > getMethodAlternative( Object object,
                                                           Method method,
                                                           Object nextSpecifier ) {
     FunctionCall fc = new FunctionCall( object, method );
-    ModelReference< ? > mr =
+    ModelReference< ?, ? > mr =
         getFunctionCallAlternative( object, fc, method.getName(), nextSpecifier );
     return mr;
   }
 
-  public static ModelReference< ? > getFieldAlternative( Object object,
+  public static <TT, SS extends SystemModel > ModelReference< TT, SS > getFieldAlternative( Object object,
                                                          String fieldName,
                                                          Object nextSpecifier ) {
     boolean hasField = ClassUtils.hasField( object, fieldName );
@@ -1646,7 +1649,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
       return null;
     }
     FunctionCall fc = new FunctionCall( object, m, args );
-    ModelReference< ? > mr =
+    ModelReference< TT, SS > mr =
         getFunctionCallAlternative( object, fc, fieldName, nextSpecifier );
     return mr;
   }
@@ -1657,7 +1660,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @return alternative interpretations specific to an EObject (not any of its
    *         subclasses)
    */
-  public static List< ModelReference< ? > >
+  public static List< ModelReference< ?, ? > >
       getEObjectAlternatives( EObject eObject, String specifier,
                               String nextSpecifier,
                               int maxRecurseDepth, Set<Object> seen ) {
@@ -1670,7 +1673,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     seen = p.second;
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
-    List< ModelReference< ? > > list = new ArrayList< ModelReference< ? > >();
+    List< ModelReference< ?, ? > > list = new ArrayList< ModelReference< ?, ? > >();
 
     list.addAll( getSeparateAlternatives( eObject, eObject.eContents(), specifier,
                                        nextSpecifier, maxRecurseDepth, seen ) );
@@ -1704,7 +1707,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param maxRecurseDepth
    * @return
    */
-  public static List< ModelReference< ? > >
+  public static List< ModelReference< ?, ? > >
       getSeparateAlternatives( EObject scope, Collection< EObject > collection,
                                String specifier, String nextSpecifier,
                                int maxRecurseDepth, Set<Object> seen ) {
@@ -1716,7 +1719,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     seen = p.second;
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
-    List< ModelReference< ? > > list = new ArrayList< ModelReference< ? > >();
+    List< ModelReference< ?, ? > > list = new ArrayList< ModelReference< ?, ? > >();
     for ( EObject eObj : collection ) {
       if ( eObj == null ) continue;
       if ( matches( eObj, specifier ) ) {
@@ -1748,7 +1751,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @param maxRecurseDepth 
    * @return alternatives specific to EObjects (not any of their subclasses)
    */
-  public static List< ModelReference< ? > > getEClassAlternatives( EClass eClass,
+  public static List< ModelReference< ?, ? > > getEClassAlternatives( EClass eClass,
                                                                    String specifier,
                                                                    String nextSpecifier,
                                                                    int maxRecurseDepth,
@@ -1761,7 +1764,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     seen = p.second;
     if ( maxRecurseDepth < 0 ) return Collections.emptyList();
     
-    ArrayList< ModelReference< ? > > list = new ArrayList< ModelReference< ? > >();
+    ArrayList< ModelReference< ?, ? > > list = new ArrayList< ModelReference< ?, ? > >();
 
 // Can't do this since each attribute is a different alternative!
 //    list.addAll( getAlternatives( eClass.getEAttributes(), specifier,
@@ -1840,17 +1843,17 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    *         or the ModelReference evaluation is empty (no objects are being
    *         referenced)
    */
-  private static ModelReference< ? >
+  private static ModelReference< ?, ? >
       tryAddDirectReferenceToList( EObject model, Object referenceTarget,
                                    String targetRefString,
                                    Object nextSpecifier,
-                                   List< ModelReference< ? > > list ) {
-    ModelReference< ? > nsmr = createNextReference( referenceTarget,
+                                   List< ModelReference< ?, ? > > list ) {
+    ModelReference< ?, ? > nsmr = createNextReference( referenceTarget,
                                                     nextSpecifier );
     if ( nsmr != null && nsmr.isEmpty( true ) ) {
       return null;
     }
-    ModelReference< ? > mr =
+    ModelReference< ?, ? > mr =
         new ModelReference( null, null, referenceTarget, targetRefString, null,
                             null, model, null,
                             makeCollectionClass( referenceTarget.getClass() ),
@@ -1872,7 +1875,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @return the new ModelReference or the fixed nextSpecifier if a
    *         ModelReference
    */
-  protected static ModelReference< ? > createNextReference( Object scope,
+  protected static ModelReference< ?, ? > createNextReference( Object scope,
                                                             Object nextSpecifier ) {
     boolean complainIfScopeNotSame = true;
     ModelReference nsmr = null;
@@ -1935,7 +1938,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
    * @return
    * 
    */
-  public static <F> List< ModelReference< ? > >
+  public static <F> List< ModelReference< ?, ? > >
       getAlternatives( EObject scope, String specifier, String nextSpecifier,
                        int maxRecurseDepth, Set<Object> seen ) {
     if ( scope == null ) return Collections.emptyList();
@@ -1948,7 +1951,7 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     
     if ( Utils.isNullOrEmpty( specifier ) ) return Collections.emptyList(); // REVIEW -- should this return the scope?
 
-    List< ModelReference< ? > > list =
+    List< ModelReference< ?, ? > > list =
         getEObjectAlternatives( scope, specifier, nextSpecifier,
                                 maxRecurseDepth, seen );
 
@@ -1986,11 +1989,15 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     return pp;
   }
   
-  public List< ModelReference< ? > > getAlternatives() {
-    return alternatives;
+  public List< Reference< ? extends T, SM >> getAlternatives() {
+    List< Reference< ? extends T, SM >> castedAlternatives = Utils.newList( );//asList(alternatives);
+    for ( ModelReference mr : alternatives ) {
+      castedAlternatives.add( mr );
+    }
+    return castedAlternatives;
   }
 
-  public void setAlternatives( List< ModelReference< ? > > alternatives ) {
+  public void setAlternatives( List< ModelReference< ?, ? > > alternatives ) {
     this.alternatives = alternatives;
   }
 
@@ -2025,8 +2032,10 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
     this.specifier = specifier.replaceAll( "[(]\\s*[)]", "" ).trim();
   }
 
-  public Parameter< EObject > getModel() {
-    return model;
+  public SM getModel() {
+    //TODO -- this used to return Parameter<EObject>!!!!
+    return null;
+    //return model;
   }
 
   public void setModel( Parameter< EObject > model ) {
@@ -2238,4 +2247,74 @@ public class ModelReference< T > extends Expression< Collection< T > > implement
 
   }
 
+  @Override
+  public Reference< T, SM > makeReference() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Reference< T, SM > makeReference( SM model ) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Reference< T, SM > makeReference( SM model, Object scope,
+                                           Class< T > type, Object specifier,
+                                           Object nextSpecifier,
+                                           boolean isTemplate ) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void setModel( SM model ) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setSpecifier( Object specifier ) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setType( Class< T > type ) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean isTemplate() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void setIsTemplate( boolean isTemplate ) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean isConsistent() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Collection< T > getItems() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Class< T > getType() {
+    // TODO
+    return null;
+  }
+
+  
 }
