@@ -303,19 +303,19 @@ public class ClassData {
                                      + doTypeParameters + ") = " + n );
     return n;
   }
-
+  
   /**
    * @param className
    * @param paramName
    * @param lookOutsideClassData
    * @return
    */
-  public Parameter<?> getParameter( String className, String paramName,
+  public Parameter<?> getParameter( String className, String paramName, String paramType,
                                        boolean lookOutsideClassData,
                                        boolean setCurrentClass,
                                        boolean addIfNotFound,
                                        boolean complainIfNotFound ) {
-    Param param = getParam( className, paramName, lookOutsideClassData,
+    Param param = getParam( className, paramName,paramType, lookOutsideClassData,
                             setCurrentClass, addIfNotFound, complainIfNotFound );
     Parameter<?> parameter = parameterMap.get( param );
     return parameter;
@@ -331,7 +331,7 @@ public class ClassData {
    * @param lookOutsideClassData
    * @return the found or created Param or null if the paramName is null or "".
    */
-  public Param getParam( String className, String paramName,
+  public Param getParam( String className, String paramName, String paramType,
                          boolean lookOutsideClassData, boolean setCurrentClass,
                          boolean addIfNotFound, boolean complainIfNotFound ) {
     if ( className == null ) className = getCurrentClass();
@@ -342,12 +342,46 @@ public class ClassData {
     }
     Param p = lookupMemberByName( className, paramName, lookOutsideClassData, false );
     if ( p == null && paramName != null && addIfNotFound ) {
-      p = makeParam( className, paramName, null, null );
+      p = makeParam( className, paramName, paramType, null );
     }
       Debug.errorOnNull( complainIfNotFound, complainIfNotFound, "Could not " +
                          ( addIfNotFound ? "create" : "find" ) +
                          " parameter " + className + "." + paramName, p );
     return p;
+  }
+  
+  /**
+   * @param className
+   * @param paramName
+   * @param lookOutsideClassData
+   * @return
+   */
+  public Parameter<?> getParameter( String className, String paramName,
+                                       boolean lookOutsideClassData,
+                                       boolean setCurrentClass,
+                                       boolean addIfNotFound,
+                                       boolean complainIfNotFound ) {
+    
+    return getParameter(className, paramName, null, lookOutsideClassData,
+                        setCurrentClass, addIfNotFound, complainIfNotFound );
+  }
+  
+  /**
+   * Find the Param with the given name, paramName, in the given class,
+   * className. Create the param if it does not exist with null type and value.
+   * This sets the currentClass!
+   * 
+   * @param className
+   * @param paramName
+   * @param lookOutsideClassData
+   * @return the found or created Param or null if the paramName is null or "".
+   */
+  public Param getParam( String className, String paramName,
+                         boolean lookOutsideClassData, boolean setCurrentClass,
+                         boolean addIfNotFound, boolean complainIfNotFound ) {
+    
+    return getParam(  className,  paramName, null, lookOutsideClassData,  setCurrentClass,
+                      addIfNotFound,  complainIfNotFound );
   }
   
   /**
