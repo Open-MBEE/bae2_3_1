@@ -7,6 +7,8 @@ import java.util.Vector;
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
+import gov.nasa.jpl.ae.event.Parameter;
+import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -17,15 +19,14 @@ import sysml.SystemModel;
 public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
     
     protected SM model = null;
-    
+    protected ClassData classData = new ClassData();
+
     public SystemModelToAeExpression(SM model) {
         setModel(model);
     }
 
     public <X> X evaluateExpression( Object expressionElement, Class<X> cls ) {
       Expression<X> expression = toAeExpression( expressionElement );
-//      Object object = expression.evaluate( true );
-//      return Expression.evaluate( object, cls, true );
       return expression.evaluate( true );
     }
     
@@ -40,6 +41,13 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         }
         Expression<X> expression = null;
         Vector< Object > arguments = new Vector< Object >();
+        
+        // If it is not an Expression than we cannot process it:
+        String expressionType = model.getTypeString(expressionElement, null);
+        if (!expressionType.equals("sysml:Expression")) {
+          Debug.error( "Passed expression is not an Expression type, got type "+ expressionType);
+          return null;
+        }
         
         // Get all operand properties of the element
         // TODO: should be using Acm.ACM_OPERAND in getProperty but they have Acm in view_repo.util package
@@ -68,6 +76,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               String typeString = model.getTypeString(valueOfElementNode, null);
               Debug.outln( "typeString of valueOfElementNode = " + typeString );
               
+              
               // If it is a Operation type then get the operator name:
               if (typeString.equals("sysml:Operation")) {
                 
@@ -84,23 +93,26 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               // and add to argument list:
               else if (typeString.equals("sysml:Expression")) {
                 
-                // TODO 
-                //      Consider subclassing JavaToContrainstExpression for
-                //      operations and properties
-                
                 arguments.add(toAeExpression(valueOfElementNode));
               }
               
               // Otherwise, it must be a command arg, so get the argument values:
-              else {
-                       
-                // Get the argument Node:
-                Collection<U > argValueNodes = 
-                    model.getValue(valueOfElementNode, null);
+              else if (typeString.equals("sysml:Property")) {
                 
+                Parameter<Object> param = null;
+                
+                // Get the argument Node:
+                Collection<U > argValueNodes = model.getValue(valueOfElementNode, null);
+
+                // Get the name of the argument Node:
+                Collection<N > argValueNames = model.getName(valueOfElementNode);
+                String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+                                                                         argValueNames.iterator().next().toString();
+                
+                // If the argument node has a value:
                 if (!Utils.isNullOrEmpty(argValueNodes)) {
                   
-                  Debug.outln( "argValueNodes = " + argValueNodes );
+                  String argType = null;
 
                   // TODO can we assume this will always be size one?
                   Object argValueNode = argValueNodes.iterator().next();
@@ -111,35 +123,81 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   if (model.getTypeString(argValueNode, null).equals("sysml:LiteralInteger")) {
                     
                     argValPropNodes = model.getValue(argValueNode, "sysml:integer");
+                    argType = "Integer";
                   }
                   else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralReal")) {
                     
                     argValPropNodes = model.getValue(argValueNode, "sysml:double");
+                    argType = "Double";
                   }
                   else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralBoolean")) {
                     
                     argValPropNodes = model.getValue(argValueNode, "sysml:boolean");
+                    argType = "Boolean";
                   }
                   else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralUnlimitedNatural")) {
                     
                     argValPropNodes = model.getValue(argValueNode, "sysml:naturalValue");
+                    argType = "Integer";
+                  }
+                  else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralString")) {
+                    
+                    argValPropNodes = model.getValue(argValueNode, "sysml:string");
+                    argType = "String";
                   }
                   else {
                     // TODO rest of the argument types if we need them
                   }
                   
+                  Object argValProp = null;
                   if (!Utils.isNullOrEmpty(argValPropNodes)) {
                     
                     // TODO can we assume this is always size 1?  
-                    Object argValProp = argValPropNodes.iterator().next();
-                    arguments.add(argValProp);
+                    argValProp = argValPropNodes.iterator().next();
                     Debug.outln( "argValProp = " + argValProp );
-
                   }
                   
+                  // Wrap the argument in a Parameter:
+                  if (argType != null) {
+                    // Parameter also has a type
+                    param = (Parameter<Object>)classData.getParameter( null, argValName, argType, false, true, true, false );
+                  }
+                  else {
+                    param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
+                  }
+                  
+                  // Set value of the param to value if it has one,
+                  // and add to the argument list:
+                  if (param != null) {
+                    
+                    Debug.outln( "param = " + param );
+                    if (argValProp != null) {
+                      param.setValue(argValProp);
+                    }
+                    arguments.add(param);
+                  }
+                  
+                  // Creating param failed, so just add the value object itself:
+                  else {
+                    arguments.add(argValProp);
+                  }
+                  
+                  
                 } // ends !Utils.isNullOrEmpty(argValueNodes)
+                
+                // Argument node does not have a value, so just add to argument list 
+                // for the operator with no set value:
+                else {
+                  
+                  // Wrap the argument in a Parameter:
+                  param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
+                  
+                  if (param != null) {
+                    arguments.add(param);
+                  }
+                } // ends else argument node does not have a value
 
-              } // ends else it is a command arg
+              } // ends else if it is Property (ie a command arg)
                 
             } // ends !Utils.isNullOrEmpty(valueOfElemNodes
            
@@ -191,6 +249,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     public SM getModel() {
         return model;
     }
+    
     public void setModel( SM model ) {
         this.model = model;
     }
