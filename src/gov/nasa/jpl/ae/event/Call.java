@@ -158,8 +158,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return compare;
   }
   
-  // TODO -- consider an abstract Call class
   public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
+    return evaluate(propagate, true);
+  }
+  
+  // TODO -- consider an abstract Call class
+  public Object evaluate( boolean propagate, boolean doEvalArgs) { // throws IllegalArgumentException,
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( propagate ) {
@@ -175,7 +179,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Object result = null;
     
     // evaluate the arguments before invoking the method on them
-    Object evaluatedArgs[] = evaluateArgs( propagate );
+    Object evaluatedArgs[] = null;
+    
+    if (doEvalArgs) {
+      evaluatedArgs = evaluateArgs( propagate );
+    }
+    else {
+      evaluatedArgs = arguments.toArray();
+    }
     
     // evaluate the object, whose method will be invoked from a nested call
     if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {

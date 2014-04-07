@@ -43,7 +43,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
    * Can values be selected or changed for Parameters when not grounded or in
    * order to satisfy a constraint.
    */
-  public static boolean allowPickValue = false;
+  public static boolean allowPickValue = true;
   
   // These are for debug validation.
   public static boolean mayPropagate = true;
