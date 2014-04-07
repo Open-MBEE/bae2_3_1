@@ -160,12 +160,12 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   if (argValProp != null) {
                     param.setValue(argValProp);
                   }
-                  arguments.add(param);
+                  arguments.add(new Expression<Object>(param));
                 }
                 
                 // Creating param failed, so just add the value object itself:
                 else {
-                  arguments.add(argValProp);
+                  arguments.add(new Expression<Object>(argValProp));
                 }
                 
                 
@@ -179,7 +179,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                 param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
                 
                 if (param != null) {
-                  arguments.add(param);
+                  arguments.add(new Expression<Object>(param));
                 }
                 
               } // ends else argument node does not have a value
@@ -250,7 +250,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             }
         }
         if ( call != null ) {
-            expression = new Expression< X >( call.evaluate( true ) );
+            expression = new Expression< X >( call.evaluate( true, false) );
             return expression;
         }
         
@@ -267,4 +267,13 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     public void setModel( SM model ) {
         this.model = model;
     }
+    
+    public ClassData getClassData() {
+      return classData;
+    }
+
+    public void setClassData( ClassData classData ) {
+      this.classData = classData;
+    }
+
 }
