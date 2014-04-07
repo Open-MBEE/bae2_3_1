@@ -483,9 +483,7 @@ public class Expression< ResultType > extends HasIdImpl
 		  }
 		} else if ( expression instanceof HasParameters ) {
 			HasParameters gotParameters = (HasParameters) expression;
-			if ( gotParameters != null ) {
-				set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
-			}
+			set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
 		}
 		return set;
 	}

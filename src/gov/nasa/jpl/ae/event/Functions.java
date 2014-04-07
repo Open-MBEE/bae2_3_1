@@ -1075,13 +1075,13 @@ public class Functions {
                                                                extends
                                                                BooleanBinary< T > {
     public GTE( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "greaterThanOrEqual" );
+      super( o1, o2, "greaterThanOrEqual", "pickGreaterThanOrEqual", "pickLessThan" );
       // functionCall.
       setMonotonic( true );
     }
 
     public GTE( Object o1, Object o2 ) {
-      super( o1, o2, "greaterThanOrEqual" );
+      super( o1, o2, "greaterThanOrEqual", "pickGreaterThanOrEqual", "pickLessThan" );
       // functionCall.
       setMonotonic( true );
     }

@@ -402,6 +402,7 @@ public class ClassData {
       aeClass = aeClasses.get( className );
     } else if ( createIfNotFound ) {
       aeClass = new ParameterListenerImpl( className );
+      aeClasses.put( className, aeClass );
     }
     return aeClass;
   }
@@ -772,7 +773,7 @@ public class ClassData {
   public boolean isInnerClass( String className ) {
     // TODO -- should have a ClassDeclaration stub class to collect this info.
     boolean is = !isClassStatic( className ) && isNested( className );
-    if ( Debug.isOn() ) Debug.outln( "isInnerClass( " + className + ") = " + is );
+    if ( Debug.isOn() ) Debug.outln( "ClassData.isInnerClass( " + className + ") = " + is );
     return is;
   }
 
