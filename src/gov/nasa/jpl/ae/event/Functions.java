@@ -938,13 +938,13 @@ public class Functions {
 
   public static class LT< T > extends BooleanBinary< T > {
     public LT( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "lessThan" );
+      super( o1, o2, "lessThan", "pickLessThan", "pickGreaterThanOrEqual" );
       // functionCall.
       setMonotonic( true );
     }
 
     public LT( Object o1, Object o2 ) {
-      super( o1, o2, "lessThan" );
+      super( o1, o2, "lessThan", "pickLessThan", "pickGreaterThanOrEqual" );
       // functionCall.
       setMonotonic( true );
     }
@@ -966,13 +966,15 @@ public class Functions {
 
   public static class LTE< T > extends BooleanBinary< T > {
     public LTE( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "lessThanOrEqual" );
+      super( o1, o2,
+             "lessThanOrEqual", "pickLessThanOrEqual", "pickGreaterThan" );
       // functionCall.
       setMonotonic( true );
     }
 
     public LTE( Object o1, Object o2 ) {
-      super( o1, o2, "lessThanOrEqual" );
+      super( o1, o2,
+             "lessThanOrEqual", "pickLessThanOrEqual", "pickGreaterThan" );
       // functionCall.
       setMonotonic( true );
     }
@@ -1032,38 +1034,32 @@ public class Functions {
                                                                    GT< T > {
     public Greater( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
-      // functionCall.
       setMonotonic( true );
     }
 
     public Greater( Object o1, Object o2 ) {
       super( o1, o2 );
-      // functionCall.
       setMonotonic( true );
     }
 
+    // REVIEW -- This seems out of place.  Does something else do this?
     public boolean restrictDomains( boolean targetResult ) {
-      if ( // functionCall.
-      arguments.size() < 2 ) return false;
-      Expression< T > e1 = (Expression< T >)// functionCall.
-          arguments.get( 0 );
-      Expression< T > e2 = (Expression< T >)// functionCall.
-          arguments.get( 1 );
+      if ( arguments.size() < 2 ) return false;
+      Expression< T > e1 = (Expression< T >)arguments.get( 0 );
+      Expression< T > e2 = (Expression< T >)arguments.get( 1 );
       Domain< T > d1 = e1.getDomain( false, null );
       Domain< T > d2 = e2.getDomain( false, null );
-      if ( d1 instanceof AbstractRangeDomain ) {
+      if ( d1 instanceof AbstractRangeDomain && d1 instanceof AbstractRangeDomain ) {
         AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
-        if ( e2.getDomain( false, null ) instanceof AbstractRangeDomain ) {
-          AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
-          if ( targetResult == true ) {
-            if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
-              ard1.setLowerBound( ard2.getLowerBound() );
-              ard1.excludeLowerBound();
-            }
-            if ( ard2.greater( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
-              ard2.setUpperBound( ard1.getUpperBound() );
-              ard2.excludeUpperBound();
-            }
+        AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
+        if ( targetResult == true ) {
+          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+            ard1.setLowerBound( ard2.getLowerBound() );
+            ard1.excludeLowerBound();
+          }
+          if ( ard2.greater( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+            ard2.setUpperBound( ard1.getUpperBound() );
+            ard2.excludeUpperBound();
           }
         }
       }
@@ -1071,24 +1067,21 @@ public class Functions {
     }
   }
 
-  public static class GTE< T extends Comparable< ? super T > >
-                                                               extends
-                                                               BooleanBinary< T > {
+  public static class GTE< T extends Comparable< ? super T > > extends BooleanBinary< T > {
     public GTE( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "greaterThanOrEqual", "pickGreaterThanOrEqual", "pickLessThan" );
-      // functionCall.
+      super( o1, o2, "greaterThanOrEqual", "pickGreaterThanOrEqual",
+             "pickLessThan" );
       setMonotonic( true );
     }
 
     public GTE( Object o1, Object o2 ) {
-      super( o1, o2, "greaterThanOrEqual", "pickGreaterThanOrEqual", "pickLessThan" );
-      // functionCall.
+      super( o1, o2, "greaterThanOrEqual", "pickGreaterThanOrEqual",
+             "pickLessThan" );
       setMonotonic( true );
     }
   }
 
-  public static class GreaterEquals< T extends Comparable< ? super T > >
-                                                                         extends
+  public static class GreaterEquals< T extends Comparable< ? super T > > extends
                                                                          GTE< T > {
 
     public GreaterEquals( Expression< T > o1, Expression< T > o2 ) {
@@ -1101,13 +1094,23 @@ public class Functions {
   }
 
   public static class DoesThereExist< T > extends BooleanBinary< T > {
+    // REVIEW -- This could extend ForAll or vice versa.
 
     public DoesThereExist( Variable< T > variable,
-    // Domain<T> d,
+                           // Domain<T> d,
                            Expression< Boolean > o ) {
-      super( variable, o, "thereExists" );
+      super( variable, o, "thereExists" ); // TODO -- pickFunctions?
       // functionCall.
       setMonotonic( Functions.isMonotonic( o ) );
+    }
+  }  
+
+  public static class ThereExists< T > extends DoesThereExist< T > {
+
+    public ThereExists( Variable< T > variable,
+                        // Domain<T> d,
+                        Expression< Boolean > o ) {
+      super( variable, o );
     }
   }  
 
@@ -1120,10 +1123,15 @@ public class Functions {
     public ForAll( Variable< T > variable,
     // Domain<T> d,
                    Expression< Boolean > o ) {
-      super( variable, o, "forAll" );
+      super( variable, o, "forAll" ); // TODO -- pickFunctions?
       // functionCall.
       setMonotonic( Functions.isMonotonic( o ) );
     }
+  }
+
+  public static <T extends Comparable<T>> Boolean thereExists( Variable<T> variable,
+                                                               Expression< Boolean > o ) {
+    return !forAll(variable, new Expression<Boolean>( new Not( o ) ) );
   }
 
   public static <T extends Comparable<T>> Boolean forAll( Variable<T> variable,
@@ -1690,7 +1698,10 @@ public class Functions {
                                          FunctionCall pickFunctionCall,
                                          FunctionCall reversePickFunctionCall ) {
 //  public < T1 > T1 pickValue( Variable< T1 > variable ) {
-    Vector< Object > args = pickFunctionCall.getArguments();
+    if ( pickFunctionCall == null && reversePickFunctionCall == null ) return null;
+    Vector< Object > args =
+        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArguments()
+                                     : pickFunctionCall.getArguments();
     if ( args.size() < 2 ) return null;
     Object arg1 = args.get( 0 );
     Object arg2 = args.get( 1 );
@@ -1704,11 +1715,23 @@ public class Functions {
     }
     //if ( o1 == null && variable == null ) return (T1)reverseFunctionCall.evaluate( false );
     Variable<?> v1 = Expression.evaluate( o1, Variable.class, false, true );
-    if ( v1 == variable ) return (T1)pickFunctionCall.evaluate( false );
+    if ( v1 == variable ) { 
+      return (T1)( pickFunctionCall == null
+                   ? null : pickFunctionCall.evaluate( false ) );
+    }
     Variable<?> v2 = Expression.evaluate( o2, Variable.class, false, true );
-    if ( v2 == variable ) return (T1)reversePickFunctionCall.evaluate( false );
-    if ( v1.equals( variable ) ) return (T1)pickFunctionCall.evaluate( false );
-    if ( v2.equals( variable ) ) return (T1)reversePickFunctionCall.evaluate( false );
+    if ( v2 == variable ) {
+      return (T1)( reversePickFunctionCall == null 
+                   ? null : reversePickFunctionCall.evaluate( false ) );
+    }
+    if ( v1.equals( variable ) ) {
+      return (T1)( pickFunctionCall == null
+                   ? null : pickFunctionCall.evaluate( false ) );
+    }
+    if ( v2.equals( variable ) ) {
+      return (T1)( reversePickFunctionCall == null 
+                   ? null : reversePickFunctionCall.evaluate( false ) );
+    }
     
 //    Debug.error( true,
 //                 "Error! Functions.pickValue(variable, fcn, reverseFcn) could not find variable "
