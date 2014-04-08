@@ -87,17 +87,13 @@ public class ConstraintExpression extends Expression< Boolean >
     //Debug.turnOn();
     if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied(deep, seen) ) return true;
-    if ( Debug.isOn() ) Debug.outln( "satisfy() 1 " );
     HasParameters.Helper.satisfy( this, true, null );
     if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
       Set< Variable< ? > > vars = getVariables();
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
-      if ( Debug.isOn() ) Debug.outln( "satisfy() 2 vars: "+vars );
       for ( Variable< ? > v : Utils.scramble(a) ) {
-        if ( Debug.isOn() ) Debug.outln( "satisfy() 3a " + v );
         if (!(v instanceof Parameter) || !((Parameter) v).isDependent()){
-          if ( Debug.isOn() ) Debug.outln( "satisfy() 3b " );
           pickValue( v );  
         }
         if ( isSatisfied(deep, seen) ) break;
