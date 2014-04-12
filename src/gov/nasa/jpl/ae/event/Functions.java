@@ -7,11 +7,13 @@ import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -72,11 +74,23 @@ public class Functions {
     public < T > T pickValue( Variable< T > variable ) {
       return pickValueBF2( this, variable );
     }
-
+    
     @Override
     public SuggestiveFunctionCall clone() {
       SuggestiveFunctionCall c = new SuggestiveFunctionCall(this);
       return c;
+    }
+    
+    /**
+     * Invert the function based on a constraint on the what the result of
+     * evaluating the function call must equal.<br>
+     * Subclasses should override this method.
+     * 
+     * @param valueThatMustEqualEvaluation
+     * @return a new function
+     */
+    public SuggestiveFunctionCall inverse( Expression<?> valueThatMustEqualEvaluation ) {
+      return null;
     }
 
   }
@@ -1808,11 +1822,10 @@ public class Functions {
                                 functionCall.reversePickFunctionCall );
     return newValue;
   }
-  protected static <T1> T1 pickValueBF2( Variable< T1 > variable,
-                                         FunctionCall pickFunctionCall,
-                                         FunctionCall reversePickFunctionCall ) {
-//  public < T1 > T1 pickValue( Variable< T1 > variable ) {
-    if ( pickFunctionCall == null && reversePickFunctionCall == null ) return null;
+  
+  protected static <T1> T1 pickValueExpression( Expression< T1 > expr,
+                                                FunctionCall pickFunctionCall,
+                                                FunctionCall reversePickFunctionCall ) {
     Vector< Object > args =
         ( pickFunctionCall == null ) ? reversePickFunctionCall.getArguments()
                                      : pickFunctionCall.getArguments();
@@ -1828,30 +1841,138 @@ public class Functions {
       o2 = (Expression< T1 >)arg2;
     }
 
+    if ( o1 == expr ) {
+      return (T1)( pickFunctionCall == null
+                   ? null : pickFunctionCall.evaluate( false ) );
+    }
+    if ( o2 == expr ) {
+      return (T1)( reversePickFunctionCall == null 
+                   ? null : reversePickFunctionCall.evaluate( false ) );
+    }
+    if ( Expression.valuesEqual( o1, expr ) ) {
+      return (T1)( pickFunctionCall == null
+                   ? null : pickFunctionCall.evaluate( false ) );
+    }
+    if ( Expression.valuesEqual( o2, expr ) ) {
+      return (T1)( reversePickFunctionCall == null 
+                   ? null : reversePickFunctionCall.evaluate( false ) );
+    }
+    return null;
+  }
+  
+  /**
+   * Pick a value for the variable in the context of a binary function using pickFunctionCall if variable is in the expression of the first argument to the binary function or reversePickFunctionCall if in the expression of the second argument.
+   * @param variable
+   * @param pickFunctionCall
+   * @param reversePickFunctionCall
+   * @return
+   */
+  protected static <T1> T1 pickValueBF2( Variable< T1 > variable,
+                                         FunctionCall pickFunctionCall,
+                                         FunctionCall reversePickFunctionCall ) {
+    // check for valid input
+    if ( variable == null ) return null;
+    if ( pickFunctionCall == null && reversePickFunctionCall == null ) return null;
+    if (!( variable instanceof Parameter )  ) {
+      Debug.error( false,
+                   "Unfortunately, pickValueBF2() depends on variable being a Parameter! "
+                       + variable );
+      return null;
+    }
+    Parameter< T1 > variableParam = (Parameter< T1 >)variable;
+
+    // get the arguments of the binary function, assumed to be the same as the
+    // arguments of the pick functions
+    if ( pickFunctionCall == null && reversePickFunctionCall == null ) return null;
+    Vector< Object > args =
+        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArguments()
+                                     : pickFunctionCall.getArguments();
+    assert( args.size() == 2 );
+    if ( args.size() != 2 ) return null;
+    Object arg1 = args.get( 0 );
+    Object arg2 = args.get( 1 );
+    Expression< T1 > o1 = null;
+    Expression< T1 > o2 = null;
+    if ( arg1 instanceof Expression ) {
+      o1 = (Expression< T1 >)arg1;
+    }
+    if ( arg2 instanceof Expression ) {
+      o2 = (Expression< T1 >)arg2;
+    }
+
+    // choose the argument as the context for which a value is picked for the variable 
+    boolean isFirst = o1 != null && Expression.valuesEqual( variable, o1, Parameter.class );
+    boolean isSecond = o2 != null && Expression.valuesEqual( variable, o2, Parameter.class );
+    boolean inFirst = isFirst || ( o1 != null && o1.hasParameter( variableParam, true, null ) );
+    boolean inSecond = isSecond || ( o2 != null && o2.hasParameter( variableParam, true, null ) );
+    if ( !inFirst && !inSecond ) {
+      Debug.error( false, "pickValueBF2(variable=" + variable
+                          + "): variable not in function arguments! " + args );
+      return null;
+    }
+    FunctionCall chosenPickCall = null;
+    Expression< T1 > arg = null;
+    boolean equal;
+    boolean first;
+    if ( inFirst && ( reversePickFunctionCall == null || !inSecond ) ) {
+      first = true;
+    } else if ( inSecond && ( pickFunctionCall == null || !inFirst ) ) {
+      first = false;
+    } else {
+      // in both arguments; pick randomly
+      first = Random.global.nextBoolean();
+    }
+    chosenPickCall = first ? pickFunctionCall : reversePickFunctionCall;
+    arg = first ? o1 : o2;
+    equal = first ? isFirst : isSecond;
+    
+    // pick a value for the chosen argument    
+    T1 t1 = (T1)chosenPickCall.evaluate( false );
+    
+    // If the argument is the variable, then picking a value for the function is
+    // the same as picking a value for the variable.
+    if ( equal ) return t1;
+    
+    // else, the variable is a part of the argument.
+    // Example: pick value for x for z <= x + y
+    // arg1 = z, arg2 = x+y, chosen arg = arg2
+    // If z = 1, then t1 will be chosen >= 1, let's say t1 = 10 and y = 3
+    // Need to choose value for x where x + y = 10; x = 10 - y = 10 - 3 = 7
+
+    // If the argument is a FunctionCall, try to invert the call with the target
+    // value, t1, to solve for the variable.
+    if ( arg.expression instanceof SuggestiveFunctionCall ) {
+     
+      SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression; // fCall=x+y
+      SuggestiveFunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1)); // inverseCall(v) = t1 - (v==x ? y:(v==y ? x : null))
+      T1 t11 = inverseCall.pickValue( variable ); // picks value for x = t1 - y = 10 - 3 = 7
+      return t11;
+    }
+    
+    
     if (variable instanceof Parameter) {
       
       if (o1.hasParameter((Parameter<T1>) variable, true, null )) {
         
-        if (!o1.expression.equals(variable)) {
+        if (!Utils.valuesEqual( o1, variable )) { //o1.expression.equals(variable)) {
           
           // HERE!!! TODO :)
           // 
            Object t1 = pickValueExpression(o1, pickFunctionCall, reversePickFunctionCall);
           
-           //z <= x + y, where o1 = x+y and o2 = z
-           //if z = 1, then t1 will be greater 1
            
-          if (o1.getForm() == Form.Function) {
+          if ( //o1.getForm() == Form.Function &&
+               o1.expression instanceof SuggestiveFunctionCall ) {
             
-            FunctionCall f1 = (FunctionCall)o1.expression; // x+y
-            Suggester s = f1.inverse(t1); // t1 - v
+            SuggestiveFunctionCall f1 = (SuggestiveFunctionCall)o1.expression; // x+y
+            Suggester s = f1.inverse(new Expression<T1>(t1)); // t1 - v
             T1 t11 = s.pickValue( variable ); // t1 - x
             
             if (f1 instanceof Suggester) {
               T1 t = ((Suggester)f1).pickValue( variable );
+              return t;
             }
             
-            return t;
         }
         }
         
@@ -1861,9 +1982,6 @@ public class Functions {
           
           //if ( o1 == null && variable == null ) return (T1)reverseFunctionCall.evaluate( false );
           Variable<?> v1 = Expression.evaluate( o1, Variable.class, false, true );
-          
-
-
           if ( v1 == variable ) { 
             return (T1)( pickFunctionCall == null
                          ? null : pickFunctionCall.evaluate( false ) );
