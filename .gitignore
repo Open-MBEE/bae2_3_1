@@ -19,3 +19,4 @@ src/latester
 bin
 *.pyc
 *~
+/AE.jar
