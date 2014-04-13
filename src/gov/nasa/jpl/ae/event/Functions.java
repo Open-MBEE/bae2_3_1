@@ -9,6 +9,7 @@ import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
@@ -16,6 +17,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.Vector;
@@ -83,13 +85,36 @@ public class Functions {
     
     /**
      * Invert the function based on a constraint on the what the result of
-     * evaluating the function call must equal.<br>
-     * Subclasses should override this method.
+     * evaluating the function call must equal.
+     * <p>
+     * If g is the inverse of f, then <br>
+     * g(f(x)) = x.<br>
+     * g(f(x,y)) = {(u,v) | f(u,v) = f(x,y)}<br>
+     * g(f(x,y),x) = {v | f(x,v) = f(x,y)}<br>
+     * g(f(x,y),x,y) = true
+     * <p>
+     * So, if f(x,y) = x + y, then<br>
+     * g(z) = {(u,v) | u + v = z}<br>
+     * g(z,x) = {v | v = z - x}<br>
+     * g(z,x,y} = true if x + y = z, else false
+     * <p>
+     * Given a FunctionCall f with arguments (a1, a2, .. an) where n is the number of arguments,
+     * g = f.inverse(r, ai) is a FunctionCall where ai must be an argument to f. g.evaluate() returns a Domain representing the set of values that ai may be assigned such that f.evaluate() == r.
+     * 
+     *  is that makes the n-1 arguments passed in to f.inverse() its own arguments and when evaluated computes what this missing argument computes with a Method that takes an array of n-1 variables 
+     * So, functionCall.inverse(z) returns inv, a FunctionCall, inv, that has the same arguments takes Method that takes functionCall with one argument z, which when evaluated returns a functionCallwhose arguments are 
+     * 
+     * 
+     * f.setArg(x
+     * f.inverse(f.evaluate()).evaluate() == f.arguments
      * 
      * @param valueThatMustEqualEvaluation
      * @return a new function
+     * <p>
+     * <b>Subclasses should override this method.</b>
+     * 
      */
-    public SuggestiveFunctionCall inverse( Expression<?> valueThatMustEqualEvaluation ) {
+    public FunctionCall inverse( Expression<?> returnValue, Expression<?> arg ) {
       return null;
     }
 
@@ -309,6 +334,44 @@ public class Functions {
       super( o1, c, "add", "pickValueForward", "pickValueReverse" );
       setMonotonic( true );
     }
+    @Override
+    public //< T1  extends Comparable< ? super T1 > > 
+    FunctionCall inverse( Expression<?> returnValue, Expression<?> arg ) {
+      return new Minus<T,T>( returnValue, arg );
+//      FunctionCall i = null;
+//      i = new FunctionCall( this, ClassUtils.getMethodsForName( getClass(), "invert" )[0],
+//                            new Object[]{returnValue, arg} );
+//      return i;
+    }
+    
+    public Domain< ? > invert( Expression<T> returnValue, Expression<?> arg ) {
+      if ( arguments.size() != 2 ) return null;
+      T argVal = null;
+
+      Object otherArg = null;
+      if ( arg == this.arguments.get( 0 ) ) {
+        otherArg = arguments.get( 1 );
+      } else if ( arg == this.arguments.get( 1 ) ) {
+        otherArg = arguments.get( 0 );
+      } else {
+        return null;
+      }
+      Expression<?> other = null;
+      if ( otherArg instanceof Expression ) {
+        other = (Expression< ? >)otherArg;
+      } else {
+        other = new Expression(otherArg);
+      }
+      try {
+        Object o = Expression.evaluate( minus(returnValue, arg ), getReturnType(), false );
+        argVal = (T)o;
+        return new SingleValueDomain< T >( argVal );
+      } catch ( ClassCastException e ) {
+        // ignore
+      }
+      return null;
+    }
+    
   }
   public static class Add< T , R > extends Sum< T, R > {
     public Add( Expression< T > o1, Expression< T > o2 ) {
@@ -329,8 +392,9 @@ public class Functions {
     }
   }
 
-  public static class Sub< T extends Comparable< ? super T >,
-                           R > extends Binary< T, R > {
+  public static class Sub<T,R>//< T extends Comparable< ? super T >,
+                           //R >
+  extends Binary< T, R > {
     public Sub( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "subtract", "pickValueForward", "pickSubRevrese" );
       //functionCall.
@@ -342,8 +406,9 @@ public class Functions {
       setMonotonic( true );
     }
   }
-  public static class Minus< T  extends Comparable< ? super T >,
-                             R  extends Comparable< ? super R > > extends Sub< T, R > {
+  public static class Minus<T,R>//< T  extends Comparable< ? super T >,
+                           //  R  extends Comparable< ? super R > > 
+  extends Sub< T, R > {
     public Minus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
       //functionCall.
@@ -1823,43 +1888,6 @@ public class Functions {
     return newValue;
   }
   
-  protected static <T1> T1 pickValueExpression( Expression< T1 > expr,
-                                                FunctionCall pickFunctionCall,
-                                                FunctionCall reversePickFunctionCall ) {
-    Vector< Object > args =
-        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArguments()
-                                     : pickFunctionCall.getArguments();
-    if ( args.size() != 2 ) return null;
-    Object arg1 = args.get( 0 );
-    Object arg2 = args.get( 1 );
-    Expression< T1 > o1 = null;
-    Expression< T1 > o2 = null;
-    if ( arg1 instanceof Expression ) {
-      o1 = (Expression< T1 >)arg1;
-    }
-    if ( arg2 instanceof Expression ) {
-      o2 = (Expression< T1 >)arg2;
-    }
-
-    if ( o1 == expr ) {
-      return (T1)( pickFunctionCall == null
-                   ? null : pickFunctionCall.evaluate( false ) );
-    }
-    if ( o2 == expr ) {
-      return (T1)( reversePickFunctionCall == null 
-                   ? null : reversePickFunctionCall.evaluate( false ) );
-    }
-    if ( Expression.valuesEqual( o1, expr ) ) {
-      return (T1)( pickFunctionCall == null
-                   ? null : pickFunctionCall.evaluate( false ) );
-    }
-    if ( Expression.valuesEqual( o2, expr ) ) {
-      return (T1)( reversePickFunctionCall == null 
-                   ? null : reversePickFunctionCall.evaluate( false ) );
-    }
-    return null;
-  }
-  
   /**
    * Pick a value for the variable in the context of a binary function using pickFunctionCall if variable is in the expression of the first argument to the binary function or reversePickFunctionCall if in the expression of the second argument.
    * @param variable
@@ -1906,12 +1934,16 @@ public class Functions {
     boolean inFirst = isFirst || ( o1 != null && o1.hasParameter( variableParam, true, null ) );
     boolean inSecond = isSecond || ( o2 != null && o2.hasParameter( variableParam, true, null ) );
     if ( !inFirst && !inSecond ) {
-      Debug.error( false, "pickValueBF2(variable=" + variable
-                          + "): variable not in function arguments! " + args );
+      Debug.error( false, "Error! pickValueBF2(variable=" + variable
+                          + ", pickFunction=" + pickFunctionCall
+                          + ", reversePickFunctionCall="
+                          + reversePickFunctionCall
+                          + "): variable not in function arguments! args=" + args );
       return null;
     }
     FunctionCall chosenPickCall = null;
     Expression< T1 > arg = null;
+    Expression< T1 > otherArg = null;
     boolean equal;
     boolean first;
     if ( inFirst && ( reversePickFunctionCall == null || !inSecond ) ) {
@@ -1924,6 +1956,7 @@ public class Functions {
     }
     chosenPickCall = first ? pickFunctionCall : reversePickFunctionCall;
     arg = first ? o1 : o2;
+    otherArg = first ? o2 : o1;
     equal = first ? isFirst : isSecond;
     
     // pick a value for the chosen argument    
@@ -1942,80 +1975,19 @@ public class Functions {
     // If the argument is a FunctionCall, try to invert the call with the target
     // value, t1, to solve for the variable.
     if ( arg.expression instanceof SuggestiveFunctionCall ) {
-     
-      SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression; // fCall=x+y
-      SuggestiveFunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1)); // inverseCall(v) = t1 - (v==x ? y:(v==y ? x : null))
-      T1 t11 = inverseCall.pickValue( variable ); // picks value for x = t1 - y = 10 - 3 = 7
-      return t11;
+      // fCall=Plus(x,y)
+      SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
+      // inverseCall = inverse of Plus(x,y)
+      // inverseCall(x) = t1 - y
+      // inverseCall(y) = t1 - x
+      FunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1), otherArg);
+      if ( inverseCall instanceof SuggestiveFunctionCall ) {
+        T1 t11 = ((SuggestiveFunctionCall)inverseCall).pickValue( variable );
+        return t11;
+      }
     }
-    
-    
-    if (variable instanceof Parameter) {
-      
-      if (o1.hasParameter((Parameter<T1>) variable, true, null )) {
-        
-        if (!Utils.valuesEqual( o1, variable )) { //o1.expression.equals(variable)) {
-          
-          // HERE!!! TODO :)
-          // 
-           Object t1 = pickValueExpression(o1, pickFunctionCall, reversePickFunctionCall);
-          
-           
-          if ( //o1.getForm() == Form.Function &&
-               o1.expression instanceof SuggestiveFunctionCall ) {
-            
-            SuggestiveFunctionCall f1 = (SuggestiveFunctionCall)o1.expression; // x+y
-            Suggester s = f1.inverse(new Expression<T1>(t1)); // t1 - v
-            T1 t11 = s.pickValue( variable ); // t1 - x
-            
-            if (f1 instanceof Suggester) {
-              T1 t = ((Suggester)f1).pickValue( variable );
-              return t;
-            }
-            
-        }
-        }
-        
-        // o1 is the variable:
-        else {
-          
-          
-          //if ( o1 == null && variable == null ) return (T1)reverseFunctionCall.evaluate( false );
-          Variable<?> v1 = Expression.evaluate( o1, Variable.class, false, true );
-          if ( v1 == variable ) { 
-            return (T1)( pickFunctionCall == null
-                         ? null : pickFunctionCall.evaluate( false ) );
-          }
-          Variable<?> v2 = Expression.evaluate( o2, Variable.class, false, true );
-          if ( v2 == variable ) {
-            return (T1)( reversePickFunctionCall == null 
-                         ? null : reversePickFunctionCall.evaluate( false ) );
-          }
-          if ( v1.equals( variable ) ) {
-            return (T1)( pickFunctionCall == null
-                         ? null : pickFunctionCall.evaluate( false ) );
-          }
-          if ( v2.equals( variable ) ) {
-            return (T1)( reversePickFunctionCall == null 
-                         ? null : reversePickFunctionCall.evaluate( false ) );
-          }
-          
-        }
-        
-      } 
-      
-    }
-    
 
-    
-
-    
-//    Debug.error( true,
-//                 "Error! Functions.pickValue(variable, fcn, reverseFcn) could not find variable "
-//                     + variable + " in arguments of "
-//                     + pickFunctionCall.toString( Debug.isOn(), true, null ) );
-    return null; //(T1)functionCall.evaluate( false );
-    //return pickValueBB(this, variable, getClass().getMethod( "pickGreaterThan", parameterTypes ) );
+    return null;
   }
 
   // delete this function
