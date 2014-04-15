@@ -132,22 +132,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       case divide: // /
       case remainder: // %
       default:
-        return dominantType( argType1, argType2 );
+        return ClassUtils.dominantType( argType1, argType2 );
     }
-  }
-
-  public static String dominantType( String argType1, String argType2 ) {
-    if ( argType1 == null ) return argType2;
-    if ( argType2 == null ) return argType1;
-    if ( argType1.equals( "String" ) ) return argType1;
-    if ( argType2.equals( "String" ) ) return argType2;
-    if ( argType1.toLowerCase().equals( "double" ) ) return argType1;
-    if ( argType2.toLowerCase().equals( "double" ) ) return argType2;
-    if ( argType1.toLowerCase().startsWith( "long" ) ) return argType1;
-    if ( argType2.toLowerCase().startsWith( "long" ) ) return argType2;
-    if ( argType1.toLowerCase().startsWith( "int" ) ) return argType1;
-    if ( argType2.toLowerCase().startsWith( "int" ) ) return argType2;
-    return argType1;
   }
 
   public static String
@@ -950,7 +936,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                           lookOutsideClassData, complainIfNotFound );
           String type2 = astToAeExprType( ce.getElseExpr(), specifier,
                                           lookOutsideClassData, complainIfNotFound );
-          result = JavaToConstraintExpression.dominantType( type1, type2 );
+          result = ClassUtils.dominantType( type1, type2 );
       } else if ( expr.getClass() == ArrayCreationExpr.class ) {
         ArrayCreationExpr be = ( (ArrayCreationExpr)expr );
         result = be.getType().toString();
@@ -968,7 +954,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       } else if ( expr.getClass() == ConditionalExpr.class ) {
         ConditionalExpr be = ( (ConditionalExpr)expr );
         result =
-            dominantType( astToAeExprType( be.getThenExpr(), specifier, lookOutsideClassData, complainIfNotFound ),
+            ClassUtils.dominantType( astToAeExprType( be.getThenExpr(), specifier, lookOutsideClassData, complainIfNotFound ),
                           astToAeExprType( be.getElseExpr(), specifier, lookOutsideClassData, complainIfNotFound ) );
       } else if ( expr.getClass() == EnclosedExpr.class ) {
           result = astToAeExprType( ( (EnclosedExpr)expr ).getInner(), specifier, lookOutsideClassData, complainIfNotFound );
