@@ -673,6 +673,11 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public Domain< ResultType > getDomain( boolean propagate, Set< HasDomain > seen ) {
+    // avoid infinite recursion
+    Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
+    if ( pair.first ) return null;
+    seen = pair.second;
+    
     if ( expression == null ) {
       if ( form == Form.Value ) {
         return SingleValueDomain.getNullDomain();

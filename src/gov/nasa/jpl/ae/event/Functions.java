@@ -7,16 +7,21 @@ import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.util.List;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -33,10 +38,10 @@ public class Functions {
   private static boolean complainAboutBadExpressions = true;
   
   private static Expression forceExpression ( Object o ) {
-    return Expression.evaluate( o, Expression.class, false, true );
-//    if ( o instanceof Expression ) return (Expression)o;
-//    //if ( o instanceof FunctionCall ) return new Expression(o);
-//    return new Expression( o );
+    if ( o instanceof Expression ) return (Expression<?>)o;
+    if ( o instanceof Parameter ) return new Expression<>( (Parameter<?>)o );
+    if ( o instanceof Call ) return new Expression<>( (Call)o );
+    return new Expression<>( o );
   }
 
   // Abstract n-ary functions
@@ -114,7 +119,7 @@ public class Functions {
      * <b>Subclasses should override this method.</b>
      * 
      */
-    public FunctionCall inverse( Expression<?> returnValue, Expression<?> arg ) {
+    public FunctionCall inverse( Object returnValue, Object arg ) { //Variable<?> variable ) {
       return null;
     }
 
@@ -171,6 +176,7 @@ public class Functions {
             functionMethod,
             pickFunctionMethod1, pickFunctionMethod2 );
       // this( ( o1 instanceof Expression ) ? )
+      
     }
 
     public Binary( Object o1, Object o2, String functionMethod ) {
@@ -197,6 +203,13 @@ public class Functions {
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
       return pickValueBF2( this,//functionCall, 
                            variable );
+    }
+
+    public Vector< Expression > getArgumentExpressions() {
+      Vector< Expression > argExprs =
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArguments(),
+                                                                            Expression.class ) );
+      return argExprs;
     }
   }
 
@@ -336,42 +349,29 @@ public class Functions {
     }
     @Override
     public //< T1  extends Comparable< ? super T1 > > 
-    FunctionCall inverse( Expression<?> returnValue, Expression<?> arg ) {
-      return new Minus<T,T>( returnValue, arg );
+    FunctionCall inverse( Object returnValue, Object arg ) {
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      return new Minus<T,T>( returnValue, otherArg );
 //      FunctionCall i = null;
 //      i = new FunctionCall( this, ClassUtils.getMethodsForName( getClass(), "invert" )[0],
 //                            new Object[]{returnValue, arg} );
 //      return i;
     }
     
-    public Domain< ? > invert( Expression<T> returnValue, Expression<?> arg ) {
-      if ( arguments.size() != 2 ) return null;
-      T argVal = null;
-
-      Object otherArg = null;
-      if ( arg == this.arguments.get( 0 ) ) {
-        otherArg = arguments.get( 1 );
-      } else if ( arg == this.arguments.get( 1 ) ) {
-        otherArg = arguments.get( 0 );
-      } else {
-        return null;
-      }
-      Expression<?> other = null;
-      if ( otherArg instanceof Expression ) {
-        other = (Expression< ? >)otherArg;
-      } else {
-        other = new Expression(otherArg);
-      }
-      try {
-        Object o = Expression.evaluate( minus(returnValue, arg ), getReturnType(), false );
-        argVal = (T)o;
-        return new SingleValueDomain< T >( argVal );
-      } catch ( ClassCastException e ) {
-        // ignore
-      }
-      return null;
+    @Override
+    public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
+      // avoid infinite recursion
+      Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
+      if ( pair.first ) return null;
+      seen = pair.second;
+      
+      RangeDomain<?> rd =
+          DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
+                                       new Sum<>( null, null ) );
+      return rd;
     }
-    
+        
   }
   public static class Add< T , R > extends Sum< T, R > {
     public Add( Expression< T > o1, Expression< T > o2 ) {
@@ -1903,6 +1903,46 @@ public class Functions {
     return newValue;
   }
   
+  public static Object getArgumentWithVariable( FunctionCall fCall,
+                                                Variable<?> variable,
+                                                boolean mustBeOnlyOne ) {
+    ArrayList< Object > list = getArgumentsWithVariable( fCall, variable, true,
+                                                         mustBeOnlyOne );
+    if ( Utils.isNullOrEmpty( list ) ) return null;
+    return list.get( 0 );
+  }
+  public static ArrayList< Object > getArgumentsWithVariable( FunctionCall fCall,
+                                                              Variable<?> variable ) {
+    ArrayList< Object > list = getArgumentsWithVariable( fCall, variable, false, false );
+    return list;
+  }
+  public static ArrayList< Object > getArgumentsWithVariable( FunctionCall fCall,
+                                                              Variable<?> variable,
+                                                              boolean returnOnlyOne,
+                                                              boolean mustBeOnlyOne ) {
+    if ( fCall == null || variable == null ) return null;
+    Vector< Object > arguments = fCall.getArguments();
+    ArrayList< Object > argsWithVariable = new ArrayList<>();
+    if ( variable instanceof Parameter ) {
+      for ( Object arg : arguments ) {
+        if ( arg == null ) continue;
+        if ( Expression.valuesEqual( variable, arg, Parameter.class ) ||
+             ( arg instanceof HasParameters && 
+               ((HasParameters)arg).hasParameter( (Parameter< ? >)variable,
+                                                  true, null ) ) ) {
+          argsWithVariable.add( arg );
+          if ( returnOnlyOne && !mustBeOnlyOne ) {
+            return argsWithVariable;
+          }
+          if ( mustBeOnlyOne && !argsWithVariable.isEmpty() ) {
+            return null;
+          }
+        }
+      }
+    }
+    return argsWithVariable;
+  }
+  
   /**
    * Pick a value for the variable in the context of a binary function using pickFunctionCall if variable is in the expression of the first argument to the binary function or reversePickFunctionCall if in the expression of the second argument.
    * @param variable
@@ -1992,10 +2032,19 @@ public class Functions {
     if ( arg.expression instanceof SuggestiveFunctionCall ) {
       // fCall=Plus(x,y)
       SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
+      ArrayList< Object > argsWithVar = getArgumentsWithVariable( fCall, variable );
+      if ( Utils.isNullOrEmpty( argsWithVar ) || argsWithVar.size() > 1 ) {
+        // TODO -- solve for variable! or simplify expression!
+        return null;
+      }
+      Object subExprArg = argsWithVar.get( 0 );
+      if ( !( subExprArg instanceof Expression ) ) {
+        return null;
+      }
       // inverseCall = inverse of Plus(x,y)
       // inverseCall(x) = t1 - y
       // inverseCall(y) = t1 - x
-      FunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1), otherArg);
+      FunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1), (Expression< ? >)subExprArg);
       if ( inverseCall instanceof SuggestiveFunctionCall ) {
         T1 t11 = ((SuggestiveFunctionCall)inverseCall).pickValue( variable );
         return t11;
@@ -2111,6 +2160,16 @@ public class Functions {
     if ( Debug.isOn() ) Debug.outln( "suggesting value " + newValue + " for "
         + f.getClass().getSimpleName() + " true" );
     return newValue;
+  }
+  
+  public static void main( String[] args ) {
+    Parameter<Integer> z = new Parameter<Integer>( "z", new IntegerDomain( 0, 10 ), 10, null );
+    Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 0, 10 ), 1, null );
+    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 0, 10 ), null, null );
+    Less< Integer > expr = new Less<>( z, new Sum< Integer, Integer >( x, y ) );
+    System.out.println("expr = " + expr ); 
+    Integer xVal = expr.pickValue( x );
+    System.out.println("Picked " + xVal + " for x = " + x + " in expr = " + expr ); 
   }
 
   

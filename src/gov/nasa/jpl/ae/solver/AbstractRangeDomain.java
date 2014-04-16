@@ -26,7 +26,15 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   //protected static RangeDomain defaultDomain;
   protected T lowerBound = null;
   protected T upperBound = null;
+  /**
+   * Whether the lower bound itself is considered part of the domain or just
+   * values greater than the lower bound (that are within the upper bound).
+   */
   protected boolean lowerIncluded;
+  /**
+   * Whether the upper bound itself is considered part of the domain or just
+   * values less than the upper bound (that are within the lower bound).
+   */
   protected boolean upperIncluded;
   protected boolean nullInDomain = false;
   
@@ -61,7 +69,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
 	public AbstractRangeDomain( RangeDomain<T> domain ) {
 	  this( domain.getLowerBound(), domain.getUpperBound(),
-	        domain.includeLowerBound(), domain.includeUpperBound(),
+	        domain.isLowerBoundIncluded(), domain.isUpperBoundIncluded(),
 	        domain.isNullInDomain() );
   }
 
@@ -400,31 +408,35 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return this.size() != 0;
   }
 
+  @Override
   public boolean excludeLowerBound() {
     lowerIncluded = false;
     return this.size() != 0;
   }
+  @Override
   public boolean includeLowerBound() {
     lowerIncluded = true;
     return this.size() != 0;
   }
+  @Override
   public boolean isLowerBoundIncluded() {
     return lowerIncluded;
   }
 
+  @Override
   public boolean excludeUpperBound() {
     upperIncluded = false;
     return this.size() != 0;
   }
+  @Override
   public boolean includeUpperBound() {
     upperIncluded = true;
     return this.size() != 0;
   }
+  @Override
   public boolean isUpperBoundIncluded() {
     return upperIncluded;
   }
-
-
   
   public abstract T getTypeMaxValue();
 
