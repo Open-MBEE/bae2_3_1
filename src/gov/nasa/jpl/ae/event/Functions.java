@@ -396,7 +396,7 @@ public class Functions {
                            //R >
   extends Binary< T, R > {
     public Sub( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "subtract", "pickValueForward", "pickSubRevrese" );
+      super( o1, o2, "subtract", "pickValueForward", "pickValueReverse" );
       //functionCall.
       setMonotonic( true );
     }
@@ -490,7 +490,11 @@ public class Functions {
     }
     try {
       if ( o1 != null ) {
-        Object x = (V1)Expression.evaluate( result, o1.getClass(), false );
+        Class<?> cls1 = o1.getClass();
+        Class<?> cls2 = o2.getClass();
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
         if ( x == null ) x = result;
         return (V1)x;
       }
@@ -538,7 +542,11 @@ public class Functions {
     }
     try {
       if ( o1 != null ) {
-        Object x = (V1)Expression.evaluate( result, o1.getClass(), false );
+        Class<?> cls1 = o1.getClass();
+        Class<?> cls2 = o2.getClass();
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
         if ( x == null ) x = result;
         return (V1)x;
       }
@@ -586,7 +594,11 @@ public class Functions {
     }
     try {
       if ( o1 != null ) {
-        Object x = (V1)Expression.evaluate( result, o1.getClass(), false );
+        Class<?> cls1 = o1.getClass();
+        Class<?> cls2 = o2.getClass();
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
         if ( x == null ) x = result;
         return (V1)x;
       }
@@ -598,7 +610,7 @@ public class Functions {
   }
   
   public static <V1, V2> V1 minus( V1 o1, V2 o2 ) {
-    return plus( o1, times( -1, o2 ) );
+    return plus( o1, times( o2, -1 ) );
   }
   
   public static < T, TT > T add( Expression< T > o1,
