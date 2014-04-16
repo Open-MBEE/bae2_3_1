@@ -496,6 +496,7 @@ public class Functions {
                                         ClassUtils.dominantTypeClass(cls1,cls2),
                                         false );
         if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
     } catch (ClassCastException e) {
@@ -548,6 +549,7 @@ public class Functions {
                                         ClassUtils.dominantTypeClass(cls1,cls2),
                                         false );
         if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
       return (V1)result;
@@ -600,6 +602,7 @@ public class Functions {
                                         ClassUtils.dominantTypeClass(cls1,cls2),
                                         false );
         if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
       return (V1)result;

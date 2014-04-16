@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Functions.Binary;
+import gov.nasa.jpl.ae.event.Functions.Unary;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.solver.Wraps;
@@ -201,24 +202,43 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   }
   public static < T, R > ConstructorCall
       unaryOpNameToEventFunction( String fName ) {
+    
     String op2func = unaryOperatorSymbolToFunctionName( fName );
     if ( op2func != null ) {
       fName = op2func;
     } else {
       fName = Utils.toCamelCase( fName );
     }
-    Class< ? extends Functions.Unary< T, R > > cls = null;
+    Class< ? extends Unary< T, R > > cls = null;
+
     try {
-      cls = (Class< ? extends Functions.Unary< T, R > >)Class.forName( fName );
-    } catch ( ClassNotFoundException e ) {
+      Class< ? > foo =
+              ClassUtils.getClassForName( fName, null,
+                                          "gov.nasa.jpl.ae.event", false );
+      @SuppressWarnings( "unchecked" )
+      Class< ? extends Unary<T,R> > tcls = ( Class< ? extends Unary<T,R> > )foo;
+      cls = tcls;
+      if ( cls == null ) {
+          foo = ClassUtils.getClassForName( "Functions." + fName, null,
+                                            "gov.nasa.jpl.ae.event",
+                                            false );
+          @SuppressWarnings( "unchecked" )
+          Class< ? extends Unary<T,R> > ttcls = ( Class< ? extends Unary<T,R> > )foo;
+          cls = ttcls;
+      }
+    } catch ( ClassCastException e ) {
       e.printStackTrace();
     }
-    Debug.errorOnNull( "javaUnaryOpToEventFunction( " + fName
-                       + "): no function found!", cls );
-    if ( cls == null ) return null;
+
+    if ( cls == null ) {
+        Debug.error( "javaUnaryOpToEventFunction( " + fName +
+                     "): no function found!" );
+        return null;
+    }
     ConstructorCall ctorCall =
         new ConstructorCall( null, cls, new Object[] { emptyExpression } );
     return ctorCall;
+    
   }
 
     protected static List< Class< ? extends FunctionCall > > functionClasses =
@@ -326,14 +346,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                 getFunctionClassOfType( opName, Binary.class );;
         return (Class< ? extends Binary< T, R > >)foo ;
     }
-
+    
     public static < T extends FunctionCall > Class< ? extends T >
             getFunctionClassOfType( String opName, Class< T > type ) {
         if ( Utils.isNullOrEmpty( opName ) ) return null;
         String fName = opName;
         Class< ? extends T > cls = null;
+        
+        // Capitalize the first character of the fName:
         fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
                         + fName.toString().substring( 1 );
+        
         for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {
             if ( ( type == null || type.isAssignableFrom( fcls ) ) && 
                  fcls.getSimpleName().equalsIgnoreCase( fName ) ) {
@@ -739,7 +762,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           ConstructorCall call = javaUnaryOpToEventFunction( ue.getOperator() );
           if ( call != null ) {
               Vector< Object > args = new Vector< Object >(1);
-              args.add( astToAeExpr( ue.getExpr(), true,
+              args.add( astToAeExpression( ue.getExpr(), true,
                                      lookOutsideClassDataForTypes,
                                      complainIfDeclNotFound ) );
               call.setArguments( args );
