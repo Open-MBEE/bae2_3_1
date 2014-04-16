@@ -12,14 +12,11 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   public static final int typeMaxValue = Integer.MAX_VALUE;
   public static final int typeMinValue = Integer.MIN_VALUE;
 
-  public static IntegerDomain domain = new IntegerDomain(); 
+  public static IntegerDomain domain = new IntegerDomain();  // REVIEW -- why is this not defaultDomain?
 	public static IntegerDomain positiveDomain =
 			new IntegerDomain(0, typeMaxValue);
-  public static IntegerDomain defaultDomain = new IntegerDomain();
+  public static IntegerDomain defaultDomain = new IntegerDomain();  // REVIEW -- make this final?
 
-//	protected int lowerBound = Integer.MIN_VALUE;
-//	protected int upperBound = Integer.MAX_VALUE;
-	
 	public IntegerDomain() {
 	  lowerBound = typeMinValue;
 	  upperBound = typeMaxValue;
