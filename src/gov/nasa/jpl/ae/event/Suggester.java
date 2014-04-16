@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.solver.Variable;
 
 public interface Suggester {
