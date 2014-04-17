@@ -352,7 +352,7 @@ public class Functions {
     FunctionCall inverse( Object returnValue, Object arg ) {
       if ( arguments == null || arguments.size() != 2 ) return null;
       Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
-      return new Minus<T,T>( returnValue, otherArg );
+      return new FunctionCall(null, ClassUtils.getMethodsForName( Utils.class, "newList" )[0], new Object[] { new Minus<T,T>( returnValue, otherArg ) } );
 //      FunctionCall i = null;
 //      i = new FunctionCall( this, ClassUtils.getMethodsForName( getClass(), "invert" )[0],
 //                            new Object[]{returnValue, arg} );
@@ -1981,8 +1981,8 @@ public class Functions {
     }
 
     // choose the argument as the context for which a value is picked for the variable 
-    boolean isFirst = o1 != null && Expression.valuesEqual( variable, o1, Parameter.class );
-    boolean isSecond = o2 != null && Expression.valuesEqual( variable, o2, Parameter.class );
+    boolean isFirst = o1 != null && Utils.valuesEqual( variable, o1 );
+    boolean isSecond = o2 != null && Utils.valuesEqual( variable, o2 );
     boolean inFirst = isFirst || ( o1 != null && o1.hasParameter( variableParam, true, null ) );
     boolean inSecond = isSecond || ( o2 != null && o2.hasParameter( variableParam, true, null ) );
     if ( !inFirst && !inSecond ) {
@@ -2163,7 +2163,8 @@ public class Functions {
     Parameter<Integer> z = new Parameter<Integer>( "z", new IntegerDomain( 0, 10 ), 10, null );
     Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 0, 10 ), 1, null );
     Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 0, 10 ), null, null );
-    Less< Integer > expr = new Less<>( z, new Sum< Integer, Integer >( x, y ) );
+    Parameter<Integer> w = new Parameter<Integer>( "w", new IntegerDomain( 0, 10 ), 2, null );
+    Less< Integer > expr = new Less<>( z, new Sum< Integer, Integer >( new Sum< Integer, Integer >( x, y ), w ) );
     System.out.println("expr = " + expr ); 
     Integer xVal = expr.pickValue( x );
     System.out.println("Picked " + xVal + " for x = " + x + " in expr = " + expr ); 
