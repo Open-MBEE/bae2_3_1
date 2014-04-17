@@ -11,7 +11,6 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
-import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
@@ -19,7 +18,6 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
-import java.util.List;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,13 +33,13 @@ import java.util.Vector;
  */
 public class Functions {
 
-  private static boolean complainAboutBadExpressions = true;
+//  private static boolean complainAboutBadExpressions = true;
   
   private static Expression forceExpression ( Object o ) {
     if ( o instanceof Expression ) return (Expression<?>)o;
-    if ( o instanceof Parameter ) return new Expression<>( (Parameter<?>)o );
-    if ( o instanceof Call ) return new Expression<>( (Call)o );
-    return new Expression<>( o );
+    if ( o instanceof Parameter ) return new Expression( (Parameter<?>)o );
+    if ( o instanceof Call ) return new Expression( (Call)o );
+    return new Expression( o );
   }
 
   // Abstract n-ary functions
@@ -89,8 +87,8 @@ public class Functions {
     }
     
     /**
-     * Invert the function based on a constraint on the what the result of
-     * evaluating the function call must equal.
+     * Invert the function with respect to a range/return value and a given 
+     * argument.
      * <p>
      * If g is the inverse of f, then <br>
      * g(f(x)) = x.<br>
@@ -103,23 +101,58 @@ public class Functions {
      * g(z,x) = {v | v = z - x}<br>
      * g(z,x,y} = true if x + y = z, else false
      * <p>
-     * Given a FunctionCall f with arguments (a1, a2, .. an) where n is the number of arguments,
-     * g = f.inverse(r, ai) is a FunctionCall where ai must be an argument to f. g.evaluate() returns a Domain representing the set of values that ai may be assigned such that f.evaluate() == r.
+     * Given a FunctionCall f with arguments (a1, a2, .. an) where n is the
+     * number of arguments, g = f.inverse(r, ai) is a FunctionCall where ai must
+     * be an argument to f. g.evaluate() returns a Domain representing the set
+     * of values that ai may be assigned such that f.evaluate() == r.
      * 
-     *  is that makes the n-1 arguments passed in to f.inverse() its own arguments and when evaluated computes what this missing argument computes with a Method that takes an array of n-1 variables 
-     * So, functionCall.inverse(z) returns inv, a FunctionCall, inv, that has the same arguments takes Method that takes functionCall with one argument z, which when evaluated returns a functionCallwhose arguments are 
+     * is that makes the n-1 arguments passed in to f.inverse() its own
+     * arguments and when evaluated computes what this missing argument computes
+     * with a Method that takes an array of n-1 variables So,
+     * functionCall.inverse(z) returns inv, a FunctionCall, inv, that has the
+     * same arguments takes Method that takes functionCall with one argument z,
+     * which when evaluated returns a functionCallwhose arguments are
      * 
      * 
-     * f.setArg(x
-     * f.inverse(f.evaluate()).evaluate() == f.arguments
+     * f.setArg(x f.inverse(f.evaluate()).evaluate() == f.arguments
      * 
-     * @param valueThatMustEqualEvaluation
-     * @return a new function
+     * @param returnValue
+     * @param arg
+     *          the single argument with respect to which the inverse is
+     *          constructed (ex. the x in f(x))
+     * @return a new FunctionCall that returns a set of possible values
      * <p>
-     * <b>Subclasses should override this method.</b>
+     * <b>Subclasses should override this method if the function is not
+     * a bijection</b> (one-to-one and the domain and range are the same),
+     * in which case the inverse may not be a single value. For example,
+     * if f(x)=x^2, then the inverse is {sqrt(x), -sqrt(x)}.
      * 
      */
     public FunctionCall inverse( Object returnValue, Object arg ) { //Variable<?> variable ) {
+      FunctionCall singleValueFcn = inverseSingleValue( returnValue, arg );
+      if ( singleValueFcn == null ) return null;
+      return new FunctionCall(null,
+                              ClassUtils.getMethodsForName( Utils.class, "newList" )[0],
+                              new Object[] { singleValueFcn } );
+    }
+
+    /**
+     * Invert the function with respect to a range/return value and a given
+     * argument.
+     * <p>
+     * This could be implemented by calling {@link #inverse(Object, Object)} and
+     * selecting a value from the set of possible values returned by the inverse.
+     * 
+     * @param returnValue
+     * @param arg
+     *          the single argument with respect to which the inverse is
+     *          constructed (i.e. the x in f(x))
+     * @return a new FunctionCall that returns a possible value
+     * <p>
+     * <b>Subclasses of {@link SuggestiveFunctionCall} should override this 
+     * method.</b>
+     */
+    public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
       return null;
     }
 
@@ -347,12 +380,14 @@ public class Functions {
       super( o1, c, "add", "pickValueForward", "pickValueReverse" );
       setMonotonic( true );
     }
+
     @Override
     public //< T1  extends Comparable< ? super T1 > > 
-    FunctionCall inverse( Object returnValue, Object arg ) {
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
       if ( arguments == null || arguments.size() != 2 ) return null;
       Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
-      return new FunctionCall(null, ClassUtils.getMethodsForName( Utils.class, "newList" )[0], new Object[] { new Minus<T,T>( returnValue, otherArg ) } );
+      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+      return new Minus<T,T>( returnValue, otherArg );
 //      FunctionCall i = null;
 //      i = new FunctionCall( this, ClassUtils.getMethodsForName( getClass(), "invert" )[0],
 //                            new Object[]{returnValue, arg} );
@@ -368,8 +403,40 @@ public class Functions {
       
       RangeDomain<?> rd =
           DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
-                                       new Sum<>( null, null ) );
+                                       new Sum<T,R>( null, null ) );
       return rd;
+    }
+    
+    /**
+     * Return a domain for the matching input argument restricted by the domain
+     * of the other arguments and of an expected return value.
+     * 
+     * @param returnValue
+     * @param argument
+     * @return
+     */
+    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+      FunctionCall inverse = inverse( returnValue, argument );
+      if ( inverse == null ) return null;
+      return inverse.getDomain( false, null );
+//      // check for bad or degenerate input while getting domains of args
+//      if ( arguments == null || arguments.size() != 2 ) return null;
+//      if ( arg == null || returnValue == null ) return null;
+//      int whichArg = ( arg == arguments.get( 0 ) ? 0 : arg == arguments.get( 1 ) ? 1 : -1 );
+//      Object otherArg = ( whichArg == 1 ? arguments.get( 0 ) : arguments.get( 1 ) );
+//      if ( !( arg instanceof HasDomain ) ) return null;
+//      HasDomain argWithDomain = (HasDomain)arg;
+//      if ( !( otherArg instanceof HasDomain ) || whichArg == -1 )
+//        return argWithDomain.getDomain( false, null );
+//      HasDomain otherArgWithDomain = (HasDomain)otherArg;
+//      Domain<?> domainArg = argWithDomain.getDomain( false, null );
+//      Domain<?> domainOtherArg = otherArgWithDomain.getDomain( false, null );
+//      //
+//      if ( domainArg instanceof AbstractRangeDomain && domainOtherArg instanceof AbstractRangeDomain ) {
+//        RangeDomain<?> inverseDomain =
+//        DomainHelper.combineDomains( Utils.newList( returnValue, otherArg ),
+//                                     new Minus<Object,Object>( null, null ) );
+//        if ( whichArg == 0 ) ((AbstractRangeDomain)domainArg).intersectRestrict( inverseDomain );
     }
         
   }
@@ -1922,7 +1989,7 @@ public class Functions {
                                                               boolean mustBeOnlyOne ) {
     if ( fCall == null || variable == null ) return null;
     Vector< Object > arguments = fCall.getArguments();
-    ArrayList< Object > argsWithVariable = new ArrayList<>();
+    ArrayList< Object > argsWithVariable = new ArrayList<Object>();
     if ( variable instanceof Parameter ) {
       for ( Object arg : arguments ) {
         if ( arg == null ) continue;
@@ -2167,7 +2234,10 @@ public class Functions {
     Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 0, 10 ), 1, null );
     Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 0, 10 ), null, null );
     Parameter<Integer> w = new Parameter<Integer>( "w", new IntegerDomain( 0, 10 ), 2, null );
-    Less< Integer > expr = new Less<>( z, new Sum< Integer, Integer >( new Sum< Integer, Integer >( x, y ), w ) );
+    Sum< Integer, Integer > xPlusY = new Sum< Integer, Integer >( x, y );
+    Sum< Integer, Integer > xPlusYPlusW =
+        new Sum< Integer, Integer >( xPlusY, w );
+    Less< Integer > expr = new Less< Integer >( z, xPlusYPlusW );
     System.out.println("expr = " + expr ); 
     Integer xVal = expr.pickValue( x );
     System.out.println("Picked " + xVal + " for x = " + x + " in expr = " + expr ); 

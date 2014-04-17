@@ -54,7 +54,7 @@ public class DomainHelper {
                                                FunctionCall fCall ) {
     // get the dominant Class of the arguments; e.g., Double dominates Integer
     Class<?> dominantType = null;
-    ArrayList< Domain< ? > > domains = new ArrayList<>();
+    ArrayList< Domain< ? > > domains = new ArrayList< Domain< ? > >();
     for ( Object obj : objects ) {
       Domain<?> objDomain = null;
       Class<?> objDomainType = null;
