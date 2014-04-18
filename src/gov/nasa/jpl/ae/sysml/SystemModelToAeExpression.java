@@ -243,6 +243,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                                                           arguments.toArray() );
                     if ( method != null ) object = model;
                 }
+                // TODO -- if it *still* fails, maybe search through all classes of all
+                // packages for a method with this name.
                 if ( method != null ) {
                     // Check for a call to the SysML API.
                     call = new FunctionCall( object, method, arguments );
