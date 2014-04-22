@@ -43,8 +43,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       N operationName = null;
       
       // Get all operand properties of the element
-      // TODO: should be using Acm.ACM_OPERAND in getProperty but they have Acm in view_repo.util package
-      Collection< P > properties = model.getProperty( expressionElement, "sysml:operand");
+      // TODO: should be using Acm.JSON_OPERAND in getProperty but they have Acm in view_repo.util package
+      Collection< P > properties = model.getProperty( expressionElement, "operand");
       //Debug.outln( "toAeExpression(" + expressionElement + " ): operands = "+ properties );
       
       if (!Utils.isNullOrEmpty(properties)) {
@@ -55,7 +55,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                       
           // Get the valueOfElementProperty node:
           Collection< P > valueOfElemNodes = 
-                  model.getProperty(operandProp, "sysml:elementValueOfElement");
+                  model.getProperty(operandProp, "elementValueOfElement");
           //Debug.outln( "elementValueOfElement property of operand prop = "+ valueOfElemNodes );
           
           if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
@@ -69,7 +69,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             
             
             // If it is a Operation type then get the operator name:
-            if (typeString.equals("sysml:Operation")) {
+            if (typeString.equals("Operation")) {
               
               Collection<N> operNames = model.getName(valueOfElementNode);
               
@@ -82,13 +82,13 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             
             // If it is a Expression type then process that Expression
             // and add to argument list:
-            else if (typeString.equals("sysml:Expression")) {
+            else if (typeString.equals("Expression")) {
               
               arguments.add(toAeExpression(valueOfElementNode));
             }
             
             // Otherwise, it must be a command arg, so get the argument values:
-            else if (typeString.equals("sysml:Property")) {
+            else if (typeString.equals("Property")) {
               
               Parameter<Object> param = null;
               
@@ -111,29 +111,29 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                 
                 // Get the value of the argument based on type:
                 Collection<U> argValPropNodes = null;
-                if (model.getTypeString(argValueNode, null).equals("sysml:LiteralInteger")) {
+                if (model.getTypeString(argValueNode, null).equals("LiteralInteger")) {
                   
-                  argValPropNodes = model.getValue(argValueNode, "sysml:integer");
+                  argValPropNodes = model.getValue(argValueNode, "integer");
                   argType = "Integer";
                 }
-                else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralReal")) {
+                else if (model.getTypeString(argValueNode, null).equals("LiteralReal")) {
                   
-                  argValPropNodes = model.getValue(argValueNode, "sysml:double");
+                  argValPropNodes = model.getValue(argValueNode, "double");
                   argType = "Double";
                 }
-                else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralBoolean")) {
+                else if (model.getTypeString(argValueNode, null).equals("LiteralBoolean")) {
                   
-                  argValPropNodes = model.getValue(argValueNode, "sysml:boolean");
+                  argValPropNodes = model.getValue(argValueNode, "boolean");
                   argType = "Boolean";
                 }
-                else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralUnlimitedNatural")) {
+                else if (model.getTypeString(argValueNode, null).equals("LiteralUnlimitedNatural")) {
                   
-                  argValPropNodes = model.getValue(argValueNode, "sysml:naturalValue");
+                  argValPropNodes = model.getValue(argValueNode, "naturalValue");
                   argType = "Integer";
                 }
-                else if (model.getTypeString(argValueNode, null).equals("sysml:LiteralString")) {
+                else if (model.getTypeString(argValueNode, null).equals("LiteralString")) {
                   
-                  argValPropNodes = model.getValue(argValueNode, "sysml:string");
+                  argValPropNodes = model.getValue(argValueNode, "string");
                   argType = "String";
                 }
                 else {
@@ -209,7 +209,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
         // If it is not an Expression than we cannot process it:
         String expressionType = model.getTypeString(expressionElement, null);
-        if (!expressionType.equals("sysml:Expression")) {
+        if (!expressionType.equals("Expression")) {
           Debug.error( "Passed expression is not an Expression type, got type "+ expressionType);
           return null;
         }
