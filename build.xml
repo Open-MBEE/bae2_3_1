@@ -55,7 +55,7 @@
     <echo message="finished ${current.time}" />  
   </target>
 
-  <target name="copyAeJar" depends="dir.check" unless="dir.exists">
+  <target name="copyAeJar" depends="dir.check" if="dir.exists">
     <tstamp>
        <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
     </tstamp>
