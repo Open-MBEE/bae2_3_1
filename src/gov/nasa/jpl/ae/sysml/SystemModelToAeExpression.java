@@ -265,12 +265,19 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   return null;
                 }
               }
-              // Otherwise, the Operation is an command argument:
+              // Otherwise, the Operation an argument (of an already found
+              // Operation), but it has no arguments itself (and should not expect
+              // any if it is an actual Operation element).  So, find a Java function corresponding to the name this must be a
+              // 
               else {
+                N opArgName = null;
                 if (!Utils.isNullOrEmpty(operNames)) {
-                  
-                  // TODO what to do here?
+                  opArgName = operNames.iterator().next();
+                  Debug.outln( "\nopArgName = " + opArgName);
                 }
+                
+                  // TODO what to do here?
+                
               }
               
             }
@@ -466,8 +473,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @param parameters 
      * @return
      */
-    public <X> Expression<X> toAeExpression( Object operationElement, 
-                                             Object... parameters) {
+    public <X> Expression<X> operationToAeExpression( Object operationElement, 
+                                                      Object... parameters) {
       
       N operationName = null;
       Expression<X> expression = null;
@@ -569,6 +576,13 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               }
           }
       }
+
+      // Set the function call arguments with the exposed model elements:
+      //
+      // TODO
+      
+      
+      
       if ( call != null ) {
           expression = new Expression< X >( call.evaluate( true, false) );
           return expression;
