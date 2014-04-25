@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Wraps;
+import gov.nasa.jpl.mbee.util.MethodCall;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -14,6 +15,8 @@ import gov.nasa.jpl.mbee.util.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -666,5 +669,61 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // TODO Auto-generated method stub
     return null;
   }
+  
+  // The following code was re-factored from MethodCall:
+  /**
+   * @param objects
+   * @param call the Call to invoke on each object in the Collection
+   * @param indexOfObjectArgument
+   *            where in the list of arguments an Object from the Collection
+   *            is substituted (1 to total number of args or 0 to indicate
+   *            that the objects are each substituted for
+   *            methodCall.objectOfCall).
+   * @return the results of the Call on each of the objects
+   */
+  public static Collection< Object > map( Collection< ? > objects,
+                                             Call call,
+                                             int indexOfObjectArgument ) {
+      return call.map( objects, indexOfObjectArgument );
+  }
+  /**
+   * @param objects
+   * @param indexOfObjectArgument
+   *            where in the list of arguments an object from the Collection
+   *            is substituted (1 to total number of args or 0 to indicate
+   *            that the objects are each substituted for
+   *            methodCall.objectOfCall).
+   * @return the results of the Call on each of the objects
+   */
+  public Collection< Object > map( Collection< ? > objects,
+                                       int indexOfObjectArgument ) {
+      Collection< Object > coll = new ArrayList<Object>();
+      for ( Object o : objects ) {
+          sub( indexOfObjectArgument, o );
+          Object result = evaluate(true);
+          coll.add( result );
+      }
+      return coll;
+  }
+  
+  /**
+   * Substitute an object for a specified argument in this Call.
+   * 
+   * @param indexOfArg
+   *            the index of the argument to be replaced
+   * @param obj
+   *            the replacement for the argument
+   */
+  protected void sub( int indexOfArg, Object obj ) {
+      if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
+      else if ( indexOfArg == 0 ) object = obj;
+      else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
+                                                             + indexOfArg
+                                                             + "; only "
+                                                             + arguments.size()
+                                                             + " arguments!" );
+      else arguments.set(indexOfArg-1,obj);
+  }
+  ////////
 
 }

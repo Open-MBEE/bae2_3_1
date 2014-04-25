@@ -188,7 +188,22 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     return bo;
   }
-
+  
+  public static ConstructorCall opNameToEventFunction( String fName ) {
+    
+    Class< ? > cls = null;
+    cls = getFunctionClassOfType( fName, null);
+    if ( cls == null ) {
+        Debug.error( "opNameToEventFunction( " + fName +
+                 "): no function found!" );
+          return null;
+      }
+    ConstructorCall ctorCall =
+        new ConstructorCall( null, cls, new Object[] { emptyExpression,
+                                                       emptyExpression } );
+    return ctorCall;
+  }    
+  
   public static String
       astUnaryOpToEventFunctionName( UnaryExpr.Operator operator ) {
     return "" + Character.toUpperCase( operator.toString().charAt( 0 ) )
@@ -209,26 +224,9 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     } else {
       fName = Utils.toCamelCase( fName );
     }
-    Class< ? extends Unary< T, R > > cls = null;
-
-    try {
-      Class< ? > foo =
-              ClassUtils.getClassForName( fName, null,
-                                          "gov.nasa.jpl.ae.event", false );
-      @SuppressWarnings( "unchecked" )
-      Class< ? extends Unary<T,R> > tcls = ( Class< ? extends Unary<T,R> > )foo;
-      cls = tcls;
-      if ( cls == null ) {
-          foo = ClassUtils.getClassForName( "Functions." + fName, null,
-                                            "gov.nasa.jpl.ae.event",
-                                            false );
-          @SuppressWarnings( "unchecked" )
-          Class< ? extends Unary<T,R> > ttcls = ( Class< ? extends Unary<T,R> > )foo;
-          cls = ttcls;
-      }
-    } catch ( ClassCastException e ) {
-      e.printStackTrace();
-    }
+    
+    Class< ? extends Unary< T, R > > cls = (Class< ? extends Unary< T, R >>)
+        getFunctionClassOfType(fName, Unary.class);
 
     if ( cls == null ) {
         Debug.error( "javaUnaryOpToEventFunction( " + fName +
@@ -346,8 +344,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                 getFunctionClassOfType( opName, Binary.class );;
         return (Class< ? extends Binary< T, R > >)foo ;
     }
-    
-    public static < T extends FunctionCall > Class< ? extends T >
+     
+    public static < T > Class< ? extends T >
             getFunctionClassOfType( String opName, Class< T > type ) {
       
         if ( Utils.isNullOrEmpty( opName ) ) return null;
@@ -358,7 +356,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         // Capitalize the first character of the fName:
         fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
                         + fName.toString().substring( 1 );
-        
+                
         try {
           
             String[] packages = new String[]{"gov.nasa.jpl.view_repo.sysml",
@@ -378,7 +376,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             }
             
             // If class was not found yet, then search some more:
-            if ( cls == null ) {
+            if ( cls == null && type != null) {
               
                 // See if is a class in Functions.java:
                 for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {

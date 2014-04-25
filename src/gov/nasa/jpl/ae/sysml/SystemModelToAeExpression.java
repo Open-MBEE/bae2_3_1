@@ -76,11 +76,16 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           // 2./3.
           if ( arguments.size() == 1 ) {
               call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
-          } else if ( arguments.size() == 2 ) {
+          } 
+          else if ( arguments.size() == 2 ) {
               call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
-          } else if ( arguments.size() == 3
+          } 
+          else if ( arguments.size() == 3
                       && operationName.toString().equalsIgnoreCase( "if" ) ) {
               call = JavaToConstraintExpression.getIfThenElseConstructorCall();
+          }
+          else {
+            call = JavaToConstraintExpression.opNameToEventFunction(operationName.toString());
           }
           if ( call != null ) {
               call.setArguments( arguments );
@@ -329,7 +334,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   model.getProperty(operandProp, "elementValueOfElement");
           //Debug.outln( "elementValueOfElement property of operand prop = "+ valueOfElemNodes );
           
-          // If it is a elementValue:
+          // If it is a elementValue, then this will be non-empty:
           if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
                           
             // valueOfElemNodes should always be size 1 b/c elementValueOfElement
@@ -339,7 +344,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             
           }
           
-          // Otherwise just use the node itself:
+          // Otherwise just use the node itself as we are not dealing with
+          // elementValue types:
           else {
             valueOfElementNode = operandProp;
           }
@@ -403,7 +409,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             // and add to argument list:
             else if (typeString.equals("Expression")) {
               
-              arguments.add(toAeExpression(valueOfElementNode));
+              arguments.add(toAeExpression(valueOfElementNode, false));
             }
             
             // If it is a Parameter then add it the map for later use,
@@ -416,6 +422,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               Collection<N > argValueNames = model.getName(valueOfElementNode);
               String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
                                                                        argValueNames.iterator().next().toString();
+              
+              // TODO get the parameterType property and set it the Parameter type
               
               // Wrap the argument in a Parameter:
               param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
@@ -494,12 +502,19 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     
     /**
      * Converts the passed sysml Expression to an Ae Expression.
-     * 
-     *  TODO may want to refactor this so it uses common code
-     *   with opertionToAeExpression()
      *
      */
     public <X> Expression<X> toAeExpression( Object expressionElement ) {
+      
+       return toAeExpression(expressionElement, true);
+    }
+    
+    /**
+     * Converts the passed sysml Expression to an Ae Expression.
+     *
+     */
+    public <X> Expression<X> toAeExpression( Object expressionElement,
+                                             boolean evalCall) {
       
        
         N operationName = null;
@@ -520,7 +535,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         }
         
         // Parse the operation name and arguments out of the Expression:
-        operationName = parseExpression(expressionElement, arguments);
+        operationName = parseExpressionVE(expressionElement, arguments);
           
         Debug.outln( "\n\nCalling Operator w/ args......");
         
@@ -528,7 +543,13 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Call call = createCall(operationName, arguments);
 
         if ( call != null ) {
-            expression = new Expression< X >( call.evaluate( true, false) );
+            
+            if (evalCall) {
+              expression = new Expression< X >( call.evaluate( true, false) );
+            }
+            else {
+              expression = new Expression< X >(call);
+            }
             return expression;
         }
         
