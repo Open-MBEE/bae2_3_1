@@ -2,6 +2,9 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
@@ -20,6 +23,12 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     
     protected SM model = null;
     protected ClassData classData = new ClassData();
+    
+    /**
+     * Maps the parsed Expression Parameters to the Parameter objects
+     * we create for them.
+     */
+    private Map<P, Parameter<Object>> exprParamMap = new HashMap<P,Parameter<Object>>();
 
     public SystemModelToAeExpression(SM model) {
         setModel(model);
@@ -31,6 +40,157 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     }
     
     /**
+     * Return a Call object based on the passed operation and arguments
+     * 
+     * @param operationName
+     * @param arguments
+     * @return
+     */
+    private Call createCall(N operationName, Vector< Object > arguments) {
+      
+      Call call = null;
+      Method method = null;
+      Object object = null;
+
+      /*
+       * We will look for the corresponding Constructor or FunctionCall in
+       * the following order:
+       * 
+       * 1. The current model class, ie EmsSystemModel (assume its a FunctionCall)
+       * 2. The view_repo.syml package (assume its a ConstructorCall)
+       * 3. The Functions.java and ae.event package (assume its a ConstructorCall)
+       * 4. Common Java classes (assume its a FunctionCall)
+       * 5. The mbee.util package (assume its a FunctionCall) 
+       * 
+       */
+      if ( operationName != null ) {
+        
+        // 1.
+        method = ClassUtils.getMethodForArgs( model.getClass(),
+                                              operationName.toString(),
+                                              arguments.toArray() );
+        if ( method != null ) {
+          object = model;
+        }
+        else {
+          // 2./3.
+          if ( arguments.size() == 1 ) {
+              call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+          } else if ( arguments.size() == 2 ) {
+              call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+          } else if ( arguments.size() == 3
+                      && operationName.toString().equalsIgnoreCase( "if" ) ) {
+              call = JavaToConstraintExpression.getIfThenElseConstructorCall();
+          }
+          if ( call != null ) {
+              call.setArguments( arguments );
+          } 
+          else {
+              // 4.
+              method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
+                                                                  arguments.toArray() );
+            
+              // 5.
+              if (method == null) {
+                // TODO implement checking the mbee.util package
+              }
+            
+          }
+        }
+        
+        // TODO -- if it *still* fails, maybe search through all classes of all
+        // packages for a method with this name.
+        
+        // Make the FunctionCall if it was not a ConstructorCall:
+        if ( method != null ) {
+          call = new FunctionCall( object, method, arguments );
+        }
+        
+      } // end if operationName != null
+      
+      return call;
+    }
+    
+    /**
+     * Creates a Parameter out of the passed argValueNode and adds it to
+     * arguments
+     * 
+     * @param argValueNode
+     * @param argValName
+     * @param arguments
+     * @return
+     */
+    private void addParametertoArgs(Object argValueNode, String argValName,
+                                    Vector<Object> arguments) {
+      
+      String argType = null;
+      Parameter<Object> param = null;
+      Collection<U> argValPropNodes = null;
+
+      // Get the value of the argument based on type:
+      if (model.getTypeString(argValueNode, null).equals("LiteralInteger")) {
+        
+        argValPropNodes = model.getValue(argValueNode, "integer");
+        argType = "Integer";
+      }
+      else if (model.getTypeString(argValueNode, null).equals("LiteralReal")) {
+        
+        argValPropNodes = model.getValue(argValueNode, "double");
+        argType = "Double";
+      }
+      else if (model.getTypeString(argValueNode, null).equals("LiteralBoolean")) {
+        
+        argValPropNodes = model.getValue(argValueNode, "boolean");
+        argType = "Boolean";
+      }
+      else if (model.getTypeString(argValueNode, null).equals("LiteralUnlimitedNatural")) {
+        
+        argValPropNodes = model.getValue(argValueNode, "naturalValue");
+        argType = "Integer";
+      }
+      else if (model.getTypeString(argValueNode, null).equals("LiteralString")) {
+        
+        argValPropNodes = model.getValue(argValueNode, "string");
+        argType = "String";
+      }
+      else {
+        // TODO rest of the argument types if we need them
+      }
+      
+      Object argValProp = null;
+      if (!Utils.isNullOrEmpty(argValPropNodes)) {
+        
+        // TODO can we assume this is always size 1?  
+        argValProp = argValPropNodes.iterator().next();
+        Debug.outln( "\nargValProp = " + argValProp );
+      }
+      
+      // Wrap the argument in a Parameter:
+      // Note: argType can be null
+      param = (Parameter<Object>)classData.getParameter( null, argValName, argType, false, true, true, false );
+
+      // Set value of the param to value if it has one,
+      // and add to the argument list:
+      if (param != null) {
+        
+        Debug.outln( "\nparam = " + param );
+        if (argValProp != null) {
+          param.setValue(argValProp);
+        }
+        arguments.add(new Expression<Object>(param));
+      }
+      
+      // Creating param failed, so just add the value object itself:
+      else {
+        arguments.add(new Expression<Object>(argValProp));
+      }
+      
+    }
+    
+    /**
+     * TODO remove this once we prove parseExpressionVE handles all
+     * cases
+     * 
      * Parses the passed Expression for a operatorName and arguments
      * 
      * @param expressionElement
@@ -109,65 +269,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                 Object argValueNode = argValueNodes.iterator().next();
                 Debug.outln( "\nargValueNode = " + argValueNode );
                 
-                // Get the value of the argument based on type:
-                Collection<U> argValPropNodes = null;
-                if (model.getTypeString(argValueNode, null).equals("LiteralInteger")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "integer");
-                  argType = "Integer";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralReal")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "double");
-                  argType = "Double";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralBoolean")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "boolean");
-                  argType = "Boolean";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralUnlimitedNatural")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "naturalValue");
-                  argType = "Integer";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralString")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "string");
-                  argType = "String";
-                }
-                else {
-                  // TODO rest of the argument types if we need them
-                }
-                
-                Object argValProp = null;
-                if (!Utils.isNullOrEmpty(argValPropNodes)) {
-                  
-                  // TODO can we assume this is always size 1?  
-                  argValProp = argValPropNodes.iterator().next();
-                  Debug.outln( "\nargValProp = " + argValProp );
-                }
-                
-                // Wrap the argument in a Parameter:
-                // Note: argType can be null
-                param = (Parameter<Object>)classData.getParameter( null, argValName, argType, false, true, true, false );
-
-                // Set value of the param to value if it has one,
-                // and add to the argument list:
-                if (param != null) {
-                  
-                  Debug.outln( "\nparam = " + param );
-                  if (argValProp != null) {
-                    param.setValue(argValProp);
-                  }
-                  arguments.add(new Expression<Object>(param));
-                }
-                
-                // Creating param failed, so just add the value object itself:
-                else {
-                  arguments.add(new Expression<Object>(argValProp));
-                }
-                
+                // Create a Parameter for the argument and add to arguments:
+                addParametertoArgs(argValueNode, argValName, arguments);
                 
               } // ends !Utils.isNullOrEmpty(argValueNodes)
               
@@ -197,8 +300,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     
     /**
      * Parses the passed Expression for a operatorName and arguments
-     * for the ViewEditor demo.  Will try to make this version handle 
-     * all cases.
+     * for the ViewEditor demo.  Adds to the passed arguments list.
      * 
      * @param expressionElement
      * @param operationName
@@ -267,20 +369,35 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               }
               // Otherwise, the Operation an argument (of an already found
               // Operation), but it has no arguments itself (and should not expect
-              // any if it is an actual Operation element).  So, find a Java function corresponding to the name this must be a
+              // any if it is an actual Operation element).  So, find a Java 
+              // function corresponding to the name this must be a
               // 
               else {
+                
                 N opArgName = null;
                 if (!Utils.isNullOrEmpty(operNames)) {
+                  
                   opArgName = operNames.iterator().next();
+                  Vector<Object> opEmptyArgs = new Vector<Object>();
                   Debug.outln( "\nopArgName = " + opArgName);
-                }
+                  
+                  // Create a Call for the argument 
+                  Call argCall = createCall(opArgName, opEmptyArgs);
+                  
+                  if ( argCall != null ) {
+                    
+                    // Add to the argument list:
+                    arguments.add( argCall );
+                    
+                    // TODO dont think we need to wrap it in an Expression?
+
+                  } // Ends if argCall != null
+                                   
+                } // Ends if operNames is not null or empty
                 
-                  // TODO what to do here?
-                
-              }
+              } // Ends else (the Operation is an argument)
               
-            }
+            } // Ends if type is an Operation
             
             // If it is a Expression type then process that Expression
             // and add to argument list:
@@ -289,9 +406,28 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               arguments.add(toAeExpression(valueOfElementNode));
             }
             
-            // If it is a Parameter then ?
+            // If it is a Parameter then add it the map for later use,
+            // and create a Parameter for it:
             else if (typeString.equals("Parameter")) {
-              // TODO
+            
+              Parameter<Object> param = null;
+
+              // Get the name of the argument Node:
+              Collection<N > argValueNames = model.getName(valueOfElementNode);
+              String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+                                                                       argValueNames.iterator().next().toString();
+              
+              // Wrap the argument in a Parameter:
+              param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
+              
+              if (param != null) {
+                // Add to argument list:
+                arguments.add(new Expression<Object>(param));
+                
+                // Add to map:
+                exprParamMap.put( valueOfElementNode, param );
+              }
+              
             }
             
             // Its a Property command arg, so get the argument values:
@@ -310,71 +446,12 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               // If the argument node has a value:
               if (!Utils.isNullOrEmpty(argValueNodes)) {
                 
-                String argType = null;
-  
                 // TODO can we assume this will always be size one?
                 Object argValueNode = argValueNodes.iterator().next();
                 Debug.outln( "\nargValueNode = " + argValueNode );
                 
-                // Get the value of the argument based on type:
-                Collection<U> argValPropNodes = null;
-                if (model.getTypeString(argValueNode, null).equals("LiteralInteger")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "integer");
-                  argType = "Integer";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralReal")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "double");
-                  argType = "Double";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralBoolean")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "boolean");
-                  argType = "Boolean";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralUnlimitedNatural")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "naturalValue");
-                  argType = "Integer";
-                }
-                else if (model.getTypeString(argValueNode, null).equals("LiteralString")) {
-                  
-                  argValPropNodes = model.getValue(argValueNode, "string");
-                  argType = "String";
-                }
-                else {
-                  // TODO rest of the argument types if we need them
-                }
-                
-                Object argValProp = null;
-                if (!Utils.isNullOrEmpty(argValPropNodes)) {
-                  
-                  // TODO can we assume this is always size 1?  
-                  argValProp = argValPropNodes.iterator().next();
-                  Debug.outln( "\nargValProp = " + argValProp );
-                }
-                
-                // Wrap the argument in a Parameter:
-                // Note: argType can be null
-                param = (Parameter<Object>)classData.getParameter( null, argValName, argType, false, true, true, false );
-  
-                // Set value of the param to value if it has one,
-                // and add to the argument list:
-                if (param != null) {
-                  
-                  Debug.outln( "\nparam = " + param );
-                  if (argValProp != null) {
-                    param.setValue(argValProp);
-                  }
-                  arguments.add(new Expression<Object>(param));
-                }
-                
-                // Creating param failed, so just add the value object itself:
-                else {
-                  arguments.add(new Expression<Object>(argValProp));
-                }
-                
+                // Create a Parameter for the argument and add to arguments:
+                addParametertoArgs(argValueNode, argValName, arguments);
                 
               } // ends !Utils.isNullOrEmpty(argValueNodes)
               
@@ -392,18 +469,39 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               } // ends else argument node does not have a value
   
             } // ends else if it is Property (ie a command arg)
+            
+            // All other cases failed, then just create a Parameter for
+            // it (hopefully it is a Literal type):
+            else {
+              
+              // Get the name of the argument Node:
+              Collection<N > argValueNames = model.getName(valueOfElementNode);
+              String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+                                                                       argValueNames.iterator().next().toString();
+              
+              // Create a Parameter for the argument and add to arguments:
+              addParametertoArgs(valueOfElementNode, argValName, arguments);
+            }
                        
           } // ends if valueOfElementNode != null
           
-        } // ends for loop
+        } // ends for loop through all the operand property values
         
       } // ends !Utils.isNullOrEmpty(properties)
       
       return operationName;
     }
     
+    /**
+     * Converts the passed sysml Expression to an Ae Expression.
+     * 
+     *  TODO may want to refactor this so it uses common code
+     *   with opertionToAeExpression()
+     *
+     */
     public <X> Expression<X> toAeExpression( Object expressionElement ) {
       
+       
         N operationName = null;
         Expression<X> expression = null;
         Vector< Object > arguments = new Vector< Object >();
@@ -427,37 +525,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Debug.outln( "\n\nCalling Operator w/ args......");
         
         //Class< Function>            
-        Call call = null; 
-        if ( operationName != null ) {
-            if ( arguments.size() == 1 ) {
-                call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
-            } else if ( arguments.size() == 2 ) {
-                call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
-            } else if ( arguments.size() == 3
-                        && operationName.toString().equalsIgnoreCase( "if" ) ) {
-                call = JavaToConstraintExpression.getIfThenElseConstructorCall();
-            }
-            if ( call != null ) {
-                call.setArguments( arguments );
-            } else {
-                Object object = null;
-                Method method =
-                        ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
-                                                                   arguments.toArray() );
-                if ( method == null ) {
-                    method = ClassUtils.getMethodForArgs( model.getClass(),
-                                                          operationName.toString(),
-                                                          arguments.toArray() );
-                    if ( method != null ) object = model;
-                }
-                // TODO -- if it *still* fails, maybe search through all classes of all
-                // packages for a method with this name.
-                if ( method != null ) {
-                    // Check for a call to the SysML API.
-                    call = new FunctionCall( object, method, arguments );
-                }
-            }
-        }
+        Call call = createCall(operationName, arguments);
+
         if ( call != null ) {
             expression = new Expression< X >( call.evaluate( true, false) );
             return expression;
@@ -508,7 +577,17 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       
       // Get the parameters from the operationParameter property of the Operation
       // element:
-      Collection< P > paramElements = model.getProperty( operationElement, "operationParameter");
+      Collection< P > paramElements = model.getProperty( operationElement, 
+                                                         "operationParameter");
+      
+      P paramElement = null;
+      // Assuming that this is size 1 for now, ie assuming that the ViewPoint
+      // can only have one operationParameter:
+      // TODO: will probably need to make it handle more than one
+      //       operationParameter
+      if ( !Utils.isNullOrEmpty( expressions ) ) {
+        paramElement = paramElements.iterator().next();
+      }
       
       // TODO: fix this below if needed
 //      if ( viewpointExpr == null ) {
@@ -541,48 +620,31 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       
       // Parse the operation name and arguments out of the Expression:
       operationName = parseExpressionVE(expressionElement, arguments);
+      
+      // Determine which Parameter was the "exposed" argument by comparing
+      // it with the operandParameter of the Operation:
+      Parameter<Object> exposeParam = null;
+      if (paramElement != null) {
+        for (Entry<P, Parameter<Object>> entry : exprParamMap.entrySet()) {
+          
+          if (entry.getKey().equals( paramElement )) {
+            exposeParam = entry.getValue();
+            break;
+          }
+        }
+      }
+      
+      // Set the value of the exposed Parameter to the passed in
+      // exposed model elements:
+      if (exposeParam != null) {
+        exposeParam.setValue( parameters );
+      }
         
       Debug.outln( "\n\nCalling Operator w/ args......");
       
       //Class< Function>            
-      Call call = null; 
-      if ( operationName != null ) {
-          if ( arguments.size() == 1 ) {
-              call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
-          } else if ( arguments.size() == 2 ) {
-              call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
-          } else if ( arguments.size() == 3
-                      && operationName.toString().equalsIgnoreCase( "if" ) ) {
-              call = JavaToConstraintExpression.getIfThenElseConstructorCall();
-          }
-          if ( call != null ) {
-              call.setArguments( arguments );
-          } else {
-              Object object = null;
-              Method method =
-                      ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
-                                                                 arguments.toArray() );
-              if ( method == null ) {
-                  method = ClassUtils.getMethodForArgs( model.getClass(),
-                                                        operationName.toString(),
-                                                        arguments.toArray() );
-                  if ( method != null ) object = model;
-              }
-              // TODO -- if it *still* fails, maybe search through all classes of all
-              // packages for a method with this name.
-              if ( method != null ) {
-                  // Check for a call to the SysML API.
-                  call = new FunctionCall( object, method, arguments );
-              }
-          }
-      }
+      Call call = createCall(operationName, arguments);
 
-      // Set the function call arguments with the exposed model elements:
-      //
-      // TODO
-      
-      
-      
       if ( call != null ) {
           expression = new Expression< X >( call.evaluate( true, false) );
           return expression;
