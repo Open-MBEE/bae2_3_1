@@ -349,7 +349,9 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     
     public static < T extends FunctionCall > Class< ? extends T >
             getFunctionClassOfType( String opName, Class< T > type ) {
+      
         if ( Utils.isNullOrEmpty( opName ) ) return null;
+        
         String fName = opName;
         Class< ? extends T > cls = null;
         
@@ -357,33 +359,49 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
                         + fName.toString().substring( 1 );
         
-        for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {
-            if ( ( type == null || type.isAssignableFrom( fcls ) ) && 
-                 fcls.getSimpleName().equalsIgnoreCase( fName ) ) {
-                @SuppressWarnings( "unchecked" )
-                Class< ? extends T > tcls = (Class< ? extends T >)fcls;
-                return tcls;
-            }
-        }
-
         try {
-            Class< ? > foo =
-                    ClassUtils.getClassForName( fName, null,
-                                                "gov.nasa.jpl.ae.event", false );
-            @SuppressWarnings( "unchecked" )
-            Class< ? extends T > tcls = (Class< ? extends T >)foo;
-            cls = tcls;
+          
+            String[] packages = new String[]{"gov.nasa.jpl.view_repo.sysml",
+                                             "gov.nasa.jpl.ae.event"};
+            
+            // Check the packages for the fname:
+            for (String pkg : packages) {
+             
+              @SuppressWarnings( "unchecked" )
+              Class< ? extends T > foo = (Class< ? extends T >)
+                                            ClassUtils.getClassForName( fName, null, 
+                                                                         pkg, false );
+              if (foo != null) {
+                cls = foo;
+                break;
+              }
+            }
+            
+            // If class was not found yet, then search some more:
             if ( cls == null ) {
-                foo = ClassUtils.getClassForName( "Functions." + fName, null,
-                                                  "gov.nasa.jpl.ae.event",
-                                                  false );
+              
+                // See if is a class in Functions.java:
+                for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {
+                    if ( ( type == null || type.isAssignableFrom( fcls ) ) && 
+                         fcls.getSimpleName().equalsIgnoreCase( fName ) ) {
+                        @SuppressWarnings( "unchecked" )
+                        Class< ? extends T > tcls = (Class< ? extends T >)fcls;
+                        return tcls;
+                    }
+                }
+
                 @SuppressWarnings( "unchecked" )
-                Class< ? extends T > ttcls = (Class< ? extends T >)foo;
-                cls = ttcls;
+                Class< ? extends T > foo2 = (Class< ? extends T >)
+                                              ClassUtils.getClassForName( "Functions." + fName, 
+                                                                          null,
+                                                                          "gov.nasa.jpl.ae.event",
+                                                                           false );
+                cls = foo2;
             }
           } catch ( ClassCastException e ) {
             e.printStackTrace();
           }
+        
         return cls;
     }
   
