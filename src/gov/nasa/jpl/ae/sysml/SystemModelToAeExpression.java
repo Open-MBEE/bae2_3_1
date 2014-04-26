@@ -663,7 +663,20 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         
       Debug.outln( "\n\nCalling Operator w/ args......");
       
-      //Class< Function>            
+      //Class< Function>        
+      // TODO it is messing up b/c the map(exposed,Name()) needs to be
+      // evaluated prior to finidng the correct List constructor
+      //
+      // Evaluate the arguments function call here or make the List()
+      // more intelligent?
+      if (!Utils.isNullOrEmpty( arguments )) {
+        Object arg = arguments.iterator().next();
+        
+        if (arg instanceof Call) {
+          Object evalArg = ((Call)arg).evaluate( true );
+          arguments.set( 0, evalArg );
+        }
+      }
       Call call = createCall(operationName, arguments);
 
       if ( call != null ) {
