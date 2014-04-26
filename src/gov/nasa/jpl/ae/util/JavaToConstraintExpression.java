@@ -198,9 +198,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                  "): no function found!" );
           return null;
       }
+    // TODO: creating a 1 arg constructor call even though it may not have
+    //       any args.  Will this work?
     ConstructorCall ctorCall =
-        new ConstructorCall( null, cls, new Object[] { emptyExpression,
-                                                       emptyExpression } );
+        new ConstructorCall( null, cls, new Object[] { emptyExpression } );
     return ctorCall;
   }    
   
