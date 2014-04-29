@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
        * the following order:
        * 
        * 1. The current model class, ie EmsSystemModel (assume its a FunctionCall)
-       * 2. The view_repo.syml package (assume its a ConstructorCall)
+       * 2. The view_repo.syml package (assume its a ConstructorCall or FunctionCall)
        * 3. The Functions.java and ae.event package (assume its a ConstructorCall)
        * 4. Common Java classes (assume its a FunctionCall)
        * 5. The mbee.util package (assume its a FunctionCall) 
@@ -65,32 +66,50 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
        */
       if ( operationName != null ) {
         
+        ArrayList<Class<?>> argTypes = new ArrayList<Class<?>>();
+        
+        // Finding out the argument types:
+        for (Object arg : arguments) {
+          
+          if (arg instanceof Expression) {
+            argTypes.add( ((Expression<?>)arg).getType());
+          }
+          else {
+            Debug.error( "Expecting an Expression for the argument: " + arg );
+          }
+        }
+        
         // 1.
-        method = ClassUtils.getMethodForArgs( model.getClass(),
-                                              operationName.toString(),
-                                              arguments.toArray() );
+        method = ClassUtils.getMethodForArgTypes( model.getClass(),
+                                                  operationName.toString(),
+                                                  argTypes.toArray(new Class[]{}));
+        
         if ( method != null ) {
           object = model;
         }
         else {
-          // 2./3.
-          if ( arguments.size() == 1 ) {
-              call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
-          } 
-          else if ( arguments.size() == 2 ) {
-              call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
-          } 
-          else if ( arguments.size() == 3
-                      && operationName.toString().equalsIgnoreCase( "if" ) ) {
-              call = JavaToConstraintExpression.getIfThenElseConstructorCall();
-          }
-          else {
-            call = JavaToConstraintExpression.opNameToEventFunction(operationName.toString());
-          }
-          if ( call != null ) {
+          // 2.
+          call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
+                                                                    arguments,
+                                                                    argTypes.toArray(new Class[]{}));
+
+          if (call == null) {
+            //3.
+            if ( arguments.size() == 1 ) {
+                call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+            } 
+            else if ( arguments.size() == 2 ) {
+                call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+            } 
+            else if ( arguments.size() == 3
+                        && operationName.toString().equalsIgnoreCase( "if" ) ) {
+                call = JavaToConstraintExpression.getIfThenElseConstructorCall();
+            }
+            
+            if ( call != null ) {
               call.setArguments( arguments );
-          } 
-          else {
+            } 
+            else {
               // 4.
               method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
                                                                   arguments.toArray() );
@@ -100,7 +119,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                 // TODO implement checking the mbee.util package
               }
             
-          }
+            }
+            
+          } // Ends call == null
+
         }
         
         // TODO -- if it *still* fails, maybe search through all classes of all
@@ -393,9 +415,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   if ( argCall != null ) {
                     
                     // Add to the argument list:
-                    arguments.add( argCall );
-                    
+                    //arguments.add( argCall );
                     // TODO dont think we need to wrap it in an Expression?
+                    arguments.add(new Expression<Object>(argCall));
 
                   } // Ends if argCall != null
                                    
@@ -437,7 +459,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               }
               
             }
-            
+                        
             // Its a Property command arg, so get the argument values:
             else if (typeString.equals("Property")) {
               
@@ -564,7 +586,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @return
      */
     public <X> Expression<X> operationToAeExpression( Object operationElement, 
-                                                      Object... parameters) {
+                                                      Collection<P> parameters) {
       
       N operationName = null;
       Expression<X> expression = null;
@@ -663,24 +685,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         
       Debug.outln( "\n\nCalling Operator w/ args......");
       
-      //Class< Function>        
-      // TODO it is messing up b/c the map(exposed,Name()) needs to be
-      // evaluated prior to finidng the correct List constructor
-      //
-      // Evaluate the arguments function call here or make the List()
-      // more intelligent?
-      if (!Utils.isNullOrEmpty( arguments )) {
-        Object arg = arguments.iterator().next();
-        
-        if (arg instanceof Call) {
-          Object evalArg = ((Call)arg).evaluate( true );
-          arguments.set( 0, evalArg );
-        }
-      }
+      //Class< Function>       
       Call call = createCall(operationName, arguments);
 
       if ( call != null ) {
-          expression = new Expression< X >( call.evaluate( true, false) );
+          expression = new Expression< X >( call.evaluate( true, true) );
           return expression;
       }
       

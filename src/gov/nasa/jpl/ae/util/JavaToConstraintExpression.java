@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.util;
 
+import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
@@ -60,6 +61,7 @@ import japa.parser.ast.stmt.TypeDeclarationStmt;
 import japa.parser.ast.stmt.WhileStmt;
 
 import java.io.StringReader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -189,20 +191,60 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     return bo;
   }
   
-  public static ConstructorCall opNameToEventFunction( String fName ) {
+  public static Call javaCallToEventFunction( String fName,
+                                              Vector<Object> arguments,
+                                              Class<?>... argTypes) {
     
     Class< ? > cls = null;
-    cls = getFunctionClassOfType( fName, null);
-    if ( cls == null ) {
+    String[] packages = new String[]{"gov.nasa.jpl.view_repo.sysml"};
+    Method method = null;
+    Call call = null;
+    Constructor<?> constructor = null;
+    
+    // Search by memberName:
+    cls = ClassUtils.getClassForName(null, fName,
+                                     packages,  false);
+    
+    if (cls != null) {
+    
+      method = ClassUtils.getMethodForArgTypes( cls, fName, argTypes);
+      
+      if (method != null) {
+        call = new FunctionCall(null, method, arguments);
+      }
+      else {
         Debug.error( "opNameToEventFunction( " + fName +
-                 "): no function found!" );
+                    "): no method found!" );
+        return null;      
+      }
+    }
+    // It must be a ConstructorCall:
+    else {
+      
+      // Search by class:
+      cls = ClassUtils.getClassForName(fName, null,
+                                       packages,  false);
+      
+      if ( cls == null ) {
+          Debug.error( "opNameToEventFunction( " + fName +
+                 "): no class found!" );
           return null;
       }
-    // TODO: creating a 1 arg constructor call even though it may not have
-    //       any args.  Will this work?
-    ConstructorCall ctorCall =
-        new ConstructorCall( null, cls, new Object[] { emptyExpression } );
-    return ctorCall;
+
+      constructor = ClassUtils.getConstructorForArgTypes( cls, argTypes);
+
+      if (constructor != null) {
+        call = new ConstructorCall( null, constructor, arguments );
+      }
+      else {
+        Debug.error( "opNameToEventFunction( " + fName +
+            "): no constructor found!" );
+        return null; 
+      }
+      
+    }
+    
+    return call;
   }    
   
   public static String
@@ -360,35 +402,26 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                 
         try {
           
-            String[] packages = new String[]{"gov.nasa.jpl.view_repo.sysml",
-                                             "gov.nasa.jpl.ae.event"};
-            
-            // Check the packages for the fname:
-            for (String pkg : packages) {
-             
-              @SuppressWarnings( "unchecked" )
-              Class< ? extends T > foo = (Class< ? extends T >)
-                                            ClassUtils.getClassForName( fName, null, 
-                                                                         pkg, false );
-              if (foo != null) {
-                cls = foo;
-                break;
-              }
+            // See if is a class in Functions.java:
+            for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {
+                if ( ( type == null || type.isAssignableFrom( fcls ) ) && 
+                     fcls.getSimpleName().equalsIgnoreCase( fName ) ) {
+                    @SuppressWarnings( "unchecked" )
+                    Class< ? extends T > tcls = (Class< ? extends T >)fcls;
+                    return tcls;
+                }
             }
+          
+            String[] packages = new String[]{"gov.nasa.jpl.ae.event"};
+            @SuppressWarnings( "unchecked" )
+            Class< ? extends T > foo = (Class< ? extends T >)
+                                          ClassUtils.getClassForName( fName, null, 
+                                                                      packages, false );
+            cls = foo;
             
             // If class was not found yet, then search some more:
-            if ( cls == null && type != null) {
+            if ( cls == null) {
               
-                // See if is a class in Functions.java:
-                for ( Class< ? extends FunctionCall > fcls : getFunctionClasses() ) {
-                    if ( ( type == null || type.isAssignableFrom( fcls ) ) && 
-                         fcls.getSimpleName().equalsIgnoreCase( fName ) ) {
-                        @SuppressWarnings( "unchecked" )
-                        Class< ? extends T > tcls = (Class< ? extends T >)fcls;
-                        return tcls;
-                    }
-                }
-
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends T > foo2 = (Class< ? extends T >)
                                               ClassUtils.getClassForName( "Functions." + fName, 
