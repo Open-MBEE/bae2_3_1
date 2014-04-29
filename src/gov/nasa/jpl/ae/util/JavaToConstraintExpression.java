@@ -235,7 +235,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       
       if (constructor != null) {
         
-        // TODO REVIEW
         // Add a empty argument expressions if arguments size is 0, but
         // the constructor has more than one argument:
         // Could also check if they are not equal and deal with it more
