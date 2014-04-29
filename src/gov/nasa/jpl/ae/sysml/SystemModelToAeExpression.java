@@ -452,12 +452,12 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Call call = createCall(operationName, arguments);
 
         if ( call != null ) {
-            
-            if (evalCall) {
-              expression = new Expression< X >( call.evaluate( true, false) );
+
+            if ( evalCall ) {
+                expression = new Expression< X >( call.evaluate( true, false ) );
             }
             else {
-              expression = new Expression< X >(call);
+                expression = new Expression< X >( call );
             }
             return expression;
         }
@@ -576,14 +576,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Call call = createCall(operationName, arguments);
 
       if ( call != null ) {
-          // TODO REVIEW
-          //      evaluating the args when calling call.evaluate() 
-          //      which is different than toAeExpression().  Which is correct?
-          expression = new Expression< X >( call.evaluate( true, true) );
+          expression = new Expression< X >( call );
           return expression;
       }
       
-      expression = new Expression< X >( expressionElement );
+      expression = new Expression< X >( operationElement );
       return expression;
   }
     
