@@ -213,12 +213,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
       
     }
-    
+     
     /**
-     * TODO remove this once we prove parseExpressionVE handles all
-     * cases
-     * 
      * Parses the passed Expression for a operatorName and arguments
+     * Adds the parsed arguments to the passed arguments list.
      * 
      * @param expressionElement
      * @param operationName
@@ -226,115 +224,6 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @return The operationName
      */
     private N parseExpression(Object expressionElement, Vector<Object> arguments) {
-      
-      N operationName = null;
-      
-      // Get all operand properties of the element
-      // TODO: should be using Acm.JSON_OPERAND in getProperty but they have Acm in view_repo.util package
-      Collection< P > properties = model.getProperty( expressionElement, "operand");
-      //Debug.outln( "toAeExpression(" + expressionElement + " ): operands = "+ properties );
-      
-      if (!Utils.isNullOrEmpty(properties)) {
-    
-        // Loop through all of the operand property values to find the operand arguments
-        // and Operation:
-        for (P operandProp : properties) {
-                      
-          // Get the valueOfElementProperty node:
-          Collection< P > valueOfElemNodes = 
-                  model.getProperty(operandProp, "elementValueOfElement");
-          //Debug.outln( "elementValueOfElement property of operand prop = "+ valueOfElemNodes );
-          
-          if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
-                          
-            // valueOfElemNodes should always be size 1 b/c elementValueOfElement
-            // is a single NodeRef
-            P valueOfElementNode = valueOfElemNodes.iterator().next();
-            //Debug.outln( "valueOfElementNode = " + valueOfElementNode );
-            String typeString = model.getTypeString(valueOfElementNode, null);
-            //Debug.outln( "typeString of valueOfElementNode = " + typeString );
-            
-            
-            // If it is a Operation type then get the operator name:
-            if (typeString.equals("Operation")) {
-              
-              Collection<N> operNames = model.getName(valueOfElementNode);
-              
-              if (!Utils.isNullOrEmpty(operNames)) {
-                operationName = operNames.iterator().next();
-                Debug.outln( "\noperationName = " + operationName);
-              }
-              
-            }
-            
-            // If it is a Expression type then process that Expression
-            // and add to argument list:
-            else if (typeString.equals("Expression")) {
-              
-              arguments.add(toAeExpression(valueOfElementNode));
-            }
-            
-            // Otherwise, it must be a command arg, so get the argument values:
-            else if (typeString.equals("Property")) {
-              
-              Parameter<Object> param = null;
-              
-              // Get the argument Node:
-              Collection<U > argValueNodes = model.getValue(valueOfElementNode, null);
-
-              // Get the name of the argument Node:
-              Collection<N > argValueNames = model.getName(valueOfElementNode);
-              String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
-                                                                       argValueNames.iterator().next().toString();
-              
-              // If the argument node has a value:
-              if (!Utils.isNullOrEmpty(argValueNodes)) {
-                
-                String argType = null;
-
-                // TODO can we assume this will always be size one?
-                Object argValueNode = argValueNodes.iterator().next();
-                Debug.outln( "\nargValueNode = " + argValueNode );
-                
-                // Create a Parameter for the argument and add to arguments:
-                addParametertoArgs(argValueNode, argValName, arguments);
-                
-              } // ends !Utils.isNullOrEmpty(argValueNodes)
-              
-              // Argument node does not have a value, so just add to argument list 
-              // for the operator with no set value:
-              else {
-                
-                // Wrap the argument in a Parameter:
-                param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
-                
-                if (param != null) {
-                  arguments.add(new Expression<Object>(param));
-                }
-                
-              } // ends else argument node does not have a value
-
-            } // ends else if it is Property (ie a command arg)
-              
-          } // ends !Utils.isNullOrEmpty(valueOfElemNodes
-         
-        } // ends for loop
-        
-      } // ends !Utils.isNullOrEmpty(properties)
-      
-      return operationName;
-    }
-    
-    /**
-     * Parses the passed Expression for a operatorName and arguments
-     * for the ViewEditor demo.  Adds to the passed arguments list.
-     * 
-     * @param expressionElement
-     * @param operationName
-     * @param arguments
-     * @return The operationName
-     */
-    private N parseExpressionVE(Object expressionElement, Vector<Object> arguments) {
       
       N operationName = null;
       
@@ -555,7 +444,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         }
         
         // Parse the operation name and arguments out of the Expression:
-        operationName = parseExpressionVE(expressionElement, arguments);
+        operationName = parseExpression(expressionElement, arguments);
           
         Debug.outln( "\n\nCalling Operator w/ args......");
         
@@ -660,7 +549,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
       
       // Parse the operation name and arguments out of the Expression:
-      operationName = parseExpressionVE(expressionElement, arguments);
+      operationName = parseExpression(expressionElement, arguments);
       
       // Determine which Parameter was the "exposed" argument by comparing
       // it with the operandParameter of the Operation:

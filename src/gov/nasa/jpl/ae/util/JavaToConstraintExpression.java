@@ -213,7 +213,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         call = new FunctionCall(null, method, arguments);
       }
       else {
-        Debug.error( "opNameToEventFunction( " + fName +
+        Debug.errln( "javaCallToEventFunction( " + fName +
                     "): no method found!" );
         return null;      
       }
@@ -226,7 +226,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                        packages,  false);
       
       if ( cls == null ) {
-          Debug.error( "opNameToEventFunction( " + fName +
+          Debug.errln( "javaCallToEventFunction( " + fName +
                  "): no class found!" );
           return null;
       }
@@ -236,7 +236,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       if (constructor != null) {
         
         // TODO REVIEW
-        // add a empty argument expressions if arguments.size() is 0, but
+        // Add a empty argument expressions if arguments size is 0, but
         // the constructor has more than one argument:
         // Could also check if they are not equal and deal with it more
         // intelligently
@@ -255,7 +255,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         }
       }
       else {
-        Debug.error( "opNameToEventFunction( " + fName +
+        Debug.errln( "javaCallToEventFunction( " + fName +
             "): no constructor found!" );
         return null; 
       }
