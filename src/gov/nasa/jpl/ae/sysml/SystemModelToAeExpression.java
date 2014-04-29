@@ -415,8 +415,6 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                   if ( argCall != null ) {
                     
                     // Add to the argument list:
-                    //arguments.add( argCall );
-                    // TODO dont think we need to wrap it in an Expression?
                     arguments.add(new Expression<Object>(argCall));
 
                   } // Ends if argCall != null
@@ -689,6 +687,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Call call = createCall(operationName, arguments);
 
       if ( call != null ) {
+          // TODO REVIEW
+          //      evaluating the args when calling call.evaluate() 
+          //      which is different than toAeExpression().  Which is correct?
           expression = new Expression< X >( call.evaluate( true, true) );
           return expression;
       }
