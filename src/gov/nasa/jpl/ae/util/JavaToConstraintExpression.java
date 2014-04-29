@@ -232,9 +232,27 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       }
 
       constructor = ClassUtils.getConstructorForArgTypes( cls, argTypes);
-
+      
       if (constructor != null) {
-        call = new ConstructorCall( null, constructor, arguments );
+        
+        // TODO REVIEW
+        // add a empty argument expressions if arguments.size() is 0, but
+        // the constructor has more than one argument:
+        // Could also check if they are not equal and deal with it more
+        // intelligently
+        int numConstructorArgs = constructor.getParameterTypes().length;
+        if (arguments.size() == 0 && numConstructorArgs > 0) {
+          
+          Vector<Object> emptyArgs = new Vector<Object>();
+          for(int i = 0; i < numConstructorArgs; ++i) {
+            emptyArgs.add( emptyExpression );
+          }
+          
+          call = new ConstructorCall( null, constructor, emptyArgs);
+        }
+        else {
+          call = new ConstructorCall( null, constructor, arguments );
+        }
       }
       else {
         Debug.error( "opNameToEventFunction( " + fName +
