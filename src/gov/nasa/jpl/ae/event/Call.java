@@ -717,12 +717,21 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected void sub( int indexOfArg, Object obj ) {
       if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
       else if ( indexOfArg == 0 ) object = obj;
-      else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
-                                                             + indexOfArg
-                                                             + "; only "
-                                                             + arguments.size()
-                                                             + " arguments!" );
-      else arguments.set(indexOfArg-1,obj);
+//      else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
+//                                                             + indexOfArg
+//                                                             + "; only "
+//                                                             + arguments.size()
+//                                                             + " arguments!" );
+      else {
+        
+        int index = indexOfArg-1; 
+        if (index >= arguments.size()) {
+          arguments.add(obj);
+        }
+        else {
+          arguments.set(index,obj);
+        }
+      }
   }
   ////////
 
