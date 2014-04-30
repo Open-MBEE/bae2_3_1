@@ -35,7 +35,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         setModel(model);
     }
 
-    public <X> X evaluateExpression( Object expressionElement, Class<X> cls ) {
+    public <X> X evaluateExpression( Object expressionElement ) {
       Expression<X> expression = toAeExpression( expressionElement );
       return expression.evaluate( true );
     }
@@ -318,7 +318,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             // and add to argument list:
             else if (typeString.equals("Expression")) {
               
-              arguments.add(toAeExpression(valueOfElementNode, false));
+              arguments.add(toAeExpression(valueOfElementNode));
             }
             
             // If it is a Parameter then add it the map for later use,
@@ -413,17 +413,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * Converts the passed sysml Expression to an Ae Expression.
      *
      */
-    public <X> Expression<X> toAeExpression( Object expressionElement ) {
-      
-       return toAeExpression(expressionElement, true);
-    }
-    
-    /**
-     * Converts the passed sysml Expression to an Ae Expression.
-     *
-     */
-    public <X> Expression<X> toAeExpression( Object expressionElement,
-                                             boolean evalCall) {
+    public <X> Expression<X> toAeExpression( Object expressionElement) {
       
        
         N operationName = null;
@@ -453,12 +443,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
         if ( call != null ) {
 
-            if ( evalCall ) {
-                expression = new Expression< X >( call.evaluate( true, false ) );
-            }
-            else {
-                expression = new Expression< X >( call );
-            }
+            expression = new Expression< X >( call );
             return expression;
         }
         
