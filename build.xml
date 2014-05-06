@@ -60,15 +60,15 @@
        <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
     </tstamp>
     <echo message="started ${current.time}" />
-    <copy todir="${view_repo_web_lib}" file="AE.jar"/>
-    <copy todir="${view_repo_lib}" file="AE.jar"/>
+    <copy todir="${view_repo_web_lib}" file="AE.jar" failonerror="false"/>
+    <copy todir="${view_repo_lib}" file="AE.jar" failonerror="false"/>
     <!-- <copy todir="${view_repo_AE1}" toFile="AE-1.0.jar" file="AE.jar"/> -->
     <tstamp>
        <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
     </tstamp>
     <echo message="finished ${current.time}" />
   </target>
-	
+
   <target name="xml2java" depends="makejar">
     <java jar="AE.jar" fork="true">
     	<arg line="${xmlFile}"/>
