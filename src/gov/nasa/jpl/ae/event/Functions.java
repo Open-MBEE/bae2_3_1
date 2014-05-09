@@ -2051,10 +2051,14 @@ public class Functions {
     }
 
     // choose the argument as the context for which a value is picked for the variable 
-    boolean isFirst = o1 != null && Utils.valuesEqual( variable, o1 );
-    boolean isSecond = o2 != null && Utils.valuesEqual( variable, o2 );
+    // This was changed to use Utils.valuesEqual(), but we dont know why...
+//    boolean isFirst = o1 != null && Utils.valuesEqual( variable, o1 );
+//    boolean isSecond = o2 != null && Utils.valuesEqual( variable, o2 );
+    boolean isFirst = o1 != null && Expression.valuesEqual( variableParam, o1, Parameter.class );
+    boolean isSecond = o2 != null && Expression.valuesEqual( variableParam, o2, Parameter.class );
     boolean inFirst = isFirst || ( o1 != null && o1.hasParameter( variableParam, true, null ) );
     boolean inSecond = isSecond || ( o2 != null && o2.hasParameter( variableParam, true, null ) );
+
     if ( !inFirst && !inSecond ) {
       Debug.error( false, "Error! pickValueBF2(variable=" + variable
                           + ", pickFunction=" + pickFunctionCall
