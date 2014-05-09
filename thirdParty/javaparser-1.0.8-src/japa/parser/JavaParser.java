@@ -35,7 +35,7 @@ import java.io.InputStream;
  * by calling the method {@link setCacheParser} with <code>false</code>
  * as argument.</p>
  *
- * @author J�lio Vilmar Gesser
+ * @author Julio Vilmar Gesser
  */
 public final class JavaParser {
 

@@ -114,7 +114,7 @@ import java.util.List;
  * This class was generated automatically by javacc, do not edit.
  * </p>
  * 
- * @author J�lio Vilmar Gesser
+ * @author Julio Vilmar Gesser
  */
 public final class ASTParser implements ASTParserConstants {
 
