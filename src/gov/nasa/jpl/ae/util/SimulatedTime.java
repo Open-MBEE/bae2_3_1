@@ -1,8 +1,8 @@
 package gov.nasa.jpl.ae.util;
 
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.event.Timepoint.Units;
-// REVIEW -- consider moving time related utilities for epoch & units to util package
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 public class SimulatedTime {
     protected double timeScale = 1.0;
@@ -14,19 +14,19 @@ public class SimulatedTime {
     public long actualDelta = 0;
     public int simTimePassed = 0;
     public double simDelta = 0;
-    public Units units = Timepoint.getUnits();
+    public TimeUtils.Units units = Timepoint.getUnits();
     
     public SimulatedTime( double timeScale ) {
       reset( timeScale );
     }
-    public SimulatedTime( Units units, double timeScale ) {
+    public SimulatedTime( TimeUtils.Units units, double timeScale ) {
       reset( units, timeScale );
     }
     
     public void reset() {
       reset(this.timeScale);
     }
-    public void reset( Units units, double timeScale ) {
+    public void reset( TimeUtils.Units units, double timeScale ) {
       this.units = units;
       reset(timeScale);
     }
@@ -77,7 +77,7 @@ public class SimulatedTime {
     public void setTimeScale( double timeScale ) {
       updateTime();
       this.timeScale = timeScale;
-      simToActualConversionFactor = Units.conversionFactor( Units.milliseconds ) / timeScale;
+      simToActualConversionFactor = Timepoint.conversionFactor( TimeUtils.Units.milliseconds ) / timeScale;
     }
 
     public long convertSimToActualDuration( int simDuration ) {

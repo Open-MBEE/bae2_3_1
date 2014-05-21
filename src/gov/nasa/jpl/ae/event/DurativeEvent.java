@@ -12,6 +12,7 @@ import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Timer;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -1560,7 +1561,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     mdl.println("  time_scale = " + unitStr  + ";");
     mdl.println("  time_zone = gmt;");
     mdl.println("  time_format = tee;");
-    mdl.println("  horizon_start = " + Timepoint.toAspenTimeString( Timepoint.getEpoch() ) + ";");
+    mdl.println("  horizon_start = " + TimeUtils.toAspenTimeString( Timepoint.getEpoch() ) + ";");
     mdl.println("  horizon_duration = " + Timepoint.getHorizonDuration() + ";");
     mdl.println("};\n");
     

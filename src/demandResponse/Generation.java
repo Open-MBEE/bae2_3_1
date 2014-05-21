@@ -8,8 +8,9 @@ import java.util.Map;
 import gov.nasa.jpl.ae.event.LinearTimeline;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 /**
  * @author bclement
@@ -66,7 +67,7 @@ public class Generation extends LinearTimeline {
     //putAll( dayProfile );
     Parameter< Integer > tp = dayProfile.floorKey( new Timepoint( "", timeSinceMidnight, dayProfile ) );
     System.out.println( "dayProfile.floorKey(timeSinceMidnight) = " + tp );
-    int _24hours = (int)( 24.0 / Units.conversionFactor( Units.hours ) );
+    int _24hours = (int)( 24.0 / Timepoint.conversionFactor( TimeUtils.Units.hours ) );
     System.out.println( "_24hours = " + _24hours );
     // Start with time zero == epoch.
     int timeSinceEpoch = 0;
@@ -140,7 +141,7 @@ public class Generation extends LinearTimeline {
   // define a profile of generation for a given day
   private LinearTimeline initDayProfile() {
     LinearTimeline profile = new LinearTimeline( "dayProfile" );
-    double conversionFactor = 1.0 / Units.conversionFactor( Units.hours );
+    double conversionFactor = 1.0 / Timepoint.conversionFactor( TimeUtils.Units.hours );
     double[] t = new double[]{0.0, 2.0, 6.0, 11.0, 21.5, 24.0};
     profile.setValue( new Timepoint( "", new Integer( (int)t[0] ), null ),
                       nightGenerationLevelPerCustomer
