@@ -6,8 +6,9 @@ package demandResponse;
 import gov.nasa.jpl.ae.event.Duration;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.solver.Random;
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 /**
  * @author bclement
@@ -15,9 +16,9 @@ import gov.nasa.jpl.ae.solver.Random;
  */
 public class DRObject extends DurativeEvent {
   public enum ApplianceType {
-    PCT(0.0,2000.0,20,Timepoint.Units.minutes,0.1,0.9,15,Timepoint.Units.hours),
-    refrigerator(100.0,500.0,5,Timepoint.Units.minutes,0.01,0.15,15,Timepoint.Units.hours),
-    EV(0.0,1000.0,5,Timepoint.Units.hours,0.0,1.0,2.5,Timepoint.Units.hours);
+    PCT(0.0,2000.0,20,TimeUtils.Units.minutes,0.1,0.9,15,TimeUtils.Units.hours),
+    refrigerator(100.0,500.0,5,TimeUtils.Units.minutes,0.01,0.15,15,TimeUtils.Units.hours),
+    EV(0.0,1000.0,5,TimeUtils.Units.hours,0.0,1.0,2.5,TimeUtils.Units.hours);
     
     /**
      * @param minPower
@@ -29,11 +30,11 @@ public class DRObject extends DurativeEvent {
      */
     private ApplianceType( double minPower, double maxPower,
                            double durationAtMaxVal,
-                           Timepoint.Units durationAtMaxUnits,
+                           TimeUtils.Units durationAtMaxUnits,
                            double minPercentTimeAtMax,
                            double maxPercentTimeAtMax,
                            double timeOfDayAtMaxPercentVal,
-                           Timepoint.Units timeOfDayAtMaxPercentUnits ) {
+                           TimeUtils.Units timeOfDayAtMaxPercentUnits ) {
       this.minPower = minPower;
       this.maxPower = maxPower;
       this.durationAtMax = new Duration( "durationAtMax",
@@ -63,15 +64,15 @@ public class DRObject extends DurativeEvent {
 	 */
 	public DRObject() {
 		super();
-		startTime.setValue( (int)( DRStart / Units.conversionFactor( Units.seconds ) ) + timeOffset ); // FIXME -- HACK -- assumes seconds and not wrt epoch
-		duration.setValue( (int)( DRDuration / Units.conversionFactor( Units.seconds ) )  + timeOffset );
+		startTime.setValue( (int)( DRStart / Timepoint.conversionFactor( TimeUtils.Units.seconds ) ) + timeOffset ); // FIXME -- HACK -- assumes seconds and not wrt epoch
+		duration.setValue( (int)( DRDuration / Timepoint.conversionFactor( TimeUtils.Units.seconds ) )  + timeOffset );
 		this.satisfy( true, null );
 	}
 
   public DRObject( boolean b ) {
     this();
     timeOffset = rampDuration;
-    duration.setValue( (int)( DRDuration / Units.conversionFactor( Units.seconds ) ) );
+    duration.setValue( (int)( DRDuration / Timepoint.conversionFactor( TimeUtils.Units.seconds ) ) );
   }
 
   public double predictedLoadReduction( double t ) {
@@ -86,7 +87,7 @@ public class DRObject extends DurativeEvent {
 	  boolean on = true;
 	  int change = applianceType.durationAtMax.getValue(false) / 2;
 	  int timeFromMax = change;
-    final int lengthOfDay = Duration.lengthOfOne(Timepoint.Units.days);
+    final int lengthOfDay = Duration.lengthOfOne(TimeUtils.Units.days);
 	  while (offsetTimeFromMax > timeFromMax ) {
 	    on = !on;
       change = (int)(((long)applianceType.durationAtMax.getValue(false)) * ( ( (double)(lengthOfDay - timeFromMax ) ) / lengthOfDay ) );

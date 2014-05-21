@@ -13,8 +13,9 @@ import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 /**
  * 
@@ -116,7 +117,7 @@ public class Customer extends ParameterListenerImpl {
                    double maxLoad, double minLoadFraction, 
                    double varianceFactor, long seed ) {
     super();
-    this.offsetSecondsFromMidnight = (int)(Timepoint.timeSinceMidnight(start) * Units.conversionFactor( Units.seconds ));
+    this.offsetSecondsFromMidnight = (int)(Timepoint.timeSinceMidnight(start) * Timepoint.conversionFactor( TimeUtils.Units.seconds ));
     this.loadHorizon = loadHorizon;
     this.maxLoad = maxLoad;
     this.minLoadFraction = minLoadFraction;
@@ -139,7 +140,7 @@ public class Customer extends ParameterListenerImpl {
   
   public double getMaxLoad( double t, boolean includeAnyDrEvent ) {
     if ( !includeAnyDrEvent || drEvent == null ) return maxLoad;
-    double reduction = drEvent.predictedLoadReduction( t / Units.conversionFactor( Units.seconds ) );
+    double reduction = drEvent.predictedLoadReduction( t / Timepoint.conversionFactor( TimeUtils.Units.seconds ) );
     reduction = reduction * DRParticipation / 1000.0; // covert from W to kW -- FIXME
     // System.out.println(maxLoad + " - drEvent.predictedLoadReduction(" + t + ")=" + reduction + " = " + (maxLoad - reduction) );
     return maxLoad - reduction;

@@ -65,14 +65,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import junit.framework.Assert;
 // import javax.xml.xpath.XPathExpression;
 
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import gov.nasa.jpl.ae.event.DurativeEvent;
-import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.event.Timepoint.Units;
 
 // Keep these for resolving class references. 
 import gov.nasa.jpl.ae.event.*;
@@ -86,6 +83,8 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.NameTranslator;
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 import gov.nasa.jpl.mbee.util.Timer;
 import gov.nasa.jpl.mbee.util.Utils;
 import demandResponse.*;
@@ -242,8 +241,7 @@ public class EventXmlToJava {
     } else {
       int secs = Math.max( 0, 1 );  // stupid class loader
       secs = XmlUtils.getDurationInSeconds( durationString ) ;
-      
-      Timepoint.setHorizonDuration( (int)(secs / Units.conversionFactor( Units.seconds )) );
+      Timepoint.setHorizonDuration( (int)(secs / Timepoint.conversionFactor( TimeUtils.Units.seconds )) );
     }
     System.out.println( "horizon duration = " + Timepoint.getHorizonDuration()
                         + Timepoint.getUnits() );
