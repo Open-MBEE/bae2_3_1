@@ -3,13 +3,13 @@ package gov.nasa.jpl.ae.tests;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import gov.nasa.jpl.ae.event.Timepoint;
+import gov.nasa.jpl.mbee.util.TimeUtils;
 
 public class TestDate {
 
   public static void main( String[] args ) {
     String tString = "2012-07-17T18:25:00.000-0700";
-    String format = Timepoint.timestampFormat;
+    String format = TimeUtils.timestampFormat;
     SimpleDateFormat df = new SimpleDateFormat(format);
     try {
       Date d = df.parse( tString );
@@ -20,7 +20,7 @@ public class TestDate {
     }
 
     tString = "2012-07-17 18:25:00.000-0700";
-    format = Timepoint.timestampFormat.replace( "'T'", "" );
+    format = TimeUtils.timestampFormat.replace( "'T'", "" );
     df = new SimpleDateFormat( format );
     try {
       Date d = df.parse( tString );
@@ -31,7 +31,7 @@ public class TestDate {
     }
 
     tString = "2012-07-17T18:25:00-0700";
-    format = Timepoint.timestampFormat.replace( ".SSS", "" );
+    format = TimeUtils.timestampFormat.replace( ".SSS", "" );
     df = new SimpleDateFormat( format );
     //df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     try {
@@ -43,7 +43,7 @@ public class TestDate {
     }
 
     tString = "2012-07-17T18:25:00-0700";
-    format = Timepoint.timestampFormat;
+    format = TimeUtils.timestampFormat;
     df = new SimpleDateFormat( format );
     try {
       Date d = df.parse( tString );
@@ -56,7 +56,7 @@ public class TestDate {
     }
 
     tString = "2012-07-17 18:25:00.000";
-    format = Timepoint.timestampFormat.replace( "'T'", "" ).replace( "Z", "" );
+    format = TimeUtils.timestampFormat.replace( "'T'", "" ).replace( "Z", "" );
     df = new SimpleDateFormat( format );
     try {
       Date d = df.parse( tString );
@@ -67,7 +67,7 @@ public class TestDate {
     }
 
     tString = "2012-07-17 18:25:00";
-    format = Timepoint.timestampFormat.replace( "'T'", "" ).replace( ".SSSZ", "" );
+    format = TimeUtils.timestampFormat.replace( "'T'", "" ).replace( ".SSSZ", "" );
     df = new SimpleDateFormat(format);
     try {
       Date d = df.parse( tString );

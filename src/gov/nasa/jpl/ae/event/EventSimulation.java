@@ -3,13 +3,14 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.ae.util.SimulatedTime;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.SocketClient;
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.io.ByteArrayOutputStream;
@@ -75,9 +76,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    */
   public boolean simulatingHorizon = false;
 
-  Timepoint.Units plotAxisTimeUnits = Timepoint.Units.seconds;
+  TimeUtils.Units plotAxisTimeUnits = TimeUtils.Units.seconds;
   public boolean usingSamplePeriod = true;
-  public double plotSamplePeriod = 15.0 / Units.conversionFactor( Units.minutes ); // 15 min
+  public double plotSamplePeriod = 15.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 
@@ -699,7 +700,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         if ( timeInteger <= lastTime ) continue;
         lastTime = timeInteger.intValue();
         Double time =
-            Timepoint.Units.conversionFactor( this.plotAxisTimeUnits )
+            Timepoint.conversionFactor( this.plotAxisTimeUnits )
                 * timeInteger.doubleValue();
         Object v = Expression.evaluate( map.getValue( timeInteger ), null, false );
         assert v instanceof Double || v instanceof Integer || v instanceof Float
@@ -772,7 +773,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       return;
     }
     double doubleArray[] = new double[currentPlottableValues.size()+1];
-    doubleArray[0] = Timepoint.Units.conversionFactor( this.plotAxisTimeUnits ) * time;
+    doubleArray[0] = Timepoint.conversionFactor( this.plotAxisTimeUnits ) * time;
     int cnt = 1;
     //for ( Object v : currentPlottableValues.values() ) {
     for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {

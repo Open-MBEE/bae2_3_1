@@ -5,8 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import gov.nasa.jpl.ae.event.Timepoint.Units;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.mbee.util.TimeUtils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 
 /**
@@ -19,7 +20,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
   
   // TODO -- add accessors, toString(), and fromString(), and constructors from
   // String instead of Integer.
-  protected Timepoint.Units units = Timepoint.getUnits();
+  protected TimeUtils.Units units = Timepoint.getUnits();
 
   public static final String durationFormat = "yyyy-DDD'T'HH:mm:ss.SSS";
   public static final String durationFormatForIdentifier = "yyyy-DDD'T'HH.mm.ss.SSS";
@@ -63,9 +64,9 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	}
 	
 	public Duration( String name, double durVal,
-                   Units durUnits, ParameterListener o ) {
+                   TimeUtils.Units durUnits, ParameterListener o ) {
     super( name, defaultDomain,
-           new Integer( (int)(durVal * Timepoint.Units.conversionFactor( durUnits )) ),
+           new Integer( (int)(durVal * Timepoint.conversionFactor( durUnits )) ),
            o );
   }
 
@@ -73,19 +74,19 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	// as a long followed by a unit specification, like 100s.
 	public static synchronized Duration fromString( String duration ) {
     long t = 0;
-    Timepoint.Units units = Timepoint.getUnits();  // default
+    TimeUtils.Units units = Timepoint.getUnits();  // default
     DateFormat df = new SimpleDateFormat( durationFormat );
     try {
       Date d = df.parse( duration );
       assert ( d != null );
-      t = (long)( Units.conversionFactor( Units.milliseconds, units )
+      t = (long)( TimeUtils.Units.conversionFactor( TimeUtils.Units.milliseconds, units )
                   * d.getTime() );
     } catch ( java.text.ParseException e1 ) {
       String numberString = duration.replaceFirst( "([^a-z]*).*", "$1" ).trim();
       String unitsString = duration.replaceFirst( "[^a-z]*(.*)", "$1" ).trim();
       try {
         t = Long.parseLong( numberString );
-        units = Timepoint.Units.fromString( unitsString );
+        units = TimeUtils.Units.fromString( unitsString );
         if ( units == null ) {
           return null;
         }
@@ -193,11 +194,11 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
   }
   public static long durationToMillis( Integer d ) {
     return (long)( ((double)d)
-                   * Timepoint.Units.conversionFactor( Units.milliseconds ) );
+                   * Timepoint.conversionFactor( TimeUtils.Units.milliseconds ) );
   }
 
-  public static int lengthOfOne( Units u ) {
-    return (int) (1.0 / Units.conversionFactor( u ) );
+  public static int lengthOfOne( TimeUtils.Units u ) {
+    return (int) (1.0 / Timepoint.conversionFactor( u ) );
   }
 	
 	
