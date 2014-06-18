@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import EDU.oswego.cs.dl.util.concurrent.FJTask.Wrap;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.solver.BooleanDomain;
@@ -64,7 +63,7 @@ public class DomainHelper {
         if ( objDomain != null ) {
           objDomainType = objDomain.getType();
         }
-      } else if (obj instanceof Wrap) {
+      } else if (obj instanceof Wraps) {
         objDomainType = ((Wraps<?>)obj).getType();
       }
       if ( dominantType == null ) dominantType = objDomainType;
