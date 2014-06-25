@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.sysml;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -586,8 +587,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // If it is not an Operation than we cannot process it:
       String operationType = model.getTypeString(operationElement, null);
       if (!operationType.equals("Operation")) {
-        Debug.error( "Passed operation is not an Operation type, got type "+ operationType);
-        return null;
+          Debug.error( true, false, ( new Date() )
+                       + "Passed operation is not an Operation type, got type "
+                       + operationType );
+          return null;
       }
       
       // Get the Expression from the operationExpression property of the Operation
