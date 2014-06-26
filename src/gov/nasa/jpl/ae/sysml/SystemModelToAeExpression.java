@@ -137,8 +137,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
         }
         
-        // TODO -- if it *still* fails, maybe search through all classes of all
-        // packages for a method with this name.
+        if ( call == null && method == null ) {
+          // TODO -- if it *still* fails, maybe search through all classes of all
+          // packages for a method with this name.
+        }
         
         // Make the FunctionCall if it was not a ConstructorCall:
         if ( method != null ) {
@@ -338,7 +340,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
               // Operation):
               else {
                                   
-                  // running example !:
+                  // running example 1:
                   //   Viewpoint vp exposes exposed and has an Operation vp_op(foo), which 
                   //   is defined as the Expression, List(map(foo, Name)).
                   // 
@@ -359,7 +361,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             // and add to argument list:
             else if (typeString.equals("Expression")) {
               
-              // running example !:
+              // running example 1:
               //   Viewpoint vp exposes exposed and has an Operation vp_op(foo), which 
               //   is defined as the Expression, List(map(foo, Name)).
               // 
@@ -610,6 +612,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         return null;
       }
 
+      // Pull out the operation, and recursively process the arguments. 
+      
       Collection< P > operands = model.getProperty( expressionElement, "operand");
       
       if ( Utils.isNullOrEmpty( operands ) ) return null;
@@ -619,31 +623,59 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       P operation = it.next();
       
       // The other operands are model element arguments to the operation. 
-      ArrayList< Object > argElements = new ArrayList<Object>();
+//      ArrayList< Object > argElements = new ArrayList<Object>();
+      Vector< Object > arguments = new Vector< Object >();
       while (it.hasNext() ) {
-        argElements.add( it.next() );
+        arguments.add( objectToAeExpression( it.next() ) );
+//        argElements.add( it.next() );
       }
-
+      return operationToAeExpression2( operation, arguments );
+    }
+    
+    protected <X> Expression<X> operationToAeExpression2(P operation, Vector< Object > aeArgs ) {
+      Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
       String operationType = model.getTypeString(operation, null);
       if ( operationType != null && operationType.equals( "Operation" ) ) {
-        expression = operationToAeExpression2( operation, argElements  );
-      } else {
+        Collection< P > opExpProps =
+            model.getProperty( operation, "operationExpression" );
+        Collection< P > opParamProps =
+            model.getProperty( operation, "operationParameter" );
+
+        // HERE!!!!!  if ( )
+      
+        //expression = operationToAeExpression2( operation, arguments  );
+      }
+      if ( HERE!!! || true ){
         N operationName = getOperationName( operation );
         Collection< N > operationNames = model.getName( operation );
         
-        
-        Vector< Object > arguments = new Vector< Object >();
-        for ( Object arg : argElements ) {
-          arguments.add( objectToAeExpression( arg ) );
-        }
-        Call call = createCall((N)operation, arguments );
+        // code below was moved above
+//        Vector< Object > arguments = new Vector< Object >();
+//        for ( Object arg : argElements ) {
+//          arguments.add( objectToAeExpression( arg ) );
+//        }
+
+        Call call = createCall(operationName, aeArgs );
         
         expression = new Expression<>( call );
       }
       
       return expression;
     }
+
+//    /**
+//     * 
+//     * @param operation
+//     * @param aeArgs
+//     * @return
+//     */
+//    public < X > Expression< X > operationToAeExpression2( P operation,
+//                                                           List< Object > aeArgs ) {
+//      // TODO Auto-generated method stub
+//      return null;
+//    }
+
 
     /**
      * Translate a SysML Operation, SysML Expression, or name to an AE Expression.  
@@ -718,12 +750,6 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         return expression;
     }
     
-    public < X > Expression< X > operationToAeExpression2( P operation,
-                                                           ArrayList< Object > argElements ) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
     /**
      * Converts the passed sysml Operation to an AE Expression
      * 
