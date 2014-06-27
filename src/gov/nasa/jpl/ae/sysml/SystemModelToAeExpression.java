@@ -162,7 +162,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      */
     private void addParametertoArgs(Object argValueNode, String argValName,
                                     Vector<Object> arguments) {
-      
+      arguments.add( elementValueToAeExpression( argValueNode, argValName ) );
+    }
+    
+    private Expression<?> elementValueToAeExpression(Object argValueNode,
+                                                     String argValName ) {
       String argType = null;
       Parameter<Object> param = null;
       Collection<U> argValPropNodes = null;
@@ -203,7 +207,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       if (!Utils.isNullOrEmpty(argValPropNodes)) {
         
         // TODO can we assume this is always size 1?  
-        argValProp = argValPropNodes.iterator().next();
+        if ( argValPropNodes.size() == 1 ) {
+          argValProp = argValPropNodes.iterator().next();
+        } else {
+          argValProp = argValPropNodes;
+        }
         Debug.outln( "\nargValProp = " + argValProp );
       }
       
@@ -217,15 +225,19 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         
         Debug.outln( "\nparam = " + param );
         if (argValProp != null) {
-          param.setValue(argValProp);
+          if ( Collection.class.isAssignableFrom( param.getType() ) ) {
+            param.setValue(argValPropNodes);
+          } else {
+            param.setValue(argValProp);
+          }
         }
-        arguments.add(new Expression<Object>(param));
+        return new Expression<Object>(param);
       }
       
       // Creating param failed, so just add the value object itself wrapped in an
       // Expression:
       else {
-        arguments.add(new Expression<Object>(argValProp));
+        return new Expression<Object>(argValProp);
       }
       
     }
@@ -626,13 +638,14 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 //      ArrayList< Object > argElements = new ArrayList<Object>();
       Vector< Object > arguments = new Vector< Object >();
       while (it.hasNext() ) {
-        arguments.add( objectToAeExpression( it.next() ) );
+        arguments.add( elementArgumentToAeExpression( it.next() ) );
 //        argElements.add( it.next() );
       }
       return operationToAeExpression2( operation, arguments );
     }
     
-    protected <X> Expression<X> operationToAeExpression2(P operation, Vector< Object > aeArgs ) {
+    protected <X> Expression<X> operationToAeExpression2(P operation,
+                                                         Vector< Object > aeArgs ) {
       Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
       String operationType = model.getTypeString(operation, null);
@@ -642,19 +655,46 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Collection< P > opParamProps =
             model.getProperty( operation, "operationParameter" );
 
-        // HERE!!!!!  if ( )
-      
+        // Replace the parameters with the arguments.
+        if ( !Utils.isNullOrEmpty( opExpProps ) ) {
+          Expression< X > opExpression = 
+              toAeExpression2( opExpProps.iterator().next() );
+          if ( !Utils.isNullOrEmpty( opParamProps ) ) {
+            Iterator< Object > it = aeArgs.iterator();
+            // TODO -- Check to see if last Parameter is for a variable number of arguments!
+            for ( P param : opParamProps ) {
+              if ( !it.hasNext() ) {
+                // TODO -- ERROR! Length is not the same!
+                Debug.error( true, true, "ERROR! The number of arguments to "
+                             + operation
+                             + " is not the same as the number of parameters!" );
+                break;
+              }
+              Object aeArg = it.next();
+              if (exprParamMap.containsKey(param)) {
+                Parameter< Object > aeParam = exprParamMap.get( param );
+                opExpression.substitute( aeParam, aeArg, true, null );
+              }
+            }
+            if ( it.hasNext() ) {
+              // TODO -- ERROR!  Length is not the same!
+              Debug.error( true, true,
+                           "ERROR! The number of arguments to " + operation
+                               + " is not the same as the number of parameters!"
+                               + "  Parameters representing a variable number of arguments are not yet supported");
+            }
+          }
+          expression = opExpression;
+        }
         //expression = operationToAeExpression2( operation, arguments  );
       }
-      if ( HERE!!! || true ){
+      
+      // If operation is not an Operation model element, or if the Operation does
+      // not have an Expression defining it, use its name to try and match against
+      // other implementations that may be intended.
+      if ( expression == null ) {
         N operationName = getOperationName( operation );
         Collection< N > operationNames = model.getName( operation );
-        
-        // code below was moved above
-//        Vector< Object > arguments = new Vector< Object >();
-//        for ( Object arg : argElements ) {
-//          arguments.add( objectToAeExpression( arg ) );
-//        }
 
         Call call = createCall(operationName, aeArgs );
         
@@ -682,7 +722,131 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @param arg
      * @return
      */
-    private Object objectToAeExpression( Object arg ) {
+    private Object elementArgumentToAeExpression( P arg ) {
+      // Get the valueOfElementProperty node:
+      Collection< P > valueOfElemNodes = 
+              model.getProperty(arg, "elementValueOfElement");
+      
+      // If it is an elementValue, then this will be non-empty:
+      if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
+                      
+        // valueOfElemNodes should always be size 1 b/c elementValueOfElement
+        // is a single NodeRef
+        arg = valueOfElemNodes.iterator().next();
+        
+      }
+      
+      String typeString = model.getTypeString(arg, null);
+      
+      // If it is an Operation, then it may be meant as a function pointer for
+      // functional programming use, like with map.
+      if (typeString.equals("Operation")) {
+        // REVIEW -- WARNING -- don't know how this works
+        Vector<Object> v = new Vector<Object>();
+        parseExpression( arg, v );
+        if ( !Utils.isNullOrEmpty( v ) ) {
+          if ( v.size() == 1 ) {
+             // HERE!!! Don't know how this is done!
+            Collection< N > names = model.getName( arg );
+            if (!Utils.isNullOrEmpty( names ) ) {
+              N name = names.iterator().next();
+              return new Expression< N >(name);
+            } else {
+              Debug.error( true, true,
+                           "ERROR!  Don't know how to handle Operation as argument!" );
+            }
+          }
+        }
+      }
+      
+      if (typeString.equals("Expression")) {
+        return toAeExpression(arg);
+      }
+      
+      // If it is a Parameter then add it the map for later use,
+      // and create a Parameter for it:
+      else if (typeString.equals("Parameter")) {
+      
+        Parameter<Object> param = null;
+
+        // Get the name of the argument Node:
+        Collection<N > argValueNames = model.getName(arg);
+        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+                                                                 argValueNames.iterator().next().toString();
+        
+        // TODO get the parameterType property and set it the Parameter type
+        
+        // Wrap the argument in a Parameter:
+        param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
+        
+        if (param != null) {
+          
+          // Add to map:
+          exprParamMap.put( arg, param );
+          return new Expression<Object>(param);
+
+        }
+        
+      }
+                  
+      // Its a Property command arg, so get the argument values:
+      else if (typeString.equals("Property")) {
+        
+        Parameter<Object> param = null;
+        
+        // Get the argument Node:
+        Collection<U > argValueNodes = model.getValue(arg, null);
+
+        // Get the name of the argument Node:
+        Collection<N > argValueNames = model.getName(arg);
+        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+                                                                 argValueNames.iterator().next().toString();
+        
+        // If the argument node has a value:
+        if (!Utils.isNullOrEmpty(argValueNodes)) {
+          
+          // TODO can we assume this will always be size one?
+          Object argValueNode = argValueNodes.iterator().next();
+          Debug.outln( "\nargValueNode = " + argValueNode );
+          
+          // Create a Parameter for the argument and add to arguments:
+          return elementValueToAeExpression(argValueNode, argValName);
+          
+        } // ends !Utils.isNullOrEmpty(argValueNodes)
+        
+        // Argument node does not have a value, so just add to argument list 
+        // for the operator with no set value:
+        else {
+          
+          // Wrap the argument in a Parameter:
+          param =
+              (Parameter< Object >)classData.getParameter( null, argValName,
+                                                           false, true, true,
+                                                           false );
+          
+          if (param != null) {
+            return new Expression<Object>(param);
+          }
+          
+        } // ends else argument node does not have a value
+
+      } // ends else if it is Property (ie a command arg)
+      
+      // All other cases failed, then just create a Parameter for
+      // it, ie it is plain ole Element, a LiteralInt, etc:
+      else {
+        
+        // Get the name of the argument Node:
+        Collection<N > argValueNames = model.getName(arg);
+        String argValName =
+            Utils.isNullOrEmpty( argValueNames ) ? null
+                                                : argValueNames.iterator().next()
+                                                               .toString();
+        
+        // Create a Parameter for the argument and add to arguments:
+        return elementValueToAeExpression(arg, argValName);
+      }
+      
       // TODO Auto-generated method stub
       return null;
     }
@@ -763,11 +927,24 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     public <X> Expression<X> operationToAeExpression( Object operationElement, 
                                                       List<Object> parameterValues) {
       
+      // first operand must be the operation
+      Iterator< Object > it = parameterValues.iterator();
+      Vector< Object > args = new Vector< Object >();
+      while (it.hasNext() ) {
+        args.add( elementArgumentToAeExpression( (P)it.next() ) ); // FIXME
+      }
+      if ( true ) {
+        return operationToAeExpression2( (P)operationElement, // FIXME 
+                                         args );
+      }
+      
       // running example !:
       //   Viewpoint vp exposes exposed and has an Operation vp_op(foo), which 
       //   is defined as the Expression, List(map(foo, Name)).
       // 
       //   1st call = operationToAeExpression( vp_op( foo ), exposed )
+      
+      // REMOVE CODE BELOW IF ABOVE CODE IS WORKING!
       
       N operationName = null;
       Expression<X> expression = null;

@@ -383,6 +383,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
                              Set<HasParameters> seen ) {
+    return substitute( p1, (Object)p2, deep, seen );
+  }
+  @Override
+  public boolean substitute( Parameter< ? > p1, Object p2, boolean deep,
+                             Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
@@ -393,14 +398,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       object = p2;
       subbed = true;
     }
-    if ( HasParameters.Helper.substitute( object, p1, p2, deep, seen, true )) {
+    if ( !subbed && HasParameters.Helper.substitute( object, p1, p2, deep, seen, true )) {
       subbed = true;
     }
     if ( HasParameters.Helper.substitute( arguments, p1, p2, deep, seen, true )) {
       subbed = true;
     }
-    if ( p1 == nestedCall ) {
-      nestedCall = (Parameter< Call >)p2;
+    if ( p1 == nestedCall && p2 instanceof Parameter ) {
+      nestedCall = (Parameter< Call >)p2; // REVIEW -- If p2 is set to something other than a Call, then this is trouble!
       subbed = true;
     }
     if ( HasParameters.Helper.substitute( nestedCall, p1, p2, deep, seen, true ) ) {
