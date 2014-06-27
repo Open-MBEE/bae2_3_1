@@ -1,7 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Satisfiable;
-import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.MoreToString;
@@ -12,7 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeSet;
 
 public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
                                        MoreToString {
@@ -32,6 +30,8 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
                                Set< HasParameters > seen );
   
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
+                             boolean deep, Set< HasParameters > seen );
+  public boolean substitute( Parameter< ? > p1, Object exp,
                              boolean deep, Set< HasParameters > seen );
   
   /**
@@ -216,7 +216,7 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
     // WARNING! Do not call from o.isFreeParameter() -- infinite loop
     public static boolean substitute( Object o,
                                       Parameter< ? > p1,
-                                      Parameter< ? > p2,
+                                      Object p2,
                                       boolean deep,
                                       Set< HasParameters > seen,
                                       boolean checkIfHasParameters ) {
@@ -225,6 +225,9 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
       if ( o == null ) return false;
       if ( checkIfHasParameters && o instanceof HasParameters ) {
 //        if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
+        if ( p2 instanceof Parameter ) {
+          return ((HasParameters)o).substitute( p1, (Parameter< ? >)p2, deep, seen );
+        }
         return ((HasParameters)o).substitute( p1, p2, deep, seen );
       } else {
         if ( o instanceof Object[] ) {
@@ -317,11 +320,14 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
     
     public static < K, V > boolean substitute( Map< K, V > map,
                                                Parameter< ? > p1,
-                                               Parameter< ? > p2,
+                                               Object p2,
                                                boolean deep,
                                                Set< HasParameters > seen,
                                                boolean checkIfHasParameters ) {
       if ( checkIfHasParameters && map instanceof HasParameters ) {
+        if ( p2 instanceof Parameter ) {
+          return ((HasParameters)map).substitute( p1, (Parameter<?>)p2, deep, seen );
+        }
         return ((HasParameters)map).substitute( p1, p2, deep, seen );
       }
       if ( p1 == null ) return false;
@@ -425,10 +431,13 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
     
     public static < T > boolean substitute( Collection< T > c,
                                             Parameter< ? > p1,
-                                            Parameter< ? > p2,
+                                            Object p2,
                                             boolean deep,
                                             Set< HasParameters > seen ) {
       if ( c instanceof HasParameters ) {
+        if ( p2 instanceof Parameter ) {
+          return ((HasParameters)c).substitute( p1, (Parameter<?>)p2, deep, seen );
+        }
         return ((HasParameters)c).substitute( p1, p2, deep, seen );
       }
       if ( p1 == null ) return false;
@@ -504,7 +513,7 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
     }    
     
     public static boolean substitute( Object[] c, Parameter< ? > p1,
-                                      Parameter< ? > p2,
+                                      Object p2,
                                       boolean deep,
                                       Set< HasParameters > seen ) {
       if ( p1 == null ) return false;
@@ -576,11 +585,14 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
     
     public static < T1, T2 > boolean substitute( Pair< T1, T2 > p,
                                                  Parameter< ? > p1,
-                                                 Parameter< ? > p2,
+                                                 Object p2,
                                                  boolean deep,
                                                  Set< HasParameters > seen,
                                                  boolean checkIfHasParameters ) {
       if ( checkIfHasParameters && p instanceof HasParameters ) {
+        if ( p2 instanceof Parameter ) {
+          return ((HasParameters)p).substitute( p1, (Parameter<?>)p2, deep, seen );
+        }
         return ((HasParameters)p).substitute( p1, p2, deep, seen );
       }
       if ( p1 == null ) return false;
