@@ -239,6 +239,12 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public boolean substitute( Parameter< ? > t1, Parameter< ? > t2, boolean deep,
                              Set< HasParameters > seen ) {
+    return substitute( t1, (Object)t2, deep, seen );
+  }
+  
+  @Override
+  public boolean substitute( Parameter< ? > t1, Object t2, boolean deep,
+                             Set< HasParameters > seen ) {
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
@@ -247,8 +253,14 @@ public class Dependency< T > extends HasIdImpl
     //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     if ( parameter == t1 ) {
-      parameter = (Parameter< T >)t2;
-      subbed = true;
+      if ( t2 == null || t2 instanceof Parameter ) {
+        parameter = (Parameter< T >)t2;
+        subbed = true;
+      } else {
+        Debug.error( true, true,
+                     "ERROR!  Cannot replace a parameter in a dependency with a "
+                         + t2.getClass().getSimpleName() + "!" );
+      }
     }
     if ( expression.substitute( t1, t2, deep, seen ) ) {
       subbed = true;
