@@ -451,7 +451,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
    * @see gov.nasa.jpl.ae.event.Expression#copyMembers(gov.nasa.jpl.ae.event.Expression)
    */
   @Override
-  public void copyMembers( Expression< Collection< T > > expression ) {
+  public void copyMembers( Expression< ? > expression ) {
     if ( expression instanceof ModelReference ) {
       copyMembers( (ModelReference< T, SM >)expression );
     } else {
