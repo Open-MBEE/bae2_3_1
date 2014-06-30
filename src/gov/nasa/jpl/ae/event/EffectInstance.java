@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -120,18 +121,33 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
                              boolean deep, Set< HasParameters > seen ) {
+    return substitute( p1, (Object)p2, deep, seen );
+  }
+  @Override
+  public boolean substitute( Parameter< ? > p1, Object p2,
+                             boolean deep, Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     if ( startTime == p1 ) {
-      startTime = (Timepoint)p2;
-      subbed = true;
+      if ( p2 instanceof Timepoint ) {
+        startTime = (Timepoint)p2;
+        subbed = true;
+      } else {
+        Debug.error( true, true, "Could not substitute " + p2 + " for " + p1
+                                 + " since it is not a Timepoint!" );
+      }
     }
     if ( duration == p1 ) {
-      duration = (Duration)p2;
-      subbed = true;
+      if ( p2 instanceof Duration ) {
+        duration = (Duration)p2;
+        subbed = true;
+      } else {
+        Debug.error( true, true, "Could not substitute " + p2 + " for " + p1
+                                 + " since it is not a Duration!" );
+      }
     }
     if ( HasParameters.Helper.substitute( effect, p1, p2, deep, seen, true ) ) {
       subbed = true;
