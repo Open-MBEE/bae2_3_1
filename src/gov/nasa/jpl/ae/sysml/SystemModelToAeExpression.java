@@ -698,7 +698,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
         Call call = createCall(operationName, aeArgs );
         
-        expression = new Expression<>( call );
+        expression = new Expression( call );
       }
       
       return expression;
