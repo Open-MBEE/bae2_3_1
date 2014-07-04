@@ -274,10 +274,10 @@ public class Expression< ResultType > extends HasIdImpl
     //expression = null;
   }
 
-  public void copyMembers( Expression< ResultType > expr ) {
+  public void copyMembers( Expression< ? > expr ) {
     this.expression = expr.expression;
     this.form = expr.form;
-    this.resultType = expr.resultType;
+    this.resultType = (Class< ? extends ResultType >)expr.resultType;
     this.freeParameters = expr.freeParameters;
     this.evaluationSucceeded = expr.evaluationSucceeded;
   }
@@ -461,6 +461,60 @@ public class Expression< ResultType > extends HasIdImpl
 		}
 		return subbed;
 	}
+
+  @Override
+  public boolean substitute( Parameter<?> p1, Object p2, boolean deep,
+                             Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    
+    boolean subbed = false;
+    if ( p2 instanceof Parameter ) {
+      return substitute( p1, (Parameter<?>)p2, deep, seen );
+    }
+    if ( p2 instanceof Expression ) {
+      return substitute( p1, (Expression<?>)p2, deep, seen );
+    }
+    if ( expression instanceof HasParameters ) {
+      HasParameters gotParameters = (HasParameters) expression;
+      assert( gotParameters != null );
+      subbed = gotParameters.substitute( p1, p2, deep, seen );
+    }
+    return subbed;
+  }
+
+  public boolean substitute( Parameter< ? > p1, Expression< ? > p2,
+                             boolean deep, Set<HasParameters> seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return false;
+    seen = pair.second;
+    
+    if ( p2.getForm() == Form.Parameter && p2.expression instanceof Parameter ) {
+      return substitute( p1, (Parameter<?>)p2.expression, deep, seen );
+    }
+    //if ( Utils.seen( this, deep, seen ) ) return false;
+    boolean subbed = false;
+    if ( form == Form.Parameter ) {
+      if ( p1 == expression ) {
+        // REVIEW -- This hopefully will never get called since a substitution
+        // like this should happen at a higher level, such as in a call for
+        // which this object is an argument.
+        this.copyMembers( p2 );
+        expression = p2;
+        subbed = true;
+      }
+    }
+    if ( expression instanceof HasParameters ) {
+      HasParameters gotParameters = (HasParameters) expression;
+      assert( gotParameters != null );
+      subbed = gotParameters.substitute( p1, p2, deep, seen );
+    }
+    return subbed;
+  }
+
+
 	
 	@Override
 	public Set< Parameter<?> > getParameters( boolean deep,

@@ -11,8 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import junit.framework.Assert;
 
+import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
@@ -117,6 +117,12 @@ public class ParameterListenerImpl extends HasIdImpl
 
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
+                             boolean deep,
+                             Set<HasParameters> seen ) {
+    return substitute( p1, (Object)p2, deep, seen );
+  }
+  @Override
+  public boolean substitute( Parameter< ? > p1, Object p2,
                              boolean deep,
                              Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
