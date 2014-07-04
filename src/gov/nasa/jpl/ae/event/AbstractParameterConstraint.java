@@ -228,4 +228,12 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
     return false;
   }
 
+  @Override
+  public boolean substitute( Parameter< ? > p1, Object exp, boolean deep,
+                             Set< HasParameters > seen ) {
+    Assert.assertTrue( "This method is not yet supported!", false );
+    // TODO Auto-generated method stub
+    return false;
+  }
+  
 }

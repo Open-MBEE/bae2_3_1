@@ -451,7 +451,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
    * @see gov.nasa.jpl.ae.event.Expression#copyMembers(gov.nasa.jpl.ae.event.Expression)
    */
   @Override
-  public void copyMembers( Expression< Collection< T > > expression ) {
+  public void copyMembers( Expression< ? > expression ) {
     if ( expression instanceof ModelReference ) {
       copyMembers( (ModelReference< T, SM >)expression );
     } else {
@@ -1925,7 +1925,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
    * class) or a class related to class1 through relation1.
    * <li>block1.name references either a Java "name" field, Java name(),
    * getName(), or getEName() methods, or a "name" structural feature. The
-   * block1 scope may reference the {@link EObject), the {@link EClass}, the
+   * block1 scope may reference the {@link EObject}, the {@link EClass}, the
    * MagicDraw {@link com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element},
    * the {@link Element}'s type, or the {@link Class<?>} for any of these.
    * <li>block1.name() is interpreted the same as block1.name.
