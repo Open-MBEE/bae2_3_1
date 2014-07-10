@@ -510,18 +510,18 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             if (isOperandArg) {
                 
                 Collection<P> opExpProps = model.getProperty( valueOfElementNode, 
-                                                              "operationExpression" );
+                                                              "expression" );
                 Collection<P> opParamProps = model.getProperty( valueOfElementNode, 
-                                                               "operationParameter" );
+                                                               "parameter" );
                 
-                // If the Operation has no operationExpression then 
+                // If the Operation has no expression then 
                 // make a Call for it:
                 if (Utils.isNullOrEmpty( opExpProps )) {
                     
                     Vector<Object> opEmptyArgs = new Vector<Object>();
     
-                    // If it has operationParameter make a empty arg
-                    // for each operationParameter:
+                    // If it has parameter make a empty arg
+                    // for each parameter:
                     if (!Utils.isNullOrEmpty( opParamProps )) {
                         
                         for (int i = 0; i < opParamProps.size(); ++i) {
@@ -540,32 +540,37 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                     } // Ends if argCall != null
                       
                 }
-                // If the Operation has a operationExpression then
+                
+                // TODO FIXME this is no longer correct below:
+                // If the Operation has a expression then
                 // use operationToAeExpression to process
                 else {
-                    
-                    List<Object> parameterValues = new ArrayList<Object>();
-                    
-                    // If it has operationParameters then pass in the
-                    // parameter values:
-                    if (!Utils.isNullOrEmpty( opParamProps )) {
-                        // If the argument is a Parameter (wrapped in an expression),
-                        // then get its value:
-                        for (Object arg : arguments) {
-                            if (arg instanceof Expression) {
-                                Expression<?> expr = (Expression<?>)arg;
-                                
-                                if (expr.form.equals(Expression.Form.Parameter)) {
-                                    Parameter<?> param = (Parameter<?>)expr.expression;
-                                    parameterValues.add( param.getValue() );
-                                }
-                            }
-                        }
-                    }
-                    
-                    arguments.add( operationToAeExpression(valueOfElementNode,
-                                                           parameterValues));
-                
+                  
+                  
+                  Debug.error("Error: dont know how to process a Operation arg with a expression!");
+
+//                    List<Object> parameterValues = new ArrayList<Object>();
+//                    
+//                    // If it has parameters then pass in the
+//                    // parameter values:
+//                    if (!Utils.isNullOrEmpty( opParamProps )) {
+//                        // If the argument is a Parameter (wrapped in an expression),
+//                        // then get its value:
+//                        for (Object arg : arguments) {
+//                            if (arg instanceof Expression) {
+//                                Expression<?> expr = (Expression<?>)arg;
+//                                
+//                                if (expr.form.equals(Expression.Form.Parameter)) {
+//                                    Parameter<?> param = (Parameter<?>)expr.expression;
+//                                    parameterValues.add( param.getValue() );
+//                                }
+//                            }
+//                        }
+//                    }
+//                    
+//                    arguments.add( operationToAeExpression(valueOfElementNode,
+//                                                           parameterValues));
+//                
                 }
             
             } // ends if operand arg
@@ -651,9 +656,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       String operationType = model.getTypeString(operation, null);
       if ( operationType != null && operationType.equals( "Operation" ) ) {
         Collection< P > opExpProps =
-            model.getProperty( operation, "operationExpression" );
+            model.getProperty( operation, "expression" );
         Collection< P > opParamProps =
-            model.getProperty( operation, "operationParameter" );
+            model.getProperty( operation, "parameter" );
 
         // Replace the parameters with the arguments.
         if ( !Utils.isNullOrEmpty( opExpProps ) ) {
@@ -743,20 +748,25 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       if (typeString.equals("Operation")) {
         // REVIEW -- WARNING -- don't know how this works
         Vector<Object> v = new Vector<Object>();
-        parseExpression( arg, v );
+        processOperation( arg, v, true);
+        
         if ( !Utils.isNullOrEmpty( v ) ) {
-          if ( v.size() == 1 ) {
-             // HERE!!! Don't know how this is done!
-            Collection< N > names = model.getName( arg );
-            if (!Utils.isNullOrEmpty( names ) ) {
-              N name = names.iterator().next();
-              return new Expression< N >(name);
-            } else {
-              Debug.error( true, true,
-                           "ERROR!  Don't know how to handle Operation as argument!" );
-            }
-          }
+          return v.firstElement();
         }
+        
+//        if ( !Utils.isNullOrEmpty( v ) ) {
+//          if ( v.size() == 1 ) {
+//             // HERE!!! Don't know how this is done!
+//            Collection< N > names = model.getName( arg );
+//            if (!Utils.isNullOrEmpty( names ) ) {
+//              N name = names.iterator().next();
+//              return new Expression< N >(name);
+//            } else {
+//              Debug.error( true, true,
+//                           "ERROR!  Don't know how to handle Operation as argument!" );
+//            }
+//          }
+//        }
       }
       
       if (typeString.equals("Expression")) {
@@ -920,21 +930,22 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @param operationElement the sysml operation to convert
      * @param parameterValues a List of parameter values for the operation
      *        The order of the elements of this list must match the
-     *        order of elements of operationParameter for the passed
+     *        order of elements of parameter for the passed
      *        Operation.
      * @return the AE expression
      */
     public <X> Expression<X> operationToAeExpression( Object operationElement, 
                                                       List<Object> parameterValues) {
       
-      // first operand must be the operation
+      // Converting parameterValues to AeExpressions:
       Iterator< Object > it = parameterValues.iterator();
       Vector< Object > args = new Vector< Object >();
       while (it.hasNext() ) {
-        args.add( elementArgumentToAeExpression( (P)it.next() ) ); // FIXME
+        args.add( elementArgumentToAeExpression( (P)it.next() ) ); // FIXME dont like warning
       }
+      
       if ( true ) {
-        return operationToAeExpression2( (P)operationElement, // FIXME 
+        return operationToAeExpression2( (P)operationElement, // FIXME dont like warning
                                          args );
       }
       
@@ -965,50 +976,50 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           return null;
       }
       
-      // Get the Expression from the operationExpression property of the Operation
+      // Get the Expression from the expression property of the Operation
       // element:
       Collection< P > expressions =
-              model.getProperty( operationElement, "operationExpression");
+              model.getProperty( operationElement, "expression");
       P expressionElement = null;
       if ( !Utils.isNullOrEmpty( expressions ) ) {
         expressionElement = expressions.iterator().next();
       }
       else {
         Debug.error(true, false,
-                    "Passed operation element did not have a operationExpression property!");
+                    "Passed operation element did not have a expression property!");
         return null;
       }
       
-      // Get the parameters from the operationParameter property of the Operation
+      // Get the parameters from the parameter property of the Operation
       // element:
       Collection< P > paramElements = model.getProperty( operationElement, 
-                                                         "operationParameter");
+                                                         "parameter");
       
-      // Warn the user if no operationParameters are found, but parameters
+      // Warn the user if no parameters are found, but parameters
       // were passed in:
       if (Utils.isNullOrEmpty( paramElements ) && 
           !Utils.isNullOrEmpty( parameterValues )) {
           
           Debug.error(true, false,
-                      "Passed operation had no operationParameter, but passed in parameter values!");
+                      "Passed operation had no parameter, but passed in parameter values!");
       }
       
-      // Warn user if found operationParameters, but not parameters were passed in:
+      // Warn user if found parameters, but not parameters were passed in:
       if (!Utils.isNullOrEmpty( paramElements ) && 
           Utils.isNullOrEmpty( parameterValues )) {
               
               Debug.error(true, false,
-                          "Passed operation had operationParameter, but no passed in parameter values were supplied!");
+                          "Passed operation had parameter, but no passed in parameter values were supplied!");
       }
       
-      // Warn user if number of operationParameters found does not equal
+      // Warn user if number of parameters found does not equal
       // to the number of passed parameters:
       if (Utils.isNullOrEmpty( paramElements ) && 
           Utils.isNullOrEmpty( parameterValues ) && 
           (paramElements.size() != parameterValues.size())) {
           
           Debug.error(true, false,
-                      "Number of passed parameter values "+parameterValues.size()+" does not equal number of found operationParameters "+paramElements.size());
+                      "Number of passed parameter values "+parameterValues.size()+" does not equal number of found parameters "+paramElements.size());
       }
       
       // TODO: fix this below if needed
@@ -1053,7 +1064,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // expressionElement = get_two_names_expression
       // arguments = [param(elem1),param(elem2),List(Name(s1),Name(s2))]
       
-      // Set each operationParameter of the Operation to the passed in
+      // Set each parameter of the Operation to the passed in
       // Parameter values:
       P myParam = null;
       if (!Utils.isNullOrEmpty( paramElements ) &&
