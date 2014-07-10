@@ -7,9 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
@@ -20,7 +18,6 @@ import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
-import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 import sysml.SystemModel;
 
