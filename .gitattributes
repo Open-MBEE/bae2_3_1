@@ -1,0 +1,413 @@
+* text=auto !eol
+/.classpath -text
+.externalToolBuilders/Makejar.launch -text
+/.project -text
+/.pydevproject -text
+.settings/org.eclipse.jdt.core.prefs -text
+/AE.jar -text
+META-INF/MANIFEST.MF -text
+/build.properties -text
+/build.xml -text
+/contexts.txt -text
+data/DR_attempt_1/test_gen_dr.csv -text
+data/DR_attempt_1/test_gen_res_dr.csv -text
+data/DR_attempt_1/test_load_dr.csv -text
+data/DR_attempt_1/test_max_dr.csv -text
+data/DR_attempt_1/test_reserve_dr.csv -text
+data/all.csv -text
+data/allGen.csv -text
+data/test_gen.csv -text
+data/test_load.csv -text
+data/test_margin_load.csv -text
+data/test_max_buy.csv -text
+data/test_reserve.csv -text
+/javadoc.xml -text
+/pom.xml -text
+/projFormatterOptions.xml -text
+src/DIFF_SCENARIO/BobCreator.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Customer.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/LADWP.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Main.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Power.java -text svneol=unset#text/plain
+src/DIFF_SCENARIO/Power_System.java -text svneol=unset#text/plain
+src/Demo_Scenario/BobCreator.java -text svneol=unset#text/plain
+src/Demo_Scenario/Customer.java -text svneol=unset#text/plain
+src/Demo_Scenario/LADWP.java -text svneol=unset#text/plain
+src/Demo_Scenario/Main.java -text svneol=unset#text/plain
+src/Demo_Scenario/Power.java -text svneol=unset#text/plain
+src/Demo_Scenario/Power_System.java -text svneol=unset#text/plain
+src/PowerSystem2/BobCreator.java -text
+src/PowerSystem2/Customer.java -text
+src/PowerSystem2/LADWP.java -text
+src/PowerSystem2/Main.java -text
+src/PowerSystem2/Power.java -text
+src/PowerSystem2/Power_System.java -text
+src/PowerSystem3/BobCreator.java -text
+src/PowerSystem3/Customer.java -text
+src/PowerSystem3/LADWP.java -text
+src/PowerSystem3/Main.java -text
+src/PowerSystem3/Power.java -text
+src/PowerSystem3/Power_System.java -text
+src/ROUND_TRIP_TEST/BobCreator.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Customer.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/LADWP.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Main.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Power.java -text svneol=unset#text/plain
+src/ROUND_TRIP_TEST/Power_System.java -text svneol=unset#text/plain
+src/demandResponse/AssessDRCommitmentEvent.java -text
+src/demandResponse/Computer.java -text
+src/demandResponse/ControlRealTimeLoadReductionEvent.java -text
+src/demandResponse/Customer.java -text
+src/demandResponse/Customers.java -text
+src/demandResponse/DDS.java -text
+src/demandResponse/DRAS.java -text
+src/demandResponse/DRCustomerList.java -text
+src/demandResponse/DRObject.java -text
+src/demandResponse/Data.java -text
+src/demandResponse/DataExchange.java -text
+src/demandResponse/DataReceivedState.java -text
+src/demandResponse/DataRepository.java -text
+src/demandResponse/DataSentState.java -text
+src/demandResponse/DataSet.java -text
+src/demandResponse/DataTransmission.java -text
+src/demandResponse/ECCDispatcher.java -text
+src/demandResponse/GES.java -text
+src/demandResponse/Generation.java -text
+src/demandResponse/MDM.java -text
+src/demandResponse/MonitorLoadReductionEvent.java -text
+src/demandResponse/OperatingLimits.java -text
+src/demandResponse/PiHistorian.java -text
+src/demandResponse/PlanAndControlLoadReductionEvent.java -text
+src/demandResponse/STAS.java -text
+src/demandResponse/Service.java -text
+src/demandResponse/VectorData.java -text
+src/demandResponse/readme.txt -text
+src/gov/nasa/jpl/ae/event/AbstractParameterConstraint.java -text
+src/gov/nasa/jpl/ae/event/Affectable.java -text
+src/gov/nasa/jpl/ae/event/AspenTimelineWritable.java -text
+src/gov/nasa/jpl/ae/event/BooleanParameter.java -text
+src/gov/nasa/jpl/ae/event/Call.java -text
+src/gov/nasa/jpl/ae/event/Command.java -text
+src/gov/nasa/jpl/ae/event/ConstraintExpression.java -text
+src/gov/nasa/jpl/ae/event/ConstraintNetwork.java -text
+src/gov/nasa/jpl/ae/event/ConstructorCall.java -text
+src/gov/nasa/jpl/ae/event/Consumable.java -text
+src/gov/nasa/jpl/ae/event/Deconstructable.java -text
+src/gov/nasa/jpl/ae/event/Dependency.java -text
+src/gov/nasa/jpl/ae/event/DoubleParameter.java -text
+src/gov/nasa/jpl/ae/event/Duration.java -text
+src/gov/nasa/jpl/ae/event/DurativeEvent.java -text
+src/gov/nasa/jpl/ae/event/Edge.java -text
+src/gov/nasa/jpl/ae/event/Effect.java -text
+src/gov/nasa/jpl/ae/event/EffectFunction.java -text
+src/gov/nasa/jpl/ae/event/EffectInstance.java -text
+src/gov/nasa/jpl/ae/event/ElaborationRule.java -text
+src/gov/nasa/jpl/ae/event/Event.java -text
+src/gov/nasa/jpl/ae/event/EventInvocation.java -text
+src/gov/nasa/jpl/ae/event/EventSimulation.java -text
+src/gov/nasa/jpl/ae/event/Executor.java -text
+src/gov/nasa/jpl/ae/event/Expression.java -text
+src/gov/nasa/jpl/ae/event/FunctionCall.java -text
+src/gov/nasa/jpl/ae/event/Functions.java -text
+src/gov/nasa/jpl/ae/event/Groundable.java -text
+src/gov/nasa/jpl/ae/event/HasEvents.java -text
+src/gov/nasa/jpl/ae/event/HasParameters.java -text
+src/gov/nasa/jpl/ae/event/HasTimeVaryingObjects.java -text
+src/gov/nasa/jpl/ae/event/HowManyQuery.java -text
+src/gov/nasa/jpl/ae/event/IntegerParameter.java -text
+src/gov/nasa/jpl/ae/event/LazyUpdate.java -text
+src/gov/nasa/jpl/ae/event/LinearTimeline.java -text
+src/gov/nasa/jpl/ae/event/NestedTimeVaryingMap.java -text
+src/gov/nasa/jpl/ae/event/Node.java -text
+src/gov/nasa/jpl/ae/event/Parameter.java -text
+src/gov/nasa/jpl/ae/event/ParameterConstraint.java -text
+src/gov/nasa/jpl/ae/event/ParameterListener.java -text
+src/gov/nasa/jpl/ae/event/ParameterListenerImpl.java -text
+src/gov/nasa/jpl/ae/event/Plottable.java -text
+src/gov/nasa/jpl/ae/event/Query.java -text
+src/gov/nasa/jpl/ae/event/RelationQuery.java -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/event/Simulator.java -text
+src/gov/nasa/jpl/ae/event/StringParameter.java -text
+src/gov/nasa/jpl/ae/event/Suggester.java -text
+src/gov/nasa/jpl/ae/event/TimeDependentConstraintExpression.java -text
+src/gov/nasa/jpl/ae/event/TimeDomain.java -text
+src/gov/nasa/jpl/ae/event/TimeVarying.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingList.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingMap.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingMaps.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMap.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingPlottableMaps.java -text
+src/gov/nasa/jpl/ae/event/TimeVaryingProjection.java -text
+src/gov/nasa/jpl/ae/event/Timepoint.java -text
+src/gov/nasa/jpl/ae/fuml/ObjectFlow.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE/main.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE/plugin.xml -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/AE/script.xml -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAE.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/ExportForAnalysisEngine_v2.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/ExporterClasses.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/ExporterUtils.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/ExporterWriter.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/FindElementByID.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/HelloWorld.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/InterpolatedMap.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/MPUtils.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimator2.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils.py -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawAnimatorUtils2.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/MagicDrawExecutor.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/OneWaySocket.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/PlotDataReader.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/SortedDict.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/animatePlot.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/getCustomerData.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/Configurator.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/EmfUtils.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/MDPlugin.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/MQActivator.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/ModelReference.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/modelQuery/TestPlugin.java -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/testPython.py -text
+src/gov/nasa/jpl/ae/magicdrawPlugin/whatsMyId.py -text
+src/gov/nasa/jpl/ae/solver/AbstractFiniteRangeDomain.java -text
+src/gov/nasa/jpl/ae/solver/AbstractRangeDomain.java -text
+src/gov/nasa/jpl/ae/solver/BooleanDomain.java -text
+src/gov/nasa/jpl/ae/solver/CollectionTree.java -text
+src/gov/nasa/jpl/ae/solver/Constraint.java -text
+src/gov/nasa/jpl/ae/solver/ConstraintLoopSolver.java -text
+src/gov/nasa/jpl/ae/solver/Domain.java -text
+src/gov/nasa/jpl/ae/solver/DoubleDomain.java -text
+src/gov/nasa/jpl/ae/solver/HasConstraints.java -text
+src/gov/nasa/jpl/ae/solver/HasDomain.java -text
+src/gov/nasa/jpl/ae/solver/HasId.java -text
+src/gov/nasa/jpl/ae/solver/HasIdImpl.java -text
+src/gov/nasa/jpl/ae/solver/IntegerDomain.java -text
+src/gov/nasa/jpl/ae/solver/Random.java -text
+src/gov/nasa/jpl/ae/solver/RangeDomain.java -text
+src/gov/nasa/jpl/ae/solver/Satisfiable.java -text
+src/gov/nasa/jpl/ae/solver/SingleValueDomain.java -text
+src/gov/nasa/jpl/ae/solver/Solver.java -text
+src/gov/nasa/jpl/ae/solver/StringDomain.java -text
+src/gov/nasa/jpl/ae/solver/TimeDependentConstraint.java -text
+src/gov/nasa/jpl/ae/solver/TimeVariable.java -text
+src/gov/nasa/jpl/ae/solver/Uncollection.java -text
+src/gov/nasa/jpl/ae/solver/Variable.java -text
+src/gov/nasa/jpl/ae/solver/Wraps.java -text
+src/gov/nasa/jpl/ae/tests/Adder.java -text
+src/gov/nasa/jpl/ae/tests/GenerateInputsFromMeterData.java -text
+src/gov/nasa/jpl/ae/tests/JythonAdderFactory.java -text
+src/gov/nasa/jpl/ae/tests/TestDate.java -text
+src/gov/nasa/jpl/ae/tests/TestEventXmlToJava.java -text
+src/gov/nasa/jpl/ae/tests/TestExecute.java -text
+src/gov/nasa/jpl/ae/tests/TestJavaparser.java -text
+src/gov/nasa/jpl/ae/tests/TestJythonAdder.java -text
+src/gov/nasa/jpl/ae/tests/aggregateLoad.csv -text
+src/gov/nasa/jpl/ae/tests/aggregatePlan.csv -text
+src/gov/nasa/jpl/ae/tests/integerTimeline.csv -text
+src/gov/nasa/jpl/ae/tests/test_gen.csv -text
+src/gov/nasa/jpl/ae/tests/test_load.csv -text
+src/gov/nasa/jpl/ae/tests/test_margin_load.csv -text
+src/gov/nasa/jpl/ae/tests/test_max_buy.csv -text
+src/gov/nasa/jpl/ae/tests/test_reserve.csv -text
+src/gov/nasa/jpl/ae/util/ClassData.java -text
+src/gov/nasa/jpl/ae/util/ClassUtils.java -text
+src/gov/nasa/jpl/ae/util/CompareUtils.java -text
+src/gov/nasa/jpl/ae/util/Debug.java -text
+src/gov/nasa/jpl/ae/util/FileUtils.java -text
+src/gov/nasa/jpl/ae/util/JavaEvaluator.java -text
+src/gov/nasa/jpl/ae/util/JavaForFunctionCall.java -text
+src/gov/nasa/jpl/ae/util/JavaToConstraintExpression.java -text
+src/gov/nasa/jpl/ae/util/MdDebug.java -text
+src/gov/nasa/jpl/ae/util/MoreToString.java -text
+src/gov/nasa/jpl/ae/util/NameTranslator.java -text
+src/gov/nasa/jpl/ae/util/Pair.java -text
+src/gov/nasa/jpl/ae/util/RunAspen.java -text
+src/gov/nasa/jpl/ae/util/Seen.java -text
+src/gov/nasa/jpl/ae/util/SeenHashSet.java -text
+src/gov/nasa/jpl/ae/util/SimulatedTime.java -text
+src/gov/nasa/jpl/ae/util/SocketClient.java -text
+src/gov/nasa/jpl/ae/util/StopWatch.java -text
+src/gov/nasa/jpl/ae/util/Timer.java -text
+src/gov/nasa/jpl/ae/util/Utils.java -text
+src/gov/nasa/jpl/ae/util/runaspen.cmd -text
+src/gov/nasa/jpl/ae/util/runaspen.sh -text
+src/gov/nasa/jpl/ae/xml/Demo_Scenario_Latest.xml -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/xml/Diff_Scenario.xml -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/xml/EventXmlToJava.java -text
+src/gov/nasa/jpl/ae/xml/PowerSystem2_2013-01-23.xml -text
+src/gov/nasa/jpl/ae/xml/PowerSystem3_2013-01-30_4.xml -text
+src/gov/nasa/jpl/ae/xml/Round_Trip_Scenario.xml -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/xml/Scenario_latest.xml -text
+src/gov/nasa/jpl/ae/xml/Scenario_med_caller.xml -text svneol=unset#text/plain
+src/gov/nasa/jpl/ae/xml/Scenario_medium.xml -text
+src/gov/nasa/jpl/ae/xml/Scenario_medium_old.xml -text
+src/gov/nasa/jpl/ae/xml/Scenario_smallest.xml -text
+src/gov/nasa/jpl/ae/xml/XmlToJson.java -text
+src/gov/nasa/jpl/ae/xml/XmlUtils.java -text
+src/gov/nasa/jpl/ae/xml/anotherStateChartExample.xml -text
+src/gov/nasa/jpl/ae/xml/eventSchema.xsd -text
+src/gov/nasa/jpl/ae/xml/exampleDRScenario.xml -text
+src/gov/nasa/jpl/ae/xml/exampleDRScenarioMultipleCustomers.xml -text
+src/gov/nasa/jpl/ae/xml/iterationExample.xml -text
+src/gov/nasa/jpl/ae/xml/stateChartExample.xml -text
+src/powersystem/BobCreator.java -text svneol=unset#text/plain
+src/powersystem/Customer.java -text svneol=unset#text/plain
+src/powersystem/LADWP.java -text svneol=unset#text/plain
+src/powersystem/Main.java -text svneol=unset#text/plain
+src/powersystem/Power.java -text svneol=unset#text/plain
+src/powersystem/Power_System.java -text svneol=unset#text/plain
+/target.target -text
+thirdParty/douglascrockford-JSON-java-d15e776/README -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/CDL.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/Cookie.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/CookieList.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/HTTP.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/HTTPTokener.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONArray.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONException.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONML.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONObject.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONString.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONStringer.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONTokener.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/JSONWriter.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/XML.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/XMLTokener.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/SampleResourceBundle_en_US.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/SampleResourceBundle_fr.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestCDL.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestCookie.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestCookieList.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestHTTP.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestHTTPTokener.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONArray.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONException.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONML.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONObject.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONStringer.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONTokener.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestJSONWriter.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestSuite.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestXML.java -text
+thirdParty/douglascrockford-JSON-java-d15e776/org/json/tests/TestXMLTokener.java -text
+thirdParty/javaparser-1.0.8-src/.classpath -text
+thirdParty/javaparser-1.0.8-src/.project -text
+thirdParty/javaparser-1.0.8-src/COPYING -text
+thirdParty/javaparser-1.0.8-src/COPYING.LESSER -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ASTHelper.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ASTParser.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ASTParserConstants.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ASTParserTokenManager.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/JavaCharStream.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/JavaParser.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ParseException.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/Token.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/TokenMgrError.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/BlockComment.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/Comment.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/CompilationUnit.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/ImportDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/LineComment.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/Node.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/PackageDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/TypeParameter.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/AnnotationDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/AnnotationMemberDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/BodyDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/ClassOrInterfaceDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/ConstructorDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/EmptyMemberDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/EmptyTypeDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/EnumConstantDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/EnumDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/FieldDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/InitializerDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/JavadocComment.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/MethodDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/ModifierSet.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/Parameter.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/TypeDeclaration.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/VariableDeclarator.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/body/VariableDeclaratorId.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/AnnotationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ArrayAccessExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ArrayCreationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ArrayInitializerExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/AssignExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/BinaryExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/BooleanLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/CastExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/CharLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ClassExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ConditionalExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/DoubleLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/EnclosedExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/Expression.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/FieldAccessExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/InstanceOfExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/IntegerLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/IntegerLiteralMinValueExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/LiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/LongLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/LongLiteralMinValueExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/MarkerAnnotationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/MemberValuePair.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/MethodCallExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/NameExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/NormalAnnotationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/NullLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ObjectCreationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/QualifiedNameExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/SingleMemberAnnotationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/StringLiteralExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/SuperExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/ThisExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/UnaryExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/expr/VariableDeclarationExpr.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/AssertStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/BlockStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/BreakStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/CatchClause.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ContinueStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/DoStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/EmptyStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ExplicitConstructorInvocationStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ExpressionStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ForStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ForeachStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/IfStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/LabeledStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ReturnStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/Statement.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/SwitchEntryStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/SwitchStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/SynchronizedStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/ThrowStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/TryStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/TypeDeclarationStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/stmt/WhileStmt.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/AllTests.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/Helper.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/TestAdapters.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/TestDumper.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/TestHashCodeEquals.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/TestNodePositions.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/classes/DumperTestClass.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/test/classes/JavadocTestClass.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/type/ClassOrInterfaceType.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/type/PrimitiveType.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/type/ReferenceType.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/type/Type.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/type/VoidType.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/type/WildcardType.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/DumpVisitor.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/EqualsVisitor.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/GenericVisitor.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/GenericVisitorAdapter.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/ModifierVisitorAdapter.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/VoidVisitor.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/ast/visitor/VoidVisitorAdapter.java -text
+thirdParty/javaparser-1.0.8-src/japa/parser/java_1_5.jj -text
+thirdParty/javaparser-1.0.8-src/readme.txt -text
