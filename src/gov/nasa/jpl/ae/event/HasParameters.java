@@ -233,11 +233,11 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
         if ( o instanceof Object[] ) {
           return substitute( (Object[])o, p1, p2, deep, seen );
         } else if ( o instanceof Map ) {
-          return substitute( (Map< ?, ? >)o, p1, p2, deep, seen, false );
+          return substitute( (Map< ?, ? >)o, p1, p2, deep, seen, false );  
         } else if ( o instanceof Collection ) {
-          return substitute( (Collection< ? >)o, p1, p2, deep, seen, false );
+          return substitute( (Collection< ? >)o, p1, p2, deep, seen, false );  
         } else if ( o instanceof Pair ) {
-          return substitute( (Pair< ?, ? >)o, p1, p2, deep, seen, false );
+          return substitute( (Pair< ?, ? >)o, p1, p2, deep, seen, false ); 
         }
       }
       return false;
@@ -525,6 +525,25 @@ public interface HasParameters extends LazyUpdate, HasId, Deconstructable,
         }
       }      
       return subbed;
+    }
+    
+    public static boolean substitute( Collection<?> o,
+                                      Parameter< ? > p1,
+                                      Object p2,
+                                      boolean deep,
+                                      Set< HasParameters > seen,
+                                      boolean checkIfHasParameters ) {
+      
+      if ( p1 == null ) return false;
+      if ( p1 == p2 ) return true;
+      boolean subbed = false;
+      for ( Object t : o ) {
+        if ( substitute( t, p1, p2, deep, seen, checkIfHasParameters ) ) {
+          subbed = true;
+        }
+      }      
+      return subbed;
+      
     }
    
     // static implementations on Pair
