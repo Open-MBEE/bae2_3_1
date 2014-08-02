@@ -168,37 +168,44 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Parameter<Object> param = null;
       Collection<U> argValPropNodes = null;
       Object argValProp = null;
-
-      // Get the value of the argument based on type:
-      if (model.getTypeString(argValueNode, null).equals("LiteralInteger")) {
-        
-        argValPropNodes = model.getValue(argValueNode, "integer");
-        argType = "Integer";
+      String type = model.getTypeString(argValueNode, null);
+      
+      if (type == null) {
+        argValProp = argValueNode;
+        argType = "Object";
       }
-      else if (model.getTypeString(argValueNode, null).equals("LiteralReal")) {
-        
-        argValPropNodes = model.getValue(argValueNode, "double");
-        argType = "Double";
-      }
-      else if (model.getTypeString(argValueNode, null).equals("LiteralBoolean")) {
-        
-        argValPropNodes = model.getValue(argValueNode, "boolean");
-        argType = "Boolean";
-      }
-      else if (model.getTypeString(argValueNode, null).equals("LiteralUnlimitedNatural")) {
-        
-        argValPropNodes = model.getValue(argValueNode, "naturalValue");
-        argType = "Integer";
-      }
-      else if (model.getTypeString(argValueNode, null).equals("LiteralString")) {
-        
-        argValPropNodes = model.getValue(argValueNode, "string");
-        argType = "String";
-      }
-      // Otherwise, will just set the value of the parameter to the node itself:
       else {
-          argValProp = argValueNode;
-          argType = "Object";
+        // Get the value of the argument based on type:
+        if (type.equals("LiteralInteger")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "integer");
+          argType = "Integer";
+        }
+        else if (type.equals("LiteralReal")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "double");
+          argType = "Double";
+        }
+        else if (type.equals("LiteralBoolean")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "boolean");
+          argType = "Boolean";
+        }
+        else if (type.equals("LiteralUnlimitedNatural")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "naturalValue");
+          argType = "Integer";
+        }
+        else if (type.equals("LiteralString")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "string");
+          argType = "String";
+        }
+        // Otherwise, will just set the value of the parameter to the node itself:
+        else {
+            argValProp = argValueNode;
+            argType = "Object";
+        }
       }
       
       if (!Utils.isNullOrEmpty(argValPropNodes)) {
@@ -222,11 +229,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         
         Debug.outln( "\nparam = " + param );
         if (argValProp != null) {
-          if ( Collection.class.isAssignableFrom( param.getType() ) ) {
-            param.setValue(argValPropNodes);
-          } else {
-            param.setValue(argValProp);
-          }
+            param.setValue(argValProp);   
         }
         return new Expression<Object>(param);
       }
@@ -237,6 +240,37 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         return new Expression<Object>(argValProp);
       }
       
+    }
+    
+    /**
+     * Returns the node for the passed operand property value.  Mainly needed
+     * to process ElementValues.
+     */
+    private P getValueOfElement(P operandProp)
+    {
+      
+      P valueOfElementNode = null;
+
+      // Get the valueOfElementProperty node:
+      Collection< P > valueOfElemNodes = 
+              model.getProperty(operandProp, "element");
+      
+      // If it is a elementValue, then this will be non-empty:
+      if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
+                      
+        // valueOfElemNodes should always be size 1 b/c element
+        // is a single NodeRef
+        valueOfElementNode = valueOfElemNodes.iterator().next();
+        
+      }
+      
+      // Otherwise just use the node itself as we are not dealing with
+      // elementValue types:
+      else {
+        valueOfElementNode = operandProp;
+      }
+      
+      return valueOfElementNode;
     }
      
     /**
@@ -292,24 +326,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
            
           //operandProp = iterator.previous();
 
-          // Get the valueOfElementProperty node:
-          Collection< P > valueOfElemNodes = 
-                  model.getProperty(operandProp, "elementValueOfElement");
-          
-          // If it is a elementValue, then this will be non-empty:
-          if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
-                          
-            // valueOfElemNodes should always be size 1 b/c elementValueOfElement
-            // is a single NodeRef
-            valueOfElementNode = valueOfElemNodes.iterator().next();
-            
-          }
-          
-          // Otherwise just use the node itself as we are not dealing with
-          // elementValue types:
-          else {
-            valueOfElementNode = operandProp;
-          }
+          valueOfElementNode = getValueOfElement(operandProp);
           
           if (valueOfElementNode != null) {
             
@@ -634,7 +651,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
       // first operand must be the operation
       Iterator< P > it = operands.iterator();
-      P operation = it.next();
+      P operation = getValueOfElement(it.next());
       
       // The other operands are model element arguments to the operation. 
 //      ArrayList< Object > argElements = new ArrayList<Object>();
@@ -655,12 +672,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Collection< P > opExpProps =
             model.getProperty( operation, "expression" );
         Collection< P > opParamProps =
-            model.getProperty( operation, "parameter" );
+            model.getProperty( operation, "parameters" );
 
         // Replace the parameters with the arguments.
         if ( !Utils.isNullOrEmpty( opExpProps ) ) {
-          Expression< X > opExpression = 
-              toAeExpression2( opExpProps.iterator().next() );
+          Expression< X > opExpression = toAeExpression2( opExpProps.iterator().next() );
           if ( !Utils.isNullOrEmpty( opParamProps ) ) {
             Iterator< Object > it = aeArgs.iterator();
             // TODO -- Check to see if last Parameter is for a variable number of arguments!
@@ -696,7 +712,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // other implementations that may be intended.
       if ( expression == null ) {
         N operationName = getOperationName( operation );
-        Collection< N > operationNames = model.getName( operation );
+        Collection< N > operationNames = model.getName( operation );  // DELETE ME
 
         Call call = createCall(operationName, aeArgs );
         
@@ -725,20 +741,19 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @return
      */
     private Object elementArgumentToAeExpression( P arg ) {
+      
       // Get the valueOfElementProperty node:
-      Collection< P > valueOfElemNodes = 
-              model.getProperty(arg, "elementValueOfElement");
-      
-      // If it is an elementValue, then this will be non-empty:
-      if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
-                      
-        // valueOfElemNodes should always be size 1 b/c elementValueOfElement
-        // is a single NodeRef
-        arg = valueOfElemNodes.iterator().next();
-        
-      }
-      
+      arg = getValueOfElement(arg);
+
       String typeString = model.getTypeString(arg, null);
+      
+      // If the typeString is null, then create a Parameter for it 
+      // This is to handle the special case of the expose parameter value, which is a
+      // Collection of nodes:
+      if (typeString == null) {
+        // FIXME: Is there a argument name we can use here instead of arg.toString()?
+        return elementValueToAeExpression(arg, arg.toString());
+      }
       
       // If it is an Operation, then it may be meant as a function pointer for
       // functional programming use, like with map.
@@ -767,7 +782,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
       
       if (typeString.equals("Expression")) {
-        return toAeExpression(arg);
+        return toAeExpression2(arg);
       }
       
       // If it is a Parameter then add it the map for later use,
@@ -938,7 +953,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Iterator< Object > it = parameterValues.iterator();
       Vector< Object > args = new Vector< Object >();
       while (it.hasNext() ) {
-        args.add( elementArgumentToAeExpression( (P)it.next() ) ); // FIXME dont like warning
+        args.add( elementArgumentToAeExpression( (P)it.next() ) ); // FIXME dont like warning, also this is a Collection<EmsScriptNodes> which our methods are not equipped for
       }
       
       if ( true ) {
