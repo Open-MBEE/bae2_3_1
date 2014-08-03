@@ -457,7 +457,6 @@ public class Expression< ResultType > extends HasIdImpl
 		if ( !subbed && ( expression instanceof HasParameters ) ) {
 			HasParameters gotParameters = (HasParameters) expression;
 			assert( gotParameters != null );
-      seen.remove( this );
 			subbed = gotParameters.substitute( p1, p2, deep, seen );
 		}
 		return subbed;
@@ -483,7 +482,6 @@ public class Expression< ResultType > extends HasIdImpl
     if ( expression instanceof HasParameters ) {
       HasParameters gotParameters = (HasParameters) expression;
       assert( gotParameters != null );
-      seen.remove( this );
       subbed = gotParameters.substitute( p1, p2, deep, seen );
     }
     return subbed;
@@ -514,7 +512,6 @@ public class Expression< ResultType > extends HasIdImpl
     if ( expression instanceof HasParameters ) {
       HasParameters gotParameters = (HasParameters) expression;
       assert( gotParameters != null );
-      seen.remove( this );
       subbed = gotParameters.substitute( p1, p2, deep, seen );
     }
     return subbed;
