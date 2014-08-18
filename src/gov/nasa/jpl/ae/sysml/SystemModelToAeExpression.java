@@ -32,6 +32,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      */
     private Map<P, Parameter<Object>> exprParamMap = new HashMap<P,Parameter<Object>>();
 
+    public Map< P, Parameter< Object >> getExprParamMap() {
+      return exprParamMap;
+    }
+
     public SystemModelToAeExpression(SM model) {
         setModel(model);
     }
