@@ -222,6 +222,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         if (argValProp != null) {
             param.setValue(argValProp);   
         }
+        // Add to map:
+        exprParamMap.put( (P)argValueNode, param );
         return new Expression<Object>(param);
       }
       
@@ -605,6 +607,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                                                                false, true, true, false );
           
           if (param != null) {
+            // Add to map:
+            exprParamMap.put( arg, param );
             return new Expression<Object>(param);
           }
           
