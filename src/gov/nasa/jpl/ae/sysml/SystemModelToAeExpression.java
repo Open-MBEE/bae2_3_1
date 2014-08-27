@@ -160,12 +160,15 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Collection<U> argValPropNodes = null;
       Object argValProp = null;
       String type = model.getTypeString(argValueNode, null);
+      Boolean setValue = true;
       
       if (type == null) {
         argValProp = argValueNode;
         argType = "Object";
       }
       else {
+        setValue = !type.equals("Parameter"); // Dont set the value for Parameters
+        
         // Get the value of the argument based on type:
         if (type.equals("LiteralInteger")) {
           
@@ -219,7 +222,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       if (param != null) {
         
         Debug.outln( "\nparam = " + param );
-        if (argValProp != null) {
+        if (argValProp != null && setValue) {
             param.setValue(argValProp);   
         }
         // Add to map:
@@ -526,7 +529,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       
       // If it is an Operation, then it may be meant as a function pointer for
       // functional programming use, like with map.
-      if (typeString.equals("Operation")) {
+      else if (typeString.equals("Operation")) {
 
         Vector<Object> v = new Vector<Object>();
         processOperation( arg, v, true);
@@ -541,41 +544,14 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         
       }
       
-      if (typeString.equals("Expression")) {
+      else if (typeString.equals("Expression")) {
         return toAeExpression(arg);
       }
-      
-      // If it is a Parameter then add it the map for later use,
-      // and create a Parameter for it:
-      else if (typeString.equals("Parameter")) {
-      
-        Parameter<Object> param = null;
-
-        // Get the name of the argument Node:
-        Collection<N > argValueNames = model.getName(arg);
-        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
-                                                                 argValueNames.iterator().next().toString();
-        
-        // TODO get the parameterType property and set it the Parameter type
-        
-        // Wrap the argument in a Parameter:
-        param = (Parameter<Object>)classData.getParameter( null, argValName, false, true, true, false );
-        
-        if (param != null) {
-          
-          // Add to map:
-          exprParamMap.put( arg, param );
-          return new Expression<Object>(param);
-
-        }
-        
-      }
                   
-      // Its a Property command arg, so get the argument values:
-      else if (typeString.equals("Property")) {
-        
-        Parameter<Object> param = null;
-        
+      // All other cases failed, then just create a Parameter for
+      // it, ie it is a Property, Parameter, Element, a LiteralInt, etc:
+      else {
+                
         // Get the argument Node:
         Collection<U > argValueNodes = model.getValue(arg, null);
 
@@ -584,55 +560,19 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
                                                                  argValueNames.iterator().next().toString();
         
-        // If the argument node has a value:
-        if (!Utils.isNullOrEmpty(argValueNodes)) {
-          
-          // TODO can we assume this will always be size one?
-          Object argValueNode = argValueNodes.iterator().next();
-          Debug.outln( "\nargValueNode = " + argValueNode );
-          
-          // Create a Parameter for the argument and add to arguments:
-          return elementValueToAeExpression(argValueNode, argValName);
-          
-        } // ends !Utils.isNullOrEmpty(argValueNodes)
-        
-        // Argument node does not have a value, so just add to argument list 
-        // for the operator with no set value:
-        else {
-          
-          // Wrap the argument in a Parameter:
-          String argName = argValName != null ? argValName : arg.toString();
-          
-          param = (Parameter< Object >)classData.getParameter( null, argName,
-                                                               false, true, true, false );
-          
-          if (param != null) {
-            // Add to map:
-            exprParamMap.put( arg, param );
-            return new Expression<Object>(param);
-          }
-          
-        } // ends else argument node does not have a value
+        // TODO can we assume this will always be size one?
+        Object argValueNode = Utils.isNullOrEmpty(argValueNodes) ? arg : argValueNodes.iterator().next();
+        Debug.outln( "\nargValueNode = " + argValueNode );
 
-      } // ends else if it is Property (ie a command arg)
-      
-      // All other cases failed, then just create a Parameter for
-      // it, ie it is plain ole Element, a LiteralInt, etc:
-      else {
-        
-        // Get the name of the argument Node:
-        Collection<N > argValueNames = model.getName(arg);
-        String argValName =
-            Utils.isNullOrEmpty( argValueNames ) ? null
-                                                : argValueNames.iterator().next()
-                                                               .toString();
-        
+        String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
+
         // Create a Parameter for the argument and add to arguments:
-        return elementValueToAeExpression(arg, argValName);
-      }
+        return elementValueToAeExpression(argValueNode, argName);
+                  
+      } // ends else 
       
-      // TODO Auto-generated method stub
       return null;
+      
     }
     
     /**
