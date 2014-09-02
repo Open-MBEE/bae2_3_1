@@ -3,7 +3,6 @@ package gov.nasa.jpl.ae.sysml;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -509,9 +508,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @param arg
      * @return
      */
-    private Object elementArgumentToAeExpression( P arg ) {
+    private Object elementArgumentToAeExpression( P arg ) { // Why is this P and not T??
       
       String typeString = null;
+      
+      if ( arg == null) return new Expression<Object>( (Object)null, Object.class );
       
       // Handle special case of expose parameter value, which is a collection of EmsScriptNode
       // If it is not this special case, then get its type:
