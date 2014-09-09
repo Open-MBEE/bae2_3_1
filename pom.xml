@@ -2,8 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>gov.nasa.jpl.mbee.bae</groupId>
   <artifactId>bae</artifactId>
-  <version>0.0.23</version>
-  <name>bae</name>
+  <version>0.0.24>
   <description>Behavior Analysis Engine for MBEE</description>
   <distributionManagement>
       <!-- use mvn -U deploy -DgeneratePom=true -Dpackaging=jar  -->
@@ -72,7 +71,7 @@
     <dependency>
         <groupId>gov.nasa.jpl.mbee.sysml</groupId>
         <artifactId>sysml</artifactId>
-        <version>0.0.19</version>
+        <version>0.0.20</version>
     </dependency>
 	<dependency>
 	    <groupId>org.eclipse.emf</groupId>
