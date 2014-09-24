@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="thirdParty/douglascrockford-JSON-java-d15e776"/>
 	<classpathentry kind="src" path="thirdParty/javaparser-1.0.8-src"/>
 	<classpathentry excluding="douglascrockford-JSON-java-d15e776/|javaparser-1.0.8-src/" kind="src" path="thirdParty"/>
-	<classpathentry kind="con" path="gov.nasa.jpl.magicdraw.CLASSPATH_LIB_CONTAINER/,lib/,lib/webservice/,lib/graphics"/>
+	<classpathentry kind="con" path="gov.nasa.jpl.magicdraw.CLASSPATH_LIB_CONTAINER/,update/,lib/,lib/webservice/,lib/graphics"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/sysml"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/util"/>
