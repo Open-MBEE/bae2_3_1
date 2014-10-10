@@ -3,6 +3,10 @@ package gov.nasa.jpl.ae.util;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
+import gov.nasa.jpl.ae.event.TimeDomain;
+import gov.nasa.jpl.ae.solver.BooleanDomain;
+import gov.nasa.jpl.ae.solver.DoubleDomain;
+import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -533,7 +537,7 @@ public class ClassData {
       // args = "\"" + p.name + "\", this";
       if ( !Utils.isNullOrEmpty( castType ) ) {
 //        args = "\"" + paramName + "\", " + valueArg + ", this";
-        argArr = new Object[]{ paramName, null, getCurrentAeClass() };
+        argArr = new Object[]{ paramName, TimeDomain.positiveDomain, getCurrentAeClass() };
       }
     } else if ( paramTypeName.toLowerCase().startsWith( "int" )
                 || paramTypeName.toLowerCase().startsWith( "long" ) // TODO -- Need a
@@ -545,7 +549,7 @@ public class ClassData {
       // args = "\"" + p.name + "\", this";
       if ( !Utils.isNullOrEmpty( castType ) ) {
 //        args = "\"" + paramName + "\", " + valueArg + ", this";
-        argArr = new Object[]{ paramName, null, getCurrentAeClass() };
+        argArr = new Object[]{ paramName, IntegerDomain.defaultDomain, getCurrentAeClass() };
       }
     } else if ( paramTypeName.toLowerCase().equals( "double" )
                 || paramTypeName.trim().replaceAll( " ", "" )
@@ -555,7 +559,7 @@ public class ClassData {
       // args = "\"" + p.name + "\", this";
       if ( !Utils.isNullOrEmpty( castType ) ) {
 //        args = "\"" + paramName + "\", " + valueArg + ", this";
-        argArr = new Object[]{ paramName, null, getCurrentAeClass() };
+        argArr = new Object[]{ paramName, DoubleDomain.defaultDomain, getCurrentAeClass() };
       }
     } else if ( paramTypeName.toLowerCase().equals( "boolean" )
                 || paramTypeName.trim().replaceAll( " ", "" )
@@ -565,7 +569,7 @@ public class ClassData {
       // args = "\"" + p.name + "\", this";
       if ( !Utils.isNullOrEmpty( castType ) ) {
 //        args = "\"" + paramName + "\", " + valueArg + ", this";
-        argArr = new Object[]{ paramName, null, getCurrentAeClass() };
+        argArr = new Object[]{ paramName, BooleanDomain.defaultDomain, getCurrentAeClass() };
       }
     } else if ( paramTypeName.equals( "String" )
                 || paramTypeName.trim().replaceAll( " ", "" )
