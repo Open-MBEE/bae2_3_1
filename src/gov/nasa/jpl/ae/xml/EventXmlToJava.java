@@ -15,14 +15,11 @@ import japa.parser.ast.body.ModifierSet;
 import japa.parser.ast.body.TypeDeclaration;
 import japa.parser.ast.body.VariableDeclarator;
 import japa.parser.ast.body.VariableDeclaratorId;
-import japa.parser.ast.expr.AssignExpr;
-import japa.parser.ast.expr.BinaryExpr;
 import japa.parser.ast.expr.Expression;
 import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
-import japa.parser.ast.expr.UnaryExpr;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.ExplicitConstructorInvocationStmt;
 import japa.parser.ast.stmt.Statement;
@@ -37,8 +34,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.Math;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,7 +49,6 @@ import java.util.jar.JarInputStream;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
@@ -73,7 +67,6 @@ import org.xml.sax.SAXException;
 
 // Keep these for resolving class references. 
 import gov.nasa.jpl.ae.event.*;
-import gov.nasa.jpl.ae.solver.*;
 import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.ae.util.JavaForFunctionCall;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
@@ -84,10 +77,11 @@ import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.TimeUtils;
-import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 import gov.nasa.jpl.mbee.util.Timer;
 import gov.nasa.jpl.mbee.util.Utils;
 import demandResponse.*;
+
+import gov.nasa.jpl.mbee.util.Random;
 
 /*
  * Translates XML to executable Java classes for Analysis Engine behavior (based
