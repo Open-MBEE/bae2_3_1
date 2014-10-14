@@ -4,7 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.IntegerDomain;
-import gov.nasa.jpl.ae.solver.Random;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 
 /**
