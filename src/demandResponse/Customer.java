@@ -34,7 +34,7 @@ public class Customer extends ParameterListenerImpl {
   public double correctionFactor = 0.1;
   public int samplePeriod = 900; // may only support seconds!
   public long seed = 3;//System.currentTimeMillis();
-  public Random numGen = gov.nasa.jpl.ae.solver.Random.global;
+  public Random numGen = gov.nasa.jpl.mbee.util.Random.global;
   
   public boolean DREventExists = false;
   public DRObject drEvent = null;
