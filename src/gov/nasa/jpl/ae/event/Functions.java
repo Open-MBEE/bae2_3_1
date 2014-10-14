@@ -7,9 +7,10 @@ import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
-import gov.nasa.jpl.ae.solver.Random;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.DomainHelper;
@@ -2234,17 +2235,25 @@ public class Functions {
   }
   
   public static void main( String[] args ) {
-    Parameter<Integer> z = new Parameter<Integer>( "z", new IntegerDomain( 0, 10 ), 10, null );
+    Parameter<Double> z = new Parameter<Double>( "z", (Domain<Double>)(new DoubleDomain( 0.0, 10.0 )), 10.0, null );
     Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 0, 10 ), 1, null );
-    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 0, 10 ), null, null );
-    Parameter<Integer> w = new Parameter<Integer>( "w", new IntegerDomain( 0, 10 ), 2, null );
+    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 0, 10 ), 1, null );
+    Parameter<Double> w = new Parameter<Double>( "w", new DoubleDomain( 0.0, 10.0 ), 2.0, null );
     Sum< Integer, Integer > xPlusY = new Sum< Integer, Integer >( x, y );
     Sum< Integer, Integer > xPlusYPlusW =
         new Sum< Integer, Integer >( xPlusY, w );
     Less< Integer > expr = new Less< Integer >( z, xPlusYPlusW );
     System.out.println("expr = " + expr ); 
-    Integer xVal = expr.pickValue( x );
-    System.out.println("Picked " + xVal + " for x = " + x + " in expr = " + expr ); 
+////    Integer xVal = expr.pickValue( x );
+////    System.out.println("Picked " + xVal + " for x = " + x + " in expr = " + expr ); 
+//    Integer zVal = expr.pickValue( z );
+//    System.out.println("Picked " + zVal + " for z = " + z + " in expr = " + expr ); 
+    Double wVal = expr.pickValue( w );
+    System.out.println("Picked " + wVal + " for w = " + w + " in expr = " + expr );
+    
+    Less< Double > exprLess = new Less< Double >( z, w );
+    Double zVal = exprLess.pickValue( z );
+    System.out.println("Picked " + zVal + " for z = " + z + " in exprLess = " + exprLess );
   }
 
   
