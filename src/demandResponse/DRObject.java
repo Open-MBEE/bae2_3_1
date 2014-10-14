@@ -6,9 +6,8 @@ package demandResponse;
 import gov.nasa.jpl.ae.event.Duration;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.ae.solver.Random;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.TimeUtils;
-import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 /**
  * @author bclement
