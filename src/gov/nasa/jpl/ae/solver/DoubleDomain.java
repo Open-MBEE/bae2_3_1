@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Debug;
 
 import org.junit.Assert;
