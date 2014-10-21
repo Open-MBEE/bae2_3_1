@@ -497,7 +497,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       if ( expression == null ) {
         N operationName = getOperationName( operation );
         Call call = createCall(operationName, aeArgs );       
-        expression = new Expression( call ); // FIXME what to do if call is null?
+        expression = new Expression( call.evaluate( false ) ); // FIXME what to do if call is null?
       }
       
       return expression;
