@@ -7,7 +7,7 @@
   <property name="scriptXmlFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/script.xml"/>
   <property name="pluginXmlFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/plugin.xml"/>
   <property name="mainPyFile" value="src/gov/nasa/jpl/ae/magicdrawPlugin/AE/main.py"/>
-  <property name="gitDir" value="${home}/git"/>
+  <property name="gitDir" value="${basedir}/.."/>
   <property name="view_repo" value="${gitDir}/alfresco-view-repo"/>
   <property name="view_repo_web_lib" value="${view_repo}/target/view-repo-war/WEB-INF/lib"/>
   <property name="view_repo_AE1" value="${view_repo}/repo/gov/nasa/jpl/ae/AE/1.0"/>
