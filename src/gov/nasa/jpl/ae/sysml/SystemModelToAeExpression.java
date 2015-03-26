@@ -10,7 +10,9 @@ import java.util.Map;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
+import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassData;
@@ -51,19 +53,23 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       return expression.evaluate( true );
     }
     
-    /**
-     * Return a Call object based on the passed operation and arguments
-     * 
-     * @param operationName The name of operation used to search for the
-     *                      equivalent java call
-     * @param arguments The arguments for operation
-     * @return Call object or null if the operationName is not a java call
-     */
-    private Call createCall(N operationName, Vector< Object > arguments) {
+  /**
+   * Return a Call object based on the passed operation and arguments
+   * 
+   * @param object
+   *          The object whose method is called; if this is null, this.model is
+   *          used as the object.
+   * @param operationName
+   *          The name of operation used to search for the equivalent java call
+   * @param arguments
+   *          The arguments for operation
+   * @return Call object or null if the operationName is not a java call
+   */
+    private Call createCall(Object object, N operationName, Vector< Object > arguments) {
       
       Call call = null;
       Method method = null;
-      Object object = null;
+      //Object object = o;
 
       /*
        * We will look for the corresponding Constructor or FunctionCall in
@@ -87,19 +93,35 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             argTypes.add( ((Expression<?>)arg).getType());
           }
           else {
-            Debug.error( "Expecting an Expression for the argument: " + arg );
+              argTypes.add( arg.getClass() );
+//              if ( arg.getClass().isArray() ) {;
+//                  
+//              }
+//            //Debug.error( "Expecting an Expression for the argument: " + arg );
           }
         }
         
         // 1.
-        method = ClassUtils.getMethodForArgTypes( model.getClass(),
-                                                  operationName.toString(),
-                                                  argTypes.toArray(new Class[]{}));
-        
-        if ( method != null ) {
-          object = model;
+        if ( operationName.equals( "evaluate" ) ) {
+//          method = ClassUtils.getMethodForArgTypes( EvaluateOperation.class,
+//                                                    operationName.toString(),
+//                                                    argTypes.toArray(new Class[argTypes.size()]));
+            ////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
+            //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
+            call = new OperationFunctionCall( object, arguments );
         }
-        else {
+        if ( call == null ) {
+          method = ClassUtils.getMethodForArgTypes( model.getClass(),
+                                                    operationName.toString(),
+                                                    argTypes.toArray(new Class[argTypes.size()]));
+
+        }
+        if ( method != null ) {
+          if ( object == null ) {
+            object = model;
+          }
+        }
+        else if ( call == null ) {
           // 2.
           call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
                                                                     arguments,
@@ -194,6 +216,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           argValPropNodes = model.getValue(argValueNode, "string");
           argType = "String";
         }
+        else if (type.equals("LiteralNull")) {
+          argValProp = null;
+          argType = null;
+        }
         // Otherwise, will just set the value of the parameter to the node itself:
         else {
             argValProp = argValueNode;
@@ -230,12 +256,14 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             exprParamMap.put( (P)argValueNode, param );
         }
         
+System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argValName + ") = param = " +  param );
         return new Expression<Object>(param);
       }
       
       // Creating param failed, so just add the value object itself wrapped in an
       // Expression:
       else {
+System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argValName + ") = argValProp = " +  argValProp );
         return new Expression<Object>(argValProp);
       }
       
@@ -311,11 +339,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                 Collection<P> opExpProps = model.getProperty( valueOfElementNode, 
                                                               "expression" );
                 Collection<P> opParamProps = model.getProperty( valueOfElementNode, 
-                                                               "parameter" );
+                                                               "parameters" );
                 
                 // If the Operation has no expression then 
                 // make a Call for it:
-                if (Utils.isNullOrEmpty( opExpProps )) {
+                //if (Utils.isNullOrEmpty( opExpProps )) {
                     
                     Vector<Object> opEmptyArgs = new Vector<Object>();
     
@@ -324,12 +352,28 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                     if (!Utils.isNullOrEmpty( opParamProps )) {
                         
                         for (int i = 0; i < opParamProps.size(); ++i) {
-                            opEmptyArgs.add( new Expression< Object >( (Object)null ) );
+                            opEmptyArgs.add( new Expression< Object >( (Object)null ) );//new Object() ) );
                         }
                     }
                     
+                    // The object from which the operation is invoked.
+                    Object object = null;
+                    
+                    // If an expression is defined for the operation, we wrap the invocation
+                    // of the operation in a Java method call, that we later wrap as a
+                    // FunctionCall.
+                    if (!Utils.isNullOrEmpty( opExpProps )) {
+                      EvaluateOperation evo =
+                          new EvaluateOperation( valueOfElementNode );
+                      object = evo;
+                      operationName = (N)"evaluate";
+                      Vector<Object> newArgs = new Vector< Object >();
+                      newArgs.add( opEmptyArgs.toArray() );
+                      opEmptyArgs = newArgs;
+                    }
+                    
                     // Create a Call for the argument 
-                    Call argCall = createCall(operationName, opEmptyArgs);
+                    Call argCall = createCall(object, operationName, opEmptyArgs);
                     
                     if ( argCall != null ) {
                       
@@ -338,39 +382,48 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
             
                     } // Ends if argCall != null
                       
-                }
-                
-                // TODO FIXME this is no longer correct below:
-                // If the Operation has a expression then
-                // use operationToAeExpression to process
-                else {
-                  
-                  
-                  Debug.error("Error: dont know how to process a Operation arg with a expression!");
-
-//                    List<Object> parameterValues = new ArrayList<Object>();
-//                    
-//                    // If it has parameters then pass in the
-//                    // parameter values:
-//                    if (!Utils.isNullOrEmpty( opParamProps )) {
-//                        // If the argument is a Parameter (wrapped in an expression),
-//                        // then get its value:
-//                        for (Object arg : arguments) {
-//                            if (arg instanceof Expression) {
-//                                Expression<?> expr = (Expression<?>)arg;
-//                                
-//                                if (expr.form.equals(Expression.Form.Parameter)) {
-//                                    Parameter<?> param = (Parameter<?>)expr.expression;
-//                                    parameterValues.add( param.getValue() );
-//                                }
-//                            }
-//                        }
-//                    }
-//                    
-//                    arguments.add( operationToAeExpression(valueOfElementNode,
-//                                                           parameterValues));
+//                }
 //                
-                }
+//                // TODO FIXME this is no longer correct below:
+//                // If the Operation has a expression then
+//                // use operationToAeExpression to process
+//                else {
+//                  
+//                  // Create a function call for 
+//                  //   operationToAeExpression( valueOfElementNode, opParamOps ).evaluate()
+//                  //      
+//                  EvaluateOperation evo = new EvaluateOperation< P >( valueOfElementNode );
+//                  // Create a Call for the argument 
+//                  Call argCall = createCall(null, operationName, opEmptyArgs);
+//                  
+//                  
+//                  
+//                  Debug.error("Error: dont know how to process a Operation arg with a expression!");
+//
+//                  System.out.println("This is weird!");
+////                    List<Object> parameterValues = new ArrayList<Object>();
+////                    
+////                    // If it has parameters then pass in the
+////                    // parameter values:
+////                    if (!Utils.isNullOrEmpty( opParamProps )) {
+////                        // If the argument is a Parameter (wrapped in an expression),
+////                        // then get its value:
+////                        for (Object arg : arguments) {
+////                            if (arg instanceof Expression) {
+////                                Expression<?> expr = (Expression<?>)arg;
+////                                
+////                                if (expr.form.equals(Expression.Form.Parameter)) {
+////                                    Parameter<?> param = (Parameter<?>)expr.expression;
+////                                    parameterValues.add( param.getValue() );
+////                                }
+////                            }
+////                        }
+////                    }
+////                    
+////                    arguments.add( operationToAeExpression(valueOfElementNode,
+////                                                           parameterValues));
+////                
+//                }
             
             } // ends if operand arg
          
@@ -379,6 +432,37 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         return operationName;
     }
     
+  /**
+   * A functor for wrapping a call on a sysml operation as a Java function call.
+   *
+   */
+    public class EvaluateOperation {
+        P operation;
+        public EvaluateOperation( P operation ) {
+          this.operation = operation;
+        }
+        public Object evaluate( Object...sysmlParameters ) {
+//          return evaluate(sysmlParameters);
+//        }
+//        Object evaluate( Collection<P> sysmlParameters ) {
+//          List<Object> paramList = Utils.asList( sysmlParameters, Object.class );
+          Vector<Object> paramList = new Vector<Object>(Utils.arrayAsList( sysmlParameters ));
+          Object result = operationToAeExpressionImpl( operation, paramList );//.evaluate(true);
+          return result;
+        }
+    }
+    
+    public class OperationFunctionCall extends FunctionCall {
+
+//        public OperationFunctionCall( P operation,
+//                                      Vector< Object > arguments ) {
+//            super( new EvaluateOperation( operation ), EvaluateOperation.class, "evaluate", arguments );
+//        }
+
+        public OperationFunctionCall( Object object, Vector< Object > arguments ) {
+            super( object, EvaluateOperation.class, "evaluate", arguments );
+        }
+    }
     
     /**
      * Get a name for the operation whether an Operation element, a String, or a
@@ -444,6 +528,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         arguments.add( elementArgumentToAeExpression( it.next() ) );
       }
       
+System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
       return operationToAeExpressionImpl( operation, arguments );
     }
     
@@ -494,13 +579,14 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // If operation is not an Operation model element, or if the Operation does
       // not have an Expression defining it, use its name to try and match against
       // other implementations that may be intended.
-      if ( expression == null ) {
+      if ( expression == null || ( expression.expression == null && expression.form != Form.Value ) ) {
         N operationName = getOperationName( operation );
-        Call call = createCall(operationName, aeArgs );       
+        Call call = createCall(null, operationName, aeArgs );       
         expression = new Expression( call ); // FIXME what to do if call is null?
         //expression = new Expression( call.evaluate( false ) ); // This breaks test case 22
       }
       
+System.out.println( "\noperationToAeExpressionImpl(" + operation + ", " + aeArgs + ") = " + expression );
       return expression;
     }
 
@@ -530,6 +616,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // If the typeString is null, then create a Parameter for it 
       if (typeString == null) {
         // FIXME: Is there a argument name we can use here instead of arg.toString()?
+System.out.println( "\nelementArgumentToAeExpression(" + arg + ") = elementValueToAeExpression(" + arg + ", " + arg + ")" );
         return elementValueToAeExpression(arg, arg.toString());
       }
       
@@ -541,16 +628,18 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         processOperation( arg, v, true);
         
         if ( !Utils.isNullOrEmpty( v ) ) {
+System.out.println( "\nelementArgumentToAeExpression(" + arg + ") = " + v.firstElement() );
           return v.firstElement();
         }
         else {
           Debug.error( true, true,
-                      "ERROR!  Don't know how to handle Operation as argument!" );
+                      "\nERROR! processOperation(" + arg + ") didn't return a call!" );
         }
         
       }
       
       else if (typeString.equals("Expression")) {
+System.out.println( "\nelementArgumentToAeExpression(" + arg + ") = toAeExpression(" + arg +  ")" );
         return toAeExpression(arg);
       }
                   
@@ -573,6 +662,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
 
         // Create a Parameter for the argument and add to arguments:
+System.out.println( "\nelementArgumentToAeExpression(" + arg + " = elementValueToAeExpression(" + argValueNode + ", " + argName + ")" );
         return elementValueToAeExpression(argValueNode, argName);
                   
       } // ends else 
