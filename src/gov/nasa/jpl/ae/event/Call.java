@@ -18,6 +18,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -38,7 +39,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
   protected Vector< Object > arguments = null; // arguments to constructor
-  protected Vector< Object > evaluatedArguments = null; // arguments to constructor
+  //protected Vector< Object > evaluatedArguments = null; // arguments to constructor
   protected boolean evaluationSucceeded = false;
   
   abstract public Class< ? > getReturnType();
@@ -51,7 +52,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public Call() {}
   
   @Override
-  public void deconstruct() {
+  public synchronized void deconstruct() {
     if ( nestedCall != null ) {
       if ( nestedCall.getValue( false ) != null ) {
         nestedCall.getValue( false ).deconstruct();
@@ -74,11 +75,114 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //arguments = null;
     }
     this.object = null; // Can't deconstruct since Call does not own it.
-    if ( evaluatedArguments != null ) {
-      this.evaluatedArguments.clear(); // Can't deconstruct since Call does not own them.
-    }
+//    if ( evaluatedArguments != null ) {
+//      this.evaluatedArguments.clear(); // Can't deconstruct since Call does not own them.
+//    }
   }
 
+  
+  public static boolean divisibleBy( int x, int y ) {
+      if ( y == 0 ) return false;
+      return ( x / y ) * y == x;
+  }
+  
+  public static boolean isA( Object o, Class<?> c ) {
+      return isA( o, c, true, true );
+  }  
+  public static boolean isA( Object o, Class<?> c, boolean nullOkay,
+                             boolean tryEvaluating ) {
+      if ( o == null ) return nullOkay;
+      if ( c == null ) return false;
+      Class<?> oc = o.getClass();
+      if ( c.isAssignableFrom( oc ) ) return true;
+      if ( o instanceof Wraps ) {
+          Wraps<?> w = ((Wraps<?>)o);
+          oc = w.getType();
+          if ( oc != null && c.isAssignableFrom( oc ) ) return true;
+          oc = w.getPrimitiveType();
+          if ( oc != null && c.isAssignableFrom( oc ) ) return true;
+      }
+      if ( tryEvaluating ) {
+          Object v = Expression.evaluate( o, c, false );
+          return isA( v, c, false, false );
+      }
+      return false;
+  }
+  
+  public static boolean isA( Collection< ? > c, Class< ? >[] classes ) {
+      return isA( c, Utils.arrayAsList( classes ) );
+  }
+
+  public static boolean isA( Collection< ? > c, Class< ? >[] classes,
+                             boolean isVarArgs ) {
+      return isA( c, Utils.arrayAsList( classes ), isVarArgs );
+  }
+  
+  public static boolean isA( Collection< ? > c, Collection< Class< ? > > classes ) {
+      return isA( c, classes, false );
+  }
+  
+  public static boolean isA( Collection< ? > c, Collection< Class< ? > > classes,
+                             boolean isVarArgs ) {
+      if ( c == null || classes == null ) return false;
+
+      // check if the list sizes match the number
+      boolean argsSame = c.size() == classes.size();
+      boolean numberOfArgsOkay = argsSame || ( isVarArgs && classes.size() < c.size() );
+      if ( !numberOfArgsOkay ) return false;
+      
+      Iterator< Class< ? > > i = classes.iterator();
+      Class< ? > cls = null;
+      for ( Object o : c ) {
+          if ( i.hasNext() ) {
+              cls = i.next();
+          }
+          if ( !isA( o, cls ) ) return false;
+      }
+      return true;
+  }
+  
+  public synchronized boolean canMapToListOfArguments() {
+      int as = arguments.size();
+      if ( as == 0 ) return false;
+
+      Class<?> cls = getMember().getDeclaringClass();
+      if ( cls == null ) return false;
+
+      Class< ? >[] types = getParameterTypes();
+      int ts = types.length;
+      
+      if ( ts == 0 ) {
+          // check if arguments can substitute for the object
+          boolean allMatched = true;
+          for ( Object a : arguments ) {
+              allMatched = isA( a, cls );
+          }
+          if ( allMatched ) return true;
+      }
+      // check each argument to see if it matches the types
+      boolean allMatched = true;
+      for ( Object a : arguments ) {
+            allMatched = ( ( ( a instanceof Collection ) &&
+                             isA( (Collection< ? >)a, types, isVarArgs() ) ) || 
+                           ( ts == 1 && isA( a, types[ 0 ] ) ) );
+          if ( !allMatched ) break;
+      }
+      if ( allMatched ) return true;
+      return false;
+  }
+
+  public synchronized boolean canMapToListOfArguments( Object[] evaluatedArgs ) {
+      // replace this.arguments with evaluatedArgs and call canMapToListOfArguments()
+      Vector< Object > oldArguments = arguments;
+      Vector< Object > newArguments = new Vector< Object >();
+      newArguments.addAll( Utils.arrayAsList( evaluatedArgs ) );
+      arguments = newArguments;
+      boolean ans = canMapToListOfArguments();
+      arguments = oldArguments;
+      return ans;
+  }
+  
   public Boolean hasTypeErrors( Object[] evaluatedArgs ) {
     boolean gotErrors = hasTypeErrors();
     int numEvalArgs = 0;
@@ -112,7 +216,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return gotErrors;
   }
   
-  public Boolean hasTypeErrors() {
+  public synchronized Boolean hasTypeErrors() {
     if ( getMember() == null ) return true;
     Class< ? >[] paramTypes = getParameterTypes();
     if ( !isVarArgs() ) {
@@ -165,8 +269,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return evaluate(propagate, true);
   }
   
+  //public boolean 
+  
   // TODO -- consider an abstract Call class
-  public Object evaluate( boolean propagate, boolean doEvalArgs) { // throws IllegalArgumentException,
+  public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) { // throws IllegalArgumentException,
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( propagate ) {
@@ -386,7 +492,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return substitute( p1, (Object)p2, deep, seen );
   }
   @Override
-  public boolean substitute( Parameter< ? > p1, Object p2, boolean deep,
+  public synchronized boolean substitute( Parameter< ? > p1, Object p2, boolean deep,
                              Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
@@ -448,7 +554,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
 
   @Override
-  public boolean isGrounded( boolean deep, Set< Groundable > seen ) {
+  public synchronized boolean isGrounded( boolean deep, Set< Groundable > seen ) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -486,7 +592,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
 
   @Override
-  public boolean ground( boolean deep, Set< Groundable > seen ) {
+  public synchronized boolean ground( boolean deep, Set< Groundable > seen ) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -523,7 +629,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   @Override
-  public String toShortString() {
+  public synchronized String toShortString() {
     StringBuffer sb = new StringBuffer();
     if ( getMember() == null ) {
       sb.append( "null" );
@@ -546,8 +652,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return toString( withHash, deep, seen, null );
   }
   @Override
-  public String toString(boolean withHash, boolean deep, Set< Object > seen,
-                         Map< String, Object > otherOptions) {
+  public synchronized String toString(boolean withHash, boolean deep, Set< Object > seen,
+                                      Map< String, Object > otherOptions) {
     Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) deep = false;
     seen = pair.second;
@@ -627,12 +733,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     this.object = object;
   }
 
-  /**
-   * @return the arguments
-   */
-  public Vector< Object > getEvaluatedArguments() {
-    return evaluatedArguments;
-  }
+//  /**
+//   * @return the arguments
+//   */
+//  public Vector< Object > getEvaluatedArguments() {
+//    return evaluatedArguments;
+//  }
 
   /**
    * @return the arguments
@@ -644,7 +750,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   /**
    * @param arguments the arguments to set
    */
-  public void setArguments( Vector< Object > arguments ) {
+  public synchronized void setArguments( Vector< Object > arguments ) {
     this.arguments = arguments;
   }
 
@@ -719,7 +825,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @param obj
    *            the replacement for the argument
    */
-  protected void sub( int indexOfArg, Object obj ) {
+  protected synchronized void sub( int indexOfArg, Object obj ) {
       if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
       else if ( indexOfArg == 0 ) object = obj;
       else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
