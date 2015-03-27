@@ -367,9 +367,9 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
                           new EvaluateOperation( valueOfElementNode );
                       object = evo;
                       operationName = (N)"evaluate";
-                      Vector<Object> newArgs = new Vector< Object >();
-                      newArgs.add( opEmptyArgs.toArray() );
-                      opEmptyArgs = newArgs;
+                      //Vector<Object> newArgs = new Vector< Object >();
+                      //newArgs.add( opEmptyArgs.toArray() );
+                      //opEmptyArgs = newArgs;
                     }
                     
                     // Create a Call for the argument 
@@ -441,6 +441,9 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
         public EvaluateOperation( P operation ) {
           this.operation = operation;
         }
+//        public Object evaluate( Object[] sysmlParameters ) {
+//            return null;
+//        }
         public Object evaluate( Object...sysmlParameters ) {
 //          return evaluate(sysmlParameters);
 //        }
