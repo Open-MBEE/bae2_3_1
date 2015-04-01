@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
@@ -367,10 +368,13 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
                           new EvaluateOperation( valueOfElementNode );
                       object = evo;
                       operationName = (N)"evaluate";
-                      //Vector<Object> newArgs = new Vector< Object >();
-                      //newArgs.add( opEmptyArgs.toArray() );
-                      //opEmptyArgs = newArgs;
+                      Vector<Object> newArgs = new Vector< Object >();
+                      newArgs.add( opEmptyArgs.toArray() );
+                      opEmptyArgs = newArgs;
                     }
+                    System.out.println("*******************************************");
+                    System.out.println("args for call=" + opEmptyArgs);
+                    System.out.println("*******************************************");
                     
                     // Create a Call for the argument 
                     Call argCall = createCall(object, operationName, opEmptyArgs);
