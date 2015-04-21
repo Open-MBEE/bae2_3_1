@@ -514,6 +514,8 @@ public class Functions {
     }
   }
 
+  // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
+  // print "inf"
   // add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
     if ( o1 == null || o2 == null ) return null;
@@ -714,7 +716,7 @@ public class Functions {
   public static float times( float rd1, float rd2 ) {
     float result;
     // check for overflow
-    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
+    boolean signsEqual = (rd1 > 0) == (rd2 > 0); // REVIEW -- why isn't this >= instead of > ????!!
     float ad1 = Math.abs( rd1 );
     float ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
     if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
