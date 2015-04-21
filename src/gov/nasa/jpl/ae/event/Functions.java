@@ -514,8 +514,7 @@ public class Functions {
     }
   }
 
-  // TODO -- Create a plus(Double, Double) that does the overflow and call from
-  // here. add(Expr, Expr) should call this fcn.
+  // add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
     if ( o1 == null || o2 == null ) return null;
       Object result = null;
@@ -732,7 +731,7 @@ public class Functions {
     long ad1 = Math.abs( rd1 );
     long ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
     if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-      if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
+      if ( Long.MAX_VALUE / ad1 <= ad2 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
       else result = rd1 * rd2;
     }
     else  result = rd1 * rd2;
@@ -770,22 +769,27 @@ public class Functions {
       }
       if ( map != null ) result = divide( o1, map );
       else {
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      // TODO -- other types, like BigDecimal
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = ((Double)n1.doubleValue()) / ((Double)n2.doubleValue());
-      } else if ( n1 instanceof Float || n2 instanceof Float ) {
-        result = ((Float)n1.floatValue()) / ((Float)n2.floatValue());
-      } else if ( n1 instanceof Long || n2 instanceof Long ) {
-        result = ((Long)n1.longValue()) / ((Long)n2.longValue());
-      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
-        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
-      } else {
-        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
-      }
-    }
+        Number n1 = Expression.evaluate( o1, Number.class, false );
+        Number n2 = Expression.evaluate( o2, Number.class, false );
+        if ( n1 != null && n2 != null ) {
+          // TODO -- other types, like BigDecimal
+          if ( n1 instanceof Double || n2 instanceof Double ) {
+    //        result = ((Double)n1.doubleValue()) / ((Double)n2.doubleValue());
+            result = (Double)dividedBy( n1.doubleValue(), n2.doubleValue() );
+          } else if ( n1 instanceof Float || n2 instanceof Float ) {
+    //        result = ((Float)n1.floatValue()) / ((Float)n2.floatValue());
+            result = (Float)dividedBy( n1.floatValue(), n2.floatValue() );
+          } else if ( n1 instanceof Long || n2 instanceof Long ) {
+    //        result = ((Long)n1.longValue()) / ((Long)n2.longValue());
+            result = (Long)dividedBy( n1.longValue(), n2.longValue() );
+    //      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
+    ////        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
+    //        result = (Integer)dividedBy( n1.intValue(), n2.intValue() );
+          } else {
+    //        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
+            result = (Integer)dividedBy( n1.intValue(), n2.intValue() );
+          }
+        }
       }
     }
     try {
@@ -805,6 +809,54 @@ public class Functions {
     }
     return null;
   }
+  
+  public static double dividedBy( double rd1, double rd2 ) {
+    double result;
+    // check for overflow
+    if ( rd2 >= 0.0 && rd2 < 1.0 && Double.MAX_VALUE * rd2 <= rd1 ) {
+      result = Double.MAX_VALUE;
+    } else if ( rd2 < 0.0 && rd2 > -1.0 && -Double.MAX_VALUE * rd2 >= rd1 ) {
+      result = -Double.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  public static float dividedBy( float rd1, float rd2 ) {
+    float result;
+    // check for overflow
+    if ( rd2 >= 0.0 && rd2 < 1.0 && Float.MAX_VALUE * rd2 <= rd1 ) {
+      result = Float.MAX_VALUE;
+    } else if ( rd2 < 0.0 && rd2 > -1.0 && -Float.MAX_VALUE * rd2 >= rd1 ) {
+      result = -Float.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  public static long dividedBy( long rd1, long rd2 ) {
+    long result;
+    // check for divide by 0
+    int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
+    if ( rd2 == 0 ) {
+      result = posNeg * Long.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  public static int dividedBy( int rd1, int rd2 ) {
+    int result;
+    // check for divide by 0
+    int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
+    if ( rd2 == 0 ) {
+      result = posNeg * Integer.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  
   
   public static <V1, V2> V1 minus( V1 o1, V2 o2 ) {
     return plus( o1, times( o2, -1 ) );
