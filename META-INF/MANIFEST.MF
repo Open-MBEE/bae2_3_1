@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: SuperPlugginator
+Bundle-SymbolicName: gov.nasa.jpl.ae.magicdrawPlugin.modelQuery
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: gov.nasa.jpl.ae.magicdrawPlugin.modelQuery.MQActivator
+Bundle-Vendor: %Plugin.providerName
+Bundle-Localization: plugin
+Require-Bundle: 
+ org.eclipse.emf.ecore;bundle-version="2.7.0"
+Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: org.python.core

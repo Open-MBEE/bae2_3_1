@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited by Brad Clement (JPL) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="scenario">
+    <xs:complexType>
+      <xs:sequence>
+      	<xs:element name="epoch" type="xs:dateTime" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				The time from which integer timepoints are offset.
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="horizon" type="xs:duration" maxOccurs="1" minOccurs="1">
+      	</xs:element>
+      	<xs:element name="timeUnits" type="xs:string" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				The units of time expressed as an integer (e.g.,
+      				seconds, days, microseconds).
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="eventToBeExecuted" type="invocationType"
+      		minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				the top-level event, scenario, or test case
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="events" type="eventsType" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>event definitions</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+      	<xs:element name="classes" type="classesType" minOccurs="0">
+      		<xs:annotation>
+      			<xs:documentation>
+      				definitions of classes that are not events
+      			</xs:documentation>
+      		</xs:annotation>
+      	</xs:element>
+       </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="eventType">
+    <xs:annotation>
+      <xs:documentation>a durative event class</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="class" type="classType">
+        <xs:annotation>
+          <xs:documentation>the elements of the class definition that are not specific to events</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <!--<xs:element name="eventParameters" type="eventParametersType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>the default parameters every event must have (such as startTime and endTime)</xs:documentation>
+        </xs:annotation>
+      </xs:element>-->
+      <xs:element name="effects" type="effectsType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>the event's effects on state (or time varying) variables</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="elaborations" type="elaborationsType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>child events instantiated by this event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="classType">
+    <xs:annotation>
+      <xs:documentation>a class definition</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="name" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>name of class</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="inheritsFrom" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>name of class or interface from which this class inherits</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="extends" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>same as inheritsFrom</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="implements" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>for Java "implements"</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>package/library that needs to be imported to define some types used in this class; for example, java.util.Queue</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <!--Initialization of an object can often be achieved by creating a
+          function that returns a parameter's value and using the function
+          call as the value in its declaration, so until deemed necessary,
+          an initialization element will be left out.
+      <xs:element name="initialization" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>free form code that will be called upon construction</xs:documentation>
+        </xs:annotation>
+      </xs:element>-->
+      <xs:element name="members" type="parametersType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>class member declarations; values assigned are only initializations and not constraints</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="constraints" type="constraintsType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>a set of constraints that must be satisfied for legal object instantiation</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="constructors" type="functionsType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>a set of constructor definitions</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="methods" type="functionsType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>a set of function definitions</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="dependencies" type="dependenciesType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>dependencies of the event's members on functions of other variables in the scope of the class; these are constraints that take away control of the dependent variable</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="events" type="eventsType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>event definitions</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="classes" type="classesType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>definitions of classes that are not events</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="static" type="xs:boolean" default="false"/>
+  </xs:complexType>
+  <xs:complexType name="parametersType">
+    <xs:annotation>
+      <xs:documentation>a set of parameters</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="parameter" type="parameterType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>zero or more parameters</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="constraintsType">
+    <xs:annotation>
+      <xs:documentation>a set of parameters</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="constraint" type="constraintType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>a text representation of a formula that evaluates as true or false and that may involve parameters</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="functionsType">
+    <xs:annotation>
+      <xs:documentation>definitions of functions</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="function" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>a text representation of a function</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dependenciesType">
+    <xs:annotation>
+      <xs:documentation>a set of dependencies</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="dependency" type="parameterType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>an assignment of a formula to a local parameter</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="effectsType">
+    <xs:annotation>
+      <xs:documentation>a set of effects</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="effect" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>a text expression of a time-dependent operation on a time varying state variable</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="eventsType">
+    <xs:annotation>
+      <xs:documentation>a set of event definitions</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="event" type="eventType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>zero or more event definitions</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="classesType">
+    <xs:annotation>
+      <xs:documentation>a set of class definitions</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="class" type="classType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>zero or more class definitions</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="elaborationsType">
+    <xs:annotation>
+      <xs:documentation>a set of parameters</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="elaboration" type="elaborationType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>a text expression of a formula evaluating to an event invocation or false</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- TODO - REVIEW - It may be good to add an optional "description" to each of these types. -->
+  <xs:complexType name="parameterType">
+    <xs:annotation>
+      <xs:documentation>a parameter name, type, and value</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="name" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>parameter name</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="type" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>type describing how to interpret the parameter value: string, float, int, or class name (optional: if omitted, type is assumed to be known or defaults to string)</xs:documentation>
+        </xs:annotation>
+        <!--<xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="string"/>
+            <xs:enumeration value="float"/>
+            <xs:enumeration value="int"/>
+          </xs:restriction>
+        </xs:simpleType>-->
+      </xs:element>
+      <!-- functional expressions may be used here if constraints/dependencies are interpreted as strings -->
+      <xs:element name="value" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <!-- it may be convenient here to specify domain constraints like DRduration=[1,inf] -->
+          <xs:documentation>parameter value as a string (optional: if ommitted, the value is considered unspecified/ungrounded but controllable)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="static" type="xs:boolean" default="false"/>
+  </xs:complexType>
+  <xs:complexType name="constraintType">
+    <xs:annotation>
+      <xs:documentation>an expression that must be true for some period of time</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>an optional name for the constraint</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="expression" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>a text expression that evaluates to true or false</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="timeApplicable" type="timePeriod" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>the time period during which the constraint is applicable or relevant; (optional: if no time period is specified, it is interpreted as the time period of an enclosing event or all time)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="elaborationType">
+    <xs:annotation>
+      <xs:documentation>an event invocation and the condition (constraint) under which the event is instantiated</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="eventInvocation" type="invocationType">
+        <xs:annotation>
+          <xs:documentation>the event and any arguments (parameter/member assignments)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="condition" type="constraintType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>the condition under which the event is instantiated, as if saying "if condition then event(args);" (optional: if no condition is specified, the default value is true)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="invocationType">
+    <xs:annotation>
+      <xs:documentation>an invocation of a function or constructor (such as for an event) name and with arguments</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="enclosingInstance" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>An inner class is constructed from an instance of the enclosing class; for example, Car.Engine engine1 = car1.new Engine().</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="eventType" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>the name of the event class to be instantiated</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="eventName" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>the name of the field to be assigned the event instance (optional: if not specified, the instance will not be available as a member of the invocating class)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="arguments" type="parametersType">
+        <xs:annotation>
+          <xs:documentation>the assignment of values to members/parameters to the instantiated event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="timePeriod">
+    <xs:annotation>
+      <xs:documentation>a period of time between a start and end time, including the start but not the end: [start, end)</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="start" type="timePoint"></xs:element>
+      <xs:element name="end" type="timePoint"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="timePoint">
+    <xs:choice>
+      <xs:element name="dateTime" type="xs:dateTime"></xs:element>
+      <xs:element name="milliseconds" type="xs:long"></xs:element>
+      <xs:element name="expression" type="xs:string"></xs:element>
+    </xs:choice>
+  </xs:complexType>
+</xs:schema>
