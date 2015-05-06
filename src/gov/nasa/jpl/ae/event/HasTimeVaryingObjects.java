@@ -1,16 +1,15 @@
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.HasId;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
-public interface HasTimeVaryingObjects extends HasId, Deconstructable {
+public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen );
 
@@ -74,7 +73,7 @@ public interface HasTimeVaryingObjects extends HasId, Deconstructable {
                                Set< HasTimeVaryingObjects > seen ) {
       Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
       for ( T t : c ) {
-        set = Utils.addAll( set, getTimeVaryingObjects( t, deep, (Set<HasTimeVaryingObjects>)seen ) );
+        set = Utils.addAll( set, getTimeVaryingObjects( t, deep, seen ) );
       }
       return set;
     }

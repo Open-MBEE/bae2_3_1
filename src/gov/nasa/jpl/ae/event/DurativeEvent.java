@@ -40,23 +40,23 @@ import junit.framework.Assert;
 
 
 /**
- * 
+ *
  */
 
 public class DurativeEvent extends ParameterListenerImpl implements Event, Cloneable,
                            HasEvents, Groundable, Satisfiable,
-                           //Comparable< Event >, 
+                           //Comparable< Event >,
                            ParameterListener,
                            HasTimeVaryingObjects {
 
   // Static members
-  
+
   protected static int counter = 0;
 
   // Other Members
 
   protected static boolean writeConstraintsOut = false;
-  
+
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
   public Timepoint endTime = new Timepoint( "endTime", this );
@@ -69,19 +69,19 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       new HashMap< ElaborationRule, Vector< Event > >();
 
   protected Dependency startTimeDependency = null;
-  
+
   protected Dependency endTimeDependency = null;
-  
+
   protected Dependency durationDependency = null;
-  
+
   // TODO -- consider breaking elaborations up into separate constraints
-  protected AbstractParameterConstraint elaborationsConstraint = 
+  protected AbstractParameterConstraint elaborationsConstraint =
       new AbstractParameterConstraint() {
 
     protected final int id = HasIdImpl.getNext();
     private boolean tryToSatisfyOnElaboration = false;
     protected boolean deepSatisfyOnElaboration = false;
-    
+
     @Override
     public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
       Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
@@ -121,7 +121,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return satisfied;
     }
-    
+
     @Override
     public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
       Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
@@ -137,7 +137,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return true;
     }
-    
+
     @Override
     public Set< Parameter< ? > > getParameters( boolean deep,
                                                 Set<HasParameters> seen ) {
@@ -171,7 +171,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     @Override
-    public int getId() {
+    public Integer getId() {
       return id;
     }
     @Override
@@ -200,9 +200,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       // TODO Auto-generated method stub
       return null;
     }
-    
+
   };  // end of elaborationsConstraint
-  
+
   // TODO -- consider breaking effects into separate constraints
   protected AbstractParameterConstraint effectsConstraint =
       new AbstractParameterConstraint() {
@@ -248,14 +248,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       for ( Effect e : effects ) {
         if ( !checkIfEffectVariableMatches( variable, e ) ) return false;
-        if ( !e.isApplied( (Parameter< ? >)variable ) ) {
+        if ( !e.isApplied( variable ) ) {
           if ( !variable.isGrounded(deepGroundable, seenGroundable) ) {
             satisfied = false;
           } else {
         	  Object value = variable.getValue(true);
         	  if ( (!(value instanceof TimeVarying )) && value instanceof Parameter) {
         		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects,
-        		                                    deep, seen); 
+        		                                    deep, seen);
         	  } else if (value instanceof TimeVarying) {
         	    TimeVarying<?> tv = (TimeVarying<?>) value;
         	    if ( tv.canBeApplied( e ) ) {
@@ -285,7 +285,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return satisfied;
     }
-    
+
     @Override
     public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
       Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
@@ -338,7 +338,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     @Override
-    public int getId() {
+    public Integer getId() {
       return id;
     }
     @Override
@@ -371,7 +371,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   };  // end of effectsConstraint
 
 
-  
+
   // Constructors
 
   public DurativeEvent() {
@@ -399,11 +399,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
             new Expression< Integer >( startTime ) );
     durationDependency = addDependency( duration, sub2, false );
   }
-  
+
   public DurativeEvent(ParameterListenerImpl listener) {
     super(listener);
   }
-  
+
   public DurativeEvent(String name, ParameterListenerImpl listener) {
     super(name, listener);
   }
@@ -424,7 +424,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       ConstraintExpression nc = new ConstraintExpression( c );
       constraintExpressions.add( nc );
     }
-//    for ( Map.Entry< Parameter< ? >, Set< Effect > > e : 
+//    for ( Map.Entry< Parameter< ? >, Set< Effect > > e :
 //          durativeEvent.effects.entrySet() ) {
     for ( Pair< Parameter< ? >, Set< Effect > > p : durativeEvent.effects ) {
       Set< Effect > newSet = new HashSet< Effect >();
@@ -470,7 +470,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     return true;
   }
-  
+
   public void fixTimeDependencies() {
   }
   public void fixTimeDependencies1() {
@@ -480,7 +480,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     int numHave = 0;
     // see what time dependencies we have
     for ( Dependency< ? > d : getDependencies() ) {
-      if ( d.parameter == startTime ) { 
+      if ( d.parameter == startTime ) {
         if ( d == startTimeDependency ) {
           if ( !stillHaveStart ) {
             ++numHave;
@@ -552,7 +552,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
   }
-  
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#substitute(gov.nasa.jpl.ae.event.Parameter, gov.nasa.jpl.ae.event.Parameter, boolean)
    */
@@ -597,7 +597,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#clone()
    */
   @Override
@@ -607,7 +607,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#toString()
    */
   @Override
@@ -651,7 +651,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public void executeAndSimulate() {
     executeAndSimulate( 1.0e12 );
   }
-  
+
   public void executeAndSimulate( double timeScale ) {
     Timer timer = new Timer();
     amTopEventToSimulate = true;
@@ -662,7 +662,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     System.out.println("Finished executing and simulating:");
     System.out.println( timer.toString() );
   }
-  
+
   /* (non-Javadoc)
    * @see event.Event#execute()
    */
@@ -697,7 +697,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           ConstraintLoopSolver.getUnsatisfiedConstraints( constraints );
       if ( unsatisfiedConstraints.isEmpty() ) {
         System.out.println( (constraints.size() - unsatisfiedConstraints.size())
-                            + " out of " + constraints.size() 
+                            + " out of " + constraints.size()
                             + " constraints were satisfied!" );
         System.err.println( getName() + "'s constraints were not satisfied!" );
       } else {
@@ -714,7 +714,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
     System.out.println( "\n" + getName() + ".execute(): Time to gather and write out constraints:" );
     System.out.println( timer );
-    
+
     // HACK -- Sleeping to separate system.err from system.out.
     try {
       Thread.sleep( 100 );
@@ -723,7 +723,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
   }
-  
+
   public EventSimulation createEventSimulation() {
     Set< Event > events = getEvents( true, null );
     System.out.println("Simulating " + events.size() + " events.");
@@ -752,7 +752,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public void simulate( double timeScale, java.io.OutputStream os ) {
     simulate( timeScale, os, true );
   }
-  
+
   public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
     Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
                  + runPlotter + " ): starting stop watch\n" );
@@ -810,7 +810,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       writeSimulation( System.out );
     }
   }
-  
+
   public boolean writeSimulation( String fileName ) {
     File file = new File(fileName);
     return writeSimulation( file );
@@ -856,8 +856,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                           Class< T > eventClass,
                           String eventName,
                           Expression<?>[] arguments ) {
-    
-    // Now create the EventInvocation from the constructor and arguments. 
+
+    // Now create the EventInvocation from the constructor and arguments.
     Vector<EventInvocation> invocation = new Vector<EventInvocation>();
     EventInvocation newInvocation = null;
     newInvocation =
@@ -882,7 +882,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                                         enclosingInstance, this ),
                                eventClass, eventName, arguments );
   }
-  
+
   /* (non-Javadoc)
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
@@ -969,14 +969,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     addEffect( sv, obj, method, v );
   }
 
-  // These effects are dynamic, so we don't want to add them to the static set. 
+  // These effects are dynamic, so we don't want to add them to the static set.
 //  public void addEffects( Dependency<?> dependency ) {
 //    for ( Effect e : getEffectsFromDependency( dependency ) ) {
 //      addEffect()
 //    }
 //  }
-  
-  // Gather effect functions from a Dependency. 
+
+  // Gather effect functions from a Dependency.
   public static Collection<Effect> getEffectsFromDependency( Dependency<?> d ) {
     if ( d == null || d.getExpression() == null ) return Utils.getEmptyList();
     List<Effect> effects = new ArrayList<Effect>();
@@ -1000,7 +1000,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
 
-  
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#getTimeVaryingObjects(boolean, java.util.Set)
    */
@@ -1026,7 +1026,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     return set;
   }
-  
+
   @Override
   public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
                                                                Set< ParameterListenerImpl > seen ) {
@@ -1051,8 +1051,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     return set;
   }
-  
-  /* 
+
+  /*
    * Gather any parameter instances contained by this event.
    * (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#getParameters(boolean, java.util.Set)
@@ -1085,7 +1085,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   protected boolean tryToSatisfy( boolean deep, Set< Satisfiable > seen ) {
-//    if ( //amTopEventToSimulate && 
+//    if ( //amTopEventToSimulate &&
 //          mode % 2 == 1 ) {
 //      return tryToSatisfy( deep, seen, false );
 //    }
@@ -1125,7 +1125,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                      + " satisfy loop called satisfyElaborations() " );
     return satisfied;
   }
-  
+
   @Override
   public long getNumberOfResolvedConstraints( boolean deep,
                                               Set< HasConstraints > seen ) {
@@ -1190,12 +1190,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     return num;
   }
-  
+
+  @Override
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set<HasConstraints> seen ) {
-    boolean mayHaveBeenPropagating = Parameter.mayPropagate; 
+    boolean mayHaveBeenPropagating = Parameter.mayPropagate;
     Parameter.mayPropagate = false;
-    boolean mayHaveBeenChanging = Parameter.mayChange; 
+    boolean mayHaveBeenChanging = Parameter.mayChange;
     Parameter.mayChange = false;
     Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) {
@@ -1250,17 +1251,17 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public static void testConstraintCollection() {
     // TODO -- HERE!
   }
-  
+
   /*
    * Gather any event instances contained by this event.
-   * 
+   *
    * NOTE: Uses reflection to dig events out of members, but does not look in
    * arrays or collections other than elaborations, so this may need
    * redefinition in subclasses. This enforces the idea that events do not occur
    * unless elaborated.
-   * 
+   *
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.event.HasEvents#getEvents(boolean)
    */
   @Override
@@ -1306,7 +1307,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   protected boolean isElaborated( Entry< ElaborationRule, Vector< Event > > entry ) {
     return isElaborated( entry.getValue() );
   }
-  
+
   /**
    * @param events
    * @return
@@ -1319,7 +1320,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     if ( Debug.isOn() ) Debug.outln( "isElaborated(" + events + ") = " + r  + " for " + this.getName() );
     return r;
   }
-  
+
   /**
    * @param entry
    * @param force
@@ -1339,12 +1340,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         return true;
       }
 
-      Vector< Event > oldEvents = entry.getValue(); 
+      Vector< Event > oldEvents = entry.getValue();
       elaborated = entry.getKey().attemptElaboration( oldEvents, true );
     }
     return elaborated;
   }
 
+  @Override
   public boolean isDeconstructed() {
     if ( Utils.isNullOrEmpty( effects )
          && Utils.isNullOrEmpty( elaborations )
@@ -1353,7 +1355,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
     return false;
   }
-  
+
   /*
    * Try to remove others' references to this, possibly because it is being
    * deleted.
@@ -1377,7 +1379,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     String msg = "Deconstructing event: " + this.toString( true, true, null );
     if ( Debug.isOn() ) Debug.outln( msg );
     System.err.println( msg );
-    
+
     // Get time varying objects to use later before potentially disconnecting
     // them.
     Set< TimeVarying< ? > > timeVaryingObjs = getTimeVaryingObjects( true, null );
@@ -1393,14 +1395,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       elaborations.clear();
       //elaborations = null;
     }
-    
+
     // Detach effects.
     assert effects != null;
     for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
       Parameter< ? > tvp = p.first;
       TimeVarying< ? > tv = null;
       if ( tvp != null ) {
-        tv = Expression.evaluate( (Object)tvp, TimeVarying.class, false );
+        tv = Expression.evaluate( tvp, TimeVarying.class, false );
         tvp.deconstruct();
       }
       Set< Effect > set = p.second;
@@ -1436,7 +1438,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         }
       }
     }
-    
+
     // Remove references to time parameters from TimeVaryingMaps.
     // TODO -- REVIEW -- Is this already being done by ParameterListenerImpl.detach()
     // and TimeVaryingMap.detach( parameter )?
@@ -1451,12 +1453,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //        ( (TimeVaryingMap<?>)tv ).isConsistent();
       }
     }
-    
+
     super.deconstruct();
-    
+
     if ( Debug.isOn() ) Debug.outln( "Done deconstructing event: " + this.toString( true, true, null ) );
   }
-  
+
   @Override
   public void detach( Parameter< ? > parameter ) {
     super.detach( parameter );
@@ -1473,9 +1475,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         }
       }
     }
-    
+
     // TODO - REVIEW - remove elaborations referencing parameter (does this make sense?)
-    
+
     // See if other events need to detach the parameter
     for ( Event e : getEvents( false, null ) ) {
       if ( e instanceof ParameterListener ) {
@@ -1533,7 +1535,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       e.printStackTrace();
     }
   }
-  
+
   public void writeAspen(OutputStream mdlOs, OutputStream iniOs) {
     // Load keywords into name translator so we can translate names to avoid them.
     final String aspenKeyWords[] =
@@ -1564,7 +1566,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     mdl.println("  horizon_start = " + TimeUtils.toAspenTimeString( Timepoint.getEpoch() ) + ";");
     mdl.println("  horizon_duration = " + Timepoint.getHorizonDuration() + ";");
     mdl.println("};\n");
-    
+
     // write events
     Set< Event > events = new HashSet< Event >();
     events.add( this );
@@ -1588,7 +1590,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       // Get the corresponding ASPEN activity schema name.
       Long id = nt.getIdForNameAndDomain( typeName, "AE" );
-      boolean newSchema = ( id == null ); 
+      boolean newSchema = ( id == null );
       typeName = nt.translate( typeName, "AE", "ASPEN" );
       // Create a unique ASPEN instance name.
       String instanceName = e.getName();
@@ -1604,7 +1606,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       ini.println( "  start_time = " + Math.max( 0, Math.min( 1073741823, e.getStartTime().getValueOrMin())) + ";" );
       ini.println( "  duration = " + Math.max( 1, Math.min( 1073741823, e.getDuration().getValueOrMin() ) ) + ";\n}" );
     }
-    
+
     // write timelines
     Set< TimeVarying< ? > > states = getTimeVaryingObjects( true, null );
     for ( TimeVarying< ? > state : states ) {
@@ -1702,7 +1704,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see event.Event#setElaborations(java.util.Map)
    */
   @Override
-  public void setElaborations( Map< ElaborationRule, 
+  public void setElaborations( Map< ElaborationRule,
                                Vector< Event > > elaborations ) {
     this.elaborations = elaborations;
   }
@@ -1714,6 +1716,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public int compareTo( ParameterListenerImpl o ) {
     return compareTo( o, true );
   }
+  @Override
   public int compareTo( ParameterListenerImpl o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
@@ -1747,7 +1750,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
-   * 
+   *
    * An event owns all of its parameters because it is required to contain any
    * dependency that sets one of its parameters and has some connection through
    * its other members to any reference or constraint on it. Thus, an event must
@@ -1780,7 +1783,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     boolean deep = true;
     return satisfyElaborations( deep, null );
   }
-  
+
   /**
    * @param deep
    * @param seenSatisfiable
@@ -1807,7 +1810,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                    + getName() );
       return true;
     }
-    
+
     boolean satisfied = true;
     elaborate( true );
     // REVIEW -- This vector doesn't necessarily avoid concurrent modification
@@ -1846,7 +1849,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public boolean refresh( Parameter< ? > parameter ) {
     boolean didRefresh = super.refresh( parameter );
-    
+
     if ( !didRefresh ) {
       for ( Event e : getEvents( false, null ) ) {
         if ( e instanceof ParameterListener ) {
@@ -1862,7 +1865,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
-    
+
     // Alert affected dependencies.
     super.setStaleAnyReferencesTo( changedParameter );
 
@@ -1875,9 +1878,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public static void doEditCommandFile(DurativeEvent d) throws IOException {
     Runtime.getRuntime().exec( "xterm -e 'vi commandFile'" );
     d.addObservation( Timepoint.now(), d.endTime, Timepoint.now().getValue() );
-  } 
+  }
 //  {
-//  
+//
 //    DurativeEvent commandEditing = this;
 //    addObservation(Timepoint.now(), commandEditing .endTime, Timepoint.now().getValue());
 //    Command.
@@ -1886,14 +1889,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //                                new Object[] { "xterm -e 'vi commandFile'" }));
 //
 //  }
-////    Timepoint startTime = Timepoint.fromTimestamp("2012-08-05T11:00:00-07:00"); 
+////    Timepoint startTime = Timepoint.fromTimestamp("2012-08-05T11:00:00-07:00");
 ////    commandSequence.add( startTime,
 ////                         new Command( Runtime.getRuntime(),
 ////                                      Runtime.class,
 ////                                      "exec",
 ////                                      new Object[] { "xterm -e 'vi commandFile'" },
 ////                                      (Call)null ) );
-////    
+////
 ////  }
 
   public <V> Constraint addObservation( Parameter<Integer> timeSampled,

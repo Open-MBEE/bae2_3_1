@@ -521,14 +521,16 @@ public class ClassData {
     String parameterClass =
         typeToParameterType( paramTypeName );
     if ( Utils.isNullOrEmpty( paramTypeName ) ) {
-      System.err.println( "Error! creating a field " + paramName + ":" + paramTypeName + " of unknown type!" );
+      System.err.println( "Error! creating a field " + paramName + ":" + paramTypeName + " of unknown type!!" );
     } else if ( !parameterClass.equals( paramTypeName ) ) {
       type = parameterClass;
       if ( !type.equals( "Parameter" ) ) {
+        // This is the case for IntegerParameter, StringParameter, . . .
         parameterTypes = null;
         if ( !Utils.isNullOrEmpty( castType ) ) {
 //          args = "\"" + paramName + "\", " + valueArg + ", this";
-          argArr = new Object[]{ paramName, null, getCurrentAeClass() };
+          argArr = new Object[]{ paramName, // null  // use default domain instead of null
+                                 getCurrentAeClass() };
         }
       }
     } else if ( paramTypeName.toLowerCase().equals( "time" ) ) {
