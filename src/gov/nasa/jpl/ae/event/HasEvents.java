@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package gov.nasa.jpl.ae.event;
 
@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  *
  */
-public interface HasEvents extends HasId, Deconstructable {
+public interface HasEvents extends HasId<Integer>, Deconstructable {
 	/**
 	 * Get any event members; if deep, get members' event members.
 	 * @param deep
