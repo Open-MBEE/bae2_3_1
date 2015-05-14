@@ -6,7 +6,7 @@ import gov.nasa.jpl.mbee.util.HasId;
 import java.util.Set;
 
 public interface Constraint extends Satisfiable, Comparable< Constraint >,
-                                    LazyUpdate, HasId {
+                                    LazyUpdate, HasId<Integer> {
   public Set< Variable< ? > > getVariables();
 
   public < T > boolean pickValue( Variable< T > v ); // not implemented
@@ -16,7 +16,7 @@ public interface Constraint extends Satisfiable, Comparable< Constraint >,
   public < T > boolean isFree( Variable< T > v );
 
   public < T > boolean isDependent( Variable< T > v );
-  
+
   /**
    * @return the freeVariables
    */

@@ -687,12 +687,12 @@ import java.util.TreeMap;
       HashSet<Object> h = new HashSet<Object>();
       ct.add(h);
       h.add( "e" );
-      h.add( 2.71 );
+      h.add( (Double)2.71 );
       h.add( (double)9.8 );
       TreeMap<String,Object> tm = new TreeMap< String, Object >();
       h.add( tm );
       tm.put( "foo", "bar" );
-      tm.put( "gravity", new Float(9.8) );
+      tm.put( "gravity", new Double(9.8) );
       java.util.Iterator i = ct.iterator();
       System.out.println("ct = " + ct );
     }

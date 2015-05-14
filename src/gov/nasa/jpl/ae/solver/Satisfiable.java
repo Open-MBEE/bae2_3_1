@@ -1,10 +1,11 @@
 /**
- * 
+ *
  */
 package gov.nasa.jpl.ae.solver;
 
-import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.HasId;
+import gov.nasa.jpl.mbee.util.Pair;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -12,7 +13,7 @@ import java.util.Set;
 /**
  *
  */
-public interface Satisfiable extends HasId {
+public interface Satisfiable extends HasId<Integer> {
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen);
 	public boolean satisfy(boolean deep, Set< Satisfiable > seen);
   /**
@@ -21,9 +22,9 @@ public interface Satisfiable extends HasId {
    * or contain objects that do.
    */
 	public static class Helper {
-	  
+
     // WARNING! Do not call from o.isSatisfied() -- infinite loop
-    public static boolean isSatisfied( Object o, 
+    public static boolean isSatisfied( Object o,
                                        boolean deep,
                                        Set< Satisfiable > seen) {
       if ( o == null ) return true;
@@ -40,7 +41,7 @@ public interface Satisfiable extends HasId {
       }
       return true;
     }
-    
+
     public static < K, V > boolean isSatisfied( Map< K, V > map,
                                                 boolean deep,
                                                 Set< Satisfiable > seen ) {
@@ -50,7 +51,7 @@ public interface Satisfiable extends HasId {
       }
       return true;
     }
-    
+
     public static < T > boolean isSatisfied( Collection< T > c,
                                              boolean deep,
                                              Set< Satisfiable > seen ) {
@@ -59,7 +60,7 @@ public interface Satisfiable extends HasId {
       }
       return true;
     }
-    
+
     public static boolean isSatisfied( Object[] c,
                                        boolean deep,
                                        Set< Satisfiable > seen ) {
@@ -68,9 +69,9 @@ public interface Satisfiable extends HasId {
       }
       return true;
     }
-  
+
     // static implementations on Pair
-    
+
     public static < T1, T2 > boolean isSatisfied( Pair< T1, T2 > p,
                                                   boolean deep,
                                                   Set< Satisfiable > seen ) {
@@ -78,8 +79,8 @@ public interface Satisfiable extends HasId {
       if (!isSatisfied( p.second, deep, seen ) ) return false;
       return true;
     }
-    
-    public static boolean satisfy( Object o, 
+
+    public static boolean satisfy( Object o,
                                    boolean deep,
                                    Set< Satisfiable > seen) {
       if ( o == null ) return true;
@@ -96,7 +97,7 @@ public interface Satisfiable extends HasId {
       }
       return true;
     }
-    
+
     public static < K, V > boolean satisfy( Map< K, V > map,
                                             boolean deep,
                                             Set< Satisfiable > seen ) {
@@ -107,7 +108,7 @@ public interface Satisfiable extends HasId {
       }
       return succ;
     }
-    
+
     public static < T > boolean satisfy( Collection< T > c,
                                          boolean deep,
                                          Set< Satisfiable > seen ) {
@@ -117,7 +118,7 @@ public interface Satisfiable extends HasId {
       }
       return succ;
     }
-    
+
     public static boolean satisfy( Object[] c,
                                    boolean deep,
                                    Set< Satisfiable > seen ) {
@@ -127,9 +128,9 @@ public interface Satisfiable extends HasId {
       }
       return succ;
     }
-  
+
     // static implementations on Pair
-    
+
     public static < T1, T2 > boolean satisfy( Pair< T1, T2 > p,
                                               boolean deep,
                                               Set< Satisfiable > seen ) {
@@ -137,8 +138,8 @@ public interface Satisfiable extends HasId {
       if (!satisfy( p.first, deep, seen ) ) succ = false;
       if (!satisfy( p.second, deep, seen ) ) succ = false;
       return succ;
-    }    
-	
+    }
+
 	}
-	
+
 }

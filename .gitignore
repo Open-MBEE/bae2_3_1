@@ -20,3 +20,4 @@ bin
 *.pyc
 *~
 /AE.jar
+/target/
