@@ -62,10 +62,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   private static final long serialVersionUID = -2428504938515591538L;
 
   public static class Interpolation  {
-    protected static final byte STEP = 0; // value for key = get(floorKey( key ))
-    protected static final byte LINEAR = 1; // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-    protected static final byte RAMP = 2; // linear
-    protected static final byte NONE = Byte.MAX_VALUE; // value for key = get(key)
+    public static final byte STEP = 0; // value for key = get(floorKey( key ))
+    public static final byte LINEAR = 1; // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
+    public static final byte RAMP = 2; // linear
+    public static final byte NONE = Byte.MAX_VALUE; // value for key = get(key)
     public byte type = STEP;
     public Interpolation() {}
     public Interpolation( byte type ) {
@@ -86,6 +86,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           return null;
       }
     }
+    
     public void fromString( String s ) {
       try{
         type = Byte.parseByte( s );

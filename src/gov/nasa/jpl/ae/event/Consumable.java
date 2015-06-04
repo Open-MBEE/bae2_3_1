@@ -49,6 +49,18 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     super( name, null, defaultValue, Double.class, projected );
   }
 
+  public Consumable( String name, Double defaultValue, boolean projected,
+                     Double minCap, Double maxCap, Interpolation interpolation  ) {
+    this( name, defaultValue, projected, minCap, maxCap );
+    this.interpolation = interpolation;
+  }
+  public Consumable( String name, Double defaultValue, boolean projected,
+                     Double minCap, Double maxCap ) {
+    this( name, defaultValue, projected );
+    //super( name, null, initialValue, Double.class, projected );
+    this.minCap = minCap;
+    this.maxCap = maxCap;
+  }
   public Consumable( String name, Double initialValue,
                      Method deltaValueFunction, Object o,
                      int samplePeriod, int horizonDuration,
@@ -213,7 +225,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public static Method getAddMethod() {
     if ( addMethod  == null ) {
       for ( Method m : TimeVaryingMap.class.getMethods() ) {
-        if ( m.getName().equals("setValue") ) {
+        if ( m.getName().equals("add") ) {
           addMethod = m;
         }
       }

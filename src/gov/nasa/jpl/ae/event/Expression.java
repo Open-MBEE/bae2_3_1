@@ -104,7 +104,7 @@ public class Expression< ResultType > extends HasIdImpl
         }
         if ( e != null ) {
             copyMembers( e );
-            return;            
+            return;
         }
     }
     this.expression = value;

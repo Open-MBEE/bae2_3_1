@@ -2090,10 +2090,15 @@ public class Functions {
   public static < T > TimeVaryingMap< T > plus( TimeVaryingMap< T > tv,
                                                 Object o ) {
     if ( tv == null || o == null ) return null;
-    Number n = Expression.evaluate( o, Number.class, false );
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch( Throwable t ) {}
     if ( n != null ) return tv.plus( n );
-    TimeVaryingMap< ? extends Number > tvm =
-        Expression.evaluate( o, TimeVaryingMap.class, false );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (Throwable t) {}
     if ( tvm != null ) return plus( tv, tvm );
     return null;
   }   
@@ -2434,6 +2439,9 @@ public class Functions {
     Less< Double > exprLess = new Less< Double >( z, w );
     Double zVal = exprLess.pickValue( z );
     System.out.println("Picked " + zVal + " for z = " + z + " in exprLess = " + exprLess );
+    
+    // TODO -- Add tests for overflow!!
+    
   }
 
   

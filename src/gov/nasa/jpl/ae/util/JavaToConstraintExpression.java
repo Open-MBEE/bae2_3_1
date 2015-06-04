@@ -62,7 +62,9 @@ import japa.parser.ast.stmt.WhileStmt;
 
 import java.io.StringReader;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -601,11 +603,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       type = astToAeExprType( expr, null,
                               lookOutsideClassDataForTypes, complainIfDeclNotFound );
     }
+    // Get non-primitive class name and remove .class suffix for type parameter
+    String classlessType = type;
     if ( !Utils.isNullOrEmpty( type ) ) {
-      type = ClassUtils.getNonPrimitiveClassName( type );
+      classlessType = Utils.replaceSuffix( type, ".class", "" );
+      boolean removedSuffix = classlessType.length() < type.length();
+      classlessType = ClassUtils.getNonPrimitiveClassName( classlessType );
+      if ( removedSuffix ) {
+        type = classlessType + ".class";
+      } else {
+        type = classlessType;
+      }
     }
+    
     final String prefix =
-        "new Expression" + ( Utils.isNullOrEmpty( type ) ? "" : "<" + type + ">" ) + "( ";
+        "new Expression" + ( Utils.isNullOrEmpty( classlessType ) ? "" : "<" + classlessType + ">" ) + "( ";
     final String suffix = " )";
     String middle = null;
     /*** BinaryExpr ***/
@@ -783,12 +795,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         type = astToAeExprType( expr, specifier,
                                 lookOutsideClassDataForTypes, complainIfDeclNotFound );
       }
+      // Get non-primitive class name and remove .class suffix for type parameter
+      String classlessType = type;
       if ( !Utils.isNullOrEmpty( type ) ) {
-        type = ClassUtils.getNonPrimitiveClassName( type );
+        classlessType = Utils.replaceSuffix( type, ".class", "" );
+        boolean removedSuffix = classlessType.length() < type.length();
+        classlessType = ClassUtils.getNonPrimitiveClassName( classlessType );
+        if ( removedSuffix ) {
+          type = classlessType + ".class";
+        } else {
+          type = classlessType;
+        }
       }
       gov.nasa.jpl.ae.event.Expression<?> aeExpr = null;
       final String prefix =
-          "new Expression" + ( Utils.isNullOrEmpty( type ) ? "" : "<" + type + ">" ) + "( ";
+          "new Expression" + ( Utils.isNullOrEmpty( classlessType ) ? "" : "<" + classlessType + ">" ) + "( ";
       final String suffix = " )";
       //String middle = null;
       /*** BinaryExpr ***/
@@ -1308,10 +1329,28 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                             wrapInFunction, evaluateCall, !wrapInFunction,
                             propagate );
         }
-        aeString =
-            packageExpressionString( parentString, fieldAccessExpr,
-                                     wrapInFunction, evaluateCall,
-                                     p != null && getParameterValue, propagate );
+        Class< ? > parentAsClass =
+            ClassUtils.getClassForName( parentString,
+                                        null, getClassData().getPackageName(), false );
+        boolean madeEnum = false;
+        if ( parentAsClass != null ) {
+//          Field f = ClassUtils.getField( parentAsClass, fieldAccessExpr.getField(), true );
+//          if ( parentAsClass.isEnum() || ( f != null && ClassUtils.isStatic( f ) && ClassUtils.isFinal( f ) ) ) {
+            madeEnum = true;
+            parentString = Utils.replaceSuffix( parentString, ".class", "" );
+            aeString = parentString + "." + fieldAccessExpr.getField();
+//          } else {
+//            if ( !parentString.endsWith( ".class" ) ) {
+//              parentString = parentString + ".class";
+//            }
+//          }
+        }
+        if ( !madeEnum ) {
+          aeString =
+              packageExpressionString( parentString, fieldAccessExpr,
+                                       wrapInFunction, evaluateCall,
+                                       p != null && getParameterValue, propagate );
+        }
 //        if ( wrapInFunction ) {
 //          aeString =
 //              "new FunctionCall(" + parentString
@@ -1424,21 +1463,52 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                         complainIfDeclNotFound, wrapInFunction,
                                         evaluateCall, propagate );
       if ( parentExpr != null ) {
-        FunctionCall functionCall =
-            new FunctionCall( parentExpr.expression, Parameter.class,
-                              "getMember",
-                              new Object[] { "" + fieldAccessExpr.getField(), true } );
-        aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
-        String parentType =
-            astToAeExprType( fieldAccessExpr.getScope(),
-                             null, lookOutsideClassDataForTypes, complainIfDeclNotFound );
-        ClassData.Param p =
-            getClassData().lookupMemberByName( parentType,
-                                          fieldAccessExpr.getField(), false,
-                                          false );
-        aeExpr =
-            packageExpression( aeExpr, wrapInFunction, evaluateCall,
-                               p != null && getParameterValue, propagate );
+        FunctionCall functionCall = null;
+        
+        // Check if enum
+        System.out.println( "fieldExprToAeExpression(" + fieldAccessExpr + "): parent type name = " + parentExpr.getType().getCanonicalName() );
+        Class<?> enumClass = parentExpr.getType();
+        if ( enumClass != null && !enumClass.isEnum() && Class.class.isAssignableFrom( enumClass ) ) {
+          enumClass = (Class< ? >)parentExpr.getValue( false );
+        }
+        if ( enumClass != null ) System.out.println( "fieldExprToAeExpression(" + fieldAccessExpr + "): parent as Enum class = " + enumClass.getCanonicalName() );
+        if ( enumClass != null && enumClass.isEnum() ) {  // Won't this be Class<Class> where the type parameter is the enum class?
+          Object constant = ClassUtils.getEnumConstant( enumClass, fieldAccessExpr.getField() );
+          if ( constant != null ) {
+//            functionCall = new FunctionCall(null, Utils.class, "getEnumConstant",
+//                                            new Object[] { parentExpr.expression,
+//                                                           "" + fieldAccessExpr.getField() } );
+            aeExpr = new gov.nasa.jpl.ae.event.Expression( constant );
+          } else {
+            functionCall = new FunctionCall(null, ClassUtils.class, "getEnumConstant",
+                                            new Object[] { enumClass,
+                                                           "" + fieldAccessExpr.getField() } );
+          }
+        } else {
+          // treat as a member
+          if ( parentExpr.expression instanceof Parameter ) {
+            functionCall =
+                new FunctionCall( parentExpr.expression, Parameter.class,
+                                  "getMember",
+                                  new Object[] { "" + fieldAccessExpr.getField(), true } );
+          } else if ( parentExpr.expression instanceof Class ) {
+            functionCall =
+                new FunctionCall( null, ClassUtils.class,
+                                  "getField",
+                                  new Object[] { parentExpr.expression, "" + fieldAccessExpr.getField(), true } );
+          }
+          aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
+          String parentType =
+              astToAeExprType( fieldAccessExpr.getScope(),
+                               null, lookOutsideClassDataForTypes, complainIfDeclNotFound );
+          ClassData.Param p =
+              getClassData().lookupMemberByName( parentType,
+                                            fieldAccessExpr.getField(), false,
+                                            false );
+          aeExpr =
+              packageExpression( aeExpr, wrapInFunction, evaluateCall,
+                                 p != null && getParameterValue, propagate );
+          }
 //        if ( p != null && getParameterValue ) {
 //          // if ( wrapInFunction ) {
 //          // nesting function calls

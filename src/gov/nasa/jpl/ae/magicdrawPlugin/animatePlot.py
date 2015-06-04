@@ -767,7 +767,7 @@ def addAx(subplotId):
     if len(subplotForLine) == 0:
         for _ in xrange(numLines): subplotForLine.append(subplotId)
     if len(lineNames) == 0:
-        for _ in xrange(numLines): lineNames.append('_nolegend_')        
+        for _ in xrange(numLines): lineNames.append('_nolegend_')
     for _ in xrange(numLines):
         if subplotForLine[ii] == subplotId:
             debugPrint("adding line " + lineNames[ii] + ", index " + str(ii) + ", for subplot " + subplotId + ", ax=" + str(ax))
@@ -777,7 +777,7 @@ def addAx(subplotId):
     ax.set_xlim(-0.005, 5)
     ax.grid()
     ax.set_xlabel("time")
-    ax.set_ylabel("kWh")
+    #ax.set_ylabel("kWh")
     ax.set_title(subplotId)
     ax.legend(loc="upper right")
     return ax

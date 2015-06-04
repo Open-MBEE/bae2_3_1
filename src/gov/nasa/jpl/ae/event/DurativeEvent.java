@@ -55,7 +55,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   // Other Members
 
-  protected static boolean writeConstraintsOut = false;
+  protected static boolean writeConstraintsOut = true;
 
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );

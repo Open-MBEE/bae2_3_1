@@ -565,6 +565,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( object != null ) {
       if ( object instanceof DurativeEvent ) {
         sb.append( ((DurativeEvent)object).getName() + "." );
+      } else if ( object instanceof Class ) {
+          sb.append( ClassUtils.toString( (Class<?>)object ) + "." );
       } else {
         sb.append( object.toString() + "." );
       }

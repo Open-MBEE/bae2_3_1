@@ -50,13 +50,13 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   public static final String homeDir = "/home/bclement";
   public static final String gitDir = homeDir + "/git";
   public static final String enthoughtDir = "/opt/Canopy/appdata/canopy-1.0.3.1262.rh5-x86_64";
-  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
-  //private static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
-  public static final String enthoughtPython = enthoughtDir + "/bin/python";
-  //private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
+  //public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
+  public static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
+  //public static final String enthoughtPython = enthoughtDir + "/bin/python";
+  public static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
   //private static final String enthoughtPython = "c:\\Python27\\python.exe";
-  public static final String enthoughtTempDir = "/tmp";
-  //private static final String enthoughtTempDir = "c:\\temp";
+  //public static final String enthoughtTempDir = "/tmp";
+  public static final String enthoughtTempDir = "c:\\temp";
 
   public static double maxSecondsToNextEvent = 43200;
   
