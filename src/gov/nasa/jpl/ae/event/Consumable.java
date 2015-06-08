@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -224,9 +225,10 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   public static Method getAddMethod() {
     if ( addMethod  == null ) {
-      for ( Method m : TimeVaryingMap.class.getMethods() ) {
+      for ( Method m : Consumable.class.getDeclaredMethods() ) {
         if ( m.getName().equals("add") ) {
           addMethod = m;
+          break;
         }
       }
     }
@@ -257,15 +259,26 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     if ( super.isApplied( effect ) ) return true;
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction.method.equals( getAddMethod() ) ) {
+      if ( appliedSet.contains( effect ) ) return true;
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
-        Timepoint t = (Timepoint)effectFunction.arguments.get( 0 );
-        Object o = effectFunction.arguments.get( 1 );
-        Double value = null;
-        try {
-          value = (Double)o;
-        } catch( Exception e ) {
-          e.printStackTrace();
+        
+        Pair< Parameter<Integer>, ? > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
+        if ( p == null ) return false;
+        Object o = p.first;
+        Object value = p.second;
+        Parameter<Integer> t = null;
+        if ( o instanceof Parameter
+            && ( ( (Parameter<?>)o ).getValueNoPropagate() == null || ( (Parameter<?>)o ).getValueNoPropagate() instanceof Integer ) ) {
+          t = (Parameter<Integer>)o;
         }
+//        Timepoint t = (Timepoint)effectFunction.arguments.get( 0 );
+//        Object o = effectFunction.arguments.get( 1 );
+//        Double value = null;
+//        try {
+//          value = (Double)o;
+//        } catch( Exception e ) {
+//          e.printStackTrace();
+//        }
         if ( value != null ) {
           Parameter<Integer> justBeforeTime = this.lowerKey( t );
           Double valBefore = new Double(0);
