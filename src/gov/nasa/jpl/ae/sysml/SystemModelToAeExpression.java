@@ -107,9 +107,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 //          method = ClassUtils.getMethodForArgTypes( EvaluateOperation.class,
 //                                                    operationName.toString(),
 //                                                    argTypes.toArray(new Class[argTypes.size()]));
-            ////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
+            //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
             //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
-            call = new OperationFunctionCall( object, arguments );
+            ////call = new OperationFunctionCall( object, arguments );
+            call = new OperationFunctionCallConstructorCall( object, arguments );
         }
         if ( call == null ) {
           method = ClassUtils.getMethodForArgTypes( model.getClass(),
@@ -458,7 +459,26 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
           return result;
         }
     }
-    
+
+    public class OperationFunctionCallConstructorCall extends ConstructorCall {
+      public OperationFunctionCallConstructorCall( Object object, Vector< Object > arguments ) {
+        super( object, OperationFunctionCall.class, arguments );
+      }
+      @Override
+      protected synchronized void sub( int indexOfArg, Object obj ) {
+        Vector< Object > args = arguments;
+        if ( args != null && args.size() == 2 && args.get( 1 ) instanceof Vector) {
+          args = (Vector<Object>)args.get( 1 );
+        } else {
+          Debug.error("Unexpected arguments to OperationFunctionCallConstructorCall: " + arguments );
+          return;
+        }
+          
+        Call.sub( this, args, indexOfArg, obj );
+      }
+
+    }
+
     public class OperationFunctionCall extends FunctionCall {
 
 //        public OperationFunctionCall( P operation,
