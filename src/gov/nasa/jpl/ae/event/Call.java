@@ -826,8 +826,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    *            the replacement for the argument
    */
   protected synchronized void sub( int indexOfArg, Object obj ) {
+    sub( this, indexOfArg, obj );
+  }
+  protected static void sub( Call call, int indexOfArg, Object obj ) {
+    sub(call, null, indexOfArg, obj );
+  }
+  protected static void sub( Call call, Vector< Object > arguments, int indexOfArg, Object obj ) {
+      if ( arguments == null ) arguments = call.arguments;
       if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
-      else if ( indexOfArg == 0 ) object = obj;
+      else if ( indexOfArg == 0 ) call.object = obj;
       else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
                                                              + indexOfArg
                                                              + "; only "
