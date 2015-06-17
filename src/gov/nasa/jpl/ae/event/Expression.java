@@ -510,6 +510,12 @@ public class Expression< ResultType > extends HasIdImpl
       seen.remove( this );
       return substitute( p1, (Expression<?>)p2, deep, seen );
     }
+    if ( HasParameters.Helper.subParamsEqual( expression, p1 ) ) {
+      expression = p2;
+      form = Form.Value;
+      resultType = null;//(Class< ? extends ResultType >)( p2 == null ? Object.class : p2.getClass() );
+      subbed = true;
+    } else
     if ( expression instanceof HasParameters ) {
       HasParameters gotParameters = (HasParameters) expression;
       assert( gotParameters != null );

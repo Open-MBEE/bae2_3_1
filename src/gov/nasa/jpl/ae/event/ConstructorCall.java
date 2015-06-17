@@ -244,7 +244,14 @@ public class ConstructorCall extends Call {
   
   @Override
   public Class<?>[] getParameterTypes() {
-    return constructor.getParameterTypes();
+    Class< ? >[] ctorTypes = constructor.getParameterTypes();
+    if ( !isInnerClass() ) return ctorTypes;
+    int newSize = Utils.isNullOrEmpty( ctorTypes ) ? 0 : ctorTypes.length - 1;
+    Class< ? >[] newTypes =  new Class< ? >[ newSize ];
+    for ( int i = 0; i < newSize; ++i ) {
+      newTypes[ i ] = ctorTypes[i+1];
+    }
+    return newTypes;
   }
   
   @Override
@@ -260,7 +267,17 @@ public class ConstructorCall extends Call {
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     evaluationSucceeded = false;
-    Object[] args = isVarArgs() ? new Object[]{evaluatedArgs} : evaluatedArgs;
+    Object[] args = false ? new Object[]{evaluatedArgs} : evaluatedArgs; // handling this in calling method, evaluate()
+    if ( isInnerClass() ) {
+      Object[] newArgs = new Object[args.length+1];
+      newArgs[0] = evaluatedObject;
+      if ( args != null ) {
+        for ( int i=0; i<args.length; ++i ) {
+          newArgs[i+1] = args[i];
+        }
+        args = newArgs;
+      }
+    }
     newObject = constructor.newInstance( args );
     evaluationSucceeded = true;
     return newObject;
