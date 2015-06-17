@@ -103,15 +103,15 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         }
         
         // 1.
-        if ( operationName.equals( "evaluate" ) ) {
-//          method = ClassUtils.getMethodForArgTypes( EvaluateOperation.class,
-//                                                    operationName.toString(),
-//                                                    argTypes.toArray(new Class[argTypes.size()]));
-            //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
-            //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
-            ////call = new OperationFunctionCall( object, arguments );
-            call = new OperationFunctionCallConstructorCall( object, arguments );
-        }
+//        if ( operationName.equals( "evaluate" ) ) {
+////          method = ClassUtils.getMethodForArgTypes( EvaluateOperation.class,
+////                                                    operationName.toString(),
+////                                                    argTypes.toArray(new Class[argTypes.size()]));
+//            //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
+//            //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
+//            ////call = new OperationFunctionCall( object, arguments );
+//            call = new OperationFunctionCallConstructorCall( object, arguments );
+//        }
         if ( call == null ) {
           method = ClassUtils.getMethodForArgTypes( model.getClass(),
                                                     operationName.toString(),
@@ -361,27 +361,37 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
                     // The object from which the operation is invoked.
                     Object object = null;
                     
+                    // 
+                    Call argCall;
+                    
                     // If an expression is defined for the operation, we wrap the invocation
                     // of the operation in a Java method call, that we later wrap as a
                     // FunctionCall.
                     if (!Utils.isNullOrEmpty( opExpProps )) {
                       EvaluateOperation evo =
                           new EvaluateOperation( valueOfElementNode );
-                      object = evo;
+                      object = this;
                       operationName = (N)"evaluate";
                       Vector<Object> newArgs = new Vector< Object >();
-                      newArgs.add( opEmptyArgs.toArray() );
+                      newArgs.add( evo );
+                      newArgs.add( opEmptyArgs );//.toArray() );
                       opEmptyArgs = newArgs;
+                      //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
+                      //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
+                      ////call = new OperationFunctionCall( object, arguments );
+                      argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs );
+
+                    } else {
+                      // Create a Call for the argument 
+                      argCall = createCall(object, operationName, opEmptyArgs);
+                                            
                     }
                     System.out.println("*******************************************");
                     System.out.println("args for call=" + opEmptyArgs);
                     System.out.println("*******************************************");
                     
-                    // Create a Call for the argument 
-                    Call argCall = createCall(object, operationName, opEmptyArgs);
-                    
                     if ( argCall != null ) {
-                      
+                       
                       // Add to the argument list:
                       arguments.add(new Expression<Object>(argCall));
             
@@ -437,10 +447,16 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
         return operationName;
     }
     
-  /**
-   * A functor for wrapping a call on a sysml operation as a Java function call.
-   *
-   */
+    /**
+     * A functor for wrapping a call on a SysML Operation as a Java function call.
+     * <p>
+     * An Operation may be defined with a SysML Expression. We want to be able to
+     * evaluate the Operation's Expression with arguments passed in to its
+     * Parameters. So, we need to translate the Expression to an AE Expression and
+     * substitute the arguments before invocation/evaluation. The evaluate method
+     * of EvaluateOperation is the Java method that, when invoked, invokes the
+     * Operation's Expression with the specified arguments.
+     */
     public class EvaluateOperation {
         P operation;
         public EvaluateOperation( P operation ) {
@@ -449,17 +465,25 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
 //        public Object evaluate( Object[] sysmlParameters ) {
 //            return null;
 //        }
-        public Object evaluate( Object...sysmlParameters ) {
+        public Object evaluate( Object...sysmlArguments ) {
 //          return evaluate(sysmlParameters);
 //        }
 //        Object evaluate( Collection<P> sysmlParameters ) {
 //          List<Object> paramList = Utils.asList( sysmlParameters, Object.class );
-          Vector<Object> paramList = new Vector<Object>(Utils.arrayAsList( sysmlParameters ));
+          Vector<Object> paramList = new Vector<Object>(Utils.arrayAsList( sysmlArguments ));
           Object result = operationToAeExpressionImpl( operation, paramList );//.evaluate(true);
           return result;
         }
     }
 
+  /**
+   * OperationFunctionCallConstructorCall wraps an OperationFunctionCall in a
+   * constructor, i.e., when evaluated, this constructs an
+   * OperationFunctionCall. The OperationFunctionCall is used to wrap a SysML
+   * Expression whose Operation is defined as a SysML Expression so that it can
+   * be evaluated via a Java method invocation.
+   *
+   */
     public class OperationFunctionCallConstructorCall extends ConstructorCall {
       public OperationFunctionCallConstructorCall( Object object, Vector< Object > arguments ) {
         super( object, OperationFunctionCall.class, arguments );
@@ -467,18 +491,29 @@ System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argV
       @Override
       protected synchronized void sub( int indexOfArg, Object obj ) {
         Vector< Object > args = arguments;
-        if ( args != null && args.size() == 2 && args.get( 1 ) instanceof Vector) {
-          args = (Vector<Object>)args.get( 1 );
+        if ( args != null && args.size() == 2 && (args.get( 1 ) instanceof Vector || args.get( 1 ) == null || args.get( 1 ).getClass().isArray() ) ) {
+          Object innerArgs = args.get( 1 );
+          if ( innerArgs instanceof Vector ) {
+            args = (Vector<Object>)args.get( 1 );
+            Call.sub( this, args, indexOfArg, obj );
+          } else if ( innerArgs != null ) {
+            Call.sub( (Object[])innerArgs, indexOfArg-1, obj );
+          }
         } else {
           Debug.error("Unexpected arguments to OperationFunctionCallConstructorCall: " + arguments );
           return;
         }
           
-        Call.sub( this, args, indexOfArg, obj );
       }
 
     }
 
+    /**
+     * The OperationFunctionCall is used to wrap a SysML Expression whose
+     * Operation is defined as a SysML Expression so that it can be evaluated via
+     * a Java method invocation. The method is the evaluate method of an
+     * EvaluateOperation, which wraps the SysML Operation, an EmsScriptNode.
+     */
     public class OperationFunctionCall extends FunctionCall {
 
 //        public OperationFunctionCall( P operation,

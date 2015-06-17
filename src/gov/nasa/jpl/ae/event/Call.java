@@ -341,17 +341,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //          }
 //        }
 //      }
-      if ( this instanceof ConstructorCall) {
-        ConstructorCall cc = (ConstructorCall) this;
-        if ( cc.thisClass.getEnclosingClass() != null && !Modifier.isStatic( cc.thisClass.getModifiers() )) {
-          Object[] arr = new Object[evaluatedArgs.length + 1];
-          arr[0] = evaluatedObj;
-          for ( int i = 1; i<=evaluatedArgs.length; ++i) {
-            arr[i] = evaluatedArgs[i-1];
-          }
-          evaluatedArgs = arr;
-        }
-      }
+
+      // moved this inside invoke
+//      if ( this instanceof ConstructorCall) {
+//        ConstructorCall cc = (ConstructorCall) this;
+//        if ( cc.thisClass.getEnclosingClass() != null && !Modifier.isStatic( cc.thisClass.getModifiers() )) {
+//          Object[] arr = new Object[evaluatedArgs.length + 1];
+//          arr[0] = evaluatedObj;
+//          for ( int i = 1; i<=evaluatedArgs.length; ++i) {
+//            arr[i] = evaluatedArgs[i-1];
+//          }
+//          evaluatedArgs = arr;
+//        }
+//      }
+      
+      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs );
+      
       result = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
       //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
     } catch ( IllegalAccessException e ) {
@@ -380,12 +385,35 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return result;
   }
 
+  /**
+   * Wrap the variable args in an array as a single arg to the vararg.
+   * 
+   * @param evaluatedArgs
+   * @return
+   */
+  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs ) {
+    if ( !isVarArgs() || evaluatedArgs == null ) return evaluatedArgs;
+    int paramSize = getParameterTypes().length;
+    if ( evaluatedArgs.length < paramSize - 1 ) {
+      return evaluatedArgs;
+    }
+    Object[] newArgs = new Object[ paramSize ];
+    for ( int i = 0; i < paramSize - 1; ++i ) {
+      newArgs[ i ] = evaluatedArgs[ i ];
+    }
+    Object[] varArgArray = new Object[ evaluatedArgs.length - paramSize + 1 ];
+    for ( int i = paramSize - 1, j = 0; i < evaluatedArgs.length; ++i, ++j ) {
+      varArgArray[ j ] = evaluatedArgs[ i ];
+    }
+    newArgs[ paramSize - 1 ] = varArgArray;
+    return newArgs;
+  }
+
   // Try to match arguments to parameters by evaluating or creating expressions.
   // TODO -- is this necessary????
   protected Object[] evaluateArgs( boolean propagate ) {
     Class< ? >[] paramTypes = getParameterTypes();
-    return FunctionCall.evaluateArgs( propagate, paramTypes, arguments,
-                                      isVarArgs() );
+    return Call.evaluateArgs( propagate, paramTypes, arguments, isVarArgs() );
   }
 
   // Try to match arguments to parameters by evaluating or creating expressions.
@@ -422,6 +450,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         } else {
           c = c.getComponentType();
         }
+      }
+      if ( ( c == null || c.equals( Object.class ) ) && unevaluatedArg instanceof Wraps ) {
+        c = ((Wraps)unevaluatedArg).getType();
       }
       argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
       if (!( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
@@ -829,7 +860,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     sub( this, indexOfArg, obj );
   }
   protected static void sub( Call call, int indexOfArg, Object obj ) {
-    sub(call, null, indexOfArg, obj );
+    sub(call, (Vector< Object >)null, indexOfArg, obj );
   }
   protected static void sub( Call call, Vector< Object > arguments, int indexOfArg, Object obj ) {
       if ( arguments == null ) arguments = call.arguments;
@@ -841,6 +872,44 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                              + arguments.size()
                                                              + " arguments!" );
       else arguments.set(indexOfArg-1,obj);
+  }
+  
+  /**
+   * Replace the entry of the array at the specified index with the specified
+   * object.
+   * 
+   * @param arguments
+   * @param indexOfArg
+   * @param obj
+   */
+  protected static void sub( Object[] arguments, int indexOfArg, Object obj ) {
+    if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
+    else if ( arguments == null ) return;
+    else if ( indexOfArg >= arguments.length ) {
+      Debug.error( "bad index " + indexOfArg + "; only " + arguments.length
+                   + " arguments!" );
+    }
+    else arguments[indexOfArg] = obj;
+  }
+  /**
+   * Similar to {@link #sub(Call, Vector, int, Object)} except the arguments are
+   * not the arguments of the call.
+   * 
+   * @param call
+   * @param arguments
+   * @param indexOfArg
+   * @param obj
+   */
+  protected static void sub( Call call, Object[] arguments, int indexOfArg, Object obj ) {
+    if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
+    else if ( indexOfArg == 0 ) call.object = obj;
+    else if ( arguments == null ) return;
+    else if ( indexOfArg > arguments.length ) Debug.error( "bad index "
+                                                           + indexOfArg
+                                                           + "; only "
+                                                           + arguments.length
+                                                           + " arguments!" );
+    else arguments[indexOfArg-1] = obj;
   }
   ////////
 
