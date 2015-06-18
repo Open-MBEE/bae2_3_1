@@ -979,7 +979,7 @@ def main(argv=None):
 
     # create plot figure
     fig = plt.figure(figsize=(20.0,10.0))
-    fig.subplots_adjust(hspace=0.05)
+    fig.subplots_adjust(hspace=0.10)
     fig.subplots_adjust(left=0.05)
     fig.subplots_adjust(right=0.95)
     if len(subplotIds) == 0: subplotIds.add(defaultSubplotTitle)
