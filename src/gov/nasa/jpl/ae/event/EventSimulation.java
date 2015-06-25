@@ -74,11 +74,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * Whether to limit the simulation to the horizon bounds and include an event
    * for the horizon.
    */
-  public boolean simulatingHorizon = false;
+  public boolean simulatingHorizon = true;
 
   TimeUtils.Units plotAxisTimeUnits = TimeUtils.Units.seconds;
   public boolean usingSamplePeriod = true;
-  public double plotSamplePeriod = 15.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // 15 min
+  public double plotSamplePeriod = 60.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 

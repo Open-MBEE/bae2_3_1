@@ -12,6 +12,7 @@ import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 import japa.parser.ast.body.ConstructorDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
@@ -823,6 +824,9 @@ public class JavaForFunctionCall {
                                                           getPreferredPackageName(),
                                                           getCallName(),
                                                           getArgTypes(), false ) );
+//      if ( matchingMethod == null ) {
+//        matchingConstructor
+//      }
     }
     return matchingMethod;
   }
@@ -1229,7 +1233,12 @@ public class JavaForFunctionCall {
         }
       } else {
         if ( getMatchingMethod() == null ) {
-          Debug.error( true, "Cannot create method! " + this );
+          Call scall = searchForCall( getCallName(), getArgs() );
+          if ( scall == null ) {
+            Debug.error( true, "Cannot create method! " + this );
+          } else {
+            setCall( scall );
+          }
         } else if ( isEffectFunction() ) {
           setCall( new EffectFunction( getObjectExpr(),
                                        getMatchingMethod(),
@@ -1248,6 +1257,117 @@ public class JavaForFunctionCall {
     return call;
   }
 
+  public static Class<?> getType( Object arg ) {
+    if ( arg == null ) return null;
+    if (arg instanceof gov.nasa.jpl.ae.event.Expression) {
+      return ((gov.nasa.jpl.ae.event.Expression<?>)arg).getType();
+    } else {
+      if ( arg instanceof Wraps ) {
+        return ((Wraps<?>)arg).getType();
+      }
+    }
+    return arg.getClass();
+  }
+  
+  /**
+   * Return a Call object based on the passed operation and arguments
+   * 
+   * @param operationName The name of operation used to search for the
+   *                      equivalent java call
+   * @param arguments The arguments for operation
+   * @return Call object or null if the operationName is not a java call
+   */
+  public Call searchForCall(String operationName, Vector< Object > arguments) {
+    
+    Call call = null;
+    Method method = null;
+    Object object = null;
+
+    /*
+     * We will look for the corresponding Constructor or FunctionCall in
+     * the following order:
+     * 
+     * 1. The current model class, ie EmsSystemModel (assume its a FunctionCall)
+     * 2. The view_repo.syml package (assume its a ConstructorCall or FunctionCall)
+     * 3. The Functions.java and ae.event package (assume its a ConstructorCall)
+     * 4. Common Java classes (assume its a FunctionCall)
+     * 5. The mbee.util package (assume its a FunctionCall) 
+     * 
+     */
+    if ( operationName == null ) return null;
+                
+      ArrayList<Class<?>> argTypes = new ArrayList<Class<?>>();
+      
+      // Finding out the argument types:
+      for (Object arg : arguments) {
+        Class<?> type = getType( arg );
+        if ( type == null ) {
+          Debug.error( "Expecting an Expression for the argument: " + arg );
+        }
+        argTypes.add( type );
+      }
+      
+//      // 1. Search API
+//      method = ClassUtils.getMethodForArgTypes( model.getClass(),
+//                                                operationName.toString(),
+//                                                argTypes.toArray(new Class[]{}));
+//      
+//      if ( method != null ) {
+//        object = model;
+//      }
+//      else {
+        // 2.
+        call = JavaToConstraintExpression.javaCallToEventFunction(operationName,
+                                                                  arguments,
+                                                                  argTypes.toArray(new Class[]{}));
+
+        if (call == null) {
+          //3.
+          if ( arguments.size() == 1 ) {
+              call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+          } 
+          else if ( arguments.size() == 2 ) {
+              call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+          } 
+          else if ( arguments.size() == 3
+                      && operationName.toString().equalsIgnoreCase( "if" ) ) {
+              call = JavaToConstraintExpression.getIfThenElseConstructorCall();
+          }
+          
+          if ( call != null ) {
+            call.setArguments( arguments );
+          }
+          else {
+            // 4.
+            method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
+                                                                arguments.toArray() );
+          
+            // 5.
+            if (method == null) {
+              // TODO implement checking the mbee.util package
+            }
+          
+          }
+          
+        } // Ends call == null
+
+//      }
+      
+      if ( call == null && method == null ) {
+        // TODO -- if it *still* fails, maybe search through all classes of all
+        // packages for a method with this name.
+      }
+      
+      // Make the FunctionCall if it was not a ConstructorCall:
+      if ( method != null ) {
+        call = new FunctionCall( object, method, arguments );
+      }
+    
+    return call;
+  }
+
+  
+  
   /**
    * @param call the call to set
    */

@@ -102,6 +102,16 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
          Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
   }
   
+  public Consumable( String name, TimeVaryingPlottableMap<Double> timeVaryingMap ) {
+    super( name, timeVaryingMap );
+  }
+  
+  public Consumable( String name, Consumable consumable ) {
+    this( name, (TimeVaryingPlottableMap<Double>)consumable );
+    this.minCap = consumable.minCap;
+    this.maxCap = consumable.maxCap;
+  }
+  
   public double add( Parameter<Integer> t, Double delta ) {
     Double valBefore = getValueBefore( t );
     setValue( t, valBefore );  // we're going to add delta to this below.
@@ -125,6 +135,8 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    * any Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
    * change the entries in c.
    * 
+   * TODO -- REVIEW -- Is this the same as TimeVaryingMap.integrate()?
+   * 
    * @param deltaMap
    */
   public void initializeFromDeltaMap( TimeVaryingMap< Double > deltaMap ) {
@@ -145,6 +157,8 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    *         3=4.4, 7=5.6 }. The map is fully computed on each call. For any
    *         Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
    *         change the entries in c.
+   *         
+   *         TODO -- REVIEW -- This is similar to differentiation.
    */
  public TimeVaryingMap< Double > getDeltaMap() {
     TimeVaryingPlottableMap< Double > deltaMap =

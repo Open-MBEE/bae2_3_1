@@ -11,11 +11,11 @@ import gov.nasa.jpl.ae.event.Functions.Binary;
 import gov.nasa.jpl.ae.event.Functions.Unary;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 import japa.parser.ASTParser;
 import japa.parser.ParseException;
 import japa.parser.ast.expr.ArrayCreationExpr;
@@ -722,11 +722,42 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     /*** ObjectCreationExpr ***/
     } else if ( expr.getClass() == MethodCallExpr.class ||
                 expr.getClass() == ObjectCreationExpr.class ) {
+      // try treating as a binary operation
+      middle = null;
+      if ( expr.getClass() == MethodCallExpr.class &&
+           ((MethodCallExpr)expr).getArgs() != null && 
+           ((MethodCallExpr)expr).getArgs().size() == 2 ) {        
+        MethodCallExpr mx = (MethodCallExpr)expr;
+        Class<?> fcnClass = binaryOpNameToFunctionClass(mx.getName());
+        if ( fcnClass != null ) {
+          StringBuilder sb = new StringBuilder();
+          String fName = fcnClass.getSimpleName();
+          sb.append( "new Functions." + fName + "( " );
+          boolean first = true;
+          for ( Expression a : mx.getArgs() ) {
+            if ( first ) first = false;
+            else sb.append( ", " );
+            sb.append( astToAeExpr( a, true, lookOutsideClassDataForTypes,
+                                    complainIfDeclNotFound ) );
+          }
+          sb.append( " )");
+          middle = sb.toString();
+//          if ( !convertFcnCallArgsToExprs ) {
+//            middle = "(" + middle + ").functionCall";
+//          }
+          if ( evaluateCall ) {
+            middle = "(" + middle + ").evaluate(true)"; 
+          }
+        }
+        
+      }
+      if ( middle == null ) {
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, expr, convertFcnCallArgsToExprs,
                                      getClassData().getPackageName() , evaluateCall );
         //if ( convertFcnCallArgsToExprs ) {
           middle = javaForFunctionCall.toNewFunctionCallString();
+      }
 //        } else {
 //          if ( Utils.isNullOrEmpty( javaForFunctionCall.getScope() ) ) {
 //          middle = javaForFunctionCall.getScope() + ".";
@@ -962,11 +993,37 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       /*** ObjectCreationExpr ***/
       } else if ( expr.getClass() == MethodCallExpr.class ||
                   expr.getClass() == ObjectCreationExpr.class ) {
+        
+        // try treating as a binary operation
+        aeExpr = null;
+        if ( expr.getClass() == MethodCallExpr.class &&
+             ((MethodCallExpr)expr).getArgs() != null && 
+             ((MethodCallExpr)expr).getArgs().size() == 2 ) {        
+          MethodCallExpr mx = (MethodCallExpr)expr;
+          ConstructorCall call = binaryOpNameToEventFunction(mx.getName());
+          if ( call != null ) {
+            Vector< Object > args = new Vector< Object >();
+            for ( Expression a : mx.getArgs() ) {
+              args.add(astToAeExpression( a, true,
+                                          lookOutsideClassDataForTypes,
+                                          complainIfDeclNotFound ) );
+            }
+            call.setArguments( args );
+            if ( evaluateCall ) {
+              aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+            } else {
+              aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
+            }
+          }
+        }
+        if ( aeExpr == null ) {
+          
           JavaForFunctionCall javaForFunctionCall =
               new JavaForFunctionCall( this, expr, convertFcnCallArgsToExprs,
                                        getClassData().getPackageName(),
                                        evaluateCall );
           aeExpr = javaForFunctionCall.toNewExpression();
+        }
           //return aeExpr;
 //          //if ( convertFcnCallArgsToExprs ) {
 //            middle = javaForFunctionCall.toNewFunctionCallString();

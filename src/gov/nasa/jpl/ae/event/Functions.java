@@ -14,10 +14,15 @@ import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.DomainHelper;
+import gov.nasa.jpl.mbee.util.Infinity;
+import gov.nasa.jpl.mbee.util.NegativeInfinity;
+import gov.nasa.jpl.mbee.util.NegativeOne;
+import gov.nasa.jpl.mbee.util.One;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Zero;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -210,7 +215,6 @@ public class Functions {
             functionMethod,
             pickFunctionMethod1, pickFunctionMethod2 );
       // this( ( o1 instanceof Expression ) ? )
-      
     }
 
     public Binary( Object o1, Object o2, String functionMethod ) {
@@ -372,6 +376,100 @@ public class Functions {
   
   // Simple math functions
 
+  public static class Min< T, R > extends Binary< T, R > {
+    public Min( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "min", "pickValueForward", "pickValueReverse" );
+      setMonotonic( true );
+    }
+    public Min( Object o1, Object c ) {
+      super( o1, c, "min", "pickValueForward", "pickValueReverse" );
+      setMonotonic( true );
+    }
+
+    @Override
+    public //< T1  extends Comparable< ? super T1 > >
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+      return new Max<T,T>( returnValue, otherArg );
+    }
+
+    @Override
+    public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
+      // avoid infinite recursion
+      Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
+      if ( pair.first ) return null;
+      seen = pair.second;
+      
+      RangeDomain<?> rd =
+          DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
+                                       new Min<T,R>( null, null ) );
+      return rd;
+    }
+    
+    /**
+     * Return a domain for the matching input argument restricted by the domain
+     * of the other arguments and of an expected return value.
+     * 
+     * @param returnValue
+     * @param argument
+     * @return
+     */
+    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+      FunctionCall inverse = inverse( returnValue, argument );
+      if ( inverse == null ) return null;
+      return inverse.getDomain( false, null );
+    }
+}
+
+  public static class Max< T, R > extends Binary< T, R > {
+    public Max( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "max", "pickValueForward", "pickValueReverse" );
+      setMonotonic( true );
+    }
+    public Max( Object o1, Object c ) {
+      super( o1, c, "max", "pickValueForward", "pickValueReverse" );
+      setMonotonic( true );
+    }
+
+    @Override
+    public //< T1  extends Comparable< ? super T1 > > 
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+      return new Min<T,T>( returnValue, otherArg );
+    }
+
+    @Override
+    public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
+      // avoid infinite recursion
+      Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
+      if ( pair.first ) return null;
+      seen = pair.second;
+      
+      RangeDomain<?> rd =
+          DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
+                                       new Max<T,R>( null, null ) );
+      return rd;
+    }
+    
+    /**
+     * Return a domain for the matching input argument restricted by the domain
+     * of the other arguments and of an expected return value.
+     * 
+     * @param returnValue
+     * @param argument
+     * @return
+     */
+    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+      FunctionCall inverse = inverse( returnValue, argument );
+      if ( inverse == null ) return null;
+      return inverse.getDomain( false, null );
+    }
+  }
+    
   public static class Sum< T, R > extends Binary< T, R > {
     public Sum( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "add", "pickValueForward", "pickValueReverse" );
@@ -514,14 +612,15 @@ public class Functions {
     }
   }
 
+  
   // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
   // print "inf"
   // add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
     if ( o1 == null || o2 == null ) return null;
       Object result = null;
-    if ( o1 instanceof String || o2 instanceof String ) {
-        String s = "" + o1 + o2;
+    if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines 
+        result = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
       TimeVaryingMap<?> map = null;
@@ -542,7 +641,27 @@ public class Functions {
           Number n1 = Expression.evaluate( o1, Number.class, false );
           Number n2 = Expression.evaluate( o2, Number.class, false );
           if ( n1 != null && n2 != null ) {
-            if ( n1 instanceof Double || n2 instanceof Double ) {
+            if ( Infinity.isEqual( n1 ) ) {
+              try {
+                if ( NegativeInfinity.isEqual( n2 ) ) {
+                  result = Zero.forClass( o1.getClass() );
+                } else {
+                  result = Infinity.forClass( o1.getClass() );
+                }
+              } catch ( ClassCastException e ) {
+                e.printStackTrace();
+              }
+            } else if ( NegativeInfinity.isEqual( n1 ) ) {
+              try {
+                if ( Infinity.isEqual( n2 ) ) {
+                  result = Zero.forClass( o1.getClass() );
+                } else {
+                  result = NegativeInfinity.forClass( o1.getClass() );
+                }
+              } catch ( ClassCastException e ) {
+                e.printStackTrace();
+              }
+            } else if ( n1 instanceof Double || n2 instanceof Double ) {              
 //        result = ((Double)n1.doubleValue()) + ((Double)n2.doubleValue());
               result = (Double)plus(n1.doubleValue(), n2.doubleValue());
 //        double rd1 = ClassUtils.castNumber( (Number)n1, Double.class ).doubleValue();
@@ -591,6 +710,71 @@ public class Functions {
     return null;
   }
 
+  public static <V1, V2> V1 min( V1 o1, V2 o2 ) {
+    if ( o1 == null || o2 == null ) return null;
+      Object result = null;
+    if ( o1 instanceof String || o2 instanceof String ) {
+        String s1 = "" + o1;
+        String s2 = "" + o2;
+        int comp = s1.compareTo( s2 );
+        result = ( comp == 1 ) ? s2 : s1;
+        //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
+    } else {
+      TimeVaryingMap<?> map = null;
+      try {
+        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+      } catch ( ClassCastException e ) {
+        //ignore
+      }
+      if ( map != null ) result = min( map, o2 );
+      else {
+        try {
+          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+        } catch ( ClassCastException e ) {
+          //ignore
+        }
+        if ( map != null ) result = min( o1, map );
+        else {
+          Number n1 = Expression.evaluate( o1, Number.class, false );
+          Number n2 = Expression.evaluate( o2, Number.class, false );
+          if ( n1 != null && n2 != null ) {
+            if ( NegativeInfinity.isEqual( n1 ) || NegativeInfinity.isEqual( n2 ) ) {
+              try {
+                  result = NegativeInfinity.forClass( o1.getClass() );
+              } catch ( ClassCastException e ) {
+                e.printStackTrace();
+              }
+            } else if ( n1 instanceof Double || n2 instanceof Double ) {
+              result = Math.max(n1.doubleValue(), n2.doubleValue());
+            } else if ( n1 instanceof Float || n2 instanceof Float ) {
+              result = Math.max(n1.floatValue(), n2.floatValue());
+            } else if ( n1 instanceof Long || n2 instanceof Long ) {
+              result = Math.max(n1.longValue(), n2.longValue());
+            } else {
+              result = Math.max( n1.intValue(), n2.intValue() );
+            }
+          }
+        }
+      }
+    }
+    try {
+      if ( o1 != null ) {
+        Class<?> cls1 = o1.getClass();
+        Class<?> cls2 = o2.getClass();
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
+        if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
+        return (V1)x;
+      }
+    } catch (ClassCastException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  
   public static double plus( double rd1, double rd2 ) {
     double result;
     // check for overflow
@@ -608,7 +792,7 @@ public class Functions {
     // check for overflow
     if ( rd1 >= 0 && Float.MAX_VALUE - rd1 <= rd2 ) {
       result = Float.MAX_VALUE;
-    } else if ( rd1 < 0 && -Double.MAX_VALUE - rd1 >= rd2 ) {
+    } else if ( rd1 < 0 && -Float.MAX_VALUE - rd1 >= rd2 ) {
       result = -Float.MAX_VALUE;
     } else {
       result = rd1 + rd2;
@@ -662,8 +846,44 @@ public class Functions {
         Number n1 = Expression.evaluate( o1, Number.class, false );
         Number n2 = Expression.evaluate( o2, Number.class, false );
         if ( n1 != null && n2 != null ) {
+          if ( Infinity.isEqual( n1 ) ) {
+            try {
+              if ( Zero.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else if ( Utils.isNegative( n2 ) ){
+                result = NegativeInfinity.forClass( o1.getClass() );
+              } else {
+                result = Infinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( NegativeInfinity.isEqual( n1 ) ) {
+            try {
+              if ( Zero.isEqual( n2 ) ) {
+                result = NegativeOne.forClass( o1.getClass() );
+              } else if ( Utils.isNegative( n2 ) ){
+                result = Infinity.forClass( o1.getClass() );
+              } else {
+                result = NegativeInfinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( Zero.isEqual( n1 ) ) {
+            try {
+              if ( Infinity.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else if ( NegativeInfinity.isEqual( n2 ) ){
+                result = NegativeOne.forClass( o1.getClass() );
+              } else {
+                result = Zero.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
           // TODO -- other types, like BigDecimal
-          if ( n1 instanceof Double || n2 instanceof Double ) {
+          } else if ( n1 instanceof Double || n2 instanceof Double ) {
             // result = ((Double)n1.doubleValue()) * ((Double)n2.doubleValue());
             result = (Double)times( n1.doubleValue(), n2.doubleValue() );
           } else if ( n1 instanceof Float || n2 instanceof Float ) {
@@ -774,8 +994,56 @@ public class Functions {
         Number n1 = Expression.evaluate( o1, Number.class, false );
         Number n2 = Expression.evaluate( o2, Number.class, false );
         if ( n1 != null && n2 != null ) {
+          if ( Infinity.isEqual( n1 ) ) {
+            try {
+              if ( Infinity.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else if ( NegativeInfinity.isEqual( n2 ) ) {
+                result = NegativeOne.forClass( o1.getClass() );
+              } else if ( Utils.isNegative( n2 ) ){
+                result = NegativeInfinity.forClass( o1.getClass() );
+              } else {
+                result = Infinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( NegativeInfinity.isEqual( n1 ) ) {
+            try {
+              if ( Infinity.isEqual( n2 ) ) {
+                result = NegativeOne.forClass( o1.getClass() );
+              } else if ( NegativeInfinity.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else if ( Utils.isNegative( n2 ) ){
+                result = Infinity.forClass( o1.getClass() );
+              } else {
+                result = NegativeInfinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( Zero.isEqual( n1 ) ) {
+            try {
+              if ( Zero.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else {
+                result = Zero.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( Zero.isEqual( n2 ) ) {
+            try {
+              if ( Utils.isNegative( n1 ) ) {
+                result = NegativeInfinity.forClass( o1.getClass() );
+              } else {
+                result = Infinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
           // TODO -- other types, like BigDecimal
-          if ( n1 instanceof Double || n2 instanceof Double ) {
+          } else if ( n1 instanceof Double || n2 instanceof Double ) {
     //        result = ((Double)n1.doubleValue()) / ((Double)n2.doubleValue());
             result = (Double)dividedBy( n1.doubleValue(), n2.doubleValue() );
           } else if ( n1 instanceof Float || n2 instanceof Float ) {
@@ -2038,6 +2306,57 @@ public class Functions {
   }
 
   // TimeVaryingMap functions
+
+  public static < T > TimeVaryingMap< T > min( Object o,
+                                               TimeVaryingMap< T > tv ) {
+    return min( tv, o );
+  }
+  public static < T > TimeVaryingMap< T > min( TimeVaryingMap< T > tv,
+                                               Object o ) {
+    if ( tv == null || o == null ) return null;
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch( Throwable t ) {}
+    if ( n != null ) return tv.minClone( n );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (Throwable t) {}
+    if ( tvm != null ) return min( tv, tvm );
+    return null;
+  }   
+  public static < T, TT extends Number > TimeVaryingMap< T > min( TimeVaryingMap< T > tv1,
+                                                                  TimeVaryingMap< TT > tv2 ) {
+    return TimeVaryingMap.min( tv1, tv2 );
+  }
+  
+  public static < T > TimeVaryingMap< T > max( Object o,
+                                               TimeVaryingMap< T > tv ) {
+    return max( tv, o );
+  }
+  public static < T > TimeVaryingMap< T > max( TimeVaryingMap< T > tv,
+                                               Object o ) {
+    if ( tv == null || o == null ) return null;
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch( Throwable t ) {}
+    if ( n != null ) return tv.maxClone( n );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (Throwable t) {}
+    if ( tvm != null ) return max( tv, tvm );
+    return null;
+  }   
+  public static < T, TT extends Number > TimeVaryingMap< T > max( TimeVaryingMap< T > tv1,
+                                                                  TimeVaryingMap< TT > tv2 ) {
+    return TimeVaryingMap.max( tv1, tv2 );
+  }
+  
+  
+  
 //  public static < T > TimeVaryingMap< T > times( Object o1,
 //                                                 Object o2 ) {
 //    if ( o1 == null || o2 == null ) return null;

@@ -7,7 +7,6 @@ import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -15,6 +14,7 @@ import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -104,6 +104,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       } else {
         Debug.error(true, "Can't parse interpolation string! " + s );
       }
+    }
+    
+    public boolean isLinear() {
+      return type == LINEAR || type == RAMP;
+    }
+    public boolean isRamp() {
+      return isLinear();
     }
   }
 
@@ -1536,6 +1543,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return plus( n, firstKey(), null );
   }
 
+  /**
+   * @param n
+   * @return a copy of this map for which {@code n} is min'd with each value
+   */
+  public TimeVaryingMap<V> minClone( Number n ) {
+    if ( isEmpty() ) return this.clone();
+    return minClone( n, firstKey(), null );
+  }
+
+  /**
+   * @param n
+   * @return a copy of this map for which {@code n} is max'd with each value
+   */
+  public TimeVaryingMap<V> maxClone( Number n ) {
+    if ( isEmpty() ) return this.clone();
+    return maxClone( n, firstKey(), null );
+  }
+
   public boolean contains( Integer t ) {
     return getKey( t ) != null;
   }
@@ -1804,6 +1829,56 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return add( n, fromKey, null );
   }
 
+  public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
+                                       Parameter< Integer > toKey) {
+    TimeVaryingMap< V > tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
+    boolean same = toKey == fromKey;  // include the key if same
+    fromKey = putKey( fromKey, false );
+    if ( same ) {
+      toKey = fromKey;
+    } else {
+      toKey = putKey( toKey, false );
+    }
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      map = subMap( fromKey, true, toKey, same );
+    }
+    boolean succeededSomewhere = false;
+    Map.Entry< Parameter< Integer >, V > ePrev = null;
+    V lastIntegralValue = tryCastValue( 0 );
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      V integralValue = null;
+      Integer timeDiff = 0;
+      if ( ePrev != null && ePrev.getKey() != null ) {
+        timeDiff = e.getKey().getValueNoPropagate() - ePrev.getKey().getValueNoPropagate();
+      }
+      try {
+        V endValue = ePrev.getValue();
+        if ( this.interpolation.isLinear() ) {
+          endValue = e.getValue();
+        }
+        integralValue =
+            tryCastValue( ( (Double)lastIntegralValue )
+                          + ( ( ( (Double)endValue ) + (Double)ePrev.getValue() ) / 2.0 )
+                          * timeDiff );
+        succeededSomewhere = true;
+      } catch ( ClassCastException exc ) {
+        exc.printStackTrace();
+      }
+      if ( integralValue != null ) {
+        tvm.put( e.getKey(), integralValue );
+        lastIntegralValue = integralValue;
+      }
+      ePrev = e;
+    }
+    //if (succeededSomewhere) appliedSet.add(  )
+    return tvm;
+  }
+  
   /**
    * @param n
    * @param fromKey
@@ -1888,6 +1963,210 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return this;
   }
 
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not min'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.  null values are
+   *          treated as zero when min'ing with a non-null.
+   * @return this map after min'ing {@code n} with each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > min( Number n, Parameter< Integer > fromKey,
+                                  Parameter< Integer > toKey ) {
+
+    //if ( n == null ) return; //REVIEW
+    boolean same = toKey == fromKey;  // include the key if same
+    fromKey = putKey( fromKey, false );
+    if ( same ) {
+      toKey = fromKey;
+    } else {
+      toKey = putKey( toKey, false );
+    }
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      map = subMap( fromKey, true, toKey, same );
+    }
+    boolean succeededSomewhere = false;
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      if ( e.getValue() == null ) {
+        try {
+          e.setValue( tryCastValue( n ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Double ) {
+        Double v = (Double)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.min(v, n.doubleValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Float ) {
+        Float v = (Float)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.min( v, n.floatValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (int)( Math.min(v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Long ) {
+        Long v = (Long)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (long)( Math.min( v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      }
+    }
+    //if (succeededSomewhere) appliedSet.add(  )
+    return this;
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} to be min'd with this {@code TimeVaryingMap}
+   * @return this {@code TimeVaryingMap} after min'ing {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > min( TimeVaryingMap< VV > tvm ) {
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      min( n, k, k );
+    }
+    return removeDuplicates();
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not max'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.  null values are
+   *          treated as zero when maxing with a non-null.
+   * @return this map after maxing {@code n} with each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > max( Number n, Parameter< Integer > fromKey,
+                                  Parameter< Integer > toKey ) {
+
+    //if ( n == null ) return; //REVIEW
+    boolean same = toKey == fromKey;  // include the key if same
+    fromKey = putKey( fromKey, false );
+    if ( same ) {
+      toKey = fromKey;
+    } else {
+      toKey = putKey( toKey, false );
+    }
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      map = subMap( fromKey, true, toKey, same );
+    }
+    boolean succeededSomewhere = false;
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      if ( e.getValue() == null ) {
+        try {
+          e.setValue( tryCastValue( n ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Double ) {
+        Double v = (Double)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.max(v, n.doubleValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Float ) {
+        Float v = (Float)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.max( v, n.floatValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (int)( Math.max(v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Long ) {
+        Long v = (Long)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (long)( Math.max( v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      }
+    }
+    //if (succeededSomewhere) appliedSet.add(  )
+    return this;
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} to be max'd to this {@code TimeVaryingMap}
+   * @return this {@code TimeVaryingMap} after maxing {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > max( TimeVaryingMap< VV > tvm ) {
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      max( n, k, k );
+    }
+    return removeDuplicates();
+  }
+
+
+  
   /**
    * @param tvm the {@code TimeVaryingMap} to be added to this {@code TimeVaryingMap}
    * @return this {@code TimeVaryingMap} after adding {@code tvm}
@@ -2096,6 +2375,99 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
 
+  /**
+   * @param n
+   * @param fromKey
+   *          the key from which {@code n} is min'd with all values.
+   * @return a copy of this map for which {@code n} is min'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > min( Number n, Parameter< Integer > fromKey ) {
+    return min( n, fromKey, null );
+  }
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not min'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which {@code n} is min'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > minClone( Number n, Parameter< Integer > fromKey,
+                                       Parameter< Integer > toKey ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.min( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  /**
+   * @param map
+   * @return a copy of this TimeVaryingMap with {@code map} min'd with it
+   */
+  public <VV extends Number> TimeVaryingMap< V > minClone( TimeVaryingMap< VV > map ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.min( map );
+    return newTvm;
+  }
+
+  /**
+   * @param map1
+   * @param map2
+   * @return a new map that mins {@code map1} and {@code map2}
+   */
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > min( TimeVaryingMap< VV1 > map1,
+                                                                       TimeVaryingMap< VV2 > map2 ) {
+    return map1.minClone( map2 );
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   *          the key from which {@code n} is max'd with all values.
+   * @return a copy of this map for which {@code n} is max'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > max( Number n, Parameter< Integer > fromKey ) {
+    return max( n, fromKey, null );
+  }
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not max'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which {@code n} is max'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > maxClone( Number n, Parameter< Integer > fromKey,
+                                       Parameter< Integer > toKey ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.max( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  /**
+   * @param map
+   * @return a copy of this TimeVaryingMap with {@code map} max'd with it
+   */
+  public <VV extends Number> TimeVaryingMap< V > maxClone( TimeVaryingMap< VV > map ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.max( map );
+    return newTvm;
+  }
+
+  /**
+   * @param map1
+   * @param map2
+   * @return a new map that maxes {@code map1} and {@code map2}
+   */
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > max( TimeVaryingMap< VV1 > map1,
+                                                                       TimeVaryingMap< VV2 > map2 ) {
+    return map1.maxClone( map2 );
+  }
+
+  
   /**
    * Validate the consistency of the map for individual and adjacent entries.
    * @return whether or not the entries in the map make sense.
