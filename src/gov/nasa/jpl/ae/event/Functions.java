@@ -745,6 +745,86 @@ public class Functions {
                 e.printStackTrace();
               }
             } else if ( n1 instanceof Double || n2 instanceof Double ) {
+              result = Math.min(n1.doubleValue(), n2.doubleValue());
+            } else if ( n1 instanceof Float || n2 instanceof Float ) {
+              result = Math.min(n1.floatValue(), n2.floatValue());
+            } else if ( n1 instanceof Long || n2 instanceof Long ) {
+              result = Math.min(n1.longValue(), n2.longValue());
+            } else {
+              result = Math.min( n1.intValue(), n2.intValue() );
+            }
+          }
+        }
+      }
+    }
+    try {
+      if ( o1 != null ) {
+        Class<?> cls1 = o1.getClass();
+        Class<?> cls2 = o2.getClass();
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
+        if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
+        return (V1)x;
+      }
+    } catch (ClassCastException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static < T, TT > T min( Expression< T > o1, Expression< TT > o2 ) {
+    if ( o1 == null || o2 == null ) return null;
+    T r1 = o1.evaluate( false );
+    TT r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    return min( r1, r2 );
+  }
+
+  public static < T, TT > T max( Expression< T > o1, Expression< TT > o2 ) {
+    if ( o1 == null || o2 == null ) return null;
+    T r1 = o1.evaluate( false );
+    TT r2 = o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    return max( r1, r2 );
+  }
+
+  public static <V1, V2> V1 max( V1 o1, V2 o2 ) {
+    if ( o1 == null || o2 == null ) return null;
+      Object result = null;
+    if ( o1 instanceof String || o2 instanceof String ) {
+        String s1 = "" + o1;
+        String s2 = "" + o2;
+        int comp = s1.compareTo( s2 );
+        result = ( comp == -1 ) ? s2 : s1;
+        //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
+    } else {
+      TimeVaryingMap<?> map = null;
+      try {
+        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+      } catch ( ClassCastException e ) {
+        //ignore
+      }
+      if ( map != null ) result = max( map, o2 );
+      else {
+        try {
+          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+        } catch ( ClassCastException e ) {
+          //ignore
+        }
+        if ( map != null ) result = max( o1, map );
+        else {
+          Number n1 = Expression.evaluate( o1, Number.class, false );
+          Number n2 = Expression.evaluate( o2, Number.class, false );
+          if ( n1 != null && n2 != null ) {
+            if ( Infinity.isEqual( n1 ) || Infinity.isEqual( n2 ) ) {
+              try {
+                  result = Infinity.forClass( o1.getClass() );
+              } catch ( ClassCastException e ) {
+                e.printStackTrace();
+              }
+            } else if ( n1 instanceof Double || n2 instanceof Double ) {
               result = Math.max(n1.doubleValue(), n2.doubleValue());
             } else if ( n1 instanceof Float || n2 instanceof Float ) {
               result = Math.max(n1.floatValue(), n2.floatValue());

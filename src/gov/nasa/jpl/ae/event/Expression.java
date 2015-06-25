@@ -666,11 +666,8 @@ public class Expression< ResultType > extends HasIdImpl
     case Constructor: // Groundable -- should not get here
 		case None:
 		default:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+		  Debug.error( true, false, "Can't ground an Expression with null contents unless it's a value." );
+		  //(new IllegalAccessException()).printStackTrace();
 			return false; // TODO -- REVIEW -- exit?
 		}
 		//return grounded;
