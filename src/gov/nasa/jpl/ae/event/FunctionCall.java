@@ -351,6 +351,7 @@ public class FunctionCall extends Call {
    */
   public void setMethod( Method method ) {
     this.method = method;
+    setStale( true );
   }
 
   @Override
