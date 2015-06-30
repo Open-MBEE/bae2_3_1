@@ -41,6 +41,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected Vector< Object > arguments = null; // arguments to constructor
   //protected Vector< Object > evaluatedArguments = null; // arguments to constructor
   protected boolean evaluationSucceeded = false;
+  private boolean stale = true;
   
   abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
@@ -75,6 +76,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //arguments = null;
     }
     this.object = null; // Can't deconstruct since Call does not own it.
+    stale = true;
 //    if ( evaluatedArguments != null ) {
 //      this.evaluatedArguments.clear(); // Can't deconstruct since Call does not own them.
 //    }
@@ -359,6 +361,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       
       result = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
       //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
+
+      // No longer stale after invoked with updated arguments and result is cached.
+      stale = false;
+      
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
       // TODO Auto-generated catch block
@@ -507,7 +513,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public void setValue( Object value ) {
     // TODO -- this could be used to set free values when inverting the function
-    Debug.error( false, "Error! Call.setValue() is not yeet supported!" );
+    Debug.error( false, "Error! Call.setValue() is not yet supported!" );
   }
   
   /**
@@ -548,6 +554,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( HasParameters.Helper.substitute( nestedCall, p1, p2, deep, seen, true ) ) {
       subbed = true;
     }
+    if ( subbed ) stale = true;
     return subbed;
   }
 
@@ -656,6 +663,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         }
       }
     }
+    if ( grounded ) stale = true;
     return grounded;
   }
   
@@ -719,19 +727,31 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   @Override
   public boolean isStale() {
+    if ( stale ) return true;
     for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.isStale() ) return true;
+      if ( p.isStale() ) {
+        stale = true;
+        return true;
+      }
     }
     if ( nestedCall != null ) {
-      if ( nestedCall.isStale() ) return true;
+      if ( nestedCall.isStale() ) {
+        stale = true;
+        return true;
+      }
+    }
+    if ( object instanceof LazyUpdate )  {
+      if ( ( (LazyUpdate)object ).isStale() ) {
+        stale = true;
+        return true;
+      }
     }
     return false;
   }
 
   @Override
   public void setStale( boolean staleness ) {
-    // TODO -- REVIEW -- Need anything here?
-    assert false;
+    stale = staleness;
   }
 
   @Override
@@ -761,7 +781,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @param object the object to set
    */
   public void setObject( Object object ) {
-    this.object = object;
+    if ( this.object != object ) {
+      this.object = object;
+      stale = true;
+    }
   }
 
 //  /**
@@ -771,22 +794,59 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //    return evaluatedArguments;
 //  }
 
+//  /**
+//   * @return the arguments
+//   * The caller is responsible for setting the stale flag if the arguments are modified.
+//   */
+//  public Vector< Object > getArgument() {
+//    return arguments;
+//  }
   /**
-   * @return the arguments
+   * @param i
+   * @return the nth argument
    */
-  public Vector< Object > getArguments() {
-    return arguments;
+  public Object getArgument(int n) {
+    return arguments.get( n );
+  }
+
+  /**
+   * @return a the arguments in an array
+   */
+  public Object[] getArgumentArray() {
+    return arguments.toArray();
+  }
+  
+  /**
+   * @return a copy of the arguments as a {@link Vector}
+   */
+  public Vector<Object> getArgumentVector() {
+    return new Vector<Object>( arguments );
   }
 
   /**
    * @param arguments the arguments to set
    */
   public synchronized void setArguments( Vector< Object > arguments ) {
-    this.arguments = arguments;
+    if ( arguments != this.arguments ) {
+      this.arguments = arguments;
+      stale = true;
+    }
+  }
+
+  /**
+   * @param i index of argument to set
+   * @param argument the argument to set
+   */
+  public synchronized void setArgument( int i, Object argument ) {
+    if ( arguments.get( i ) != argument ) {
+      this.arguments.set(i, argument);
+      stale = true;
+    }
   }
 
   /**
    * @return the nestedCall
+   * The caller is responsible for setting stale = true if modifying the nestedCall. 
    */
   public Call getNestedCall() {
     return (nestedCall == null ? null : nestedCall.getValue(false) );
@@ -801,6 +861,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     } else {
       this.nestedCall.setValue( nestedCall );
     }
+    stale = true;
   }
   
   /* (non-Javadoc)
@@ -865,13 +926,23 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected static void sub( Call call, Vector< Object > arguments, int indexOfArg, Object obj ) {
       if ( arguments == null ) arguments = call.arguments;
       if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
-      else if ( indexOfArg == 0 ) call.object = obj;
+      else if ( indexOfArg == 0 ) {
+        if ( call.object != obj ) {
+          call.object = obj;
+          call.setStale( true );
+        }
+      }
       else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
                                                              + indexOfArg
                                                              + "; only "
                                                              + arguments.size()
                                                              + " arguments!" );
-      else arguments.set(indexOfArg-1,obj);
+      else {
+        if ( arguments.get( indexOfArg - 1 ) != obj ) {
+          arguments.set(indexOfArg-1,obj);
+          call.setStale( true );
+        }
+      }
   }
   
   /**
@@ -902,7 +973,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   protected static void sub( Call call, Object[] arguments, int indexOfArg, Object obj ) {
     if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
-    else if ( indexOfArg == 0 ) call.object = obj;
+    else if ( indexOfArg == 0 ) {
+      call.object = obj;
+      call.setStale( true );
+    }
     else if ( arguments == null ) return;
     else if ( indexOfArg > arguments.length ) Debug.error( "bad index "
                                                            + indexOfArg
