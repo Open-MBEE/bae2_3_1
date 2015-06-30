@@ -112,12 +112,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public static boolean isA( Collection< ? > c, Class< ? >[] classes ) {
-      return isA( c, Utils.arrayAsList( classes ) );
+      return isA( c, (Collection<Class<?>>)Utils.arrayAsList( classes ) );
   }
 
   public static boolean isA( Collection< ? > c, Class< ? >[] classes,
                              boolean isVarArgs ) {
-      return isA( c, Utils.arrayAsList( classes ), isVarArgs );
+      return isA( c, (Collection<Class<?>>)Utils.arrayAsList( classes ), isVarArgs );
   }
   
   public static boolean isA( Collection< ? > c, Collection< Class< ? > > classes ) {
