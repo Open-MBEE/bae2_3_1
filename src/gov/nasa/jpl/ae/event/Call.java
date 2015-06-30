@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -112,19 +113,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public static boolean isA( Collection< ? > c, Class< ? >[] classes ) {
-      return isA( c, (Collection<Class<?>>)Utils.arrayAsList( classes ) );
+      return isA( c, Utils.arrayAsList( classes, Class.class ) );
   }
 
   public static boolean isA( Collection< ? > c, Class< ? >[] classes,
                              boolean isVarArgs ) {
-      return isA( c, (Collection<Class<?>>)Utils.arrayAsList( classes ), isVarArgs );
+      return isA( c, Utils.arrayAsList( classes, Class.class ), isVarArgs );
   }
   
-  public static boolean isA( Collection< ? > c, Collection< Class< ? > > classes ) {
+  public static boolean isA( Collection< ? > c, Collection< Class > classes ) {
       return isA( c, classes, false );
   }
   
-  public static boolean isA( Collection< ? > c, Collection< Class< ? > > classes,
+  public static boolean isA( Collection< ? > c, Collection< Class > classes,
                              boolean isVarArgs ) {
       if ( c == null || classes == null ) return false;
 
@@ -133,7 +134,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       boolean numberOfArgsOkay = argsSame || ( isVarArgs && classes.size() < c.size() );
       if ( !numberOfArgsOkay ) return false;
       
-      Iterator< Class< ? > > i = classes.iterator();
+      Iterator< Class > i = classes.iterator();
       Class< ? > cls = null;
       for ( Object o : c ) {
           if ( i.hasNext() ) {
