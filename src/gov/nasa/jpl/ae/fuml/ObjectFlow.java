@@ -228,7 +228,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       EffectFunction effunc = (EffectFunction)effect;
       
       if (isAReceiveEffect(effunc)) {
-        Parameter<Integer> tp = tryEvaluateTimepoint(effunc.getArguments().get( 0 ),true);
+        Parameter<Integer> tp = tryEvaluateTimepoint(effunc.getArgument( 0 ),true);
         unsetValue(tp,null);
         return;
       }
@@ -378,7 +378,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
     // Is receive() applied
     if ( effectFunction.getMethod().getName().equals("receive") ) {
-      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArguments().get( 0 ) );
+      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArgument( 0 ) );
     }
 
     // Is method (send()?) applied?
@@ -393,11 +393,11 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   public boolean isSendIfApplicable( EffectFunction effectFunction ) {
     boolean doSend = true;
-    if ( effectFunction.getArguments() == null
-         || effectFunction.getArguments().size() < 3 ) {
+    if ( effectFunction.getArgumentArray() == null
+         || effectFunction.getArgumentArray().length < 3 ) {
       doSend = false;
     } else {
-      Object bo = effectFunction.getArguments().get( 2 );
+      Object bo = effectFunction.getArgument( 2 );
       Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
       if ( b == null ) doSend = false;
       else doSend = b.booleanValue();
@@ -434,12 +434,12 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public boolean isSetValueApplied( EffectFunction effectFunction ) {
     if ( effectFunction.getMethod() == null ) return false;
     if ( effectFunction.getMethod().getName().startsWith( "receive" ) &&
-         effectFunction.getArguments().size() < 2 ) {
+         effectFunction.getArgumentArray().length < 2 ) {
       Debug.error(true, "Error!  isSetValueApplied() is not applicable for this receive effects with one argument! This call is a bug.");
       return true;
     }
-    if ( effectFunction.getArguments() != null
-         && effectFunction.getArguments().size() >= 2 ) {
+    if ( effectFunction.getArgumentArray() != null
+         && effectFunction.getArgumentArray().length >= 2 ) {
       Pair< Parameter<Integer>, Obj > p =
           getTimeAndValueOfEffect( effectFunction, !isASendEffect( effectFunction ) );
       if ( p == null ) return false;
