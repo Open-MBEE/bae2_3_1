@@ -499,6 +499,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           } else if ( innerArgs != null ) {
             Call.sub( (Object[])innerArgs, indexOfArg-1, obj );
           }
+          setStale( true );
         } else {
           Debug.error("Unexpected arguments to OperationFunctionCallConstructorCall: " + arguments );
           return;
