@@ -194,7 +194,8 @@ public class Functions {
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
                             getArgumentArray() );
-      Vector< Object > args = getArgumentVector();
+      Vector< Object > args = new Vector<Object>( //functionCall.
+          getArgumentVector() );
       Collections.reverse( args );
       //functionCall.
       reversePickFunctionCall =
@@ -513,8 +514,9 @@ public class Functions {
     }
   }
 
-  // TODO -- Create a plus(Double, Double) that does the overflow and call from
-  // here. add(Expr, Expr) should call this fcn.
+  // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
+  // print "inf"
+  // add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
     if ( o1 == null || o2 == null ) return null;
       Object result = null;
@@ -537,22 +539,39 @@ public class Functions {
         }
         if ( map != null ) result = plus( o1, map );
         else {
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = ((Double)n1.doubleValue()) + ((Double)n2.doubleValue());
-      } else if ( n1 instanceof Float || n2 instanceof Float ) {
-        result = ((Float)n1.floatValue()) + ((Float)n2.floatValue());
-      } else if ( n1 instanceof Long || n2 instanceof Long ) {
-        result = ((Long)n1.longValue()) + ((Long)n2.longValue());
-      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
-        result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
-      } else {
-        result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
-      }
-    }
-    }
+          Number n1 = Expression.evaluate( o1, Number.class, false );
+          Number n2 = Expression.evaluate( o2, Number.class, false );
+          if ( n1 != null && n2 != null ) {
+            if ( n1 instanceof Double || n2 instanceof Double ) {
+//        result = ((Double)n1.doubleValue()) + ((Double)n2.doubleValue());
+              result = (Double)plus(n1.doubleValue(), n2.doubleValue());
+//        double rd1 = ClassUtils.castNumber( (Number)n1, Double.class ).doubleValue();
+//        double rd2 = ClassUtils.castNumber( (Number)n2, Double.class ).doubleValue();
+//        result = plus( rd1, rd2 );
+            } else if ( n1 instanceof Float || n2 instanceof Float ) {
+//        result = ((Float)n1.floatValue()) + ((Float)n2.floatValue());
+        result = (Float)plus(n1.floatValue(), n2.floatValue());
+//        float rd1 = ClassUtils.castNumber( (Number)n1, Float.class ).floatValue();
+//        float rd2 = ClassUtils.castNumber( (Number)n2, Float.class ).floatValue();
+//        result = plus( rd1, rd2 );
+            } else if ( n1 instanceof Long || n2 instanceof Long ) {
+//      result = ((Long)n1.longValue()) + ((Long)n2.longValue());
+              result = (Long)plus(n1.longValue(), n2.longValue());
+//        long rd1 = ClassUtils.castNumber( (Number)n1, Long.class ).longValue();
+//        long rd2 = ClassUtils.castNumber( (Number)n2, Long.class ).longValue();
+//        result = plus( rd1, rd2 );
+//      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
+////        result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
+//        result = plus(n1.intValue(), n2.intValue());
+////        int rd1 = ClassUtils.castNumber( (Number)n1, Integer.class ).intValue();
+////        int rd2 = ClassUtils.castNumber( (Number)n2, Integer.class ).intValue();
+////        result = plus( rd1, rd2 );
+            } else {
+              result = (Integer)plus( n1.intValue(), n2.intValue() );
+        //result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
+            }
+          }
+        }
       }
     }
     try {
@@ -572,6 +591,56 @@ public class Functions {
     return null;
   }
 
+  public static double plus( double rd1, double rd2 ) {
+    double result;
+    // check for overflow
+    if ( rd1 >= 0 && Double.MAX_VALUE - rd1 <= rd2 ) {
+      result = Double.MAX_VALUE;
+    } else if ( rd1 < 0 && -Double.MAX_VALUE - rd1 >= rd2 ) {
+      result = -Double.MAX_VALUE;
+    } else {
+      result = rd1 + rd2;
+    }
+    return result;
+  }
+  public static float plus( float rd1, float rd2 ) {
+    float result;
+    // check for overflow
+    if ( rd1 >= 0 && Float.MAX_VALUE - rd1 <= rd2 ) {
+      result = Float.MAX_VALUE;
+    } else if ( rd1 < 0 && -Double.MAX_VALUE - rd1 >= rd2 ) {
+      result = -Float.MAX_VALUE;
+    } else {
+      result = rd1 + rd2;
+    }
+    return result;
+  }
+  public static long plus( long rd1, long rd2 ) {
+    long result;
+    // check for overflow
+    if ( rd1 >= 0 && Long.MAX_VALUE - rd1 <= rd2 ) {
+      result = Long.MAX_VALUE;
+    } else if ( rd1 < 0 && Long.MIN_VALUE - rd1 >= rd2 ) {
+      result = Long.MIN_VALUE;
+    } else {
+      result = rd1 + rd2;
+    }
+    return result;
+  }
+  public static int plus( int rd1, int rd2 ) {
+    int result;
+    // check for overflow
+    if ( rd1 >= 0 && Integer.MAX_VALUE - rd1 <= rd2 ) {
+      result = Integer.MAX_VALUE;
+    } else if ( rd1 < 0 && Integer.MIN_VALUE - rd1 >= rd2 ) {
+      result = Integer.MIN_VALUE;
+    } else {
+      result = rd1 + rd2;
+    }
+    return result;
+  }
+
+
   public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
     if ( o1 == null || o2 == null ) return null;
     Object result = null;
@@ -590,22 +659,27 @@ public class Functions {
       }
       if ( map != null ) result = times( o1, map );
       else {
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      // TODO -- other types, like BigDecimal
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = ((Double)n1.doubleValue()) * ((Double)n2.doubleValue());
-      } else if ( n1 instanceof Float || n2 instanceof Float ) {
-        result = ((Float)n1.floatValue()) * ((Float)n2.floatValue());
-      } else if ( n1 instanceof Long || n2 instanceof Long ) {
-        result = ((Long)n1.longValue()) * ((Long)n2.longValue());
-      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
-        result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
-      } else {
-        result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
-      }
-    }
+        Number n1 = Expression.evaluate( o1, Number.class, false );
+        Number n2 = Expression.evaluate( o2, Number.class, false );
+        if ( n1 != null && n2 != null ) {
+          // TODO -- other types, like BigDecimal
+          if ( n1 instanceof Double || n2 instanceof Double ) {
+            // result = ((Double)n1.doubleValue()) * ((Double)n2.doubleValue());
+            result = (Double)times( n1.doubleValue(), n2.doubleValue() );
+          } else if ( n1 instanceof Float || n2 instanceof Float ) {
+            // result = ((Float)n1.floatValue()) * ((Float)n2.floatValue());
+            result = (Float)times( n1.floatValue(), n2.floatValue() );
+          } else if ( n1 instanceof Long || n2 instanceof Long ) {
+            // result = ((Long)n1.longValue()) * ((Long)n2.longValue());
+            result = (Long)times( n1.longValue(), n2.longValue() );
+            // } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
+            // // result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
+            // result = (Integer)times(n1.intValue(), n2.intValue());
+          } else {
+            // result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
+            result = (Integer)times( n1.intValue(), n2.intValue() );
+          }
+        }
       }
     }
     try {
@@ -626,6 +700,60 @@ public class Functions {
     return null;
   }
   
+  public static double times( double rd1, double rd2 ) {
+    double result;
+    // check for overflow
+    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
+    double ad1 = Math.abs( rd1 );
+    double ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
+    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
+      if ( Double.MAX_VALUE / ad1 <= ad2 ) result = Double.MAX_VALUE * ( signsEqual? 1 : -1);
+      else result = rd1 * rd2;
+    }
+    else  result = rd1 * rd2;
+    return result;
+  }
+  public static float times( float rd1, float rd2 ) {
+    float result;
+    // check for overflow
+    boolean signsEqual = (rd1 > 0) == (rd2 > 0); // REVIEW -- why isn't this >= instead of > ????!!
+    float ad1 = Math.abs( rd1 );
+    float ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
+    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
+      if ( Float.MAX_VALUE / ad1 <= ad2 ) result = Float.MAX_VALUE * ( signsEqual? 1 : -1);
+      else result = rd1 * rd2;
+    }
+    else  result = rd1 * rd2;
+    return result;
+  }
+  public static long times( long rd1, long rd2 ) {
+    long result;
+    // check for overflow
+    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
+    long ad1 = Math.abs( rd1 );
+    long ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
+    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
+      if ( Long.MAX_VALUE / ad1 <= ad2 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
+      else result = rd1 * rd2;
+    }
+    else  result = rd1 * rd2;
+    return result;
+  }
+  public static int times( int rd1, int rd2 ) {
+    int result;
+    // check for overflow
+    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
+    int ad1 = Math.abs( rd1 );
+    int ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
+    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
+      if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
+      else result = rd1 * rd2;
+    }
+    else  result = rd1 * rd2;
+    return result;
+  }
+
+  
   public static <V1, V2> V1 divide( V1 o1, V2 o2 ) {
     Object result = null;
     TimeVaryingMap<?> map = null;
@@ -643,22 +771,27 @@ public class Functions {
       }
       if ( map != null ) result = divide( o1, map );
       else {
-    Number n1 = Expression.evaluate( o1, Number.class, false );
-    Number n2 = Expression.evaluate( o2, Number.class, false );
-    if ( n1 != null && n2 != null ) {
-      // TODO -- other types, like BigDecimal
-      if ( n1 instanceof Double || n2 instanceof Double ) {
-        result = ((Double)n1.doubleValue()) / ((Double)n2.doubleValue());
-      } else if ( n1 instanceof Float || n2 instanceof Float ) {
-        result = ((Float)n1.floatValue()) / ((Float)n2.floatValue());
-      } else if ( n1 instanceof Long || n2 instanceof Long ) {
-        result = ((Long)n1.longValue()) / ((Long)n2.longValue());
-      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
-        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
-      } else {
-        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
-      }
-    }
+        Number n1 = Expression.evaluate( o1, Number.class, false );
+        Number n2 = Expression.evaluate( o2, Number.class, false );
+        if ( n1 != null && n2 != null ) {
+          // TODO -- other types, like BigDecimal
+          if ( n1 instanceof Double || n2 instanceof Double ) {
+    //        result = ((Double)n1.doubleValue()) / ((Double)n2.doubleValue());
+            result = (Double)dividedBy( n1.doubleValue(), n2.doubleValue() );
+          } else if ( n1 instanceof Float || n2 instanceof Float ) {
+    //        result = ((Float)n1.floatValue()) / ((Float)n2.floatValue());
+            result = (Float)dividedBy( n1.floatValue(), n2.floatValue() );
+          } else if ( n1 instanceof Long || n2 instanceof Long ) {
+    //        result = ((Long)n1.longValue()) / ((Long)n2.longValue());
+            result = (Long)dividedBy( n1.longValue(), n2.longValue() );
+    //      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
+    ////        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
+    //        result = (Integer)dividedBy( n1.intValue(), n2.intValue() );
+          } else {
+    //        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
+            result = (Integer)dividedBy( n1.intValue(), n2.intValue() );
+          }
+        }
       }
     }
     try {
@@ -678,6 +811,54 @@ public class Functions {
     }
     return null;
   }
+  
+  public static double dividedBy( double rd1, double rd2 ) {
+    double result;
+    // check for overflow
+    if ( rd2 >= 0.0 && rd2 < 1.0 && Double.MAX_VALUE * rd2 <= rd1 ) {
+      result = Double.MAX_VALUE;
+    } else if ( rd2 < 0.0 && rd2 > -1.0 && -Double.MAX_VALUE * rd2 >= rd1 ) {
+      result = -Double.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  public static float dividedBy( float rd1, float rd2 ) {
+    float result;
+    // check for overflow
+    if ( rd2 >= 0.0 && rd2 < 1.0 && Float.MAX_VALUE * rd2 <= rd1 ) {
+      result = Float.MAX_VALUE;
+    } else if ( rd2 < 0.0 && rd2 > -1.0 && -Float.MAX_VALUE * rd2 >= rd1 ) {
+      result = -Float.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  public static long dividedBy( long rd1, long rd2 ) {
+    long result;
+    // check for divide by 0
+    int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
+    if ( rd2 == 0 ) {
+      result = posNeg * Long.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  public static int dividedBy( int rd1, int rd2 ) {
+    int result;
+    // check for divide by 0
+    int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
+    if ( rd2 == 0 ) {
+      result = posNeg * Integer.MAX_VALUE;
+    } else {
+      result = rd1 / rd2;
+    }
+    return result;
+  }
+  
   
   public static <V1, V2> V1 minus( V1 o1, V2 o2 ) {
     return plus( o1, times( o2, -1 ) );
