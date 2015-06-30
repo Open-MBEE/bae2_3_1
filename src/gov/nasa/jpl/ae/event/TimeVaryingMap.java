@@ -1222,14 +1222,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           retVal = call.evaluate( true );
         } else {
           boolean gotTVM = false, gotNullTVM = false;
-          for ( int i = 0; i < call.getArguments().size(); ++i ) {
-            Object arg = call.getArguments().get( i );
+          for ( int i = 0; i < call.getArgumentArray().length; ++i ) {
+            Object arg = call.getArgument( i );
             Class< ? > argType = call.getParameterTypes()[ i ];
             if ( arg == null && argType.isAssignableFrom( TimeVaryingMap.class ) ) {
               if ( indexOfBestArgumentToReplace == null && !gotNullTVM ) {
                 indexOfBestArgumentToReplace = i;
                 gotNullTVM = true;
-                call.getArguments().set( i, tvm );
+                call.setArgument( i, tvm );
                 break;
               }
             } else if ( arg instanceof TimeVaryingMap && !gotTVM ) {
@@ -1240,7 +1240,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
             }
           }
           if ( indexOfBestArgumentToReplace != null ) {
-            call.getArguments().set( indexOfBestArgumentToReplace, tvm );
+            call.setArgument( indexOfBestArgumentToReplace, tvm );
           } else {
             // TODO -- REVIEW -- it would be good to be sure that this
             // substitution makes sense.

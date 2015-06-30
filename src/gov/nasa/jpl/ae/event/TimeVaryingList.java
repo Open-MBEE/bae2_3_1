@@ -497,11 +497,11 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   
   public boolean isConditionalAddApplicable( EffectFunction effectFunction ) {
     boolean doSend = true;
-    if ( effectFunction.getArguments() == null
-         || effectFunction.getArguments().size() < 3 ) {
+    if ( effectFunction.getArgumentArray() == null
+         || effectFunction.getArgumentArray().length < 3 ) {
       doSend = true;
     } else {
-      Object bo = effectFunction.getArguments().get( 2 );
+      Object bo = effectFunction.getArgument( 2 );
       Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
       if ( b == null ) doSend = true;
       else doSend = b.booleanValue();

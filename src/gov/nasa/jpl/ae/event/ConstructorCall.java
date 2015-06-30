@@ -244,7 +244,14 @@ public class ConstructorCall extends Call {
   
   @Override
   public Class<?>[] getParameterTypes() {
-    return constructor.getParameterTypes();
+    Class< ? >[] ctorTypes = constructor.getParameterTypes();
+    if ( !isInnerClass() ) return ctorTypes;
+    int newSize = Utils.isNullOrEmpty( ctorTypes ) ? 0 : ctorTypes.length - 1;
+    Class< ? >[] newTypes =  new Class< ? >[ newSize ];
+    for ( int i = 0; i < newSize; ++i ) {
+      newTypes[ i ] = ctorTypes[i+1];
+    }
+    return newTypes;
   }
   
   @Override
@@ -260,7 +267,17 @@ public class ConstructorCall extends Call {
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     evaluationSucceeded = false;
-    Object[] args = isVarArgs() ? new Object[]{evaluatedArgs} : evaluatedArgs;
+    Object[] args = false ? new Object[]{evaluatedArgs} : evaluatedArgs; // handling this in calling method, evaluate()
+    if ( isInnerClass() ) {
+      Object[] newArgs = new Object[args.length+1];
+      newArgs[0] = evaluatedObject;
+      if ( args != null ) {
+        for ( int i=0; i<args.length; ++i ) {
+          newArgs[i+1] = args[i];
+        }
+        args = newArgs;
+      }
+    }
     newObject = constructor.newInstance( args );
     evaluationSucceeded = true;
     return newObject;
@@ -300,6 +317,7 @@ public class ConstructorCall extends Call {
                              Set<HasParameters> seen ) {
     if ( super.substitute( p1, p2, deep, seen ) ) {
       this.newObject = null;
+      setStale( true );
       return true;
     }
     return false;
@@ -310,6 +328,7 @@ public class ConstructorCall extends Call {
     if ( seen != null && seen.contains( this ) ) return true;
     if ( isGrounded( deep, null ) ) return true;
     this.newObject = null;
+    setStale( true );
     return super.ground( deep, seen );
   }
   
@@ -370,6 +389,7 @@ public class ConstructorCall extends Call {
    */
   public void setConstructor( Constructor<?> constructor ) {
     this.constructor = constructor;
+    setStale( true );
     if ( constructor != null ) {
       this.thisClass = constructor.getDeclaringClass();
     }
@@ -383,6 +403,7 @@ public class ConstructorCall extends Call {
   public void setObject( Object object ) {
     this.object = object;
     this.newObject = null;
+    setStale( true );
   }
 
   /* (non-Javadoc)
@@ -392,6 +413,7 @@ public class ConstructorCall extends Call {
   public void setArguments( Vector< Object > arguments ) {
     super.setArguments( arguments );
     this.newObject = null;
+    setStale( true );
   }
 
   /* (non-Javadoc)
@@ -401,6 +423,7 @@ public class ConstructorCall extends Call {
   public void setNestedCall( Call nestedCall ) {
     super.setNestedCall( nestedCall );
     this.newObject = null;
+    setStale( true );
   }
 
   /* (non-Javadoc)
