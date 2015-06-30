@@ -193,9 +193,9 @@ public class Functions {
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
-                            getArguments().toArray() );
+                            getArgumentArray() );
       Vector< Object > args = new Vector<Object>( //functionCall.
-          getArguments() );
+          getArgumentVector() );
       Collections.reverse( args );
       //functionCall.
       reversePickFunctionCall =
@@ -241,7 +241,7 @@ public class Functions {
 
     public Vector< Expression > getArgumentExpressions() {
       Vector< Expression > argExprs =
-          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArguments(),
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArgumentArray(),
                                                                             Expression.class ) );
       return argExprs;
     }
@@ -1105,7 +1105,7 @@ public class Functions {
     // TODO -- handle cast errors
     @Override
     public < T > T pickValue( Variable< T > variable ) {
-      Object arg = ((FunctionCall)this.expression).getArguments().get( 0 );
+      Object arg = ((FunctionCall)this.expression).getArgument( 0 );
       if ( arg == variable ) {
         return (T)negative( variable );
       }
@@ -2016,7 +2016,7 @@ public class Functions {
 
     @Override
     public < T > T pickValue( Variable< T > variable ) {
-      Object arg = ((FunctionCall)this.expression).getArguments().get( 0 );
+      Object arg = ((FunctionCall)this.expression).getArgument( 0 );
       if ( arg == variable ) {
         return (T)(Boolean)false;
       }
@@ -2169,7 +2169,7 @@ public class Functions {
                                                               boolean returnOnlyOne,
                                                               boolean mustBeOnlyOne ) {
     if ( fCall == null || variable == null ) return null;
-    Vector< Object > arguments = fCall.getArguments();
+    Vector< Object > arguments = fCall.getArgumentVector();
     ArrayList< Object > argsWithVariable = new ArrayList<Object>();
     if ( variable instanceof Parameter ) {
       for ( Object arg : arguments ) {
@@ -2216,8 +2216,8 @@ public class Functions {
     // arguments of the pick functions
     if ( pickFunctionCall == null && reversePickFunctionCall == null ) return null;
     Vector< Object > args =
-        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArguments()
-                                     : pickFunctionCall.getArguments();
+        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArgumentVector()
+                                     : pickFunctionCall.getArgumentVector();
     assert( args.size() == 2 );
     if ( args.size() != 2 ) return null;
     Object arg1 = args.get( 0 );
