@@ -529,8 +529,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       
       // If the typeString is null, then create a Parameter for it 
       if (typeString == null) {
-        // FIXME: Is there a argument name we can use here instead of arg.toString()?
-        return elementValueToAeExpression(arg, arg.toString());
+        // The argument name needs to be unique, so we'll use the identifier.
+        return elementValueToAeExpression(arg, "" + model.getIdentifier(arg));
       }
       
       // If it is an Operation, then it may be meant as a function pointer for
@@ -562,9 +562,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         Collection<U > argValueNodes = model.getValue(arg, null);
 
         // Get the name of the argument Node:
-        Collection<N > argValueNames = model.getName(arg);
-        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
-                                                                 argValueNames.iterator().next().toString();
+//        Collection<N > argValueNames = model.getName(arg);
+//        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+//                                                                 argValueNames.iterator().next().toString();
+        // This needs to be unique, so we'll use the identifier.
+        String argValName = "" + model.getIdentifier( arg );
         
         // TODO can we assume this will always be size one?
         Object argValueNode = Utils.isNullOrEmpty(argValueNodes) ? arg : argValueNodes.iterator().next();
