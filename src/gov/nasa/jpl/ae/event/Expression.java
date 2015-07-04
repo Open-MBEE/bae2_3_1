@@ -12,6 +12,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -883,6 +884,18 @@ public class Expression< ResultType > extends HasIdImpl
         return (TT)( new Expression( object ) );
       }
     }
+    // Try pulling the only item out of an array or collection.
+    if ( object != null && cls != null && !Collection.class.isAssignableFrom( cls ) && !cls.isArray() ) {
+      if ( object.getClass().isArray() && ((Object[])object).length == 1 ) {
+        object = ((Object[])object)[0];
+        return evaluate( object, cls, propagate, allowWrapping );
+      } else if ( object instanceof Collection && ((Collection<?>)object).size() == 1 ) {
+        object = ((Collection<?>)object).iterator().next();
+        return evaluate( object, cls, propagate, allowWrapping );
+      }
+    }
+    
+    
     TT r = null;
     try {
       r = (TT)object;

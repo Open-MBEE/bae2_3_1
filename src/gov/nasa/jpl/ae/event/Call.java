@@ -463,7 +463,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
       argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
       if (!( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
-        Debug.error( true, argObjects[ i ] +
+        Debug.error( true, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
                              "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
                            + " is not an instance of " + c.getSimpleName() );
