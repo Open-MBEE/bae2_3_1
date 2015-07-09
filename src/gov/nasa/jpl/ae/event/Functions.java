@@ -1457,6 +1457,15 @@ public class Functions {
     }
   }  
 
+  public static class Exists< T > extends DoesThereExist< T > {
+
+    public Exists( Variable< T > variable,
+                   // Domain<T> d,
+                   Expression< Boolean > o ) {
+      super( variable, o );
+    }
+  }  
+
   public static class ForAll< T > extends BooleanBinary< T > {
     // Collection<?> quantifiedVariables = null;
     // public ForAll( Collection< Variable<?> > variables,

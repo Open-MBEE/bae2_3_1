@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
@@ -278,8 +279,17 @@ public class ConstructorCall extends Call {
         args = newArgs;
       }
     }
-    newObject = constructor.newInstance( args );
-    evaluationSucceeded = true;
+    try {
+      newObject = constructor.newInstance( args );
+      evaluationSucceeded = true;
+    } catch (Exception e ) {
+      evaluationSucceeded = false;
+      Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
+      Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
+                          + Utils.toString( evaluatedArgs, false )
+                          + "): ConstructorCall{" + this + "} " + e.getMessage() );
+      throw e;
+    }
     return newObject;
   }
   
