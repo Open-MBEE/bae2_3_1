@@ -522,6 +522,7 @@ public class Functions {
       Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) {
         String s = "" + o1 + o2;
+        result = s;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
       TimeVaryingMap<?> map = null;
