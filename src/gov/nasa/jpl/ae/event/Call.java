@@ -50,6 +50,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   abstract public Object invoke( Object obj, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
   abstract public boolean isStatic();
+  abstract public Call clone();
   
   public Call() {}
   
@@ -667,6 +668,20 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( grounded ) stale = true;
     return grounded;
   }
+  
+//  public synchronized String toLongString() {
+//    StringBuffer sb = new StringBuffer();
+//    if ( getMember() == null ) {
+//      sb.append( "null" );
+//    } else {
+//      sb.append( getMember().getName() );
+//      sb.append( MoreToString.Helper.toShortString( arguments, 
+//                                                    MoreToString.PARENTHESES,
+//                                                    null,
+//                                                    true ) );
+//    }
+//    return sb.toString();
+//  }
   
   @Override
   public synchronized String toShortString() {
