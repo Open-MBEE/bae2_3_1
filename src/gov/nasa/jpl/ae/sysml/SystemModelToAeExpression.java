@@ -54,21 +54,22 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Expression<X> expression = toAeExpression( expressionElement );
       return expression.evaluate( true );
     }
- 
-    public static Map< Object, Map< String, Map< Object, Call > > > callCache =
-        Collections.synchronizedMap( new HashMap< Object, Map< String, Map< Object, Call > > >() );
-    public static Call callCacheGet( Object object, String operationName, Object args ) {
-      if ( operationName == null ) return null;
-      if ( object == null ) object = "null";
-      if ( args == null ) args = "null";
-      return Utils.get( callCache, object, operationName, args );
-    }
-    public static Call callCachePut( Object object, String operationName, Object args, Call call ) {
-      if ( operationName == null ) return null;
-      if ( object == null ) object = "null";
-      if ( args == null ) args = "null";
-      return Utils.put( callCache, object, operationName, args, call );
-    }
+
+    // Cache doesn't work because the clone isn't deep enough.
+//    public static Map< Object, Map< String, Map< Object, Call > > > callCache =
+//        Collections.synchronizedMap( new HashMap< Object, Map< String, Map< Object, Call > > >() );
+//    public static Call callCacheGet( Object object, String operationName, Object args ) {
+//      if ( operationName == null ) return null;
+//      if ( object == null ) object = "null";
+//      if ( args == null ) args = "null";
+//      return Utils.get( callCache, object, operationName, args );
+//    }
+//    public static Call callCachePut( Object object, String operationName, Object args, Call call ) {
+//      if ( operationName == null ) return null;
+//      if ( object == null ) object = "null";
+//      if ( args == null ) args = "null";
+//      return Utils.put( callCache, object, operationName, args, call );
+//    }
     
   /**
    * Return a Call object based on the passed operation and arguments
@@ -118,10 +119,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           }
         }
 
-        Call cachedVal = callCacheGet( object, operationName.toString(), argTypes );
-        if ( cachedVal != null ) {
-          return cachedVal.clone();
-        }
+        // Cache doesn't work because the clone isn't deep enough.
+//        Call cachedVal = callCacheGet( object, operationName.toString(), argTypes );
+//        if ( cachedVal != null ) {
+//          return cachedVal.clone();
+//        }
         
         // 1.
 //        if ( operationName.equals( "evaluate" ) ) {
@@ -192,9 +194,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           call = new FunctionCall( object, method, arguments );
         }
         
-        if ( call != null ) {
-          callCachePut( object, operationName.toString(), argTypes, call.clone() );
-        }
+        // Cache doesn't work because the clone isn't deep enough.
+//        if ( call != null ) {
+//          callCachePut( object, operationName.toString(), argTypes, call.clone() );
+//        }
 
       } // end if operationName != null
             
