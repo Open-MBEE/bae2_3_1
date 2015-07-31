@@ -12,6 +12,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -305,6 +306,8 @@ public class Expression< ResultType > extends HasIdImpl
 	public ResultType evaluate( boolean propagate ) {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	  evaluationSucceeded = false;
 	  if ( form == null || ( form != Form.None && expression == null ) ) {
+	    //System.out.print("\nevaluate(" + this + ") = ");
+	    //System.out.println("null (1)");
 	    return null;
 	  }
 		try {
@@ -315,8 +318,12 @@ public class Expression< ResultType > extends HasIdImpl
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
+	    //System.out.print("\nevaluate(" + this + ") = ");
+      //System.out.println("null (2)");
 			return null; // TODO -- REVIEW -- exit?
 		case Value:
+	    //System.out.print("\nevaluate(" + this + ") = ");
+      //System.out.println("expression = " + expression);
 			return (ResultType)expression;
 		case Parameter:
           Parameter< ? > p = (Parameter< ? >)expression;
@@ -324,16 +331,24 @@ public class Expression< ResultType > extends HasIdImpl
             Object o = null;
             ResultType r = null;
             o = p.getValue( propagate );
-            if ( o == null ) return null;
+            if ( o == null ) {
+              //System.out.print("\nevaluate(" + this + ") = ");
+              //System.out.println("null (3)");
+              return null;
+            }
             try {
               if ( resultType != null ) {
                 if ( resultType.isInstance( o ) ) {
                   evaluationSucceeded = true;
+                  //System.out.print("\nevaluate(" + this + ") = ");
+                  //System.out.println("o1 = "+o);
                   return (ResultType)o;
                 } else {
                   if ( resultType == Integer.class && Double.class.isAssignableFrom(o.getClass()) ) {
                     Double d = (Double)o;
                     evaluationSucceeded = true;
+                    //System.out.print("\nevaluate(" + this + ") = ");
+                    //System.out.println("d1.intValue() = " + d.intValue());
                     return (ResultType)(Integer)d.intValue();
                   }
                   evaluationSucceeded = false;
@@ -345,10 +360,14 @@ public class Expression< ResultType > extends HasIdImpl
               } else if ( o instanceof Expression ) {
                 ResultType rt = ( (Expression<ResultType>)o ).evaluate( propagate );
                 evaluationSucceeded = ( (Expression<ResultType>)o ).didEvaluationSucceed();
+                //System.out.print("\nevaluate(" + this + ") = ");
+                //System.out.println("rt1 = "+rt);
                 return rt;
               } else {
                 r = (ResultType)o;
                 evaluationSucceeded = true;
+                //System.out.print("\nevaluate(" + this + ") = ");
+                //System.out.println("r1 = "+r);
                 return r;
               }
             } catch ( ClassCastException cce ) {
@@ -357,6 +376,8 @@ public class Expression< ResultType > extends HasIdImpl
                 if ( Double.class.isAssignableFrom(o.getClass()) ) {
                   Double d = (Double)o;
                   evaluationSucceeded = true;
+                  //System.out.print("\nevaluate(" + this + ") = ");
+                  //System.out.println("d2.intValue() = "+d.intValue());
                   return (ResultType)(Integer)d.intValue();
                 }
               } catch ( Exception e ) {
@@ -368,6 +389,8 @@ public class Expression< ResultType > extends HasIdImpl
               } else if ( o instanceof Expression ) {
                 ResultType rt = ( (Expression<ResultType>)o ).evaluate( propagate );
                 evaluationSucceeded = ( (Expression<ResultType>)o ).didEvaluationSucceed();
+                //System.out.print("\nevaluate(" + this + ") = ");
+                //System.out.println("rt2 = "+rt);
                 return rt;
               } else {
                 Debug.error( false,
@@ -376,6 +399,8 @@ public class Expression< ResultType > extends HasIdImpl
                                                                + ") " ) + this );
                 //cce.printStackTrace();
                 evaluationSucceeded = false;
+                //System.out.print("\nevaluate(" + this + ") = ");
+                //System.out.println("(o2 = "+o);
                 return (ResultType)o;
               }
             }
@@ -385,15 +410,21 @@ public class Expression< ResultType > extends HasIdImpl
       //HERE!!!;
 			ResultType r = (ResultType)((Call)expression).evaluate( propagate );
 			evaluationSucceeded = ((Call)expression).didEvaluationSucceed();
+      //System.out.print("\nevaluate(" + this + ") = ");
+      //System.out.println("r3 = "+r);
 			return r;
 		default:
 		  evaluationSucceeded = false;
+      //System.out.print("\nevaluate(" + this + ") = ");
+      //System.out.println("null (4)");
 			return null;
 		}
 		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		}
 		evaluationSucceeded = false;
+    //System.out.print("\nevaluate(" + this + ") = ");
+    //System.out.println("null (5)");
 		return null;  // TODO -- REVIEW -- shouldn't get here -- die?
 	}
 	
@@ -465,6 +496,7 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public boolean substitute( Parameter<?> p1, Object p2, boolean deep,
                              Set<HasParameters> seen ) {
+    //System.out.println("\nsubstitute(Parameter p1=" + p1 + ", Object p2=" + p2 + ") in " + this );
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
@@ -479,6 +511,12 @@ public class Expression< ResultType > extends HasIdImpl
       seen.remove( this );
       return substitute( p1, (Expression<?>)p2, deep, seen );
     }
+    if ( HasParameters.Helper.subParamsEqual( expression, p1 ) ) {
+      expression = p2;
+      form = Form.Value;
+      resultType = null;//(Class< ? extends ResultType >)( p2 == null ? Object.class : p2.getClass() );
+      subbed = true;
+    } else
     if ( expression instanceof HasParameters ) {
       HasParameters gotParameters = (HasParameters) expression;
       assert( gotParameters != null );
@@ -778,7 +816,7 @@ public class Expression< ResultType > extends HasIdImpl
     if ( deep && ( form == Form.Function || form == Form.Constructor ) ) {
       Call call = (Call)expression;
       set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getObject(), deep, seen ) );
-      set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getArguments(), deep, seen ) );
+      set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( call.getArgumentArray(), deep, seen ) );
     }
     return set;
   }
@@ -805,9 +843,20 @@ public class Expression< ResultType > extends HasIdImpl
     if ( object == null ) return null;
     // Check if object is already what we want.
     if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
+      TT result = null;
+      try {
+        result = evaluateDeep( object, cls, propagate, allowWrapping );
+      } catch (ClassCastException e) {
+      }
+      if ( result != null ) return result;
       return (TT)object;
     }
-    
+    return evaluateDeep( object, cls, propagate, allowWrapping );
+  }
+  
+  public static <TT> TT evaluateDeep( Object object, Class< TT > cls,
+                                      boolean propagate,
+                                      boolean allowWrapping ) throws ClassCastException {
     // Try to evaluate object or dig inside to get the object of the right type. 
     Object value = null;
     if ( object instanceof Parameter ) {
@@ -846,6 +895,18 @@ public class Expression< ResultType > extends HasIdImpl
         return (TT)( new Expression( object ) );
       }
     }
+    // Try pulling the only item out of an array or collection.
+    if ( object != null && cls != null && !Collection.class.isAssignableFrom( cls ) && !cls.isArray() ) {
+      if ( object.getClass().isArray() && ((Object[])object).length == 1 ) {
+        object = ((Object[])object)[0];
+        return evaluate( object, cls, propagate, allowWrapping );
+      } else if ( object instanceof Collection && ((Collection<?>)object).size() == 1 ) {
+        object = ((Collection<?>)object).iterator().next();
+        return evaluate( object, cls, propagate, allowWrapping );
+      }
+    }
+    
+    
     TT r = null;
     try {
       r = (TT)object;
