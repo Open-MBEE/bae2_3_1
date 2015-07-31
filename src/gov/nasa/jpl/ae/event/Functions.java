@@ -522,6 +522,7 @@ public class Functions {
       Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) {
         String s = "" + o1 + o2;
+        result = s;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
       TimeVaryingMap<?> map = null;
@@ -1453,6 +1454,15 @@ public class Functions {
     public ThereExists( Variable< T > variable,
                         // Domain<T> d,
                         Expression< Boolean > o ) {
+      super( variable, o );
+    }
+  }  
+
+  public static class Exists< T > extends DoesThereExist< T > {
+
+    public Exists( Variable< T > variable,
+                   // Domain<T> d,
+                   Expression< Boolean > o ) {
       super( variable, o );
     }
   }  

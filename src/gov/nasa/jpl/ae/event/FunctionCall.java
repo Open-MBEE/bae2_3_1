@@ -317,13 +317,21 @@ public class FunctionCall extends Call {
       evaluationSucceeded = true;
     } catch (IllegalArgumentException e) {
       evaluationSucceeded = false;
-      System.err.println( "FunctionCall.invoke " + method.getName() + "("
+      Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
+      Debug.error(true, false, "FunctionCall.invoke " + method.getName() + "("
                           + Utils.toString( evaluatedArgs, false )
-                          + "): FunctionCall{" + this + "}" + e.getMessage() );
+                          + "): FunctionCall{" + this + "} " + e.getMessage() );
       if ( method.getParameterTypes().length != evaluatedArgs.length ||
            !Arrays.asList( evaluatedArgs ).contains( null ) ) {
         e.printStackTrace();
       }
+    } catch (Exception e ) {
+      evaluationSucceeded = false;
+      Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
+      System.err.println( "FunctionCall.invoke " + method.getName() + "("
+                          + Utils.toString( evaluatedArgs, false )
+                          + "): FunctionCall{" + this + "} " + e.getMessage() );
+      throw e;
     }
    
     return result;
