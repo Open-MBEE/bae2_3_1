@@ -16,8 +16,8 @@ import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
-
 import gov.nasa.jpl.mbee.util.Random;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 /**
  *
@@ -118,7 +118,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#getValue(boolean)
+   * @see gov.nasa.jpl.mbee.util.Wraps#getValue(boolean)
    */
   @Override
   public T getValue( boolean propagate ) {
@@ -132,7 +132,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#setValue(java.lang.Object)
+   * @see gov.nasa.jpl.mbee.util.Wraps#setValue(java.lang.Object)
    */
   @Override
   public void setValue( T value ) {
@@ -143,7 +143,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   /*
    * (non-Javadoc)
    * 
-   * @see gov.nasa.jpl.ae.solver.Wraps#getPrimitiveType()
+   * @see gov.nasa.jpl.mbee.util.Wraps#getPrimitiveType()
    */
   @Override
   public Class< ? > getPrimitiveType() {
@@ -168,7 +168,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#getType()
+   * @see gov.nasa.jpl.mbee.util.Wraps#getType()
    */
   @Override
   public Class< ? > getType() {
@@ -180,7 +180,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   * @see gov.nasa.jpl.mbee.util.Wraps#getTypeNameForClassName(java.lang.String)
    */
   @Override
   public String getTypeNameForClassName( String className ) {

@@ -20,13 +20,13 @@ import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 /**
  * 
