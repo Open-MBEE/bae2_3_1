@@ -313,7 +313,14 @@ public class FunctionCall extends Call {
     // single variable number argument parameter. For example,
     // Utils.newList(new Object[]{(Object)null}).
     try {
-      result = method.invoke( evaluatedObject, evaluatedArgs ); 
+      result = method.invoke( evaluatedObject, evaluatedArgs );
+      if ( Debug.isOn() ) {
+          System.out.println("FunctionCall method = " + method.toGenericString());
+          System.out.println("FunctionCall args = " + arguments);
+          System.out.println("FunctionCall.invoke " + method.getName() + "("
+                  + Utils.toString( evaluatedArgs, false )
+                  + "): FunctionCall{" + this + "} = " + result );
+      }
       evaluationSucceeded = true;
     } catch (IllegalArgumentException e) {
       evaluationSucceeded = false;
