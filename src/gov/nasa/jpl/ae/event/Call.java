@@ -3,14 +3,13 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
-import gov.nasa.jpl.ae.solver.Wraps;
-import gov.nasa.jpl.mbee.util.MethodCall;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -293,12 +291,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     
     // evaluate the arguments before invoking the method on them
     Object evaluatedArgs[] = null;
-    
-    if (doEvalArgs) {
+    Object[] unevaluatedArgs = arguments.toArray();
+    if ( doEvalArgs ) {//|| hasTypeErrors( unevaluatedArgs ) ) {
+      //System.out.println("@@@@@@@@@@@   DUDE   @@@@@@@@@@@@@");
       evaluatedArgs = evaluateArgs( propagate );
     }
     else {
-      evaluatedArgs = arguments.toArray();
+      //System.out.println("@@@@@@@@@@@   SWEET   @@@@@@@@@@@@@");
+      evaluatedArgs = unevaluatedArgs;
     }
     
     // evaluate the object, whose method will be invoked from a nested call
@@ -388,7 +388,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //      nestedCall.getValue().object = result;
 //      result = nestedCall.getValue().evaluate( propagate );
 //    }
-    if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + result );
+    //if ( Debug.isOn() ) 
+      Debug.outln( "evaluate() returning " + result );
     
     return result;
   }
