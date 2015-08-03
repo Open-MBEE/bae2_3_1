@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.HasName;
 
 /**
  * ParameterListener should be implemented by classes whose members or methods
@@ -12,7 +13,7 @@ import gov.nasa.jpl.ae.solver.Variable;
  * @author bclement
  * 
  */
-public interface ParameterListener extends HasParameters {
+public interface ParameterListener extends HasParameters, HasName< String > {
   /**
    * Propagate this parameter's change to other objects. This may involve
    * updating dependencies, re-elaboration of events, and maybe constraint
