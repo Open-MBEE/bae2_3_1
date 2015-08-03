@@ -29,6 +29,8 @@ import sysml.SystemModel;
 
 public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
     
+    public static boolean doCallCaching = false;
+  
     protected SM model = null;
     protected ClassData classData = new ClassData();
     
@@ -67,6 +69,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     public static Pair< CallCase, ArgsUsed > callCacheGet( Object object,
                                                            String operationName,
                                                            Object args ) {
+      if ( !doCallCaching ) return null;
       if ( operationName == null ) return null;
       String className =
           ( object == null ) ? "null" : object.getClass().getCanonicalName();
@@ -77,6 +80,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     public static Pair< CallCase, ArgsUsed >
         callCachePut( Object object, String operationName, Object args,
                       Pair< CallCase, ArgsUsed > callCasePair ) {
+      if ( !doCallCaching ) return null;
       if ( operationName == null ) return null;
       String className =
           ( object == null ) ? "null" : object.getClass().getCanonicalName();
@@ -142,7 +146,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
 
       // Cache doesn't work because the clone isn't deep enough.
-      Pair<CallCase, ArgsUsed> cachedCase = callCacheGet( object, operationName.toString(), argTypes );
+      Pair<CallCase, ArgsUsed> cachedCase = null;
+      if ( doCallCaching ) cachedCase =
+          callCacheGet( object, operationName.toString(), argTypes );
       CallCase callCase = cachedCase == null ? CallCase.UNKNOWN : cachedCase.first;
       ArgsUsed argsUsed = cachedCase == null ? ArgsUsed.UNKNOWN : cachedCase.second;
       CallCase newCallCase = callCase; // for adding to the cache; only update if UNKNOWN
@@ -237,10 +243,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      
       //3.
      
-      if ( call == null
+      if ( call == null && method == null
           && ( callCase == CallCase.UNKNOWN || callCase == CallCase.ae ) ) {
   
-        //System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
+        System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
         if ( aeArguments.size() == 1 ) {
             call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
         } 
@@ -271,7 +277,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         
       // 4.
         
-      if ( call == null
+      if ( call == null && method == null
           && ( callCase == CallCase.UNKNOWN || callCase == CallCase.common ) ) {
 
         //System.out.println("^^^^^^^^^^^^  4  ^^^^^^^^^^^^^^^");
@@ -314,7 +320,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
       
       // Put any new results in cache.
-      if ( cachedCase == null ) {
+      if ( doCallCaching && cachedCase == null ) {
         callCachePut( object, operationName.toString(), argTypes,
                       new Pair< CallCase, ArgsUsed >( newCallCase, newArgsUsed ) );
       }
@@ -938,6 +944,22 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       
     }
     
+    /**
+     * Converts the passed sysml Operation to an AE Expression
+     * 
+     * @param operationElement the sysml operation to convert
+     * @param parameterValues a List of parameter values for the operation
+     *        The order of the elements of this list must match the
+     *        order of elements of parameter for the passed
+     *        Operation.
+     * @return the AE expression
+     */
+    public <X> Expression<X> operationToAeExpression( Object operationElement, 
+                                                      ArrayList<Object> parameterValues) {
+      return operationToAeExpression( operationElement,
+                                      new Vector<Object>(parameterValues) );
+    }
+
     /**
      * Converts the passed sysml Operation to an AE Expression
      * 
