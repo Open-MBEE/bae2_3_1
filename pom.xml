@@ -2,6 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>gov.nasa.jpl.mbee.bae</groupId>
   <artifactId>bae</artifactId>
+  <packaging>jar</packaging>
   <version>2.2.0</version>
   <description>Behavior Analysis Engine for MBEE</description>
   <distributionManagement>
