@@ -391,6 +391,7 @@ public class ConstructorCall extends Call {
    * @return the constructor
    */
   public Constructor<?> getConstructor() {
+    if ( this.constructor != null ) return this.constructor; 
     Object argArr[] = null;
     if ( !Utils.isNullOrEmpty( arguments ) ) {
       argArr = arguments.toArray();
