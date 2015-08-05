@@ -103,7 +103,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
    */
     private Call createCall(Object object, N operationName, Vector< Object > aeArguments,
                             Vector<Object> rawArguments) {
-            
+      boolean mayUseRawArgs = true;      
+      
       Call call = null;
       Method method = null;
       //Object object = o;
@@ -149,11 +150,26 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           callCacheGet( object, operationName.toString(), argTypes );
       CallCase callCase = cachedCase == null ? CallCase.UNKNOWN : cachedCase.first;
       ArgsUsed argsUsed = cachedCase == null ? ArgsUsed.UNKNOWN : cachedCase.second;
+            
       CallCase newCallCase = callCase; // for adding to the cache; only update if UNKNOWN
       ArgsUsed newArgsUsed = argsUsed; // for adding to the cache; only update if UNKNOWN
       
+      if ( !mayUseRawArgs ) {
+        argsUsed = ArgsUsed.ae;
+        newArgsUsed = ArgsUsed.ae;
+      }
+
+      
       if ( callCase == CallCase.FAIL ) return null;
       
+      boolean nullEmptyOrSameArgs = true;
+      Iterator< Class< ? > > i = rawArgTypes.iterator();
+      for ( Class<?> t : argTypes ) {
+        Class< ? > rawT = i.hasNext() ? i.next() : null;
+        if ( t != null && !Utils.valuesEqual( t, rawT ) ) {
+          nullEmptyOrSameArgs = false;
+        }
+      }
       
       // 1.
       
@@ -175,7 +191,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                                                     operationName.toString(),
                                                     argTypes.toArray(new Class[argTypes.size()]));
         }
-        if ( method == null ) {
+        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
           method = ClassUtils.getMethodForArgTypes( model.getClass(),
                                                     operationName.toString(),
                                                     rawArgTypes.toArray(new Class[rawArgTypes.size()]));
@@ -216,8 +232,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         // TODO -- move this out of this already long function. It can probably
         // be reused elsewhere in this function anyway.
         boolean tryRawArgs =
-            call == null || argsUsed == ArgsUsed.raw
-                || prefersRawArgs( call, argTypes, rawArgTypes );
+            (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
+                || prefersRawArgs( call, argTypes, rawArgTypes ) );
         
         if ( tryRawArgs ) {
           Call call2 = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
@@ -289,7 +305,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
                                                               aeArguments.toArray() );
         }
-        if (method == null) {
+        if ((!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae) {
           method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
                                                               rawArguments.toArray() );
           if ( method != null ) usedRawArgs = true;
@@ -795,17 +811,28 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Vector< Object > rawArgs = new Vector< Object >();
       while (it.hasNext() ) {
         P rawArg = it.next();
+        
+        // This will return the value of the element that is referenced by rawArg
+        // if rawArg is an ElementValue. So, if rawArg points to a Property, the
+        // property value is added to arguments.
         arguments.add( elementArgumentToAeExpression( rawArg ) );
-        rawArgs.add( rawArg );
+        
+        // Get the elementValueOfElement from the ElementValue if that's what this
+        // is. So, if rawArg references a Property, the Property is added to
+        // rawArgs.
+        Object arg = getValueOfElement(rawArg);
+        if ( arg == null ) arg = rawArg;
+
+        rawArgs.add( arg );
       }
-      
-      //System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
+
+      // System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
       return operationToAeExpressionImpl( operation, arguments, rawArgs );
     }
-    
-    protected <X> Expression<X> operationToAeExpressionImpl(P operation,
-                                                            Vector< Object > aeArgs,
-                                                            Vector< Object > rawArgs  ) {
+
+    protected <X> Expression<X> operationToAeExpressionImpl( P operation,
+                                                             Vector< Object > aeArgs,
+                                                             Vector< Object > rawArgs ) {
       Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
       String operationType = model.getTypeString(operation, null);
