@@ -29,6 +29,7 @@ import sysml.SystemModel;
 
 public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
     
+    public static boolean debug = false;
     public static boolean doCallCaching = false;
   
     protected SM model = null;
@@ -102,6 +103,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
    */
     private Call createCall(Object object, N operationName, Vector< Object > aeArguments,
                             Vector<Object> rawArguments) {
+      boolean mayUseRawArgs = true;      
       
       Call call = null;
       Method method = null;
@@ -132,10 +134,6 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         }
         else {
             argTypes.add( arg.getClass() );
-//              if ( arg.getClass().isArray() ) {;
-//                  
-//              }
-//            //Debug.error( "Expecting an Expression for the argument: " + arg );
         }
       }
 
@@ -145,21 +143,37 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         rawArgTypes.add( arg.getClass() );
       }
 
-      // Cache doesn't work because the clone isn't deep enough.
+      // Caching place where method was found instead of the resulting call
+      // because the clone of the call isn't deep enough.
       Pair<CallCase, ArgsUsed> cachedCase = null;
       if ( doCallCaching ) cachedCase =
           callCacheGet( object, operationName.toString(), argTypes );
       CallCase callCase = cachedCase == null ? CallCase.UNKNOWN : cachedCase.first;
       ArgsUsed argsUsed = cachedCase == null ? ArgsUsed.UNKNOWN : cachedCase.second;
+            
       CallCase newCallCase = callCase; // for adding to the cache; only update if UNKNOWN
       ArgsUsed newArgsUsed = argsUsed; // for adding to the cache; only update if UNKNOWN
       
+      if ( !mayUseRawArgs ) {
+        argsUsed = ArgsUsed.ae;
+        newArgsUsed = ArgsUsed.ae;
+      }
+
+      
       if ( callCase == CallCase.FAIL ) return null;
       
+      boolean nullEmptyOrSameArgs = true;
+      Iterator< Class< ? > > i = rawArgTypes.iterator();
+      for ( Class<?> t : argTypes ) {
+        Class< ? > rawT = i.hasNext() ? i.next() : null;
+        if ( t != null && !Utils.valuesEqual( t, rawT ) ) {
+          nullEmptyOrSameArgs = false;
+        }
+      }
       
       // 1.
       
-      //System.out.println("^^^^^^^^^^^^  1  ^^^^^^^^^^^^^^^");
+      if ( debug ) System.out.println("^^^^^^^^^^^^  1  ^^^^^^^^^^^^^^^");
       
 //        if ( operationName.equals( "evaluate" ) ) {
 ////          method = ClassUtils.getMethodForArgTypes( EvaluateOperation.class,
@@ -177,7 +191,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                                                     operationName.toString(),
                                                     argTypes.toArray(new Class[argTypes.size()]));
         }
-        if ( method == null ) {
+        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
           method = ClassUtils.getMethodForArgTypes( model.getClass(),
                                                     operationName.toString(),
                                                     rawArgTypes.toArray(new Class[rawArgTypes.size()]));
@@ -188,13 +202,15 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
        if ( object == null ) {
          object = model;
        }
-       if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.EmsSystemModel;
-       if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;         
-       //System.out.println("^^^^^^^^^^^^  method = " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "  ^^^^^^^^^^^^^^^");
-       //if ( ! usedRawArgs )
-       //  System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
-       //else
-       //  System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+       if ( debug ) {
+         if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.EmsSystemModel;
+         if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;         
+         System.out.println("^^^^^^^^^^^^  method = " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "  ^^^^^^^^^^^^^^^");
+         if ( ! usedRawArgs )
+           System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+         else
+           System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+       }
      }
      
 
@@ -203,8 +219,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      if ( method == null && call == null
          && ( callCase == CallCase.UNKNOWN || callCase == CallCase.sysml ) ) {
 
+       if ( debug ) System.out.println("^^^^^^^^^^^^  2  ^^^^^^^^^^^^^^");
+
        if ( argsUsed != ArgsUsed.raw ) {
-          //System.out.println("^^^^^^^^^^^^  2  ^^^^^^^^^^^^^^");
            call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
                                                                      aeArguments,
                                                                      argTypes.toArray(new Class[]{}));
@@ -215,28 +232,31 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         // TODO -- move this out of this already long function. It can probably
         // be reused elsewhere in this function anyway.
         boolean tryRawArgs =
-            call == null || argsUsed == ArgsUsed.raw
-                || prefersRawArgs( call, argTypes, rawArgTypes );
+            (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
+                || prefersRawArgs( call, argTypes, rawArgTypes ) );
         
         if ( tryRawArgs ) {
           Call call2 = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
                                                                     rawArguments,
                                                                     rawArgTypes.toArray(new Class[]{}));
           if ( call2 != null ) {
+            // Try it out just to be sure
             usedRawArgs = true;
-            //System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+            if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
             call = call2;
           }
         }
         if ( call != null ) {
           if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.sysml;
           if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
-          //System.out.println("^^^^^^^^^^^^  call = " + call + "  ^^^^^^^^^^^^^^^");
-          //System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
-          //if ( !usedRawArgs )
-          //  System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
-          //else
-          //  System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+          if ( debug ) {
+            System.out.println("^^^^^^^^^^^^  call = " + call + "  ^^^^^^^^^^^^^^^");
+            System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
+            if ( !usedRawArgs )
+              System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+            else
+              System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+          }
         }
       }
 
@@ -246,7 +266,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       if ( call == null && method == null
           && ( callCase == CallCase.UNKNOWN || callCase == CallCase.ae ) ) {
   
-        System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
+        if ( debug ) System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
         if ( aeArguments.size() == 1 ) {
             call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
         } 
@@ -263,14 +283,14 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           call.setArguments( aeArguments );
           if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.ae;
           if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
-          //if ( call != null ) {
-            //System.out.println("^^^^^^^^^^^^  call = " + call + "  ^^^^^^^^^^^^^^^");
-            //System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
-            //if ( !usedRawArgs )
-            //  System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
-            //else
-            //  System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
-          //}
+          if ( debug && call != null ) {
+            System.out.println("^^^^^^^^^^^^  call = " + call + "  ^^^^^^^^^^^^^^^");
+            System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
+            if ( !usedRawArgs )
+              System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+            else
+              System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+          }
         }
       }
       
@@ -280,26 +300,28 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       if ( call == null && method == null
           && ( callCase == CallCase.UNKNOWN || callCase == CallCase.common ) ) {
 
-        //System.out.println("^^^^^^^^^^^^  4  ^^^^^^^^^^^^^^^");
+        if ( debug ) System.out.println("^^^^^^^^^^^^  4  ^^^^^^^^^^^^^^^");
         if ( argsUsed != ArgsUsed.raw ) {
           method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
                                                               aeArguments.toArray() );
         }
-        if (method == null) {
+        if ((!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae) {
           method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
                                                               rawArguments.toArray() );
           if ( method != null ) usedRawArgs = true;
         }
       
-        if ( method != null ) {//System.out.println("^^^^^^^^^^^^  method = " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "  ^^^^^^^^^^^^^^^");
+        if ( method != null ) {
+          if ( debug ) System.out.println("^^^^^^^^^^^^  method = " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "  ^^^^^^^^^^^^^^^");
           if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.common;
           if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
         }
-          //if ( !usedRawArgs )
-        //  System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
-        //else
-        //  System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
-
+        if ( debug ) {
+          if ( !usedRawArgs )
+            System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+          else
+            System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+        }
       }
 
       
@@ -325,16 +347,16 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
                       new Pair< CallCase, ArgsUsed >( newCallCase, newArgsUsed ) );
       }
 
-      //if ( call != null ) {
-      //System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
-      //System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
-      //if ( !usedRawArgs )
-      //  System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
-      //else
-      //  System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
-      //}
+      if ( debug && call != null ) {
+        System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
+        System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
+        if ( !usedRawArgs )
+          System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+        else
+          System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+      }
 
-      //if ( call == null ) System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
+      if ( debug && call == null ) System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
 
       return call;
     }
@@ -347,13 +369,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       boolean prefersRawArgs = false;
       Constructor< ? > ctor = ((ConstructorCall)call).getConstructor();
       Class<?> cls = ctor.getDeclaringClass();
-      boolean hasPreference = false;
-      for ( Class<?> i : cls.getInterfaces() ) {
-        if ( HasPreference.class.isAssignableFrom( i ) ) {
-          hasPreference = true;
-          break;
-        }
-      }
+      boolean hasPreference = HasPreference.Helper.classHasPreference( cls );
       if ( !hasPreference ) return false;
       // The constructor's class has preferences over arguments to the
       // constructor. Determine which arguments are best.
@@ -365,15 +381,15 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         try {
           if ( obj == null || obj.prefer( (List)rawArgTypes, (List)argTypes ) ) {
             prefersRawArgs = true;
-            //System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+            if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
           }
         } catch (ClassCastException e) {
           // Assuming class cast exception on prefer since we don't
           // know for sure what args it takes.
         }
-        //System.out.println( "?:-| ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+        if ( debug ) System.out.println( "?:-| ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
       } catch (Throwable t) {
-        //System.out.println( ":-( ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+        if ( debug ) System.out.println( ":-( ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
         ////t.printStackTrace();
         // Assumed exception when invoking call.evaluate( true )
         prefersRawArgs = true;
@@ -795,17 +811,28 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Vector< Object > rawArgs = new Vector< Object >();
       while (it.hasNext() ) {
         P rawArg = it.next();
+        
+        // This will return the value of the element that is referenced by rawArg
+        // if rawArg is an ElementValue. So, if rawArg points to a Property, the
+        // property value is added to arguments.
         arguments.add( elementArgumentToAeExpression( rawArg ) );
-        rawArgs.add( rawArg );
+        
+        // Get the elementValueOfElement from the ElementValue if that's what this
+        // is. So, if rawArg references a Property, the Property is added to
+        // rawArgs.
+        Object arg = getValueOfElement(rawArg);
+        if ( arg == null ) arg = rawArg;
+
+        rawArgs.add( arg );
       }
-      
-      //System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
+
+      // System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
       return operationToAeExpressionImpl( operation, arguments, rawArgs );
     }
-    
-    protected <X> Expression<X> operationToAeExpressionImpl(P operation,
-                                                            Vector< Object > aeArgs,
-                                                            Vector< Object > rawArgs  ) {
+
+    protected <X> Expression<X> operationToAeExpressionImpl( P operation,
+                                                             Vector< Object > aeArgs,
+                                                             Vector< Object > rawArgs ) {
       Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
       String operationType = model.getTypeString(operation, null);
