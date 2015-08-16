@@ -29,7 +29,7 @@ import sysml.SystemModel;
 
 public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
     
-    public static boolean debug = false;
+    public static boolean debug = true;
     public static boolean doCallCaching = false;
   
     protected SM model = null;
@@ -439,6 +439,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           argValPropNodes = model.getValue(argValueNode, "string");
           argType = "String";
         }
+        else if (type.equals("OpaqueExpression")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "expressionBody");
+          argType = "String";
+        }
         else if (type.equals("LiteralNull")) {
           argValProp = null;
           argType = null;
@@ -500,8 +505,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     {
       
       P valueOfElementNode = null;
-
-      // Get the valueOfElementProperty node:
+      
+      // We assume that it is an ElementValue, so get the id of the referenced
+      // element:
       Collection< P > valueOfElemNodes = 
               model.getProperty(operandProp, "element");
       
@@ -759,6 +765,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     N getOperationName( Object operation ) throws ClassCastException {
       if ( operation == null ) return null;
       N operationName = null;
+      if ( operation instanceof String ) {
+        operationName = model.asName( operation );
+        return operationName;
+      }      
       Collection< N > operationNames = model.getName( operation );
       if ( !Utils.isNullOrEmpty( operationNames  ) ) {
         operationName = operationNames.iterator().next();
@@ -769,8 +779,30 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           operationName = (N)("" + operation); // this may throw ClassCastException
         }
       }
+      
       return operationName;
     }
+    
+    protected String getOperationLiteralString( P operation ) {
+      String typeName = model.getTypeString( operation, null );
+      
+      if ( typeName != null && typeName.equals( "LiteralString" ) ) {
+        // By default, this is a string reference to an Java function, but it
+        // could also be to an Operation or some other element.
+        Collection< U > values = model.getValue( operation, null );
+        if ( !Utils.isNullOrEmpty( values ) ) {
+          if ( values.size() > 1 ) {
+            // TODO -- ERROR -- only expected one
+          }
+          U v = values.iterator().next();
+          if ( v instanceof String ) {
+            return (String)v;
+          }
+        }
+      }
+      return null;
+    }
+
     
     /**
      * Converts the passed sysml expression to an AE expression.
@@ -804,7 +836,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
       // first operand must be the operation
       Iterator< P > it = operands.iterator();
+      
       P operation = getValueOfElement(it.next());
+      Object operationObj = operation;
+      String opLiteralString = getOperationLiteralString( operation );
+      if ( opLiteralString != null ) operationObj = opLiteralString;
       
       // The other operands are model element arguments to the operation. 
       Vector< Object > arguments = new Vector< Object >();
@@ -827,15 +863,18 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
 
       // System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
-      return operationToAeExpressionImpl( operation, arguments, rawArgs );
+      return operationToAeExpressionImpl( operationObj, arguments, rawArgs );
     }
 
-    protected <X> Expression<X> operationToAeExpressionImpl( P operation,
+    protected <X> Expression<X> operationToAeExpressionImpl( Object operation,
                                                              Vector< Object > aeArgs,
                                                              Vector< Object > rawArgs ) {
       Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
-      String operationType = model.getTypeString(operation, null);
+      String operationType = null;
+      if ( !( operation instanceof String ) ) {
+        operationType = model.getTypeString(operation, null);
+      }
       if ( operationType != null && operationType.equals( "Operation" ) ) {
         Collection< P > opExpProps =
             model.getProperty( operation, "expression" );
