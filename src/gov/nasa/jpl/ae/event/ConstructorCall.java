@@ -295,7 +295,9 @@ public class ConstructorCall extends Call {
       Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
                           + Utils.toString( evaluatedArgs, false )
                           + "): ConstructorCall{" + this + "} " + e.getMessage() );
-      throw e;
+      if ( Debug.isOn() ) {
+        throw e;
+      }
     }
     return newObject;
   }
