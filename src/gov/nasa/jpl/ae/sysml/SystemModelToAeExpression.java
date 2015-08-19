@@ -29,7 +29,7 @@ import sysml.SystemModel;
 
 public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
     
-    public static boolean debug = true;
+    public static boolean debug = false;
     public static boolean doCallCaching = false;
   
     protected SM model = null;
