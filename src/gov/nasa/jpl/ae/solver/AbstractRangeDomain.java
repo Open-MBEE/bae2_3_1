@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -219,20 +220,36 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       wl = d1.width();
       wu = d2.width();
     }
-    Number totalWidth = Functions.plus( wl, wu );
-    totalSizeDouble = totalWidth.doubleValue();
-    double r = Random.global.nextDouble() * totalSizeDouble;
-    if ( r < wl.byteValue() ) {
-      if ( wl instanceof Long || wl instanceof Integer ) {
-        return d1.getNthValue( (long)r );
+    Number totalWidth;
+    try {
+      totalWidth = Functions.plus( wl, wu );
+      totalSizeDouble = totalWidth.doubleValue();
+      double r = Random.global.nextDouble() * totalSizeDouble;
+      if ( r < wl.byteValue() ) {
+        if ( wl instanceof Long || wl instanceof Integer ) {
+          return d1.getNthValue( (long)r );
+        }
+        return Functions.plus( d1.getLowerBound(), (Double)r );
       }
-      return Functions.plus( d1.getLowerBound(), (Double)r );
+      if ( wl instanceof Long || wl instanceof Integer ) {
+        return d2.getNthValue( ((long)r) - zl );
+      }
+      return Functions.plus( d2.getLowerBound(),
+                             (Double)( r - wl.doubleValue() ) );
+    } catch ( ClassCastException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
     }
-    if ( wl instanceof Long || wl instanceof Integer ) {
-      return d2.getNthValue( ((long)r) - zl );
-    }
-    return Functions.plus( d2.getLowerBound(),
-                           (Double)( r - wl.doubleValue() ) );
+    return null;
 	}
 	
   /* (non-Javadoc)
@@ -243,7 +260,22 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	  T lb = getLowerBound();
     T ub = getUpperBound();
     if ( lb instanceof Number && ub instanceof Number ) {
-      T diff = Functions.minus( ub, lb );
+      T diff = null;
+      try {
+        diff = Functions.minus( ub, lb );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       if ( diff instanceof Number ) return (Number)diff;
     }
     Debug.error( "width() needs to be redefined for "

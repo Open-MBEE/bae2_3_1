@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.fuml;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -202,13 +203,28 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
   public void send( Obj o, Parameter< Integer > t ) {
     breakpoint();
-    Obj thing = Expression.evaluate( o, type, true ); //REVIEW -- This shouldn't be necessary.  Change prototype to send(Object o, IntegerParameter t)? 
-    if ( type == null || type.isInstance( thing ) ) {  
-      this.setValue( t, thing );
-      for ( ObjectFlow< Obj > f : listeners ) {
-        f.send( thing, t );
+    Obj thing;
+    try {
+      thing = Expression.evaluate( o, type, true );
+      if ( type == null || type.isInstance( thing ) ) {  
+        this.setValue( t, thing );
+        for ( ObjectFlow< Obj > f : listeners ) {
+          f.send( thing, t );
+        }
       }
-    }
+    } catch ( ClassCastException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } //REVIEW -- This shouldn't be necessary.  Change prototype to send(Object o, IntegerParameter t)? 
   }
   
 //  public void send( Obj o, Integer t ) {
@@ -398,7 +414,22 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       doSend = false;
     } else {
       Object bo = effectFunction.getArgument( 2 );
-      Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
+      Boolean b = null;
+      try {
+        b = Expression.evaluate( bo, Boolean.class, false, false );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       if ( b == null ) doSend = false;
       else doSend = b.booleanValue();
     }

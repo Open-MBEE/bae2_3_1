@@ -333,25 +333,30 @@ public class FunctionCall extends Call {
       evaluationSucceeded = true;
     } catch (IllegalArgumentException e) {
       evaluationSucceeded = false;
-      Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
-      Debug.error(true, false, "FunctionCall.invoke " + method.getName() + "("
-                          + Utils.toString( evaluatedArgs, false )
-                          + "): FunctionCall{" + this + "} " + e.getMessage() );
+      if ( Debug.isOn() ) {
+        Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
+        Debug.error(true, false, "FunctionCall.invoke " + method.getName() + "("
+                            + Utils.toString( evaluatedArgs, false )
+                            + "): FunctionCall{" + this + "} " + e.getMessage() );
+      }
       if ( Debug.isOn() ) {
         if ( method.getParameterTypes().length != evaluatedArgs.length ||
              !Arrays.asList( evaluatedArgs ).contains( null ) ) {
           e.printStackTrace();
         }
       }
+      throw e;
     } catch (Exception e ) {
       evaluationSucceeded = false;
-      Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
-      System.err.println( "FunctionCall.invoke " + method.getName() + "("
-                          + Utils.toString( evaluatedArgs, false )
-                          + "): FunctionCall{" + this + "} " + e.getMessage() );
       if ( Debug.isOn() ) {
-        throw e;
+        Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
+        System.err.println( "FunctionCall.invoke " + method.getName() + "("
+                            + Utils.toString( evaluatedArgs, false )
+                            + "): FunctionCall{" + this + "} " + e.getMessage() );
       }
+//      if ( Debug.isOn() ) {
+        throw e;
+//      }
     }
    
     return result;
@@ -359,7 +364,7 @@ public class FunctionCall extends Call {
   
   // TODO -- delete this when version is stable -- the same implementation is in Call
   // Try to match arguments to parameters by evaluating or creating expressions.
-  protected Object[] evaluateArgs( boolean propagate ) {
+  protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( method == null ) return null;
     Class< ? >[] paramTypes = method.getParameterTypes();
     return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs() );
@@ -401,6 +406,15 @@ public class FunctionCall extends Call {
         FunctionCall argCall = null;
         try {
           argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
         } catch ( ClassCastException e ) {
           ; // ignore -- this is expected
         }
@@ -440,13 +454,25 @@ public class FunctionCall extends Call {
   public < XX > Collection<XX> filter( Collection< XX > objects,
                                        int indexOfObjectArgument ) {
       Collection< XX > coll = new ArrayList< XX >();
+      try {
       for ( XX o : objects ) {
           sub( indexOfObjectArgument, o );
-          Object result = evaluate( true, false ); // TODO -- flogs to evaluate() correct?
+          Object result = null;
+            result = evaluate( true, false );
           if ( this.evaluationSucceeded && Utils.isTrue( result, false ) ) {
               coll.add( o );
           }
       }
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } // TODO -- flogs to evaluate() correct?
       return coll;
   }
   
@@ -513,14 +539,26 @@ public class FunctionCall extends Call {
    public  < XX > XX fold( Collection< ? > objects, XX initialValue,
                            int indexOfObjectArgument, int indexOfPriorResultArgument ) {
       XX priorResult = initialValue;
+      try {
       for ( Object o : objects ) {
           sub( indexOfPriorResultArgument, priorResult );
           sub( indexOfObjectArgument, o );
-          Object result = evaluate( true, false); // TODO -- args right?
+          Object result = null;
+            result = evaluate( true, false);
           if ( evaluationSucceeded ) {
               priorResult = (XX)result;
           } 
       }
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } // TODO -- args right?
       return priorResult;
   }
   
@@ -572,11 +610,23 @@ public class FunctionCall extends Call {
                                         int indexOfObjectArgument ) {
       List< K > result = new ArrayList< K >( objects );
       Map< K, V > map = new HashMap< K, V >();
+      try {
       for ( K o : objects ) {
           sub( indexOfObjectArgument, o );
-          Object r = evaluate(true, true);  // TODO -- args right?
+          Object r;
+            r = evaluate(true, true);
           map.put( o, (V)r );
       }
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }  // TODO -- args right?
       MappedValueComparator< K, V > mapComparator =
               new CompareUtils.MappedValueComparator< K, V >( map, comparator );
       Collections.sort( result, mapComparator );
