@@ -4,13 +4,13 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -843,9 +843,20 @@ public class Expression< ResultType > extends HasIdImpl
     if ( object == null ) return null;
     // Check if object is already what we want.
     if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
+      TT result = null;
+      try {
+        result = evaluateDeep( object, cls, propagate, allowWrapping );
+      } catch (ClassCastException e) {
+      }
+      if ( result != null ) return result;
       return (TT)object;
     }
-    
+    return evaluateDeep( object, cls, propagate, allowWrapping );
+  }
+  
+  public static <TT> TT evaluateDeep( Object object, Class< TT > cls,
+                                      boolean propagate,
+                                      boolean allowWrapping ) throws ClassCastException {
     // Try to evaluate object or dig inside to get the object of the right type. 
     Object value = null;
     if ( object instanceof Parameter ) {
