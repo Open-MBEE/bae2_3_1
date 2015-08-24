@@ -19,6 +19,7 @@ import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.body.TypeDeclaration;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -627,7 +628,19 @@ public class ClassData {
         convertToParameterTypeAndConstructorArguments( param.name, param.type, className );
     Class< P > cls = (Class< P >)pta.paramType;
     ConstructorCall call = new ConstructorCall( null, cls, pta.argArr );
-    P parameter = (P)call.evaluate( true );
+    P parameter = null;
+    try {
+      parameter = (P)call.evaluate( true );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     return parameter;
   }
 

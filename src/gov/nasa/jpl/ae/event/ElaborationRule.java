@@ -11,6 +11,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,19 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     Expression< Boolean > c = condition;
     boolean isNull = ( c == null );
     if ( isNull ) return true;
-    Boolean r = c.evaluate( true );
+    Boolean r = null;
+    try {
+      r = c.evaluate( true );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if (r == null) return false;
     if ( Debug.isOn() ) Debug.outln( "isConditionSatisfied() = " + r  + " for " + this.getEventInvocations() );
     return r;//( condition == null || condition.evaluate(true) );
