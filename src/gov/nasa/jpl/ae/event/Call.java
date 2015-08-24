@@ -106,7 +106,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
           if ( oc != null && c.isAssignableFrom( oc ) ) return true;
       }
       if ( tryEvaluating ) {
-          Object v = Expression.evaluate( o, c, false );
+          Object v = null;
+          try {
+            v = Expression.evaluate( o, c, false );
+          } catch ( ClassCastException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          }
           return isA( v, c, false, false );
       }
       return false;
@@ -268,14 +283,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return compare;
   }
   
-  public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
+  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     return evaluate(propagate, true);
   }
   
   //public boolean 
   
   // TODO -- consider an abstract Call class
-  public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) { // throws IllegalArgumentException,
+  public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( propagate ) {
@@ -370,20 +385,20 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      //e.printStackTrace();
+      throw e;
     } catch ( IllegalArgumentException e ) {
       evaluationSucceeded = false;
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      //e.printStackTrace();
+      throw e;
     } catch ( InvocationTargetException e ) {
       evaluationSucceeded = false;
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      //e.printStackTrace();
+      throw e;
     } catch ( InstantiationException e ) {
       evaluationSucceeded = false;
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      //e.printStackTrace();
+      throw e;
     }
 //    if ( result != null && nestedCall != null && nestedCall.getValue() != null ) {
 //      nestedCall.getValue().object = result;
@@ -421,7 +436,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   // Try to match arguments to parameters by evaluating or creating expressions.
   // TODO -- is this necessary????
-  protected Object[] evaluateArgs( boolean propagate ) {
+  protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class< ? >[] paramTypes = getParameterTypes();
     return Call.evaluateArgs( propagate, paramTypes, arguments, isVarArgs() );
   }
@@ -430,7 +445,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public static Object[] evaluateArgs( boolean propagate,
                                        Class< ? >[] paramTypes,
                                        Vector< Object > args,
-                                       boolean isVarArgs ) {
+                                       boolean isVarArgs ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if( args == null ) {
       Debug.error("Error! args is null!");
       return null;
@@ -500,7 +515,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Class< ? > c = null;
     if ( getType() != null ) {
       c = ClassUtils.primitiveForClass( getType() );
-      Object r = evaluate( false );
+      Object r = null;
+      try {
+        r = evaluate( false );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       if ( c == null && r != null
            && Wraps.class.isInstance( r ) ) {// isAssignableFrom( getType() ) ) {
         c = ( (Wraps< ? >)r ).getPrimitiveType();
@@ -511,7 +538,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   @Override
   public Object getValue( boolean propagate ) {
-    return evaluate( propagate );
+    try {
+      return evaluate( propagate );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
+    return null;
   }
 
   @Override
@@ -662,7 +701,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         if ( nestedCall.getValue(true) == null ) {
           grounded = false;
         } else {
-          object = nestedCall.getValue(true).evaluate( deep );
+          try {
+            object = nestedCall.getValue(true).evaluate( deep );
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          }
           if ( object == null ) grounded = false;
         }
       }
@@ -919,11 +969,24 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public Collection< Object > map( Collection< ? > objects,
                                        int indexOfObjectArgument ) {
       Collection< Object > coll = new ArrayList<Object>();
-      for ( Object o : objects ) {
-          sub( indexOfObjectArgument, o );
-          Object result = evaluate(true);
-          coll.add( result );
+      try {
+        for ( Object o : objects ) {
+            sub( indexOfObjectArgument, o );
+            Object result = null;
+            result = evaluate(true);
+            coll.add( result );
+        }
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
       }
+
       return coll;
   }
   
@@ -1024,13 +1087,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       ArrayList< XX > queue =
               new ArrayList< XX >( initialSet );
       Set< XX > seen = new HashSet< XX >();
+      try {
       while ( !queue.isEmpty() ) {
           XX item = queue.get( 0 );
           queue.remove( 0 );
           sub( indexOfObjectArgument, item );
           if ( seen.contains( item ) ) continue;
           seen.add( item );
-          Object result = evaluate( true, true );  // TODO -- args right?
+          Object result = null;
+            result = evaluate( true, true );
           if ( !evaluationSucceeded ) continue;
           Collection< XX > newItems = null;
           try {
@@ -1046,6 +1111,16 @@ public abstract class Call extends HasIdImpl implements HasParameters,
               Utils.addN( closedSet, maximumSetSize - closedSet.size(), newItems );
           }
       }
+      } catch ( IllegalAccessException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( InvocationTargetException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( InstantiationException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      }  // TODO -- args right?
       return closedSet;
   }
   
@@ -1066,6 +1141,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       ArrayList< XX > queue =
               new ArrayList< XX >( relationMapToClose.keySet() );
 //      Set< XX > seen = new HashSet< XX >();
+      try {
       while ( !queue.isEmpty() ) {
           XX item = queue.get( 0 );
           queue.remove( 0 );
@@ -1078,7 +1154,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //          MethodCall methodCall =
 //                  new MethodCall( null, method,
 //                                  new Object[] { null, item } );
-          Object result = evaluate( true, true );  // TODO -- args right?
+          Object result = null;
+            result = evaluate( true, true );
           if ( !evaluationSucceeded ) continue;
           Collection< XX > isItemSet = null;
           try {
@@ -1107,6 +1184,16 @@ public abstract class Call extends HasIdImpl implements HasParameters,
               if ( relationMapToClose.size() >= maximumSetSize ) break;
           }
       }
+      } catch ( IllegalAccessException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( InvocationTargetException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( InstantiationException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      }  // TODO -- args right?
       return relationMapToClose;
   }
 

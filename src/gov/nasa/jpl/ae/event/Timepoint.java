@@ -6,6 +6,7 @@ import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -95,8 +96,38 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
     int compare = 0;
     if ( o instanceof Timepoint ) {
-      Integer v1 = Expression.evaluate( this, Integer.class, propagate );
-      Integer v2 = Expression.evaluate( o, Integer.class, propagate );
+      Integer v1 = null;
+      Integer v2 = null;
+      try {
+        v1 = Expression.evaluate( this, Integer.class, propagate );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
+      try {
+        v2 = Expression.evaluate( o, Integer.class, propagate );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       compare = CompareUtils.compare( v1, v2, true );
       if ( compare != 0 ) return compare;
     }
