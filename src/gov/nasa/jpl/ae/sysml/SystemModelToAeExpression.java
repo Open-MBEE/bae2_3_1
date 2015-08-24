@@ -1,8 +1,10 @@
 package gov.nasa.jpl.ae.sysml;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,11 +22,16 @@ import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.ae.util.JavaToConstraintExpression;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.HasPreference;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 import sysml.SystemModel;
 
 public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
     
+    public static boolean debug = false;
+    public static boolean doCallCaching = false;
+  
     protected SM model = null;
     protected ClassData classData = new ClassData();
     
@@ -53,6 +60,34 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Expression<X> expression = toAeExpression( expressionElement );
       return expression.evaluate( true );
     }
+
+    public enum CallCase {UNKNOWN, FAIL, EmsSystemModel, sysml, ae, common};
+    public enum ArgsUsed {UNKNOWN, ae, raw};
+    // Cache doesn't work because the clone isn't deep enough.
+    public static Map< String, Map< String, Map< Object, Pair<CallCase, ArgsUsed> > > > callCache =
+        Collections.synchronizedMap( new HashMap< String, Map< String, Map< Object, Pair<CallCase, ArgsUsed> > > >() );
+
+    public static Pair< CallCase, ArgsUsed > callCacheGet( Object object,
+                                                           String operationName,
+                                                           Object args ) {
+      if ( !doCallCaching ) return null;
+      if ( operationName == null ) return null;
+      String className =
+          ( object == null ) ? "null" : object.getClass().getCanonicalName();
+      if ( args == null ) args = "null";
+      return Utils.get( callCache, className, operationName, args );
+    }
+  
+    public static Pair< CallCase, ArgsUsed >
+        callCachePut( Object object, String operationName, Object args,
+                      Pair< CallCase, ArgsUsed > callCasePair ) {
+      if ( !doCallCaching ) return null;
+      if ( operationName == null ) return null;
+      String className =
+          ( object == null ) ? "null" : object.getClass().getCanonicalName();
+      if ( args == null ) args = "null";
+      return Utils.put( callCache, className, operationName, args, callCasePair );
+    }
     
   /**
    * Return a Call object based on the passed operation and arguments
@@ -62,15 +97,19 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
    *          used as the object.
    * @param operationName
    *          The name of operation used to search for the equivalent java call
-   * @param arguments
+   * @param aeArguments
    *          The arguments for operation
    * @return Call object or null if the operationName is not a java call
    */
-    private Call createCall(Object object, N operationName, Vector< Object > arguments) {
+    private Call createCall(Object object, N operationName, Vector< Object > aeArguments,
+                            Vector<Object> rawArguments) {
+      boolean mayUseRawArgs = true;      
       
       Call call = null;
       Method method = null;
       //Object object = o;
+      
+      boolean usedRawArgs = false;
 
       /*
        * We will look for the corresponding Constructor or FunctionCall in
@@ -83,26 +122,59 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
        * 5. The mbee.util package (assume its a FunctionCall) 
        * 
        */
-      if ( operationName != null ) {
+      if ( operationName == null )  return null;
                   
-        ArrayList<Class<?>> argTypes = new ArrayList<Class<?>>();
+      ArrayList<Class<?>> argTypes = new ArrayList<Class<?>>();
+      
+      // Finding out the argument types:
+      for (Object arg : aeArguments) {
         
-        // Finding out the argument types:
-        for (Object arg : arguments) {
-          
-          if (arg instanceof Expression) {
-            argTypes.add( ((Expression<?>)arg).getType());
-          }
-          else {
-              argTypes.add( arg.getClass() );
-//              if ( arg.getClass().isArray() ) {;
-//                  
-//              }
-//            //Debug.error( "Expecting an Expression for the argument: " + arg );
-          }
+        if (arg instanceof Expression) {
+          argTypes.add( ((Expression<?>)arg).getType());
         }
-        
-        // 1.
+        else {
+            argTypes.add( arg.getClass() );
+        }
+      }
+
+      ArrayList<Class<?>> rawArgTypes = new ArrayList<Class<?>>();
+      // Get the raw argument types:
+      for (Object arg : rawArguments) {
+        rawArgTypes.add( arg.getClass() );
+      }
+
+      // Caching place where method was found instead of the resulting call
+      // because the clone of the call isn't deep enough.
+      Pair<CallCase, ArgsUsed> cachedCase = null;
+      if ( doCallCaching ) cachedCase =
+          callCacheGet( object, operationName.toString(), argTypes );
+      CallCase callCase = cachedCase == null ? CallCase.UNKNOWN : cachedCase.first;
+      ArgsUsed argsUsed = cachedCase == null ? ArgsUsed.UNKNOWN : cachedCase.second;
+            
+      CallCase newCallCase = callCase; // for adding to the cache; only update if UNKNOWN
+      ArgsUsed newArgsUsed = argsUsed; // for adding to the cache; only update if UNKNOWN
+      
+      if ( !mayUseRawArgs ) {
+        argsUsed = ArgsUsed.ae;
+        newArgsUsed = ArgsUsed.ae;
+      }
+
+      
+      if ( callCase == CallCase.FAIL ) return null;
+      
+      boolean nullEmptyOrSameArgs = true;
+      Iterator< Class< ? > > i = rawArgTypes.iterator();
+      for ( Class<?> t : argTypes ) {
+        Class< ? > rawT = i.hasNext() ? i.next() : null;
+        if ( t != null && !Utils.valuesEqual( t, rawT ) ) {
+          nullEmptyOrSameArgs = false;
+        }
+      }
+      
+      // 1.
+      
+      if ( debug ) System.out.println("^^^^^^^^^^^^  1  ^^^^^^^^^^^^^^^");
+      
 //        if ( operationName.equals( "evaluate" ) ) {
 ////          method = ClassUtils.getMethodForArgTypes( EvaluateOperation.class,
 ////                                                    operationName.toString(),
@@ -112,70 +184,219 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 //            ////call = new OperationFunctionCall( object, arguments );
 //            call = new OperationFunctionCallConstructorCall( object, arguments );
 //        }
-        if ( call == null ) {
+    if ( call == null
+         && ( callCase == CallCase.UNKNOWN || callCase == CallCase.EmsSystemModel ) ) {
+        if ( argsUsed != ArgsUsed.raw ) {
           method = ClassUtils.getMethodForArgTypes( model.getClass(),
                                                     operationName.toString(),
-                                                    argTypes.toArray(new Class[argTypes.size()]));
-
+                                                    argTypes.toArray(new Class[argTypes.size()]), false);
         }
-        if ( method != null ) {
-          if ( object == null ) {
-            object = model;
+        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
+          method = ClassUtils.getMethodForArgTypes( model.getClass(),
+                                                    operationName.toString(),
+                                                    rawArgTypes.toArray(new Class[rawArgTypes.size()]), false);
+          if ( method != null ) usedRawArgs = true;
+        }
+     }
+     if ( method != null ) {
+       if ( object == null ) {
+         object = model;
+       }
+       if ( debug ) {
+         if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.EmsSystemModel;
+         if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;         
+         System.out.println("^^^^^^^^^^^^  method = " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "  ^^^^^^^^^^^^^^^");
+         if ( ! usedRawArgs )
+           System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+         else
+           System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+       }
+     }
+     
+
+     // 2.
+
+     if ( method == null && call == null
+         && ( callCase == CallCase.UNKNOWN || callCase == CallCase.sysml ) ) {
+
+       if ( debug ) System.out.println("^^^^^^^^^^^^  2  ^^^^^^^^^^^^^^");
+
+       if ( argsUsed != ArgsUsed.raw ) {
+           call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
+                                                                     aeArguments,
+                                                                     argTypes.toArray(new Class[]{}));
+        }
+
+        
+        // Check to see if there is a preference over constructors.
+        // TODO -- move this out of this already long function. It can probably
+        // be reused elsewhere in this function anyway.
+        boolean tryRawArgs =
+            (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
+                || prefersRawArgs( call, argTypes, rawArgTypes ) );
+        
+        if ( tryRawArgs ) {
+          Call call2 = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
+                                                                    rawArguments,
+                                                                    rawArgTypes.toArray(new Class[]{}));
+          if ( call2 != null ) {
+            // Try it out just to be sure
+            usedRawArgs = true;
+            if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+            call = call2;
           }
         }
-        else if ( call == null ) {
-          // 2.
-          call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
-                                                                    arguments,
-                                                                    argTypes.toArray(new Class[]{}));
+        if ( call != null ) {
+          if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.sysml;
+          if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
+          if ( debug ) {
+            System.out.println("^^^^^^^^^^^^  call = " + call + "  ^^^^^^^^^^^^^^^");
+            System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
+            if ( !usedRawArgs )
+              System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+            else
+              System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+          }
+        }
+      }
 
-          if (call == null) {
-            //3.
-            if ( arguments.size() == 1 ) {
-                call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
-            } 
-            else if ( arguments.size() == 2 ) {
-                call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
-            } 
-            else if ( arguments.size() == 3
-                        && operationName.toString().equalsIgnoreCase( "if" ) ) {
-                call = JavaToConstraintExpression.getIfThenElseConstructorCall();
-            }
-            
-            if ( call != null ) {
-              call.setArguments( arguments );
-            } 
-            else {
-              // 4.
-              method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
-                                                                  arguments.toArray() );
-            
-              // 5.
-              if (method == null) {
-                // TODO implement checking the mbee.util package
-              }
-            
-            }
-            
-          } // Ends call == null
-
+     
+      //3.
+     
+      if ( call == null && method == null
+          && ( callCase == CallCase.UNKNOWN || callCase == CallCase.ae ) ) {
+  
+        if ( debug ) System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
+        if ( aeArguments.size() == 1 ) {
+            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+        } 
+        else if ( aeArguments.size() == 2 ) {
+            call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+        } 
+        else if ( aeArguments.size() == 3
+                    && operationName.toString().equalsIgnoreCase( "if" ) ) {
+            call = JavaToConstraintExpression.getIfThenElseConstructorCall();
         }
         
-        if ( call == null && method == null ) {
-          // TODO -- if it *still* fails, maybe search through all classes of all
-          // packages for a method with this name.
+        if ( call != null ) {
+          // TODO -- See if raw arguments are a better fit than these.
+          call.setArguments( aeArguments );
+          if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.ae;
+          if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
+          if ( debug && call != null ) {
+            System.out.println("^^^^^^^^^^^^  call = " + call + "  ^^^^^^^^^^^^^^^");
+            System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
+            if ( !usedRawArgs )
+              System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+            else
+              System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+          }
         }
-        
-        // Make the FunctionCall if it was not a ConstructorCall:
-        if ( method != null ) {
-          call = new FunctionCall( object, method, arguments );
-        }
-        
-      } // end if operationName != null
+      }
       
+        
+      // 4.
+        
+      if ( call == null && method == null
+          && ( callCase == CallCase.UNKNOWN || callCase == CallCase.common ) ) {
+
+        if ( debug ) System.out.println("^^^^^^^^^^^^  4  ^^^^^^^^^^^^^^^");
+        if ( argsUsed != ArgsUsed.raw ) {
+          method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
+                                                              aeArguments.toArray() );
+        }
+        if ((!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae) {
+          method = ClassUtils.getJavaMethodForCommonFunction( operationName.toString(),
+                                                              rawArguments.toArray() );
+          if ( method != null ) usedRawArgs = true;
+        }
+      
+        if ( method != null ) {
+          if ( debug ) System.out.println("^^^^^^^^^^^^  method = " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "  ^^^^^^^^^^^^^^^");
+          if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.common;
+          if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
+        }
+        if ( debug ) {
+          if ( !usedRawArgs )
+            System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+          else
+            System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+        }
+      }
+
+      
+      // 5.
+      // Added some of the mbee utils to getJavaMethodForCommonFunction() called
+      // just before, so this is part of 4.      
+
+      
+      if ( call == null && method == null ) {
+        // TODO -- if it *still* fails, maybe search through all classes of all
+        // packages for a method with this name.
+        if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.FAIL;
+      }
+      
+      // Make the FunctionCall if it was not a ConstructorCall:
+      if ( method != null ) {
+        call = new FunctionCall( object, method, usedRawArgs ? rawArguments : aeArguments );
+      }
+      
+      // Put any new results in cache.
+      if ( doCallCaching && cachedCase == null ) {
+        callCachePut( object, operationName.toString(), argTypes,
+                      new Pair< CallCase, ArgsUsed >( newCallCase, newArgsUsed ) );
+      }
+
+      if ( debug && call != null ) {
+        System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
+        System.out.println("^^^^^^^^^^^^  method = " + call.getMember() + "  ^^^^^^^^^^^^^^^");
+        if ( !usedRawArgs )
+          System.out.println("^^^^^^^^^^^^  ae arg types = " + argTypes + "  ^^^^^^^^^^^^^^^");
+        else
+          System.out.println("^^^^^^^^^^^^  raw arg types = " + rawArgTypes + "  ^^^^^^^^^^^^^^^");
+      }
+
+      if ( debug && call == null ) System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
+
       return call;
     }
         
+    public boolean prefersRawArgs( Call call, ArrayList< Class< ? >> argTypes,
+                                  ArrayList< Class< ? >> rawArgTypes ) {
+      if ( call == null ) return false;
+      if (!( call instanceof ConstructorCall )) return false;
+
+      boolean prefersRawArgs = false;
+      Constructor< ? > ctor = ((ConstructorCall)call).getConstructor();
+      Class<?> cls = ctor.getDeclaringClass();
+      boolean hasPreference = HasPreference.Helper.classHasPreference( cls );
+      if ( !hasPreference ) return false;
+      // The constructor's class has preferences over arguments to the
+      // constructor. Determine which arguments are best.
+      try {
+        // Need an instance to access preferences.
+        HasPreference< List< Class > > obj = (HasPreference< List< Class > >)call.evaluate( true );
+//            HasPreference< List< Class > > obj =
+//                (HasPreference< List< Class > >)ctor.newInstance( aeArguments.toArray() );
+        try {
+          if ( obj == null || obj.prefer( (List)rawArgTypes, (List)argTypes ) ) {
+            prefersRawArgs = true;
+            if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+          }
+        } catch (ClassCastException e) {
+          // Assuming class cast exception on prefer since we don't
+          // know for sure what args it takes.
+        }
+        if ( debug ) System.out.println( "?:-| ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+      } catch (Throwable t) {
+        if ( debug ) System.out.println( ":-( ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+        ////t.printStackTrace();
+        // Assumed exception when invoking call.evaluate( true )
+        prefersRawArgs = true;
+      }
+    return prefersRawArgs;
+  }
+
     private Expression<?> elementValueToAeExpression(Object argValueNode,
                                                      String argValName ) {
       String argType = null;
@@ -216,6 +437,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         else if (type.equals("LiteralString")) {
           
           argValPropNodes = model.getValue(argValueNode, "string");
+          argType = "String";
+        }
+        else if (type.equals("OpaqueExpression")) {
+          
+          argValPropNodes = model.getValue(argValueNode, "expressionBody");
           argType = "String";
         }
         else if (type.equals("LiteralNull")) {
@@ -279,8 +505,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     {
       
       P valueOfElementNode = null;
-
-      // Get the valueOfElementProperty node:
+      
+      // We assume that it is an ElementValue, so get the id of the referenced
+      // element:
       Collection< P > valueOfElemNodes = 
               model.getProperty(operandProp, "element");
       
@@ -383,7 +610,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
                     } else {
                       // Create a Call for the argument 
-                      argCall = createCall(object, operationName, opEmptyArgs);
+                      argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs);
                                             
                     }
                     //System.out.println("*******************************************");
@@ -471,7 +698,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 //        Object evaluate( Collection<P> sysmlParameters ) {
 //          List<Object> paramList = Utils.asList( sysmlParameters, Object.class );
           Vector<Object> paramList = new Vector<Object>(Utils.arrayAsList( sysmlArguments ));
-          Object result = operationToAeExpressionImpl( operation, paramList );//.evaluate(true);
+          Object result = operationToAeExpressionImpl( operation, paramList, paramList );//.evaluate(true);
           return result;
         }
     }
@@ -538,6 +765,10 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
     N getOperationName( Object operation ) throws ClassCastException {
       if ( operation == null ) return null;
       N operationName = null;
+      if ( operation instanceof String ) {
+        operationName = model.asName( operation );
+        return operationName;
+      }      
       Collection< N > operationNames = model.getName( operation );
       if ( !Utils.isNullOrEmpty( operationNames  ) ) {
         operationName = operationNames.iterator().next();
@@ -548,8 +779,30 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
           operationName = (N)("" + operation); // this may throw ClassCastException
         }
       }
+      
       return operationName;
     }
+    
+    protected String getOperationLiteralString( P operation ) {
+      String typeName = model.getTypeString( operation, null );
+      
+      if ( typeName != null && typeName.equals( "LiteralString" ) ) {
+        // By default, this is a string reference to an Java function, but it
+        // could also be to an Operation or some other element.
+        Collection< U > values = model.getValue( operation, null );
+        if ( !Utils.isNullOrEmpty( values ) ) {
+          if ( values.size() > 1 ) {
+            // TODO -- ERROR -- only expected one
+          }
+          U v = values.iterator().next();
+          if ( v instanceof String ) {
+            return (String)v;
+          }
+        }
+      }
+      return null;
+    }
+
     
     /**
      * Converts the passed sysml expression to an AE expression.
@@ -583,23 +836,45 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
       // first operand must be the operation
       Iterator< P > it = operands.iterator();
+      
       P operation = getValueOfElement(it.next());
+      Object operationObj = operation;
+      String opLiteralString = getOperationLiteralString( operation );
+      if ( opLiteralString != null ) operationObj = opLiteralString;
       
       // The other operands are model element arguments to the operation. 
       Vector< Object > arguments = new Vector< Object >();
+      Vector< Object > rawArgs = new Vector< Object >();
       while (it.hasNext() ) {
-        arguments.add( elementArgumentToAeExpression( it.next() ) );
+        P rawArg = it.next();
+        
+        // This will return the value of the element that is referenced by rawArg
+        // if rawArg is an ElementValue. So, if rawArg points to a Property, the
+        // property value is added to arguments.
+        arguments.add( elementArgumentToAeExpression( rawArg ) );
+        
+        // Get the elementValueOfElement from the ElementValue if that's what this
+        // is. So, if rawArg references a Property, the Property is added to
+        // rawArgs.
+        Object arg = getValueOfElement(rawArg);
+        if ( arg == null ) arg = rawArg;
+
+        rawArgs.add( arg );
       }
-      
-      //System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
-      return operationToAeExpressionImpl( operation, arguments );
+
+      // System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
+      return operationToAeExpressionImpl( operationObj, arguments, rawArgs );
     }
-    
-    protected <X> Expression<X> operationToAeExpressionImpl(P operation,
-                                                            Vector< Object > aeArgs ) {
+
+    protected <X> Expression<X> operationToAeExpressionImpl( Object operation,
+                                                             Vector< Object > aeArgs,
+                                                             Vector< Object > rawArgs ) {
       Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
-      String operationType = model.getTypeString(operation, null);
+      String operationType = null;
+      if ( !( operation instanceof String ) ) {
+        operationType = model.getTypeString(operation, null);
+      }
       if ( operationType != null && operationType.equals( "Operation" ) ) {
         Collection< P > opExpProps =
             model.getProperty( operation, "expression" );
@@ -644,7 +919,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // other implementations that may be intended.
       if ( expression == null || ( expression.expression == null && expression.form != Form.Value ) ) {
         N operationName = getOperationName( operation );
-        Call call = createCall(null, operationName, aeArgs );       
+        Call call = createCall(null, operationName, aeArgs, rawArgs );       
         expression = new Expression( call ); // FIXME what to do if call is null?
         //expression = new Expression( call.evaluate( false ) ); // This breaks test case 22
       }
@@ -746,7 +1021,23 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * @return the AE expression
      */
     public <X> Expression<X> operationToAeExpression( Object operationElement, 
-                                                      List<Object> parameterValues) {
+                                                      ArrayList<Object> parameterValues) {
+      return operationToAeExpression( operationElement,
+                                      new Vector<Object>(parameterValues) );
+    }
+
+    /**
+     * Converts the passed sysml Operation to an AE Expression
+     * 
+     * @param operationElement the sysml operation to convert
+     * @param parameterValues a List of parameter values for the operation
+     *        The order of the elements of this list must match the
+     *        order of elements of parameter for the passed
+     *        Operation.
+     * @return the AE expression
+     */
+    public <X> Expression<X> operationToAeExpression( Object operationElement, 
+                                                      Vector<Object> parameterValues) {
       
       // running example !:
       //   Viewpoint vp exposes exposed and has an Operation vp_op(foo), which 
@@ -762,7 +1053,8 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
       
       return operationToAeExpressionImpl( (P)operationElement, // FIXME dont like warning
-                                       args );
+                                          args,
+                                          parameterValues );
 
    }
     

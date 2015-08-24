@@ -3,14 +3,13 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
-import gov.nasa.jpl.ae.solver.Wraps;
-import gov.nasa.jpl.mbee.util.MethodCall;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
@@ -19,9 +18,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -50,6 +49,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   abstract public Object invoke( Object obj, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
   abstract public boolean isVarArgs();
   abstract public boolean isStatic();
+  abstract public Call clone();
   
   public Call() {}
   
@@ -292,12 +292,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     
     // evaluate the arguments before invoking the method on them
     Object evaluatedArgs[] = null;
-    
-    if (doEvalArgs) {
+    Object[] unevaluatedArgs = arguments.toArray();
+    if ( doEvalArgs ) {//|| hasTypeErrors( unevaluatedArgs ) ) {
+      //System.out.println("@@@@@@@@@@@   DUDE   @@@@@@@@@@@@@");
       evaluatedArgs = evaluateArgs( propagate );
     }
     else {
-      evaluatedArgs = arguments.toArray();
+      //System.out.println("@@@@@@@@@@@   SWEET   @@@@@@@@@@@@@");
+      evaluatedArgs = unevaluatedArgs;
     }
     
     // evaluate the object, whose method will be invoked from a nested call
@@ -387,7 +389,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //      nestedCall.getValue().object = result;
 //      result = nestedCall.getValue().evaluate( propagate );
 //    }
-    if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + result );
+    //if ( Debug.isOn() ) 
+      Debug.outln( "evaluate() returning " + result );
     
     return result;
   }
@@ -667,6 +670,20 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( grounded ) stale = true;
     return grounded;
   }
+  
+//  public synchronized String toLongString() {
+//    StringBuffer sb = new StringBuffer();
+//    if ( getMember() == null ) {
+//      sb.append( "null" );
+//    } else {
+//      sb.append( getMember().getName() );
+//      sb.append( MoreToString.Helper.toShortString( arguments, 
+//                                                    MoreToString.PARENTHESES,
+//                                                    null,
+//                                                    true ) );
+//    }
+//    return sb.toString();
+//  }
   
   @Override
   public synchronized String toShortString() {
@@ -987,5 +1004,111 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     else arguments[indexOfArg-1] = obj;
   }
   ////////
+  
+  
+  /**
+   * Compute a transitive closure of a set using this MethodCall as a relation from an argument to the return value.
+   * @param initialSet the Set of initial items to be substituted for an argument or the object of this MethodCall
+   * @param indexOfObjectArgument
+   *            where in the list of arguments an object from the set
+   *            is substituted (1 to total number of args or 0 to indicate
+   *            that the objects are each substituted for
+   *            methodCall.objectOfCall).
+   * @param maximumSetSize the size of the resulting set will be limited to the maximum of this argument and the size of initialSet 
+   * @return a new Set that includes the initialSet and the results of applying the methodCall on each item (substituting the argument for the given index) in the new Set  
+   */
+  public < XX > Set< XX > closure( Set< XX > initialSet,
+                                   int indexOfObjectArgument, int maximumSetSize ) {
+      Set< XX > closedSet = new TreeSet< XX >( CompareUtils.GenericComparator.instance() );
+      closedSet.addAll( initialSet );
+      ArrayList< XX > queue =
+              new ArrayList< XX >( initialSet );
+      Set< XX > seen = new HashSet< XX >();
+      while ( !queue.isEmpty() ) {
+          XX item = queue.get( 0 );
+          queue.remove( 0 );
+          sub( indexOfObjectArgument, item );
+          if ( seen.contains( item ) ) continue;
+          seen.add( item );
+          Object result = evaluate( true, true );  // TODO -- args right?
+          if ( !evaluationSucceeded ) continue;
+          Collection< XX > newItems = null;
+          try {
+              if ( result instanceof Collection ) {
+                  newItems = (Collection< XX >)result;
+              } else {
+                  newItems = (Collection< XX >)Utils.newSet( result );
+              }
+          } catch ( ClassCastException e ) {
+              continue;
+          }
+          if ( !Utils.isNullOrEmpty( newItems ) ) {
+              Utils.addN( closedSet, maximumSetSize - closedSet.size(), newItems );
+          }
+      }
+      return closedSet;
+  }
+  
+  /**
+   * Compute a transitive closure of a map using this MethodCall to specify for each key in the map a set of items that should have a superset of related items in the map.
+   * @param initialSet the Set of initial items to be substituted for an argument or the object of this MethodCall
+   * @param indexOfObjectArgument
+   *            where in the list of arguments an object from the set
+   *            is substituted (1 to total number of args or 0 to indicate
+   *            that the objects are each substituted for
+   *            methodCall.objectOfCall).
+   * @param maximumSetSize the size of the resulting set will be limited to the maximum of this argument and the size of initialSet 
+   * @return a new Set that includes the initialSet and the results of applying the methodCall on each item (substituting the argument for the given index) in the new Set  
+   */
+  public < XX, C extends Map< XX, Set< XX > > > C mapClosure( C relationMapToClose,
+                                                              int indexOfObjectArgument,
+                                                              int maximumSetSize ) {
+      ArrayList< XX > queue =
+              new ArrayList< XX >( relationMapToClose.keySet() );
+//      Set< XX > seen = new HashSet< XX >();
+      while ( !queue.isEmpty() ) {
+          XX item = queue.get( 0 );
+          queue.remove( 0 );
+          sub( indexOfObjectArgument, item );
+//          if ( seen.contains( item ) ) continue;
+//          seen.add( item );
+//          Method method =
+//                  ClassUtils.getMethodForArgs( AbstractSystemModel.class, "isA",
+//                                               item, item );
+//          MethodCall methodCall =
+//                  new MethodCall( null, method,
+//                                  new Object[] { null, item } );
+          Object result = evaluate( true, true );  // TODO -- args right?
+          if ( !evaluationSucceeded ) continue;
+          Collection< XX > isItemSet = null;
+          try {
+              if ( result instanceof Collection ) {
+                  isItemSet = (Collection< XX >)result;
+              } else {
+                  isItemSet = (Collection< XX >)Utils.newSet( result );
+              }
+          } catch ( ClassCastException e ) {
+              continue;
+          }
+          Set< XX > relatedToItem = relationMapToClose.get( item );
+          for ( XX isA : isItemSet ) {
+              Set< XX > related = relationMapToClose.get( isA );
+              int ct = 0;
+              if ( related == null ) {
+                  related = new TreeSet< XX >(CompareUtils.GenericComparator.instance());
+                  relationMapToClose.put( isA, related );
+              } else {
+                  ct = related.size();
+              }
+              related.addAll( relatedToItem );
+              if ( related.size() > ct ) {
+                  queue.add( isA );
+              }
+              if ( relationMapToClose.size() >= maximumSetSize ) break;
+          }
+      }
+      return relationMapToClose;
+  }
+
 
 }

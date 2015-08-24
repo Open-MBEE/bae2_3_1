@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
@@ -278,8 +279,26 @@ public class ConstructorCall extends Call {
         args = newArgs;
       }
     }
-    newObject = constructor.newInstance( args );
-    evaluationSucceeded = true;
+    try {
+      newObject = constructor.newInstance( args );
+      if ( Debug.isOn() ) {
+          System.out.println("ConstructorCall constructor = " + constructor.toGenericString());
+          System.out.println("ConstructorCall args = " + args);
+          System.out.println("ConstructorCall.invoke " + constructor.getName() + "("
+                  + Utils.toString( evaluatedArgs, false )
+                  + "): ConstructorCall{" + this + "} = " + newObject );
+      }
+      evaluationSucceeded = true;
+    } catch (Exception e ) {
+      evaluationSucceeded = false;
+      Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
+      Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
+                          + Utils.toString( evaluatedArgs, false )
+                          + "): ConstructorCall{" + this + "} " + e.getMessage() );
+      if ( Debug.isOn() ) {
+        throw e;
+      }
+    }
     return newObject;
   }
   
@@ -374,6 +393,7 @@ public class ConstructorCall extends Call {
    * @return the constructor
    */
   public Constructor<?> getConstructor() {
+    if ( this.constructor != null ) return this.constructor; 
     Object argArr[] = null;
     if ( !Utils.isNullOrEmpty( arguments ) ) {
       argArr = arguments.toArray();

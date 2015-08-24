@@ -370,7 +370,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfLazyUpdate && c instanceof LazyUpdate ) {
         return ((LazyUpdate)c).isStale();  // potential infinite loop
       }
-      for ( T t : c ) {
+      for ( T t : new ArrayList<T>(c) ) {
         if ( isStale( t, deep, seen, true ) ) return true;
       }
       return false;
@@ -392,7 +392,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         return ((HasParameters)c ).hasParameter( parameter, deep, seen );
       }
-      for ( T t : c ) {
+      for ( T t : new ArrayList<T>(c) ) {
         if ( hasParameter( t, parameter, deep, seen, deep ) ) {
           return true;
         }
@@ -408,7 +408,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         set = Utils.addAll( set, ((HasParameters)c).getParameters( deep, seen ) );
       } else {
-        for ( T t : c ) {
+        for ( T t : new ArrayList<T>(c) ) {
           set = Utils.addAll( set, getParameters( t, deep, seen, true ) );
         }
       }
@@ -425,7 +425,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         return ((HasParameters)c).isFreeParameter( parameter, deep, seen );
       }
-      for ( T t : c ) {
+      for ( T t : new ArrayList<T>(c) ) {
         if ( isFreeParameter( t, parameter, deep, seen, true ) ) {
           return true;
         }
