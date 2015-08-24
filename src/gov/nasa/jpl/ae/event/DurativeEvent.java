@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -988,6 +989,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       catch (ClassCastException e) {
         //ignore
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
       }
       if ( affectable != null ) {
         if ( affectable.doesAffect( call.getMethod() ) ) {
@@ -1402,7 +1412,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Parameter< ? > tvp = p.first;
       TimeVarying< ? > tv = null;
       if ( tvp != null ) {
-        tv = Expression.evaluate( tvp, TimeVarying.class, false );
+        try {
+          tv = Expression.evaluate( tvp, TimeVarying.class, false );
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
         tvp.deconstruct();
       }
       Set< Effect > set = p.second;
@@ -1429,9 +1453,24 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           continue;
         }
         if ( effectFunction.getObject() != null ) {
-          TimeVarying<?> tv = Expression.evaluate( effectFunction.getObject(),
-                                                   TimeVarying.class,
-                                                   false, false );
+          TimeVarying< ? > tv = null;
+          try {
+            tv = Expression.evaluate( effectFunction.getObject(),
+                                                     TimeVarying.class,
+                                                     false, false );
+          } catch ( ClassCastException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( IllegalAccessException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InvocationTargetException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InstantiationException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          }
           if ( tv != null ) {
             effectFunction.unApplyTo( tv );
           }

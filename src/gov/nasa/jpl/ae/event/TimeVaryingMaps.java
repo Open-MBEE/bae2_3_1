@@ -11,6 +11,7 @@ import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,17 +94,53 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
             new TimeVaryingMap< VV >( instanceName, e.getKey(), null, cls );
         maps.add( new Pair< Number, TimeVaryingMap<V> >( numInstances,
                                                          (TimeVaryingMap< V >)tvm ) );
-        if ( numInstances.doubleValue() != 1.0 ) {
-          tvm = tvm.times( numInstances );
+        try {
+          if ( numInstances.doubleValue() != 1.0 ) {
+              tvm = tvm.times( numInstances );
+          }
+          this.add( tvm );
+        } catch ( IllegalAccessException e1 ) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
         }
-        this.add( tvm );
       }
-      numberOfSubmaps = Functions.plus(numberOfSubmaps, numInstances);
+      try {
+        numberOfSubmaps = Functions.plus(numberOfSubmaps, numInstances);
+      } catch ( ClassCastException e1 ) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      } catch ( IllegalAccessException e1 ) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      } catch ( InvocationTargetException e1 ) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      } catch ( InstantiationException e1 ) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
     }
     if ( computeAvg ) {
       for ( Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
 //        Number v = Expression.evaluate( e.getValue(), Number.class, false );
-        e.setValue( Functions.divide( e.getValue(), numberOfSubmaps ) );
+        try {
+          e.setValue( Functions.divide( e.getValue(), numberOfSubmaps ) );
+        } catch ( IllegalAccessException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        }
       }
     }
   }
