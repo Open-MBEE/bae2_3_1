@@ -7,6 +7,7 @@ import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 
@@ -66,7 +67,19 @@ public class ConstraintExpression extends Expression< Boolean >
    */
   @Override
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
-    Boolean sat = evaluate(false);
+    Boolean sat = null;
+    try {
+      sat = evaluate(false);
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if ( sat == null ) sat = new Boolean( false );
     if ( false && deep & sat ) {
       sat = HasParameters.Helper.isSatisfied( this, false, null );
