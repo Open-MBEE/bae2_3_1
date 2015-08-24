@@ -4,6 +4,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.Vector;
@@ -140,9 +141,20 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 		}
 		*/
 		//T result = (T) evaluate();
-    evaluate(propagate);
-    if (tv instanceof TimeVaryingMap) {
-      ((TimeVaryingMap) tv).wasApplied(this);
+    try {
+      evaluate(propagate);
+      if (tv instanceof TimeVaryingMap) {
+        ((TimeVaryingMap) tv).wasApplied(this);
+      }
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
     }
 		//tv.setValue( t, result );//setValueAtTime( t, result );
 		return tv;

@@ -320,7 +320,7 @@ public class ConstructorCall extends Call {
   }
 
   @Override
-  public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
+  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     // REVIEW -- if this is buggy, consider making this a dependency.
     // Nested call can also be a dependency.
     if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
