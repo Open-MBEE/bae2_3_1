@@ -1,6 +1,7 @@
 package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,8 +56,11 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
      * 
      * @param expressionElement The sysml expression to convert/evaluate
      * @return The evaluated AE converted expression
+     * @throws InstantiationException 
+     * @throws InvocationTargetException 
+     * @throws IllegalAccessException 
      */
-    public <X> X evaluateExpression( Object expressionElement ) {
+    public <X> X evaluateExpression( Object expressionElement ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
       Expression<X> expression = toAeExpression( expressionElement );
       return expression.evaluate( true );
     }
