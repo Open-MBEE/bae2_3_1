@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.util;
 
+import java.lang.reflect.InvocationTargetException;
+
 import gov.nasa.jpl.mbee.util.Debug;
 import junit.framework.Assert;
 
@@ -17,10 +19,10 @@ public class JavaEvaluator {
         javaToConstraintExpression.getClassData().setPackageName( packageName );
     }
     
-    public static Object evaluate( String javaString ) {
+    public static Object evaluate( String javaString ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         return evaluate( javaString, null );
     }
-    public static Object evaluate( String javaString, String packageName ) {
+    public static Object evaluate( String javaString, String packageName ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         JavaEvaluator evaluator = new JavaEvaluator( packageName );
         gov.nasa.jpl.ae.event.Expression< ? > expression =
                 evaluator.javaToConstraintExpression.javaToAeExpression( javaString,
@@ -36,11 +38,22 @@ public class JavaEvaluator {
      */
     public static void main( String[] args ) {
         Debug.turnOn();
-        Object result = JavaEvaluator.evaluate( "3+7-5" );
-        Assert.assertTrue( result.equals( (Integer)( 3 + 7 - 5 ) ) );
-        result = JavaEvaluator.evaluate( "\"foo\".substring(1)" );
-        Assert.assertTrue( result.equals( "foo".substring( 1 ) ) );
-        Debug.outln( "\nJavaEvaluator main() succeeeded!" );
+        try {
+          Object result = JavaEvaluator.evaluate( "3+7-5" );
+          Assert.assertTrue( result.equals( (Integer)( 3 + 7 - 5 ) ) );
+          result = JavaEvaluator.evaluate( "\"foo\".substring(1)" );
+          Assert.assertTrue( result.equals( "foo".substring( 1 ) ) );
+          Debug.outln( "\nJavaEvaluator main() succeeeded!" );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
         Debug.turnOff();
     }
 

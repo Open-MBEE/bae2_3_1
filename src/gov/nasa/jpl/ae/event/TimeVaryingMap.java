@@ -18,6 +18,7 @@ import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
@@ -295,8 +296,30 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       Integer v1 = null;
       Integer v2 = null;
       try {
-        v1 = Expression.evaluate( o1, Integer.class, propagate );
-        v2 = Expression.evaluate( o2, Integer.class, propagate );
+        try {
+          v1 = Expression.evaluate( o1, Integer.class, propagate );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
+        try {
+          v2 = Expression.evaluate( o2, Integer.class, propagate );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
       } catch (ClassCastException e) {
         // May be possible to get here if a value was not an Integer.
         return o1.compareTo( o2, checkId );
@@ -343,7 +366,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
       valueToInsert = defaultValue;
     } else {
-      valueToInsert = Expression.evaluate( defaultValue, this.type, false, true );
+      try {
+        valueToInsert = Expression.evaluate( defaultValue, this.type, false, true );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
     }
     Parameter<Integer> t = new Parameter<Integer>(null, null, 0, this);
     Debug.errorOnNull(true,"this should neeeever be null", t.getValue(false) );
@@ -424,7 +461,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public V tryEvaluateValue( Object obj, boolean propagate ) {
     try {
       return Expression.evaluate( obj, getType(), propagate, true );
-    } catch ( ClassCastException e ) {
+    } catch ( Throwable e ) {
       // ignore
     }
     return null;
@@ -463,7 +500,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate, boolean okToWrap ) {
     try {
       return Expression.evaluate( obj, (Class<Parameter<Integer>>)pcls, propagate, okToWrap );
-    } catch ( ClassCastException e ) {
+    } catch ( Throwable e ) {
       // ignore
     }
     return null;
@@ -942,10 +979,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( v1 == null ) return null;
       if ( v2 == null ) return v1;
       // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-      v1 = Functions.plus( v1,
-                           Functions.divide( Functions.times( Functions.minus( v2, v1 ),
-                                                              Functions.minus( t, t1 ) ),
-                                             Functions.minus( t2, t1 ) ) );
+      try {
+        v1 = Functions.plus( v1,
+                             Functions.divide( Functions.times( Functions.minus( v2, v1 ),
+                                                                Functions.minus( t, t1 ) ),
+                                               Functions.minus( t2, t1 ) ) );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       return v1;
     }
     Debug.error( true,
@@ -1115,7 +1166,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     if ( getType() != null && value != null && !(getType().isAssignableFrom( value.getClass() ) ) ) {
       V valueBefore = value;
-      value = Expression.evaluate( value, getType(), true, true );
+      try {
+        value = Expression.evaluate( value, getType(), true, true );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       // TODO better message for null case ..  if ( valueBefore==nu)
       if ( valueBefore != value ) {
         String warningMsg = null;
@@ -1156,8 +1221,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n the number by which this map is multiplied
    * @return this map after multiplying each value by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> multiply( Number n ) {
+  public TimeVaryingMap<V> multiply( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this;
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
       for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
@@ -1175,8 +1243,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n the number by which the map is multiplied
    * @return a copy of the map whose values are each multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> times( Number n ) {
+  public TimeVaryingMap<V> times( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this.clone();
     return times( n, firstKey(), null );
   }
@@ -1187,8 +1258,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the key from which all values are multiplied by {@code n}.
    * @return this map after multiplying each value in the range [fromKey,
    *         toKey) by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return multiply( n, fromKey, null );
   }
 
@@ -1219,7 +1293,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         // substitution makes sense.
         if ( !isStatic ) {
           call.setObject( tvm );
-          retVal = call.evaluate( true );
+          try {
+            retVal = call.evaluate( true );
+          } catch ( IllegalAccessException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InvocationTargetException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InstantiationException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          }
         } else {
           boolean gotTVM = false, gotNullTVM = false;
           for ( int i = 0; i < call.getArgumentArray().length; ++i ) {
@@ -1254,7 +1339,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
             }
           }
         }
-        retVal = call.evaluate( true );
+        try {
+          retVal = call.evaluate( true );
+        } catch ( IllegalAccessException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        }
       } else {
         Debug.error( false, "Warning! cannot apply call, "
                             + MoreToString.Helper.toLongString( call )
@@ -1271,9 +1367,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param fromKey the first key whose value is multiplied by {@code n}
    * @param toKey is not multiplied.  To include the last key, pass {@code null} for {@code toKey}.
    * @return this map after multiplying each value in the range [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey,
-                                        Parameter< Integer > toKey ) {
+                                        Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
@@ -1297,8 +1396,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param tvm
    *          the {@code TimeVaryingMap} with which this map is multiplied
    * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public <VV> TimeVaryingMap< V > multiply( TimeVaryingMap< VV > tvm ) {
+  public <VV> TimeVaryingMap< V > multiply( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tvm == null ) return null;
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
@@ -1319,8 +1422,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the key from which all values are multiplied by {@code n}.
    * @return a copy of this map for which each value in the range [{@code fromKey},
    *         {@code toKey}) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return times( n, fromKey, null );
   }
 
@@ -1332,15 +1438,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param n
    *          the number by which the map is multiplied
    * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public < VV > TimeVaryingMap< V > times( TimeVaryingMap< VV > tvm ) {
+  public < VV > TimeVaryingMap< V > times( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.multiply( tvm );
     return newTvm;
   }
 
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > times( TimeVaryingMap< VV1 > tvm1,
-                                                                         TimeVaryingMap< VV2 > tvm2 ) {
+                                                                         TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return tvm1.times( tvm2 );
   }
 
@@ -1348,9 +1458,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param tvm the {@code TimeVaryingMap} with which this map is multiplied
    * @return a copy of this map for which each value in the range [fromKey,
    *         toKey) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey,
-                                     Parameter< Integer > toKey ) {
+                                     Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.multiply( n, fromKey, toKey );
     return newTvm;
@@ -1360,8 +1473,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n the number by which this map is divided
    * @return this map after dividing each value by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> divide( Number n ) {
+  public TimeVaryingMap<V> divide( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this;
     return divide( n, firstKey(), null );
   }
@@ -1392,8 +1508,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n the number by which the map is divided
    * @return a copy of the map whose values are each divided by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> dividedBy( Number n ) {
+  public TimeVaryingMap<V> dividedBy( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this.clone();
     Call c = getCallForThisMethod( n );
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
@@ -1409,8 +1528,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the key from which all values are divided by {@code n}.
    * @return this map after divideing each value in the range [fromKey,
    *         toKey) by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return divide( n, fromKey, null );
   }
 
@@ -1419,9 +1541,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param fromKey the first key whose value is divided by {@code n}
    * @param toKey is not divided.  To include the last key, pass {@code null} for {@code toKey}.
    * @return this map after dividing each value in the range [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey,
-                                     Parameter< Integer > toKey ) {
+                                     Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
@@ -1444,8 +1569,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param tvm
    *          the {@code TimeVaryingMap} with which this map is multiplied
    * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public <VV> TimeVaryingMap< V > divide( TimeVaryingMap< VV > tvm ) {
+  public <VV> TimeVaryingMap< V > divide( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tvm == null ) return null;
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
@@ -1467,8 +1596,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the key from which all values are divided by {@code n}.
    * @return a copy of this map for which each value in the range [{@code fromKey},
    *         {@code toKey}) is divided by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return dividedBy( n, fromKey, null );
   }
 
@@ -1479,9 +1611,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          is not divided. To include the last key, pass {@code null} for {@code toKey}.
    * @return a copy of this map for which each value in the range [fromKey,
    *         toKey) is divided by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey,
-                                        Parameter< Integer > toKey ) {
+                                        Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.divide( n, fromKey, toKey );
     return newTvm;
@@ -1495,8 +1630,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param tvm
    *          the map by which this map is divided
    * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public < VV extends Number > TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > tvm ) {
+  public < VV extends Number > TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.divide( tvm );
     return newTvm;
@@ -1510,9 +1649,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param tvm1
    * @param tvm1
    * @return a copy of {@code tvm1} divided by {@code tvm2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > dividedBy( TimeVaryingMap< VV1 > tvm1,
-                                                                             TimeVaryingMap< VV2 > tvm2 ) {
+                                                                             TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return tvm1.dividedBy( tvm2 );
   }
 
@@ -1890,8 +2033,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param tvm the {@code TimeVaryingMap} to be added to this {@code TimeVaryingMap}
    * @return this {@code TimeVaryingMap} after adding {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public <VV> TimeVaryingMap< V > add( TimeVaryingMap< VV > tvm ) {
+  public <VV> TimeVaryingMap< V > add( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
@@ -1907,8 +2054,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param n
    * @return this map after subtracting {@code n} from each value
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> subtract( Number n ) {
+  public TimeVaryingMap<V> subtract( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this;
     return subtract( n, firstKey(), null );
   }
@@ -1919,8 +2069,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the key from which {@code n} is subtracted from all values.
    * @return this map after subtracting {@code n} from each value in the range [{@code fromKey},
    *         {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return subtract( n, fromKey, null );
   }
 
@@ -1932,9 +2085,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          To include the last key, pass {@code null} for {@code toKey}.
    * @return this map after subtracting {@code n} from each value in the range [{@code fromKey},
    *         {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey,
-                                       Parameter< Integer > toKey ) {
+                                       Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return add( Functions.times(n, -1), fromKey, toKey );
   }
 
@@ -1943,8 +2099,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the {@code TimeVaryingMap} to be subtracted from this
    *          {@code TimeVaryingMap}
    * @return this {@code TimeVaryingMap} after subtracting {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public <VV> TimeVaryingMap< V > subtract( TimeVaryingMap< VV > tvm ) {
+  public <VV> TimeVaryingMap< V > subtract( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tvm == null ) return null;
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
@@ -2022,8 +2182,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   /**
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} added to it
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) {
+  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( map );
     return newTvm;
@@ -2033,17 +2197,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map1
    * @param map2
    * @return a new map that sums {@code map1} and {@code map2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > plus( TimeVaryingMap< VV1 > map1,
-                                                                        TimeVaryingMap< VV2 > map2 ) {
+                                                                        TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return map1.plus( map2 );
   }
 
   /**
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} subtracted from it
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
-  public < VV extends Number > TimeVaryingMap< V > minus( TimeVaryingMap< VV > map ) {
+  public < VV extends Number > TimeVaryingMap< V > minus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.subtract( map );
     return newTvm;
@@ -2053,17 +2225,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map1
    * @param map2
    * @return a new map that is {@code map1} minus {@code map2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > minus( TimeVaryingMap< VV1 > map1,
-                                                                         TimeVaryingMap< VV2 > map2 ) {
+                                                                         TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return map1.minus( map2 );
   }
 
   /**
    * @param n
    * @return a copy of this map for which {@code n} is subtracted from each value
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> minus( Number n ) {
+  public TimeVaryingMap<V> minus( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this.clone();
     return minus( n, firstKey(), null );
   }
@@ -2074,8 +2253,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the key from which {@code n} is subtracted from all values.
    * @return a copy of this map for which {@code n} is subtracted from each value in the range
    *         [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return minus( n, fromKey, null );
   }
   /**
@@ -2086,9 +2268,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          include the last key, pass {@code null} for {@code toKey}.
    * @return a copy of this map for which {@code n} is subtracted from each value in the range
    *         [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey,
-                                    Parameter< Integer > toKey ) {
+                                    Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.subtract( n, fromKey, toKey );
     return newTvm;
@@ -3582,7 +3767,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( e.getKey() == null || e.getKey().getValue(false) == null ) continue;
       int startTime = e.getKey().getValue(false).intValue();
       String q = isNum ? "" : "\"";
-      Object value = Expression.evaluate( e.getValue(), null, false );
+      Object value = null;
+      try {
+        value = Expression.evaluate( e.getValue(), null, false );
+      } catch ( ClassCastException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( IllegalAccessException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( InvocationTargetException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      } catch ( InstantiationException e1 ) {
+        // TODO Auto-generated catch block
+        //e1.printStackTrace();
+      }
       if ( isNum && value == null ) {
         value = new Double(getMinValue().doubleValue());
       }
@@ -3694,14 +3894,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Assert.assertTrue( doubleMap2.isConsistent() );
 
     System.out.println( "\nmap2 loaded from " + fileName2 + ":\n" + doubleMap2 );
-    intMap1.multiply( 2, intMap1.firstKey(), null );
-    System.out.println( "\nmap1 multiplied by 2:\n" + intMap1 );
-    TimeVaryingMap< Double > doubleMap3 = doubleMap2.plus( 12.12 );
-    System.out.println( "\nnew map3 = map2 plus 12.12:\n" + doubleMap3 );
-    doubleMap3 = doubleMap2.times( 1111, doubleMap2.firstKey(), doubleMap2.lastKey() );
-    System.out.println( "\nmap3 = map2 times 1111 (except for the last entry):\n" + doubleMap3 );
-    doubleMap3 = doubleMap2.times( 1111, doubleMap2.lastKey(), doubleMap2.lastKey() );
-    System.out.println( "\nmap3 = map2 times 1111 (for just the last entry):\n" + doubleMap3 );
+    try {
+      intMap1.multiply( 2, intMap1.firstKey(), null );
+      System.out.println( "\nmap1 multiplied by 2:\n" + intMap1 );
+      TimeVaryingMap< Double > doubleMap3 = doubleMap2.plus( 12.12 );
+      System.out.println( "\nnew map3 = map2 plus 12.12:\n" + doubleMap3 );
+      doubleMap3 = doubleMap2.times( 1111, doubleMap2.firstKey(), doubleMap2.lastKey() );
+      System.out.println( "\nmap3 = map2 times 1111 (except for the last entry):\n" + doubleMap3 );
+      doubleMap3 = doubleMap2.times( 1111, doubleMap2.lastKey(), doubleMap2.lastKey() );
+      System.out.println( "\nmap3 = map2 times 1111 (for just the last entry):\n" + doubleMap3 );
 
     Assert.assertTrue( intMap1.isConsistent() );
     Assert.assertTrue( doubleMap2.isConsistent() );
@@ -3879,6 +4080,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Assert.assertTrue( doubleMap3.isConsistent() );
     Assert.assertTrue( doubleMap6.isConsistent() );
 
+    } catch ( IllegalAccessException e1 ) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    } catch ( InvocationTargetException e1 ) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    } catch ( InstantiationException e1 ) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
   }
 
   @Override
