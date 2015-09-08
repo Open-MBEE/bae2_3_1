@@ -308,7 +308,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // evaluate the arguments before invoking the method on them
     Object evaluatedArgs[] = null;
     Object[] unevaluatedArgs = arguments.toArray();
-    if ( doEvalArgs ) {//|| hasTypeErrors( unevaluatedArgs ) ) {
+    if ( ( doEvalArgs ) || hasTypeErrors( unevaluatedArgs ) ) {
       //System.out.println("@@@@@@@@@@@   DUDE   @@@@@@@@@@@@@");
       evaluatedArgs = evaluateArgs( propagate );
     }
@@ -404,7 +404,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //      nestedCall.getValue().object = result;
 //      result = nestedCall.getValue().evaluate( propagate );
 //    }
-    //if ( Debug.isOn() ) 
+    if ( Debug.isOn() ) 
       Debug.outln( "evaluate() returning " + result );
     
     return result;

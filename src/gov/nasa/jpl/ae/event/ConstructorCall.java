@@ -291,10 +291,13 @@ public class ConstructorCall extends Call {
       evaluationSucceeded = true;
     } catch (Exception e ) {
       evaluationSucceeded = false;
-      Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
-      Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
-                          + Utils.toString( evaluatedArgs, false )
-                          + "): ConstructorCall{" + this + "} " + e.getMessage() );
+      if ( Debug.isOn() ) {
+        Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
+        Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
+                            + Utils.toString( evaluatedArgs, false )
+                            + "): ConstructorCall{" + this + "} " + e.getMessage() );
+        e.printStackTrace();
+      }
       if ( Debug.isOn() ) {
         throw e;
       }
