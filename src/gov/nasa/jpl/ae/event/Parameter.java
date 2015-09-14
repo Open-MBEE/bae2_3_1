@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,13 +21,13 @@ import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 /**
  * 
@@ -86,7 +87,18 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     name = n;
     domain = d;
     if ( fc != null ) {
-      value = (T)fc.evaluate( propagate );
+      try {
+        value = (T)fc.evaluate( propagate );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
     }
     owner = o;
     stale = !isGrounded( true, null );
@@ -292,7 +304,18 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     assert mayChange;
     T castVal = null;
     try {
-      castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
+      try {
+        castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       val = castVal;
       if ( Debug.isOn() ) valString = MoreToString.Helper.toLongString( val );
     } catch ( ClassCastException cce ) {
