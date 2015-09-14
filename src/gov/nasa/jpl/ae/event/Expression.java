@@ -4,14 +4,15 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -302,8 +303,11 @@ public class Expression< ResultType > extends HasIdImpl
    *          whether to try and update potentially stale values before
    *          evaluating.
    * @return the resulting value
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
-	public ResultType evaluate( boolean propagate ) {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public ResultType evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 	  evaluationSucceeded = false;
 	  if ( form == null || ( form != Form.None && expression == null ) ) {
 	    //System.out.print("\nevaluate(" + this + ") = ");
@@ -831,15 +835,18 @@ public class Expression< ResultType > extends HasIdImpl
    *          the type of the object to find
    * @return o if o is of type cls, an object of type cls that is an evaluation
    *         of o, or null otherwise.
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public static <TT> TT evaluate( Object object, Class< TT > cls,
-                                  boolean propagate ) throws ClassCastException {
+                                  boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return evaluate( object, cls, propagate, false );
   }
   
   public static <TT> TT evaluate( Object object, Class< TT > cls,
                                   boolean propagate,
-                                  boolean allowWrapping ) throws ClassCastException {
+                                  boolean allowWrapping ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( object == null ) return null;
     // Check if object is already what we want.
     if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
@@ -856,7 +863,7 @@ public class Expression< ResultType > extends HasIdImpl
   
   public static <TT> TT evaluateDeep( Object object, Class< TT > cls,
                                       boolean propagate,
-                                      boolean allowWrapping ) throws ClassCastException {
+                                      boolean allowWrapping ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     // Try to evaluate object or dig inside to get the object of the right type. 
     Object value = null;
     if ( object instanceof Parameter ) {
@@ -938,8 +945,21 @@ public class Expression< ResultType > extends HasIdImpl
     if ( (o1 instanceof Float && o2 instanceof Double ) || (o2 instanceof Float && o1 instanceof Double ) ) {
       Debug.out( "" );
     }
-    Object v1 = evaluate( o1, cls, propagate, false );
-    Object v2 = evaluate( o2, cls, propagate, false );
+    Object v1 = null;
+    Object v2 = null;
+    try {
+      v1 = evaluate( o1, cls, propagate, false );
+      v2 = evaluate( o2, cls, propagate, false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if ( Utils.valuesEqual( v1, v2 ) ) return true;
     Class< ? > cls1 = null;
     if ( v1 != null ) {
@@ -988,7 +1008,19 @@ public class Expression< ResultType > extends HasIdImpl
 
   public Class< ? extends ResultType > getResultType() {
     if ( this.resultType != null ) return this.resultType;
-    ResultType r = evaluate( false );
+    ResultType r = null;
+    try {
+      r = evaluate( false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if ( r != null ) {
       resultType = (Class< ? extends ResultType >)r.getClass();
     }
@@ -1005,7 +1037,19 @@ public class Expression< ResultType > extends HasIdImpl
     Class< ? > c = null;
     if ( getType() != null ) {
       c = ClassUtils.primitiveForClass( getType() );
-      ResultType r = evaluate( false );
+      ResultType r = null;
+      try {
+        r = evaluate( false );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       if ( c == null && r != null
            && Wraps.class.isInstance( r ) ) {// isAssignableFrom( getType() ) ) {
         c = ( (Wraps< ? >)r ).getPrimitiveType();
@@ -1027,7 +1071,19 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public ResultType getValue( boolean propagate ) {
-    return evaluate( propagate );
+    try {
+      return evaluate( propagate );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
   }
 
   @Override
