@@ -885,7 +885,12 @@ public class Expression< ResultType > extends HasIdImpl
         return (TT)expr.expression;
       }
       value = expr.evaluate( propagate );
-      return evaluate( value, cls, propagate, allowWrapping );  
+      value = evaluate( value, cls, propagate, allowWrapping );
+      if ( cls != null && ( value == null || !cls.isInstance( value ) ) &&
+           cls.isInstance( expr.expression ) ) {
+        return (TT)expr.expression;
+      }
+      return (TT)value;
     }
     else if ( object instanceof Call) {
       value = ( (Call)object ).evaluate( propagate );
