@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -361,7 +362,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                         ( value == null ? "null" : value.toString() ) );
         }
         
-        value = Expression.evaluate( value, null, false );
+        try {
+          value = Expression.evaluate( value, null, false );
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
         if ( value instanceof MoreToString ) {
           Map<String,Object> options = new TreeMap< String, Object >();
           options.put( "withOwner", false );
@@ -702,7 +717,22 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         Double time =
             Timepoint.conversionFactor( this.plotAxisTimeUnits )
                 * timeInteger.doubleValue();
-        Object v = Expression.evaluate( map.getValue( timeInteger ), null, false );
+        Object v = null;
+        try {
+          v = Expression.evaluate( map.getValue( timeInteger ), null, false );
+        } catch ( ClassCastException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( IllegalAccessException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        }
         assert v instanceof Double || v instanceof Integer || v instanceof Float
                || v instanceof Parameter;
         while ( v instanceof Parameter ) {
@@ -782,7 +812,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       // TODO -- Support different sampling periods for different Plottables.
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
-          v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+          try {
+            v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+          } catch ( ClassCastException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( IllegalAccessException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InvocationTargetException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InstantiationException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          }
           Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }

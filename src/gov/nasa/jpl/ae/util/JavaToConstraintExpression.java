@@ -11,11 +11,11 @@ import gov.nasa.jpl.ae.event.Functions.Binary;
 import gov.nasa.jpl.ae.event.Functions.Unary;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
-import gov.nasa.jpl.ae.solver.Wraps;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 import japa.parser.ASTParser;
 import japa.parser.ParseException;
 import japa.parser.ast.expr.ArrayCreationExpr;
@@ -62,6 +62,7 @@ import japa.parser.ast.stmt.WhileStmt;
 
 import java.io.StringReader;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -806,7 +807,18 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                       complainIfDeclNotFound ) );
           call.setArguments( args );
           if ( evaluateCall ) {
-            aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+            try {
+              aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+            } catch ( IllegalAccessException e ) {
+              // TODO Auto-generated catch block
+              //e.printStackTrace();
+            } catch ( InvocationTargetException e ) {
+              // TODO Auto-generated catch block
+              //e.printStackTrace();
+            } catch ( InstantiationException e ) {
+              // TODO Auto-generated catch block
+              //e.printStackTrace();
+            }
           } else {
             aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
           }
@@ -834,7 +846,18 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                      complainIfDeclNotFound ) );
               call.setArguments( args );
               if ( evaluateCall ) {
-                aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+                try {
+                  aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+                } catch ( IllegalAccessException e ) {
+                  // TODO Auto-generated catch block
+                  //e.printStackTrace();
+                } catch ( InvocationTargetException e ) {
+                  // TODO Auto-generated catch block
+                  //e.printStackTrace();
+                } catch ( InstantiationException e ) {
+                  // TODO Auto-generated catch block
+                  //e.printStackTrace();
+                }
               } else {
                 aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
               }
@@ -860,7 +883,18 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                    complainIfDeclNotFound ) );
        call.setArguments( args );
        if ( evaluateCall ) {
-         aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+         try {
+          aeExpr = new gov.nasa.jpl.ae.event.Expression( call.evaluate( true ) );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
        } else {
          aeExpr = new gov.nasa.jpl.ae.event.Expression( call );
        }
@@ -1477,7 +1511,18 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     if ( evaluateCall && aeExpr != null ) { // && wrapInFunction ) {
       Object result = null;
-      result = aeExpr.evaluate( propagate );
+      try {
+        result = aeExpr.evaluate( propagate );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       if ( !aeExpr.didEvaluationSucceed() ) {
         aeExpr = null;
       } else if ( !( result instanceof gov.nasa.jpl.ae.event.Expression ) ) {

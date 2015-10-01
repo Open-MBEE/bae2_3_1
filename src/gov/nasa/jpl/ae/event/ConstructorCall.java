@@ -281,14 +281,26 @@ public class ConstructorCall extends Call {
     }
     try {
       newObject = constructor.newInstance( args );
+      if ( Debug.isOn() ) {
+          System.out.println("ConstructorCall constructor = " + constructor.toGenericString());
+          System.out.println("ConstructorCall args = " + args);
+          System.out.println("ConstructorCall.invoke " + constructor.getName() + "("
+                  + Utils.toString( evaluatedArgs, false )
+                  + "): ConstructorCall{" + this + "} = " + newObject );
+      }
       evaluationSucceeded = true;
     } catch (Exception e ) {
       evaluationSucceeded = false;
-      Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
-      Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
-                          + Utils.toString( evaluatedArgs, false )
-                          + "): ConstructorCall{" + this + "} " + e.getMessage() );
-      throw e;
+      if ( Debug.isOn() ) {
+        Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
+        Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
+                            + Utils.toString( evaluatedArgs, false )
+                            + "): ConstructorCall{" + this + "} " + e.getMessage() );
+        e.printStackTrace();
+      }
+      if ( Debug.isOn() ) {
+        throw e;
+      }
     }
     return newObject;
   }
@@ -311,7 +323,7 @@ public class ConstructorCall extends Call {
   }
 
   @Override
-  public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
+  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     // REVIEW -- if this is buggy, consider making this a dependency.
     // Nested call can also be a dependency.
     if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
@@ -384,6 +396,7 @@ public class ConstructorCall extends Call {
    * @return the constructor
    */
   public Constructor<?> getConstructor() {
+    if ( this.constructor != null ) return this.constructor; 
     Object argArr[] = null;
     if ( !Utils.isNullOrEmpty( arguments ) ) {
       argArr = arguments.toArray();
