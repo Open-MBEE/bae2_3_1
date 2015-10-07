@@ -679,12 +679,14 @@ public class Expression< ResultType > extends HasIdImpl
     case Constructor: // Groundable -- should not get here
 		case None:
 		default:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-			  System.err.println( "Error! Expression has invalid type: " + form );
-				e.printStackTrace();
-			}
+      Debug.error(true, false, "Error! isGrounded(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
 			return false; // TODO -- REVIEW -- exit?
 		}
 	}
@@ -708,11 +710,14 @@ public class Expression< ResultType > extends HasIdImpl
     case Constructor: // Groundable -- should not get here
 		case None:
 		default:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+      Debug.error(true, false, "Error! ground(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
 			return false; // TODO -- REVIEW -- exit?
 		}
 		//return grounded;
@@ -794,10 +799,13 @@ public class Expression< ResultType > extends HasIdImpl
       return (Domain< ResultType >)((FunctionCall)expression).getDomain( propagate, seen );
     case None:
     default:
-      try {
-        throw new IllegalAccessException();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
+      Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
       }
       return null;
     }
@@ -877,7 +885,12 @@ public class Expression< ResultType > extends HasIdImpl
         return (TT)expr.expression;
       }
       value = expr.evaluate( propagate );
-      return evaluate( value, cls, propagate, allowWrapping );  
+      value = evaluate( value, cls, propagate, allowWrapping );
+      if ( cls != null && ( value == null || !cls.isInstance( value ) ) &&
+           cls.isInstance( expr.expression ) ) {
+        return (TT)expr.expression;
+      }
+      return (TT)value;
     }
     else if ( object instanceof Call) {
       value = ( (Call)object ).evaluate( propagate );

@@ -476,8 +476,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     Class< ? extends Functions.Binary< T, R > > cls = null;
     cls = binaryOpNameToFunctionClass( fName );
     if ( cls == null ) {
-        Debug.error( "javaBinaryOpToEventFunction( " + fName +
-                     "): no function found!" );
+        if ( Debug.isOn() ) {
+          Debug.error( "javaBinaryOpToEventFunction( " + fName +
+                       "): no function found!" );
+        }
         return null;
     }
     ConstructorCall ctorCall =
