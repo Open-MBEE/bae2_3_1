@@ -478,7 +478,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // and add to the argument list:
       if (param != null) {
         
-        Debug.outln( "\nparam = " + param );
+        if ( Debug.isOn() ) Debug.outln( "\nparam = " + param );
         if (argValProp != null && setValue) {
             param.setValue(argValProp);   
         }
@@ -1000,7 +1000,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         
         // TODO can we assume this will always be size one?
         Object argValueNode = Utils.isNullOrEmpty(argValueNodes) ? arg : argValueNodes.iterator().next();
-        Debug.outln( "\nargValueNode = " + argValueNode );
+        if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
 
         String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
 
