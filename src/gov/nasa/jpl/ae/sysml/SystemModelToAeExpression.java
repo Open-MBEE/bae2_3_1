@@ -787,6 +787,15 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       return operationName;
     }
     
+    /**
+     * bogus method to force jar update
+     * @param operation
+     * @return
+     */
+    String getOperationNameString( Object operation ) {
+      return "" + getOperationName( operation );
+    }
+    
     protected String getOperationLiteralString( P operation ) {
       String typeName = model.getTypeString( (C)operation, null );
       
