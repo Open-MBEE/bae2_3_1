@@ -28,7 +28,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 import sysml.SystemModel;
 
-public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?, T, P, N, ?, U, ?, ?, ?, ? > > {
+public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?, C, T, P, N, ?, U, ?, ?, ?, ? > > {
     
     public static boolean debug = false;
     public static boolean doCallCaching = false;
@@ -407,7 +407,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       Parameter<Object> param = null;
       Collection<U> argValPropNodes = null;
       Object argValProp = null;
-      String type = model.getTypeString(argValueNode, null);
+      String type = model.getTypeString((C)argValueNode, (Object) null);
       Boolean setValue = true;
       
       if (type == null) {
@@ -420,32 +420,32 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         // Get the value of the argument based on type:
         if (type.equals("LiteralInteger")) {
           
-          argValPropNodes = model.getValue(argValueNode, "integer");
+          argValPropNodes = model.getValue((C)argValueNode, "integer");
           argType = "Integer";
         }
         else if (type.equals("LiteralReal")) {
           
-          argValPropNodes = model.getValue(argValueNode, "double");
+          argValPropNodes = model.getValue((C)argValueNode, "double");
           argType = "Double";
         }
         else if (type.equals("LiteralBoolean")) {
           
-          argValPropNodes = model.getValue(argValueNode, "boolean");
+          argValPropNodes = model.getValue((C)argValueNode, "boolean");
           argType = "Boolean";
         }
         else if (type.equals("LiteralUnlimitedNatural")) {
           
-          argValPropNodes = model.getValue(argValueNode, "naturalValue");
+          argValPropNodes = model.getValue((C)argValueNode, "naturalValue");
           argType = "Integer";
         }
         else if (type.equals("LiteralString")) {
           
-          argValPropNodes = model.getValue(argValueNode, "string");
+          argValPropNodes = model.getValue((C)argValueNode, "string");
           argType = "String";
         }
         else if (type.equals("OpaqueExpression")) {
           
-          argValPropNodes = model.getValue(argValueNode, "expressionBody");
+          argValPropNodes = model.getValue((C)argValueNode, "expressionBody");
           argType = "String";
         }
         else if (type.equals("LiteralNull")) {
@@ -478,7 +478,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // and add to the argument list:
       if (param != null) {
         
-        Debug.outln( "\nparam = " + param );
+        if ( Debug.isOn() ) Debug.outln( "\nparam = " + param );
         if (argValProp != null && setValue) {
             param.setValue(argValProp);   
         }
@@ -513,7 +513,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // We assume that it is an ElementValue, so get the id of the referenced
       // element:
       Collection< P > valueOfElemNodes = 
-              model.getProperty(operandProp, "element");
+              model.getProperty((C)operandProp, "element");
       
       // If it is a elementValue, then this will be non-empty:
       if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
@@ -551,7 +551,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         //   3rd call: map = processOperation(map, [], true)
       
         N operationName = null;
-        Collection<N> operNames = model.getName(valueOfElementNode);
+        N operNames = model.getName((C)valueOfElementNode);
         
         // TODO should we add to the arguments list even if its
         // the operand operation name and not a operand arg?
@@ -562,16 +562,16 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         // Perhaps do the createCall() checks on it in here to check?
         // Thats not very robust.
 
-        if (!Utils.isNullOrEmpty(operNames)) {
+        if (!Utils.isNullOrEmpty((String)operNames)) {
 
-            operationName = operNames.iterator().next();
+            operationName = operNames;
             
             // Only add to argument list if its a operand arg:
             if (isOperandArg) {
                 
-                Collection<P> opExpProps = model.getProperty( valueOfElementNode, 
+                Collection<P> opExpProps = model.getProperty( (C)valueOfElementNode, 
                                                               "expression" );
-                Collection<P> opParamProps = model.getProperty( valueOfElementNode, 
+                Collection<P> opParamProps = model.getProperty( (C)valueOfElementNode, 
                                                                "parameters" );
                 
                 // If the Operation has no expression then 
@@ -773,9 +773,9 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         operationName = model.asName( operation );
         return operationName;
       }      
-      Collection< N > operationNames = model.getName( operation );
-      if ( !Utils.isNullOrEmpty( operationNames  ) ) {
-        operationName = operationNames.iterator().next();
+      N operationNames = model.getName( (C)operation );
+      if ( !Utils.isNullOrEmpty( (String)operationNames  ) ) {
+        operationName = operationNames;
       } else {
         try {
           operationName = (N)operation;
@@ -787,13 +787,22 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       return operationName;
     }
     
+    /**
+     * bogus method to force jar update
+     * @param operation
+     * @return
+     */
+    String getOperationNameString( Object operation ) {
+      return "" + getOperationName( operation );
+    }
+    
     protected String getOperationLiteralString( P operation ) {
-      String typeName = model.getTypeString( operation, null );
+      String typeName = model.getTypeString( (C)operation, null );
       
       if ( typeName != null && typeName.equals( "LiteralString" ) ) {
         // By default, this is a string reference to an Java function, but it
         // could also be to an Operation or some other element.
-        Collection< U > values = model.getValue( operation, null );
+        Collection< U > values = model.getValue( (C)operation, null );
         if ( !Utils.isNullOrEmpty( values ) ) {
           if ( values.size() > 1 ) {
             // TODO -- ERROR -- only expected one
@@ -826,7 +835,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       }
 
       // If it is not an Expression than we cannot process it:
-      String expressionType = model.getTypeString(expressionElement, null);
+      String expressionType = model.getTypeString((C)expressionElement, null);
       if (!expressionType.equals("Expression")) {
         Debug.error( "Passed expression is not an Expression type, got type "+ expressionType);
         return null;
@@ -834,7 +843,7 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
 
       // Pull out the operation, and recursively process the arguments. 
       
-      Collection< P > operands = model.getProperty( expressionElement, "operand");
+      Collection< P > operands = model.getProperty( (C)expressionElement, "operand");
       
       if ( Utils.isNullOrEmpty( operands ) ) return null;
 
@@ -877,13 +886,13 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
       String operationType = null;
       if ( !( operation instanceof String ) ) {
-        operationType = model.getTypeString(operation, null);
+        operationType = model.getTypeString((C)operation, null);
       }
       if ( operationType != null && operationType.equals( "Operation" ) ) {
         Collection< P > opExpProps =
-            model.getProperty( operation, "expression" );
+            model.getProperty( (C)operation, "expression" );
         Collection< P > opParamProps =
-            model.getProperty( operation, "parameters" );
+            model.getProperty( (C)operation, "parameters" );
 
         // Replace the parameters with the arguments.
         if ( !Utils.isNullOrEmpty( opExpProps ) ) {
@@ -951,14 +960,14 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
         // Get the valueOfElementProperty node:
         arg = getValueOfElement(arg);
   
-        typeString = model.getTypeString(arg, null);
+        typeString = model.getTypeString((C)arg, null);
       
       }
       
       // If the typeString is null, then create a Parameter for it 
       if (typeString == null) {
         // The argument name needs to be unique, so we'll use the identifier.
-        return elementValueToAeExpression(arg, "" + model.getIdentifier(arg));
+        return elementValueToAeExpression(arg, "" + model.getIdentifier((C)arg));
       }
       
       // If it is an Operation, then it may be meant as a function pointer for
@@ -989,18 +998,18 @@ public class SystemModelToAeExpression< T, P, N, U, SM extends SystemModel< ?, ?
       else {
                 
         // Get the argument Node:
-        Collection<U > argValueNodes = model.getValue(arg, null);
+        Collection<U > argValueNodes = model.getValue((C)arg, null);
 
         // Get the name of the argument Node:
 //        Collection<N > argValueNames = model.getName(arg);
 //        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
 //                                                                 argValueNames.iterator().next().toString();
         // This needs to be unique, so we'll use the identifier.
-        String argValName = "" + model.getIdentifier( arg );
+        String argValName = "" + model.getIdentifier( (C)arg );
         
         // TODO can we assume this will always be size one?
         Object argValueNode = Utils.isNullOrEmpty(argValueNodes) ? arg : argValueNodes.iterator().next();
-        Debug.outln( "\nargValueNode = " + argValueNode );
+        if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
 
         String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
 

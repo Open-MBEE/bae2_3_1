@@ -1013,12 +1013,17 @@ public abstract class Call extends HasIdImpl implements HasParameters,
           call.setStale( true );
         }
       }
-      else if ( indexOfArg > arguments.size() ) Debug.error( "bad index "
-                                                             + indexOfArg
-                                                             + "; only "
-                                                             + arguments.size()
-                                                             + " arguments!" );
       else {
+        if ( indexOfArg > arguments.size() ) {
+          Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
+          if ( indexOfArg > 100 ) {
+            Debug.error( "bad index " + indexOfArg + "; greater than 100" );
+          } else {
+            while ( indexOfArg > arguments.size() ) {
+              arguments.add( null );
+            }
+          }
+        }
         if ( arguments.get( indexOfArg - 1 ) != obj ) {
           arguments.set(indexOfArg-1,obj);
           call.setStale( true );
