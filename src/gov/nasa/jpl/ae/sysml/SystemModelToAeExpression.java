@@ -285,6 +285,17 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if ( call != null ) {
           // TODO -- See if raw arguments are a better fit than these.
           call.setArguments( aeArguments );
+          
+          boolean tryRawArgs =
+              (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
+                  || prefersRawArgs( call, argTypes, rawArgTypes ) );
+          
+          if ( tryRawArgs ) {
+            call.setArguments( rawArguments );
+            usedRawArgs = true;
+            if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+          }
+          
           if ( newCallCase == CallCase.UNKNOWN ) newCallCase = CallCase.ae;
           if ( newArgsUsed == ArgsUsed.UNKNOWN ) newArgsUsed = usedRawArgs ? ArgsUsed.raw : ArgsUsed.ae;
           if ( debug && call != null ) {

@@ -455,6 +455,8 @@ public class FunctionCall extends Call {
                                        int indexOfObjectArgument ) {
       Collection< XX > coll = new ArrayList< XX >();
       try {
+      int numArgsMethod = method.getParameterTypes().length;
+     // if ( indexOfObjectArgument > )
       for ( XX o : objects ) {
           sub( indexOfObjectArgument, o );
           Object result = null;
