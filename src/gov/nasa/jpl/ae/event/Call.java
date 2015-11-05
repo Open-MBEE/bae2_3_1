@@ -53,6 +53,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   public Call() {}
   
+  public Class< ? > getObjectType() {
+    if ( getMember() == null ) return null;
+    if ( isStatic() ) return null;
+    return getMember().getDeclaringClass();
+  }
+  
   @Override
   public synchronized void deconstruct() {
     if ( nestedCall != null ) {
@@ -227,7 +233,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         if ( c.isPrimitive() ) {
           gotErrors = true; 
         }
-      } else if ( !c.isAssignableFrom( evaluatedArgs[ i ].getClass() ) ) {
+      } else if ( !c.isAssignableFrom( evaluatedArgs[ i ].getClass() )
+                  && ( !isVarArgs() || !Collection.class.isAssignableFrom( c ) ) ) {
         gotErrors = true;
       }
     }
@@ -484,7 +491,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         Debug.error( true, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
                              "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
-                           + " is not an instance of " + c.getSimpleName() );
+                           + " is not an instance of " + c.getSimpleName() + " for " + i + "th argument of call" );
 //      } else if ( argObjects[i] != null && c != null && !c.equals( argObjects[i].getClass() ) ) {
 //          Object x = null;
 //          x = ClassUtils.coerce( argObjects[ i ], c, true );
@@ -906,7 +913,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @param argument the argument to set
    */
   public synchronized void setArgument( int i, Object argument ) {
-    if ( arguments.get( i ) != argument ) {
+    while ( arguments.size() < i ) {
+      arguments.add( null );
+      stale = true;
+    }
+    if ( i == arguments.size() ) {
+      arguments.add( argument );
+      stale = true;
+    } else if ( arguments.get( i ) != argument ) {
       this.arguments.set(i, argument);
       stale = true;
     }
@@ -931,6 +945,26 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     stale = true;
   }
+  
+  public Class< ? > getTypeForSubstitutionIndex( int index ) {
+    // If the argument substitutes for the object of the call,
+    // check and see if the object should be a Collection.
+    if ( index == 0 ) {
+        Class< ? > objTypeReqd = getObjectType();
+        return objTypeReqd;
+    } else {
+        Class< ? >[] types = getParameterTypes();
+        if ( Utils.isNullOrEmpty( types ) ) return null;
+        if ( types.length < index ) {
+          if ( isVarArgs() ) {
+            return types[types.length-1];
+          }
+          return null;
+        }
+        return types[index-1];
+    }
+  }
+
   
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.HasDomain#getDomain(boolean, java.util.Set)
