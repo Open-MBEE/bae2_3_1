@@ -880,6 +880,9 @@ public class Expression< ResultType > extends HasIdImpl
     } 
     else if ( object instanceof Expression ) {
       Expression< ? > expr = (Expression<?>)object;
+      if ( cls != null && cls.isInstance( expr ) && expr.form != Form.Function) {
+        return (TT)expr;
+      }
       if ( cls != null && cls.isInstance( expr.expression ) &&
            expr.form != Form.Function) {
         return (TT)expr.expression;
