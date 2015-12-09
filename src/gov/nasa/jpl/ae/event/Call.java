@@ -480,10 +480,13 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         if ( !c.isArray() ) {
           Debug.error( true, true, "class " + c.getSimpleName() + " should be a var arg array!" );
         } else {
-          c = c.getComponentType();
+          c = c.getComponentType(); // TODO -- don't we need to pass info along
+                                    // about whether the result should be an
+                                    // array?
         }
       }
-      if ( ( c == null || c.equals( Object.class ) ) && unevaluatedArg instanceof Wraps ) {
+      if ( ( c == null || c.equals( Object.class ) ) // || Expression.class.isAssignableFrom( c ) )
+           && unevaluatedArg instanceof Wraps ) {
         c = ((Wraps)unevaluatedArg).getType();
       }
       argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
