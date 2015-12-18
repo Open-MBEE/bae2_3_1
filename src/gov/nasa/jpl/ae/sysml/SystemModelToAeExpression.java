@@ -26,6 +26,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.HasPreference;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 import sysml.SystemModel;
 
 public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?, C, T, P, N, ?, U, ?, ?, ?, ? > > {
@@ -419,6 +420,19 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       Collection<U> argValPropNodes = null;
       Object argValProp = null;
       String type = model.getTypeString((C)argValueNode, (Object) null);
+      if ( type.equals("Property") ) {
+        Object v = model.getValue((C)argValueNode, null);
+        int ct = 0;
+        while ( v != null && v instanceof Collection && ct < 10) {
+          v = ((Collection<?>)v).iterator().next();
+          ct++;
+        }
+        try {
+          if ( v != null ) type = model.getTypeString((C)v, (Object) null);
+        } catch (Throwable t ) {
+          if ( v != null ) type = "" + ClassUtils.getType( v );
+        }
+      }
       Boolean setValue = true;
       
       if (type == null) {
@@ -429,17 +443,17 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         setValue = !type.equals("Parameter"); // Dont set the value for Parameters
         
         // Get the value of the argument based on type:
-        if (type.equals("LiteralInteger")) {
+        if (type.equals("LiteralInteger") || type.equalsIgnoreCase( "int" ) || type.equalsIgnoreCase( "integer" )) {
           
           argValPropNodes = model.getValue((C)argValueNode, "integer");
-          argType = "Integer";
+          argType = "Long";
         }
-        else if (type.equals("LiteralReal")) {
+        else if (type.equals("LiteralReal") || type.equalsIgnoreCase( "float" ) || type.equalsIgnoreCase( "double" ) ) {
           
           argValPropNodes = model.getValue((C)argValueNode, "double");
           argType = "Double";
         }
-        else if (type.equals("LiteralBoolean")) {
+        else if (type.equals("LiteralBoolean") || type.equalsIgnoreCase( "bool" ) || type.equalsIgnoreCase( "boolean" ) ) {
           
           argValPropNodes = model.getValue((C)argValueNode, "boolean");
           argType = "Boolean";
@@ -447,9 +461,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         else if (type.equals("LiteralUnlimitedNatural")) {
           
           argValPropNodes = model.getValue((C)argValueNode, "naturalValue");
-          argType = "Integer";
+          argType = "Long";
         }
-        else if (type.equals("LiteralString")) {
+        else if (type.equals("LiteralString") || type.equalsIgnoreCase( "string" ) || type.equalsIgnoreCase( "str" ) ) {
           
           argValPropNodes = model.getValue((C)argValueNode, "string");
           argType = "String";
@@ -1026,6 +1040,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
         // Create a Parameter for the argument and add to arguments:
         //System.out.println( "\nelementArgumentToAeExpression(" + arg + " = elementValueToAeExpression(" + argValueNode + ", " + argName + ")" );
+        if ( !model.getElementClass().isInstance( argValueNode ) ) {
+          argValueNode = arg;
+        }
         return elementValueToAeExpression(argValueNode, argName);
                   
       } // ends else 
