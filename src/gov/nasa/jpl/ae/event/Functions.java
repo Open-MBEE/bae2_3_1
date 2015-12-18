@@ -14,6 +14,7 @@ import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.ae.util.DomainHelper;
+import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -2022,8 +2023,16 @@ public class Functions {
     if ( r1 == r2 ) return true;
     if ( r1 == null || r2 == null ) 
       return false;
-    boolean b = true;
-    if ( r1 instanceof Comparable ) {
+    boolean b = false;
+    b = CompareUtils.compare( r1, r2, false ) == 0;
+    if ( !b ) {
+      boolean isNum1 = r1 instanceof Number;
+      boolean isNum2 = r2 instanceof Number;
+      if (isNum1 && isNum2) {
+        b = DoubleDomain.defaultDomain.equals( ((Number)r1).doubleValue(), ((Number)r2).doubleValue());
+      }
+    }
+    if ( !b && r1 instanceof Comparable ) {
       if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
         b = ((Parameter<?>)r1).valueEquals( r2 );
       } else
@@ -2037,7 +2046,7 @@ public class Functions {
         }
       }
     } else {
-      b = r1.equals( r2 );
+      b = b || r1.equals( r2 );
     }
     if ( !b ) {
       Object r11 = null;
