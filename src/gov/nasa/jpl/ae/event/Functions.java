@@ -18,6 +18,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -877,7 +878,33 @@ public class Functions {
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    return plus(r1,r2);
+    try {
+      return plus(r1,r2);
+    } finally {
+//    if ( !b ) {
+      T r11 = null;
+      TT r22 = null;
+      T s = null;
+      boolean changed1 = false;
+      boolean changed2 = false;
+      if ( r1 instanceof Wraps ) {
+        r11 = ((Wraps<T>)r1).getValue( false );
+        changed1 = !r1.equals( r11 );
+        if ( changed1 ) s = plus( r11, r2 );
+      }
+      if ( s == null && r2 instanceof Wraps ) {
+        r22 = ((Wraps<TT>)r2).getValue( false );
+        changed2 = !r2.equals( r22 );
+        if ( changed2 ) s = plus( r1, r22 );
+        if ( s == null && r11 != null ) {
+          if ( changed1 && changed2 ) { 
+            s = plus( r11, r22 );
+          }
+        }
+      }
+//    }
+    }
+
 /*    Object result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.String.class ) ||
          r2.getClass().isAssignableFrom( java.lang.String.class ) ) {
@@ -1956,6 +1983,39 @@ public class Functions {
     //if ( o1 == null || o2 == null ) return false;
     T r1 = o1 == null ? null : o1.evaluate( false );
     T r2 = o2 == null ? null : o2.evaluate( false );
+    return eq(r1, r2);
+//    if ((r1 ==null) && (r2 == null)){
+//      Debug.outln( "" );
+//    }
+//    if ( r1 == r2 ) return true;
+//    if ( r1 == null || r2 == null ) 
+//      return false;
+//    boolean b = true;
+//    if ( r1 instanceof Comparable ) {
+//      if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
+//        b = ((Parameter<T>)r1).valueEquals( r2 );
+//      } else
+//      if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
+//        b = ((Parameter<T>)r2).valueEquals( r1 );
+//      } else {
+//        b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+//      }
+//    } else {
+//      b = r1.equals( r2 );
+//    }
+//    if ( !b ) {
+//      Object r11 = null;
+//      Object r22 = null;
+//      if ( r1 instanceof Wraps ) {
+//        r11 = ((Wraps<?>)r1).getValue( false );
+//        
+//      }
+//    }
+//    if ( Debug.isOn() ) Debug.outln( o1 + " == " + o2 + " = " + b );
+//    return b;
+  }
+  
+  protected static <T> Boolean eq( T r1, T r2 ) {
     if ((r1 ==null) && (r2 == null)){
       Debug.outln( "" );
     }
@@ -1965,18 +2025,45 @@ public class Functions {
     boolean b = true;
     if ( r1 instanceof Comparable ) {
       if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
-        return ((Parameter<T>)r1).valueEquals( r2 );
-      }
+        b = ((Parameter<?>)r1).valueEquals( r2 );
+      } else
       if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
-        return ((Parameter<T>)r2).valueEquals( r1 );
+        b = ((Parameter<?>)r2).valueEquals( r1 );
+      } else {
+        try {
+          b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+        } catch ( Throwable t ) { 
+          b = false;
+        }
       }
-      b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;  
     } else {
       b = r1.equals( r2 );
     }
-    if ( Debug.isOn() ) Debug.outln( o1 + " == " + o2 + " = " + b );
+    if ( !b ) {
+      Object r11 = null;
+      Object r22 = null;
+      boolean changed1 = false;
+      boolean changed2 = false;
+      if ( r1 instanceof Wraps ) {
+        r11 = ((Wraps<?>)r1).getValue( false );
+        changed1 = !r1.equals( r11 );
+        if ( changed1 ) b = eq( r11, r2 );
+      }
+      if ( !b && r2 instanceof Wraps ) {
+        r22 = ((Wraps<?>)r2).getValue( false );
+        changed2 = !r2.equals( r22 );
+        if ( changed2 ) b = eq( r22, r1 );
+        if ( !b && r11 != null ) {
+          if ( changed1 && changed2 ) {
+            b = eq( r11, r22 );
+          }
+        }
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( "eq(): " + r1 + " == " + r2 + " = " + b );
     return b;
   }
+  
   public static < T > Boolean
       notEquals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( o1 == o2 ) return false;

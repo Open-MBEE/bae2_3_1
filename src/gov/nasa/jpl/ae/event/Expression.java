@@ -857,8 +857,18 @@ public class Expression< ResultType > extends HasIdImpl
                                   boolean allowWrapping ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( object == null ) return null;
     // Check if object is already what we want.
-    if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
+    boolean isTypeCompatible = cls != null && cls.isInstance( object );
+    if ( isTypeCompatible || cls == object.getClass() ) {
       TT result = null;
+//      if ( isTypeCompatible ) {
+//        try {
+//          result = (TT)object;
+//        } catch (ClassCastException e) {
+//        }
+//        if ( result != null ) {
+//          return result;
+//        }
+//      }
       try {
         result = evaluateDeep( object, cls, propagate, allowWrapping );
       } catch (ClassCastException e) {
