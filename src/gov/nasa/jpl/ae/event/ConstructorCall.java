@@ -245,6 +245,7 @@ public class ConstructorCall extends Call {
   
   @Override
   public Class<?>[] getParameterTypes() {
+    if ( constructor == null ) return new Class<?>[]{};
     Class< ? >[] ctorTypes = constructor.getParameterTypes();
     if ( !isInnerClass() ) return ctorTypes;
     int newSize = Utils.isNullOrEmpty( ctorTypes ) ? 0 : ctorTypes.length - 1;
@@ -281,23 +282,23 @@ public class ConstructorCall extends Call {
     }
     try {
       newObject = constructor.newInstance( args );
-      if ( Debug.isOn() ) {
+//      if ( Debug.isOn() ) {
           System.out.println("ConstructorCall constructor = " + constructor.toGenericString());
           System.out.println("ConstructorCall args = " + args);
           System.out.println("ConstructorCall.invoke " + constructor.getName() + "("
                   + Utils.toString( evaluatedArgs, false )
                   + "): ConstructorCall{" + this + "} = " + newObject );
-      }
+//      }
       evaluationSucceeded = true;
     } catch (Exception e ) {
       evaluationSucceeded = false;
-      if ( Debug.isOn() ) {
+//      if ( Debug.isOn() ) {
         Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
         Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
                             + Utils.toString( evaluatedArgs, false )
                             + "): ConstructorCall{" + this + "} " + e.getMessage() );
         e.printStackTrace();
-      }
+//      }
       if ( Debug.isOn() ) {
         throw e;
       }

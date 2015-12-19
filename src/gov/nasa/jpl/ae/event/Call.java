@@ -300,6 +300,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
+    if ( getMember() == null ) {
+      Debug.error( true, false, "evaluate() failed!  No member for " + this );
+      return null;
+    }
+
     if ( propagate ) {
       if ( !ground( propagate, null ) ) {
         //return null;
