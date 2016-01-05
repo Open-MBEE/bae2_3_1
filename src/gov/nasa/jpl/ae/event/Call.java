@@ -8,9 +8,11 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -234,7 +237,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
           gotErrors = true; 
         }
       } else if ( !c.isAssignableFrom( evaluatedArgs[ i ].getClass() )
-                  && ( !isVarArgs() || !Collection.class.isAssignableFrom( c ) ) ) {
+                  && ( !isVarArgs() || 
+                       ( !Collection.class.isAssignableFrom( c ) &&
+                         ( !evaluatedArgs[ i ].getClass().isArray() || 
+                           ( ((Object[])evaluatedArgs[ i ]).length > 0 && 
+                             !c.isAssignableFrom(((Object[])evaluatedArgs[ i ])[0].getClass())))))) {
         gotErrors = true;
       }
     }
@@ -434,16 +441,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( evaluatedArgs.length < paramSize - 1 ) {
       return evaluatedArgs;
     }
-    Object[] newArgs = new Object[ paramSize ];
-    for ( int i = 0; i < paramSize - 1; ++i ) {
-      newArgs[ i ] = evaluatedArgs[ i ];
+    try {
+      Object[] newArgs = new Object[ paramSize ];
+      for ( int i = 0; i < paramSize - 1; ++i ) {
+        newArgs[ i ] = evaluatedArgs[ i ];
+      }
+      Class< ? > lastParamType = getParameterTypes()[getParameterTypes().length - 1];
+      Object varArgArray = Array.newInstance(lastParamType.getComponentType(), evaluatedArgs.length - paramSize + 1);
+      for ( int i = paramSize - 1, j = 0; i < evaluatedArgs.length; ++i, ++j ) {
+        Array.set(varArgArray, j, evaluatedArgs[ i ]);
+      }
+      newArgs[ paramSize - 1 ] = varArgArray;
+      return newArgs;
+    } catch ( Throwable t ) {
+      t.printStackTrace();
+      return evaluatedArgs;
     }
-    Object[] varArgArray = new Object[ evaluatedArgs.length - paramSize + 1 ];
-    for ( int i = paramSize - 1, j = 0; i < evaluatedArgs.length; ++i, ++j ) {
-      varArgArray[ j ] = evaluatedArgs[ i ];
-    }
-    newArgs[ paramSize - 1 ] = varArgArray;
-    return newArgs;
   }
 
   // Try to match arguments to parameters by evaluating or creating expressions.
@@ -1242,6 +1255,36 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         //e1.printStackTrace();
       }  // TODO -- args right?
       return relationMapToClose;
+  }
+  public Object getOtherArg( Object theArg ) {
+    LinkedHashSet< Object > otherArgs = getOtherArgs( theArg );
+    int n = Random.global.nextInt( otherArgs.size() );
+    Iterator<Object> iter = otherArgs.iterator();
+    Object otherArg = null;
+    for (int i = 0; i != n; ++i) {
+      otherArg = iter.next();
+    }
+    return otherArg;
+  }
+  public LinkedHashSet<Object> getOtherArgs( Object theArg ) {
+    //FunctionCall f = (FunctionCall)this.expression;
+    Object otherArg = null;
+    LinkedHashSet<Object> otherArgs = new LinkedHashSet< Object >();
+    boolean found = false;
+    for ( Object arg : arguments ) {
+      if ( theArg == arg ) {
+        found = true;
+      } else if ( arg instanceof Expression
+                  && ( ( (Expression)arg ).expression == theArg ) ) {
+        found = true;
+      } else {
+        otherArgs.add( arg );
+      }
+    }
+    if ( !found ) {
+      // TODO -- ERROR
+    }
+    return otherArgs;
   }
 
 

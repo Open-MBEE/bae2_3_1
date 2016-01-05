@@ -321,6 +321,7 @@ public class FunctionCall extends Call {
     // FIXME -- cannot pass a null as a single argument to to a function with a
     // single variable number argument parameter. For example,
     // Utils.newList(new Object[]{(Object)null}).
+//    Debug.turnOn();
     try {
       result = method.invoke( evaluatedObject, evaluatedArgs );
       if ( Debug.isOn() ) {
@@ -345,20 +346,23 @@ public class FunctionCall extends Call {
           e.printStackTrace();
         }
       }
+      //Debug.turnOff();
       throw e;
     } catch (Exception e ) {
       evaluationSucceeded = false;
       if ( Debug.isOn() ) {
-        Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
+        Debug.error(true, false, "\nFunctionCall method = " + method.toGenericString());
         System.err.println( "FunctionCall.invoke " + method.getName() + "("
                             + Utils.toString( evaluatedArgs, false )
-                            + "): FunctionCall{" + this + "} " + e.getMessage() );
+                            + "): FunctionCall{" + this + "} " + e.getMessage() + "\n");
       }
+//      Debug.turnOff();
 //      if ( Debug.isOn() ) {
         throw e;
 //      }
     }
-   
+    //Debug.turnOff();
+
     return result;
   }
   
@@ -634,8 +638,6 @@ public class FunctionCall extends Call {
       Collections.sort( result, mapComparator );
       return result;
   }
-       
-
 
   
   

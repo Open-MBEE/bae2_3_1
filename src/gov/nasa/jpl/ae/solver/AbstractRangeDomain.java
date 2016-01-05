@@ -91,7 +91,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public abstract long size();
+	public abstract int size();
 	
   @Override
 	public boolean isEmpty() {

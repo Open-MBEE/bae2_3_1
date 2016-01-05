@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -116,6 +117,13 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       boolean usedRawArgs = false;
 
+      
+      
+      //debug = true;
+      
+      
+      
+      
       /*
        * We will look for the corresponding Constructor or FunctionCall in
        * the following order:
@@ -196,11 +204,33 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                                     operationName.toString(),
                                                     argTypes.toArray(new Class[argTypes.size()]), false);
         }
-        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
-          method = ClassUtils.getMethodForArgTypes( model.getClass(),
+        
+        if ( method != null ) {
+          call = new FunctionCall( object, method, aeArguments );
+        }
+        
+        // Check to see if there is a preference over constructors.
+        // TODO -- move this out of this already long function. It can probably
+        // be reused elsewhere in this function anyway.
+        boolean tryRawArgs =
+            (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
+                || prefersRawArgs( call, argTypes, rawArgTypes ) );
+        
+//        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
+        if ( tryRawArgs ) {
+          Method method2 = ClassUtils.getMethodForArgTypes( model.getClass(),
                                                     operationName.toString(),
                                                     rawArgTypes.toArray(new Class[rawArgTypes.size()]), false);
-          if ( method != null ) usedRawArgs = true;
+          if ( method2 != null ) {
+            Call call2 = new FunctionCall( object, method2, rawArguments );
+            if ( call2 != null ) {
+              usedRawArgs = true;
+              if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+              method = method2;
+              call = call2;
+            }
+          }
+          
         }
      }
      if ( method != null ) {
@@ -374,16 +404,26 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
       if ( debug && call == null ) System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
 
+      
+      
+      
+      
+      //debug = false;
+      
+      
+      
+      
       return call;
     }
         
     public boolean prefersRawArgs( Call call, ArrayList< Class< ? >> argTypes,
                                   ArrayList< Class< ? >> rawArgTypes ) {
       if ( call == null ) return false;
-      if (!( call instanceof ConstructorCall )) return false;
+      //if (!( call instanceof ConstructorCall )) return false;
 
       boolean prefersRawArgs = false;
-      Constructor< ? > ctor = ((ConstructorCall)call).getConstructor();
+      //Constructor< ? > ctor = ((ConstructorCall)call).getConstructor();
+      Member ctor = call.getMember();
       Class<?> cls = ctor.getDeclaringClass();
       boolean hasPreference = HasPreference.Helper.classHasPreference( cls );
       if ( !hasPreference ) return false;
@@ -750,8 +790,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if ( args != null && args.size() == 2 && (args.get( 1 ) instanceof Vector || args.get( 1 ) == null || args.get( 1 ).getClass().isArray() ) ) {
           Object innerArgs = args.get( 1 );
           if ( innerArgs instanceof Vector ) {
-            args = (Vector<Object>)args.get( 1 );
+            args = new Vector<Object>((Vector<Object>)args.get( 1 ));
             Call.sub( this, args, indexOfArg, obj );
+            arguments.set( 1, args );
           } else if ( innerArgs != null ) {
             Call.sub( (Object[])innerArgs, indexOfArg-1, obj );
           }
@@ -957,7 +998,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // other implementations that may be intended.
       if ( expression == null || ( expression.expression == null && expression.form != Form.Value ) ) {
         N operationName = getOperationName( operation );
-        Call call = createCall(null, operationName, aeArgs, rawArgs );       
+        Call call = createCall(null, operationName, aeArgs, rawArgs );
         expression = new Expression( call ); // FIXME what to do if call is null?
         //expression = new Expression( call.evaluate( false ) ); // This breaks test case 22
       }
