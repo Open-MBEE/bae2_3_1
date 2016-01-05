@@ -72,7 +72,7 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    * @see solver.AbstractRangeDomain#size()
    */
   @Override
-  public long size() {
+  public int size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
     return -1;

@@ -871,10 +871,11 @@ public class Expression< ResultType > extends HasIdImpl
 //      }
       try {
         result = evaluateDeep( object, cls, propagate, allowWrapping );
+        if ( result != null && cls.isInstance( result ) ) return result;
+        return (TT)object;
       } catch (ClassCastException e) {
       }
-      if ( result != null ) return result;
-      return (TT)object;
+      return null;
     }
     return evaluateDeep( object, cls, propagate, allowWrapping );
   }
@@ -897,7 +898,9 @@ public class Expression< ResultType > extends HasIdImpl
            expr.form != Form.Function) {
         return (TT)expr.expression;
       }
+      // This just evaluates one level down, but would evaluate a call.
       value = expr.evaluate( propagate );
+      // This evaluates to find the result of the right type.
       value = evaluate( value, cls, propagate, allowWrapping );
       if ( cls != null && ( value == null || !cls.isInstance( value ) ) &&
            cls.isInstance( expr.expression ) ) {

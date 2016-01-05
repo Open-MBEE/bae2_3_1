@@ -46,7 +46,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public long size() {
+	public int size() {
     if ( lowerBound == null || upperBound == null ) return 0;
 	  if ( lowerBound == upperBound ) return 1;
 		return 2;

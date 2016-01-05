@@ -26,6 +26,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -286,21 +289,57 @@ public class Functions {
 //    }
   }
     
-  public abstract static class Unary< T , R > extends Expression< R > implements Suggester {
-    public SuggestiveFunctionCall functionCall = null;
-
-    public Unary( Expression< T > o, String functionMethod ) {
-      super( new SuggestiveFunctionCall( (Object)null,
-                                         getFunctionMethod( functionMethod ),
-                                         new Object[]{ o } ) );
-      functionCall = (SuggestiveFunctionCall)this.expression;
-//      Vector< Object > v = new Vector< Object >();
-//      v.add( o );
-//      functionCall.arguments = v;
+  public static class Unary< T, R > extends SuggestiveFunctionCall implements Suggester {
+    public Unary( Variable< T > o,
+                   String functionMethod ) {
+      super( (Object)null, getFunctionMethod( functionMethod ),
+             new Object[]{ o } );
+      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
-    public Unary( Object o, String functionMethod ) {
-      this( forceExpression( o ), functionMethod );
+  
+    public Unary( Expression< T > o1, String functionMethod ) {
+      super( //new SuggestiveFunctionCall( 
+             (Object)null, getFunctionMethod( functionMethod ),
+             new Object[]{ o1 } 
+             //)
+             );
+      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
+  
+    public Unary( Expression< T > o1,
+                   String functionMethod,
+                   String pickFunctionMethod1
+                   //String pickFunctionMethod2
+                   ) {
+      this( o1, functionMethod );
+      //functionCall.
+      pickFunctionCall =
+          new FunctionCall( (Object)null,
+                            getFunctionMethod( pickFunctionMethod1 ),
+                            //functionCall.
+                            getArgumentArray() );
+      Vector< Object > args = new Vector<Object>( //functionCall.
+          getArgumentVector() );
+      Collections.reverse( args );
+      //functionCall.
+      reversePickFunctionCall = pickFunctionCall;
+//          new FunctionCall( (Object)null,
+//                            getFunctionMethod( pickFunctionMethod2 ),
+//                            args.toArray() );
+    }
+  
+    public Unary( Object o1, String functionMethod,
+                   String pickFunctionMethod1 ) { //, String pickFunctionMethod2 ) {
+      this( forceExpression( o1 ),
+            functionMethod,
+            pickFunctionMethod1 );//, pickFunctionMethod2 );
+      // this( ( o1 instanceof Expression ) ? )
+    }
+  
+    public Unary( Object o1, String functionMethod ) {
+      this( forceExpression( o1 ), functionMethod );
+    }
+  
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
       try {
@@ -315,13 +354,58 @@ public class Functions {
       }
       return m;
     }
-//    @Override
-//    public < T > T pickValue( Variable< T > variable ) {
-//      // TODO Auto-generated method stub
-//      Debug.error(true, "Need to redefine Unary.pickValue(v)!" );
-//      return null;
-//    }
+    
+    @Override
+    public < T1 > T1 pickValue( Variable< T1 > variable ) {
+      return pickValueBF2( this,//functionCall, 
+                           variable );
+    }
+  
+    public Vector< Expression > getArgumentExpressions() {
+      Vector< Expression > argExprs =
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArgumentArray(),
+                                                                            Expression.class ) );
+      return argExprs;
+    }
+
   }
+  
+//  public abstract static class Unary< T , R > extends Sugges //< R > implements Suggester {
+//    public SuggestiveFunctionCall functionCall = null;
+//
+//    public Unary( Expression< T > o, String functionMethod ) {
+//      super( new SuggestiveFunctionCall( (Object)null,
+//                                         getFunctionMethod( functionMethod ),
+//                                         new Object[]{ o } ) );
+//      functionCall = (SuggestiveFunctionCall)this.expression;
+////      Vector< Object > v = new Vector< Object >();
+////      v.add( o );
+////      functionCall.arguments = v;
+//    }
+//    public Unary( Object o, String functionMethod ) {
+//      this( forceExpression( o ), functionMethod );
+//    }
+//    private static Method getFunctionMethod( String functionMethod ) {
+//      Method m = null;
+//      try {
+//        m = Functions.class.getMethod( functionMethod, 
+//                                       Expression.class );
+//      } catch ( SecurityException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( NoSuchMethodException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      }
+//      return m;
+//    }
+////    @Override
+////    public < T > T pickValue( Variable< T > variable ) {
+////      // TODO Auto-generated method stub
+////      Debug.error(true, "Need to redefine Unary.pickValue(v)!" );
+////      return null;
+////    }
+//  }
 
   public static class Conditional< T > extends SuggestiveFunctionCall implements Suggester {
     public Conditional( Expression<Boolean> condition, Expression< T > thenExpr, Expression< T > elseExpr ) {
@@ -1134,13 +1218,14 @@ public class Functions {
   public static class Negative<T> extends Unary< T, T > {
     public Negative( Expression< T > o ) {
       super( o, "negative" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     
     // TODO -- handle cast errors
     @Override
     public < T > T pickValue( Variable< T > variable ) {
-      Object arg = ((FunctionCall)this.expression).getArgument( 0 );
+      Object arg = this.getArgument( 0 );//((FunctionCall)this.expression).getArgument( 0 );
       if ( arg == variable ) {
         return (T)negative( variable );
       }
@@ -1194,7 +1279,43 @@ public class Functions {
     public EQ( Object o1, Object o2 ) {
       super( o1, o2, "equals", "pickEqualToFoward", "pickEqualToReverse");
     }
-/*
+    
+    @Override
+    public FunctionCall inverse( Object returnValue, Object arg ) {
+      FunctionCall f =
+          new FunctionCall( this, getClass(), "invert",
+                            new Object[] { returnValue, arg } );
+      return f;
+    }
+
+    public LinkedHashSet<?> invert( Object returnValue, Object arg ) {
+      LinkedHashSet< Object > otherArgs = getOtherArgs( arg );
+      LinkedHashSet< Object > values = new LinkedHashSet< Object >();
+      Class<?> type = arg.getClass();
+      if ( arg instanceof Wraps ) {
+        type = ((Wraps)arg).getType();
+      }
+      for ( Object o : otherArgs ) {
+        try {
+          Object r = Expression.evaluate( o, type, true );
+          values.add(r);
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+      return values;
+    }
+    /*
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
       T1 newValue = null;
@@ -1915,6 +2036,80 @@ public class Functions {
     
   }
   
+  // Picking for logical operators
+
+  public static < T > T pickTrue( Object o,
+                                  Variable< T > variableForPick  ) {
+    Expression<?> e = null;
+    if ( o instanceof Expression ) {
+      e = (Expression< ? >)o;
+    } else {
+      e = new Expression(o);
+    }
+    if ( e.getType() != null && Boolean.class.isAssignableFrom( e.getType() ) ) {
+      return pickTrue( (Expression< Boolean >)o, variableForPick );
+    }
+    return null;
+  }
+  
+  public static < T > T pickTrue( Expression< Boolean > expr,
+                                  Variable< T > variableForPick  ) {
+    if ( expr == null || expr.expression == null ) return null;
+    switch ( expr.getForm() ) {
+      case Constructor:
+      case Function:
+        Call c = (Call)expr.expression;
+        // If the expression embeds a SuggestiveFunctionCall, call it.
+        if ( c instanceof SuggestiveFunctionCall ) {
+          ((SuggestiveFunctionCall)c).pickValue( variableForPick );
+        } else {
+          // Evaluate the function and see if we can pickFrom the result.
+          try {
+            Object o = c.evaluate( false );
+            return pickTrue( o, variableForPick );
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          }
+          return null;
+        }
+      case Parameter:
+        // This assumes that the Parameter and the Variable are the same.
+        Parameter< Boolean > p = (Parameter< Boolean >)expr.expression;
+        if ( variableForPick != null && variableForPick.equals( p )) {
+          return (T)(Boolean)true;
+        }
+        return pickTrue( p.getValueNoPropagate(), variableForPick );
+      case Value:
+        return pickTrue( expr.expression, variableForPick );
+      case None:
+        return pickTrue( expr.expression, variableForPick );
+      default:
+        // TODO -- ERROR -- Bad Form
+    };
+    return null;
+  }
+  
+  public static boolean pickTrue( Expression< Boolean > o1,
+                                  Expression< Boolean > o2 ) {
+    return true;
+  }
+  public static < T > T pickTrue( Expression< Boolean > o1,
+                                  Expression< Boolean > o2,
+                                  Variable< T > variableForPick ) {
+    T t1 = pickTrue( o1, variableForPick );
+    T t2 = pickTrue( o1, variableForPick );
+    if ( t1 == null ) return t2;
+    if ( t2 == null ) return t1;
+    return Random.global.nextBoolean() ? t1 : t2;
+  }
+  
   // Picking Sum (Add/Plus are subtypes of Sum) /////////////////////////////////////////
   // Picking Sub (Minus is subtype of Sub) ////////////////////////////////////////////
   // Picking Times ///////////////////////////////////////////////////////////////////
@@ -2095,13 +2290,13 @@ public class Functions {
   
   public static class And extends BooleanBinary< Boolean > {
     public And( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-      super( o1, o2, "and" );
+      super( o1, o2, "and", "pickTrue", "pickTrue" );
     }
     public And( Expression< Boolean > o1, FunctionCall o2 ) {
-      super( o1, o2, "and" );
+      super( o1, o2, "and", "pickTrue", "pickTrue" );
     }
     public And(  FunctionCall o2, Expression< Boolean > o1 ) {
-      super( o1, o2, "and" );
+      super( o1, o2, "and", "pickTrue", "pickTrue" );
     }
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
@@ -2122,6 +2317,27 @@ public class Functions {
       }
       return false;
     }
+    
+    /**
+     * The inverse for And must evaluate the argument to the specified
+     * returnValue, so we want the argument to be the same as the returnValue.
+     * Thus, Equals is the inverse.
+     * 
+     * @see gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall#inverseSingleValue(java.lang.Object,
+     *      java.lang.Object)
+     */
+    @Override
+    public //< T1  extends Comparable< ? super T1 > > 
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      //Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null // || otherArg == null 
+          ) return null; // arg can be null!
+      return new Equals< Boolean >( forceExpression( returnValue ),
+                                    forceExpression( arg ) );
+    }
+
   }
   // REVIEW -- Should a propagate flag be added?  Currently false.
   public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -2137,10 +2353,10 @@ public class Functions {
 
   public static class Or extends BooleanBinary< Boolean > {
     public Or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-      super( o1, o2, "or" );
+      super( o1, o2, "or", "pickTrue", "pickTrue" );
     }
     public Or( Expression< Boolean > o1, FunctionCall o2 ) {
-      super( o1, o2, "or" );
+      super( o1, o2, "or", "pickTrue", "pickTrue" );
     }
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
@@ -2161,7 +2377,30 @@ public class Functions {
       }
       return false;
     }
+    
+    /**
+     * The inverse for Or must evaluate the argument to the specified
+     * returnValue, so we want the argument to be the same as the returnValue.
+     * Thus, Equals is the inverse.
+     * 
+     * @see gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall#inverseSingleValue(java.lang.Object,
+     *      java.lang.Object)
+     */
+    @Override
+    public //< T1  extends Comparable< ? super T1 > > 
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      //Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null // || otherArg == null 
+          ) return null; // arg can be null!
+      return new Equals< Boolean >( forceExpression( returnValue ),
+                                    forceExpression( arg ) );
+    }
+
   }
+  
+  
   public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null && o2 == null ) return null;
     Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
@@ -2199,7 +2438,8 @@ public class Functions {
 
     @Override
     public < T > T pickValue( Variable< T > variable ) {
-      Object arg = ((FunctionCall)this.expression).getArgument( 0 );
+      Object arg = //((FunctionCall)this.expression).
+          getArgument( 0 );
       if ( arg == variable ) {
         return (T)(Boolean)false;
       }
@@ -2467,13 +2707,13 @@ public class Functions {
       t1 = (T1)chosenPickCall.evaluate( false );
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch ( InvocationTargetException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch ( InstantiationException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     }
     
     // If the argument is the variable, then picking a value for the function is
@@ -2507,12 +2747,62 @@ public class Functions {
       if ( inverseCall instanceof SuggestiveFunctionCall ) {
         T1 t11 = ((SuggestiveFunctionCall)inverseCall).pickValue( variable );
         return t11;
+      } else if ( inverseCall != null ) {
+        Object result = null;
+        try {
+          result = inverseCall.evaluate( true );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        if ( result instanceof Collection ) {
+          Collection<T1> coll = (Collection<T1>)result;
+          T1 t11 = get( coll, Random.global.nextInt( coll.size() ) );
+          return t11;
+        } else {
+          Class<T1> cls = (Class< T1 >)variable.getClass();
+          try {
+            T1 t11 = Expression.evaluate( result, cls, true );
+            return t11;
+          } catch ( ClassCastException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
       }
     }
 
     return null;
   }
 
+  public static < T > T get( Collection<T> coll, int index ) {
+    if ( coll instanceof List ) {
+      return ((List<T>)coll).get( index );
+    } else {
+      T t = null;
+      Iterator<T> iter = coll.iterator();
+      for ( int i = 0; i != index+1 && iter.hasNext(); ++i ) {
+        t = iter.next();
+      }
+      return t;
+    }
+  }
+  
   // delete this function
   private static <T, T1> T1 pickValueBB( BooleanBinary< T > booleanBinary,
                                          Variable< T1 > variable ) {

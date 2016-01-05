@@ -278,7 +278,16 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       return domain.getType();
     }
     if ( value != null ) {
-      return value.getClass();
+      Class< ? extends Object > cls = value.getClass();
+//      if ( cls != null ) {
+//        if ( cls.equals( Integer.class ) ) {
+//          return Long.class;
+//        }
+//        if ( cls.equals( Float.class ) ) {
+//          return Double.class;
+//        }
+//      }
+      return cls;
     }
     return null;
   }
