@@ -207,30 +207,35 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         
         if ( method != null ) {
           call = new FunctionCall( object, method, aeArguments );
+          if ( call != null ) call.alternativeArguments.add( rawArguments );
         }
         
-        // Check to see if there is a preference over constructors.
-        // TODO -- move this out of this already long function. It can probably
-        // be reused elsewhere in this function anyway.
-        boolean tryRawArgs =
-            (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
-                || prefersRawArgs( call, argTypes, rawArgTypes ) );
+//          // Check to see if there is a preference over function calls.
+//          // TODO -- move this out of this already long function. It can probably
+//          // be reused elsewhere in this function anyway.
+//          boolean tryRawArgs =
+//              (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
+//              || prefersRawArgs( call, argTypes, rawArgTypes ) );//, null ) );
         
-//        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
-        if ( tryRawArgs ) {
-          Method method2 = ClassUtils.getMethodForArgTypes( model.getClass(),
-                                                    operationName.toString(),
-                                                    rawArgTypes.toArray(new Class[rawArgTypes.size()]), false);
-          if ( method2 != null ) {
-            Call call2 = new FunctionCall( object, method2, rawArguments );
-            if ( call2 != null ) {
-              usedRawArgs = true;
-              if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
-              method = method2;
-              call = call2;
-            }
-          }
-          
+        if ( (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && method == null && argsUsed != argsUsed.ae ) {
+//          if ( tryRawArgs ) {
+//          Method method2 = ClassUtils.getMethodForArgTypes( model.getClass(),
+            method = ClassUtils.getMethodForArgTypes( model.getClass(),
+                                                      operationName.toString(),
+                                                      rawArgTypes.toArray(new Class[rawArgTypes.size()]), false);
+//          if ( method2 != null ) {
+//            Call call2 = new FunctionCall( object, method2, rawArguments );
+//            if ( call2 != null ) {
+//              
+//              
+//              usedRawArgs = true;
+//              if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+//              method = method2;
+//              call = call2;
+//              call.alternativeArguments.clear();
+//              call.alternativeArguments.add( aeArguments );
+//            }
+//          }
         }
      }
      if ( method != null ) {
@@ -260,6 +265,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
            call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
                                                                      aeArguments,
                                                                      argTypes.toArray(new Class[]{}));
+           if ( call != null ) call.alternativeArguments.add( rawArguments );
         }
 
         
@@ -279,6 +285,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
             usedRawArgs = true;
             if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
             call = call2;
+            call.alternativeArguments.clear();
+            call.alternativeArguments.add( aeArguments );
           }
         }
         if ( call != null ) {
@@ -316,6 +324,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if ( call != null ) {
           // TODO -- See if raw arguments are a better fit than these.
           call.setArguments( aeArguments );
+          call.alternativeArguments.add( rawArguments );
           
           boolean tryRawArgs =
               (!nullEmptyOrSameArgs || argsUsed == ArgsUsed.raw ) && argsUsed != argsUsed.ae && ( call == null// || argsUsed == ArgsUsed.raw
@@ -323,6 +332,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
           
           if ( tryRawArgs ) {
             call.setArguments( rawArguments );
+            call.alternativeArguments.clear();
+            call.alternativeArguments.add( aeArguments );
             usedRawArgs = true;
             if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
           }
@@ -383,8 +394,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       }
       
       // Make the FunctionCall if it was not a ConstructorCall:
-      if ( method != null ) {
+      if ( method != null ) {//&& call == null ) {
         call = new FunctionCall( object, method, usedRawArgs ? rawArguments : aeArguments );
+        call.alternativeArguments.add(usedRawArgs ? aeArguments : rawArguments);
       }
       
       // Put any new results in cache.
@@ -415,11 +427,63 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       return call;
     }
-        
+  
+    
+    // This code probably isn't ready. Tried to improve the old one below this
+    // one, but decided to abandon before testing.
+    private boolean prefersRawArgs( Call call, ArrayList< Class< ? >> argTypes,
+                                   ArrayList< Class< ? >> rawArgTypes,
+                                   HasPreference< List< Class > > obj ) {
+      if ( call == null ) return false;
+      //if (!( call instanceof ConstructorCall )) return false;
+
+      boolean prefersRawArgs = false;
+      //Constructor< ? > ctor = ((ConstructorCall)call).getConstructor();
+      Member ctor = call.getMember();
+      Class<?> cls = ctor.getDeclaringClass();
+      boolean hasPreference = HasPreference.Helper.classHasPreference( cls );
+      //if ( !hasPreference ) return false;
+      // The constructor's class has preferences over arguments to the
+      // constructor. Determine which arguments are best.
+      try {
+        // Need an instance to access preferences.
+        //HasPreference< List< Class > > obj = null;
+        Object o = call.evaluate( true );
+        if ( !call.didEvaluationSucceed() ||
+             ( o != null && !call.getReturnType().isInstance( o ) && 
+               !( o instanceof Wraps &&
+                  call.getReturnType().isAssignableFrom( ((Wraps)o).getType() ) ) ) ) {  
+          prefersRawArgs = true;
+        }
+        if ( obj == null && hasPreference && call instanceof ConstructorCall && o instanceof HasPreference ) {
+          obj = (HasPreference< List< Class > >)o;
+        }
+//            HasPreference< List< Class > > obj =
+//                (HasPreference< List< Class > >)ctor.newInstance( aeArguments.toArray() );
+        try {
+          if ( obj == null || ( hasPreference && obj.prefer( (List)rawArgTypes, (List)argTypes ) ) ) {
+            prefersRawArgs = true;
+            if ( debug ) System.out.println( ":-)) ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+          }
+        } catch (ClassCastException e) {
+          // Assuming class cast exception on prefer since we don't
+          // know for sure what args it takes.
+        }
+        if ( debug ) System.out.println( "?:-| ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+      } catch (Throwable t) {
+        if ( debug ) System.out.println( ":-( ******!!!!!!!!!%%%%%%%############&&&&&&&&&@@@@@@@@@" );
+        ////t.printStackTrace();
+        // Assumed exception when invoking call.evaluate( true )
+        prefersRawArgs = true;
+      }
+    return prefersRawArgs;
+  }
+
+    
     public boolean prefersRawArgs( Call call, ArrayList< Class< ? >> argTypes,
                                   ArrayList< Class< ? >> rawArgTypes ) {
       if ( call == null ) return false;
-      //if (!( call instanceof ConstructorCall )) return false;
+      if (!( call instanceof ConstructorCall )) return false;
 
       boolean prefersRawArgs = false;
       //Constructor< ? > ctor = ((ConstructorCall)call).getConstructor();
@@ -577,8 +641,11 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       // We assume that it is an ElementValue, so get the id of the referenced
       // element:
+      //Collection< T > foo = model.getType(model.asContext( operandProp ), null);
+      //Collection< P > valueOfElemNodes = 
+      //    model.getProperty(model.asContext( operandProp ), "type");
       Collection< P > valueOfElemNodes = 
-              model.getProperty((C)operandProp, "element");
+              model.getProperty(model.asContext( operandProp ), "element");
       
       // If it is a elementValue, then this will be non-empty:
       if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
