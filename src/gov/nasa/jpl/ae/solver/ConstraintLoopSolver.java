@@ -28,7 +28,7 @@ public class ConstraintLoopSolver implements Solver {
 
   @Override
   public boolean solve( Collection< Constraint > newConstraints ) {
-    this.constraints = newConstraints;
+    setConstraints( newConstraints );
     if ( Debug.isOn() ) Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
     boolean deep = true;
     //double startTime = System.currentTimeMillis();
@@ -170,6 +170,11 @@ public class ConstraintLoopSolver implements Solver {
   @Override
   public Collection< Constraint > getConstraints() {
     return constraints;
+  }
+
+  @Override
+  public void setConstraints( Collection< Constraint > constraints ) {
+    this.constraints = constraints;
   }
 
   @Override

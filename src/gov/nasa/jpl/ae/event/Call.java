@@ -42,7 +42,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
   protected Vector< Object > arguments = null; // arguments to constructor
-  //protected Vector< Object > evaluatedArguments = null; // arguments to constructor
+  public Vector< Vector< Object > > alternativeArguments = new Vector< Vector< Object > >(); // arguments to member if the default arguments don't work.
+  protected Object[] evaluatedArguments = null; // arguments to constructor
   protected boolean evaluationSucceeded = false;
   private boolean stale = true;
   
@@ -305,6 +306,61 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   // TODO -- consider an abstract Call class
   public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+    Object result = null;
+    //result = evaluate( propagate, doEvalArgs, true );
+    System.out.println("\n####  ####  evaluating Call: " + this);
+    try {
+      result = evaluateWithSetArguments( propagate, doEvalArgs);
+    }
+    finally {
+      System.out.println( "####  ####  Call "
+                          + ( didEvaluationSucceed() ? "succeeded" : "failed" )
+                          + ": " + this + "\n" + "####  ####  #### result ---> " 
+                          + result + "\n" );
+    }
+    return result;
+  }
+  
+  // TODO -- This method tries each set of arguments and returns the result for
+  // the first set that works. However, it's possible to mix arguments from the
+  // alternatives--should we evaluate the combinations of different args from
+  // different sets.  Unfortunately that grows k^n for k alternatives and n 
+  // arguments.
+  public synchronized Object evaluate( boolean propagate, boolean doEvalArgs,
+                                       boolean useAlternatives ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+    Object result = null;
+    Throwable t = null;
+    try {
+      result = evaluateWithSetArguments( propagate, doEvalArgs );
+    } catch ( Throwable t1 ) {
+      t = t1;
+    }
+    
+    if ( !didEvaluationSucceed() && useAlternatives ) {
+      Vector< Object > originalArguments = arguments;
+      for ( Vector< Object > altArgs : alternativeArguments ) {
+        try {
+          setArguments( altArgs );
+          result = evaluateWithSetArguments( propagate, doEvalArgs );
+          if ( didEvaluationSucceed() ) {
+            break;
+          }
+        } catch ( Throwable t2 ) {
+          if ( t == null ) t = t2;
+        }
+      }
+      setArguments( originalArguments );
+    }
+    
+    if ( !didEvaluationSucceed() ) {
+      if ( t instanceof IllegalAccessException ) throw (IllegalAccessException)t;
+      if ( t instanceof InvocationTargetException ) throw (InvocationTargetException)t;
+      if ( t instanceof InstantiationException ) throw (InstantiationException)t;
+    }
+    return result;
+  }
+  
+  public synchronized Object evaluateWithSetArguments( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( getMember() == null ) {
