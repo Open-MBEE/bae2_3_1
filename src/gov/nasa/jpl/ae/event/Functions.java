@@ -1274,10 +1274,10 @@ public class Functions {
                         extends BooleanBinary< T > {
     
     public EQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "equals", "pickEqualToFoward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
     }
     public EQ( Object o1, Object o2 ) {
-      super( o1, o2, "equals", "pickEqualToFoward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
     }
     
     @Override
@@ -1371,10 +1371,10 @@ public class Functions {
   public static class NEQ< T > 
                         extends BooleanBinary< T > {
     public NEQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToFoward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
     }
     public NEQ( Object o1, Object o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToFoward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
     }
 
 //    @Override
@@ -1959,7 +1959,7 @@ public class Functions {
 
   // Picking Equals ///////////////////////////////////////////////////////////////////
   
-  public static < T > T pickEqualToFoward( Expression< T > o1,
+  public static < T > T pickEqualToForward( Expression< T > o1,
                                           Expression< T > o2 ) {
     
     return pickEquals(o1, o2, true);
@@ -1999,8 +1999,8 @@ public class Functions {
   
   // Picking Not Equals ///////////////////////////////////////////////////////////////////
 
-  public static < T > T pickNotEqualToFoward( Expression< T > o1,
-                                           Expression< T > o2 ) {
+  public static < T > T pickNotEqualToForward( Expression< T > o1,
+                                               Expression< T > o2 ) {
      
     Domain<T> domain = o1.getDomain( false, null );
     return pickNotEquals(o2, domain);
