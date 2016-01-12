@@ -72,13 +72,13 @@ public class ConstraintExpression extends Expression< Boolean >
       sat = evaluate(false);
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch ( InvocationTargetException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch ( InstantiationException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     }
     if ( sat == null ) sat = new Boolean( false );
     if ( false && deep & sat ) {
