@@ -1,6 +1,5 @@
 package gov.nasa.jpl.ae.sysml;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -12,8 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.logging.Logger;
-
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
@@ -46,6 +43,22 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
     public Map< P, Parameter< Object >> getExprParamMap() {
       return exprParamMap;
+    }
+
+    /**
+     * Maps the parsed Expression Parameters to the Parameter objects
+     * we create for them.
+     */
+    private Map<Parameter<Object>, P> paramExprMap = new HashMap<Parameter<Object>,P>();
+
+    public Map< Parameter< Object >, P > getParamExprMap() {
+      return paramExprMap;
+    }
+ 
+    protected Parameter<?> putExprParamMap( P propNode, Parameter< Object > param ) {
+      Parameter< Object > oldVal = exprParamMap.put( propNode, param );
+      paramExprMap.put( param, propNode );
+      return oldVal;
     }
 
     public SystemModelToAeExpression(SM model) {
@@ -206,7 +219,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         }
         
         if ( method != null ) {
-          call = new FunctionCall( object, method, aeArguments );
+          call = new TranslatedFunctionCall<P>( object, method, aeArguments, this );
           if ( call != null ) call.alternativeArguments.add( rawArguments );
         }
         
@@ -395,10 +408,16 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       // Make the FunctionCall if it was not a ConstructorCall:
       if ( method != null ) {//&& call == null ) {
-        call = new FunctionCall( object, method, usedRawArgs ? rawArguments : aeArguments );
+        call = new TranslatedFunctionCall( object, method, usedRawArgs ? rawArguments : aeArguments, this );
         call.alternativeArguments.add(usedRawArgs ? aeArguments : rawArguments);
       }
       
+      if ( call instanceof ConstructorCall && !( call instanceof TranslatedConstructorCall ) ) {
+        call = new TranslatedConstructorCall< P >( (ConstructorCall)call, this );
+      } else if ( call instanceof FunctionCall && !( call instanceof TranslatedFunctionCall ) ) {
+        call = new TranslatedFunctionCall< P >( (FunctionCall)call, this );
+      }
+
       // Put any new results in cache.
       if ( doCallCaching && cachedCase == null ) {
         callCachePut( object, operationName.toString(), argTypes,
@@ -421,7 +440,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       
       //debug = false;
-      
+      System.out.println("     LLLLLLLLLLLLLLLLLLLLLLLL             LLLLLLLLLLLLLLLLLLL       LLLLLLLLLL");
       
       
       
@@ -432,8 +451,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
     // This code probably isn't ready. Tried to improve the old one below this
     // one, but decided to abandon before testing.
     private boolean prefersRawArgs( Call call, ArrayList< Class< ? >> argTypes,
-                                   ArrayList< Class< ? >> rawArgTypes,
-                                   HasPreference< List< Class > > obj ) {
+                                    ArrayList< Class< ? >> rawArgTypes,
+                                    HasPreference< List< Class > > obj ) {
       if ( call == null ) return false;
       //if (!( call instanceof ConstructorCall )) return false;
 
@@ -517,7 +536,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
     return prefersRawArgs;
   }
 
-    private Expression<?> elementValueToAeExpression(Object argValueNode,
+    public Expression<?> elementValueToAeExpression( Object argValueNode,
                                                      String argValName ) {
       String argType = null;
       Parameter<Object> param = null;
@@ -613,8 +632,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         }
         
         // Add to map:
-        if (!exprParamMap.containsKey( (P)argValueNode)) {
-            exprParamMap.put( (P)argValueNode, param );
+        P propNode =  model.asProperty( argValueNode );
+        if (!exprParamMap.containsKey( propNode ) ) {
+          putExprParamMap( propNode, param );
         }
         
         //System.out.println( "\nelementValueToAeExpression(" + argValueNode + ", " + argValName + ") = param = " +  param );
@@ -671,7 +691,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * 
      */
     private N processOperation(P valueOfElementNode,
-                               Vector<Object> arguments,
+                               Vector<Expression<?>> arguments,
                                boolean isOperandArg) {
         
         // running example !:
@@ -1079,7 +1099,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * @param arg
      * @return
      */
-    private Object elementArgumentToAeExpression( P arg ) { // Why is this P and not T??
+    public Expression<?> elementArgumentToAeExpression( P arg ) { // Why is this P and not T??
       
       String typeString = null;
       
@@ -1107,7 +1127,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // functional programming use, like with map.
       else if (typeString.equals("Operation")) {
 
-        Vector<Object> v = new Vector<Object>();
+        Vector<Expression<?> > v = new Vector< Expression<?> >();
         processOperation( arg, v, true);
         
         if ( !Utils.isNullOrEmpty( v ) ) {
@@ -1206,6 +1226,16 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                           parameterValues );
 
    }
+    
+    public P getElementForAeParameter( Expression< ? > paramExpression ) {
+      // TODO Auto-generated method stub
+      if ( paramExpression == null && paramExpression.expression == null || !(paramExpression.expression instanceof Parameter) ) {
+        // TODO -- ERROR
+        return null;
+      }
+      Parameter<?> parameter = (Parameter< ? >)paramExpression.expression;
+      return model.asProperty( paramExprMap.get( parameter ) );
+    }
     
     // accessors
     
