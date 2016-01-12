@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -308,15 +309,26 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     Object result = null;
     //result = evaluate( propagate, doEvalArgs, true );
-    System.out.println("\n####  ####  evaluating Call: " + this);
-    try {
-      result = evaluateWithSetArguments( propagate, doEvalArgs);
+    if ( Debug.isOn() ) {
+      System.out.println("\n####  ####  evaluating Call: " + this);
     }
-    finally {
-      System.out.println( "####  ####  Call "
-                          + ( didEvaluationSucceed() ? "succeeded" : "failed" )
-                          + ": " + this + "\n" + "####  ####  #### result ---> " 
-                          + result + "\n" );
+    try {
+      if ( Debug.isOn() ) {
+        result = evaluateWithSetArguments( propagate, doEvalArgs);
+      }
+    } catch (  IllegalAccessException e ) {
+        throw e;
+    } catch (  InvocationTargetException e ) {
+        throw e;
+    } catch (  InstantiationException e ) {
+        throw e;
+    } finally {
+      if ( Debug.isOn() ) {
+        System.out.println( "####  ####  Call "
+                            + ( didEvaluationSucceed() ? "succeeded" : "failed" )
+                            + ": " + this + "\n" + "####  ####  #### result ---> " 
+                            + result + "\n" );
+      }
     }
     return result;
   }
@@ -384,14 +396,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Object evaluatedArgs[] = null;
     Object[] unevaluatedArgs = arguments.toArray();
     if ( ( doEvalArgs ) || hasTypeErrors( unevaluatedArgs ) ) {
-      //System.out.println("@@@@@@@@@@@   DUDE   @@@@@@@@@@@@@");
-      evaluatedArgs = evaluateArgs( propagate );
+      if ( evaluatedArguments == null || evaluatedArguments.length == 0 ) {
+        evaluatedArguments = evaluateArgs( propagate );
+      }
     }
     else {
-      //System.out.println("@@@@@@@@@@@   SWEET   @@@@@@@@@@@@@");
-      evaluatedArgs = unevaluatedArgs;
+      evaluatedArguments = unevaluatedArgs;
     }
     
+    evaluatedArgs = Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
     // evaluate the object, whose method will be invoked from a nested call
     if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
       // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
@@ -411,49 +424,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
       evaluatedObj = Expression.evaluate( object, cls, propagate, true );
       
-//      if ( object != null ) {
-//        boolean io = object instanceof Parameter;
-//        boolean ii1 = getMember().getDeclaringClass().isAssignableFrom( object.getClass() );
-//        if ( Debug.isOn() ) Debug.outln( object + " instanceof Parameter = " + io );
-//        if ( Debug.isOn() ) Debug.outln( "getDeclaringClass()=" + getMember().getDeclaringClass()
-//                     + ".isAssignableFrom( " + object.getClass().getName()
-//                     + " ) = " + ii1 );
-//        if ( io ) {
-//          Object v = null;
-//          if ( propagate ) {
-//            v = ( (Parameter< ? >)object ).getValue();
-//          } else {
-//            v = ( (Parameter< ? >)object ).getValueNoPropagate();
-//          }
-//          boolean ii2 = true;
-//          if ( v != null ) {
-//            ii2 = getMember().getDeclaringClass().isAssignableFrom( v.getClass() );
-//            if ( Debug.isOn() ) Debug.outln( "getDeclaringClass()=" + getMember().getDeclaringClass()
-//                         + ".isAssignableFrom( " + v.getClass() + " ) = " + ii2 );
-//          }
-//          if ( !ii1 && ii2 ) {
-//            object = v;
-//          }
-//        }
-//      }
-
-      // moved this inside invoke
-//      if ( this instanceof ConstructorCall) {
-//        ConstructorCall cc = (ConstructorCall) this;
-//        if ( cc.thisClass.getEnclosingClass() != null && !Modifier.isStatic( cc.thisClass.getModifiers() )) {
-//          Object[] arr = new Object[evaluatedArgs.length + 1];
-//          arr[0] = evaluatedObj;
-//          for ( int i = 1; i<=evaluatedArgs.length; ++i) {
-//            arr[i] = evaluatedArgs[i-1];
-//          }
-//          evaluatedArgs = arr;
-//        }
-//      }
-      
       evaluatedArgs = fixArgsForVarArgs( evaluatedArgs );
       
       result = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
-      //newObject = constructor.newInstance( evaluatedArgs );// arguments.toArray() );
 
       // No longer stale after invoked with updated arguments and result is cached.
       stale = false;
@@ -474,11 +447,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       evaluationSucceeded = false;
       //e.printStackTrace();
       throw e;
+    } finally {
+      evaluatedArguments = null;
     }
-//    if ( result != null && nestedCall != null && nestedCall.getValue() != null ) {
-//      nestedCall.getValue().object = result;
-//      result = nestedCall.getValue().evaluate( propagate );
-//    }
+
     if ( Debug.isOn() ) 
       Debug.outln( "evaluate() returning " + result );
     
@@ -519,14 +491,68 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   // TODO -- is this necessary????
   protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class< ? >[] paramTypes = getParameterTypes();
-    return Call.evaluateArgs( propagate, paramTypes, arguments, isVarArgs() );
+    return Call.evaluateArgs( propagate, paramTypes, arguments, isVarArgs(), true );
   }
 
+  /**
+   * @param propagate
+   * @param c
+   * @param unevaluatedArg
+   * @param isVarArg is true if the type, c, is for a variable length parameter type
+   * @return
+   * @throws ClassCastException
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   * @throws InstantiationException
+   */
+  public static Object evaluateArg( boolean propagate,
+                                    Class< ? > c,
+                                    Object unevaluatedArg,
+                                    boolean isVarArg,
+                                    boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    //Object unevaluatedArg = arg;
+    if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
+//    if ( paramType == null ) {
+//      System.err.println("evaluateArg() " + arg + " don't match parameters " + Utils.toString(paramTypes, false) );
+//      return unevaluatedArg;
+//    }
+    if ( c != null ) {
+        Class< ? > np = ClassUtils.classForPrimitive( c );
+        if ( np != null ) c = np;
+    }
+    if ( c != null && c.equals( Object.class ) ) c = null;
+    if ( c != null && isVarArg ) {
+      if ( !c.isArray() ) {
+        if ( complainIfError ) {
+          Debug.error( true, true, "class " + c.getSimpleName() + " should be a var arg array!" );
+        }
+      } else {
+        c = c.getComponentType(); // TODO -- don't we need to pass info along
+                                  // about whether the result should be an
+                                  // array?
+      }
+    }
+    if ( ( c == null || c.equals( Object.class ) ) // || Expression.class.isAssignableFrom( c ) )
+         && unevaluatedArg instanceof Wraps ) {
+      c = ((Wraps)unevaluatedArg).getType();
+    }
+    Object result = Expression.evaluate( unevaluatedArg, c, propagate, true );
+    if ( complainIfError && !( result == null || c == null || c.isInstance( result ) )) {
+      Debug.error( true, "\nArgument " + result +
+                         ( result == null ?
+                           "" : " of type " + result.getClass().getCanonicalName() )
+                         + " is not an instance of " + c.getSimpleName() );
+    }
+    return result;
+  }
+
+  
   // Try to match arguments to parameters by evaluating or creating expressions.
   public static Object[] evaluateArgs( boolean propagate,
                                        Class< ? >[] paramTypes,
                                        Vector< Object > args,
-                                       boolean isVarArgs ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+                                       boolean isVarArgs,
+                                       boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if( args == null ) {
       Debug.error("Error! args is null!");
       return null;
@@ -540,39 +566,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     for ( int i = 0; i < args.size(); ++i ) {
       Object unevaluatedArg = args.get( i );
       if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
+      Class< ? > c = null;
       if ( paramTypes.length == 0 ) {
         System.err.println("evaluateArgs() " + args + " don't match parameters " + Utils.toString(paramTypes, false) );
         break;
+      } else {
+        c = paramTypes[ Math.min(i,paramTypes.length-1) ];
       }
-      Class< ? > c = paramTypes[ Math.min(i,paramTypes.length-1) ];
-      if ( c != null ) {
-          Class< ? > np = ClassUtils.classForPrimitive( c );
-          if ( np != null ) c = np;
-      }
-      if ( c != null && c.equals( Object.class ) ) c = null;
-      if ( c != null && i >= paramTypes.length-1 && isVarArgs ) {
-        if ( !c.isArray() ) {
-          Debug.error( true, true, "class " + c.getSimpleName() + " should be a var arg array!" );
-        } else {
-          c = c.getComponentType(); // TODO -- don't we need to pass info along
-                                    // about whether the result should be an
-                                    // array?
-        }
-      }
-      if ( ( c == null || c.equals( Object.class ) ) // || Expression.class.isAssignableFrom( c ) )
-           && unevaluatedArg instanceof Wraps ) {
-        c = ((Wraps)unevaluatedArg).getType();
-      }
-      argObjects[i] = Expression.evaluate( unevaluatedArg, c, propagate, true );
-      if (!( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
-        Debug.error( true, "\nArgument " +argObjects[ i ] +
+      boolean isVarArg = i >= paramTypes.length-1 && isVarArgs;
+      argObjects[i] = evaluateArg(propagate, c, unevaluatedArg, isVarArg, complainIfError);
+      //Expression.evaluate( unevaluatedArg, c, propagate, true );
+      if ( complainIfError &&
+          !( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
+        Debug.error( false, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
                              "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
                            + " is not an instance of " + c.getSimpleName() + " for " + i + "th argument of call" );
-//      } else if ( argObjects[i] != null && c != null && !c.equals( argObjects[i].getClass() ) ) {
-//          Object x = null;
-//          x = ClassUtils.coerce( argObjects[ i ], c, true );
-//          if ( x != null ) argObjects[ i ] = x;
       }
     }
     if ( wasDebugOn ) Debug.turnOn();
