@@ -371,7 +371,7 @@ public class FunctionCall extends Call {
   protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( method == null ) return null;
     Class< ? >[] paramTypes = method.getParameterTypes();
-    return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs() );
+    return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs(), true );
   }
 
   // Getters and setters 

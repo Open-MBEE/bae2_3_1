@@ -54,12 +54,12 @@ public class SystemModelSolver extends HasIdImpl implements Solver, Satisfiable,
   //protected SystemModel< E, C, T, P, N, I, U, R, V, W, CT > model;
   protected Solver solver;  // REVIEW -- something feels weird about this
 
-  protected double timeoutSeconds = 12*3600.0;
-  protected int maxLoopsWithNoProgress = 100;
-  protected long maxPassesAtConstraints = 10000;
-  protected boolean usingTimeLimit = false;
+  protected double timeoutSeconds = 30.0;
+  protected int maxLoopsWithNoProgress = 10;
+  protected long maxPassesAtConstraints = 1000;
+  protected boolean usingTimeLimit = true;
   protected boolean usingLoopLimit = true;
-  protected boolean amTopEventToSimulate = false;
+  protected boolean amTopEventToSimulate = true;
 
   // Things not taken from ae.ParameterListenerImpl for snapshotting progress.
   // TODO -- This is a generic concept to work back in. A persistent (Serializable?)
