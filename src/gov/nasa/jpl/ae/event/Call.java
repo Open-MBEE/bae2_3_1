@@ -313,9 +313,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       System.out.println("\n####  ####  evaluating Call: " + this);
     }
     try {
-      if ( Debug.isOn() ) {
         result = evaluateWithSetArguments( propagate, doEvalArgs);
-      }
     } catch (  IllegalAccessException e ) {
         throw e;
     } catch (  InvocationTargetException e ) {
