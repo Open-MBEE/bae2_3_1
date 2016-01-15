@@ -435,15 +435,6 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
       if ( debug && call == null ) System.out.println("^^^^^^^^^^^^  final call = " + call + "  ^^^^^^^^^^^^^^^");
 
-      
-      
-      
-      
-      //debug = false;
-      System.out.println("     LLLLLLLLLLLLLLLLLLLLLLLL             LLLLLLLLLLLLLLLLLLL       LLLLLLLLLL");
-      
-      
-      
       return call;
     }
   
