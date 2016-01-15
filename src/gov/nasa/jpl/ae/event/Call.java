@@ -310,7 +310,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Object result = null;
     //result = evaluate( propagate, doEvalArgs, true );
     if ( Debug.isOn() ) {
-      System.out.println("\n####  ####  evaluating Call: " + this);
+      Debug.outln("\n####  ####  evaluating Call: " + this);
     }
     try {
         result = evaluateWithSetArguments( propagate, doEvalArgs);
@@ -322,10 +322,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         throw e;
     } finally {
       if ( Debug.isOn() ) {
-        System.out.println( "####  ####  Call "
-                            + ( didEvaluationSucceed() ? "succeeded" : "failed" )
-                            + ": " + this + "\n" + "####  ####  #### result ---> " 
-                            + result + "\n" );
+        Debug.outln( "####  ####  Call "
+                     + ( didEvaluationSucceed() ? "succeeded" : "failed" )
+                     + ": " + this + "\n" + "####  ####  #### result ---> "
+                     + result + "\n" );
       }
     }
     return result;
