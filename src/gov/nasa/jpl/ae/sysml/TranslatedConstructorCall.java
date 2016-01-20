@@ -63,6 +63,8 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
  */
 public class TranslatedConstructorCall<P> extends ConstructorCall {
 
+  public boolean on = true;
+  
   //protected ClassData _classData = null;
   protected Vector<Object> originalArguments = null;
   public SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
@@ -86,10 +88,10 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
     // Make sure the arguments passed into the function are replaced with their
     // corresponding Parameters where appropriate.
     
-    if ( systemModelToAeExpression != null ) parameterizeArguments();
+    if ( on ) if ( systemModelToAeExpression != null ) parameterizeArguments();
     Object returnValue = super.evaluate( propagate, doEvalArgs );
     // Swap in the Parameter corresponding to the returned object if it exists.
-    if ( systemModelToAeExpression != null ) returnValue = parameterizeResult(returnValue);
+    //if ( on ) if ( systemModelToAeExpression != null ) returnValue = parameterizeResult(returnValue);
     return returnValue;
   }
 
@@ -103,8 +105,10 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    * @return
    */
   protected Object parameterizeResult( Object result ) {
-    Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
-    if ( parameter != null ) return parameter;
+    if ( on ) {
+      Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
+      if ( parameter != null ) return parameter;
+    }
     return result;
   }
 
@@ -122,48 +126,84 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
     this.originalArguments = arguments;
     this.evaluatedArguments = evaluateArgs( false );
     
-    
-    
     //arguments = new Vector< Object >( arguments.size() );
-    
-    
     
     for ( int i = 0; i < originalArguments.size(); ++i ) {
       Object originalArg = originalArguments.get( i );
-      Object evaluatedArg = evaluatedArguments[ i ];
-      boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
+      //Object evaluatedArg = evaluatedArguments[ i ];
+      //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
       Class<?> parameterType = getParameterTypes()[ Math.min(i, getParameterTypes().length-1)];
 
-      Parameter<?> parameter = null;
-      Expression<?> paramExpression = null;
-      
-      if ( originalArg instanceof Parameter ) {
-        parameter = (Parameter<?>)originalArg;
-        paramExpression = new Expression< Object >( parameter );
-      } else if ( originalArg instanceof Expression &&  
-                  ((Expression<?>)originalArg).expression instanceof Parameter ) {
-        parameter = (Parameter< ? >)((Expression<?>)originalArg).expression;
-        paramExpression = (Expression<?>)originalArg;
-      } else {
-        P p = systemModelToAeExpression.model.asProperty( originalArg );
-        paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
-      }
-      // If originalArg is an AE Parameter already, see if we need to get the
-      // source element to match the type of the parameter of this call's method.
-      if ( parameter != null ) {
-        
-        P sourceObject = systemModelToAeExpression.getElementForAeParameter( paramExpression );
-        
-        if ( ClassUtils.isArgumentBetterForType( sourceObject, paramExpression,
-                                                 parameterType ) ) {
-          P newArg = sourceObject;
-          Object newEvaluatedArg = evaluateArg(true, parameterType, newArg, false, false );
-          evaluatedArguments[ i ] = newEvaluatedArg;
-        }
-      }
+      Object newEvaluatedArg = parameterizeArgument( originalArg, parameterType );
+      if ( newEvaluatedArg != null ) evaluatedArguments[ i ] = newEvaluatedArg;      
     }
   }
 
+  protected Object parameterizeArgument(Object originalArg, Class< ? > parameterType  )
+      throws ClassCastException, IllegalAccessException, InvocationTargetException,
+             InstantiationException {
+    if ( originalArg == null ) return null;
+    Parameter<?> parameter = null;
+    Expression<?> paramExpression = null;
+    
+    if ( originalArg instanceof Parameter ) {
+      parameter = (Parameter<?>)originalArg;
+      paramExpression = new Expression< Object >( parameter );
+    } else if ( originalArg instanceof Expression &&  
+                ((Expression<?>)originalArg).expression instanceof Parameter ) {
+      parameter = (Parameter< ? >)((Expression<?>)originalArg).expression;
+      paramExpression = (Expression<?>)originalArg;
+    } else {
+      if ( systemModelToAeExpression == null ) {
+        System.err.println("systemModelToAeExpression = null for " + this);
+        return null;
+      } else if ( systemModelToAeExpression.model == null ) {
+        System.err.println("systemModelToAeExpression.model = null for " + this);
+        return null;
+      }
+      P p = systemModelToAeExpression.model.asProperty( originalArg );
+      paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
+    }
+    // If originalArg is an AE Parameter already, see if we need to get the
+    // source element to match the type of the parameter of this call's method.
+    if ( paramExpression != null ) {
+      if ( systemModelToAeExpression == null ) {
+        System.err.println("systemModelToAeExpression = null for " + this);
+        return null;
+      }
+      P sourceObject = systemModelToAeExpression.getElementForAeParameter( paramExpression );
+      
+      if ( ClassUtils.isArgumentBetterForType( sourceObject, paramExpression,
+                                               parameterType ) ) {
+        P newArg = sourceObject;
+        Object newEvaluatedArg = evaluateParameterizedArg(true, parameterType, newArg, false, false );
+        return newEvaluatedArg;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Object evaluateArg( boolean propagate,
+                             Class< ? > c,
+                             Object unevaluatedArg,
+                             boolean isVarArg,
+                             boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+      return evaluateParameterizedArg( propagate, c, unevaluatedArg, isVarArg, true );
+  }
+  public Object evaluateParameterizedArg( boolean propagate,
+                                          Class< ? > c,
+                                          Object unevaluatedArg,
+                                          boolean isVarArg,
+                                          boolean parameterize ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    Object obj = super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
+    if ( on && parameterize ) {
+      Object parameterizedObj = parameterizeArgument( obj, c );
+      if ( parameterizedObj != null ) return parameterizedObj;
+    }
+    return obj;
+  }
+  
   protected boolean isParameter( Object o ) {
     boolean isParam = o instanceof Parameter ||
         (o instanceof Expression &&

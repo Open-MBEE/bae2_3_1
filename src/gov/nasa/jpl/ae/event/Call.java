@@ -439,7 +439,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       throw e;
     } catch ( InvocationTargetException e ) {
       evaluationSucceeded = false;
-      //e.printStackTrace();
+      e.printStackTrace();
       throw e;
     } catch ( InstantiationException e ) {
       evaluationSucceeded = false;
@@ -489,7 +489,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   // TODO -- is this necessary????
   protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class< ? >[] paramTypes = getParameterTypes();
-    return Call.evaluateArgs( propagate, paramTypes, arguments, isVarArgs(), true );
+    return evaluateArgs( propagate, paramTypes, arguments, isVarArgs(), true );
   }
 
   /**
@@ -503,11 +503,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @throws InvocationTargetException
    * @throws InstantiationException
    */
-  public static Object evaluateArg( boolean propagate,
-                                    Class< ? > c,
-                                    Object unevaluatedArg,
-                                    boolean isVarArg,
-                                    boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public Object evaluateArg( boolean propagate,
+                             Class< ? > c,
+                             Object unevaluatedArg,
+                             boolean isVarArg,
+                             boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     //Object unevaluatedArg = arg;
     if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
 //    if ( paramType == null ) {
@@ -546,11 +546,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   
   // Try to match arguments to parameters by evaluating or creating expressions.
-  public static Object[] evaluateArgs( boolean propagate,
-                                       Class< ? >[] paramTypes,
-                                       Vector< Object > args,
-                                       boolean isVarArgs,
-                                       boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public Object[] evaluateArgs( boolean propagate,
+                                Class< ? >[] paramTypes,
+                                Vector< Object > args,
+                                boolean isVarArgs,
+                                boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if( args == null ) {
       Debug.error("Error! args is null!");
       return null;
@@ -566,7 +566,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       if ( Debug.isOn() ) Debug.outln("Call.evaluateArgs(): unevaluated arg = " + unevaluatedArg );
       Class< ? > c = null;
       if ( paramTypes.length == 0 ) {
-        System.err.println("evaluateArgs() " + args + " don't match parameters " + Utils.toString(paramTypes, false) );
+        System.err.println("evaluateArgs() " + args + " don't match parameters " +
+                           Utils.toString(paramTypes, false) + " in call: " + this );
         break;
       } else {
         c = paramTypes[ Math.min(i,paramTypes.length-1) ];
@@ -579,7 +580,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         Debug.error( false, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
                              "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
-                           + " is not an instance of " + c.getSimpleName() + " for " + i + "th argument of call" );
+                           + " is not an instance of " + c.getSimpleName() +
+                           " for argument " + i + " of call: " + this );
       }
     }
     if ( wasDebugOn ) Debug.turnOn();
