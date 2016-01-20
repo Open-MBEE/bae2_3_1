@@ -194,6 +194,15 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
                                                          parameterValue,
                                                          originalArg ),
                                           parameterType );
+      if ( Debug.isOn() ) {
+        Debug.outln( "\n% % % % %    return bestArgumentForType(evaluatedArg="
+                     + evaluatedArg + ", sourceObject=" + sourceObject
+                     + ", newEvaluatedArg=" + newEvaluatedArg
+                     + ", paramExpression=" + paramExpression + ", parameter="
+                     + parameter + ", parameterValue=" + parameterValue
+                     + ", originalArg=" + originalArg + "), " + parameterType
+                     + ") = " + result + "    % % % % %\n");
+      }
       if ( result != null ) return result;
 /*
       if ( ClassUtils.isArgumentBetterForType( sourceObject, evaluatedArg,
