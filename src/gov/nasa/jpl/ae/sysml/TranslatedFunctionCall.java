@@ -147,12 +147,10 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
     if ( originalArg instanceof Parameter ) {
       parameter = (Parameter<?>)originalArg;
       paramExpression = new Expression< Object >( parameter );
-      parameterValue = parameter.getValueNoPropagate();
     } else if ( originalArg instanceof Expression &&  
                 ((Expression<?>)originalArg).expression instanceof Parameter ) {
       parameter = (Parameter< ? >)((Expression<?>)originalArg).expression;
       paramExpression = (Expression<?>)originalArg;
-      parameterValue = parameter.getValueNoPropagate();
     } else if ( evaluatedArg instanceof Parameter ) {
         parameter = (Parameter<?>)evaluatedArg;
         paramExpression = new Expression< Object >( parameter );
@@ -160,7 +158,6 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
                 ((Expression<?>)evaluatedArg).expression instanceof Parameter ) {
         parameter = (Parameter< ? >)((Expression<?>)evaluatedArg).expression;
         paramExpression = (Expression<?>)evaluatedArg;
-        parameterValue = parameter.getValueNoPropagate();
     } else {
       if ( systemModelToAeExpression == null ) {
         System.err.println("systemModelToAeExpression = null for " + this);
@@ -171,10 +168,16 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
       }
       P p = systemModelToAeExpression.model.asProperty( originalArg );
       paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
+      if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
+        parameter = (Parameter< ? >)paramExpression.expression;
+      }
     }
     // If originalArg is an AE Parameter already, see if we need to get the
     // source element to match the type of the parameter of this call's method.
     if ( paramExpression != null ) {
+      if ( parameter != null && parameterValue == null ) {
+        parameterValue = parameter.getValueNoPropagate();
+      }
       if ( systemModelToAeExpression == null ) {
         System.err.println("systemModelToAeExpression = null for " + this);
         return null;
