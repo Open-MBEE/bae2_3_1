@@ -2626,6 +2626,20 @@ public class Functions {
     return argsWithVariable;
   }
   
+  protected static SuggestiveFunctionCall getSuggestiveFunctionCall( Object o ) {
+    SuggestiveFunctionCall call = null;
+    
+    try {
+      call = Expression.evaluate( o, SuggestiveFunctionCall.class, true );
+    } catch ( ClassCastException e ) {
+    } catch ( IllegalAccessException e ) {
+    } catch ( InvocationTargetException e ) {
+    } catch ( InstantiationException e ) {
+    }
+    
+    return call;
+  }
+  
   /**
    * Pick a value for the variable in the context of a binary function using pickFunctionCall if variable is in the expression of the first argument to the binary function or reversePickFunctionCall if in the expression of the second argument.
    * @param variable
@@ -2728,9 +2742,10 @@ public class Functions {
 
     // If the argument is a FunctionCall, try to invert the call with the target
     // value, t1, to solve for the variable.
-    if ( arg.expression instanceof SuggestiveFunctionCall ) {
+    SuggestiveFunctionCall fCall = getSuggestiveFunctionCall( arg.expression );
+    if ( fCall != null ) { //arg.expression instanceof SuggestiveFunctionCall ) {
       // fCall=Plus(x,y)
-      SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
+      //SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
       ArrayList< Object > argsWithVar = getArgumentsWithVariable( fCall, variable );
       if ( Utils.isNullOrEmpty( argsWithVar ) || argsWithVar.size() > 1 ) {
         // TODO -- solve for variable! or simplify expression!
