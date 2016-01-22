@@ -167,7 +167,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
         return null;
       }
 
-      P p = systemModelToAeExpression.model.asProperty( originalArg );
+      P p = systemModelToAeExpression.model.asProperty( evaluatedArg );
       if ( p != null ) {
         paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
         if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
