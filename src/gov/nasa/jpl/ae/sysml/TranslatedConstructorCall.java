@@ -122,7 +122,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
   protected void parameterizeArguments()
       throws ClassCastException, IllegalAccessException, InvocationTargetException,
              InstantiationException {
-    if ( systemModelToAeExpression != null ) return;
+    if ( systemModelToAeExpression == null ) return;
     this.originalArguments = arguments;
     this.evaluatedArguments = evaluateArgs( false );
     
