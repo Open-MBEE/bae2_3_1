@@ -121,7 +121,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   protected void parameterizeArguments()
       throws ClassCastException, IllegalAccessException, InvocationTargetException,
              InstantiationException {
-    if ( systemModelToAeExpression != null ) return;
+    if ( systemModelToAeExpression == null ) return;
     this.originalArguments = arguments;
     this.evaluatedArguments = evaluateArgs( false );
     
@@ -166,10 +166,13 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
         System.err.println("systemModelToAeExpression.model = null for " + this);
         return null;
       }
+
       P p = systemModelToAeExpression.model.asProperty( originalArg );
-      paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
-      if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
-        parameter = (Parameter< ? >)paramExpression.expression;
+      if ( p != null ) {
+        paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
+        if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
+          parameter = (Parameter< ? >)paramExpression.expression;
+        }
       }
     }
     // If originalArg is an AE Parameter already, see if we need to get the
