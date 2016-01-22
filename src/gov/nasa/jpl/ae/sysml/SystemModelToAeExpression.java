@@ -528,17 +528,21 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
   }
 
     public Expression<?> elementValueToAeExpression( Object argValueNode,
-                                                     String argValName ) {
+                                                     String argValName,
+                                                     String elementType ) {
       String argType = null;
       Parameter<Object> param = null;
       Collection<U> argValPropNodes = null;
       Object argValProp = null;
       String type = model.getTypeString((C)argValueNode, (Object) null);
       if ( type.equals("Property") ) {
+        // TODO -- deal with collections and arrays instead of just getting one
         Object v = model.getValue((C)argValueNode, null);
         int ct = 0;
         while ( v != null && v instanceof Collection && ct < 10) {
-          v = ((Collection<?>)v).iterator().next();
+          Collection<?> c = (Collection<?>)v;
+          if ( c.isEmpty() ) v = null;
+          else v = c.iterator().next();
           ct++;
         }
         try {
@@ -600,7 +604,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       if (!Utils.isNullOrEmpty(argValPropNodes)) {
         
-        // TODO can we assume this is always size 1?  
+        // TODO -- deal with collections and arrays instead of just getting the one
         if ( argValPropNodes.size() == 1 ) {
           argValProp = argValPropNodes.iterator().next();
         } else {
@@ -609,10 +613,12 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         Debug.outln( "\nargValProp = " + argValProp );
       }
       
-      // Wrap the argument in a Parameter:
-      // Note: argType can be null
-      param = (Parameter<Object>)classData.getParameter( null, argValName, argType, false, true, true, false );
-
+      if ( elementType != null && (elementType.equals( "Property" ) || elementType.equals( "Parameter" ) ) ) {
+        // Wrap the argument in a Parameter:
+        // Note: argType can be null
+        param = (Parameter<Object>)classData.getParameter( null, argValName, argType, false, true, true, false );
+      }
+      
       // Set value of the param to value if it has one,
       // and add to the argument list:
       if (param != null) {
@@ -1111,7 +1117,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // If the typeString is null, then create a Parameter for it 
       if (typeString == null) {
         // The argument name needs to be unique, so we'll use the identifier.
-        return elementValueToAeExpression(arg, "" + model.getIdentifier((C)arg));
+        return elementValueToAeExpression(arg, "" + model.getIdentifier((C)arg), null);
       }
       
       // If it is an Operation, then it may be meant as a function pointer for
@@ -1139,7 +1145,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                   
       // All other cases failed, then just create a Parameter for
       // it, ie it is a Property, Parameter, Element, a LiteralInt, etc:
-      else {
+      else {  //if (typeString.equals("Property")) {
                 
         // Get the argument Node:
         Collection<U > argValueNodes = model.getValue((C)arg, null);
@@ -1162,9 +1168,18 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if ( !model.getElementClass().isInstance( argValueNode ) ) {
           argValueNode = arg;
         }
-        return elementValueToAeExpression(argValueNode, argName);
+        return elementValueToAeExpression(argValueNode, argName, typeString);
                   
-      } // ends else 
+//      } else {
+//        // Get the argument Node:
+//        Collection<U > argValueNodes = model.getValue((C)arg, null);
+//        
+//        if ( Utils.isNullOrEmpty(argValueNodes) ) {
+//          return new Expression< Object >( (Object) arg );
+//        }
+//
+//        return new Expression< Object >( (Object) argValueNodes );
+      }  // ends else
       
       return null;
       
