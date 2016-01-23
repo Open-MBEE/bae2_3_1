@@ -62,18 +62,20 @@ import gov.nasa.jpl.mbee.util.Utils;
  * new Equals(new Expression(e1), new Expression(g_f_call);
  * </pre> 
  */
-public class TranslatedFunctionCall<P> extends FunctionCall {
+public class TranslatedFunctionCall<P> extends FunctionCall implements TranslatedCall {
 
-  public boolean on = true;
+  //public boolean on = true;
+  
+  protected TranslatedCallHelper<P> translatedCallHelper = null;
   
   //protected ClassData _classData = null;
   protected Vector<Object> originalArguments = null;
-  public SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
+  //public SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
   
-  public ClassData classData() {
-    if ( systemModelToAeExpression == null ) return null;
-    return systemModelToAeExpression.classData;
-  }
+//  public ClassData classData() {
+//    if ( systemModelToAeExpression == null ) return null;
+//    return systemModelToAeExpression.classData;
+//  }
   
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Call#evaluate(boolean, boolean)
@@ -86,163 +88,47 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
                                                        InstantiationException {
     // Make sure the arguments passed into the function are replaced with their
     // corresponding Parameters where appropriate.
-    
-    if ( on ) if ( systemModelToAeExpression != null ) parameterizeArguments();
+    translatedCallHelper.parameterizeArguments();
     Object returnValue = super.evaluate( propagate, doEvalArgs );
     // Swap in the Parameter corresponding to the returned object if it exists.
     //if ( on ) if ( systemModelToAeExpression != null ) returnValue = parameterizeResult(returnValue);
     return returnValue;
   }
 
-  /**
-   * Make sure the arguments passed into the function are replaced with their
-   * corresponding Parameters where appropriate. It is appropriate to replace an
-   * argument if the class of the argument is incompatible with the
-   * corresponding parameter type of the function.  If the translated parameter , and the 
-   * 
-   * @param result
-   * @return
-   */
-  protected Object parameterizeResult( Object result ) {
-    if ( on )  {
-      Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
-      if ( parameter != null ) return parameter;
-    }
-    return result;
-  }
-
-  /**
-   * @throws InstantiationException 
-   * @throws InvocationTargetException 
-   * @throws IllegalAccessException 
-   * @throws ClassCastException 
-   * 
-   */
-  protected void parameterizeArguments()
-      throws ClassCastException, IllegalAccessException, InvocationTargetException,
-             InstantiationException {
-    if ( systemModelToAeExpression == null ) return;
-    this.originalArguments = arguments;
-    this.evaluatedArguments = evaluateArgs( false );
-    
-    for ( int i = 0; i < originalArguments.size(); ++i ) {
-      Object originalArg = originalArguments.get( i );
-      Object evaluatedArg = evaluatedArguments[ i ];
-      //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
-      Class<?> parameterType = getParameterTypes()[ Math.min(i, getParameterTypes().length-1)];
-
-      Object newEvaluatedArg = parameterizeArgument( originalArg, evaluatedArg, parameterType );
-      if ( newEvaluatedArg != null ) evaluatedArguments[ i ] = newEvaluatedArg;      
-    }
-  }
-
-  protected Object parameterizeArgument(Object originalArg, Object evaluatedArg, Class< ? > parameterType  )
-      throws ClassCastException, IllegalAccessException, InvocationTargetException,
-             InstantiationException {
-    if ( originalArg == null ) return null;
-    Parameter<?> parameter = null;
-    Expression<?> paramExpression = null;
-    Object parameterValue = null;
-    
-    if ( originalArg instanceof Parameter ) {
-      parameter = (Parameter<?>)originalArg;
-      paramExpression = new Expression< Object >( parameter );
-    } else if ( originalArg instanceof Expression &&  
-                ((Expression<?>)originalArg).expression instanceof Parameter ) {
-      parameter = (Parameter< ? >)((Expression<?>)originalArg).expression;
-      paramExpression = (Expression<?>)originalArg;
-    } else if ( evaluatedArg instanceof Parameter ) {
-        parameter = (Parameter<?>)evaluatedArg;
-        paramExpression = new Expression< Object >( parameter );
-    } else if ( evaluatedArg instanceof Expression &&  
-                ((Expression<?>)evaluatedArg).expression instanceof Parameter ) {
-        parameter = (Parameter< ? >)((Expression<?>)evaluatedArg).expression;
-        paramExpression = (Expression<?>)evaluatedArg;
-    } else {
-      if ( systemModelToAeExpression == null ) {
-        System.err.println("systemModelToAeExpression = null for " + this);
-        return null;
-      } else if ( systemModelToAeExpression.model == null ) {
-        System.err.println("systemModelToAeExpression.model = null for " + this);
-        return null;
-      }
-
-      P p = systemModelToAeExpression.model.asProperty( evaluatedArg );
-      if ( p != null ) {
-        paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
-        if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
-          parameter = (Parameter< ? >)paramExpression.expression;
-        }
-      }
-    }
-    // If originalArg is an AE Parameter already, see if we need to get the
-    // source element to match the type of the parameter of this call's method.
-    if ( paramExpression != null ) {
-      if ( parameter != null && parameterValue == null ) {
-        parameterValue = parameter.getValueNoPropagate();
-      }
-      if ( systemModelToAeExpression == null ) {
-        System.err.println("systemModelToAeExpression = null for " + this);
-        return null;
-      }
-      P sourceObject = systemModelToAeExpression.getElementForAeParameter( paramExpression );
-      
-      Object newEvaluatedArg =
-          evaluateParameterizedArg( true, parameterType, parameter, false,
-                                    false );
-
-      Object result =
-          ClassUtils.bestArgumentForType( Utils.newList( evaluatedArg,
-                                                         sourceObject,
-                                                         newEvaluatedArg,
-                                                         paramExpression,
-                                                         parameter,
-                                                         parameterValue,
-                                                         originalArg ),
-                                          parameterType );
-      if ( Debug.isOn() ) {
-        Debug.outln( "\n% % % % %    return bestArgumentForType(evaluatedArg="
-                     + evaluatedArg + ", sourceObject=" + sourceObject
-                     + ", newEvaluatedArg=" + newEvaluatedArg
-                     + ", paramExpression=" + paramExpression + ", parameter="
-                     + parameter + ", parameterValue=" + parameterValue
-                     + ", originalArg=" + originalArg + "), " + parameterType
-                     + ") = " + result + "    % % % % %\n");
-      }
-      if ( result != null ) return result;
-/*
-      if ( ClassUtils.isArgumentBetterForType( sourceObject, evaluatedArg,
-                                               parameterType ) ) {
-        P newArg = sourceObject;
-        Object newEvaluatedArg = evaluateParameterizedArg(true, parameterType, newArg, false, false );
-        if ( Debug.isOn() ) Debug.outln("% % % % %    isArgumentBetterForType(" + sourceObject + ", " + evaluatedArg + ", " + parameterType  + ") = true" );
-        if ( Debug.isOn() ) Debug.outln("% % % % %    return " + newEvaluatedArg );
-        return newEvaluatedArg;
-      } else if ( ClassUtils.isArgumentBetterForType( paramExpression, evaluatedArg,
-                                                      parameterType ) ) {
-        if ( ClassUtils.isArgumentBetterForType( parameterValue, paramExpression,
-                                                 parameterType ) ) {
-          if ( Debug.isOn() ) Debug.outln("% % % % %    isArgumentBetterForType(" + paramExpression + ", " + evaluatedArg + ", " + parameterType  + ") = true" );
-          if ( Debug.isOn() ) Debug.outln("% % % % %    return " + paramExpression );
-          return parameterValue;
-        } else {
-          if ( Debug.isOn() ) Debug.outln("% % % % %    isArgumentBetterForType(" + paramExpression + ", " + evaluatedArg + ", " + parameterType  + ") = true" );
-          if ( Debug.isOn() ) Debug.outln("% % % % %    return " + paramExpression );
-        }
-        return paramExpression;
-      } else if ( ClassUtils.isArgumentBetterForType( parameterValue, evaluatedArg,
-                                                      parameterType ) ) {
-             if ( Debug.isOn() ) Debug.outln("% % % % %    isArgumentBetterForType(" + parameterValue + ", " + evaluatedArg + ", " + parameterType  + ") = true" );
-             if ( Debug.isOn() ) Debug.outln("% % % % %    return " + parameterValue );
-             return parameterValue;
-      } else {
-        if ( Debug.isOn() ) Debug.outln("% % % % %    isArgumentBetterForType(" + sourceObject + ", " + evaluatedArg + ", " + parameterType  + ") = false" );
-        if ( Debug.isOn() ) Debug.outln("% % % % %    return " + evaluatedArg );
-      }
-    */
-    }
-    return evaluatedArg;
-  }
+//  /**
+//   * Make sure the arguments passed into the function are replaced with their
+//   * corresponding Parameters where appropriate. It is appropriate to replace an
+//   * argument if the class of the argument is incompatible with the
+//   * corresponding parameter type of the function.  If the translated parameter , and the 
+//   * 
+//   * @param result
+//   * @return
+//   */
+//  public Object parameterizeResult( Object result ) {
+//    return translatedCallHelper.parameterizeResult( result );
+//  }
+//
+//  /**
+//   * @throws InstantiationException 
+//   * @throws InvocationTargetException 
+//   * @throws IllegalAccessException 
+//   * @throws ClassCastException 
+//   * 
+//   */
+//  public void parameterizeArguments()
+//      throws ClassCastException, IllegalAccessException, InvocationTargetException,
+//             InstantiationException {
+//    translatedCallHelper.parameterizeArguments();
+//  }
+//
+//  public Object parameterizeArgument(Object originalArg, Object evaluatedArg,
+//                                     Class< ? > parameterType  )
+//      throws ClassCastException, IllegalAccessException, InvocationTargetException,
+//             InstantiationException {
+//    return translatedCallHelper.parameterizeArgument( originalArg,
+//                                                      evaluatedArg,
+//                                                      parameterType );
+//  }
   
   @Override
   public Object evaluateArg( boolean propagate,
@@ -250,44 +136,69 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
                              Object unevaluatedArg,
                              boolean isVarArg,
                              boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    return evaluateParameterizedArg( propagate, c, unevaluatedArg, isVarArg, true );
-  }
-  public Object evaluateParameterizedArg( boolean propagate,
-                                          Class< ? > c,
-                                          Object unevaluatedArg,
-                                          boolean isVarArg,
-                                          boolean parameterize ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    Object obj = super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
-    if ( on && parameterize ) {
-      Object parameterizedObj = parameterizeArgument( unevaluatedArg, obj, c );
-      if ( parameterizedObj != null ) return parameterizedObj;
-    }
-    return obj;
+    return translatedCallHelper.evaluateParameterizedArg( propagate, c, unevaluatedArg, isVarArg, true );
   }
   
-  protected boolean isParameter( Object o ) {
-    boolean isParam = o instanceof Parameter ||
-        (o instanceof Expression &&
-         ((Expression<?>)o).expression instanceof Parameter);
-    return isParam;
+  public Object parentEvaluateArg( boolean propagate, Class< ? > c,
+                                   Object unevaluatedArg, boolean isVarArg )
+                                        throws ClassCastException,
+                                               IllegalAccessException,
+                                               InvocationTargetException,
+                                               InstantiationException {
+    Object evaluatedArg =
+        super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
+    return evaluatedArg;
   }
   
+//  public Object evaluateParameterizedArg( boolean propagate,
+//                                          Class< ? > c,
+//                                          Object unevaluatedArg,
+//                                          boolean isVarArg,
+//                                          boolean parameterize ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+//    Object evaluatedArg = super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
+//    return evaluateParameterizedArg( propagate, c, unevaluatedArg, evaluatedArg, isVarArg, parameterize );
+//  }
+
+//  public Object evaluateParameterizedArg( boolean propagate,
+//                                          Class< ? > c,
+//                                          Object unevaluatedArg,
+//                                          boolean isVarArg,
+//                                          boolean parameterize ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+//    Object evaluatedArg = super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
+//    if ( translatedCallHelper.on && parameterize ) {
+//      Object parameterizedObj = parameterizeArgument( unevaluatedArg, evaluatedArg, c );
+//      if ( parameterizedObj != null ) return parameterizedObj;
+//    }
+//    return evaluatedArg;
+//  }
+  
+//  protected boolean isParameter( Object o ) {
+//    boolean isParam = o instanceof Parameter ||
+//        (o instanceof Expression &&
+//         ((Expression<?>)o).expression instanceof Parameter);
+//    return isParam;
+//  }
+
+  
+  protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
+    //this.systemModelToAeExpression = sysmlToAeExpression;
+    this.translatedCallHelper = new TranslatedCallHelper< P >( this, originalArguments, sysmlToAeExpression );
+  }
+
   public TranslatedFunctionCall( Object object,
                                  Method method,
                                  Vector< Object > aeArguments,
                                  SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super(object, method, aeArguments);
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
-
-
   
   /**
    * @param method
    */
   public TranslatedFunctionCall( Method method, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( method );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -296,7 +207,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
    */
   public TranslatedFunctionCall( Class< ? > cls, String methodName, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( cls, methodName );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -305,7 +216,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
    */
   public TranslatedFunctionCall( Object object, Method method, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, method );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -315,7 +226,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
    */
   public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -327,7 +238,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
                             Vector< Object > arguments, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName, arguments );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -339,7 +250,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Method method,
                             Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, method, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -352,7 +263,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
                             Vector< Object > arguments,
                             Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, method, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -365,7 +276,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
                             Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -379,7 +290,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
                             Vector< Object > arguments,
                             Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -389,7 +300,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
    */
   public TranslatedFunctionCall( Object object, Method method, Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, method, argumentsA );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -401,7 +312,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
                             Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName, argumentsA );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -413,7 +324,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Method method, Object[] argumentsA,
                             Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, method, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -425,7 +336,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Method method, Object[] argumentsA,
                             Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, method, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -438,7 +349,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
                             Object[] argumentsA, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -451,7 +362,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
   public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
                             Object[] argumentsA, Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, methodName, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
   /**
@@ -459,7 +370,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall {
    */
   public TranslatedFunctionCall( FunctionCall e, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( e );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 }
