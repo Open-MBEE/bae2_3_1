@@ -69,7 +69,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
   protected TranslatedCallHelper<P> translatedCallHelper = null;
   
   //protected ClassData _classData = null;
-  protected Vector<Object> originalArguments = null;
+  //protected Vector<Object> originalArguments = null;
   //public SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
   
 //  public ClassData classData() {
@@ -182,7 +182,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
   
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
     //this.systemModelToAeExpression = sysmlToAeExpression;
-    this.translatedCallHelper = new TranslatedCallHelper< P >( this, originalArguments, sysmlToAeExpression );
+    this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );
   }
 
   public TranslatedFunctionCall( Object object,
@@ -372,5 +372,19 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
     super( e );
     init( systemModelToAeExpression );
   }
+
+//  /**
+//   * @return the originalArguments
+//   */
+//  public Vector< Object > getOriginalArguments() {
+//    return originalArguments;
+//  }
+//
+//  /**
+//   * @param originalArguments the originalArguments to set
+//   */
+//  public void setOriginalArguments( Vector< Object > originalArguments ) {
+//    this.originalArguments = originalArguments;
+//  }
 
 }

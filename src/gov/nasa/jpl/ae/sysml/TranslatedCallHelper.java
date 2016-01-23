@@ -67,15 +67,15 @@ public class TranslatedCallHelper<P> {
   public boolean on = true;
   
   //protected ClassData _classData = null;
-  protected Vector<Object> originalArguments = null;
+  //protected Vector<Object> originalArguments = null;
   protected SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
   protected TranslatedCall translatedCall = null;
   
   public TranslatedCallHelper( TranslatedCall translatedCall,
-                               Vector<Object> originalArguments,
+                               //Vector<Object> originalArguments,
                                SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     this.translatedCall = translatedCall;
-    this.originalArguments = originalArguments;
+    //this.originalArguments = originalArguments;
     this.systemModelToAeExpression = systemModelToAeExpression;
   }
 
@@ -112,7 +112,10 @@ public class TranslatedCallHelper<P> {
       throws ClassCastException, IllegalAccessException, InvocationTargetException,
              InstantiationException {
     if ( !on || systemModelToAeExpression == null ) return;
-    this.originalArguments = translatedCall.getArguments();
+//    translatedCall.setOriginalArguments(translatedCall.getArguments());
+//    Vector< Object > originalArguments = translatedCall.getOriginalArguments();
+    Vector< Object > originalArguments = translatedCall.getArguments();
+
     translatedCall.setEvaluatedArguments( translatedCall.evaluateArgs( false ) );
     
     for ( int i = 0; i < originalArguments.size(); ++i ) {
