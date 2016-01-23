@@ -224,7 +224,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
 
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
     //this.systemModelToAeExpression = sysmlToAeExpression;
-    this.translatedCallHelper = new TranslatedCallHelper< P >( this, originalArguments, sysmlToAeExpression );
+    this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );
   }
 
   /**
@@ -436,5 +436,18 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
     init( systemModelToAeExpression );
   }
   
+  /**
+   * @return the originalArguments
+   */
+  public Vector< Object > getOriginalArguments() {
+    return originalArguments;
+  }
+
+  /**
+   * @param originalArguments the originalArguments to set
+   */
+  public void setOriginalArguments( Vector< Object > originalArguments ) {
+    this.originalArguments = originalArguments;
+  }
 
 }

@@ -102,4 +102,7 @@ public interface TranslatedCall {
 
   public Class< ? >[] getParameterTypes();
 
+//  public Vector< Object > getOriginalArguments();
+//  public void setOriginalArguments( Vector< Object > arguments );
+
 }
