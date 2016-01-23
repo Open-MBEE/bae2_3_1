@@ -368,7 +368,7 @@ public class FunctionCall extends Call {
   
   // TODO -- delete this when version is stable -- the same implementation is in Call
   // Try to match arguments to parameters by evaluating or creating expressions.
-  protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( method == null ) return null;
     Class< ? >[] paramTypes = method.getParameterTypes();
     return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs(), true );

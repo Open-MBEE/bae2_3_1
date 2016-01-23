@@ -485,9 +485,17 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
   }
 
-  // Try to match arguments to parameters by evaluating or creating expressions.
-  // TODO -- is this necessary????
-  protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  /**
+   * Try to match arguments to parameters by evaluating or creating expressions.
+   * 
+   * @param propagate
+   * @return the evaluated arguments
+   * @throws ClassCastException
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   * @throws InstantiationException
+   */
+  public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class< ? >[] paramTypes = getParameterTypes();
     return evaluateArgs( propagate, paramTypes, arguments, isVarArgs(), true );
   }
@@ -1012,6 +1020,24 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
   }
 
+  /**
+   * @return the evaluatedArguments
+   */
+  public Object[] getEvaluatedArguments() {
+    return evaluatedArguments;
+  }
+  /**
+   * @param evaluatedArguments the evaluatedArguments to set
+   */
+  public void setEvaluatedArguments( Object[] evaluatedArguments ) {
+    this.evaluatedArguments = evaluatedArguments;
+  }
+  /**
+   * @return the arguments
+   */
+  public Vector< Object > getArguments() {
+    return arguments;
+  }
   /**
    * @return the nestedCall
    * The caller is responsible for setting stale = true if modifying the nestedCall. 
