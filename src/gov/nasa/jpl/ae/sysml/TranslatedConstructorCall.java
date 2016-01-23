@@ -61,18 +61,20 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
  * new Equals(new Expression(e1), new Expression(g_f_call);
  * </pre> 
  */
-public class TranslatedConstructorCall<P> extends ConstructorCall {
+public class TranslatedConstructorCall<P> extends ConstructorCall implements TranslatedCall {
 
-  public boolean on = true;
+//  public boolean on = true;
+  
+  protected TranslatedCallHelper<P> translatedCallHelper = null;
   
   //protected ClassData _classData = null;
   protected Vector<Object> originalArguments = null;
-  public SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
+//  public SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression = null;
   
-  public ClassData classData() {
-    if ( systemModelToAeExpression == null ) return null;
-    return systemModelToAeExpression.classData;
-  }
+//  public ClassData classData() {
+//    if ( systemModelToAeExpression == null ) return null;
+//    return systemModelToAeExpression.classData;
+//  }
   
   
   /* (non-Javadoc)
@@ -87,8 +89,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                                        InstantiationException {
     // Make sure the arguments passed into the function are replaced with their
     // corresponding Parameters where appropriate.
-    
-    if ( on ) if ( systemModelToAeExpression != null ) parameterizeArguments();
+    translatedCallHelper.parameterizeArguments();
     Object returnValue = super.evaluate( propagate, doEvalArgs );
     // Swap in the Parameter corresponding to the returned object if it exists.
     //if ( on ) if ( systemModelToAeExpression != null ) returnValue = parameterizeResult(returnValue);
@@ -104,13 +105,13 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    * @param result
    * @return
    */
-  protected Object parameterizeResult( Object result ) {
-    if ( on ) {
-      Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
-      if ( parameter != null ) return parameter;
-    }
-    return result;
-  }
+//  protected Object parameterizeResult( Object result ) {
+//    if ( on ) {
+//      Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
+//      if ( parameter != null ) return parameter;
+//    }
+//    return result;
+//  }
 
   /**
    * @throws InstantiationException 
@@ -119,69 +120,69 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    * @throws ClassCastException 
    * 
    */
-  protected void parameterizeArguments()
-      throws ClassCastException, IllegalAccessException, InvocationTargetException,
-             InstantiationException {
-    if ( systemModelToAeExpression == null ) return;
-    this.originalArguments = arguments;
-    this.evaluatedArguments = evaluateArgs( false );
-    
-    //arguments = new Vector< Object >( arguments.size() );
-    
-    for ( int i = 0; i < originalArguments.size(); ++i ) {
-      Object originalArg = originalArguments.get( i );
-      //Object evaluatedArg = evaluatedArguments[ i ];
-      //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
-      Class<?> parameterType = getParameterTypes()[ Math.min(i, getParameterTypes().length-1)];
-
-      Object newEvaluatedArg = parameterizeArgument( originalArg, parameterType );
-      if ( newEvaluatedArg != null ) evaluatedArguments[ i ] = newEvaluatedArg;      
-    }
-  }
-
-  protected Object parameterizeArgument(Object originalArg, Class< ? > parameterType  )
-      throws ClassCastException, IllegalAccessException, InvocationTargetException,
-             InstantiationException {
-    if ( originalArg == null ) return null;
-    Parameter<?> parameter = null;
-    Expression<?> paramExpression = null;
-    
-    if ( originalArg instanceof Parameter ) {
-      parameter = (Parameter<?>)originalArg;
-      paramExpression = new Expression< Object >( parameter );
-    } else if ( originalArg instanceof Expression &&  
-                ((Expression<?>)originalArg).expression instanceof Parameter ) {
-      parameter = (Parameter< ? >)((Expression<?>)originalArg).expression;
-      paramExpression = (Expression<?>)originalArg;
-    } else {
-      if ( systemModelToAeExpression == null ) {
-        System.err.println("systemModelToAeExpression = null for " + this);
-        return null;
-      } else if ( systemModelToAeExpression.model == null ) {
-        System.err.println("systemModelToAeExpression.model = null for " + this);
-        return null;
-      }
-      P p = systemModelToAeExpression.model.asProperty( originalArg );
-      paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
-    }
-    // If originalArg is an AE Parameter already, see if we need to get the
-    // source element to match the type of the parameter of this call's method.
-    if ( paramExpression != null ) {
-      if ( systemModelToAeExpression == null ) {
-        System.err.println("systemModelToAeExpression = null for " + this);
-        return null;
-      }
-      P sourceObject = systemModelToAeExpression.getElementForAeParameter( paramExpression );
-      
-      if ( ClassUtils.isArgumentBetterForType( sourceObject, paramExpression,
-                                               parameterType ) ) {
-        P newArg = sourceObject;
-        Object newEvaluatedArg = evaluateParameterizedArg(true, parameterType, newArg, false, false );
-        return newEvaluatedArg;
-      }
-    }
-    return null;
-  }
+//  protected void parameterizeArguments()
+//      throws ClassCastException, IllegalAccessException, InvocationTargetException,
+//             InstantiationException {
+//    if ( systemModelToAeExpression == null ) return;
+//    this.originalArguments = arguments;
+//    this.evaluatedArguments = evaluateArgs( false );
+//    
+//    //arguments = new Vector< Object >( arguments.size() );
+//    
+//    for ( int i = 0; i < originalArguments.size(); ++i ) {
+//      Object originalArg = originalArguments.get( i );
+//      //Object evaluatedArg = evaluatedArguments[ i ];
+//      //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
+//      Class<?> parameterType = getParameterTypes()[ Math.min(i, getParameterTypes().length-1)];
+//
+//      Object newEvaluatedArg = parameterizeArgument( originalArg, parameterType );
+//      if ( newEvaluatedArg != null ) evaluatedArguments[ i ] = newEvaluatedArg;      
+//    }
+//  }
+//
+//  protected Object parameterizeArgument(Object originalArg, Class< ? > parameterType  )
+//      throws ClassCastException, IllegalAccessException, InvocationTargetException,
+//             InstantiationException {
+//    if ( originalArg == null ) return null;
+//    Parameter<?> parameter = null;
+//    Expression<?> paramExpression = null;
+//    
+//    if ( originalArg instanceof Parameter ) {
+//      parameter = (Parameter<?>)originalArg;
+//      paramExpression = new Expression< Object >( parameter );
+//    } else if ( originalArg instanceof Expression &&  
+//                ((Expression<?>)originalArg).expression instanceof Parameter ) {
+//      parameter = (Parameter< ? >)((Expression<?>)originalArg).expression;
+//      paramExpression = (Expression<?>)originalArg;
+//    } else {
+//      if ( systemModelToAeExpression == null ) {
+//        System.err.println("systemModelToAeExpression = null for " + this);
+//        return null;
+//      } else if ( systemModelToAeExpression.model == null ) {
+//        System.err.println("systemModelToAeExpression.model = null for " + this);
+//        return null;
+//      }
+//      P p = systemModelToAeExpression.model.asProperty( originalArg );
+//      paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
+//    }
+//    // If originalArg is an AE Parameter already, see if we need to get the
+//    // source element to match the type of the parameter of this call's method.
+//    if ( paramExpression != null ) {
+//      if ( systemModelToAeExpression == null ) {
+//        System.err.println("systemModelToAeExpression = null for " + this);
+//        return null;
+//      }
+//      P sourceObject = systemModelToAeExpression.getElementForAeParameter( paramExpression );
+//      
+//      if ( ClassUtils.isArgumentBetterForType( sourceObject, paramExpression,
+//                                               parameterType ) ) {
+//        P newArg = sourceObject;
+//        Object newEvaluatedArg = evaluateParameterizedArg(true, parameterType, newArg, false, false );
+//        return newEvaluatedArg;
+//      }
+//    }
+//    return null;
+//  }
 
   @Override
   public Object evaluateArg( boolean propagate,
@@ -189,35 +190,49 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                              Object unevaluatedArg,
                              boolean isVarArg,
                              boolean complainIfError ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-      return evaluateParameterizedArg( propagate, c, unevaluatedArg, isVarArg, true );
+      return translatedCallHelper.evaluateParameterizedArg( propagate, c, unevaluatedArg, isVarArg, true );
   }
-  public Object evaluateParameterizedArg( boolean propagate,
-                                          Class< ? > c,
-                                          Object unevaluatedArg,
-                                          boolean isVarArg,
-                                          boolean parameterize ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    Object obj = super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
-    if ( on && parameterize ) {
-      Object parameterizedObj = parameterizeArgument( obj, c );
-      if ( parameterizedObj != null ) return parameterizedObj;
-    }
-    return obj;
+  public Object parentEvaluateArg( boolean propagate, Class< ? > c,
+                                   Object unevaluatedArg, boolean isVarArg )
+                                        throws ClassCastException,
+                                               IllegalAccessException,
+                                               InvocationTargetException,
+                                               InstantiationException {
+    Object evaluatedArg =
+        super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
+    return evaluatedArg;
   }
-  
-  protected boolean isParameter( Object o ) {
-    boolean isParam = o instanceof Parameter ||
-        (o instanceof Expression &&
-         ((Expression<?>)o).expression instanceof Parameter);
-    return isParam;
-  }
+//  public Object evaluateParameterizedArg( boolean propagate,
+//                                          Class< ? > c,
+//                                          Object unevaluatedArg,
+//                                          boolean isVarArg,
+//                                          boolean parameterize ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+//    Object obj = super.evaluateArg( propagate, c, unevaluatedArg, isVarArg, false );
+//    if ( on && parameterize ) {
+//      Object parameterizedObj = parameterizeArgument( obj, c );
+//      if ( parameterizedObj != null ) return parameterizedObj;
+//    }
+//    return obj;
+//  }
+//  
+//  protected boolean isParameter( Object o ) {
+//    boolean isParam = o instanceof Parameter ||
+//        (o instanceof Expression &&
+//         ((Expression<?>)o).expression instanceof Parameter);
+//    return isParam;
+//  }
 
+  protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
+    //this.systemModelToAeExpression = sysmlToAeExpression;
+    this.translatedCallHelper = new TranslatedCallHelper< P >( this, originalArguments, sysmlToAeExpression );
+  }
 
   /**
    * @param cls
    */
   public TranslatedConstructorCall( Class< ? > cls, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( cls );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -226,7 +241,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    */
   public TranslatedConstructorCall( Constructor< ? > constructor, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( constructor );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -235,7 +250,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    */
   public TranslatedConstructorCall( ConstructorCall constructorCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( constructorCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -248,7 +263,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
   public TranslatedConstructorCall( Object object, Class< ? > cls,
                                     Object[] argumentsA, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -262,7 +277,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Object[] argumentsA,
                                     Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -274,7 +289,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
   public TranslatedConstructorCall( Object object, Class< ? > cls,
                                     Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, argumentsA );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -287,7 +302,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
   public TranslatedConstructorCall( Object object, Class< ? > cls,
                                     Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -301,7 +316,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Vector< Object > arguments,
                                     Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -313,7 +328,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
   public TranslatedConstructorCall( Object object, Class< ? > cls,
                                     Vector< Object > arguments, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls, arguments );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -323,7 +338,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, cls );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -338,7 +353,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Object[] argumentsA,
                                     ConstructorCall nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -353,7 +368,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Object[] argumentsA,
                                     Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor, argumentsA, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -366,7 +381,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Constructor< ? > constructor,
                                     Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor, argumentsA );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -380,7 +395,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Constructor< ? > constructor,
                                     Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -395,7 +410,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Vector< Object > arguments,
                                     Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor, arguments, nestedCall );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -408,7 +423,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
                                     Constructor< ? > constructor,
                                     Vector< Object > arguments, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor, arguments );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
 
 
@@ -418,7 +433,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall {
    */
   public TranslatedConstructorCall( Object object, Constructor< ? > constructor, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( object, constructor );
-    this.systemModelToAeExpression = systemModelToAeExpression;
+    init( systemModelToAeExpression );
   }
   
 
