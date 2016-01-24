@@ -26,7 +26,7 @@ public class ConstructorCall extends Call {
 
   protected Class<?> thisClass = null;
   protected Constructor<?> constructor = null;
-  protected Object newObject = null;
+  //protected Object newObject = null;
 
   protected Object getEnclosingInstance() {
     return object;
@@ -281,13 +281,14 @@ public class ConstructorCall extends Call {
       }
     }
     try {
-      newObject = constructor.newInstance( args );
+      returnValue = constructor.newInstance( args );
+      //returnValue = newObject;
       if ( Debug.isOn() ) {
           System.out.println("ConstructorCall constructor = " + constructor.toGenericString());
           System.out.println("ConstructorCall args = " + args);
           System.out.println("ConstructorCall.invoke " + constructor.getName() + "("
                   + Utils.toString( evaluatedArgs, false )
-                  + "): ConstructorCall{" + this + "} = " + newObject );
+                  + "): ConstructorCall{" + this + "} = " + returnValue );
       }
       evaluationSucceeded = true;
     } catch (Exception e ) {
@@ -303,57 +304,47 @@ public class ConstructorCall extends Call {
         throw e;
       }
     }
-    return newObject;
+    return returnValue; //newObject;
   }
   
-  protected static boolean possiblyStale( Object obj ) {
-    if ( obj == null || obj instanceof TimeVarying ) return true;
-    if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
-    if ( obj instanceof Variable ) {
-      Object v = ((Variable<?>)obj).getValue( false );
-      if ( possiblyStale( v ) ) return true;
-    }
-    return false;
-  }
-  
-  @Override
-  public boolean isStale() {
-    if ( super.isStale() ) return true;
-    if ( possiblyStale( newObject ) ) return true;
-    return false;
-  }
+//  @Override
+//  public boolean isStale() {
+//    if ( super.isStale() ) return true;
+//    if ( possiblyStale( newObject ) ) return true;
+//    return false;
+//  }
 
-  @Override
-  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-    // REVIEW -- if this is buggy, consider making this a dependency.
-    // Nested call can also be a dependency.
-    if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
-      evaluationSucceeded = true;
-      return newObject;
-    }
-    newObject = null;
-    return super.evaluate( propagate );
-  }
+//  @Override
+//  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+//    // REVIEW -- if this is buggy, consider making this a dependency.
+//    // Nested call can also be a dependency.
+//    if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
+//      evaluationSucceeded = true;
+//      return newObject;
+//    }
+//    newObject = null;
+//    return super.evaluate( propagate );
+//  }
   
-  @Override
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
-                             Set<HasParameters> seen ) {
-    if ( super.substitute( p1, p2, deep, seen ) ) {
-      this.newObject = null;
-      setStale( true );
-      return true;
-    }
-    return false;
-  }
+//  @Override
+//  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+//                             Set<HasParameters> seen ) {
+//    if ( super.substitute( p1, p2, deep, seen ) ) {
+//      this.newObject = null;
+//      setStale( true );
+//      return true;
+//    }
+//    return false;
+//  }
 
-  @Override
-  public boolean ground( boolean deep, Set< Groundable > seen ) {
-    if ( seen != null && seen.contains( this ) ) return true;
-    if ( isGrounded( deep, null ) ) return true;
-    this.newObject = null;
-    setStale( true );
-    return super.ground( deep, seen );
-  }
+//  @Override
+//  public boolean ground( boolean deep, Set< Groundable > seen ) {
+//    if ( seen != null && seen.contains( this ) ) return true;
+//    if ( isGrounded( deep, null ) ) return true;
+//    this.returnValue = null;
+//    setStale( true );
+//    return super.ground( deep, seen );
+//  }
   
   @Override
   public Boolean hasTypeErrors() {
@@ -417,28 +408,28 @@ public class ConstructorCall extends Call {
     if ( constructor != null ) {
       this.thisClass = constructor.getDeclaringClass();
     }
-    this.newObject = null;
+    this.returnValue = null;
  }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.Call#setObject(java.lang.Object)
-   */
-  @Override
-  public void setObject( Object object ) {
-    this.object = object;
-    this.newObject = null;
-    setStale( true );
-  }
+//  /* (non-Javadoc)
+//   * @see gov.nasa.jpl.ae.event.Call#setObject(java.lang.Object)
+//   */
+//  @Override
+//  public void setObject( Object object ) {
+//    this.object = object;
+//    this.returnValue = null;
+//    setStale( true );
+//  }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.Call#setArguments(java.util.Vector)
-   */
-  @Override
-  public void setArguments( Vector< Object > arguments ) {
-    super.setArguments( arguments );
-    this.newObject = null;
-    setStale( true );
-  }
+//  /* (non-Javadoc)
+//   * @see gov.nasa.jpl.ae.event.Call#setArguments(java.util.Vector)
+//   */
+//  @Override
+//  public void setArguments( Vector< Object > arguments ) {
+//    super.setArguments( arguments );
+//    this.returnValue = null;
+//    setStale( true );
+//  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Call#setNestedCall(gov.nasa.jpl.ae.event.Call)
@@ -446,7 +437,7 @@ public class ConstructorCall extends Call {
   @Override
   public void setNestedCall( Call nestedCall ) {
     super.setNestedCall( nestedCall );
-    this.newObject = null;
+//    this.newObject = null;
     setStale( true );
   }
 

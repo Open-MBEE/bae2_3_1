@@ -624,7 +624,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       if (param != null) {
         
         if ( Debug.isOn() ) Debug.outln( "\nparam = " + param );
-        if (argValProp != null && setValue) {
+      // Make sure that the Parameter is new (set to null) before setting its
+      // value; otherwise, it may be overwritten.
+        if (argValProp != null && setValue && param.getValue() == null ) {
             param.setValue(argValProp);   
         }
         

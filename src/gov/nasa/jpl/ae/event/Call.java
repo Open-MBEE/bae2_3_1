@@ -3,6 +3,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -47,6 +48,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected Object[] evaluatedArguments = null; // arguments to constructor
   protected boolean evaluationSucceeded = false;
   private boolean stale = true;
+  protected boolean alwaysStale = false;
+  
+  protected Object returnValue = null;  // a cached value
   
   abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
@@ -88,7 +92,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //arguments = null;
     }
     this.object = null; // Can't deconstruct since Call does not own it.
-    stale = true;
+    setStale( true );
 //    if ( evaluatedArguments != null ) {
 //      this.evaluatedArguments.clear(); // Can't deconstruct since Call does not own them.
 //    }
@@ -371,6 +375,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public synchronized Object evaluateWithSetArguments( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+    if ( returnValue != null && !isStale() && isGrounded( propagate, null ) ) {
+      evaluationSucceeded = true;
+      return returnValue;
+    }
+    returnValue = null;
+
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( getMember() == null ) {
@@ -388,7 +398,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //  return null;
       //}
     //}
-    Object result = null;
+    //Object result = null;
     
     // evaluate the arguments before invoking the method on them
     Object evaluatedArgs[] = null;
@@ -424,10 +434,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       
       evaluatedArgs = fixArgsForVarArgs( evaluatedArgs );
       
-      result = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
+      returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
       // No longer stale after invoked with updated arguments and result is cached.
-      stale = false;
+      setStale( alwaysStale );  // false by default
       
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
@@ -450,9 +460,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
 
     if ( Debug.isOn() ) 
-      Debug.outln( "evaluate() returning " + result );
+      Debug.outln( "evaluate() returning " + returnValue );
     
-    return result;
+    return returnValue;
   }
 
   /**
@@ -496,6 +506,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @throws InstantiationException
    */
   public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( getMember() == null ) return null;
     Class< ? >[] paramTypes = getParameterTypes();
     return evaluateArgs( propagate, paramTypes, arguments, isVarArgs(), true );
   }
@@ -563,7 +574,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Debug.error("Error! args is null!");
       return null;
     }
-    boolean wasDebugOn = Debug.isOn();
+    //boolean wasDebugOn = Debug.isOn();
     //Debug.turnOff();
     assert ( args.size() == paramTypes.length
              || ( isVarArgs && ( args.size() > paramTypes.length
@@ -592,7 +603,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                            " for argument " + i + " of call: " + this );
       }
     }
-    if ( wasDebugOn ) Debug.turnOn();
+    //if ( wasDebugOn ) Debug.turnOn();
     if ( Debug.isOn() ) Debug.outln( "Call.evaluateArgs(" + args + ") = "
                  + Utils.toString( argObjects ) );
     return argObjects;
@@ -698,7 +709,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( HasParameters.Helper.substitute( nestedCall, p1, p2, deep, seen, true ) ) {
       subbed = true;
     }
-    if ( subbed ) stale = true;
+    if ( subbed ) {
+      this.returnValue = null;
+      setStale(true);
+    }
+    
     return subbed;
   }
 
@@ -774,7 +789,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
 
   @Override
-  public synchronized boolean ground( boolean deep, Set< Groundable > seen ) {
+  public boolean ground( boolean deep, Set< Groundable > seen ) {
+    if ( seen != null && seen.contains( this ) ) return true;
+    if ( isGrounded( deep, null ) ) return true;
+    //this.returnValue = null;
+    setStale( true );
+    return groundImpl( deep, seen );
+  }
+
+  public synchronized boolean groundImpl( boolean deep, Set< Groundable > seen ) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -818,7 +841,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         }
       }
     }
-    if ( grounded ) stale = true;
+    if ( grounded ) setStale( true );
     return grounded;
   }
   
@@ -894,33 +917,45 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return sb.toString();
   }
 
+  protected static boolean possiblyStale( Object obj ) {
+    if ( obj == null || obj instanceof TimeVarying ) return true;
+    if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
+    if ( obj instanceof Variable ) {
+      Object v = ((Variable<?>)obj).getValue( false );
+      if ( possiblyStale( v ) ) return true;
+    }
+    return false;
+  }
+  
   @Override
   public boolean isStale() {
     if ( stale ) return true;
     for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) {
-        stale = true;
+        setStale( true );
         return true;
       }
     }
     if ( nestedCall != null ) {
       if ( nestedCall.isStale() ) {
-        stale = true;
+        setStale( true );
         return true;
       }
     }
     if ( object instanceof LazyUpdate )  {
       if ( ( (LazyUpdate)object ).isStale() ) {
-        stale = true;
+        setStale( true );
         return true;
       }
     }
+    if ( possiblyStale( returnValue ) ) return true;
     return false;
   }
 
   @Override
   public void setStale( boolean staleness ) {
     stale = staleness;
+    if ( stale ) returnValue = null;
   }
 
   @Override
@@ -952,7 +987,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public void setObject( Object object ) {
     if ( this.object != object ) {
       this.object = object;
-      stale = true;
+      setStale( true );
     }
   }
 
@@ -998,7 +1033,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public synchronized void setArguments( Vector< Object > arguments ) {
     if ( arguments != this.arguments ) {
       this.arguments = arguments;
-      stale = true;
+      setStale( true );
     }
   }
 
@@ -1009,14 +1044,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public synchronized void setArgument( int i, Object argument ) {
     while ( arguments.size() < i ) {
       arguments.add( null );
-      stale = true;
+      setStale( true );
     }
     if ( i == arguments.size() ) {
       arguments.add( argument );
-      stale = true;
+      setStale( true );
     } else if ( arguments.get( i ) != argument ) {
       this.arguments.set(i, argument);
-      stale = true;
+      setStale( true );
     }
   }
 
@@ -1055,7 +1090,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     } else {
       this.nestedCall.setValue( nestedCall );
     }
-    stale = true;
+    setStale( true );
   }
   
   public Class< ? > getTypeForSubstitutionIndex( int index ) {
