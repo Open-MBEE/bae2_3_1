@@ -310,7 +310,8 @@ public class FunctionCall extends Call {
       evaluationSucceeded = false;
       return null;
     }
-    Object result = null;
+    //Object result = null;
+    returnValue = null;
 // TODO -- Try this shorter form?
 //    Pair< Boolean, Object > p =
 //        ClassUtils.runMethod( false, evaluatedObject, method, evaluatedArgs );
@@ -323,13 +324,13 @@ public class FunctionCall extends Call {
     // Utils.newList(new Object[]{(Object)null}).
 //    Debug.turnOn();
     try {
-      result = method.invoke( evaluatedObject, evaluatedArgs );
+      returnValue = method.invoke( evaluatedObject, evaluatedArgs );
       if ( Debug.isOn() ) {
           System.out.println("FunctionCall method = " + method.toGenericString());
           System.out.println("FunctionCall args = " + arguments);
           System.out.println("FunctionCall.invoke " + method.getName() + "("
                   + Utils.toString( evaluatedArgs, false )
-                  + "): FunctionCall{" + this + "} = " + result );
+                  + "): FunctionCall{" + this + "} = " + returnValue );
       }
       evaluationSucceeded = true;
     } catch (IllegalArgumentException e) {
@@ -363,16 +364,15 @@ public class FunctionCall extends Call {
     }
     //Debug.turnOff();
 
-    return result;
+    return returnValue;
   }
   
-  // TODO -- delete this when version is stable -- the same implementation is in Call
-  // Try to match arguments to parameters by evaluating or creating expressions.
-  public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ( method == null ) return null;
-    Class< ? >[] paramTypes = method.getParameterTypes();
-    return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs(), true );
-  }
+//  // TODO -- delete this when version is stable -- the same implementation is in Call
+//  // Try to match arguments to parameters by evaluating or creating expressions.
+//  public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+//    if ( method == null ) return null;
+//    return super.evaluateArgs( propagate );
+//  }
 
   // Getters and setters 
   

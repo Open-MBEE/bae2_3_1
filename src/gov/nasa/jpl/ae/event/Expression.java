@@ -860,15 +860,15 @@ public class Expression< ResultType > extends HasIdImpl
     boolean isTypeCompatible = cls != null && cls.isInstance( object );
     if ( isTypeCompatible || cls == object.getClass() ) {
       TT result = null;
-//      if ( isTypeCompatible ) {
-//        try {
-//          result = (TT)object;
-//        } catch (ClassCastException e) {
-//        }
-//        if ( result != null ) {
-//          return result;
-//        }
-//      }
+      if ( isTypeCompatible ) {
+        try {
+          result = (TT)object;
+        } catch (ClassCastException e) {
+        }
+        if ( result != null ) {
+          return result;
+        }
+      }
       try {
         result = evaluateDeep( object, cls, propagate, allowWrapping );
         if ( result != null && cls.isInstance( result ) ) return result;
@@ -922,7 +922,7 @@ public class Expression< ResultType > extends HasIdImpl
         // ignore
       }
     }
-    else if ( allowWrapping && cls != null ){
+    else if ( allowWrapping && cls != null && !cls.equals( Object.class ) ){
       // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
       if ( cls.isAssignableFrom( Parameter.class ) ) {
         if ( Debug.isOn() ) Debug.error( false, "Warning: wrapping value with a parameter with null owner!" );
