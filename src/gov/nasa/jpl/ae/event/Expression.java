@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -35,7 +36,7 @@ import junit.framework.Assert;
  * 
  */
 public class Expression< ResultType > extends HasIdImpl
-                                    implements Cloneable, HasParameters, Groundable,
+                                    implements Cloneable, HasParameters, ParameterListener, Groundable,
                                                LazyUpdate, Satisfiable,
                                                HasDomain, HasTimeVaryingObjects,
                                                MoreToString, Wraps< ResultType > {//, Comparable< Expression< ? > > {
@@ -1117,8 +1118,9 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public void setValue( ResultType value ) {
-    // TODO Auto-generated method stub
-    
+    if ( expression instanceof Wraps ) {
+      ((Wraps<ResultType>)expression).setValue( value );
+    }
   }
 
   /**
@@ -1126,6 +1128,58 @@ public class Expression< ResultType > extends HasIdImpl
    */
   public boolean didEvaluationSucceed() {
     return evaluationSucceeded;
+  }
+
+  @Override
+  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).handleValueChangeEvent( parameter );
+    }
+  }
+
+  @Override
+  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).handleDomainChangeEvent( parameter );
+    }
+  }
+
+  @Override
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter );
+    }
+  }
+
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).detach( parameter );
+    }
+  }
+
+  @Override
+  public boolean refresh( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      return ( (ParameterListener)expression ).refresh( parameter );
+    }
+    return false;
+  }
+
+  @Override
+  public < T > boolean pickParameterValue( Variable< T > variable ) {
+    if ( expression instanceof ParameterListener ) {
+      return ( (ParameterListener)expression ).pickParameterValue( variable );
+    }
+    return false;
+  }
+
+  @Override
+  public String getName() {
+    if ( expression instanceof ParameterListener ) {
+      return ( (ParameterListener)expression ).getName();
+    }
+    return null;
   }
 
 }

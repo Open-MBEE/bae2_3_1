@@ -3579,7 +3579,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   @Override
-  public < T > boolean pickValue( Variable< T > variable ) {
+  public < T > boolean pickParameterValue( Variable< T > variable ) {
     // TODO Auto-generated method stub
     return false;
   }

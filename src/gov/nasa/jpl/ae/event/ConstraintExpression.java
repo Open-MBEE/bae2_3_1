@@ -107,7 +107,7 @@ public class ConstraintExpression extends Expression< Boolean >
       vars.toArray( a );
       for ( Variable< ? > v : Utils.scramble(a) ) {
         if (!(v instanceof Parameter) || !((Parameter) v).isDependent()){
-          pickValue( v );  
+          pickParameterValue( v );  
         }
         if ( isSatisfied(deep, seen) ) break;
       }
@@ -129,7 +129,7 @@ public class ConstraintExpression extends Expression< Boolean >
   }
 
   @Override
-  public < T > boolean pickValue( Variable< T > v ) {
+  public < T > boolean pickParameterValue( Variable< T > v ) {
 //    if ( type.equals( Type.Function ) ) {
       if ( expression instanceof Suggester ) {
         T newValue = ((Suggester)expression).pickValue( v );

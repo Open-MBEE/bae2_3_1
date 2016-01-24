@@ -5,6 +5,8 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
@@ -95,8 +97,20 @@ public class TranslatedCallHelper<P> {
    */
   protected Object parameterizeResult( Object result ) {
     if ( on )  {
-      Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
-      if ( parameter != null ) return parameter;
+      P p = systemModelToAeExpression.model.asProperty( result );
+      if ( p != null ) {
+        Expression< ? > paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
+        if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
+          return paramExpression;
+        }
+      }
+//
+//      Object e = systemModelToAeExpression.model.asElement( result );
+//      if ( systemModelToAeExpression.model.getElementClass().isInstance( e ) ) {
+//        
+//      }
+//      Parameter< Object > parameter = systemModelToAeExpression.getExprParamMap().get( result );
+//      if ( parameter != null ) return parameter;
     }
     return result;
   }
@@ -152,6 +166,24 @@ public class TranslatedCallHelper<P> {
                 ((Expression<?>)evaluatedArg).expression instanceof Parameter ) {
         parameter = (Parameter< ? >)((Expression<?>)evaluatedArg).expression;
         paramExpression = (Expression<?>)evaluatedArg;
+    } else if ( evaluatedArg instanceof Collection ) {
+      Collection<?> c = (Collection<?>)evaluatedArg;
+      if ( !c.isEmpty() ) {
+        ArrayList<Object> arr = new ArrayList< Object >();
+        for ( Object o : c ) {
+          arr.add( parameterizeArgument( o, o, Object.class ) );
+        }
+        evaluatedArg = arr;
+      }
+    } else if ( evaluatedArg != null && evaluatedArg.getClass().isArray() ) {
+      Object[] c = (Object[])evaluatedArg;
+      if ( c.length > 0 ) {
+        Object[] arr = new Object[c.length];
+        for ( int i = 0; i < c.length; i++ ) {
+          arr[i] = parameterizeArgument( c[i], c[i], Object.class );
+        }
+        evaluatedArg = arr;
+      }
     } else {
       if ( systemModelToAeExpression == null ) {
         System.err.println("systemModelToAeExpression = null for " + this);
@@ -166,12 +198,21 @@ public class TranslatedCallHelper<P> {
         paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
         if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
           parameter = (Parameter< ? >)paramExpression.expression;
+          if ( parameter != null ) {
+            parameterValue = parameter.getValueNoPropagate();
+            if ( parameterValue != null ) {
+              return parameter;
+            }
+          }
         }
       }
     }
     // If originalArg is an AE Parameter already, see if we need to get the
     // source element to match the type of the parameter of this call's method.
     if ( paramExpression != null ) {
+      //if ( parameter != null && parameter.toString().contains( "orkspace" ) ) {
+        //Debug.error( "-->>  -->>  -->>  -->>  Got a strange parameter: " + parameter );
+      //}
       if ( parameter != null && parameterValue == null ) {
         parameterValue = parameter.getValueNoPropagate();
       }

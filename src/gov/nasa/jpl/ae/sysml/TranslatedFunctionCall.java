@@ -91,7 +91,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
     translatedCallHelper.parameterizeArguments();
     Object returnValue = super.evaluate( propagate, doEvalArgs );
     // Swap in the Parameter corresponding to the returned object if it exists.
-    //if ( on ) if ( systemModelToAeExpression != null ) returnValue = parameterizeResult(returnValue);
+    //returnValue = translatedCallHelper.parameterizeResult(returnValue);
     return returnValue;
   }
 

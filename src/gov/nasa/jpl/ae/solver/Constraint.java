@@ -9,7 +9,7 @@ public interface Constraint extends Satisfiable, Comparable< Constraint >,
                                     LazyUpdate, HasId<Integer> {
   public Set< Variable< ? > > getVariables();
 
-  public < T > boolean pickValue( Variable< T > v ); // not implemented
+  public < T > boolean pickParameterValue( Variable< T > v ); // not implemented
 
   public < T > boolean restrictDomain( Variable< T > v ); // not implemented
 

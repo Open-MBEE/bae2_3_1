@@ -1,5 +1,5 @@
-package gov.nasa.jpl.ae.event;
 
+package gov.nasa.jpl.ae.event;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -352,7 +352,7 @@ public class Dependency< T > extends HasIdImpl
    * @see solver.Constraint#pickValue(solver.Variable)
    */
   @Override
-  public < T1 > boolean pickValue( Variable< T1 > variable ) {
+  public < T1 > boolean pickParameterValue( Variable< T1 > variable ) {
     if ( variable == null || !Parameter.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
@@ -370,7 +370,7 @@ public class Dependency< T > extends HasIdImpl
       boolean changedSomething = false;
       if ( !(var instanceof Parameter) || !((Parameter) var).isDependent()){
         if ( c != null) {
-          if ( c.pickValue( var ) ) changedSomething = true;
+          if ( c.pickParameterValue( var ) ) changedSomething = true;
         } else {
           if ( var.pickValue() ) changedSomething = true;
         }
@@ -385,7 +385,7 @@ public class Dependency< T > extends HasIdImpl
     }
     Constraint c = getConstraintExpression();
     if ( c != null ) {
-      if ( c.pickValue( variable ) ) return true;
+      if ( c.pickParameterValue( variable ) ) return true;
     }
     // TODO Auto-generated method stub
     return false;
@@ -613,6 +613,7 @@ public class Dependency< T > extends HasIdImpl
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
     if ( expression == null ) return;
     if ( expression.hasParameter( changedParameter, true, null ) ) {
+      expression.setStaleAnyReferencesTo( changedParameter );
       parameter.setStale( true );
     }
   }
