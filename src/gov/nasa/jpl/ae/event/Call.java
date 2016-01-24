@@ -31,6 +31,7 @@ import java.util.Vector;
 import junit.framework.Assert;
 
 public abstract class Call extends HasIdImpl implements HasParameters,
+                                                        ParameterListener,
                                                         HasDomain,
                                                         Groundable,
                                                         Comparable< Call >,
@@ -51,6 +52,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected boolean alwaysStale = false;
   
   protected Object returnValue = null;  // a cached value
+
+  protected boolean proactiveEvaluation = false;
   
   abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
@@ -437,7 +440,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
       // No longer stale after invoked with updated arguments and result is cached.
-      setStale( alwaysStale );  // false by default
+      setStale( false );
       
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
@@ -954,7 +957,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   @Override
   public void setStale( boolean staleness ) {
-    stale = staleness;
+    stale = alwaysStale || staleness;
     if ( stale ) returnValue = null;
   }
 
@@ -1411,6 +1414,131 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       // TODO -- ERROR
     }
     return otherArgs;
+  }
+  
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
+   */
+  @Override
+  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+    for ( Object o : getArguments() ) {
+      if ( o instanceof ParameterListener ) {
+        ((ParameterListener)o).handleValueChangeEvent( parameter );
+      }
+    }
+    if ( !proactiveEvaluation ) return;
+    if ( hasParameter( parameter, true, null ) ) {
+      setStale(true);
+      try {
+        evaluate( true );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    // TODO Auto-generated method stub
+    
+  }
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#handleDomainChangeEvent(gov.nasa.jpl.ae.event.Parameter)
+   */
+  @Override
+  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+    for ( Object o : getArguments() ) {
+      if ( o instanceof ParameterListener ) {
+        ((ParameterListener)o).handleDomainChangeEvent( parameter );
+      }
+    }
+    if ( !proactiveEvaluation ) return;
+    // TODO -- How do we proactively handle this?  evaluate() wouldn't change anything, right? 
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
+   */
+  @Override
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    if ( hasParameter( changedParameter, true, null ) ) {
+      setStale(true);
+    }
+    // TODO -- This could produce infinite recursion!
+    for ( Object o : getArguments() ) {
+      if ( o instanceof ParameterListener ) {
+        ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+      }
+    }
+    if ( !proactiveEvaluation ) return;
+    // TODO -- How do we proactively handle this?  evaluate() wouldn't change anything, right? 
+  }
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#detach(gov.nasa.jpl.ae.event.Parameter)
+   */
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    for ( Object o : getArguments() ) {
+      if ( o == null ) continue;
+      if ( o.equals( parameter ) )  {
+        // TODO -- How to detach?  Replace with null in arguments?
+        //((Parameter)o).
+      }
+      if ( o instanceof ParameterListener ) {
+        ((ParameterListener)o).detach( parameter );
+      }
+    }
+    if ( !proactiveEvaluation ) return;
+    // TODO -- How do we proactively handle this?  evaluate() wouldn't change anything, right? 
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#refresh(gov.nasa.jpl.ae.event.Parameter)
+   */
+  @Override
+  public boolean refresh( Parameter< ? > parameter ) {
+    try {
+      evaluate( true );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return false;
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#pickValue(gov.nasa.jpl.ae.solver.Variable)
+   */
+  @Override
+  public < T > boolean pickParameterValue( Variable< T > variable ) {
+    if ( variable == null ) return false;
+    if ( this instanceof Suggester ) {
+      T newValue = ((Suggester)this).pickValue( variable );
+      if ( newValue != null ) {
+        variable.setValue( newValue );
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#getName()
+   */
+  @Override
+  public String getName() {
+    if ( getMember() == null ) return null;
+    return getMember().getName();
   }
 
 

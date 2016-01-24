@@ -92,7 +92,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
     translatedCallHelper.parameterizeArguments();
     Object returnValue = super.evaluate( propagate, doEvalArgs );
     // Swap in the Parameter corresponding to the returned object if it exists.
-    //if ( on ) if ( systemModelToAeExpression != null ) returnValue = parameterizeResult(returnValue);
+    //returnValue = translatedCallHelper.parameterizeResult(returnValue);
     return returnValue;
   }
 
@@ -250,6 +250,11 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public TranslatedConstructorCall( ConstructorCall constructorCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( constructorCall );
+    // If the passed in ConstructorCall is constructing a Call, we probably ought to construct a TranslatedCall.
+//    Class<?> c  = constructor.getDeclaringClass();
+//    if ( Call.class.isAssignableFrom( c ) ) {
+//      
+//    }
     init( systemModelToAeExpression );
   }
 
