@@ -772,6 +772,7 @@ public class Functions {
             // result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
             result = (Integer)times( n1.intValue(), n2.intValue() );
           }
+          return (V1)result;
         }
       }
     }
@@ -779,6 +780,7 @@ public class Functions {
       if ( o1 != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
+        // TOOD -- what if cls1 is not a Number?
         Object x = Expression.evaluate( result,
                                         ClassUtils.dominantTypeClass(cls1,cls2),
                                         false );

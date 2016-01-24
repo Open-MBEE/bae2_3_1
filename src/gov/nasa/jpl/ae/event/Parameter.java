@@ -599,7 +599,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   
   protected boolean ownerPickValue() {
     if ( owner != null ) {//&& owner instanceof ParameterListenerImpl ) {
-      if ( ((ParameterListener)owner).pickValue( this ) ) return true;
+      if ( ((ParameterListener)owner).pickParameterValue( this ) ) return true;
     }
     return false;
   }
