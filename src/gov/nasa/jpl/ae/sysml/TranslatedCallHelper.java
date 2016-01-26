@@ -97,7 +97,7 @@ public class TranslatedCallHelper<P> {
    */
   protected Object parameterizeResult( Object result ) {
     if ( on )  {
-      P p = systemModelToAeExpression.model.asProperty( result );
+      P p = ((P)systemModelToAeExpression.model.asProperty( result ));
       if ( p != null ) {
         Expression< ? > paramExpression = systemModelToAeExpression.elementArgumentToAeExpression( p );
         if ( paramExpression != null && paramExpression.expression instanceof Parameter ) {
@@ -130,7 +130,7 @@ public class TranslatedCallHelper<P> {
 //    Vector< Object > originalArguments = translatedCall.getOriginalArguments();
     Vector< Object > originalArguments = translatedCall.getArguments();
 
-    translatedCall.setEvaluatedArguments( translatedCall.evaluateArgs( false ) );
+    translatedCall.setEvaluatedArguments( translatedCall.evaluateArgs( true ) );
     
     for ( int i = 0; i < originalArguments.size(); ++i ) {
       Object originalArg = originalArguments.get( i );
@@ -170,10 +170,11 @@ public class TranslatedCallHelper<P> {
       Collection<?> c = (Collection<?>)evaluatedArg;
       if ( !c.isEmpty() ) {
         ArrayList<Object> arr = new ArrayList< Object >();
-        for ( Object o : c ) {
+        Object[] cpyArr = c.toArray();
+        c.clear();
+        for ( Object o : cpyArr ) {
           arr.add( parameterizeArgument( o, o, Object.class ) );
         }
-        evaluatedArg = arr;
       }
     } else if ( evaluatedArg != null && evaluatedArg.getClass().isArray() ) {
       Object[] c = (Object[])evaluatedArg;
