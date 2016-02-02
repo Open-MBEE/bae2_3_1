@@ -5,6 +5,8 @@ import java.util.Vector;
 
 public interface TranslatedCall {
 
+  public TranslatedCallHelper< ? > getTranslatedCallHelper(); 
+  
   /**
    * @return the evaluatedArguments
    */
@@ -101,6 +103,12 @@ public interface TranslatedCall {
                                          InstantiationException;
 
   public Class< ? >[] getParameterTypes();
+
+  public Class< ? > getReturnType();
+
+  public abstract void setOn( boolean on );
+
+  public abstract boolean isOn();
 
 //  public Vector< Object > getOriginalArguments();
 //  public void setOriginalArguments( Vector< Object > arguments );

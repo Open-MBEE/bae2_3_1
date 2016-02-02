@@ -11,9 +11,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.Functions;
+import gov.nasa.jpl.ae.event.ParameterListenerImpl;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
@@ -31,9 +34,56 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
     
     public static boolean debug = false;
     public static boolean doCallCaching = false;
-  
+    public boolean solvingNow = false;
+
     protected SM model = null;
-    protected ClassData classData = new ClassData();
+    protected ClassData classData = new ClassData() {
+      @Override
+      public ParameterListenerImpl constructClass( String className ) {
+        return new ParameterListenerImpl( className ) {
+         /**
+          * There's a potential infinite loop here through setValue() in
+          * elementArgumentToAeExpression(). This flag helps avoid it.
+          */
+          boolean translating = false; 
+          
+          /* (non-Javadoc)
+           * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#translate(gov.nasa.jpl.ae.solver.Variable, java.lang.Object, java.lang.Class)
+           */
+          @SuppressWarnings( "unchecked" )
+          @Override
+          public <V> V translate(gov.nasa.jpl.ae.solver.Variable<V> p, Object o,
+                                 java.lang.Class<?> type) {
+            if ( !translating && model.getPropertyClass().isInstance( o ) ) {
+              if ( Debug.isOn() ) Debug.outln("- - - - - - - - translate true for " + p);
+              translating = true;
+            
+              Expression< ? > expr = elementArgumentToAeExpression( (P)o, type );
+              if ( expr != null ) {
+                Object v;
+                try {
+                  v = Expression.evaluate( expr, type, true, false );
+                  return (V)v;
+                } catch ( Exception e ) {
+                  // ignore and return object passed in
+                  Debug.breakpoint();
+                } finally {
+                  translating = false;
+                  if ( Debug.isOn() ) Debug.outln("- - - - - - - - translate false for " + p);
+                }
+              } else {
+                translating = false;
+                if ( Debug.isOn() ) Debug.outln("- - - - - - - - translate false for " + p);
+              }
+            } else {
+              if ( translating ) if ( Debug.isOn() ) Debug.outln("+ + + + + + + + translate was already true for " + p);
+            }
+            return (V)o;
+          }
+        };
+      }
+
+    };
     
     /**
      * Maps the parsed Expression Parameters to the Parameter objects
@@ -75,8 +125,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * @throws InvocationTargetException 
      * @throws IllegalAccessException 
      */
-    public <X> X evaluateExpression( Object expressionElement ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-      Expression<X> expression = toAeExpression( expressionElement );
+    public <X> X evaluateExpression( Object expressionElement, Class< ? > expectedType ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+      Expression<X> expression = toAeExpression( expressionElement, expectedType );
       return expression.evaluate( true );
     }
 
@@ -108,20 +158,24 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       return Utils.put( callCache, className, operationName, args, callCasePair );
     }
     
-  /**
-   * Return a Call object based on the passed operation and arguments
-   * 
-   * @param object
-   *          The object whose method is called; if this is null, this.model is
-   *          used as the object.
-   * @param operationName
-   *          The name of operation used to search for the equivalent java call
-   * @param aeArguments
-   *          The arguments for operation
-   * @return Call object or null if the operationName is not a java call
-   */
+    /**
+     * Return a Call object based on the passed operation and arguments
+     * 
+     * @param object
+     *          The object whose method is called; if this is null, this.model is
+     *          used as the object.
+     * @param operationName
+     *          The name of operation used to search for the equivalent java call
+     * @param aeArguments
+     *          The arguments for operation
+     * @param rawArguments
+     * @param returnType
+     *          This will likely be null, and this method will try to determine
+     *          this type
+     * @return Call object or null if the operationName is not a java call
+     */
     private Call createCall(Object object, N operationName, Vector< Object > aeArguments,
-                            Vector<Object> rawArguments) {
+                            Vector<Object> rawArguments, Class< ? > returnType) {
       boolean mayUseRawArgs = true;      
       
       Call call = null;
@@ -158,7 +212,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if (arg instanceof Expression) {
           argTypes.add( ((Expression<?>)arg).getType());
         }
-        else {
+        else if ( arg == null ) {
+          argTypes.add( null );
+        } else {
             argTypes.add( arg.getClass() );
         }
       }
@@ -166,7 +222,11 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       ArrayList<Class<?>> rawArgTypes = new ArrayList<Class<?>>();
       // Get the raw argument types:
       for (Object arg : rawArguments) {
-        rawArgTypes.add( arg.getClass() );
+        if ( arg == null ) {
+          rawArgTypes.add( null );
+        } else {
+          rawArgTypes.add( arg.getClass() );
+        }
       }
 
       // Caching place where method was found instead of the resulting call
@@ -197,8 +257,10 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         }
       }
       
-      // 1.
+      // @@@@@@@@@@   1   @@@@@@@@@@@
       
+      // 1. The current model class, ie EmsSystemModel (assume its a FunctionCall)
+
       if ( debug ) System.out.println("^^^^^^^^^^^^  1  ^^^^^^^^^^^^^^^");
       
 //        if ( operationName.equals( "evaluate" ) ) {
@@ -219,8 +281,13 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         }
         
         if ( method != null ) {
-          call = new TranslatedFunctionCall<P>( object, method, aeArguments, this );
-          if ( call != null ) call.alternativeArguments.add( rawArguments );
+          if ( object == null ) {
+            object = model;
+          }
+          Class<?> retType = returnType == null ? method.getReturnType() : returnType;
+          call = new TranslatedFunctionCall<P>( object, method, aeArguments, retType, this );
+          // alternativeArguments are deprecated
+          //if ( call != null ) call.alternativeArguments.add( rawArguments );
         }
         
 //          // Check to see if there is a preference over function calls.
@@ -267,7 +334,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      }
      
 
-     // 2.
+     // @@@@@@@@@@   2   @@@@@@@@@@@
+
+     // 2. The view_repo.syml package (assume its a ConstructorCall or FunctionCall)
 
      if ( method == null && call == null
          && ( callCase == CallCase.UNKNOWN || callCase == CallCase.sysml ) ) {
@@ -276,6 +345,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
        if ( argsUsed != ArgsUsed.raw ) {
            call = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
+                                                                     returnType,
                                                                      aeArguments,
                                                                      argTypes.toArray(new Class[]{}));
            if ( call != null ) call.alternativeArguments.add( rawArguments );
@@ -291,8 +361,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         
         if ( tryRawArgs ) {
           Call call2 = JavaToConstraintExpression.javaCallToEventFunction(operationName.toString(),
-                                                                    rawArguments,
-                                                                    rawArgTypes.toArray(new Class[]{}));
+                                                                          returnType,
+                                                                          rawArguments,
+                                                                          rawArgTypes.toArray(new Class[]{}));
           if ( call2 != null ) {
             // Try it out just to be sure
             usedRawArgs = true;
@@ -317,21 +388,23 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       }
 
      
-      //3.
+     // @@@@@@@@@@   3   @@@@@@@@@@@
+     // 3. The Functions.java and ae.event package (assume its a ConstructorCall)
+
      
       if ( call == null && method == null
           && ( callCase == CallCase.UNKNOWN || callCase == CallCase.ae ) ) {
   
         if ( debug ) System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
         if ( aeArguments.size() == 1 ) {
-            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString(), returnType );
         } 
         else if ( aeArguments.size() == 2 ) {
-            call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+            call = (Call)binaryOpNameToEventFunction( operationName.toString(), returnType );
         } 
         else if ( aeArguments.size() == 3
                     && operationName.toString().equalsIgnoreCase( "if" ) ) {
-            call = JavaToConstraintExpression.getIfThenElseConstructorCall();
+            call = JavaToConstraintExpression.getIfThenElseConstructorCall(returnType);
         }
         
         if ( call != null ) {
@@ -365,7 +438,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       }
       
         
-      // 4.
+      // @@@@@@@@@@   4   @@@@@@@@@@@
+
+      // 4. Common Java classes (assume its a FunctionCall)
         
       if ( call == null && method == null
           && ( callCase == CallCase.UNKNOWN || callCase == CallCase.common ) ) {
@@ -395,7 +470,9 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       }
 
       
-      // 5.
+      // @@@@@@@@@@   5   @@@@@@@@@@@
+
+      // 5. The mbee.util package (assume its a FunctionCall) 
       // Added some of the mbee utils to getJavaMethodForCommonFunction() called
       // just before, so this is part of 4.      
 
@@ -408,8 +485,13 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       // Make the FunctionCall if it was not a ConstructorCall:
       if ( method != null ) {//&& call == null ) {
-        call = new TranslatedFunctionCall( object, method, usedRawArgs ? rawArguments : aeArguments, this );
-        call.alternativeArguments.add(usedRawArgs ? aeArguments : rawArguments);
+        Class<?> retType = returnType == null ? method.getReturnType() : returnType;
+        if ( call == null ) {
+          call = new TranslatedFunctionCall( object, method, usedRawArgs ? rawArguments : aeArguments, retType, this );
+//        } else if ( !(call instanceof TranslatedCall) ) {          
+        }
+        // alternativeArguments deprecated
+        //call.alternativeArguments.add(usedRawArgs ? aeArguments : rawArguments);
       }
       
       if ( call instanceof ConstructorCall && !( call instanceof TranslatedConstructorCall ) ) {
@@ -439,6 +521,31 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
     }
   
     
+//    protected TranslatedCall binaryOpNameToEventFunction( String string,
+//                                              Class< ? > returnType ) {
+  public < T, R > TranslatedConstructorCall<P>
+      binaryOpNameToEventFunction( String fName, Class< ? > returnType ) {
+    Class< ? extends Functions.Binary< T, R > > cls = null;
+    cls = JavaToConstraintExpression.binaryOpNameToFunctionClass( fName );
+    if ( cls == null ) {
+      if ( Debug.isOn() ) {
+        Debug.error( "javaBinaryOpToEventFunction( " + fName
+                     + "): no function found!" );
+      }
+      return null;
+    }
+    TranslatedConstructorCall<P> ctorCall =
+        new TranslatedConstructorCall<P>( null, cls,
+                             new Object[] { JavaToConstraintExpression.emptyExpression,
+                                            JavaToConstraintExpression.emptyExpression },
+                             returnType, this );
+    return ctorCall;
+  }
+
+//      // TODO Auto-generated method stub
+//      return null;
+//    }
+
     // This code probably isn't ready. Tried to improve the old one below this
     // one, but decided to abandon before testing.
     private boolean prefersRawArgs( Call call, ArrayList< Class< ? >> argTypes,
@@ -535,9 +642,10 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       Collection<U> argValPropNodes = null;
       Object argValProp = null;
       String type = model.getTypeString((C)argValueNode, (Object) null);
+      Object v = null;
       if ( type.equals("Property") ) {
         // TODO -- deal with collections and arrays instead of just getting one
-        Object v = model.getValue((C)argValueNode, null);
+        v = model.getValue((C)argValueNode, null);
         int ct = 0;
         while ( v != null && v instanceof Collection && ct < 10) {
           Collection<?> c = (Collection<?>)v;
@@ -597,7 +705,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         }
         // Otherwise, will just set the value of the parameter to the node itself:
         else {
-            argValProp = argValueNode;
+            argValProp = v != null ? v : argValueNode;
             argType = "Object";
         }
       }
@@ -632,7 +740,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         
         // Add to map:
         P propNode =  model.asProperty( argValueNode );
-        if (!exprParamMap.containsKey( propNode ) ) {
+        if (propNode != null && !exprParamMap.containsKey( propNode ) ) {
           putExprParamMap( propNode, param );
         }
         
@@ -653,7 +761,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * Returns the node for the passed operand property value.  Mainly needed
      * to process ElementValues.
      */
-    private P getValueOfElement(P operandProp)
+    private P getElementOfElementValue(P operandProp)
     {
       
       P valueOfElementNode = null;
@@ -691,7 +799,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      */
     private N processOperation(P valueOfElementNode,
                                Vector<Expression<?>> arguments,
-                               boolean isOperandArg) {
+                               boolean isOperandArg,
+                               Class< ? > returnType) {
         
         // running example !:
         //   Viewpoint vp exposes exposed and has an Operation vp_op(foo), which 
@@ -739,6 +848,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                             opEmptyArgs.add( new Expression< Object >( (Object)null ) );//new Object() ) );
                         }
                     }
+
+//                    opEmptyArgs.add( returnType );
                     
                     // The object from which the operation is invoked.
                     Object object = null;
@@ -751,21 +862,22 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                     // FunctionCall.
                     if (!Utils.isNullOrEmpty( opExpProps )) {
                       EvaluateOperation evo =
-                          new EvaluateOperation( valueOfElementNode );
+                          new EvaluateOperation( valueOfElementNode, returnType );
                       object = this;
                       operationName = (N)"evaluate";
                       Vector<Object> newArgs = new Vector< Object >();
                       newArgs.add( evo );
                       newArgs.add( opEmptyArgs );//.toArray() );
+                      newArgs.add( returnType );
                       opEmptyArgs = newArgs;
                       //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
                       //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
                       ////call = new OperationFunctionCall( object, arguments );
-                      argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs );
+                      argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs, returnType);//OperationFunctionCall.class );  // TODO not sure about returnType here
 
                     } else {
                       // Create a Call for the argument 
-                      argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs);
+                      argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs, returnType);
                                             
                     }
                     //System.out.println("*******************************************");
@@ -841,8 +953,10 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      */
     public class EvaluateOperation {
         P operation;
-        public EvaluateOperation( P operation ) {
+        Class< ? > returnType;
+        public EvaluateOperation( P operation, Class< ? > returnType ) {
           this.operation = operation;
+          this.returnType = returnType;
         }
 //        public Object evaluate( Object[] sysmlParameters ) {
 //            return null;
@@ -853,7 +967,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 //        Object evaluate( Collection<P> sysmlParameters ) {
 //          List<Object> paramList = Utils.asList( sysmlParameters, Object.class );
           Vector<Object> paramList = new Vector<Object>(Utils.arrayAsList( sysmlArguments ));
-          Object result = operationToAeExpressionImpl( operation, paramList, paramList );//.evaluate(true);
+          Object result = operationToAeExpressionImpl( operation, paramList, paramList, returnType );//.evaluate(true);
           return result;
         }
     }
@@ -868,12 +982,16 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
    */
     public class OperationFunctionCallConstructorCall extends ConstructorCall {
       public OperationFunctionCallConstructorCall( Object object, Vector< Object > arguments ) {
-        super( object, OperationFunctionCall.class, arguments );
+        this( object, arguments, null );
+      }
+      public OperationFunctionCallConstructorCall( Object object, Vector< Object > arguments,
+                                                   Class< ? > returnType  ) {
+        super( object, OperationFunctionCall.class, arguments, returnType );
       }
       @Override
       protected synchronized void sub( int indexOfArg, Object obj ) {
         Vector< Object > args = arguments;
-        if ( args != null && args.size() == 2 && (args.get( 1 ) instanceof Vector || args.get( 1 ) == null || args.get( 1 ).getClass().isArray() ) ) {
+        if ( args != null && (args.size() == 2 || args.size() == 3) && (args.get( 1 ) instanceof Vector || args.get( 1 ) == null || args.get( 1 ).getClass().isArray() ) ) {
           Object innerArgs = args.get( 1 );
           if ( innerArgs instanceof Vector ) {
             args = new Vector<Object>((Vector<Object>)args.get( 1 ));
@@ -905,8 +1023,13 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 //            super( new EvaluateOperation( operation ), EvaluateOperation.class, "evaluate", arguments );
 //        }
 
-        public OperationFunctionCall( Object object, Vector< Object > arguments ) {
-            super( object, EvaluateOperation.class, "evaluate", arguments );
+      public OperationFunctionCall( Object object, Vector< Object > arguments ) {
+        this( object, arguments, null );
+      }
+        public OperationFunctionCall( Object object, Vector< Object > arguments,
+                                      Class< ? > returnType ) {
+            super( object, EvaluateOperation.class, "evaluate", arguments,
+                   returnType );
         }
     }
     
@@ -975,7 +1098,8 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * @param expressionElement The sysml expression to parse
      * @return The converted to AE expression
      */
-    public <X> Expression<X> toAeExpression( Object expressionElement) {
+    public <X> Expression<X> toAeExpression( Object expressionElement,
+                                             Class< ? > expectedType ) {
       
       Expression<X> expression = null;
 
@@ -1002,7 +1126,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // first operand must be the operation
       Iterator< P > it = operands.iterator();
       
-      P operation = getValueOfElement(it.next());
+      P operation = getElementOfElementValue(it.next());
       Object operationObj = operation;
       String opLiteralString = getOperationLiteralString( operation );
       if ( opLiteralString != null ) operationObj = opLiteralString;
@@ -1015,25 +1139,27 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         
         // This will return the value of the element that is referenced by rawArg
         // if rawArg is an ElementValue. So, if rawArg points to a Property, the
-        // property value is added to arguments.
-        arguments.add( elementArgumentToAeExpression( rawArg ) );
+        // property value is added to arguments.  Since we don't know th
+        arguments.add( elementArgumentToAeExpression( rawArg, (Class<?>)null ) );
         
         // Get the elementValueOfElement from the ElementValue if that's what this
         // is. So, if rawArg references a Property, the Property is added to
         // rawArgs.
-        Object arg = getValueOfElement(rawArg);
+        Object arg = getElementOfElementValue(rawArg);
         if ( arg == null ) arg = rawArg;
 
         rawArgs.add( arg );
       }
 
       // System.out.println( "\ntoAeExpression(" + expressionElement + ") = operationToAeExpressionImpl(" + operation + ", " + arguments + ")" );
-      return operationToAeExpressionImpl( operationObj, arguments, rawArgs );
+      return operationToAeExpressionImpl( operationObj, arguments, rawArgs,
+                                          expectedType );
     }
 
     protected <X> Expression<X> operationToAeExpressionImpl( Object operation,
                                                              Vector< Object > aeArgs,
-                                                             Vector< Object > rawArgs ) {
+                                                             Vector< Object > rawArgs,
+                                                             Class< ? > returnType ) {
       Expression<X> expression = null;
       // If the operation is a SysML Operation, call operationToAeExpression2() to get the expression.
       String operationType = null;
@@ -1048,7 +1174,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
         // Replace the parameters with the arguments.
         if ( !Utils.isNullOrEmpty( opExpProps ) ) {
-          Expression< X > opExpression = toAeExpression( opExpProps.iterator().next() );
+          Expression< X > opExpression = toAeExpression( opExpProps.iterator().next(), returnType );
           if ( !Utils.isNullOrEmpty( opParamProps ) ) {
             Iterator< Object > it = aeArgs.iterator();
             // TODO -- Check to see if last Parameter is for a variable number of arguments!
@@ -1084,7 +1210,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // other implementations that may be intended.
       if ( expression == null || ( expression.expression == null && expression.form != Form.Value ) ) {
         N operationName = getOperationName( operation );
-        Call call = createCall(null, operationName, aeArgs, rawArgs );
+        Call call = createCall(null, operationName, aeArgs, rawArgs, returnType );
         expression = new Expression( call ); // FIXME what to do if call is null?
         //expression = new Expression( call.evaluate( false ) ); // This breaks test case 22
       }
@@ -1098,11 +1224,11 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * @param arg
      * @return
      */
-    public Expression<?> elementArgumentToAeExpression( P arg ) { // Why is this P and not T??
+    public <T> Expression<T> elementArgumentToAeExpression( P arg, Class< T > expectedType ) { // Why is this P and not T??
       
       String typeString = null;
       
-      if ( arg == null) return new Expression<Object>( (Object)null, Object.class );
+      if ( arg == null) return new Expression<T>( (T)null, expectedType );
       
       // Handle special case of expose parameter value, which is a collection of EmsScriptNode
       // If it is not this special case, then get its type:
@@ -1110,16 +1236,17 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       if (!Collection.class.isAssignableFrom(arg.getClass())) {
 
         // Get the valueOfElementProperty node:
-        arg = getValueOfElement(arg);
+        arg = getElementOfElementValue(arg);
   
         typeString = model.getTypeString((C)arg, null);
       
       }
       
-      // If the typeString is null, then create a Parameter for it 
+    // If the typeString is null, then create a Parameter or value Expression
+    // for it.
       if (typeString == null) {
         // The argument name needs to be unique, so we'll use the identifier.
-        return elementValueToAeExpression(arg, "" + model.getIdentifier((C)arg), null);
+        return (Expression< T >)elementValueToAeExpression(arg, "" + model.getIdentifier((C)arg), null);
       }
       
       // If it is an Operation, then it may be meant as a function pointer for
@@ -1127,11 +1254,11 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       else if (typeString.equals("Operation")) {
 
         Vector<Expression<?> > v = new Vector< Expression<?> >();
-        processOperation( arg, v, true);
+        processOperation( arg, v, true, expectedType );
         
         if ( !Utils.isNullOrEmpty( v ) ) {
           //System.out.println( "\nelementArgumentToAeExpression(" + arg + ") = " + v.firstElement() );
-          return v.firstElement();
+          return (Expression< T >)v.firstElement();
         }
         else {
           Debug.error( true, true,
@@ -1142,7 +1269,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       
       else if (typeString.equals("Expression")) {
         //System.out.println( "\nelementArgumentToAeExpression(" + arg + ") = toAeExpression(" + arg +  ")" );
-        return toAeExpression(arg);
+        return toAeExpression(arg, expectedType);
       }
                   
       // All other cases failed, then just create a Parameter for
@@ -1170,7 +1297,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if ( !model.getElementClass().isInstance( argValueNode ) ) {
           argValueNode = arg;
         }
-        return elementValueToAeExpression(argValueNode, argName, typeString);
+        return (Expression< T >)elementValueToAeExpression(argValueNode, argName, typeString);
                   
 //      } else {
 //        // Get the argument Node:
@@ -1226,12 +1353,15 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       Iterator< Object > it = parameterValues.iterator();
       Vector< Object > args = new Vector< Object >();
       while (it.hasNext() ) {
-        args.add( elementArgumentToAeExpression( (P)it.next() ) ); // FIXME dont like warning, also this is a Collection<EmsScriptNodes> which our methods are not equipped for
+        Class< Object > argType = null;  // TODO -- What are the parameter types defined for the operation?
+        // FIXME don't like warning; also this is a Collection<EmsScriptNodes> for which our methods are not equipped.
+        args.add( elementArgumentToAeExpression( (P)it.next(), argType ) );
       }
       
+      Class< Object > returnType = null;  // TODO -- Try to get the return type from the operationElement.
       return operationToAeExpressionImpl( (P)operationElement, // FIXME dont like warning
                                           args,
-                                          parameterValues );
+                                          parameterValues, returnType );
 
    }
     
@@ -1261,6 +1391,52 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
     public void setClassData( ClassData classData ) {
       this.classData = classData;
+    }
+    
+    // TODO -- Remove if not needed.
+    private ParameterListenerImpl getTheClass() {
+      // Get class
+      Map< String, ParameterListenerImpl > classes = getClassData().getAeClasses();
+      ParameterListenerImpl theClass = classData.getCurrentAeClass();
+      if ( Utils.isNullOrEmpty( classes ) ) {
+          String msg = "No classes to hold constraints!";
+          //logger.warn( msg );
+          Debug.error( msg );
+      } else {
+          int numParams = -1;
+          boolean tie = false;
+          for ( ParameterListenerImpl c : classes.values() ) {
+              if ( c == null ) continue;
+              int thisNumParams = c.getParameters().size();
+              tie = thisNumParams < numParams ? tie : thisNumParams == numParams;
+              if ( thisNumParams > numParams ) {
+                  numParams = thisNumParams;
+                  theClass = c;
+              }
+          }
+          if ( classes.size() > 1 ) {
+              String msg = "Multiple classes to hold constraints! " + classes
+                           + "; choosing one with " + numParams
+                           + " parameters: " + theClass;
+              Debug.error( tie, msg );
+          }
+      }
+      return theClass; 
+
+    }
+
+    /**
+     * @return the solvingNow
+     */
+    public boolean isSolvingNow() {
+      return solvingNow;
+    }
+
+    /**
+     * @param solvingNow the solvingNow to set
+     */
+    public void setSolvingNow( boolean solvingNow ) {
+      this.solvingNow = solvingNow;
     }
 
 }

@@ -44,18 +44,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
+  protected Class<?> returnType = null;
   protected Vector< Object > arguments = null; // arguments to constructor
   public Vector< Vector< Object > > alternativeArguments = new Vector< Vector< Object > >(); // arguments to member if the default arguments don't work.
   protected Object[] evaluatedArguments = null; // arguments to constructor
   protected boolean evaluationSucceeded = false;
-  private boolean stale = true;
-  protected boolean alwaysStale = false;
-  
-  protected Object returnValue = null;  // a cached value
 
+  protected boolean stale = true;
+  protected boolean alwaysStale = false;
+
+  protected Object returnValue = null;  // a cached value
+  
   protected boolean proactiveEvaluation = false;
   
-  abstract public Class< ? > getReturnType();
   abstract public Class<?>[] getParameterTypes();
   abstract public Member getMember();
   abstract public Object invoke( Object obj, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException;
@@ -63,7 +64,33 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   abstract public boolean isStatic();
   abstract public Call clone();
   
+  // Hook to externally preprocess arguments for proper parameter type matching.
+  public static interface ArgHelper {
+    public void helpArgs( Call call );
+  }
+  public ArgHelper argHelper = null;
+  
   public Call() {}
+ 
+  /**
+   * The type of the object returned by this call.<p>
+   * This will likely need to be redefined in subclasses. 
+   * 
+   * @return the return type
+   */
+  public Class< ? > getReturnType() {
+    return returnType;
+  }
+
+  /**
+   * Set the type of the object returned by this call.
+   * 
+   * @param returnType the new return type
+   */
+  public void setReturnType( Class< ? > returnType ) {
+    this.returnType = returnType;
+  }
+
   
   public Class< ? > getObjectType() {
     if ( getMember() == null ) return null;
@@ -71,6 +98,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return getMember().getDeclaringClass();
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Deconstructable#deconstruct()
+   */
   @Override
   public synchronized void deconstruct() {
     if ( nestedCall != null ) {
@@ -85,7 +115,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
           ((Expression<?>)a).deconstruct();
-        } else if ( a instanceof Parameter ) {
+        } else if ( a instanceof Parameter ) { // TODO - check this first and then check if Deconstructable.
           if ( ( (Parameter<?>)a ).getOwner() == null ) {
             ( (Parameter<?>)a ).deconstruct();
           }
@@ -94,6 +124,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       this.arguments.clear();
       //arguments = null;
     }
+    this.returnValue = null;
+    this.evaluatedArguments = null;
+    this.argHelper = null;
+    this.alternativeArguments.clear();
     this.object = null; // Can't deconstruct since Call does not own it.
     setStale( true );
 //    if ( evaluatedArguments != null ) {
@@ -307,6 +341,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+    if ( returnValue != null && !isStale() && isGrounded( propagate, null ) ) {
+      evaluationSucceeded = true;
+      return returnValue;
+    }
+    returnValue = null;
+
     return evaluate(propagate, true);
   }
   
@@ -315,7 +355,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   // TODO -- consider an abstract Call class
   public synchronized Object evaluate( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
     Object result = null;
+    
+    // Hook to externally preprocess args for proper parameter type matching.
+    if ( argHelper != null ) {
+      argHelper.helpArgs( this );
+    }
+    
     //result = evaluate( propagate, doEvalArgs, true );
+    //System.out.println("\n####  ####  evaluating Call: " + this);
     if ( Debug.isOn() ) {
       Debug.outln("\n####  ####  evaluating Call: " + this);
     }
@@ -328,6 +375,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     } catch (  InstantiationException e ) {
         throw e;
     } finally {
+//      System.out.println( "####  ####  Call "
+//          + ( didEvaluationSucceed() ? "succeeded" : "failed" )
+//          + ": " + this + "\n" + "####  ####  #### result ---> "
+//          + result + "\n" );
       if ( Debug.isOn() ) {
         Debug.outln( "####  ####  Call "
                      + ( didEvaluationSucceed() ? "succeeded" : "failed" )
@@ -378,12 +429,6 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public synchronized Object evaluateWithSetArguments( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-    if ( returnValue != null && !isStale() && isGrounded( propagate, null ) ) {
-      evaluationSucceeded = true;
-      return returnValue;
-    }
-    returnValue = null;
-
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( getMember() == null ) {
@@ -597,7 +642,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       boolean isVarArg = i >= paramTypes.length-1 && isVarArgs;
       argObjects[i] = evaluateArg(propagate, c, unevaluatedArg, isVarArg, complainIfError);
       //Expression.evaluate( unevaluatedArg, c, propagate, true );
-      if ( complainIfError &&
+      if ( complainIfError && Debug.isOn() &&
           !( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
         Debug.error( false, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
@@ -708,15 +753,33 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( p1 == nestedCall && p2 instanceof Parameter ) {
       nestedCall = (Parameter< Call >)p2; // REVIEW -- If p2 is set to something other than a Call, then this is trouble!
       subbed = true;
-    }
-    if ( HasParameters.Helper.substitute( nestedCall, p1, p2, deep, seen, true ) ) {
+    } else if ( HasParameters.Helper.substitute( nestedCall, p1, p2, deep, seen, true ) ) {
       subbed = true;
     }
+    Object retVal = null;
+    Object[] evalArgs = null;
     if ( subbed ) {
-      this.returnValue = null;
-      setStale(true);
+      clearCache();
+    } else {
+      if ( p1 == returnValue ) {
+        retVal = p2;
+        subbed = true;
+      } else if ( HasParameters.Helper.substitute( evaluatedArguments, p1, p2,
+                                                   deep, seen, true ) ) {
+        evalArgs = evaluatedArguments;
+        subbed = true;
+      }
+      
     }
-    
+    if ( subbed ) {
+      setStale(true);
+      if ( retVal != null ) {
+        returnValue = retVal;
+      }
+      if ( evalArgs != null ) {
+        evaluatedArguments = evalArgs;
+      }
+    }
     return subbed;
   }
 
@@ -729,11 +792,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
     set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
     set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
-    if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
+    //if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen, true ) );
+    set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen, true ) );
 //      set = Utils.addAll( set, nestedCall.getValue().getParameters( deep, seen ) );
-    }
+    //}
+    set = Utils.addAll( set,
+                        HasParameters.Helper.getParameters( returnValue, deep,
+                                                            seen, true ) );
+    set = Utils.addAll( set, 
+                        HasParameters.Helper.getParameters( evaluatedArguments,
+                                                            deep, seen, true ) );
+    
     return set;
   }
 
@@ -916,6 +986,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       sb.append( MoreToString.Helper.toString( arguments, withHash, deep, seen,
                                                otherOptions,
                                                MoreToString.PARENTHESES, true ) );
+      if ( !Utils.isNullOrEmpty( evaluatedArguments ) ) {
+        sb.append( " = " );
+        sb.append( getMember().getName() );
+        sb.append( MoreToString.Helper.toString( evaluatedArguments, withHash,
+                                                 deep, seen, otherOptions ) );
+      }
+      if ( returnValue != null ) {
+        sb.append( " = " + returnValue );
+      }
     }
     return sb.toString();
   }
@@ -955,10 +1034,17 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return false;
   }
 
+  protected void clearCache() {
+    returnValue = null;
+    evaluatedArguments = null;
+  }
+  
   @Override
   public void setStale( boolean staleness ) {
+    if ( staleness ) {
+      clearCache();
+    }
     stale = alwaysStale || staleness;
-    if ( stale ) returnValue = null;
   }
 
   @Override
@@ -1427,9 +1513,30 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).handleValueChangeEvent( parameter );
       }
     }
-    if ( !proactiveEvaluation ) return;
-    if ( hasParameter( parameter, true, null ) ) {
+    if ( object instanceof ParameterListener ) {
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+    }
+    if ( nestedCall instanceof ParameterListener ) {
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+    }
+    if ( evaluatedArguments != null ) {
+      for ( Object o : evaluatedArguments ) {
+        if ( o instanceof ParameterListener ) {
+          ((ParameterListener)o).handleValueChangeEvent( parameter );
+        }
+      }
+    }
+    if ( returnValue instanceof ParameterListener ) {
+      ((ParameterListener)returnValue).handleValueChangeEvent( parameter );
+    }
+    
+    boolean hasParam = false;
+    hasParam = HasParameters.Helper.hasParameter( getArguments(), parameter, true, null, true );
+    hasParam = hasParam || HasParameters.Helper.hasParameter( object, parameter, true, null, true );
+    hasParam = hasParam || HasParameters.Helper.hasParameter( nestedCall, parameter, true, null, true );
+    if ( hasParam || hasParameter( parameter, true, null ) ) {
       setStale(true);
+      if ( !proactiveEvaluation ) return;
       try {
         evaluate( true );
       } catch ( IllegalAccessException e ) {
@@ -1456,6 +1563,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).handleDomainChangeEvent( parameter );
       }
     }
+    // TODO -- do for object, nestedCall, returnValue, and evaluatedArguments.
     if ( !proactiveEvaluation ) return;
     // TODO -- How do we proactively handle this?  evaluate() wouldn't change anything, right? 
   }
@@ -1468,10 +1576,28 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( hasParameter( changedParameter, true, null ) ) {
       setStale(true);
     }
-    // TODO -- This could produce infinite recursion!
+    // TODO -- make a helper for ParameterListener since this should be applied
+    // to Collections, etc. that are not ParameterListerners.
+    // TODO -- This could produce infinite recursion!  Make a helper!
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
         ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+      }
+    }
+    if ( object instanceof ParameterListener ) {
+      ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter );
+    }
+    if ( nestedCall instanceof ParameterListener ) {
+      ( (ParameterListener)nestedCall ).setStaleAnyReferencesTo( changedParameter );
+    }
+    if ( returnValue instanceof ParameterListener ) {
+      ( (ParameterListener)returnValue ).setStaleAnyReferencesTo( changedParameter );
+    }
+    if ( getEvaluatedArguments() != null ) {
+      for ( Object o : getEvaluatedArguments() ) {
+        if ( o instanceof ParameterListener ) {
+          ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+        }
       }
     }
     if ( !proactiveEvaluation ) return;
@@ -1492,6 +1618,23 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).detach( parameter );
       }
     }
+    if ( object instanceof ParameterListener ) {
+      ( (ParameterListener)object ).detach( parameter );
+    }
+    if ( nestedCall instanceof ParameterListener ) {
+      ( (ParameterListener)nestedCall ).detach( parameter );
+    }
+    if ( returnValue instanceof ParameterListener ) {
+      ( (ParameterListener)returnValue ).detach( parameter );
+    }
+    if ( getEvaluatedArguments() != null ) {
+      for ( Object o : getEvaluatedArguments() ) {
+        if ( o instanceof ParameterListener ) {
+          ((ParameterListener)o).detach( parameter );
+        }
+      }
+    }
+
     if ( !proactiveEvaluation ) return;
     // TODO -- How do we proactively handle this?  evaluate() wouldn't change anything, right? 
   }
@@ -1501,17 +1644,24 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   @Override
   public boolean refresh( Parameter< ? > parameter ) {
-    try {
-      evaluate( true );
-    } catch ( IllegalAccessException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( InvocationTargetException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch ( InstantiationException e ) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    // TODO -- REVIEW -- Is thjs necessary? Doesn't the
+    // setStaleAnyReferencesTo() function do this? Or, does it only do it on
+    // value changes, and are there other cases where things become stale and
+    // need to tell the world?
+    if ( hasParameter( parameter, true, null ) ) {
+      setStale(true);
+      try {
+        evaluate( true );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
     return false;
   }
@@ -1540,6 +1690,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( getMember() == null ) return null;
     return getMember().getName();
   }
-
+  
+  @Override
+  public <T> T translate( Variable<T> v , Object o , Class< ? > type  ) {
+    return null;
+  }
 
 }

@@ -54,8 +54,8 @@ public class SystemModelSolver extends HasIdImpl implements Solver, Satisfiable,
   //protected SystemModel< E, C, T, P, N, I, U, R, V, W, CT > model;
   protected Solver solver;  // REVIEW -- something feels weird about this
 
-  protected double timeoutSeconds = 30.0;
-  protected int maxLoopsWithNoProgress = 10;
+  protected double timeoutSeconds = 1800.0;
+  protected int maxLoopsWithNoProgress = 20;
   protected long maxPassesAtConstraints = 1000;
   protected boolean usingTimeLimit = true;
   protected boolean usingLoopLimit = true;

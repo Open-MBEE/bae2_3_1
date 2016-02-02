@@ -64,7 +64,7 @@ import gov.nasa.jpl.mbee.util.Utils;
  */
 public class TranslatedFunctionCall<P> extends FunctionCall implements TranslatedCall {
 
-  //public boolean on = true;
+  public boolean on = true;
   
   protected TranslatedCallHelper<P> translatedCallHelper = null;
   
@@ -86,12 +86,16 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
                                                        throws IllegalAccessException,
                                                        InvocationTargetException,
                                                        InstantiationException {
-    // Make sure the arguments passed into the function are replaced with their
-    // corresponding Parameters where appropriate.
-    translatedCallHelper.parameterizeArguments();
+    if ( on ) {
+      // Make sure the arguments passed into the function are replaced with their
+      // corresponding Parameters where appropriate.
+      translatedCallHelper.parameterizeArguments();
+    }
     Object returnValue = super.evaluate( propagate, doEvalArgs );
-    // Swap in the Parameter corresponding to the returned object if it exists.
-    //returnValue = translatedCallHelper.parameterizeResult(returnValue);
+    if ( on ) {
+      // Swap in the Parameter corresponding to the returned object if it exists.
+      returnValue = translatedCallHelper.parameterizeResult(returnValue);
+    }
     return returnValue;
   }
 
@@ -180,211 +184,278 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
 //  }
 
   
+  @Override
+  public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter) {
+    if ( on ) {
+      translatedCallHelper.setStaleAnyReferencesTo( changedParameter );
+    }
+    super.setStaleAnyReferencesTo( changedParameter );
+  };
+  
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
-    //this.systemModelToAeExpression = sysmlToAeExpression;
     this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );
   }
 
-  public TranslatedFunctionCall( Object object,
-                                 Method method,
-                                 Vector< Object > aeArguments,
+  /**
+   * @param cls
+   * @param methodName
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Class< ? > cls, String methodName,
+                                 Class< ? > returnType,
                                  SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super(object, method, aeArguments);
-    init( systemModelToAeExpression );
-  }
-  
-  /**
-   * @param method
-   */
-  public TranslatedFunctionCall( Method method, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( method );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param cls
-   * @param methodName
-   */
-  public TranslatedFunctionCall( Class< ? > cls, String methodName, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( cls, methodName );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param method
-   */
-  public TranslatedFunctionCall( Object object, Method method, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, method );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   * @param arguments
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
-                            Vector< Object > arguments, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName, arguments );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param method
-   * @param arguments
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Method method,
-                            Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, method, arguments, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param method
-   * @param arguments
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Method method,
-                            Vector< Object > arguments,
-                            Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, method, arguments, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   * @param arguments
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
-                            Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName, arguments, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   * @param arguments
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
-                            Vector< Object > arguments,
-                            Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName, arguments, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param method
-   * @param argumentsA
-   */
-  public TranslatedFunctionCall( Object object, Method method, Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, method, argumentsA );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   * @param argumentsA
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
-                            Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName, argumentsA );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param method
-   * @param argumentsA
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Method method, Object[] argumentsA,
-                            Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, method, argumentsA, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param method
-   * @param argumentsA
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Method method, Object[] argumentsA,
-                            Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, method, argumentsA, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   * @param argumentsA
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
-                            Object[] argumentsA, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName, argumentsA, nestedCall );
-    init( systemModelToAeExpression );
-  }
-
-  /**
-   * @param object
-   * @param cls
-   * @param methodName
-   * @param argumentsA
-   * @param nestedCall
-   */
-  public TranslatedFunctionCall( Object object, Class< ? > cls, String methodName,
-                            Object[] argumentsA, Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, methodName, argumentsA, nestedCall );
+    super( cls, methodName, returnType );
     init( systemModelToAeExpression );
   }
 
   /**
    * @param e
    */
-  public TranslatedFunctionCall( FunctionCall e, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+  public TranslatedFunctionCall( FunctionCall e,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
     super( e );
     init( systemModelToAeExpression );
   }
 
-//  /**
-//   * @return the originalArguments
-//   */
-//  public Vector< Object > getOriginalArguments() {
-//    return originalArguments;
-//  }
-//
-//  /**
-//   * @param originalArguments the originalArguments to set
-//   */
-//  public void setOriginalArguments( Vector< Object > originalArguments ) {
-//    this.originalArguments = originalArguments;
-//  }
+  /**
+   * @param method
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Method method, Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( method, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param argumentsA
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Object[] argumentsA,
+                                 Call nestedCall, Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, argumentsA, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param argumentsA
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Object[] argumentsA,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, argumentsA, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param argumentsA
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Object[] argumentsA,
+                                 Parameter< Call > nestedCall,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, argumentsA, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param arguments
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Vector< Object > arguments,
+                                 Call nestedCall, Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, arguments, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param arguments
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Vector< Object > arguments,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, arguments, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param cls
+   * @param methodName
+   * @param arguments
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Class< ? > cls,
+                                 String methodName, Vector< Object > arguments,
+                                 Parameter< Call > nestedCall,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, methodName, arguments, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param argumentsA
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Object[] argumentsA, Call nestedCall,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, argumentsA, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param argumentsA
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Object[] argumentsA, Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, argumentsA, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param argumentsA
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Object[] argumentsA,
+                                 Parameter< Call > nestedCall,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, argumentsA, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param arguments
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Vector< Object > arguments, Call nestedCall,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, arguments, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param arguments
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Vector< Object > arguments,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, arguments, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  /**
+   * @param object
+   * @param method
+   * @param arguments
+   * @param nestedCall
+   * @param returnType
+   */
+  public TranslatedFunctionCall( Object object, Method method,
+                                 Vector< Object > arguments,
+                                 Parameter< Call > nestedCall,
+                                 Class< ? > returnType,
+                                 SystemModelToAeExpression< ?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, method, arguments, nestedCall, returnType );
+    init( systemModelToAeExpression );
+  }
+
+  @Override
+  public TranslatedCallHelper< ? > getTranslatedCallHelper() {
+    return translatedCallHelper;
+  }
+
+  /**
+   * @return the on
+   */
+  @Override
+  public boolean isOn() {
+    return on;
+  }
+
+  /**
+   * @param on the on to set
+   */
+  @Override
+  public void setOn( boolean on ) {
+    this.on = on;
+  }
 
 }

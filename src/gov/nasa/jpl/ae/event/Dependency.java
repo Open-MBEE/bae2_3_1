@@ -708,4 +708,10 @@ public class Dependency< T > extends HasIdImpl
     return null;
   }
 
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+
+
 }
