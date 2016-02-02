@@ -1486,7 +1486,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   public Call getCallForThisMethod(Object...args) {
     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-    FunctionCall c = new FunctionCall( null, getClass(), methodName, args );
+    FunctionCall c = new FunctionCall( null, getClass(), methodName, args, (Class<?>)null );
     return c;
   }
 
@@ -1501,7 +1501,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         e.printStackTrace();
       }
     }
-    FunctionCall c = new FunctionCall( null, cls, methodName, args );
+    FunctionCall c = new FunctionCall( null, cls, methodName, args, (Class<?>)null );
     return c;
   }
 
@@ -4111,5 +4111,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public boolean wasApplied( Effect effect ) {
     return !appliedSet.add(effect);
   }
+
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+
 
 }

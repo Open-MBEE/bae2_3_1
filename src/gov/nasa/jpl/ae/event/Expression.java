@@ -738,8 +738,14 @@ public class Expression< ResultType > extends HasIdImpl
     return compare;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.LazyUpdate#isStale()
+   */
   @Override
   public boolean isStale() {
+    if ( expression instanceof LazyUpdate ) {
+      return ((LazyUpdate)expression).isStale();
+    }
     for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) return true;
     }
@@ -1179,6 +1185,11 @@ public class Expression< ResultType > extends HasIdImpl
     if ( expression instanceof ParameterListener ) {
       return ( (ParameterListener)expression ).getName();
     }
+    return null;
+  }
+
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
     return null;
   }
 

@@ -58,7 +58,7 @@ public class Functions {
     public SuggestiveFunctionCall( //Method isGroundedMethod,
                                    Object object, Method method,
                                    Object[] arguments ) {
-      super( object, method, arguments );
+      super( object, method, arguments, (Class<?>)null );
       //if 
     }
 
@@ -140,7 +140,7 @@ public class Functions {
       if ( singleValueFcn == null ) return null;
       return new FunctionCall(null,
                               ClassUtils.getMethodsForName( Utils.class, "newList" )[0],
-                              new Object[] { singleValueFcn } );
+                              new Object[] { singleValueFcn }, (Class<?>)null );
     }
 
     /**
@@ -199,7 +199,7 @@ public class Functions {
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
-                            getArgumentArray() );
+                            getArgumentArray(), (Class<?>)null );
       Vector< Object > args = new Vector<Object>( //functionCall.
           getArgumentVector() );
       Collections.reverse( args );
@@ -207,7 +207,7 @@ public class Functions {
       reversePickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod2 ),
-                            args.toArray() );
+                            args.toArray(), (Class<?>)null );
     }
 
     public Binary( Object o1, Object o2, String functionMethod,
@@ -317,7 +317,7 @@ public class Functions {
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
-                            getArgumentArray() );
+                            getArgumentArray(), (Class<?>)null );
       Vector< Object > args = new Vector<Object>( //functionCall.
           getArgumentVector() );
       Collections.reverse( args );
@@ -1286,7 +1286,7 @@ public class Functions {
     public FunctionCall inverse( Object returnValue, Object arg ) {
       FunctionCall f =
           new FunctionCall( this, getClass(), "invert",
-                            new Object[] { returnValue, arg } );
+                            new Object[] { returnValue, arg }, (Class<?>)null );
       return f;
     }
 
@@ -2213,13 +2213,15 @@ public class Functions {
 //    return b;
   }
   
-  protected static <T> Boolean eq( T r1, T r2 ) {
-    if ((r1 ==null) && (r2 == null)){
-      Debug.outln( "" );
-    }
-    if ( r1 == r2 ) return true;
-    if ( r1 == null || r2 == null ) 
-      return false;
+  protected static <T> Boolean eq( T r1, T r2 ) {    
+    if ( Expression.valuesEqual( r1, r2, null, true, true )) return true;
+    if ( Utils.valuesLooselyEqual( r1, r2, true ) ) return true;
+//    if ((r1 ==null) && (r2 == null)){
+//      Debug.outln( "" );
+//    }
+//    if ( r1 == r2 ) return true;
+//    if ( r1 == null || r2 == null ) 
+//      return false;
     boolean b = false;
     b = CompareUtils.compare( r1, r2, false ) == 0;
     if ( !b ) {

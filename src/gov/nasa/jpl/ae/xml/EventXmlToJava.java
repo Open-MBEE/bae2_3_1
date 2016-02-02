@@ -1775,7 +1775,7 @@ public class EventXmlToJava {
 //      MethodCallExpr mcExpr = (MethodCallExpr)expr;
 
       JavaForFunctionCall jffc = new JavaForFunctionCall( expressionTranslator, expr, true,
-                                                          packageName );
+                                                          packageName, (Class<?>)null );
 
       int myNum = counter++;
       String effectName = "effect" + myNum;
