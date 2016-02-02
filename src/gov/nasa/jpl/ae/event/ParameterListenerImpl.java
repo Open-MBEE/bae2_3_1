@@ -1321,4 +1321,12 @@ public class ParameterListenerImpl extends HasIdImpl
     return num;
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#translate(gov.nasa.jpl.ae.solver.Variable, java.lang.Object, java.lang.Class)
+   */
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+  
 }

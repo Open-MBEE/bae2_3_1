@@ -73,4 +73,16 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * @return a name
    */
   public String getName();
+  
+  /**
+   * Adjust the value assigned to a variable to make sure it is in in the
+   * domain.
+   * 
+   * @param v the variable whose value is to be assigned
+   * @param o the object to translate
+   * @param type the variable's type
+   * @return the new value to use instead of the object passed in
+   */
+  public <T> T translate( Variable<T> v, Object o, Class< ? > type  );  // HACK -- remove this if possible
+
 }

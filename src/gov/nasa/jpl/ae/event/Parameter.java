@@ -330,6 +330,17 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     } catch ( ClassCastException cce ) {
       cce.printStackTrace();
     }
+    if ( val != null && owner != null ) {
+      Object newVal = owner.translate(this, val, getType());
+      if ( Debug.isOn() ) {
+        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+      }
+      if ( newVal != null ) val = (T)newVal;
+    } else {
+      if ( Debug.isOn() ) {
+        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
+      }
+    }
     boolean changing = !valueEquals( val );
     if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                      + "): changing = " + changing );
@@ -343,6 +354,15 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
+      }
+      if ( Debug.isOn() ) {
+        if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
+            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        }
+      }
+      if ( Debug.isOn() ) {
+        Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
@@ -783,7 +803,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       try {
         method = getClass().getMethod( "inDomain", (Class< ? >[])null );
         constraintList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                               (Object[])null ) ) );
+                                                               (Object[])null, (Class<?>)null ) ) );
       } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();

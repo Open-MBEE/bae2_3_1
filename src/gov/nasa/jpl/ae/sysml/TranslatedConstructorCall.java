@@ -63,7 +63,7 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
  */
 public class TranslatedConstructorCall<P> extends ConstructorCall implements TranslatedCall {
 
-//  public boolean on = true;
+  public boolean on = true;
   
   protected TranslatedCallHelper<P> translatedCallHelper = null;
   
@@ -81,18 +81,20 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @see gov.nasa.jpl.ae.event.Call#evaluate(boolean, boolean)
    */
   @Override
-  public synchronized
-      Object
-      evaluate( boolean propagate, boolean doEvalArgs )
-                                                       throws IllegalAccessException,
-                                                       InvocationTargetException,
-                                                       InstantiationException {
+  public synchronized Object evaluate( boolean propagate, boolean doEvalArgs )
+      throws IllegalAccessException,
+      InvocationTargetException,
+      InstantiationException {
     // Make sure the arguments passed into the function are replaced with their
     // corresponding Parameters where appropriate.
-    translatedCallHelper.parameterizeArguments();
+    if ( on ) {
+      translatedCallHelper.parameterizeArguments();
+    }
     Object returnValue = super.evaluate( propagate, doEvalArgs );
     // Swap in the Parameter corresponding to the returned object if it exists.
-    //returnValue = translatedCallHelper.parameterizeResult(returnValue);
+    if ( on ) {
+      returnValue = translatedCallHelper.parameterizeResult(returnValue);
+    }
     return returnValue;
   }
 
@@ -222,6 +224,44 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
 //    return isParam;
 //  }
 
+  
+  @Override
+  public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    
+    Object result = super.invoke( evaluatedObject, evaluatedArgs );
+
+    if ( !on ) return result;
+    
+    // If the result is a Call, add an ArgHelper to it to handle its arguments.
+    if ( result instanceof Call && !(result instanceof TranslatedCall ) ) {
+      Call call = (Call)result;
+      call.argHelper = new ArgHelper() {
+
+        @Override
+        public void helpArgs( Call call ) {
+          TranslatedCall tCall = translatedCallHelper.makeTranslatedCall( call );
+          try {
+            ((TranslatedCall)tCall).getTranslatedCallHelper().parameterizeArguments();
+            call.setEvaluatedArguments( tCall.getEvaluatedArguments() );
+          } catch ( Exception e ) {
+            e.printStackTrace();
+          }
+        }
+          
+      };
+    }
+    return result;
+  }
+
+  
+  @Override
+  public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter) {
+    
+    translatedCallHelper.setStaleAnyReferencesTo( changedParameter );
+    super.setStaleAnyReferencesTo( changedParameter );
+  };
+  
+  
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
     //this.systemModelToAeExpression = sysmlToAeExpression;
     this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );
@@ -230,8 +270,10 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
   /**
    * @param cls
    */
-  public TranslatedConstructorCall( Class< ? > cls, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( cls );
+  public TranslatedConstructorCall( Class< ? > cls,
+                                    Class<?> returnType,
+                                    SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( cls, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -239,8 +281,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
   /**
    * @param constructor
    */
-  public TranslatedConstructorCall( Constructor< ? > constructor, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( constructor );
+  public TranslatedConstructorCall( Constructor< ? > constructor, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( constructor, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -266,8 +308,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @param nestedCall
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls,
-                                    Object[] argumentsA, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, argumentsA, nestedCall );
+                                    Object[] argumentsA, Call nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, argumentsA, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -280,8 +322,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls,
                                     Object[] argumentsA,
-                                    Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, argumentsA, nestedCall );
+                                    Parameter< Call > nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, argumentsA, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -292,8 +334,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @param argumentsA
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls,
-                                    Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, argumentsA );
+                                    Object[] argumentsA, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, argumentsA, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -305,8 +347,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @param nestedCall
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls,
-                                    Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, arguments, nestedCall );
+                                    Vector< Object > arguments, Call nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, arguments, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -319,8 +361,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls,
                                     Vector< Object > arguments,
-                                    Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, arguments, nestedCall );
+                                    Parameter< Call > nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, arguments, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -331,8 +373,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @param arguments
    */
   public TranslatedConstructorCall( Object object, Class< ? > cls,
-                                    Vector< Object > arguments, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls, arguments );
+                                    Vector< Object > arguments, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, arguments, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -341,8 +383,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @param object
    * @param cls
    */
-  public TranslatedConstructorCall( Object object, Class< ? > cls, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, cls );
+  public TranslatedConstructorCall( Object object, Class< ? > cls, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, cls, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -356,8 +398,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
   public TranslatedConstructorCall( Object object,
                                     Constructor< ? > constructor,
                                     Object[] argumentsA,
-                                    ConstructorCall nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor, argumentsA, nestedCall );
+                                    ConstructorCall nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, argumentsA, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -371,8 +413,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
   public TranslatedConstructorCall( Object object,
                                     Constructor< ? > constructor,
                                     Object[] argumentsA,
-                                    Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor, argumentsA, nestedCall );
+                                    Parameter< Call > nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, argumentsA, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -384,8 +426,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public TranslatedConstructorCall( Object object,
                                     Constructor< ? > constructor,
-                                    Object[] argumentsA, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor, argumentsA );
+                                    Object[] argumentsA, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, argumentsA, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -398,8 +440,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public TranslatedConstructorCall( Object object,
                                     Constructor< ? > constructor,
-                                    Vector< Object > arguments, Call nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor, arguments, nestedCall );
+                                    Vector< Object > arguments, Call nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, arguments, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -413,8 +455,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
   public TranslatedConstructorCall( Object object,
                                     Constructor< ? > constructor,
                                     Vector< Object > arguments,
-                                    Parameter< Call > nestedCall, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor, arguments, nestedCall );
+                                    Parameter< Call > nestedCall, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, arguments, nestedCall, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -426,8 +468,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public TranslatedConstructorCall( Object object,
                                     Constructor< ? > constructor,
-                                    Vector< Object > arguments, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor, arguments );
+                                    Vector< Object > arguments, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, arguments, returnType );
     init( systemModelToAeExpression );
   }
 
@@ -436,8 +478,8 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    * @param object
    * @param constructor
    */
-  public TranslatedConstructorCall( Object object, Constructor< ? > constructor, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
-    super( object, constructor );
+  public TranslatedConstructorCall( Object object, Constructor< ? > constructor, Class< ? > returnType, SystemModelToAeExpression<?, ?, P, ?, ?, ? > systemModelToAeExpression ) {
+    super( object, constructor, returnType );
     init( systemModelToAeExpression );
   }
   
@@ -453,6 +495,27 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
    */
   public void setOriginalArguments( Vector< Object > originalArguments ) {
     this.originalArguments = originalArguments;
+  }
+
+  @Override
+  public TranslatedCallHelper< ? > getTranslatedCallHelper() {
+    return translatedCallHelper;
+  }
+
+  /**
+   * @return the on
+   */
+  @Override
+  public boolean isOn() {
+    return on;
+  }
+
+  /**
+   * @param on the on to set
+   */
+  @Override
+  public void setOn( boolean on ) {
+    this.on = on;
   }
 
 }
