@@ -754,6 +754,9 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.getInstance()
+    .logForce( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                   + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     // TODO -- REVIEW -- Do nothing?
   }
@@ -1152,6 +1155,8 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    Debug.getInstance().logForce( "@@ setStaleAnyReferencesTo() called from " + this.toShortString() );
+    
     if ( expression instanceof ParameterListener ) {
       ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter );
     }

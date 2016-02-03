@@ -1026,6 +1026,8 @@ public class ParameterListenerImpl extends HasIdImpl
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.getInstance().logForce( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                     + toShortString() );
     // TODO -- REVIEW -- Need anything here?
     assert false;
   }

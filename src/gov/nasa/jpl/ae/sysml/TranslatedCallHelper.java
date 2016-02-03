@@ -14,6 +14,7 @@ import java.util.Vector;
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
+import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.ParameterListener;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.FunctionCall;
@@ -21,6 +22,7 @@ import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
@@ -496,26 +498,107 @@ public class TranslatedCallHelper<P> {
     return isParam;
   }
   
+ 
+  
   /**
    * This checks to see if any argument is the element corresponding to this Parameter.  
    * @param changedParameter
    */
   public <T> void setStaleAnyReferencesTo( Parameter< T > changedParameter ) {
     if ( !on ) return;
+    Call call = (Call)translatedCall;
+
+    Debug.getInstance().logForce( "@@ setStaleAnyReferencesTo() called from " + translatedCall );
+    
+    if ( call.isStaleNoPropagate() ) return;
 
     // get element for parameter if it exists
     P sourceObject =
         systemModelToAeExpression.getElementForAeParameter( new Expression<T>( changedParameter ) );
 
+    Debug.getInstance().logForce( "@@ element for " + changedParameter + " <-- is --> " + sourceObject );
+    
     if ( sourceObject == null ) return;
     
     Vector< Object > args = translatedCall.getArguments();
     for ( Object arg : args ) {
-      if ( sourceObject.equals( arg ) ) {
-        ((Call)translatedCall).setStale( true );
+      Debug.getInstance().logForce( "@@ checking arg " + arg );
+      if ( Expression.valuesEqual( sourceObject, arg ) ) {
+        call.setStale( true );
+        return;
       }
     }
+    
+    Debug.getInstance().logForce( "@@ checking returnValue " + call.returnValue );
+    if ( Expression.valuesEqual( sourceObject, call.returnValue ) ) {
+      call.setStale(true);
+      return;
+    }
+    
+//    
+//    //if ( call.returnValue instanceof ParameterListener ) 
+//    if ( call.returnValue != null ) {
+//      if ( call.returnValue.equals( changedParameter ) ) {
+//        call.setStale(true);
+//      }
+//      args.add( ((Call)translatedCall).returnValue );
+//    }
+    if ( call.getEvaluatedArguments() != null ) {
+      for ( Object o : call.getEvaluatedArguments() ) {
+        Debug.getInstance().logForce( "@@ checking evaluatedArg " + o );
+        if ( Expression.valuesEqual( sourceObject, o ) ) {
+          call.setStale(true);
+          return;
+        }        
+      }
+    }
+    
+    
   }
+
+  public Set< Parameter< ? > > getTranslatedParameters( boolean deep,
+                                                        Set< HasParameters > seen ) {
+    Call call = (Call)translatedCall;
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( call, deep, seen );
+    if ( pair.first == true ) return null;
+    
+    Set<Parameter<?>> parameters = new LinkedHashSet< Parameter<?> >();
+    Parameter< ? > param = null;
+    for ( Object arg : call.getArguments() ) {
+      param = propertyToParameter( arg );
+      if ( param != null ) parameters.add( param );
+    }
+    param = propertyToParameter( call.getObject() );
+    if ( param != null ) parameters.add( param );
+    param = propertyToParameter( call.getNestedCall() );
+    if ( param != null ) parameters.add( param );
+    param = propertyToParameter( call.returnValue );
+    if ( param != null ) parameters.add( param );
+    param = propertyToParameter( call.returnValue );
+    if ( param != null ) parameters.add( param );
+    if ( call.getEvaluatedArguments() != null ) {
+      for ( Object arg : call.getEvaluatedArguments() ) {
+        param = propertyToParameter( arg );
+        if ( param != null ) parameters.add( param );
+      }
+    }
+    return parameters;
+  };
+  
+
+  public Parameter< ? > propertyToParameter( Object arg ) {
+    if ( systemModelToAeExpression.model.getPropertyClass().isInstance( arg ) ) {
+      P p = systemModelToAeExpression.model.asProperty( arg );
+      Expression< ? > e = p == null ? null : 
+          systemModelToAeExpression.elementArgumentToAeExpression( p, (Class<?>)null );
+      if ( e != null && e.form == Form.Parameter ) {
+        Parameter<?> param = (Parameter< ? >)e.expression;
+        return param;
+      }
+    }
+    return null;
+  }
+  
 
   private Set< P > getProperties() {
     Set< P > properties = new LinkedHashSet< P >();

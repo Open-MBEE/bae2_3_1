@@ -5,11 +5,14 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
+import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.mbee.util.ClassUtils;
@@ -183,6 +186,14 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
 //    return isParam;
 //  }
 
+  @Override
+  public Set<Parameter<?>> getParameters(boolean deep, Set<HasParameters> seen) {
+    Set<Parameter<?>> parameters = super.getParameters( deep, seen );
+    Set<Parameter<?>> more = translatedCallHelper.getTranslatedParameters( deep, seen );
+    if ( more != null ) parameters.addAll( more );
+    return parameters;
+  };
+  
   
   @Override
   public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter) {

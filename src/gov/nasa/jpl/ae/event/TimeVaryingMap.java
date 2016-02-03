@@ -184,6 +184,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
     @Override
     public void setStale( boolean staleness ) {
+      Debug.getInstance()
+      .logForce( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                     + toShortString() );
       Assert.assertTrue( "This method is not supported!", false );
     }
 
@@ -890,6 +893,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   @Override
   public void setStale( boolean staleness ) {
+      Debug.getInstance()
+      .logForce( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                     + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     Assert.assertTrue( "This method is not supported!", false );
   }

@@ -5,12 +5,14 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
+import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.mbee.util.ClassUtils;
@@ -256,12 +258,20 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
   
   @Override
   public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter) {
-    
     translatedCallHelper.setStaleAnyReferencesTo( changedParameter );
     super.setStaleAnyReferencesTo( changedParameter );
   };
   
+
+  @Override
+  public Set<Parameter<?>> getParameters(boolean deep, Set<HasParameters> seen) {
+    Set<Parameter<?>> parameters = super.getParameters( deep, seen );
+    Set<Parameter<?>> more = translatedCallHelper.getTranslatedParameters( deep, seen );
+    if ( more != null ) parameters.addAll( more );
+    return parameters;
+  };
   
+
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
     //this.systemModelToAeExpression = sysmlToAeExpression;
     this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );

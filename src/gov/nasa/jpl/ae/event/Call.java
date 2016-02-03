@@ -53,7 +53,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected boolean stale = true;
   protected boolean alwaysStale = false;
 
-  protected Object returnValue = null;  // a cached value
+  public Object returnValue = null;  // a cached value
   
   protected boolean proactiveEvaluation = false;
   
@@ -1009,6 +1009,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return false;
   }
   
+  public boolean isStaleNoPropagate() {
+    return stale;
+  }
   @Override
   public boolean isStale() {
     if ( stale ) return true;
@@ -1041,6 +1044,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   @Override
   public void setStale( boolean staleness ) {
+    if ( stale != staleness ) Debug.getInstance()
+                                   .logForce( "setStale(" + staleness + "): "
+                                                  + toShortString() );
+
     if ( staleness ) {
       clearCache();
     }
@@ -1573,6 +1580,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    if ( changedParameter == null ) return;
     if ( hasParameter( changedParameter, true, null ) ) {
       setStale(true);
     }
