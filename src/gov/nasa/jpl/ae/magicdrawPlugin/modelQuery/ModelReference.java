@@ -1990,7 +1990,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
   }
   
   public List< Reference< ? extends T, SM >> getAlternatives() {
-    List< Reference< ? extends T, SM >> castedAlternatives = Utils.newList( );//asList(alternatives);
+    List< Reference< ? extends T, SM >> castedAlternatives = Utils.newEmptyList();//asList(alternatives);
     for ( ModelReference mr : alternatives ) {
       castedAlternatives.add( mr );
     }

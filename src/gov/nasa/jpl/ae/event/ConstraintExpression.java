@@ -142,7 +142,7 @@ public class ConstraintExpression extends Expression< Boolean >
     if ( expression instanceof Suggester ) {
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
-        Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
         setValue( v, newValue );
         return true;
       }
@@ -150,7 +150,7 @@ public class ConstraintExpression extends Expression< Boolean >
 //    }
     // TODO
 //    Set< Variable< ? > > vars = getVariables();
-    Debug.getInstance().logForce( "////////////////////   not picking value for " + v + " in " + this );
+    if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
     return false;//ParameterConstraint.Helper.pickValue( this, v );
   }
 

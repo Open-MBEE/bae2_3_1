@@ -775,8 +775,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public void setStale( boolean staleness ) {
-    if ( stale != staleness ) Debug.getInstance()
-                                   .logForce( "setStale(" + staleness + "): "
+    if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
                                                   + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     if ( name.contains( "effect65Var" ) ) {
