@@ -397,7 +397,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
   
         if ( debug ) System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
         if ( aeArguments.size() == 1 ) {
-            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString(), returnType );
+            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString(), returnType, false );
         } 
         else if ( aeArguments.size() == 2 ) {
             call = (Call)binaryOpNameToEventFunction( operationName.toString(), returnType );

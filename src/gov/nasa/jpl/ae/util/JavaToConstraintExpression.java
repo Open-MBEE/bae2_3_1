@@ -279,10 +279,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   public static < T, R > ConstructorCall
       javaUnaryOpToEventFunction( UnaryExpr.Operator operator, Class< ? > returnType  ) {
     if ( operator == null ) return null;
-    return unaryOpNameToEventFunction( operator.toString(), returnType );
+    return unaryOpNameToEventFunction( operator.toString(), returnType, true );
   }
   public static < T, R > ConstructorCall
-      unaryOpNameToEventFunction( String fName, Class< ? > returnType ) {
+      unaryOpNameToEventFunction( String fName, Class< ? > returnType, boolean complain ) {
     
     String op2func = unaryOperatorSymbolToFunctionName( fName );
     if ( op2func != null ) {
@@ -295,7 +295,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         getFunctionClassOfType(fName, Unary.class);
 
     if ( cls == null ) {
-        Debug.error( "javaUnaryOpToEventFunction( " + fName +
+        Debug.error( complain, complain, "javaUnaryOpToEventFunction( " + fName +
                      "): no function found!" );
         return null;
     }

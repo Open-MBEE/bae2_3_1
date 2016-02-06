@@ -5,17 +5,14 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedHashSet;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
-import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
-import gov.nasa.jpl.ae.util.ClassData;
-import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -202,6 +199,58 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
     }
     super.setStaleAnyReferencesTo( changedParameter );
   };
+  
+  @Override
+  public Object invoke( Object evaluatedObject,  // TODO -- should consider swapping out object, too.
+                        Object[] evaluatedArgs )
+                            throws IllegalArgumentException,
+                            InstantiationException,
+                            IllegalAccessException,
+                            InvocationTargetException {
+    Object result = null;
+    boolean triedTwice = false;
+    try {
+      result = super.invoke( evaluatedObject, evaluatedArgs );
+    } catch ( IllegalArgumentException e ) {
+      try {
+        triedTwice = true;
+        result = backupInvoke(evaluatedObject, evaluatedArgs);
+      } catch ( Throwable t ) {
+        throw e;
+      }
+    } catch ( InvocationTargetException e ) {
+      try {
+        triedTwice = true;
+        result = backupInvoke(evaluatedObject, evaluatedArgs);
+      } catch ( Throwable t ) {
+        throw e;
+      }
+    }
+    if ( !triedTwice && !evaluationSucceeded ) {
+      result = backupInvoke(evaluatedObject, evaluatedArgs);
+    }
+    return result;
+  }
+
+  protected Object backupInvoke( Object evaluatedObject,  // TODO -- should consider swapping out object, too.
+                                 Object[] evaluatedArgs ) {
+    Object result = null;
+    boolean didReverse;
+    try {
+      didReverse = translatedCallHelper.reverseArgs();
+      if ( didReverse ) {
+        Debug.getInstance().logForce( "reversed args for " + this );
+        evaluatedArgs =
+            Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
+        result = super.invoke( evaluatedObject, getEvaluatedArguments() );
+      }
+    } 
+    catch ( ClassCastException e ) {}
+    catch ( IllegalAccessException e ) {}
+    catch ( InvocationTargetException e ) {} 
+    catch ( InstantiationException e ) {}
+    return result;
+  }
   
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
     this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );

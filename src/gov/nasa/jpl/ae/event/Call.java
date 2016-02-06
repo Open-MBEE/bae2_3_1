@@ -428,7 +428,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return result;
   }
   
-  public synchronized Object evaluateWithSetArguments( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+  public synchronized Object evaluateWithSetArguments( boolean propagate,
+                                                       boolean doEvalArgs )
+                                                                       throws IllegalAccessException,
+                                                                       InvocationTargetException,
+                                                                       InstantiationException,
+                                                                       IllegalArgumentException {
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( getMember() == null ) {
@@ -480,7 +485,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
       evaluatedObj = Expression.evaluate( object, cls, propagate, true );
       
-      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs );
+      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs, false );
       
       returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
@@ -519,7 +524,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @param evaluatedArgs
    * @return
    */
-  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs ) {
+  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs, boolean complain ) {
     if ( !isVarArgs() || evaluatedArgs == null ) return evaluatedArgs;
     int paramSize = getParameterTypes().length;
     if ( evaluatedArgs.length < paramSize - 1 ) {
@@ -538,7 +543,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       newArgs[ paramSize - 1 ] = varArgArray;
       return newArgs;
     } catch ( Throwable t ) {
-      t.printStackTrace();
+      if (complain) t.printStackTrace();
       return evaluatedArgs;
     }
   }
@@ -1044,8 +1049,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   @Override
   public void setStale( boolean staleness ) {
-    if ( stale != staleness ) Debug.getInstance()
-                                   .logForce( "setStale(" + staleness + "): "
+    if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
                                                   + toShortString() );
 
     if ( staleness ) {
@@ -1247,7 +1251,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                        int indexOfObjectArgument ) {
       Collection< Object > coll = new ArrayList<Object>();
       try {
-        for ( Object o : objects ) {
+        if ( objects != null ) for ( Object o : objects ) {
             sub( indexOfObjectArgument, o );
             Object result = null;
             result = evaluate(true);

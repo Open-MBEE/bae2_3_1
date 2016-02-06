@@ -364,10 +364,10 @@ public class FunctionCall extends Call {
       }
       //Debug.turnOff();
       throw e;
-    } catch (Exception e ) {
+    } catch ( Exception e ) {
       evaluationSucceeded = false;
       if ( Debug.isOn() ) {
-        Debug.error(true, false, "\nFunctionCall method = " + method.toGenericString());
+        Debug.error(true, false, "\nfailed FunctionCall method = " + method.toGenericString());
         System.err.println( "FunctionCall.invoke " + method.getName() + "("
                             + Utils.toString( evaluatedArgs, false )
                             + "): FunctionCall{" + this + "} " + e.getMessage() + "\n");

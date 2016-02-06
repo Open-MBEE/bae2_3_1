@@ -4,8 +4,6 @@
 package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -15,7 +13,6 @@ import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.HasParameters;
-import gov.nasa.jpl.ae.event.ParameterListener;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
@@ -165,7 +162,63 @@ public class TranslatedCallHelper<P> {
       if ( newEvaluatedArg != null ) translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;      
     }
   }
+  
+  
+  protected boolean reverseArgs() throws ClassCastException,
+                                 IllegalAccessException,
+                                 InvocationTargetException,
+                                 InstantiationException {
+    boolean changed = false;
+    if ( translatedCall.getParameterTypes() == null
+        || !Utils.contains( translatedCall.getParameterTypes(), Object.class ) ) {
+      return false;
+    }
+    if ( translatedCall.getEvaluatedArguments() == null ) return false;
+    changed = replaceArgs(translatedCall.getEvaluatedArguments());
+    if ( !changed
+         && translatedCall.getArguments() != null
+         && translatedCall.getEvaluatedArguments().length == translatedCall.getArguments()
+                                                                           .size() ) {
+      changed = replaceArgs(translatedCall.getArguments().toArray());      
+    }
+    return changed;
+  }
 
+  protected boolean replaceArgs(Object[] args) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    boolean changed = false;
+    for ( int i = 0; i < args.length; ++i ) {
+      Object arg = args[ i ];
+      Parameter<?> parameter = null;
+      Expression<?> paramExpression = null;
+      
+      if ( arg instanceof Parameter ) {
+        parameter = (Parameter<?>)arg;
+        paramExpression = new Expression< Object >( parameter );
+      } else if ( arg instanceof Expression &&
+                  ((Expression<?>)arg).expression instanceof Parameter ) {
+        parameter = (Parameter< ? >)((Expression<?>)arg).expression;
+        paramExpression = (Expression<?>)arg;
+      }
+      
+      if ( parameter != null ) {
+        P sourceObject = 
+            systemModelToAeExpression.getElementForAeParameter( paramExpression );
+        if ( sourceObject != null ) {
+          translatedCall.getEvaluatedArguments()[i] = sourceObject;
+          changed = true;
+        }
+      } else {
+        Object newEvaluatedArg = parameterizeArgument( arg, arg, systemModelToAeExpression.model.getPropertyClass() );
+        if ( newEvaluatedArg != null && newEvaluatedArg != arg ) {
+          translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;
+          changed = true;
+        }
+      }
+      
+    }
+    return changed;
+  }
+  
   protected void replaceCall(Expression<?> expr) {
     if ( !on ) return;
     Call c = null;
@@ -508,7 +561,7 @@ public class TranslatedCallHelper<P> {
     if ( !on ) return;
     Call call = (Call)translatedCall;
 
-    Debug.getInstance().logForce( "@@ setStaleAnyReferencesTo() called from " + translatedCall );
+    Debug.outln( "@@ setStaleAnyReferencesTo() called from " + translatedCall );
     
     if ( call.isStaleNoPropagate() ) return;
 
@@ -516,20 +569,20 @@ public class TranslatedCallHelper<P> {
     P sourceObject =
         systemModelToAeExpression.getElementForAeParameter( new Expression<T>( changedParameter ) );
 
-    Debug.getInstance().logForce( "@@ element for " + changedParameter + " <-- is --> " + sourceObject );
+    Debug.outln( "@@ element for " + changedParameter + " <-- is --> " + sourceObject );
     
     if ( sourceObject == null ) return;
     
     Vector< Object > args = translatedCall.getArguments();
     for ( Object arg : args ) {
-      Debug.getInstance().logForce( "@@ checking arg " + arg );
+      Debug.outln( "@@ checking arg " + arg );
       if ( Expression.valuesEqual( sourceObject, arg ) ) {
         call.setStale( true );
         return;
       }
     }
     
-    Debug.getInstance().logForce( "@@ checking returnValue " + call.returnValue );
+    Debug.outln( "@@ checking returnValue " + call.returnValue );
     if ( Expression.valuesEqual( sourceObject, call.returnValue ) ) {
       call.setStale(true);
       return;
@@ -545,7 +598,7 @@ public class TranslatedCallHelper<P> {
 //    }
     if ( call.getEvaluatedArguments() != null ) {
       for ( Object o : call.getEvaluatedArguments() ) {
-        Debug.getInstance().logForce( "@@ checking evaluatedArg " + o );
+        Debug.outln( "@@ checking evaluatedArg " + o );
         if ( Expression.valuesEqual( sourceObject, o ) ) {
           call.setStale(true);
           return;

@@ -184,8 +184,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
     @Override
     public void setStale( boolean staleness ) {
-      Debug.getInstance()
-      .logForce( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+      Debug.errln( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
                      + toShortString() );
       Assert.assertTrue( "This method is not supported!", false );
     }
