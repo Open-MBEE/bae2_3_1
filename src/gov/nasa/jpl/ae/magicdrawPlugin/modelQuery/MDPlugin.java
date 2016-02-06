@@ -112,8 +112,8 @@ public class MDPlugin extends Plugin {
    */
   @Override
   public boolean close() {
-    Debug.errln("closing " + getClass().getSimpleName() );
-    Debug.outln("closing " + getClass().getSimpleName() );
+    if ( Debug.isOn() ) Debug.errln("closing " + getClass().getSimpleName() );
+    if ( Debug.isOn() ) Debug.outln("closing " + getClass().getSimpleName() );
     return true;
   }
 
@@ -125,8 +125,8 @@ public class MDPlugin extends Plugin {
   @Override
   public void init() {
 //    Debug.turnOn();
-    Debug.errln( "initializing " + getClass().getSimpleName() );
-    Debug.outln( "initializing " + getClass().getSimpleName() );
+    if ( Debug.isOn() ) Debug.errln( "initializing " + getClass().getSimpleName() );
+    if ( Debug.isOn() ) Debug.outln( "initializing " + getClass().getSimpleName() );
 
     acm = ActionsConfiguratorsManager.getInstance();
 

@@ -718,7 +718,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         } else {
           argValProp = argValPropNodes;
         }
-        Debug.outln( "\nargValProp = " + argValProp );
+        if ( Debug.isOn() ) Debug.outln( "\nargValProp = " + argValProp );
       }
       
       if ( elementType != null && (elementType.equals( "Property" ) || elementType.equals( "Parameter" ) ) ) {
@@ -771,9 +771,22 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       //Collection< T > foo = model.getType(model.asContext( operandProp ), null);
       //Collection< P > valueOfElemNodes = 
       //    model.getProperty(model.asContext( operandProp ), "type");
-      Collection< P > valueOfElemNodes = 
-              model.getProperty(model.asContext( operandProp ), "element");
+      String type = model.getTypeString( model.asContext(operandProp),
+                                         null );
+      Collection< P > valueOfElemNodes = null; 
+              //model.getProperty(model.asContext( operandProp ), "element");
+      if ( type.equals( "ElementValue" ) ) {
+        Object o = model.getValue(model.asContext( operandProp ), null );
+        if ( o instanceof Collection ) {
+          valueOfElemNodes = Utils.asList( (Collection< P >)o, model.getPropertyClass(), false );
+        } else if ( model.getPropertyClass().isInstance( o ) && !o.equals( operandProp ) ) {
+          return (P)o;
+        }
+      }
       
+//      if (Utils.isNullOrEmpty(valueOfElemNodes)) {
+//        valueOfElemNodes = model.getProperty(model.asContext( operandProp ), "element");
+//      }
       // If it is a elementValue, then this will be non-empty:
       if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
                       

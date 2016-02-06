@@ -929,7 +929,7 @@ public class ParameterListenerImpl extends HasIdImpl
   @Override
   public void deconstruct() {
     if ( isDeconstructed() ) {
-      Debug.outln( "Attempted to deconstruct a deconstructed ParameterListener: "
+      if ( Debug.isOn() ) Debug.outln( "Attempted to deconstruct a deconstructed ParameterListener: "
                    + this.toString( true, true, null ) );
       return;
     }
@@ -1026,7 +1026,7 @@ public class ParameterListenerImpl extends HasIdImpl
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.errln( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+    Debug.error(true, false,  "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
                      + toShortString() );
     // TODO -- REVIEW -- Need anything here?
     assert false;

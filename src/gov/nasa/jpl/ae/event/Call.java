@@ -330,7 +330,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     compare = CompareUtils.compare( getClass().getName(), o.getClass().getName() );
     if ( compare != 0 ) return compare;
     // TODO -- would like to skip this since it changes.
-    Debug.errln( "Call.compareTo comparing value information." );
+    if ( Debug.isOn() ) Debug.errln( "Call.compareTo comparing value information." );
     compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( object, o.object, true );
@@ -512,8 +512,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       evaluatedArguments = null;
     }
 
-    if ( Debug.isOn() ) 
-      Debug.outln( "evaluate() returning " + returnValue );
+    if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + returnValue );
     
     return returnValue;
   }
@@ -1049,8 +1048,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   @Override
   public void setStale( boolean staleness ) {
-    if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
-                                                  + toShortString() );
+    if ( stale != staleness && Debug.isOn() ) Debug.outln( "setStale(" + staleness + "): "
+                                                    + toShortString() );
 
     if ( staleness ) {
       clearCache();
@@ -1296,7 +1295,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
       else {
         if ( indexOfArg > arguments.size() ) {
-          Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
+          if ( Debug.isOn() ) Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
           if ( indexOfArg > 100 ) {
             Debug.error( "bad index " + indexOfArg + "; greater than 100" );
           } else {

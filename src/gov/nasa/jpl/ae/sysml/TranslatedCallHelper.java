@@ -561,7 +561,7 @@ public class TranslatedCallHelper<P> {
     if ( !on ) return;
     Call call = (Call)translatedCall;
 
-    Debug.outln( "@@ setStaleAnyReferencesTo() called from " + translatedCall );
+    if ( Debug.isOn() ) Debug.outln( "@@ setStaleAnyReferencesTo() called from " + translatedCall );
     
     if ( call.isStaleNoPropagate() ) return;
 
@@ -569,20 +569,20 @@ public class TranslatedCallHelper<P> {
     P sourceObject =
         systemModelToAeExpression.getElementForAeParameter( new Expression<T>( changedParameter ) );
 
-    Debug.outln( "@@ element for " + changedParameter + " <-- is --> " + sourceObject );
+    if ( Debug.isOn() ) Debug.outln( "@@ element for " + changedParameter + " <-- is --> " + sourceObject );
     
     if ( sourceObject == null ) return;
     
     Vector< Object > args = translatedCall.getArguments();
     for ( Object arg : args ) {
-      Debug.outln( "@@ checking arg " + arg );
+      if ( Debug.isOn() ) Debug.outln( "@@ checking arg " + arg );
       if ( Expression.valuesEqual( sourceObject, arg ) ) {
         call.setStale( true );
         return;
       }
     }
     
-    Debug.outln( "@@ checking returnValue " + call.returnValue );
+    if ( Debug.isOn() ) Debug.outln( "@@ checking returnValue " + call.returnValue );
     if ( Expression.valuesEqual( sourceObject, call.returnValue ) ) {
       call.setStale(true);
       return;
@@ -598,7 +598,7 @@ public class TranslatedCallHelper<P> {
 //    }
     if ( call.getEvaluatedArguments() != null ) {
       for ( Object o : call.getEvaluatedArguments() ) {
-        Debug.outln( "@@ checking evaluatedArg " + o );
+        if ( Debug.isOn() ) Debug.outln( "@@ checking evaluatedArg " + o );
         if ( Expression.valuesEqual( sourceObject, o ) ) {
           call.setStale(true);
           return;

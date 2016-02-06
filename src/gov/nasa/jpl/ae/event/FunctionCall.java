@@ -310,18 +310,18 @@ public class FunctionCall extends Call {
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     if ( method == null ) {
       evaluationSucceeded = false;
-      Debug.errln( "Warning! Tried to invoke a null method! " + this );
+      if ( Debug.isOn() ) Debug.errln( "Warning! Tried to invoke a null method! " + this );
       return null;
     }
     if ( !isStatic() && evaluatedObject == null ) {
-      Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
+      if ( Debug.isOn() ) Debug.errln( "Warning! Tried to invoke a non-static method without an instance! " + this );
       evaluationSucceeded = false;
       return null;
     }
     if ( hasTypeErrors( evaluatedArgs ) ) {
-      Debug.errln( "Warning! Tried calling " + this
-                   + " with bad argument types! "
-                   + MoreToString.Helper.toString( evaluatedArgs ) );
+      if ( Debug.isOn() ) Debug.errln( "Warning! Tried calling " + this
+                                       + " with bad argument types! "
+                                       + MoreToString.Helper.toString( evaluatedArgs ) );
       evaluationSucceeded = false;
       return null;
     }

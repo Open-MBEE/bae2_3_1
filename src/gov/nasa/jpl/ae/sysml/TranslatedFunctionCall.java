@@ -239,7 +239,7 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
     try {
       didReverse = translatedCallHelper.reverseArgs();
       if ( didReverse ) {
-        Debug.getInstance().logForce( "reversed args for " + this );
+        if ( Debug.isOn() ) Debug.getInstance().logForce( "reversed args for " + this );
         evaluatedArgs =
             Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
         result = super.invoke( evaluatedObject, getEvaluatedArguments() );

@@ -755,8 +755,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
-    Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
-                 + runPlotter + " ): starting stop watch\n" );
+    if ( Debug.isOn() ) {
+      Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
+                   + runPlotter + " ): starting stop watch\n" );
+    }
     Timer timer = new Timer();
     try {
       EventSimulation sim = createEventSimulation();
@@ -766,8 +768,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     } catch ( Exception e ) {
       e.printStackTrace();
     }
-    Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
-        + runPlotter + " ): completed\n" + timer + "\n" );
+    if ( Debug.isOn() ) {
+      Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
+                   + runPlotter + " ): completed\n" + timer + "\n" );
+    }
   }
 
   @Override
@@ -915,7 +919,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       effectSet = new HashSet< Effect >();
       effects.add( new Pair< Parameter< ? >, Set< Effect > >( sv, effectSet ) );
     }
-    Debug.outln(getName() + "'s effect (" + e + ") in being added to set (" + effectSet + ") for variable (" + sv + ").");
+    if ( Debug.isOn() ) Debug.outln(getName() + "'s effect (" + e + ") in being added to set (" + effectSet + ") for variable (" + sv + ").");
     effectSet.add( e );
   }
 
@@ -927,7 +931,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set< Effect > effectSet = null;
     for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
       if ( pp.first.getValue(true) != null && Utils.valuesEqual( pp.first.getValue(true), sv.getValue(true) ) ) {
-        Debug.outln( getName() + "'s addEffect() says " + pp.first.getValue(true) + " == " + sv.getValue(true) );
+        if ( Debug.isOn() ) Debug.outln( getName() + "'s addEffect() says " + pp.first.getValue(true) + " == " + sv.getValue(true) );
         effectSet = pp.second;
         break;
       }
@@ -1324,9 +1328,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   protected boolean isElaborated( Vector< Event > events ) {
     boolean r = !Utils.isNullOrEmpty( events );
-    if ( this.getName().equals( "fork_ForkNode_CustomerCB" )) {
-      Debug.out( "" );
-    }
     if ( Debug.isOn() ) Debug.outln( "isElaborated(" + events + ") = " + r  + " for " + this.getName() );
     return r;
   }
@@ -1485,7 +1486,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( TimeVarying< ? > tv : timeVaryingObjs  ) {
       if ( tv instanceof TimeVaryingMap ) {
         for ( Parameter<?> p : timepoints ) {
-          Debug.out( "i" );
+          if ( Debug.isOn() ) Debug.out( "i" );
           ( (TimeVaryingMap<?>)tv ).detach( p );
         }
 //        ( (TimeVaryingMap<?>)tv ).keySet().removeAll( timepoints );

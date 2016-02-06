@@ -287,7 +287,7 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
     try {
       didReverse = translatedCallHelper.reverseArgs();
       if ( didReverse ) {
-        Debug.getInstance().logForce( "reversed args for " + this );
+        if ( Debug.isOn() ) Debug.getInstance().logForce( "reversed args for " + this );
         evaluatedArgs =
             Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
         result = super.invoke( evaluatedObject, getEvaluatedArguments() );

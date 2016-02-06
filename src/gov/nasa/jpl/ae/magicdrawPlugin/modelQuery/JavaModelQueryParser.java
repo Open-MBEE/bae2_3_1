@@ -142,7 +142,7 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
       // TODO -- remove result since it's only used for debug output and the
       // evaluation might have an unintended side-effect
       Object result = ( aeExpr == null ) ? null : aeExpr.evaluate( propagate );
-      Debug.outln( "Parsed FieldAccessExpr = " + fieldAccessExpr +
+      if ( Debug.isOn() ) Debug.outln( "Parsed FieldAccessExpr = " + fieldAccessExpr +
                    " as a ModelReference: aeExpr = " + aeExpr +
                    "; parentExpr = " + parentExpr + "; result = " + result );
     }

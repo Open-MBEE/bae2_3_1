@@ -215,7 +215,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         call = new FunctionCall(null, method, arguments, returnType);
       }
       else {
-        Debug.errln( "javaCallToEventFunction( " + fName +
+        if ( Debug.isOn() ) Debug.errln( "javaCallToEventFunction( " + fName +
                     "): no method found!" );
         return null;      
       }
@@ -228,7 +228,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                        packages,  false);
       
       if ( cls == null ) {
-          Debug.errln( "javaCallToEventFunction( " + fName +
+        if ( Debug.isOn() ) Debug.errln( "javaCallToEventFunction( " + fName +
                  "): no class found!" );
           return null;
       }
@@ -256,7 +256,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         }
       }
       else {
-        Debug.errln( "javaCallToEventFunction( " + fName +
+        if ( Debug.isOn() ) Debug.errln( "javaCallToEventFunction( " + fName +
             "): no constructor found!" );
         return null; 
       }
@@ -1155,7 +1155,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           result = "null";
           if ( Debug.isOn() ) Debug.outln( "astToAeExprType(" + expr + ") = " + result
                        + "; ok for MethodCallExpr!" );
-          Debug.out( "" ); // delete me!!
           complainIfNotFound = false;
         }
       } else if ( expr.getClass() == NameExpr.class ) {
@@ -1277,9 +1276,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       // The member/field type is defined in its parent's class, and the parent
       // class can be found by getting the type of the FiedAccessExpr's scope.
       // if ( fieldAccessExpr.getScope() instanceof FieldAccessExpr ) {
-      if ( fieldAccessExpr.toString().startsWith( "x." ) ) {
-        Debug.out( "" );
-      }
       String parentType =
           astToAeExprType( fieldAccessExpr.getScope(), fieldAccessExpr.getField(),
                            lookOutsideClassData, false );
@@ -1916,10 +1912,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     String type = "Parameter";
     String parameterTypes = p.type;
-
-    if ( p.type.equals( "Generation" ) ) {
-      Debug.out( "" );
-    }
 
     // parameterTypes = getFullyQualifiedName( parameterTypes, true );
     parameterTypes = getClassData().getClassNameWithScope( parameterTypes, true );

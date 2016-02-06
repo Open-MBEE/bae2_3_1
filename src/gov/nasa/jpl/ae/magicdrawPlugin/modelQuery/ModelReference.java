@@ -670,7 +670,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
         if ( didEvaluationSucceed() ) {
           Debug.error( false, "Error! " + msg );
         } else {
-          Debug.errln( "Warning! " + msg );
+          if ( Debug.isOn() ) Debug.errln( "Warning! " + msg );
         }
       }
       evaluationSucceeded = false;
@@ -756,7 +756,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
         if ( didEvaluationSucceed() ) {
           Debug.error( false, "Error! " + msg );
         } else {
-          Debug.errln( "Warning! " + msg );
+          if ( Debug.isOn() ) Debug.errln( "Warning! " + msg );
         }
       }
       evaluationSucceeded = false;

@@ -118,7 +118,7 @@ public class SystemModelSolver extends HasIdImpl implements Solver, Satisfiable,
           System.out.println( this.getClass().getName()
                               + " satisfy loop round " + ( numLoops + 1 ) );
         }
-        Debug.out( "" );
+        if ( Debug.isOn() ) Debug.out( "" );
       }
       if ( amTopEventToSimulate ) {
         DurativeEvent.newMode = false; //numLoops % 2 == 0;
