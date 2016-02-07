@@ -110,7 +110,7 @@ public class TranslatedCallHelper<P> {
     }
 
     if ( on )  {
-      P p = systemModelToAeExpression.model.asProperty( result );
+      P p = ((P)systemModelToAeExpression.model.asProperty( result ));
       if ( p != null ) {
         Class<?> returnType = (Class< ? >)translatedCall.getReturnType();
         Expression< ? > paramExpression =
@@ -332,7 +332,6 @@ public class TranslatedCallHelper<P> {
         parameter = (Parameter< ? >)((Expression<?>)evaluatedArg).expression;
         paramExpression = (Expression<?>)evaluatedArg;
     } else if ( evaluatedArg instanceof Collection ) {
-      if ( evaluatedArg == null ) return evaluatedArg;  // delete--just trying to kick jrebel
       return evaluatedArg;
 //      Collection<?> c = (Collection<?>)evaluatedArg;
 //      if ( !c.isEmpty() ) {
