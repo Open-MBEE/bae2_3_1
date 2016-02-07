@@ -397,7 +397,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
   
         if ( debug ) System.out.println("^^^^^^^^^^^^  3  ^^^^^^^^^^^^^^^");
         if ( aeArguments.size() == 1 ) {
-            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString(), returnType );
+            call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString(), returnType, false );
         } 
         else if ( aeArguments.size() == 2 ) {
             call = (Call)binaryOpNameToEventFunction( operationName.toString(), returnType );
@@ -637,6 +637,12 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
     public Expression<?> elementValueToAeExpression( Object argValueNode,
                                                      String argValName,
                                                      String elementType ) {
+      return elementValueToAeExpression( argValueNode, argValName, elementType, true );
+    }
+    public Expression<?> elementValueToAeExpression( Object argValueNode,
+                                                     String argValName,
+                                                     String elementType,
+                                                     boolean maySetValue ) {
       String argType = null;
       Parameter<Object> param = null;
       Collection<U> argValPropNodes = null;
@@ -666,7 +672,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         argType = "Object";
       }
       else {
-        setValue = !type.equals("Parameter"); // Dont set the value for Parameters
+        setValue = maySetValue && !type.equals("Parameter"); // Dont set the value for Parameters
         
         // Get the value of the argument based on type:
         if (type.equals("LiteralInteger") || type.equalsIgnoreCase( "int" ) || type.equalsIgnoreCase( "integer" )) {
@@ -718,7 +724,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         } else {
           argValProp = argValPropNodes;
         }
-        Debug.outln( "\nargValProp = " + argValProp );
+        if ( Debug.isOn() ) Debug.outln( "\nargValProp = " + argValProp );
       }
       
       if ( elementType != null && (elementType.equals( "Property" ) || elementType.equals( "Parameter" ) ) ) {
@@ -771,9 +777,22 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       //Collection< T > foo = model.getType(model.asContext( operandProp ), null);
       //Collection< P > valueOfElemNodes = 
       //    model.getProperty(model.asContext( operandProp ), "type");
-      Collection< P > valueOfElemNodes = 
-              model.getProperty(model.asContext( operandProp ), "element");
+      String type = model.getTypeString( model.asContext(operandProp),
+                                         null );
+      Collection< P > valueOfElemNodes = null; 
+              //model.getProperty(model.asContext( operandProp ), "element");
+      if ( type.equals( "ElementValue" ) ) {
+        Object o = model.getValue(model.asContext( operandProp ), null );
+        if ( o instanceof Collection ) {
+          valueOfElemNodes = Utils.asList( (Collection< P >)o, model.getPropertyClass(), false );
+        } else if ( model.getPropertyClass().isInstance( o ) && !o.equals( operandProp ) ) {
+          return (P)o;
+        }
+      }
       
+//      if (Utils.isNullOrEmpty(valueOfElemNodes)) {
+//        valueOfElemNodes = model.getProperty(model.asContext( operandProp ), "element");
+//      }
       // If it is a elementValue, then this will be non-empty:
       if (!Utils.isNullOrEmpty(valueOfElemNodes)) {
                       
@@ -1225,6 +1244,11 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      * @return
      */
     public <T> Expression<T> elementArgumentToAeExpression( P arg, Class< T > expectedType ) { // Why is this P and not T??
+      return elementArgumentToAeExpression( arg, expectedType, true );
+    }
+    public <T> Expression<T> elementArgumentToAeExpression( P arg,  // Why is this P and not T??
+                                                            Class< T > expectedType,
+                                                            boolean maySetValue ) {
       
       String typeString = null;
       
@@ -1297,8 +1321,10 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         if ( !model.getElementClass().isInstance( argValueNode ) ) {
           argValueNode = arg;
         }
-        return (Expression< T >)elementValueToAeExpression(argValueNode, argName, typeString);
-                  
+        return (Expression< T >)elementValueToAeExpression( argValueNode,
+                                                            argName, typeString,
+                                                            maySetValue );
+
 //      } else {
 //        // Get the argument Node:
 //        Collection<U > argValueNodes = model.getValue((C)arg, null);

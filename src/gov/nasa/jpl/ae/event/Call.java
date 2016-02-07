@@ -53,7 +53,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected boolean stale = true;
   protected boolean alwaysStale = false;
 
-  protected Object returnValue = null;  // a cached value
+  public Object returnValue = null;  // a cached value
   
   protected boolean proactiveEvaluation = false;
   
@@ -330,7 +330,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     compare = CompareUtils.compare( getClass().getName(), o.getClass().getName() );
     if ( compare != 0 ) return compare;
     // TODO -- would like to skip this since it changes.
-    Debug.errln( "Call.compareTo comparing value information." );
+    if ( Debug.isOn() ) Debug.errln( "Call.compareTo comparing value information." );
     compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( object, o.object, true );
@@ -428,7 +428,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return result;
   }
   
-  public synchronized Object evaluateWithSetArguments( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+  public synchronized Object evaluateWithSetArguments( boolean propagate,
+                                                       boolean doEvalArgs )
+                                                                       throws IllegalAccessException,
+                                                                       InvocationTargetException,
+                                                                       InstantiationException,
+                                                                       IllegalArgumentException {
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( getMember() == null ) {
@@ -480,7 +485,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
       evaluatedObj = Expression.evaluate( object, cls, propagate, true );
       
-      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs );
+      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs, false );
       
       returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
@@ -507,8 +512,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       evaluatedArguments = null;
     }
 
-    if ( Debug.isOn() ) 
-      Debug.outln( "evaluate() returning " + returnValue );
+    if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + returnValue );
     
     return returnValue;
   }
@@ -519,7 +523,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @param evaluatedArgs
    * @return
    */
-  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs ) {
+  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs, boolean complain ) {
     if ( !isVarArgs() || evaluatedArgs == null ) return evaluatedArgs;
     int paramSize = getParameterTypes().length;
     if ( evaluatedArgs.length < paramSize - 1 ) {
@@ -538,7 +542,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       newArgs[ paramSize - 1 ] = varArgArray;
       return newArgs;
     } catch ( Throwable t ) {
-      t.printStackTrace();
+      if (complain) t.printStackTrace();
       return evaluatedArgs;
     }
   }
@@ -1009,9 +1013,32 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return false;
   }
   
+  public boolean isStaleNoPropagate() {
+    return stale;
+  }
   @Override
   public boolean isStale() {
     if ( stale ) return true;
+    if ( evaluatedArguments != null ) {
+      for ( Object arg : evaluatedArguments ) {
+        if ( arg instanceof LazyUpdate )  {
+          if ( ( (LazyUpdate)arg ).isStale() ) {
+            setStale( true );
+            return true;
+          }
+        }
+      }
+    }
+    if ( arguments != null ) {
+      for ( Object arg : arguments ) {
+        if ( arg instanceof LazyUpdate )  {
+          if ( ( (LazyUpdate)arg ).isStale() ) {
+            setStale( true );
+            return true;
+          }
+        }
+      }
+    }
     for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) {
         setStale( true );
@@ -1041,6 +1068,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   @Override
   public void setStale( boolean staleness ) {
+    if ( stale != staleness && Debug.isOn() ) Debug.outln( "setStale(" + staleness + "): "
+                                                    + toShortString() );
+
     if ( staleness ) {
       clearCache();
     }
@@ -1240,7 +1270,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                        int indexOfObjectArgument ) {
       Collection< Object > coll = new ArrayList<Object>();
       try {
-        for ( Object o : objects ) {
+        if ( objects != null ) for ( Object o : objects ) {
             sub( indexOfObjectArgument, o );
             Object result = null;
             result = evaluate(true);
@@ -1285,7 +1315,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
       else {
         if ( indexOfArg > arguments.size() ) {
-          Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
+          if ( Debug.isOn() ) Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
           if ( indexOfArg > 100 ) {
             Debug.error( "bad index " + indexOfArg + "; greater than 100" );
           } else {
@@ -1573,6 +1603,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   @Override
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    if ( changedParameter == null ) return;
     if ( hasParameter( changedParameter, true, null ) ) {
       setStale(true);
     }

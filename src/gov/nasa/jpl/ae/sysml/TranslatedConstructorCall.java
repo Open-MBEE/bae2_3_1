@@ -5,15 +5,17 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.Vector;
 
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
-import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
+import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
-import gov.nasa.jpl.ae.util.ClassData;
-import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 
 /**
  * A {@link TranslatedConstructorCall} tries to smartly swap between using some {@link Object} or
@@ -226,9 +228,34 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
 
   
   @Override
-  public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-    
-    Object result = super.invoke( evaluatedObject, evaluatedArgs );
+  public Object invoke( Object evaluatedObject,  // TODO -- should consider swapping out object, too.
+                        Object[] evaluatedArgs )
+                            throws IllegalArgumentException,
+                            InstantiationException,
+                            IllegalAccessException,
+                            InvocationTargetException {
+    Object result = null;
+    boolean triedTwice = false;
+    try {
+      result = super.invoke( evaluatedObject, evaluatedArgs );
+    } catch ( IllegalArgumentException e ) {
+      try {
+        triedTwice = true;
+        result = backupInvoke(evaluatedObject, evaluatedArgs);
+      } catch ( Throwable t ) {
+        throw e;
+      }
+    } catch ( InvocationTargetException e ) {
+      try {
+        triedTwice = true;
+        result = backupInvoke(evaluatedObject, evaluatedArgs);
+      } catch ( Throwable t ) {
+        throw e;
+      }
+    }
+    if ( !triedTwice && !evaluationSucceeded ) {
+      result = backupInvoke(evaluatedObject, evaluatedArgs);
+    }
 
     if ( !on ) return result;
     
@@ -253,15 +280,43 @@ public class TranslatedConstructorCall<P> extends ConstructorCall implements Tra
     return result;
   }
 
+  protected Object backupInvoke( Object evaluatedObject,  // TODO -- should consider swapping out object, too.
+                                 Object[] evaluatedArgs ) {
+    Object result = null;
+    boolean didReverse;
+    try {
+      didReverse = translatedCallHelper.reverseArgs();
+      if ( didReverse ) {
+        if ( Debug.isOn() ) Debug.getInstance().logForce( "reversed args for " + this );
+        evaluatedArgs =
+            Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
+        result = super.invoke( evaluatedObject, getEvaluatedArguments() );
+      }
+    } 
+    catch ( ClassCastException e ) {}
+    catch ( IllegalAccessException e ) {}
+    catch ( InvocationTargetException e ) {} 
+    catch ( InstantiationException e ) {}
+    return result;
+  }
+
   
   @Override
   public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter) {
-    
     translatedCallHelper.setStaleAnyReferencesTo( changedParameter );
     super.setStaleAnyReferencesTo( changedParameter );
   };
   
+
+  @Override
+  public Set<Parameter<?>> getParameters(boolean deep, Set<HasParameters> seen) {
+    Set<Parameter<?>> parameters = super.getParameters( deep, seen );
+    Set<Parameter<?>> more = translatedCallHelper.getTranslatedParameters( deep, seen );
+    if ( more != null ) parameters.addAll( more );
+    return parameters;
+  };
   
+
   protected void init(SystemModelToAeExpression< ?, ?, P, ?, ?, ? > sysmlToAeExpression ) {
     //this.systemModelToAeExpression = sysmlToAeExpression;
     this.translatedCallHelper = new TranslatedCallHelper< P >( this, sysmlToAeExpression );

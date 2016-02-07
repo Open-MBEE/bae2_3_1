@@ -2174,9 +2174,6 @@ public class Functions {
 
   public static < T > Boolean
       equals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ((o1 ==null) && (o2 == null)){
-      Debug.outln( "" );
-    }
     if ( o1 == o2 ) return true;
     //if ( o1 == null || o2 == null ) return false;
     T r1 = o1 == null ? null : o1.evaluate( false );

@@ -184,6 +184,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
     @Override
     public void setStale( boolean staleness ) {
+      Debug.error( true, false, "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                     + toShortString() );
       Assert.assertTrue( "This method is not supported!", false );
     }
 
@@ -890,6 +892,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   @Override
   public void setStale( boolean staleness ) {
+      Debug.getInstance()
+      .logForce( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                     + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     Assert.assertTrue( "This method is not supported!", false );
   }
@@ -1201,7 +1206,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         if ( value != null && !getType().isAssignableFrom( value.getClass() ) ) {
           Debug.error( false, warningMsg );
         } else {
-          Debug.errln( warningMsg );
+          if ( Debug.isOn() ) Debug.errln( warningMsg );
         }
       }
     }
@@ -2129,7 +2134,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         entries with the same values.
    */
   public <VV> TimeVaryingMap< V > removeDuplicates() {
-    Debug.outln( "before removing duplicates " + this );
+    if ( Debug.isOn() ) Debug.outln( "before removing duplicates " + this );
     List<Parameter< Integer > > dups = new ArrayList< Parameter< Integer > >();
     Parameter<Integer> lastKey = null;
     V lastValue = null;
@@ -2148,7 +2153,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     for ( Parameter<Integer> k : dups ) {
       remove( k );
     }
-    Debug.outln( " after removing duplicates " + this );
+    if ( Debug.isOn() ) Debug.outln( " after removing duplicates " + this );
     return this;
   }
 
@@ -2360,13 +2365,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         ok = false;
       }
       if ( !firstEntry && duplicateValueAtTime ) {
-        Debug.err( "Warning! duplicate entry of value "
-                   + MoreToString.Helper.toLongString( value ) + " at time "
-                   + MoreToString.Helper.toLongString( tp ) + " with time set "
-                   + MoreToString.Helper.toLongString( timesAtSameTime )
-                   + " and value set "
-                   + MoreToString.Helper.toLongString( valuesAtSameTime )
-                   + " for TimeVaryingMap " + getName() );
+        if ( Debug.isOn() ) {
+          Debug.err( "Warning! duplicate entry of value "
+                     + MoreToString.Helper.toLongString( value ) + " at time "
+                     + MoreToString.Helper.toLongString( tp ) + " with time set "
+                     + MoreToString.Helper.toLongString( timesAtSameTime )
+                     + " and value set "
+                     + MoreToString.Helper.toLongString( valuesAtSameTime )
+                     + " for TimeVaryingMap " + getName() );
+        }
         ok = false;
       }
       lastTp = tp;
@@ -2552,7 +2559,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       compare = CompareUtils.compare( getName(), otvm.getName(), true );
       if ( compare != 0 ) return compare;
     }
-    Debug.err( "TimeVaryingMap.compareTo() may compare values, which, if changed while this is in a map, can corrupt the map." );
+    if ( Debug.isOn() ) Debug.err( "TimeVaryingMap.compareTo() may compare values, which, if changed while this is in a map, can corrupt the map." );
     compare = CompareUtils.compare( this, o ); // WARNING: values change!!!
     if ( compare != 0 ) return compare;
     return compare;
@@ -2883,10 +2890,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         Parameter< Integer > otp = tryEvaluateTimepoint( valueArg, true, true );
         if ( otp != null ) {
           TT ov = (TT)tryEvaluateValue( tpArg, true );
-          Debug.err( "Looks like timepoint and value are reversed in call to getTimeAndValueOfEffect( Effect "
-                     + MoreToString.Helper.toLongString( effect ) + ", "
-                     + "Boolean " + MoreToString.Helper.toLongString( timeFirst )
-                     + ") = " + MoreToString.Helper.toLongString( pair ) );
+          if ( Debug.isOn() ) {
+            Debug.err( "Looks like timepoint and value are reversed in call to getTimeAndValueOfEffect( Effect "
+                       + MoreToString.Helper.toLongString( effect ) + ", "
+                       + "Boolean " + MoreToString.Helper.toLongString( timeFirst )
+                       + ") = " + MoreToString.Helper.toLongString( pair ) );
+          }
         }
       }
     }
@@ -2973,7 +2982,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Method.setAccessible( TimeVaryingMap.class.getDeclaredMethods(), true );
     for ( Method method : TimeVaryingMap.class.getDeclaredMethods() ) {
       f = new EffectFunction( tvm, method );
-      Debug.outln( "method " + method
+      if ( Debug.isOn() ) Debug.outln( "method " + method
                    + " has first timepoint parameter at position "
                    + tvm.getIndexOfFirstTimepointParameter( f ) );
       Class<?> clss = ParameterListenerImpl.class;
@@ -2989,7 +2998,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         if ( gTypes == null ) continue;
         for ( TypeVariable< ? > typeVar : gTypes ) {
           if ( typeVar == null ) continue;
-          Debug.outln( "method=" + method.getName() + ", parameter type="
+          if ( Debug.isOn() ) Debug.outln( "method=" + method.getName() + ", parameter type="
                        + pType + ", type variable=" + typeVar
                        + ", typeVar.getName()=" + typeVar.getName()
           + ", typeVar.getBounds()=" + typeVar.getBounds()
@@ -3106,7 +3115,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     protected boolean setTimepointToObject() {
       if ( tp != null ) {
-        Debug.err( "Warning! Trying to replace existing tp with o." );
+        if ( Debug.isOn() ) Debug.err( "Warning! Trying to replace existing tp with o." );
       }
       tp = tryCastTimepoint( o );
       if ( tp == o ) {
@@ -3531,14 +3540,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map<String,String> map = new HashMap<String,String>();
     MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
     fromStringMap( map, cls );
-    Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
+    if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
     } catch ( FileNotFoundException e ) {
       e.printStackTrace();
     }
   }
   public void toCsvFile( String fileName ) {
     String s = toCsvString();
-    Debug.outln( "wrote map to file, " + fileName + ":\n" + s );
+    if ( Debug.isOn() ) Debug.outln( "wrote map to file, " + fileName + ":\n" + s );
     FileUtils.stringToFile( s, fileName );
   }
 
