@@ -13,6 +13,7 @@ import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
+import gov.nasa.jpl.ae.event.Call.ArgHelper;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -229,7 +230,30 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
     if ( !triedTwice && !evaluationSucceeded ) {
       result = backupInvoke(evaluatedObject, evaluatedArgs);
     }
+    //return result;
+    
+    if ( !on ) return result;
+    
+    // If the result is a Call, add an ArgHelper to it to handle its arguments.
+    if ( result instanceof Call && !(result instanceof TranslatedCall ) ) {
+      Call call = (Call)result;
+      call.argHelper = new ArgHelper() {
+
+        @Override
+        public void helpArgs( Call call ) {
+          TranslatedCall tCall = translatedCallHelper.makeTranslatedCall( call );
+          try {
+            ((TranslatedCall)tCall).getTranslatedCallHelper().parameterizeArguments();
+            call.setEvaluatedArguments( tCall.getEvaluatedArguments() );
+          } catch ( Exception e ) {
+            e.printStackTrace();
+          }
+        }
+          
+      };
+    }
     return result;
+
   }
 
   protected Object backupInvoke( Object evaluatedObject,  // TODO -- should consider swapping out object, too.

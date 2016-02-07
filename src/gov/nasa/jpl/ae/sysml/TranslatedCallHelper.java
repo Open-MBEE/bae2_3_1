@@ -643,7 +643,9 @@ public class TranslatedCallHelper<P> {
     if ( systemModelToAeExpression.model.getPropertyClass().isInstance( arg ) ) {
       P p = systemModelToAeExpression.model.asProperty( arg );
       Expression< ? > e = p == null ? null : 
-          systemModelToAeExpression.elementArgumentToAeExpression( p, (Class<?>)null );
+          systemModelToAeExpression.elementArgumentToAeExpression( p,
+                                                                   (Class<?>)null,
+                                                                   false );
       if ( e != null && e.form == Form.Parameter ) {
         Parameter<?> param = (Parameter< ? >)e.expression;
         return param;

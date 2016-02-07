@@ -1019,6 +1019,26 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public boolean isStale() {
     if ( stale ) return true;
+    if ( evaluatedArguments != null ) {
+      for ( Object arg : evaluatedArguments ) {
+        if ( arg instanceof LazyUpdate )  {
+          if ( ( (LazyUpdate)arg ).isStale() ) {
+            setStale( true );
+            return true;
+          }
+        }
+      }
+    }
+    if ( arguments != null ) {
+      for ( Object arg : arguments ) {
+        if ( arg instanceof LazyUpdate )  {
+          if ( ( (LazyUpdate)arg ).isStale() ) {
+            setStale( true );
+            return true;
+          }
+        }
+      }
+    }
     for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) {
         setStale( true );
