@@ -151,15 +151,18 @@ public class TranslatedCallHelper<P> {
     
     translatedCall.setEvaluatedArguments( translatedCall.evaluateArgs( false ) );
     
-    for ( int i = 0; i < originalArguments.size(); ++i ) {
-      Object originalArg = originalArguments.get( i );
-      Object evaluatedArg = translatedCall.getEvaluatedArguments()[ i ];
-      //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
-      Class< ? > parameterType =
-          translatedCall.getParameterTypes()[ Math.min( i, translatedCall.getParameterTypes().length - 1 ) ];
-
-      Object newEvaluatedArg = parameterizeArgument( originalArg, evaluatedArg, parameterType );
-      if ( newEvaluatedArg != null ) translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;      
+    if ( translatedCall.getEvaluatedArguments() != null ) {
+      for ( int i = 0; i < Math.min( originalArguments.size(),
+                                     translatedCall.getEvaluatedArguments().length ); ++i ) {
+        Object originalArg = originalArguments.get( i );
+        Object evaluatedArg = translatedCall.getEvaluatedArguments()[ i ];
+        //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
+        Class< ? > parameterType =
+            translatedCall.getParameterTypes()[ Math.min( i, translatedCall.getParameterTypes().length - 1 ) ];
+  
+        Object newEvaluatedArg = parameterizeArgument( originalArg, evaluatedArg, parameterType );
+        if ( newEvaluatedArg != null ) translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;      
+      }
     }
   }
   

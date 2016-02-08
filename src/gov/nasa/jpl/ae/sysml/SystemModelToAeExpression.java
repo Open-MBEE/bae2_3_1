@@ -1132,7 +1132,10 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       // If it is not an Expression than we cannot process it:
       String expressionType = model.getTypeString((C)expressionElement, null);
       if (!expressionType.equals("Expression")) {
-        Debug.error( "Passed expression is not an Expression type, got type "+ expressionType);
+        Debug.error( "The passed expression is not an Expression type, got type "
+                     + expressionType + "; expressionsElement="
+                     + expressionElement + "; expectedType="
+                     + expectedType.getSimpleName() );
         return null;
       }
 
