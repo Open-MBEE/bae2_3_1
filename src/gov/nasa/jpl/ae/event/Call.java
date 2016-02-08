@@ -362,7 +362,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     
     //result = evaluate( propagate, doEvalArgs, true );
-    //System.out.println("\n####  ####  evaluating Call: " + this);
+//    Debug.getInstance().logForce("\n####  ####  evaluating Call: " + this);
     if ( Debug.isOn() ) {
       Debug.outln("\n####  ####  evaluating Call: " + this);
     }
@@ -375,7 +375,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     } catch (  InstantiationException e ) {
         throw e;
     } finally {
-//      System.out.println( "####  ####  Call "
+//      Debug.getInstance().logForce( "####  ####  Call "
 //          + ( didEvaluationSucceed() ? "succeeded" : "failed" )
 //          + ": " + this + "\n" + "####  ####  #### result ---> "
 //          + result + "\n" );
@@ -490,7 +490,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
       // No longer stale after invoked with updated arguments and result is cached.
-      setStale( false );
+      if ( evaluationSucceeded ) setStale( false );
       
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;

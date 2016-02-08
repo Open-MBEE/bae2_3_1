@@ -151,7 +151,7 @@ public class TranslatedCallHelper<P> {
     
     translatedCall.setEvaluatedArguments( translatedCall.evaluateArgs( false ) );
     
-    if ( translatedCall.getEvaluatedArguments() != null ) {
+    if ( translatedCall.getEvaluatedArguments() != null && originalArguments != null ) {
       for ( int i = 0; i < Math.min( originalArguments.size(),
                                      translatedCall.getEvaluatedArguments().length ); ++i ) {
         Object originalArg = originalArguments.get( i );
