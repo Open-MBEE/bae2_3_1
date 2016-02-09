@@ -45,32 +45,35 @@ public class FunctionCall extends Call {
   /**
    * Construct a call to a method.
    * @param method
+   * @param returnType
    */
-  public FunctionCall( Method method ) {
+  public FunctionCall( Method method , Class< ? > returnType  ) {
     this.method = method;
+    this.returnType = returnType;
   }
 
   /**
    * Construct a call to a method.
    * @param cls
    * @param methodName
+   * @param returnType
    */
-  public FunctionCall( Class<?> cls, String methodName ) {
-    this.method = ClassUtils.getMethodForArgTypes( cls, methodName,
-                                                   (Class<?>[])null ); 
+  public FunctionCall( Class<?> cls , String methodName , Class< ? > returnType  ) {
+    this(null, cls, methodName, (Vector<Object>)null, returnType);
   }
 
   /**
    * @param object
    * @param method
+   * @param returnType
    */
-  public FunctionCall( Object object, Method method ) {
+  public FunctionCall( Object object , Method method , Class< ? > returnType  ) {
+    this( method, returnType );
     this.object = object;
-    this.method = method;
   }
 
-  public FunctionCall( Object object, Class<?> cls, String methodName ) {
-    this( cls, methodName );
+  public FunctionCall( Object object , Class<?> cls , String methodName , Class< ? > returnType  ) {
+    this( cls, methodName, returnType );
     this.object = object;
   }
 
@@ -79,9 +82,8 @@ public class FunctionCall extends Call {
    * @param method
    * @param arguments
    */
-  public FunctionCall( Object object, Method method, Vector< Object > arguments ) {
-    this.object = object;
-    this.method = method;
+  public FunctionCall( Object object, Method method, Vector< Object > arguments, Class<?> returnType ) {
+    this(object, method, returnType);
     this.arguments = arguments;
     hasTypeErrors();
   }
@@ -91,9 +93,10 @@ public class FunctionCall extends Call {
    * @param cls
    * @param methodName
    * @param arguments
+   * @param returnType
    */
-  public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Vector< Object > arguments ) {
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Vector< Object > arguments , Class< ? > returnType  ) {
     this.object = object;
     Object argArr[] = null;
     if ( !Utils.isNullOrEmpty( arguments ) ) {
@@ -101,6 +104,7 @@ public class FunctionCall extends Call {
     }
     this.method = ClassUtils.getMethodForArgs( cls, methodName, argArr );
     this.arguments = arguments;
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
@@ -109,11 +113,12 @@ public class FunctionCall extends Call {
    * @param method
    * @param arguments
    * @param nestedCall
+   * @param returnType
    */
-  public FunctionCall( Object object, Method method, Vector< Object > arguments,
-                       Call nestedCall ) {
-    this(object, method, arguments);
-    this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
+  public FunctionCall( Object object , Method method , Vector< Object > arguments ,
+                       Call nestedCall , Class< ? > returnType  ) {
+    this(object, method, arguments, returnType);
+    this.nestedCall = new Parameter<Call>("", null, nestedCall, null );  // REVIEW -- Shouldn't this be the ParameterListener of the nestedCall (last argument here)
   }
 
   /**
@@ -121,10 +126,11 @@ public class FunctionCall extends Call {
    * @param method
    * @param arguments
    * @param nestedCall
+   * @param returnType
    */
-  public FunctionCall( Object object, Method method, Vector< Object > arguments,
-                       Parameter<Call> nestedCall ) {
-    this(object, method, arguments);
+  public FunctionCall( Object object , Method method , Vector< Object > arguments ,
+                       Parameter<Call> nestedCall , Class< ? > returnType  ) {
+    this(object, method, arguments, returnType);
     
     this.nestedCall = nestedCall;
   }
@@ -135,29 +141,30 @@ public class FunctionCall extends Call {
    * @param methodName
    * @param arguments
    * @param nestedCall
+   * @param returnType TODO
    */
-  public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Vector< Object > arguments,
-                       Call nestedCall ) {
-    this(object, cls, methodName, arguments);
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Vector< Object > arguments ,
+                       Call nestedCall , Class< ? > returnType  ) {
+    this(object, cls, methodName, arguments, returnType);
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
 
-  public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Vector< Object > arguments,
-                       Parameter<Call> nestedCall ) {
-    this(object, cls, methodName, arguments);
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Vector< Object > arguments ,
+                       Parameter<Call> nestedCall , Class< ? > returnType  ) {
+    this(object, cls, methodName, arguments, returnType);
     this.nestedCall = nestedCall;
   }
 
   /**
    * @param object
    * @param method
+   * @param returnType
    * @param arguments
    */
-  public FunctionCall( Object object, Method method, Object argumentsA[] ) {
-    this.object = object;
-    this.method = method;
+  public FunctionCall( Object object , Method method , Object argumentsA[] , Class< ? > returnType  ) {
+    this(object, method, returnType);
     this.arguments = new Vector<Object>();
     if ( argumentsA != null ) {
       for ( Object o : argumentsA ) {
@@ -172,9 +179,10 @@ public class FunctionCall extends Call {
    * @param cls
    * @param methodName
    * @param argumentsA
+   * @param returnType
    */
-  public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Object argumentsA[] ) {
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Object argumentsA[] , Class< ? > returnType  ) {
     this.object = object;
     this.method = ClassUtils.getMethodForArgs( cls, methodName, argumentsA );
     this.arguments = new Vector<Object>();
@@ -183,11 +191,13 @@ public class FunctionCall extends Call {
         this.arguments.add( o );
       }
     }
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
-  public FunctionCall( Object object, Method method, Object argumentsA[],
-                       Call nestedCall ) {
+  public FunctionCall( Object object , Method method , Object argumentsA[] ,
+                       Call nestedCall , Class< ? > returnType  ) {
+    // REVIEW -- Can this(...) be called here?
     this.object = object;
     this.method = method;
     this.arguments = new Vector<Object>();
@@ -197,11 +207,13 @@ public class FunctionCall extends Call {
       }
     }
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
-  public FunctionCall( Object object, Method method, Object argumentsA[],
-                       Parameter<Call> nestedCall ) {
+  public FunctionCall( Object object , Method method , Object argumentsA[] ,
+                       Parameter<Call> nestedCall , Class< ? > returnType  ) {
+    // REVIEW -- Can this(...) be called here?
     this.object = object;
     this.method = method;
     this.arguments = new Vector<Object>();
@@ -211,17 +223,18 @@ public class FunctionCall extends Call {
       }
     }
     this.nestedCall = nestedCall;
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
-  public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Object argumentsA[], Call nestedCall ) {
-    this( object, cls, methodName, argumentsA );
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Object argumentsA[] , Call nestedCall , Class< ? > returnType  ) {
+    this( object, cls, methodName, argumentsA, returnType );
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
-  public FunctionCall( Object object, Class<?> cls, String methodName,
-                       Object argumentsA[], Parameter<Call> nestedCall ) {
-    this( object, cls, methodName, argumentsA );
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Object argumentsA[] , Parameter<Call> nestedCall , Class< ? > returnType  ) {
+    this( object, cls, methodName, argumentsA, (Class<?>)null );
     this.nestedCall = nestedCall;
   }
 
@@ -233,6 +246,8 @@ public class FunctionCall extends Call {
     this.method = e.method;
     this.arguments = e.arguments;
     this.nestedCall = e.nestedCall;
+    this.returnType = e.returnType;
+    this.argHelper = e.argHelper;
     hasTypeErrors();
   }
 
@@ -310,7 +325,8 @@ public class FunctionCall extends Call {
       evaluationSucceeded = false;
       return null;
     }
-    Object result = null;
+    //Object result = null;
+    returnValue = null;
 // TODO -- Try this shorter form?
 //    Pair< Boolean, Object > p =
 //        ClassUtils.runMethod( false, evaluatedObject, method, evaluatedArgs );
@@ -321,14 +337,15 @@ public class FunctionCall extends Call {
     // FIXME -- cannot pass a null as a single argument to to a function with a
     // single variable number argument parameter. For example,
     // Utils.newList(new Object[]{(Object)null}).
+//    Debug.turnOn();
     try {
-      result = method.invoke( evaluatedObject, evaluatedArgs );
+      returnValue = method.invoke( evaluatedObject, evaluatedArgs );
       if ( Debug.isOn() ) {
           System.out.println("FunctionCall method = " + method.toGenericString());
           System.out.println("FunctionCall args = " + arguments);
           System.out.println("FunctionCall.invoke " + method.getName() + "("
                   + Utils.toString( evaluatedArgs, false )
-                  + "): FunctionCall{" + this + "} = " + result );
+                  + "): FunctionCall{" + this + "} = " + returnValue );
       }
       evaluationSucceeded = true;
     } catch (IllegalArgumentException e) {
@@ -345,30 +362,32 @@ public class FunctionCall extends Call {
           e.printStackTrace();
         }
       }
+      //Debug.turnOff();
       throw e;
     } catch (Exception e ) {
       evaluationSucceeded = false;
       if ( Debug.isOn() ) {
-        Debug.error(true, false, "FunctionCall method = " + method.toGenericString());
+        Debug.error(true, false, "\nFunctionCall method = " + method.toGenericString());
         System.err.println( "FunctionCall.invoke " + method.getName() + "("
                             + Utils.toString( evaluatedArgs, false )
-                            + "): FunctionCall{" + this + "} " + e.getMessage() );
+                            + "): FunctionCall{" + this + "} " + e.getMessage() + "\n");
       }
+//      Debug.turnOff();
 //      if ( Debug.isOn() ) {
         throw e;
 //      }
     }
-   
-    return result;
+    //Debug.turnOff();
+
+    return returnValue;
   }
   
-  // TODO -- delete this when version is stable -- the same implementation is in Call
-  // Try to match arguments to parameters by evaluating or creating expressions.
-  protected Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ( method == null ) return null;
-    Class< ? >[] paramTypes = method.getParameterTypes();
-    return evaluateArgs( propagate, paramTypes, arguments, method.isVarArgs() );
-  }
+//  // TODO -- delete this when version is stable -- the same implementation is in Call
+//  // Try to match arguments to parameters by evaluating or creating expressions.
+//  public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+//    if ( method == null ) return null;
+//    return super.evaluateArgs( propagate );
+//  }
 
   // Getters and setters 
   
@@ -389,10 +408,12 @@ public class FunctionCall extends Call {
 
   @Override
   public Class< ? > getReturnType() {
-    if ( getMember() != null ) {
-      return getMethod().getReturnType();
+    if ( returnType == null ) {
+      if ( getMethod() != null ) {
+        returnType = getMethod().getReturnType();
+      }
     }
-    return null;
+    return returnType;
   }
 
   /**
@@ -455,6 +476,8 @@ public class FunctionCall extends Call {
                                        int indexOfObjectArgument ) {
       Collection< XX > coll = new ArrayList< XX >();
       try {
+      int numArgsMethod = method.getParameterTypes().length;
+     // if ( indexOfObjectArgument > )
       for ( XX o : objects ) {
           sub( indexOfObjectArgument, o );
           Object result = null;
@@ -632,8 +655,6 @@ public class FunctionCall extends Call {
       Collections.sort( result, mapComparator );
       return result;
   }
-       
-
 
   
   

@@ -146,7 +146,7 @@ public class OperatingLimits extends DurativeEvent {
     Object[] args = new Object[] { rampDuration };
     Expression< Double > limit =
         new Expression< Double >( new FunctionCall( null, getClass(),
-                                                    functionName, args ) );
+                                                    functionName, args, (Class<?>)null ) );
     BooleanBinary< Double > limitFunc = null;
 //    Expression<Double> forAllRamps = new Functions.ForAll( ramp.expression, o )
     if ( this.forAll ) {
