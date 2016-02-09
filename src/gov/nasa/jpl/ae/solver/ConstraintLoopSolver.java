@@ -28,16 +28,18 @@ public class ConstraintLoopSolver implements Solver {
 
   @Override
   public boolean solve( Collection< Constraint > newConstraints ) {
-    this.constraints = newConstraints;
+    setConstraints( newConstraints );
     if ( Debug.isOn() ) Debug.outln( "ConstraintLoopSolver.solve(" + constraints + ")" );
     boolean deep = true;
     //double startTime = System.currentTimeMillis();
     unsatisfiedConstraints.clear();
     
     unsatisfiedConstraints.addAll( constraints );
-//    if ( Debug.isOn() ) Debug.outln( "ConstraintLoopSolver.solve(" + constraints
-//                 + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
+    if ( Debug.isOn() ) Debug.outln( "ConstraintLoopSolver.solve(" + constraints
+                 + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
+    int numAllConstrs = constraints.size();
     int numConstrs = unsatisfiedConstraints.size();
+    System.out.println(numAllConstrs + " constraints; " + numAllConstrs + " to satisfy");
     int lastSize = -1;
     int numTimesWithNoProgress = 0;
     while ( //System.currentTimeMillis() - startTime > timeOutMilliseconds
@@ -58,8 +60,10 @@ public class ConstraintLoopSolver implements Solver {
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
           thisSatisfied = c.satisfy( deep, null );
+          if ( thisSatisfied ) {
+            thisSatisfied = c.isSatisfied( deep, null );
+          }
         }
-        thisSatisfied = c.isSatisfied( deep, null );
         //Debug.turnOff();
 //        if ( !thisSatisfied ) {
 //          thisSatisfied = satisfy( c, deep, null );
@@ -166,6 +170,11 @@ public class ConstraintLoopSolver implements Solver {
   @Override
   public Collection< Constraint > getConstraints() {
     return constraints;
+  }
+
+  @Override
+  public void setConstraints( Collection< Constraint > constraints ) {
+    this.constraints = constraints;
   }
 
   @Override

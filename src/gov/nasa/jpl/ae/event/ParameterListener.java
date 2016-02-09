@@ -65,7 +65,7 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * @param parameter
    * @return
    */
-  public <T> boolean pickValue( Variable< T > variable );
+  public <T> boolean pickParameterValue( Variable< T > variable );
 
   /**
    * The initial motivation for {@code getName()} was for if ( Debug.isOn() ) Debug.output.  As of 2012-08-05, 
@@ -73,4 +73,16 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * @return a name
    */
   public String getName();
+  
+  /**
+   * Adjust the value assigned to a variable to make sure it is in in the
+   * domain.
+   * 
+   * @param v the variable whose value is to be assigned
+   * @param o the object to translate
+   * @param type the variable's type
+   * @return the new value to use instead of the object passed in
+   */
+  public <T> T translate( Variable<T> v, Object o, Class< ? > type  );  // HACK -- remove this if possible
+
 }

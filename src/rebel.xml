@@ -3,6 +3,7 @@
              xsi:schemaLocation="http://www.zeroturnaround.com http://www.zeroturnaround.com/alderaan/rebel-2_0.xsd">
   <classpath>
     <dir name="/Users/bclement/git/alfresco-view-repo/target/view-repo-war/WEB-INF/lib"/>
+    <dir name="/Users/bclement/git/bae/target"/>
     <dir name="/Users/bclement/git/bae/bin"/>
   </classpath>
 </application>

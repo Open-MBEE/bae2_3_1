@@ -93,7 +93,7 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
    * @see gov.nasa.jpl.ae.solver.Constraint#pickValue(gov.nasa.jpl.ae.solver.Variable)
    */
   @Override
-  public < T > boolean pickValue( Variable< T > v ) {
+  public < T > boolean pickParameterValue( Variable< T > v ) {
     return ParameterConstraint.Helper.pickValue( this, v );
   }
 

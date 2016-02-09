@@ -14,11 +14,15 @@ import java.util.Vector;
  */
 public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryingObjects {
 
+  
+  // FIXME -- need to change constructors to take a return type!
+  
+  
 	/**
 	 * @param method
 	 */
 	public EffectFunction(Method method) {
-		super(method);
+		super(method, (Class<?>)null);
 	}
 
 	/**
@@ -26,16 +30,17 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 	 * @param method
 	 */
 	public EffectFunction(Object object, Method method) {
-		super(object, method);
+		super(object, method, (Class<?>)null);
 	}
 
 	/**
 	 * @param object
 	 * @param method
 	 * @param arguments
+	 * @param returnType 
 	 */
-	public EffectFunction(Object object, Method method, Vector<Object> arguments) {
-		super(object, method, arguments);
+	public EffectFunction(Object object, Method method, Vector<Object> arguments, Class< ? > returnType ) {
+		super(object, method, arguments, returnType);
 	}
 
   /**
@@ -46,7 +51,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    */
   public EffectFunction(Object object, Method method, Object[] arguments,
                         Call nestedCall) {
-    super(object, method, arguments, nestedCall);
+    super(object, method, arguments, nestedCall, (Class<?>)null);
   }
 
   /**
@@ -57,7 +62,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    */
   public EffectFunction(Object object, Method method, Object[] arguments,
                         Parameter<Call> nestedCall) {
-    super(object, method, arguments, nestedCall);
+    super(object, method, arguments, nestedCall, (Class<?>)null);
   }
 
   /**
@@ -66,7 +71,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    * @param arguments
    */
   public EffectFunction(Object object, Method method, Object[] arguments) {
-    super(object, method, arguments);
+    super(object, method, arguments, (Class<?>)null);
   }
 
 	/**

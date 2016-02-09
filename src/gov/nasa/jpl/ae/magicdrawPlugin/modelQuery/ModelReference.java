@@ -309,7 +309,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
                          List< ModelReference< ?, ? > > alternatives,
                          Class<? extends Collection< T > > resultType,
                          Class< T > singleResultType, boolean resolve ) {
-    super( new FunctionCall( scopeReference, (Method)null ) );
+    super( new FunctionCall( scopeReference, (Method)null, null ) );
     this.scopeReference = scopeReference;
     this.scopeReferenceString = scopeReferenceString;
     this.specifier = specifier;
@@ -1628,7 +1628,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
   public static ModelReference< ?, ? > getMethodAlternative( Object object,
                                                           Method method,
                                                           Object nextSpecifier ) {
-    FunctionCall fc = new FunctionCall( object, method );
+    FunctionCall fc = new FunctionCall( object, method, null );
     ModelReference< ?, ? > mr =
         getFunctionCallAlternative( object, fc, method.getName(), nextSpecifier );
     return mr;
@@ -1648,7 +1648,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
                        + args );
       return null;
     }
-    FunctionCall fc = new FunctionCall( object, m, args );
+    FunctionCall fc = new FunctionCall( object, m, args, (Class<?>)null );
     ModelReference< TT, SS > mr =
         getFunctionCallAlternative( object, fc, fieldName, nextSpecifier );
     return mr;

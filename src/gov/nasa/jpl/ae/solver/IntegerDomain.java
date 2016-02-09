@@ -45,10 +45,10 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public long size() {
+	public int size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
-		return ((long)getUpperBound()) - ((long)getLowerBound());
+		return ((int)getUpperBound()) - ((int)getLowerBound());
 	}
 
 	/* (non-Javadoc)

@@ -349,9 +349,11 @@ public class ClassData {
     if ( p == null && paramName != null && addIfNotFound ) {
       p = makeParam( className, paramName, paramType, null );
     }
+    if ( p == null ) {
       Debug.errorOnNull( complainIfNotFound, complainIfNotFound, "Could not " +
                          ( addIfNotFound ? "create" : "find" ) +
                          " parameter " + className + "." + paramName, p );
+    }
     return p;
   }
   
@@ -406,10 +408,14 @@ public class ClassData {
     if ( aeClasses.containsKey( className ) ) {
       aeClass = aeClasses.get( className );
     } else if ( createIfNotFound ) {
-      aeClass = new ParameterListenerImpl( className );
+      aeClass = constructClass( className );
       aeClasses.put( className, aeClass );
     }
     return aeClass;
+  }
+  
+  public ParameterListenerImpl constructClass( String className ) {
+    return new ParameterListenerImpl( className );
   }
 
 //  public < T > Parameter< T > makeParameter( String className, String paramName, Class< T > type, T value ) {
@@ -627,7 +633,7 @@ public class ClassData {
     PTA pta =
         convertToParameterTypeAndConstructorArguments( param.name, param.type, className );
     Class< P > cls = (Class< P >)pta.paramType;
-    ConstructorCall call = new ConstructorCall( null, cls, pta.argArr );
+    ConstructorCall call = new ConstructorCall( null, cls, pta.argArr, (Class<?>)null );
     P parameter = null;
     try {
       parameter = (P)call.evaluate( true );
