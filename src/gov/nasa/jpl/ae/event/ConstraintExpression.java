@@ -72,13 +72,13 @@ public class ConstraintExpression extends Expression< Boolean >
       sat = evaluate(false);
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch ( InvocationTargetException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch ( InstantiationException e ) {
       // TODO Auto-generated catch block
-      //e.printStackTrace();
+      e.printStackTrace();
     }
     if ( sat == null ) sat = new Boolean( false );
     if ( false && deep & sat ) {
@@ -100,14 +100,22 @@ public class ConstraintExpression extends Expression< Boolean >
     //Debug.turnOn();
     if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied(deep, seen) ) return true;
+    
+    // Try satisfying the contained Parameters individually to make sure they
+    // have valid values.
     HasParameters.Helper.satisfy( this, true, null );
+    
+    // Now try choosing new values for the variables to meet this constraint.
     if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
       Set< Variable< ? > > vars = getVariables();
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
+System.out.println("////////////////////   Picking values for " + vars + " in " + this);
       for ( Variable< ? > v : Utils.scramble(a) ) {
-        if (!(v instanceof Parameter) || !((Parameter) v).isDependent()){
-          pickValue( v );  
+        // Make sure the variable is not dependent and not locked.
+        if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
+             && ( v.getDomain() == null || v.getDomain().size() != 1 ) ) {
+          pickParameterValue( v );  
         }
         if ( isSatisfied(deep, seen) ) break;
       }
@@ -129,23 +137,31 @@ public class ConstraintExpression extends Expression< Boolean >
   }
 
   @Override
-  public < T > boolean pickValue( Variable< T > v ) {
+  public < T > boolean pickParameterValue( Variable< T > v ) {
 //    if ( type.equals( Type.Function ) ) {
       if ( expression instanceof Suggester ) {
         T newValue = ((Suggester)expression).pickValue( v );
         if ( newValue != null ) {
-          v.setValue( newValue );
+System.out.println("////////////////////   picking " + newValue + " for " + v + " in " + this);
+          setValue( v, newValue );
           return true;
         }
       }
 //    }
     // TODO
 //    Set< Variable< ? > > vars = getVariables();
+System.out.println("////////////////////   not picking value for " + v + " in " + this);
     return false;//ParameterConstraint.Helper.pickValue( this, v );
   }
 
+  protected < T > void setValue( Variable<T> v, T newValue ) {
+    v.setValue( newValue );
+  }
+  
   @Override
   public < T > boolean restrictDomain( Variable< T > v ) {
+    // TODO
+    assert(false);
     return ParameterConstraint.Helper.restrictDomain( this, v );
   }
 
@@ -166,7 +182,9 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    return ParameterConstraint.Helper.getFreeVariables( this, false, null );
+    // TODO
+    assert(false);
+    return null;
 //    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
 //    s.addAll( getFreeParameters( true ) );
 //    return s;
@@ -175,6 +193,8 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public void setFreeVariables( Set< Variable< ? > > freeVariables ) {
     ParameterConstraint.Helper.setFreeVariables( this, freeVariables, false, null );
+    // TODO
+    assert(false);
 //    if ( freeParameters == null ) {
 //      freeParameters = new TreeSet< Parameter< ? > >();
 //    }
@@ -201,20 +221,21 @@ public class ConstraintExpression extends Expression< Boolean >
 //    return this.toString().compareTo( o.toString() );
   }
 
-  @Override
-  public boolean isStale() {
-    return ParameterConstraint.Helper.isStale( this, false, null );
-    //return HasParameters.Helper.isStale( this, false );
-//    for ( Parameter< ? > p : getParameters( false ) ) {
-//      if ( p.isStale() ) return true;
-//    }
-//    return false;
-  }
+//  @Override
+//  public boolean isStale() {
+//    if ( expression instanceof La)
+//    return ParameterConstraint.Helper.isStale( this, false, null );
+//    //return HasParameters.Helper.isStale( this, false );
+////    for ( Parameter< ? > p : getParameters( false ) ) {
+////      if ( p.isStale() ) return true;
+////    }
+////    return false;
+//  }
 
-  @Override
-  public void setStale( boolean staleness ) {
-    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
-    ParameterConstraint.Helper.setStale( this, staleness );
-  }
+//  @Override
+//  public void setStale( boolean staleness ) {
+//    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
+//    ParameterConstraint.Helper.setStale( this, staleness );
+//  }
   
 }

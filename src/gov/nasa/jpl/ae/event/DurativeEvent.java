@@ -56,7 +56,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   // Other Members
 
-  protected static boolean writeConstraintsOut = false;
+  public static boolean writeConstraintsOut = false;
 
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
@@ -892,7 +892,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                          Object obj, Method effectFunction,
                          Vector< Object > arguments ) {
     assert sv != null;
-    Effect e = new EffectFunction( obj, effectFunction, arguments );
+    Effect e = new EffectFunction( obj, effectFunction, arguments, (Class<?>)null );  // TODO?  last arg?
     addEffect( sv, e );
   }
 
@@ -1951,12 +1951,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     FunctionCall evalFunc =
         new FunctionCall( null, Expression.class, "evaluate",
                           new Object[] { systemVariable, TimeVarying.class,
-                                        true, true } );
+                                        true, true }, (Class<?>)null );
     Expression< V > getValExpr =
         new Expression< V >( new FunctionCall( null,
                                                TimeVarying.class, "getValue",
                                                new Object[] { timeSampled },
-                                               evalFunc ) );
+                                               evalFunc, (Class<?>)null ) );
     Functions.Equals< V > eqExpr = new Functions.Equals< V >( value, getValExpr );
     ConstraintExpression c = new ConstraintExpression( eqExpr );
     constraintExpressions.add( c );

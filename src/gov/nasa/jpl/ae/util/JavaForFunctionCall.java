@@ -69,6 +69,8 @@ public class JavaForFunctionCall {
   protected boolean evaluateCall = false;
   protected String preferredPackageName = null;
   
+  protected Class<?> returnType;
+  
   protected Call call = null;
   
 //  /**
@@ -83,9 +85,10 @@ public class JavaForFunctionCall {
   public JavaForFunctionCall( JavaToConstraintExpression expressionTranslator,
                               Expression expression,
                               boolean convertArgumentsToExpressions,
-                              String preferredPackageName ) {
+                              String preferredPackageName,
+                              Class<?> returnType ) {
     this( expressionTranslator, expression, convertArgumentsToExpressions,
-          preferredPackageName, false );
+          preferredPackageName, false, returnType );
   }
                               
 //  public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
@@ -108,7 +111,7 @@ public class JavaForFunctionCall {
                                 Expression expression,
                                 boolean convertArgumentsToExpressions,
                                 String preferredPackageName,
-                                boolean evaluateCall ) {
+                                boolean evaluateCall, Class< ? > returnType  ) {
 
     // Arguments may be Expressions, Parameters, or other. Method parameter
     // types may also be Expressions, Parameters, or other.
@@ -133,6 +136,8 @@ public class JavaForFunctionCall {
     // that match Expressions to those that match Parameters and Parameters to
     // other.
 
+     this.returnType = returnType;
+      
     assert expression != null;
     
     setExpression( expression ); // this replaces commented out code below
@@ -471,6 +476,11 @@ public class JavaForFunctionCall {
     return getCall();
   }
 
+  public String getReturnTypeString() {
+    String s = returnType == null ? "(Class<?>)null" : returnType + ".class";
+    return s;
+  }
+  
   public String toNewFunctionCallString() {
     String fcnCallStr = null;
     String callTypeName = 
@@ -482,14 +492,14 @@ public class JavaForFunctionCall {
       || getObject().startsWith( "new EffectFunction" ) ) {
       // nest the function calls
       fcnCallStr = "new " + callTypeName + "( null, " + getMethodJava() + ", "
-                   + getArgumentArrayJava() + ", " + getObject() + " )";
+                   + getArgumentArrayJava() + ", " + getObject() + ", " + getReturnTypeString() + " )";
     } else {
       String instance = getObject();
       if ( isStatic() ) {
         instance = "null";
       }
       fcnCallStr = "new " + callTypeName + "( " + instance + ", " + getMethodJava()
-                   + ", " + getArgumentArrayJava() + " )";
+                   + ", " + getArgumentArrayJava() + ", " + getReturnTypeString() + " )";
     }
     if ( isEvaluateCall() && !Utils.isNullOrEmpty( fcnCallStr ) ) {
       if ( !isConvertingArgumentsToExpressions() ) {
@@ -1225,7 +1235,7 @@ public class JavaForFunctionCall {
                                           getMatchingConstructor(),
                                           //(Constructor< ? >)methodExpr.evaluate( true ),
                                           //(Object[])argumentArrayExpr.evaluate( true ) );
-                                          getArgs() ) );
+                                          getArgs(), this.returnType ) );
         }
       } else {
         if ( getMatchingMethod() == null ) {
@@ -1235,13 +1245,15 @@ public class JavaForFunctionCall {
                                        getMatchingMethod(),
                                        //(Method)methodExpr.evaluate( true ),
                                        //(Object[])argumentArrayExpr.evaluate( true ) );
-                                       getArgs() ) );
+                                       getArgs(),
+                                       this.returnType ) );
         } else {
           setCall( new FunctionCall( getObjectExpr(),
                                      getMatchingMethod(),
                                      //(Method)methodExpr.evaluate( true ),
                                      //(Object[])argumentArrayExpr.evaluate( true ) );
-                                     getArgs() ) );
+                                     getArgs(),
+                                     this.returnType ) );
         }
       }
     }
