@@ -193,6 +193,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   }
   
   public static Call javaCallToEventFunction( String fName,
+                                              Class<?> returnType,
                                               Vector<Object> arguments,
                                               Class<?>... argTypes) {
     
@@ -211,7 +212,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       method = ClassUtils.getMethodForArgTypes( cls, fName, argTypes);
       
       if (method != null) {
-        call = new FunctionCall(null, method, arguments);
+        call = new FunctionCall(null, method, arguments, returnType);
       }
       else {
         Debug.errln( "javaCallToEventFunction( " + fName +
@@ -232,7 +233,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           return null;
       }
 
-      constructor = ClassUtils.getConstructorForArgTypes( cls, argTypes);
+      constructor = ClassUtils.getConstructorForArgTypes( cls, argTypes );
       
       if (constructor != null) {
         
@@ -248,10 +249,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             emptyArgs.add( emptyExpression );
           }
           
-          call = new ConstructorCall( null, constructor, emptyArgs);
+          call = new ConstructorCall( null, constructor, emptyArgs, returnType);
         }
         else {
-          call = new ConstructorCall( null, constructor, arguments );
+          call = new ConstructorCall( null, constructor, arguments, returnType );
         }
       }
       else {
@@ -260,6 +261,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         return null; 
       }
       
+    }
+    
+    if ( returnType != null && (call.getReturnType() == null || !call.getReturnType().equals( returnType ) ) ) {
+      call.setReturnType( returnType );
     }
     
     return call;
@@ -272,12 +277,12 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   }
 
   public static < T, R > ConstructorCall
-      javaUnaryOpToEventFunction( UnaryExpr.Operator operator ) {
+      javaUnaryOpToEventFunction( UnaryExpr.Operator operator, Class< ? > returnType  ) {
     if ( operator == null ) return null;
-    return unaryOpNameToEventFunction( operator.toString() );
+    return unaryOpNameToEventFunction( operator.toString(), returnType );
   }
   public static < T, R > ConstructorCall
-      unaryOpNameToEventFunction( String fName ) {
+      unaryOpNameToEventFunction( String fName, Class< ? > returnType ) {
     
     String op2func = unaryOperatorSymbolToFunctionName( fName );
     if ( op2func != null ) {
@@ -295,7 +300,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         return null;
     }
     ConstructorCall ctorCall =
-        new ConstructorCall( null, cls, new Object[] { emptyExpression } );
+        new ConstructorCall( null, cls, new Object[] { emptyExpression }, returnType );
     return ctorCall;
     
   }
@@ -399,7 +404,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     
   // \([A-Za-z]*\), //\(.*\)
   // case \1: // \2
-    protected static < T, R > Class< ? extends Binary< T, R > > 
+    public static < T, R > Class< ? extends Binary< T, R > > 
       binaryOpNameToFunctionClass( String opName ) {
         Class< ? extends Binary > foo = 
                 getFunctionClassOfType( opName, Binary.class );;
@@ -466,34 +471,38 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   static final Class< gov.nasa.jpl.ae.event.Expression > aeExprCls =
       gov.nasa.jpl.ae.event.Expression.class;
 
-  public static < T, R > ConstructorCall javaBinaryOpToEventFunction( BinaryExpr.Operator operator ) {
+  public static < T, R > ConstructorCall javaBinaryOpToEventFunction( BinaryExpr.Operator operator, Class<?> returnType ) {
       //String fName = javaBinaryOpToEventFunctionName( operator );
       if ( operator == null ) return null;
-      return binaryOpNameToEventFunction( operator.toString() );
+      return binaryOpNameToEventFunction( operator.toString(), returnType );
   }
   public static < T, R > ConstructorCall
-      binaryOpNameToEventFunction( String fName ) {
+      binaryOpNameToEventFunction( String fName, Class< ? > returnType  ) {
     Class< ? extends Functions.Binary< T, R > > cls = null;
     cls = binaryOpNameToFunctionClass( fName );
     if ( cls == null ) {
-        Debug.error( "javaBinaryOpToEventFunction( " + fName +
-                     "): no function found!" );
+        if ( Debug.isOn() ) {
+          Debug.error( "javaBinaryOpToEventFunction( " + fName +
+                       "): no function found!" );
+        }
         return null;
     }
     ConstructorCall ctorCall =
         new ConstructorCall( null, cls, new Object[] { emptyExpression,
-                                                       emptyExpression } );
+                                                       emptyExpression },
+                                                       returnType );
     return ctorCall;
   }
 
-  protected static gov.nasa.jpl.ae.event.Expression< Object > emptyExpression =
+  public static gov.nasa.jpl.ae.event.Expression< Object > emptyExpression =
           new gov.nasa.jpl.ae.event.Expression< Object >( (Object)null );  
-  public static < T, R > ConstructorCall getIfThenElseConstructorCall() {
+  public static < T, R > ConstructorCall getIfThenElseConstructorCall(Class<?> returnType) {
     Class< Functions.Conditional > cls = Functions.Conditional.class;
     ConstructorCall ctorCall =
         new ConstructorCall( null, cls, new Object[] { emptyExpression, 
                                                        emptyExpression,
-                                                       emptyExpression } );
+                                                       emptyExpression },
+                                                       returnType );
     return ctorCall;
   }
 
@@ -597,6 +606,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                              boolean lookOutsideClassDataForTypes,
                              boolean complainIfDeclNotFound,
                              boolean evaluateCall ) {
+    
+    Class<?> returnType = null;  // TODO?
+    String returnTypeString = "(Class<?>)null";
+    
     type = JavaToConstraintExpression.typeToClass( type );
     if ( Utils.isNullOrEmpty( type ) ) {
       type = astToAeExprType( expr, null,
@@ -713,7 +726,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                 expr.getClass() == ObjectCreationExpr.class ) {
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, expr, convertFcnCallArgsToExprs,
-                                     getClassData().getPackageName() , evaluateCall );
+                                     getClassData().getPackageName() , evaluateCall, returnType );
         //if ( convertFcnCallArgsToExprs ) {
           middle = javaForFunctionCall.toNewFunctionCallString();
 //        } else {
@@ -779,6 +792,9 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                    boolean complainIfDeclNotFound,
                                    boolean evaluateCall ) {
       if ( expr == null ) return null;
+      
+      Class< ? > returnType = null;
+      
       type = JavaToConstraintExpression.typeToClass( type );
       if ( Utils.isNullOrEmpty( type ) ) {
         type = astToAeExprType( expr, specifier,
@@ -795,7 +811,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       /*** BinaryExpr ***/
       if ( expr.getClass() == BinaryExpr.class ) {
           BinaryExpr be = ( (BinaryExpr)expr );
-          ConstructorCall call = javaBinaryOpToEventFunction( be.getOperator() );
+          ConstructorCall call = javaBinaryOpToEventFunction( be.getOperator(), returnType  );
           Debug.errorOnNull( true, "A Functions class must exist for every Java binary operator", call );
           Vector< Object > args = new Vector< Object >();
           args.add(astToAeExpression( be.getLeft(), true,
@@ -827,7 +843,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       /*** UnaryExpr ***/
       if ( expr.getClass() == UnaryExpr.class ) {
           UnaryExpr ue = ( (UnaryExpr)expr );
-//          middle = "new Functions."
+          //          middle = "new Functions."
 //                   + JavaToConstraintExpression.astUnaryOpToEventFunctionName( ue.getOperator() ) + "( "
 //                   + astToAeExpr( ue.getExpr(), type,
 //                                  true, lookOutsideClassDataForTypes,
@@ -838,7 +854,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
 //          if ( evaluateCall ) {
 //            middle = "(" + middle + ").evaluate(true)"; 
 //          }
-          ConstructorCall call = javaUnaryOpToEventFunction( ue.getOperator() );
+          ConstructorCall call = javaUnaryOpToEventFunction( ue.getOperator(), returnType  );
           if ( call != null ) {
               Vector< Object > args = new Vector< Object >(1);
               args.add( astToAeExpression( ue.getExpr(), true,
@@ -867,7 +883,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
      /*** ConditionalExpr ***/
      if ( expr.getClass() == ConditionalExpr.class ) {
        ConditionalExpr be = ( (ConditionalExpr)expr );
-       ConstructorCall call = getIfThenElseConstructorCall();
+       ConstructorCall call = getIfThenElseConstructorCall(returnType);
        Debug.errorOnNull( true, "A Functions class must exist for every Java binary operator", call );
        Vector< Object > args = new Vector< Object >();
        args.add(astToAeExpression( be.getCondition(), true,
@@ -945,7 +961,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             Object value = astToAeExpression(ae.getValue(), false,
                                              lookOutsideClassDataForTypes,
                                              complainIfDeclNotFound);
-            FunctionCall fc = new FunctionCall( parameter, Parameter.class, "assignValue", new Object[]{ value } );
+            FunctionCall fc = new FunctionCall( parameter, Parameter.class, "assignValue", new Object[]{ value }, (Class<?>)null );
             aeExpr = new gov.nasa.jpl.ae.event.Expression( fc );
             //return aeExpr;
           } else
@@ -961,7 +977,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                    complainIfDeclNotFound );
             FunctionCall fc =
                 new FunctionCall( parameter, Parameter.class, "assignValue",
-                                  new Object[] { value } );
+                                  new Object[] { value }, (Class<?>)null );
             aeExpr = new gov.nasa.jpl.ae.event.Expression( fc );
             //return aeExpr;
           }
@@ -978,7 +994,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           JavaForFunctionCall javaForFunctionCall =
               new JavaForFunctionCall( this, expr, convertFcnCallArgsToExprs,
                                        getClassData().getPackageName(),
-                                       evaluateCall );
+                                       evaluateCall,
+                                       returnType);
           aeExpr = javaForFunctionCall.toNewExpression();
           //return aeExpr;
 //          //if ( convertFcnCallArgsToExprs ) {
@@ -1083,9 +1100,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       } else if ( expr.getClass() == EnclosedExpr.class ) {
           result = astToAeExprType( ( (EnclosedExpr)expr ).getInner(), specifier, lookOutsideClassData, complainIfNotFound );
       } else if ( expr.getClass() == MethodCallExpr.class ) {
+        Class< ? > returnType = null;
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, expr, false,
-                                     getClassData().getPackageName(), false );
+                                     getClassData().getPackageName(), false,
+                                     returnType  );
         Method mm = javaForFunctionCall.getMatchingMethod();
         if ( mm != null ) {
           Class<?> type = mm.getReturnType(); 
@@ -1461,7 +1480,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         FunctionCall functionCall =
             new FunctionCall( parentExpr.expression, Parameter.class,
                               "getMember",
-                              new Object[] { "" + fieldAccessExpr.getField(), true } );
+                              new Object[] { "" + fieldAccessExpr.getField(), true }, (Class<?>)null );
         aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
         String parentType =
             astToAeExprType( fieldAccessExpr.getScope(),
@@ -1506,7 +1525,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       // nesting function calls
       FunctionCall functionCall =
           new FunctionCall( object, Parameter.class, "getValue",
-                            new Object[] { true } );
+                            new Object[] { true }, (Class<?>)null );
       aeExpr = new gov.nasa.jpl.ae.event.Expression( functionCall );
     }
     if ( evaluateCall && aeExpr != null ) { // && wrapInFunction ) {

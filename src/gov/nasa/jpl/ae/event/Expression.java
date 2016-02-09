@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -35,7 +36,7 @@ import junit.framework.Assert;
  * 
  */
 public class Expression< ResultType > extends HasIdImpl
-                                    implements Cloneable, HasParameters, Groundable,
+                                    implements Cloneable, HasParameters, ParameterListener, Groundable,
                                                LazyUpdate, Satisfiable,
                                                HasDomain, HasTimeVaryingObjects,
                                                MoreToString, Wraps< ResultType > {//, Comparable< Expression< ? > > {
@@ -679,12 +680,14 @@ public class Expression< ResultType > extends HasIdImpl
     case Constructor: // Groundable -- should not get here
 		case None:
 		default:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-			  System.err.println( "Error! Expression has invalid type: " + form );
-				e.printStackTrace();
-			}
+      Debug.error(true, false, "Error! isGrounded(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
 			return false; // TODO -- REVIEW -- exit?
 		}
 	}
@@ -708,11 +711,14 @@ public class Expression< ResultType > extends HasIdImpl
     case Constructor: // Groundable -- should not get here
 		case None:
 		default:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+      Debug.error(true, false, "Error! ground(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
 			return false; // TODO -- REVIEW -- exit?
 		}
 		//return grounded;
@@ -732,8 +738,14 @@ public class Expression< ResultType > extends HasIdImpl
     return compare;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.LazyUpdate#isStale()
+   */
   @Override
   public boolean isStale() {
+    if ( expression instanceof LazyUpdate ) {
+      return ((LazyUpdate)expression).isStale();
+    }
     for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) return true;
     }
@@ -794,10 +806,13 @@ public class Expression< ResultType > extends HasIdImpl
       return (Domain< ResultType >)((FunctionCall)expression).getDomain( propagate, seen );
     case None:
     default:
-      try {
-        throw new IllegalAccessException();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
+      Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
       }
       return null;
     }
@@ -849,14 +864,25 @@ public class Expression< ResultType > extends HasIdImpl
                                   boolean allowWrapping ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( object == null ) return null;
     // Check if object is already what we want.
-    if ( cls != null && cls.isInstance( object ) || cls == object.getClass() ) {
+    boolean isTypeCompatible = cls != null && cls.isInstance( object );
+    if ( isTypeCompatible || cls == object.getClass() ) {
       TT result = null;
+      if ( isTypeCompatible ) {
+        try {
+          result = (TT)object;
+        } catch (ClassCastException e) {
+        }
+        if ( result != null ) {
+          return result;
+        }
+      }
       try {
         result = evaluateDeep( object, cls, propagate, allowWrapping );
+        if ( result != null && cls.isInstance( result ) ) return result;
+        return (TT)object;
       } catch (ClassCastException e) {
       }
-      if ( result != null ) return result;
-      return (TT)object;
+      return null;
     }
     return evaluateDeep( object, cls, propagate, allowWrapping );
   }
@@ -872,12 +898,22 @@ public class Expression< ResultType > extends HasIdImpl
     } 
     else if ( object instanceof Expression ) {
       Expression< ? > expr = (Expression<?>)object;
+      if ( cls != null && cls.isInstance( expr ) && expr.form != Form.Function) {
+        return (TT)expr;
+      }
       if ( cls != null && cls.isInstance( expr.expression ) &&
            expr.form != Form.Function) {
         return (TT)expr.expression;
       }
+      // This just evaluates one level down, but would evaluate a call.
       value = expr.evaluate( propagate );
-      return evaluate( value, cls, propagate, allowWrapping );  
+      // This evaluates to find the result of the right type.
+      value = evaluate( value, cls, propagate, allowWrapping );
+      if ( cls != null && ( value == null || !cls.isInstance( value ) ) &&
+           cls.isInstance( expr.expression ) ) {
+        return (TT)expr.expression;
+      }
+      return (TT)value;
     }
     else if ( object instanceof Call) {
       value = ( (Call)object ).evaluate( propagate );
@@ -893,7 +929,7 @@ public class Expression< ResultType > extends HasIdImpl
         // ignore
       }
     }
-    else if ( allowWrapping && cls != null ){
+    else if ( allowWrapping && cls != null && !cls.equals( Object.class ) ){
       // If evaluating doesn't work, maybe we need to wrap the value in a parameter.
       if ( cls.isAssignableFrom( Parameter.class ) ) {
         if ( Debug.isOn() ) Debug.error( false, "Warning: wrapping value with a parameter with null owner!" );
@@ -1088,8 +1124,9 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public void setValue( ResultType value ) {
-    // TODO Auto-generated method stub
-    
+    if ( expression instanceof Wraps ) {
+      ((Wraps<ResultType>)expression).setValue( value );
+    }
   }
 
   /**
@@ -1097,6 +1134,63 @@ public class Expression< ResultType > extends HasIdImpl
    */
   public boolean didEvaluationSucceed() {
     return evaluationSucceeded;
+  }
+
+  @Override
+  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).handleValueChangeEvent( parameter );
+    }
+  }
+
+  @Override
+  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).handleDomainChangeEvent( parameter );
+    }
+  }
+
+  @Override
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter );
+    }
+  }
+
+  @Override
+  public void detach( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      ( (ParameterListener)expression ).detach( parameter );
+    }
+  }
+
+  @Override
+  public boolean refresh( Parameter< ? > parameter ) {
+    if ( expression instanceof ParameterListener ) {
+      return ( (ParameterListener)expression ).refresh( parameter );
+    }
+    return false;
+  }
+
+  @Override
+  public < T > boolean pickParameterValue( Variable< T > variable ) {
+    if ( expression instanceof ParameterListener ) {
+      return ( (ParameterListener)expression ).pickParameterValue( variable );
+    }
+    return false;
+  }
+
+  @Override
+  public String getName() {
+    if ( expression instanceof ParameterListener ) {
+      return ( (ParameterListener)expression ).getName();
+    }
+    return null;
+  }
+
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
   }
 
 }

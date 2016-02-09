@@ -895,6 +895,10 @@ public class ParameterListenerImpl extends HasIdImpl
         ((ParameterListener)tv).handleValueChangeEvent( parameter );
       }
     }
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      c.handleValueChangeEvent( parameter );
+    }
+
   }
 
   @Override
@@ -1060,6 +1064,9 @@ public class ParameterListenerImpl extends HasIdImpl
         ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter );
       }
     }
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      c.setStaleAnyReferencesTo( changedParameter );
+    }
   }
 
   @Override
@@ -1084,9 +1091,9 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   @Override
-  public <T> boolean pickValue( Variable< T > variable ) {
+  public <T> boolean pickParameterValue( Variable< T > variable ) {
     for ( Dependency<?> d : getDependencies() ) {
-      if ( d.pickValue( variable ) ) return true;
+      if ( d.pickParameterValue( variable ) ) return true;
     }
     if ( variable instanceof Parameter && Random.global.nextBoolean() ) {
       return ((Parameter<?>)variable).ownerPickValue();
@@ -1312,6 +1319,14 @@ public class ParameterListenerImpl extends HasIdImpl
     num += HasConstraints.Helper.getNumberOfConstraints( getConstraintExpressions(), false, seen );
     num += HasConstraints.Helper.getNumberOfConstraints( getDependencies(), false, seen );
     return num;
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#translate(gov.nasa.jpl.ae.solver.Variable, java.lang.Object, java.lang.Class)
+   */
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
   }
   
 }

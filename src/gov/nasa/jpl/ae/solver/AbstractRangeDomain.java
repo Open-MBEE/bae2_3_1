@@ -91,7 +91,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public abstract long size();
+	public abstract int size();
 	
   @Override
 	public boolean isEmpty() {
@@ -545,7 +545,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
       Expression< T > expr = 
           new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                                 new Object[]{ propagate } ) );
+                                                 new Object[]{ propagate }, (Class<?>)null ) );
 //      if ( t.getValue() instanceof Variable ) {
 //        expr = 
 //            new Expression< T >( new FunctionCall( null, Variable.class, "getValue",
@@ -553,7 +553,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 //      }
       args = new Object[] { getLowerBound(), expr };
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                             args ) ) );
+                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // upper bound constraint
@@ -562,11 +562,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
       Expression< T > expr = 
         new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                               new Object[]{ propagate } ) );
+                                               new Object[]{ propagate }, (Class<?>)null ) );
       args = new Object[] { getUpperBound(), expr };
 
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                             args ) ) );
+                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // grounded constraint
@@ -575,7 +575,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       args = new Object[] { false, (Set< Groundable >)null };
       method = getIsGroundedMethod();
       if ( method != null ) {
-        cList.add( new ConstraintExpression( new FunctionCall( g, method, args ) ) );
+        cList.add( new ConstraintExpression( new FunctionCall( g, method, args, (Class<?>)null ) ) );
       }
       //Utils.getMethodForArgs( Groundable.class, "isGrounded", args );
     }
