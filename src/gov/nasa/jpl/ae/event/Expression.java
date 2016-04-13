@@ -1153,11 +1153,14 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
     if ( Debug.isOn() ) Debug.outln( "@@ setStaleAnyReferencesTo() called from " + this.toShortString() );
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
     
     if ( expression instanceof ParameterListener ) {
-      ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter, seen );
     }
   }
 

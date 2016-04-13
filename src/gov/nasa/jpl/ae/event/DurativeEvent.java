@@ -1904,14 +1904,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    seen.remove(this);  // removing this so that call to super succeeds 
 
     // Alert affected dependencies.
-    super.setStaleAnyReferencesTo( changedParameter );
-
+    super.setStaleAnyReferencesTo( changedParameter, seen );
+    
     for ( Event e : getEvents( false, null ) ) {
       if ( e instanceof ParameterListener ) {
-        ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter );
+        ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
   }

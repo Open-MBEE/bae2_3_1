@@ -1056,18 +1056,22 @@ public class ParameterListenerImpl extends HasIdImpl
    * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // Alert affected dependencies.
     for ( Dependency<?> d : getDependencies() ) {
-      d.setStaleAnyReferencesTo( changedParameter );
+      d.setStaleAnyReferencesTo( changedParameter, seen );
     }
     for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
-        ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter );
+        ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
-      c.setStaleAnyReferencesTo( changedParameter );
+      c.setStaleAnyReferencesTo( changedParameter, seen );
     }
   }
 

@@ -15,6 +15,7 @@ import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.Call.ArgHelper;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 
 /**
@@ -194,11 +195,17 @@ public class TranslatedFunctionCall<P> extends FunctionCall implements Translate
   
   
   @Override
-  public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter) {
+  public void setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter<?> changedParameter, Set< HasParameters > seen) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     if ( on ) {
       translatedCallHelper.setStaleAnyReferencesTo( changedParameter );
     }
-    super.setStaleAnyReferencesTo( changedParameter );
+    
+    seen.remove( this );
+    super.setStaleAnyReferencesTo( changedParameter, seen );
   };
   
   @Override

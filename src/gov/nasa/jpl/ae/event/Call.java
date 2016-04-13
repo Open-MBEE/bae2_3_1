@@ -1602,7 +1602,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
     if ( changedParameter == null ) return;
     if ( hasParameter( changedParameter, true, null ) ) {
       setStale(true);
@@ -1612,22 +1615,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // TODO -- This could produce infinite recursion!  Make a helper!
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+        ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
     if ( object instanceof ParameterListener ) {
-      ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
-      ( (ParameterListener)nestedCall ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)nestedCall ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( returnValue instanceof ParameterListener ) {
-      ( (ParameterListener)returnValue ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)returnValue ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( getEvaluatedArguments() != null ) {
       for ( Object o : getEvaluatedArguments() ) {
         if ( o instanceof ParameterListener ) {
-          ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+          ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
         }
       }
     }

@@ -903,7 +903,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter,
+                                       Set< HasParameters > seen ) { // ignoring since there's no recursive call here
     breakpoint();
     if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + ")" );
     if ( changedParameter == null ) return;

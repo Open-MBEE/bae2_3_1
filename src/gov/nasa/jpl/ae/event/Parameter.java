@@ -3,7 +3,9 @@ package gov.nasa.jpl.ae.event;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -350,7 +352,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                                          + "): setStaleAnyReferencesTo("
                                          + this.toString( true, false, null ) + ")" );
         // lazy/passive updating
-        owner.setStaleAnyReferencesTo( this );
+        owner.setStaleAnyReferencesTo( this, null );
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );

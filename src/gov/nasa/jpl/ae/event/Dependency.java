@@ -610,10 +610,14 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
     if ( expression == null ) return;
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     if ( expression.hasParameter( changedParameter, true, null ) ) {
-      expression.setStaleAnyReferencesTo( changedParameter );
+      expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
     }
   }
