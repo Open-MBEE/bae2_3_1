@@ -341,7 +341,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-    if ( returnValue != null && !isStale() && isGrounded( propagate, null ) ) {
+    if ( returnValue != null && !isStale() ) {// && isGrounded( propagate, null ) ) {
       evaluationSucceeded = true;
       return returnValue;
     }
@@ -826,6 +826,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Assert.assertTrue( "This method is not supported!", false );
   }
   
+  public synchronized boolean areArgumentsGrounded( boolean deep,
+                                                    Set< Groundable > seen ) {
+    // Check if arguments are grounded if groundable.  Ok for arguments to be null.
+    if ( arguments != null ) {
+      for ( Object o : arguments ) {
+        if ( o != null && o instanceof Groundable
+             && !( (Groundable)o ).isGrounded( deep, seen ) ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   @Override
   public synchronized boolean isGrounded( boolean deep, Set< Groundable > seen ) {
@@ -847,14 +860,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       
       return false;
     }
-    // Check if arguments are grounded if groundable.  Ok for arguments to be null.
-    if ( arguments != null ) {
-      for ( Object o : arguments ) {
-        if ( o != null && o instanceof Groundable
-             && !( (Groundable)o ).isGrounded( deep, seen ) ) {
-          return false;
-        }
-      }
+    if ( !areArgumentsGrounded( deep, seen ) ) {
+      return false;
     }
     if ( nestedCall == null ) {
 //      if ( !Modifier.isStatic( getMember().getModifiers() ) &&

@@ -223,6 +223,16 @@ public class Functions {
       this( forceExpression( o1 ), forceExpression( o2 ), functionMethod );
     }
 
+    /* (non-Javadoc)
+     * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
+     */
+    @Override
+    public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+      if ( arguments == null || arguments.size() < 2 ) return false;
+      if ( !areArgumentsGrounded( deep, seen ) ) return false;
+      return true;
+    }
+
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
       try {
@@ -2146,25 +2156,6 @@ public class Functions {
     }
     public And(  FunctionCall o2, Expression< Boolean > o1 ) {
       super( o1, o2, "and", "pickTrue", "pickTrue" );
-    }
-    /* (non-Javadoc)
-     * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
-     */
-    @Override
-    public boolean isGrounded(boolean deep, Set< Groundable > seen) {
-      try {
-        return evaluate( false ) != null;
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      }
-      return false;
     }
     
     /**
