@@ -363,7 +363,6 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
             Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
         }
       }
-      Debug.getInstance().logForce( " $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       if ( Debug.isOn() ) {
         Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
