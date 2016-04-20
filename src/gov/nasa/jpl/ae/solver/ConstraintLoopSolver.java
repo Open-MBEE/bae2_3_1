@@ -8,7 +8,10 @@ import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author bclement
@@ -49,13 +52,26 @@ public class ConstraintLoopSolver implements Solver {
       if ( Debug.isOn() ) Debug.outln( numConstrs + " remaining constraints to satisfy: " + unsatisfiedConstraints );
       if ( Debug.isOn() ) Debug.outln(""); 
       //Debug.turnOff();
+      //unsatisfiedConstraints = Utils.scramble( unsatisfiedConstraints );
+      List<Integer> intList = new ArrayList<Integer>();
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
+        intList.add( i );
+      }
+      
+      // Need to keep track of what we've satisfied and can remove
+      TreeSet<Integer> deleteList = new TreeSet<Integer>(new Comparator< Integer >() {
+        @Override
+        public int compare( Integer o1, Integer o2 ) {
+          return Integer.compare( o2,  o1 );
+        }
+      });
+      
+      // Scramble the list to avoid getting stuck in search space.
+      intList = Utils.scramble( intList );
+      for ( int j = 0; j < intList.size(); ++j ) {
+        int i = intList.get( j );
         Constraint c = unsatisfiedConstraints.get( i );
         if ( Debug.isOn() ) Debug.outln( "checking constraint " + i + ": " + c );
-//        String cstr = c.toString();
-//        if ( cstr.endsWith( "onstraint" ) ) {
-//          Debug.breakpoint();
-//        }
         //Debug.turnOn();
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
@@ -64,14 +80,14 @@ public class ConstraintLoopSolver implements Solver {
             thisSatisfied = c.isSatisfied( deep, null );
           }
         }
-        //Debug.turnOff();
-//        if ( !thisSatisfied ) {
-//          thisSatisfied = satisfy( c, deep, null );
-//        }
         if ( thisSatisfied ) {
-          unsatisfiedConstraints.remove( i );
-          --i;
+          deleteList.add( i );
+//          unsatisfiedConstraints.remove( i );
+//          --i;
         }
+      }
+      for ( Integer j : deleteList ) {
+        unsatisfiedConstraints.remove( j );
       }
       numConstrs = unsatisfiedConstraints.size();
       boolean progress = numConstrs < lastSize;
