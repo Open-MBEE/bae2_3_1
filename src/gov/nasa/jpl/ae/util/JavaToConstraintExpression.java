@@ -421,7 +421,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         
         // Capitalize the first character of the fName:
         fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
-                        + fName.toString().substring( 1 );
+                        + fName.toString().substring( 1 ).replaceAll( "[$]", "" );
                 
         try {
           

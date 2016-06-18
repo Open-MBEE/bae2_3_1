@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.emf.ecore.EObject;
 
 import japa.parser.ast.expr.FieldAccessExpr;
@@ -141,10 +143,21 @@ public class JavaModelQueryParser extends JavaToConstraintExpression {
     } else {
       // TODO -- remove result since it's only used for debug output and the
       // evaluation might have an unintended side-effect
-      Object result = ( aeExpr == null ) ? null : aeExpr.evaluate( propagate );
-      if ( Debug.isOn() ) Debug.outln( "Parsed FieldAccessExpr = " + fieldAccessExpr +
-                   " as a ModelReference: aeExpr = " + aeExpr +
-                   "; parentExpr = " + parentExpr + "; result = " + result );
+      try {
+        Object result = ( aeExpr == null ) ? null : aeExpr.evaluate( propagate );
+        if ( Debug.isOn() ) Debug.outln( "Parsed FieldAccessExpr = " + fieldAccessExpr +
+                                         " as a ModelReference: aeExpr = " + aeExpr +
+                                         "; parentExpr = " + parentExpr + "; result = " + result );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
 
     return aeExpr;

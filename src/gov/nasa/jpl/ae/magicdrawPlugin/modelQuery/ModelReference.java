@@ -15,6 +15,7 @@ import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.CompareUtils.GenericComparator;
 import japa.parser.ast.expr.FieldAccessExpr;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
@@ -656,11 +657,23 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
     
     // evaluate the expression to get the object referenced 
     try {
-      Collection<T> ct = super.evaluate( propagate );
-      // If it succeeded, we're done--don't bother with alternatives.
-      if ( didEvaluationSucceed() ) {
-        coll.addAll( ct );
-        return coll;
+      try {
+        Collection< T > ct;
+        ct = super.evaluate( propagate );
+        // If it succeeded, we're done--don't bother with alternatives.
+        if ( didEvaluationSucceed() ) {
+          coll.addAll( ct );
+          return coll;
+        }
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     } catch ( ClassCastException e ) {
       // 
@@ -743,10 +756,22 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
     
     // evaluate the expression to get the object referenced 
     try {
-      Collection<T> ct = super.evaluate( propagate );
-      // If it succeeded, we're done--don't bother with alternatives.
-      if ( didEvaluationSucceed() ) {
-        return ct;
+      try {
+        Collection< T > ct;
+        ct = super.evaluate( propagate );
+        // If it succeeded, we're done--don't bother with alternatives.
+        if ( didEvaluationSucceed() ) {
+          return ct;
+        }
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     } catch ( ClassCastException e ) {
       // 
@@ -833,11 +858,20 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
    * @return whether this reference contains the object being referenced.
    */
   public boolean isDirectReference() {
-    return ( specifier == null &&
-             scopeReference != null &&
-             ( expression == null || 
-               ( super.evaluate( false ) == null &&
-                 !didEvaluationSucceed() ) ) );
+    // REVIEW -- Why does the failure to evaluate indicate a direct reference?
+    // Need documentation here.
+    try {
+      return ( specifier == null &&
+               scopeReference != null &&
+               ( expression == null || 
+                 ( super.evaluate( false ) == null &&
+                   !didEvaluationSucceed() ) ) );
+    } catch ( IllegalAccessException e ) {
+    } catch ( InvocationTargetException e ) {
+    } catch ( InstantiationException e ) {
+    }
+    // returning true because it failed (threw an exception)
+    return true;
   }
 
   /**
@@ -979,8 +1013,19 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
 
   public boolean isSingleExpressionAnAlternative() {
     if ( singleExpression != null ) {
-      singleExpression.evaluate( false );
-      return singleExpression.didEvaluationSucceed();
+      try {
+        singleExpression.evaluate( false );
+        return singleExpression.didEvaluationSucceed();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
     return false;
   }

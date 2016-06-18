@@ -601,6 +601,19 @@ public class Functions {
       setMonotonic( true );
     }
   }
+  
+  public static class Mul<T,R> extends Times< T, R > {
+    public Mul( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+      setMonotonic( true );
+    }
+    public Mul( Object o1, Object c ) {
+      super( o1, c );
+      setMonotonic( true );
+    }
+  }
+
+
   public static class Divide< T , R > extends Binary< T, R > {
     public Divide( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "divide", "pickValueForward", "pickValueReverse" );
@@ -613,6 +626,19 @@ public class Functions {
       setMonotonic( true );
     }
   }
+  
+  public static class Div<T,R> extends Divide< T, R > {
+    public Div( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+      setMonotonic( true );
+    }
+    public Div( Object o1, Object c ) {
+      super( o1, c );
+      setMonotonic( true );
+    }
+  }
+
+
 
   // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
   // print "inf"

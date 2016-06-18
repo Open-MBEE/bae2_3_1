@@ -174,6 +174,11 @@ public class FunctionCall extends Call {
     hasTypeErrors();
   }
 
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Object argumentsA[]) {
+      this(object,cls, methodName, argumentsA, (Class<?>)null);
+  }
+  
   /**
    * @param object
    * @param cls
