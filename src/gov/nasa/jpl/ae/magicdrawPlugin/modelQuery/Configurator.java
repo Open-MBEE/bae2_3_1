@@ -359,10 +359,11 @@ public class Configurator implements BrowserContextAMConfigurator,
       }
       contexts.add( e.getKey() );
     }
+    Class<?> cls = Configurator.class;
     for ( Context c : contexts ) {
       Method addMethod = c.getAddConfiguratorMethod( "asdfghjkl" );
-      Class<?> cls = Configurator.class;
       int j;
+      if ( addMethod != null ) {
       for ( j = 0; j < addMethod.getParameterTypes().length; ++j ) {
         if ( Configurator.class.isAssignableFrom( addMethod.getParameterTypes()[j] ) ) {
           cls = addMethod.getParameterTypes()[j];
@@ -371,6 +372,7 @@ public class Configurator implements BrowserContextAMConfigurator,
       }
       assert( j < addMethod.getParameterTypes().length );
       typeForContext.put( c, cls );
+      }
     }
     return contextsForType;
   }
