@@ -3,7 +3,10 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.util.Set;
+
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.HasName;
 
 /**
  * ParameterListener should be implemented by classes whose members or methods
@@ -12,7 +15,7 @@ import gov.nasa.jpl.ae.solver.Variable;
  * @author bclement
  * 
  */
-public interface ParameterListener extends HasParameters {
+public interface ParameterListener extends HasParameters, HasName< String > {
   /**
    * Propagate this parameter's change to other objects. This may involve
    * updating dependencies, re-elaboration of events, and maybe constraint
@@ -39,8 +42,9 @@ public interface ParameterListener extends HasParameters {
    * corrupted.
    * 
    * @param changedParameter the parameter whose value is about to change
+   * @param seen TODO
    */
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter );
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen );
 
   /**
    * Remove any references to the parameter.  
@@ -64,7 +68,7 @@ public interface ParameterListener extends HasParameters {
    * @param parameter
    * @return
    */
-  public <T> boolean pickValue( Variable< T > variable );
+  public <T> boolean pickParameterValue( Variable< T > variable );
 
   /**
    * The initial motivation for {@code getName()} was for if ( Debug.isOn() ) Debug.output.  As of 2012-08-05, 
@@ -72,4 +76,16 @@ public interface ParameterListener extends HasParameters {
    * @return a name
    */
   public String getName();
+  
+  /**
+   * Adjust the value assigned to a variable to make sure it is in in the
+   * domain.
+   * 
+   * @param v the variable whose value is to be assigned
+   * @param o the object to translate
+   * @param type the variable's type
+   * @return the new value to use instead of the object passed in
+   */
+  public <T> T translate( Variable<T> v, Object o, Class< ? > type  );  // HACK -- remove this if possible
+
 }

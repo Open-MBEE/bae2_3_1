@@ -1,8 +1,11 @@
 package gov.nasa.jpl.ae.event;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,7 +89,18 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     name = n;
     domain = d;
     if ( fc != null ) {
-      value = (T)fc.evaluate( propagate );
+      try {
+        value = (T)fc.evaluate( propagate );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
     }
     owner = o;
     stale = !isGrounded( true, null );
@@ -266,7 +280,16 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       return domain.getType();
     }
     if ( value != null ) {
-      return value.getClass();
+      Class< ? extends Object > cls = value.getClass();
+//      if ( cls != null ) {
+//        if ( cls.equals( Integer.class ) ) {
+//          return Long.class;
+//        }
+//        if ( cls.equals( Float.class ) ) {
+//          return Double.class;
+//        }
+//      }
+      return cls;
     }
     return null;
   }
@@ -292,11 +315,33 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     assert mayChange;
     T castVal = null;
     try {
-      castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
+      try {
+        castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       val = castVal;
       if ( Debug.isOn() ) valString = MoreToString.Helper.toLongString( val );
     } catch ( ClassCastException cce ) {
       cce.printStackTrace();
+    }
+    if ( val != null && owner != null ) {
+      Object newVal = owner.translate(this, val, getType());
+      if ( Debug.isOn() ) {
+        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+      }
+      if ( newVal != null ) val = (T)newVal;
+    } else {
+      if ( Debug.isOn() ) {
+        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
+      }
     }
     boolean changing = !valueEquals( val );
     if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
@@ -307,10 +352,19 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                                          + "): setStaleAnyReferencesTo("
                                          + this.toString( true, false, null ) + ")" );
         // lazy/passive updating
-        owner.setStaleAnyReferencesTo( this );
+        owner.setStaleAnyReferencesTo( this, null );
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
+      }
+      if ( Debug.isOn() ) {
+        if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
+            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        }
+      }
+      if ( Debug.isOn() ) {
+        Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
@@ -386,7 +440,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( domain == null ) {
       return null;
     }
-    T newValue = domain.pickRandomValue();
+    T newValue = null;
+    try {
+      newValue = (T)domain.pickRandomValue();
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    }
     String ownerStr = (owner == null) ? "?" : owner.getName(); 
     if ( Debug.isOn() ) Debug.outln( "Picking random value for " + ownerStr + "."
                         + this.name + " from " + this.domain + " --> "
@@ -567,7 +626,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   
   protected boolean ownerPickValue() {
     if ( owner != null ) {//&& owner instanceof ParameterListenerImpl ) {
-      if ( ((ParameterListener)owner).pickValue( this ) ) return true;
+      if ( ((ParameterListener)owner).pickParameterValue( this ) ) return true;
     }
     return false;
   }
@@ -722,6 +781,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public void setStale( boolean staleness ) {
+    if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
+                                                  + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     if ( name.contains( "effect65Var" ) ) {
       Debug.out( "" );
@@ -751,7 +812,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       try {
         method = getClass().getMethod( "inDomain", (Class< ? >[])null );
         constraintList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                               (Object[])null ) ) );
+                                                               (Object[])null, (Class<?>)null ) ) );
       } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();

@@ -1,6 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
@@ -25,7 +25,7 @@ public class ConstructorCall extends Call {
 
   protected Class<?> thisClass = null;
   protected Constructor<?> constructor = null;
-  protected Object newObject = null;
+  //protected Object newObject = null;
 
   protected Object getEnclosingInstance() {
     return object;
@@ -57,8 +57,10 @@ public class ConstructorCall extends Call {
    * Construct a call to a static constructor.
    * @param constructor
    */
-  public ConstructorCall( Constructor<?> constructor ) {
+  public ConstructorCall( Constructor<?> constructor,
+                          Class<?> returnType ) {
     this.constructor = constructor; // the constructor must be static
+    this.returnType = returnType;
   }
 
   /**
@@ -66,8 +68,10 @@ public class ConstructorCall extends Call {
    * @param cls
    * @param constructorName
    */
-  public ConstructorCall( Class<?> cls ) {
+  public ConstructorCall( Class<?> cls,
+                          Class<?> returnType ) {
     thisClass = cls;
+    this.returnType = returnType;
     setConstructor( ClassUtils.getConstructorForArgTypes( cls, (Class<?>[])null ) ); 
   }
 
@@ -75,13 +79,16 @@ public class ConstructorCall extends Call {
    * @param object
    * @param constructor
    */
-  public ConstructorCall( Object object, Constructor<?> constructor ) {
+  public ConstructorCall( Object object, Constructor<?> constructor,
+                          Class<?> returnType ) {
     this.object = object;
+    this.returnType = returnType;
     setConstructor( constructor );
   }
 
-  public ConstructorCall( Object object, Class<?> cls ) {
-    this( cls );
+  public ConstructorCall( Object object, Class<?> cls,
+                          Class<?> returnType ) {
+    this( cls, returnType );
     this.object = object;
   }
 
@@ -91,10 +98,12 @@ public class ConstructorCall extends Call {
    * @param arguments
    */
   public ConstructorCall( Object object, Constructor<?> constructor,
-                          Vector< Object > arguments ) {
+                          Vector< Object > arguments,
+                          Class<?> returnType ) {
     this.object = object;
     setConstructor( constructor );
     this.arguments = arguments;
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
@@ -105,11 +114,13 @@ public class ConstructorCall extends Call {
    * @param arguments
    */
   public ConstructorCall( Object object, Class<?> cls,
-                          Vector< Object > arguments ) {
+                          Vector< Object > arguments,
+                          Class<?> returnType ) {
     this.object = object;
     this.thisClass = cls;
     this.arguments = arguments;
     this.constructor = getConstructor();
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
@@ -120,8 +131,9 @@ public class ConstructorCall extends Call {
    * @param nestedCall
    */
   public ConstructorCall( Object object, Constructor<?> constructor, Vector< Object > arguments,
-                          Call nestedCall ) {
-    this(object, constructor, arguments);
+                          Call nestedCall,
+                          Class<?> returnType ) {
+    this(object, constructor, arguments, returnType);
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
 
@@ -132,8 +144,9 @@ public class ConstructorCall extends Call {
    * @param nestedCall
    */
   public ConstructorCall( Object object, Constructor<?> constructor, Vector< Object > arguments,
-                       Parameter<Call> nestedCall ) {
-    this(object, constructor, arguments);
+                       Parameter<Call> nestedCall,
+                       Class<?> returnType ) {
+    this(object, constructor, arguments, returnType);
     this.nestedCall = nestedCall;
   }
 
@@ -146,15 +159,17 @@ public class ConstructorCall extends Call {
    */
   public ConstructorCall( Object object, Class<?> cls,
                        Vector< Object > arguments,
-                       Call nestedCall ) {
-    this(object, cls, arguments);
+                       Call nestedCall,
+                       Class<?> returnType ) {
+    this(object, cls, arguments, returnType);
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
 
   public ConstructorCall( Object object, Class<?> cls,
                        Vector< Object > arguments,
-                       Parameter<Call> nestedCall ) {
-    this(object, cls, arguments);
+                       Parameter<Call> nestedCall,
+                       Class<?> returnType ) {
+    this(object, cls, arguments, returnType);
     this.nestedCall = nestedCall;
   }
 
@@ -164,7 +179,8 @@ public class ConstructorCall extends Call {
    * @param arguments
    */
   public ConstructorCall( Object object, Constructor<?> constructor,
-                          Object argumentsA[] ) {
+                          Object argumentsA[],
+                          Class<?> returnType ) {
     this.object = object;
     setConstructor( constructor );
     this.arguments = new Vector<Object>();
@@ -173,6 +189,7 @@ public class ConstructorCall extends Call {
         this.arguments.add( o );
       }
     }
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
@@ -182,7 +199,8 @@ public class ConstructorCall extends Call {
    * @param argumentsA
    */
   public ConstructorCall( Object object, Class<?> cls,
-                          Object argumentsA[] ) {
+                          Object argumentsA[],
+                          Class<?> returnType ) {
     this.object = object;
     this.thisClass = cls;
     this.arguments = new Vector<Object>();
@@ -192,34 +210,39 @@ public class ConstructorCall extends Call {
       }
     }
     this.constructor = getConstructor();
+    this.returnType = returnType;
     hasTypeErrors();
   }
 
   public ConstructorCall( Object object, Constructor<?> constructor,
                           Object argumentsA[],
-                          ConstructorCall nestedCall ) {
-    this( object, constructor, argumentsA );
+                          ConstructorCall nestedCall,
+                          Class<?> returnType ) {
+    this( object, constructor, argumentsA, returnType );
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
     hasTypeErrors();
   }
 
   public ConstructorCall( Object object, Constructor<?> constructor,
                           Object argumentsA[],
-                          Parameter<Call> nestedCall ) {
-    this( object, constructor, argumentsA );
+                          Parameter<Call> nestedCall,
+                          Class<?> returnType ) {
+    this( object, constructor, argumentsA, returnType );
     this.nestedCall = nestedCall;
     hasTypeErrors();
   }
 
   public ConstructorCall( Object object, Class<?> cls,
-                          Object argumentsA[], Call nestedCall ) {
-    this( object, cls, argumentsA );
+                          Object argumentsA[], Call nestedCall,
+                          Class<?> returnType ) {
+    this( object, cls, argumentsA, returnType );
     this.nestedCall = new Parameter<Call>("", null, nestedCall, null );
   }
   public ConstructorCall( Object object, Class<?> cls,
                           Object argumentsA[],
-                          Parameter<Call> nestedCall ) {
-    this( object, cls, argumentsA );
+                          Parameter<Call> nestedCall,
+                          Class<?> returnType ) {
+    this( object, cls, argumentsA, returnType );
     this.nestedCall = nestedCall;
   }
 
@@ -232,6 +255,8 @@ public class ConstructorCall extends Call {
     this.constructor = constructorCall.constructor;
     this.arguments = constructorCall.arguments;
     this.nestedCall = constructorCall.nestedCall;
+    this.returnType = constructorCall.returnType;
+    this.argHelper = constructorCall.argHelper;
     hasTypeErrors();
   }
 
@@ -244,7 +269,15 @@ public class ConstructorCall extends Call {
   
   @Override
   public Class<?>[] getParameterTypes() {
-    return constructor.getParameterTypes();
+    if ( constructor == null ) return new Class<?>[]{};
+    Class< ? >[] ctorTypes = constructor.getParameterTypes();
+    if ( !isInnerClass() ) return ctorTypes;
+    int newSize = Utils.isNullOrEmpty( ctorTypes ) ? 0 : ctorTypes.length - 1;
+    Class< ? >[] newTypes =  new Class< ? >[ newSize ];
+    for ( int i = 0; i < newSize; ++i ) {
+      newTypes[ i ] = ctorTypes[i+1];
+    }
+    return newTypes;
   }
   
   @Override
@@ -260,58 +293,82 @@ public class ConstructorCall extends Call {
   @Override
   public Object invoke( Object evaluatedObject, Object[] evaluatedArgs ) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
     evaluationSucceeded = false;
-    Object[] args = isVarArgs() ? new Object[]{evaluatedArgs} : evaluatedArgs;
-    newObject = constructor.newInstance( args );
-    evaluationSucceeded = true;
-    return newObject;
-  }
-  
-  protected static boolean possiblyStale( Object obj ) {
-    if ( obj == null || obj instanceof TimeVarying ) return true;
-    if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
-    if ( obj instanceof Variable ) {
-      Object v = ((Variable<?>)obj).getValue( false );
-      if ( possiblyStale( v ) ) return true;
+    Object[] args = false ? new Object[]{evaluatedArgs} : evaluatedArgs; // handling this in calling method, evaluate()
+    if ( isInnerClass() ) {
+      Object[] newArgs = new Object[args.length+1];
+      newArgs[0] = evaluatedObject;
+      if ( args != null ) {
+        for ( int i=0; i<args.length; ++i ) {
+          newArgs[i+1] = args[i];
+        }
+        args = newArgs;
+      }
     }
-    return false;
-  }
-  
-  @Override
-  public boolean isStale() {
-    if ( super.isStale() ) return true;
-    if ( possiblyStale( newObject ) ) return true;
-    return false;
-  }
-
-  @Override
-  public Object evaluate( boolean propagate ) { // throws IllegalArgumentException,
-    // REVIEW -- if this is buggy, consider making this a dependency.
-    // Nested call can also be a dependency.
-    if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
+    try {
+      returnValue = constructor.newInstance( args );
+      //returnValue = newObject;
+      if ( Debug.isOn() ) {
+          System.out.println("ConstructorCall constructor = " + constructor.toGenericString());
+          System.out.println("ConstructorCall args = " + args);
+          System.out.println("ConstructorCall.invoke " + constructor.getName() + "("
+                  + Utils.toString( evaluatedArgs, false )
+                  + "): ConstructorCall{" + this + "} = " + returnValue );
+      }
       evaluationSucceeded = true;
-      return newObject;
+    } catch (Exception e ) {
+      evaluationSucceeded = false;
+      if ( Debug.isOn() ) {
+        Debug.error(true, false, "ConstructorCall constructor = " + constructor.toGenericString());
+        Debug.error(true, false, "ConstructorCall.invoke " + constructor.getName() + "("
+                            + Utils.toString( evaluatedArgs, false )
+                            + "): ConstructorCall{" + this + "} " + e.getMessage() );
+        e.printStackTrace();
+      }
+      if ( Debug.isOn() ) {
+        throw e;
+      }
     }
-    newObject = null;
-    return super.evaluate( propagate );
+    return returnValue; //newObject;
   }
   
-  @Override
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
-                             Set<HasParameters> seen ) {
-    if ( super.substitute( p1, p2, deep, seen ) ) {
-      this.newObject = null;
-      return true;
-    }
-    return false;
-  }
+//  @Override
+//  public boolean isStale() {
+//    if ( super.isStale() ) return true;
+//    if ( possiblyStale( newObject ) ) return true;
+//    return false;
+//  }
 
-  @Override
-  public boolean ground( boolean deep, Set< Groundable > seen ) {
-    if ( seen != null && seen.contains( this ) ) return true;
-    if ( isGrounded( deep, null ) ) return true;
-    this.newObject = null;
-    return super.ground( deep, seen );
-  }
+//  @Override
+//  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+//    // REVIEW -- if this is buggy, consider making this a dependency.
+//    // Nested call can also be a dependency.
+//    if ( newObject != null && !isStale() && isGrounded( propagate, null ) ) {
+//      evaluationSucceeded = true;
+//      return newObject;
+//    }
+//    newObject = null;
+//    return super.evaluate( propagate );
+//  }
+  
+//  @Override
+//  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+//                             Set<HasParameters> seen ) {
+//    if ( super.substitute( p1, p2, deep, seen ) ) {
+//      this.newObject = null;
+//      setStale( true );
+//      return true;
+//    }
+//    return false;
+//  }
+
+//  @Override
+//  public boolean ground( boolean deep, Set< Groundable > seen ) {
+//    if ( seen != null && seen.contains( this ) ) return true;
+//    if ( isGrounded( deep, null ) ) return true;
+//    this.returnValue = null;
+//    setStale( true );
+//    return super.ground( deep, seen );
+//  }
   
   @Override
   public Boolean hasTypeErrors() {
@@ -355,6 +412,7 @@ public class ConstructorCall extends Call {
    * @return the constructor
    */
   public Constructor<?> getConstructor() {
+    if ( this.constructor != null ) return this.constructor; 
     Object argArr[] = null;
     if ( !Utils.isNullOrEmpty( arguments ) ) {
       argArr = arguments.toArray();
@@ -370,29 +428,32 @@ public class ConstructorCall extends Call {
    */
   public void setConstructor( Constructor<?> constructor ) {
     this.constructor = constructor;
+    setStale( true );
     if ( constructor != null ) {
       this.thisClass = constructor.getDeclaringClass();
     }
-    this.newObject = null;
+    this.returnValue = null;
  }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.Call#setObject(java.lang.Object)
-   */
-  @Override
-  public void setObject( Object object ) {
-    this.object = object;
-    this.newObject = null;
-  }
+//  /* (non-Javadoc)
+//   * @see gov.nasa.jpl.ae.event.Call#setObject(java.lang.Object)
+//   */
+//  @Override
+//  public void setObject( Object object ) {
+//    this.object = object;
+//    this.returnValue = null;
+//    setStale( true );
+//  }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.Call#setArguments(java.util.Vector)
-   */
-  @Override
-  public void setArguments( Vector< Object > arguments ) {
-    super.setArguments( arguments );
-    this.newObject = null;
-  }
+//  /* (non-Javadoc)
+//   * @see gov.nasa.jpl.ae.event.Call#setArguments(java.util.Vector)
+//   */
+//  @Override
+//  public void setArguments( Vector< Object > arguments ) {
+//    super.setArguments( arguments );
+//    this.returnValue = null;
+//    setStale( true );
+//  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Call#setNestedCall(gov.nasa.jpl.ae.event.Call)
@@ -400,7 +461,8 @@ public class ConstructorCall extends Call {
   @Override
   public void setNestedCall( Call nestedCall ) {
     super.setNestedCall( nestedCall );
-    this.newObject = null;
+//    this.newObject = null;
+    setStale( true );
   }
 
   /* (non-Javadoc)
@@ -408,6 +470,7 @@ public class ConstructorCall extends Call {
    */
   @Override
   public Class< ? > getReturnType() {
+    if ( returnType != null ) return returnType;
     return thisClass;
   }
   

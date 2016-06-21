@@ -3,12 +3,12 @@
  */
 package gov.nasa.jpl.ae.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.solver.BooleanDomain;
 import gov.nasa.jpl.ae.solver.Domain;
@@ -87,14 +87,25 @@ public class DomainHelper {
           } else {
             List< Object > list = Arrays.asList( new Object[] { odlb, lb } );
             fCall.setArguments( new Vector< Object >( list ) );
-            lb = fCall.evaluate( true );
-          }
-          if ( ub == null ) {
-            ub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
-          } else {
-            List< Object > list = Arrays.asList( new Object[] { odub, ub } );
-            fCall.setArguments( new Vector< Object >( list ) );
-            ub = fCall.evaluate( true );
+            try {
+              lb = fCall.evaluate( true );
+              if ( ub == null ) {
+                ub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
+              } else {
+                list = Arrays.asList( new Object[] { odub, ub } );
+                fCall.setArguments( new Vector< Object >( list ) );
+                ub = fCall.evaluate( true );
+              }
+            } catch ( IllegalAccessException e ) {
+              // TODO Auto-generated catch block
+              //e.printStackTrace();
+            } catch ( InvocationTargetException e ) {
+              // TODO Auto-generated catch block
+              //e.printStackTrace();
+            } catch ( InstantiationException e ) {
+              // TODO Auto-generated catch block
+              //e.printStackTrace();
+            }
           }
         }
       }

@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -50,13 +51,13 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   public static final String homeDir = "/home/bclement";
   public static final String gitDir = homeDir + "/git";
   public static final String enthoughtDir = "/opt/Canopy/appdata/canopy-1.0.3.1262.rh5-x86_64";
-  //public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
-  public static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
-  //public static final String enthoughtPython = enthoughtDir + "/bin/python";
-  public static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
+  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
+  //private static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
+  public static final String enthoughtPython = enthoughtDir + "/bin/python";
+  //private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
   //private static final String enthoughtPython = "c:\\Python27\\python.exe";
-  //public static final String enthoughtTempDir = "/tmp";
-  public static final String enthoughtTempDir = "c:\\temp";
+  public static final String enthoughtTempDir = "/tmp";
+  //private static final String enthoughtTempDir = "c:\\temp";
 
   public static double maxSecondsToNextEvent = 43200;
   
@@ -74,10 +75,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * Whether to limit the simulation to the horizon bounds and include an event
    * for the horizon.
    */
-  public boolean simulatingHorizon = true;
+  public boolean simulatingHorizon = false;
 
   TimeUtils.Units plotAxisTimeUnits = TimeUtils.Units.seconds;
   public boolean usingSamplePeriod = true;
+
   public double plotSamplePeriod = 60.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // 15 min
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
@@ -195,8 +197,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     Integer startTime = event.getStartTime().getValueOrMin();
     Integer endTime = event.getEndTime().getValueOrMax();
     if ( startTime == null || endTime == null ) {
-      Debug.outln( "Warning: can't add event with no time information: "
-                   + event.getName() );
+      if ( Debug.isOn() ) {
+        Debug.outln( "Warning: can't add event with no time information: "
+                     + event.getName() );
+      }
       return false;
     } else if ( ungroundedTiming ) {
       if ( Debug.isOn() ) {
@@ -361,7 +365,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                         ( value == null ? "null" : value.toString() ) );
         }
         
-        value = Expression.evaluate( value, null, false );
+        try {
+          value = Expression.evaluate( value, null, false );
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
         if ( value instanceof MoreToString ) {
           Map<String,Object> options = new TreeMap< String, Object >();
           options.put( "withOwner", false );
@@ -672,7 +690,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     if ( map == null || plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
-    Debug.outln( "Attempting to plot projection at time t=" + t + " from " + map );
+    if ( Debug.isOn() ) Debug.outln( "Attempting to plot projection at time t=" + t + " from " + map );
     // The array will contain the map's hash code followed by key-value pairs.
     Vector<Double> doubleVector = new Vector< Double >();
     try {
@@ -694,7 +712,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( map == null || map.isEmpty() ) {
         throw new IllegalArgumentException( "Projection to plot is null or empty " + map );
       }
-      Debug.outln( "plotting projection: " + map );
+      if ( Debug.isOn() ) Debug.outln( "plotting projection: " + map );
       for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
         Integer timeInteger = e.getKey().getValue();
         if ( timeInteger <= lastTime ) continue;
@@ -702,7 +720,22 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         Double time =
             Timepoint.conversionFactor( this.plotAxisTimeUnits )
                 * timeInteger.doubleValue();
-        Object v = Expression.evaluate( map.getValue( timeInteger ), null, false );
+        Object v = null;
+        try {
+          v = Expression.evaluate( map.getValue( timeInteger ), null, false );
+        } catch ( ClassCastException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( IllegalAccessException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          // TODO Auto-generated catch block
+          //e1.printStackTrace();
+        }
         assert v instanceof Double || v instanceof Integer || v instanceof Float
                || v instanceof Parameter;
         while ( v instanceof Parameter ) {
@@ -766,7 +799,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   }
 
   protected void plotValues( double lastTime, double time ) {
-    Debug.outln("called plotvalues @ " + time);
+    if ( Debug.isOn() ) Debug.outln("called plotvalues @ " + time);
     plotProjectionsThatChangeAtTime( time );
     if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
@@ -782,8 +815,22 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       // TODO -- Support different sampling periods for different Plottables.
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
-          v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
-          Debug.outln("plotting " + o.toString() + " = "+ v);
+          try {
+            v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+          } catch ( ClassCastException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( IllegalAccessException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InvocationTargetException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InstantiationException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          }
+          if ( Debug.isOn() ) Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }
       assert v == null || v instanceof Double || v instanceof Integer|| v instanceof Float
@@ -803,14 +850,15 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( v == null ) v = 0.0;
       
       if ( Double.class.isInstance( v ) ) {
-        Debug.outln( "appending " + o.toString() + " at index " + cnt + " = "
+        if ( Debug.isOn() ) Debug.outln( "appending " + o.toString() + " at index " + cnt + " = "
                      + v );
         doubleArray[ cnt++ ] = ( (Double)v ).doubleValue();
       } else {
-        Debug.error( "should have a double value for " + o.toString() + ": "
-                     + v );
-        Debug.outln( "no value found! appending 0.0 for " + o.toString()
-                     + " at index " + cnt + ", bad value: " + v );
+        Debug.error( "should have a double value for " + o.toString() + ": " + v );
+        if ( Debug.isOn() ) {
+          Debug.outln( "no value found! appending 0.0 for " + o.toString()
+                       + " at index " + cnt + ", bad value: " + v );
+        }
         doubleArray[ cnt++ ] = 0.0;
       }
     }

@@ -18,16 +18,22 @@ import gov.nasa.jpl.mbee.util.Infinity;
 import gov.nasa.jpl.mbee.util.NegativeInfinity;
 import gov.nasa.jpl.mbee.util.NegativeOne;
 import gov.nasa.jpl.mbee.util.One;
+import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Zero;
+import gov.nasa.jpl.mbee.util.Wraps;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -57,7 +63,7 @@ public class Functions {
     public SuggestiveFunctionCall( //Method isGroundedMethod,
                                    Object object, Method method,
                                    Object[] arguments ) {
-      super( object, method, arguments );
+      super( object, method, arguments, (Class<?>)null );
       //if 
     }
 
@@ -139,7 +145,7 @@ public class Functions {
       if ( singleValueFcn == null ) return null;
       return new FunctionCall(null,
                               ClassUtils.getMethodsForName( Utils.class, "newList" )[0],
-                              new Object[] { singleValueFcn } );
+                              new Object[] { singleValueFcn }, (Class<?>)null );
     }
 
     /**
@@ -198,15 +204,15 @@ public class Functions {
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
-                            getArguments().toArray() );
+                            getArgumentArray(), (Class<?>)null );
       Vector< Object > args = new Vector<Object>( //functionCall.
-          getArguments() );
+          getArgumentVector() );
       Collections.reverse( args );
       //functionCall.
       reversePickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod2 ),
-                            args.toArray() );
+                            args.toArray(), (Class<?>)null );
     }
 
     public Binary( Object o1, Object o2, String functionMethod,
@@ -219,6 +225,16 @@ public class Functions {
 
     public Binary( Object o1, Object o2, String functionMethod ) {
       this( forceExpression( o1 ), forceExpression( o2 ), functionMethod );
+    }
+
+    /* (non-Javadoc)
+     * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
+     */
+    @Override
+    public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+      if ( arguments == null || arguments.size() < 2 ) return false;
+      if ( !areArgumentsGrounded( deep, seen ) ) return false;
+      return true;
     }
 
     private static Method getFunctionMethod( String functionMethod ) {
@@ -245,7 +261,7 @@ public class Functions {
 
     public Vector< Expression > getArgumentExpressions() {
       Vector< Expression > argExprs =
-          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArguments(),
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArgumentArray(),
                                                                             Expression.class ) );
       return argExprs;
     }
@@ -287,21 +303,57 @@ public class Functions {
 //    }
   }
     
-  public abstract static class Unary< T , R > extends Expression< R > implements Suggester {
-    public SuggestiveFunctionCall functionCall = null;
-
-    public Unary( Expression< T > o, String functionMethod ) {
-      super( new SuggestiveFunctionCall( (Object)null,
-                                         getFunctionMethod( functionMethod ),
-                                         new Object[]{ o } ) );
-      functionCall = (SuggestiveFunctionCall)this.expression;
-//      Vector< Object > v = new Vector< Object >();
-//      v.add( o );
-//      functionCall.arguments = v;
+  public static class Unary< T, R > extends SuggestiveFunctionCall implements Suggester {
+    public Unary( Variable< T > o,
+                   String functionMethod ) {
+      super( (Object)null, getFunctionMethod( functionMethod ),
+             new Object[]{ o } );
+      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
-    public Unary( Object o, String functionMethod ) {
-      this( forceExpression( o ), functionMethod );
+  
+    public Unary( Expression< T > o1, String functionMethod ) {
+      super( //new SuggestiveFunctionCall( 
+             (Object)null, getFunctionMethod( functionMethod ),
+             new Object[]{ o1 } 
+             //)
+             );
+      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
+  
+    public Unary( Expression< T > o1,
+                   String functionMethod,
+                   String pickFunctionMethod1
+                   //String pickFunctionMethod2
+                   ) {
+      this( o1, functionMethod );
+      //functionCall.
+      pickFunctionCall =
+          new FunctionCall( (Object)null,
+                            getFunctionMethod( pickFunctionMethod1 ),
+                            //functionCall.
+                            getArgumentArray(), (Class<?>)null );
+      Vector< Object > args = new Vector<Object>( //functionCall.
+          getArgumentVector() );
+      Collections.reverse( args );
+      //functionCall.
+      reversePickFunctionCall = pickFunctionCall;
+//          new FunctionCall( (Object)null,
+//                            getFunctionMethod( pickFunctionMethod2 ),
+//                            args.toArray() );
+    }
+  
+    public Unary( Object o1, String functionMethod,
+                   String pickFunctionMethod1 ) { //, String pickFunctionMethod2 ) {
+      this( forceExpression( o1 ),
+            functionMethod,
+            pickFunctionMethod1 );//, pickFunctionMethod2 );
+      // this( ( o1 instanceof Expression ) ? )
+    }
+  
+    public Unary( Object o1, String functionMethod ) {
+      this( forceExpression( o1 ), functionMethod );
+    }
+  
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
       try {
@@ -316,13 +368,58 @@ public class Functions {
       }
       return m;
     }
-//    @Override
-//    public < T > T pickValue( Variable< T > variable ) {
-//      // TODO Auto-generated method stub
-//      Debug.error(true, "Need to redefine Unary.pickValue(v)!" );
-//      return null;
-//    }
+    
+    @Override
+    public < T1 > T1 pickValue( Variable< T1 > variable ) {
+      return pickValueBF2( this,//functionCall, 
+                           variable );
+    }
+  
+    public Vector< Expression > getArgumentExpressions() {
+      Vector< Expression > argExprs =
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArgumentArray(),
+                                                                            Expression.class ) );
+      return argExprs;
+    }
+
   }
+  
+//  public abstract static class Unary< T , R > extends Sugges //< R > implements Suggester {
+//    public SuggestiveFunctionCall functionCall = null;
+//
+//    public Unary( Expression< T > o, String functionMethod ) {
+//      super( new SuggestiveFunctionCall( (Object)null,
+//                                         getFunctionMethod( functionMethod ),
+//                                         new Object[]{ o } ) );
+//      functionCall = (SuggestiveFunctionCall)this.expression;
+////      Vector< Object > v = new Vector< Object >();
+////      v.add( o );
+////      functionCall.arguments = v;
+//    }
+//    public Unary( Object o, String functionMethod ) {
+//      this( forceExpression( o ), functionMethod );
+//    }
+//    private static Method getFunctionMethod( String functionMethod ) {
+//      Method m = null;
+//      try {
+//        m = Functions.class.getMethod( functionMethod, 
+//                                       Expression.class );
+//      } catch ( SecurityException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( NoSuchMethodException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      }
+//      return m;
+//    }
+////    @Override
+////    public < T > T pickValue( Variable< T > variable ) {
+////      // TODO Auto-generated method stub
+////      Debug.error(true, "Need to redefine Unary.pickValue(v)!" );
+////      return null;
+////    }
+//  }
 
   public static class Conditional< T > extends SuggestiveFunctionCall implements Suggester {
     public Conditional( Expression<Boolean> condition, Expression< T > thenExpr, Expression< T > elseExpr ) {
@@ -361,10 +458,13 @@ public class Functions {
    * @param elseExpr
    * @return the evaluation of thenExpr if conditionExpr evaluates to true, else
    *         the evaluation of elseExpr
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
    */
   public static < T > T ifThenElse( Expression< Boolean > conditionExpr,
                                     Expression< T > thenExpr,
-                                    Expression< T > elseExpr ) {
+                                    Expression< T > elseExpr ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( conditionExpr == null && elseExpr == null ) return null;
     Boolean b = (conditionExpr == null ? null : conditionExpr.evaluate( false ) );
     T thenT = (thenExpr == null ? null : thenExpr.evaluate( false ) );
@@ -599,6 +699,19 @@ public class Functions {
       setMonotonic( true );
     }
   }
+  
+  public static class Mul<T,R> extends Times< T, R > {
+    public Mul( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+      setMonotonic( true );
+    }
+    public Mul( Object o1, Object c ) {
+      super( o1, c );
+      setMonotonic( true );
+    }
+  }
+
+
   public static class Divide< T , R > extends Binary< T, R > {
     public Divide( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "divide", "pickValueForward", "pickValueReverse" );
@@ -611,33 +724,31 @@ public class Functions {
       setMonotonic( true );
     }
   }
+  
+  public static class Div<T,R> extends Divide< T, R > {
+    public Div( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2 );
+      setMonotonic( true );
+    }
+    public Div( Object o1, Object c ) {
+      super( o1, c );
+      setMonotonic( true );
+    }
+  }
+
+
 
   
   // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
   // print "inf"
   // add(Expr, Expr) should call this fcn.
-  public static <V1, V2> V1 plus( V1 o1, V2 o2 ) {
+  public static <V1, V2> V1 plus( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
       Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines 
         result = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
-      TimeVaryingMap<?> map = null;
-      try {
-        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-      } catch ( ClassCastException e ) {
-        //ignore
-      }
-      if ( map != null ) result = plus( map, o2 );
-      else {
-        try {
-        map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-        } catch ( ClassCastException e ) {
-          //ignore
-        }
-        if ( map != null ) result = plus( o1, map );
-        else {
           Number n1 = Expression.evaluate( o1, Number.class, false );
           Number n2 = Expression.evaluate( o2, Number.class, false );
           if ( n1 != null && n2 != null ) {
@@ -663,19 +774,19 @@ public class Functions {
               }
             } else if ( n1 instanceof Double || n2 instanceof Double ) {              
 //        result = ((Double)n1.doubleValue()) + ((Double)n2.doubleValue());
-              result = (Double)plus(n1.doubleValue(), n2.doubleValue());
+              result = (Double)gov.nasa.jpl.ae.util.Math.plus(n1.doubleValue(), n2.doubleValue());
 //        double rd1 = ClassUtils.castNumber( (Number)n1, Double.class ).doubleValue();
 //        double rd2 = ClassUtils.castNumber( (Number)n2, Double.class ).doubleValue();
 //        result = plus( rd1, rd2 );
             } else if ( n1 instanceof Float || n2 instanceof Float ) {
 //        result = ((Float)n1.floatValue()) + ((Float)n2.floatValue());
-        result = (Float)plus(n1.floatValue(), n2.floatValue());
+        result = (Float)gov.nasa.jpl.ae.util.Math.plus(n1.floatValue(), n2.floatValue());
 //        float rd1 = ClassUtils.castNumber( (Number)n1, Float.class ).floatValue();
 //        float rd2 = ClassUtils.castNumber( (Number)n2, Float.class ).floatValue();
 //        result = plus( rd1, rd2 );
             } else if ( n1 instanceof Long || n2 instanceof Long ) {
 //      result = ((Long)n1.longValue()) + ((Long)n2.longValue());
-              result = (Long)plus(n1.longValue(), n2.longValue());
+              result = (Long)gov.nasa.jpl.ae.util.Math.plus(n1.longValue(), n2.longValue());
 //        long rd1 = ClassUtils.castNumber( (Number)n1, Long.class ).longValue();
 //        long rd2 = ClassUtils.castNumber( (Number)n2, Long.class ).longValue();
 //        result = plus( rd1, rd2 );
@@ -686,10 +797,27 @@ public class Functions {
 ////        int rd2 = ClassUtils.castNumber( (Number)n2, Integer.class ).intValue();
 ////        result = plus( rd1, rd2 );
             } else {
-              result = (Integer)plus( n1.intValue(), n2.intValue() );
+              result = (Integer)gov.nasa.jpl.ae.util.Math.plus( n1.intValue(), n2.intValue() );
         //result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
             }
-          }
+          } else {
+            TimeVaryingMap<?> map = null;
+            try {
+              map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+            } catch ( ClassCastException e ) {
+              //ignore
+            }
+            if ( map != null ) result = plus( map, o2 );
+            else {
+              try {
+                Object obj = Expression.evaluate( o2, TimeVaryingMap.class, false );
+                if ( obj instanceof TimeVaryingMap ) {
+                  map = (TimeVaryingMap< ? >)obj;
+                }
+              } catch ( ClassCastException e ) {
+                //ignore
+              }
+              if ( map != null ) result = plus( o1, map );
         }
       }
     }
@@ -710,7 +838,7 @@ public class Functions {
     return null;
   }
 
-  public static <V1, V2> V1 min( V1 o1, V2 o2 ) {
+  public static <V1, V2> V1 min( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
       Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) {
@@ -723,14 +851,14 @@ public class Functions {
       TimeVaryingMap<?> map = null;
       try {
         map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-      } catch ( ClassCastException e ) {
+      } catch ( Throwable e ) {
         //ignore
       }
       if ( map != null ) result = min( map, o2 );
       else {
         try {
           map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-        } catch ( ClassCastException e ) {
+        } catch ( Throwable e ) {
           //ignore
         }
         if ( map != null ) result = min( o1, map );
@@ -774,7 +902,7 @@ public class Functions {
     return null;
   }
 
-  public static < T, TT > T min( Expression< T > o1, Expression< TT > o2 ) {
+  public static < T, TT > T min( Expression< T > o1, Expression< TT > o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
@@ -782,7 +910,7 @@ public class Functions {
     return min( r1, r2 );
   }
 
-  public static < T, TT > T max( Expression< T > o1, Expression< TT > o2 ) {
+  public static < T, TT > T max( Expression< T > o1, Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
@@ -790,7 +918,7 @@ public class Functions {
     return max( r1, r2 );
   }
 
-  public static <V1, V2> V1 max( V1 o1, V2 o2 ) {
+  public static <V1, V2> V1 max( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
       Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) {
@@ -803,14 +931,14 @@ public class Functions {
       TimeVaryingMap<?> map = null;
       try {
         map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-      } catch ( ClassCastException e ) {
+      } catch ( Throwable e ) {
         //ignore
       }
       if ( map != null ) result = max( map, o2 );
       else {
         try {
           map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-        } catch ( ClassCastException e ) {
+        } catch ( Throwable e ) {
           //ignore
         }
         if ( map != null ) result = max( o1, map );
@@ -905,7 +1033,8 @@ public class Functions {
   }
 
 
-  public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
+  //public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
+  public static <V1, V2> V1 times( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     Object result = null;
     TimeVaryingMap<?> map = null;
@@ -965,20 +1094,21 @@ public class Functions {
           // TODO -- other types, like BigDecimal
           } else if ( n1 instanceof Double || n2 instanceof Double ) {
             // result = ((Double)n1.doubleValue()) * ((Double)n2.doubleValue());
-            result = (Double)times( n1.doubleValue(), n2.doubleValue() );
+            result = (Double)gov.nasa.jpl.ae.util.Math.times( n1.doubleValue(), n2.doubleValue() );
           } else if ( n1 instanceof Float || n2 instanceof Float ) {
             // result = ((Float)n1.floatValue()) * ((Float)n2.floatValue());
-            result = (Float)times( n1.floatValue(), n2.floatValue() );
+            result = (Float)gov.nasa.jpl.ae.util.Math.times( n1.floatValue(), n2.floatValue() );
           } else if ( n1 instanceof Long || n2 instanceof Long ) {
             // result = ((Long)n1.longValue()) * ((Long)n2.longValue());
-            result = (Long)times( n1.longValue(), n2.longValue() );
+            result = (Long)gov.nasa.jpl.ae.util.Math.times( n1.longValue(), n2.longValue() );
             // } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
             // // result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
             // result = (Integer)times(n1.intValue(), n2.intValue());
           } else {
             // result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
-            result = (Integer)times( n1.intValue(), n2.intValue() );
+            result = (Integer)gov.nasa.jpl.ae.util.Math.times( n1.intValue(), n2.intValue() );
           }
+          return (V1)result;
         }
       }
     }
@@ -986,6 +1116,7 @@ public class Functions {
       if ( o1 != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
+        // TOOD -- what if cls1 is not a Number?
         Object x = Expression.evaluate( result,
                                         ClassUtils.dominantTypeClass(cls1,cls2),
                                         false );
@@ -1000,61 +1131,7 @@ public class Functions {
     return null;
   }
   
-  public static double times( double rd1, double rd2 ) {
-    double result;
-    // check for overflow
-    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
-    double ad1 = Math.abs( rd1 );
-    double ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-      if ( Double.MAX_VALUE / ad1 <= ad2 ) result = Double.MAX_VALUE * ( signsEqual? 1 : -1);
-      else result = rd1 * rd2;
-    }
-    else  result = rd1 * rd2;
-    return result;
-  }
-  public static float times( float rd1, float rd2 ) {
-    float result;
-    // check for overflow
-    boolean signsEqual = (rd1 > 0) == (rd2 > 0); // REVIEW -- why isn't this >= instead of > ????!!
-    float ad1 = Math.abs( rd1 );
-    float ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-      if ( Float.MAX_VALUE / ad1 <= ad2 ) result = Float.MAX_VALUE * ( signsEqual? 1 : -1);
-      else result = rd1 * rd2;
-    }
-    else  result = rd1 * rd2;
-    return result;
-  }
-  public static long times( long rd1, long rd2 ) {
-    long result;
-    // check for overflow
-    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
-    long ad1 = Math.abs( rd1 );
-    long ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-      if ( Long.MAX_VALUE / ad1 <= ad2 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
-      else result = rd1 * rd2;
-    }
-    else  result = rd1 * rd2;
-    return result;
-  }
-  public static int times( int rd1, int rd2 ) {
-    int result;
-    // check for overflow
-    boolean signsEqual = (rd1 > 0) == (rd2 > 0);
-    int ad1 = Math.abs( rd1 );
-    int ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-    if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-      if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
-      else result = rd1 * rd2;
-    }
-    else  result = rd1 * rd2;
-    return result;
-  }
-
-  
-  public static <V1, V2> V1 divide( V1 o1, V2 o2 ) {
+  public static <V1, V2> V1 divide( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Object result = null;
     TimeVaryingMap<?> map = null;
     try {
@@ -1125,19 +1202,19 @@ public class Functions {
           // TODO -- other types, like BigDecimal
           } else if ( n1 instanceof Double || n2 instanceof Double ) {
     //        result = ((Double)n1.doubleValue()) / ((Double)n2.doubleValue());
-            result = (Double)dividedBy( n1.doubleValue(), n2.doubleValue() );
+            result = (Double)gov.nasa.jpl.ae.util.Math.dividedBy( n1.doubleValue(), n2.doubleValue() );
           } else if ( n1 instanceof Float || n2 instanceof Float ) {
     //        result = ((Float)n1.floatValue()) / ((Float)n2.floatValue());
-            result = (Float)dividedBy( n1.floatValue(), n2.floatValue() );
+            result = (Float)gov.nasa.jpl.ae.util.Math.dividedBy( n1.floatValue(), n2.floatValue() );
           } else if ( n1 instanceof Long || n2 instanceof Long ) {
     //        result = ((Long)n1.longValue()) / ((Long)n2.longValue());
-            result = (Long)dividedBy( n1.longValue(), n2.longValue() );
+            result = (Long)gov.nasa.jpl.ae.util.Math.dividedBy( n1.longValue(), n2.longValue() );
     //      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
     ////        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
     //        result = (Integer)dividedBy( n1.intValue(), n2.intValue() );
           } else {
     //        result = ((Integer)n1.intValue()) / ((Integer)n2.intValue());
-            result = (Integer)dividedBy( n1.intValue(), n2.intValue() );
+            result = (Integer)gov.nasa.jpl.ae.util.Math.dividedBy( n1.intValue(), n2.intValue() );
           }
         }
       }
@@ -1160,65 +1237,43 @@ public class Functions {
     return null;
   }
   
-  public static double dividedBy( double rd1, double rd2 ) {
-    double result;
-    // check for overflow
-    if ( rd2 >= 0.0 && rd2 < 1.0 && Double.MAX_VALUE * rd2 <= rd1 ) {
-      result = Double.MAX_VALUE;
-    } else if ( rd2 < 0.0 && rd2 > -1.0 && -Double.MAX_VALUE * rd2 >= rd1 ) {
-      result = -Double.MAX_VALUE;
-    } else {
-      result = rd1 / rd2;
-    }
-    return result;
-  }
-  public static float dividedBy( float rd1, float rd2 ) {
-    float result;
-    // check for overflow
-    if ( rd2 >= 0.0 && rd2 < 1.0 && Float.MAX_VALUE * rd2 <= rd1 ) {
-      result = Float.MAX_VALUE;
-    } else if ( rd2 < 0.0 && rd2 > -1.0 && -Float.MAX_VALUE * rd2 >= rd1 ) {
-      result = -Float.MAX_VALUE;
-    } else {
-      result = rd1 / rd2;
-    }
-    return result;
-  }
-  public static long dividedBy( long rd1, long rd2 ) {
-    long result;
-    // check for divide by 0
-    int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
-    if ( rd2 == 0 ) {
-      result = posNeg * Long.MAX_VALUE;
-    } else {
-      result = rd1 / rd2;
-    }
-    return result;
-  }
-  public static int dividedBy( int rd1, int rd2 ) {
-    int result;
-    // check for divide by 0
-    int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
-    if ( rd2 == 0 ) {
-      result = posNeg * Integer.MAX_VALUE;
-    } else {
-      result = rd1 / rd2;
-    }
-    return result;
-  }
-  
-  
-  public static <V1, V2> V1 minus( V1 o1, V2 o2 ) {
+  public static <V1, V2> V1 minus( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return plus( o1, times( o2, -1 ) );
   }
   
   public static < T, TT > T add( Expression< T > o1,
-                                  Expression< TT > o2 ) {
+                                  Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    return plus(r1,r2);
+    try {
+      return plus(r1,r2);
+    } finally {
+//    if ( !b ) {
+      T r11 = null;
+      TT r22 = null;
+      T s = null;
+      boolean changed1 = false;
+      boolean changed2 = false;
+      if ( r1 instanceof Wraps ) {
+        r11 = ((Wraps<T>)r1).getValue( false );
+        changed1 = !r1.equals( r11 );
+        if ( changed1 ) s = plus( r11, r2 );
+      }
+      if ( s == null && r2 instanceof Wraps ) {
+        r22 = ((Wraps<TT>)r2).getValue( false );
+        changed2 = !r2.equals( r22 );
+        if ( changed2 ) s = plus( r1, r22 );
+        if ( s == null && r11 != null ) {
+          if ( changed1 && changed2 ) { 
+            s = plus( r11, r22 );
+          }
+        }
+      }
+//    }
+    }
+
 /*    Object result = null;
     if ( r1.getClass().isAssignableFrom( java.lang.String.class ) ||
          r2.getClass().isAssignableFrom( java.lang.String.class ) ) {
@@ -1273,7 +1328,7 @@ public class Functions {
 */  }
   
   public static < T, TT > T subtract( Expression< T > o1, 
-                                      Expression< TT > o2 ) {
+                                      Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
@@ -1331,7 +1386,7 @@ public class Functions {
 */  }
 
   public static < T, TT > T times( Expression< T > o1,
-                                                  Expression< TT > o2 ) {
+                                                  Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
@@ -1391,7 +1446,7 @@ public class Functions {
 */  }
   
   public static < T, TT > T divide( Expression< T > o1,
-                                    Expression< TT > o2 ) {
+                                    Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     T r1 = o1.evaluate( false );
     TT r2 = o2.evaluate( false );
@@ -1447,13 +1502,14 @@ public class Functions {
   public static class Negative<T> extends Unary< T, T > {
     public Negative( Expression< T > o ) {
       super( o, "negative" );
-      functionCall.setMonotonic( true );
+      //functionCall.
+      setMonotonic( true );
     }
     
     // TODO -- handle cast errors
     @Override
     public < T > T pickValue( Variable< T > variable ) {
-      Object arg = ((FunctionCall)this.expression).getArguments().get( 0 );
+      Object arg = this.getArgument( 0 );//((FunctionCall)this.expression).getArgument( 0 );
       if ( arg == variable ) {
         return (T)negative( variable );
       }
@@ -1486,7 +1542,7 @@ public class Functions {
     return result;
   }
   
-  public static <T> java.lang.Number negative( Expression< T > o ) {
+  public static <T> java.lang.Number negative( Expression< T > o ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o == null ) return null;
     T r = o.evaluate( false );
     if ( r instanceof Number ) {
@@ -1502,12 +1558,48 @@ public class Functions {
                         extends BooleanBinary< T > {
     
     public EQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "equals", "pickEqualToFoward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
     }
     public EQ( Object o1, Object o2 ) {
-      super( o1, o2, "equals", "pickEqualToFoward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
     }
-/*
+    
+    @Override
+    public FunctionCall inverse( Object returnValue, Object arg ) {
+      FunctionCall f =
+          new FunctionCall( this, getClass(), "invert",
+                            new Object[] { returnValue, arg }, (Class<?>)null );
+      return f;
+    }
+
+    public LinkedHashSet<?> invert( Object returnValue, Object arg ) {
+      LinkedHashSet< Object > otherArgs = getOtherArgs( arg );
+      LinkedHashSet< Object > values = new LinkedHashSet< Object >();
+      Class<?> type = arg.getClass();
+      if ( arg instanceof Wraps ) {
+        type = ((Wraps)arg).getType();
+      }
+      for ( Object o : otherArgs ) {
+        try {
+          Object r = Expression.evaluate( o, type, true );
+          values.add(r);
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+      return values;
+    }
+    /*
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
       T1 newValue = null;
@@ -1563,10 +1655,10 @@ public class Functions {
   public static class NEQ< T > 
                         extends BooleanBinary< T > {
     public NEQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToFoward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
     }
     public NEQ( Object o1, Object o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToFoward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
     }
 
 //    @Override
@@ -1805,6 +1897,15 @@ public class Functions {
     }
   }  
 
+  public static class Exists< T > extends DoesThereExist< T > {
+
+    public Exists( Variable< T > variable,
+                   // Domain<T> d,
+                   Expression< Boolean > o ) {
+      super( variable, o );
+    }
+  }  
+
   public static class ForAll< T > extends BooleanBinary< T > {
     // Collection<?> quantifiedVariables = null;
     // public ForAll( Collection< Variable<?> > variables,
@@ -1821,12 +1922,12 @@ public class Functions {
   }
 
   public static <T extends Comparable<T>> Boolean thereExists( Variable<T> variable,
-                                                               Expression< Boolean > o ) {
+                                                               Expression< Boolean > o ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return !forAll(variable, new Expression<Boolean>( new Not( o ) ) );
   }
 
   public static <T extends Comparable<T>> Boolean forAll( Variable<T> variable,
-                                                          Expression< Boolean > o ) {
+                                                          Expression< Boolean > o ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( variable == null ) return null; // TODO -- fix this.  If o is True, doesnt matter if variable is null
     if ( o == null ) return true;  // TODO REVIEW
     
@@ -1912,7 +2013,7 @@ public class Functions {
   }
   
   public static < T extends Comparable< ? super T > > Boolean
-      lessThan( Expression< T > o1, Expression< T > o2 ) {
+      lessThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
 ////    if ( !o1.isGrounded() || !o2.isGrounded() ) {      
 //        return false;
@@ -1939,7 +2040,7 @@ public class Functions {
   }
 
   public static < T extends Comparable< ? super T > > Boolean
-      lessThanOrEqual( Expression< T > o1, Expression< T > o2 ) {
+      lessThanOrEqual( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
 ////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
 //        return false;
@@ -1966,7 +2067,7 @@ public class Functions {
   }
 
   public static < T extends Comparable< ? super T > > Boolean
-      greaterThan( Expression< T > o1, Expression< T > o2 ) {
+      greaterThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
 ////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
 //        return false;  // TODO -- REVIEW -- throw exception?
@@ -2028,7 +2129,19 @@ public class Functions {
                                      boolean orEquals ) {
     T t = null;
     if ( o == null ) return null;
-    T r = o.evaluate( false );
+    T r = null;
+    try {
+      r = o.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if ( r == null ) return null;
     t = domain.pickRandomValueGreater( r, orEquals );
     return t;
@@ -2088,7 +2201,19 @@ public class Functions {
                                   boolean orEquals ) {
     T t = null;
     if ( o == null ) return null;
-    T r = o.evaluate( false );
+    T r = null;
+    try {
+      r = o.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if ( r == null ) return null;
     t = domain.pickRandomValueLess( r, orEquals );
     return t;
@@ -2118,7 +2243,7 @@ public class Functions {
 
   // Picking Equals ///////////////////////////////////////////////////////////////////
   
-  public static < T > T pickEqualToFoward( Expression< T > o1,
+  public static < T > T pickEqualToForward( Expression< T > o1,
                                           Expression< T > o2 ) {
     
     return pickEquals(o1, o2, true);
@@ -2138,7 +2263,18 @@ public class Functions {
       
       // If we are selection a value for the first arg then evaluate the second arg expression,
       // otherwise due the reverse:
-      t = forward ? o2.evaluate(false) : o1.evaluate(false);
+      try {
+        t = forward ? o2.evaluate(false) : o1.evaluate(false);
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
    
     }
     
@@ -2147,8 +2283,8 @@ public class Functions {
   
   // Picking Not Equals ///////////////////////////////////////////////////////////////////
 
-  public static < T > T pickNotEqualToFoward( Expression< T > o1,
-                                           Expression< T > o2 ) {
+  public static < T > T pickNotEqualToForward( Expression< T > o1,
+                                               Expression< T > o2 ) {
      
     Domain<T> domain = o1.getDomain( false, null );
     return pickNotEquals(o2, domain);
@@ -2163,13 +2299,103 @@ public class Functions {
    
   public static < T > T pickNotEquals( Expression< T > o, Domain< T > domain) {
     
-    T t = null;
     if ( o == null ) return null;
-    T r = o.evaluate( false );
+    T r = null;
+    try {
+      r = o.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     if ( r == null ) return null;
-    t = domain.pickRandomValueNotEqual(r);
+    T t = null;
+    Object obj = domain.pickRandomValueNotEqual(r);
+    try {
+      t = (T)obj;
+    } catch (ClassCastException e) {
+      // ignore
+    }
     return t;
-    
+  }
+  
+  // Picking for logical operators
+
+  public static < T > T pickTrue( Object o,
+                                  Variable< T > variableForPick  ) {
+    Expression<?> e = null;
+    if ( o instanceof Expression ) {
+      e = (Expression< ? >)o;
+    } else {
+      e = new Expression(o);
+    }
+    if ( e.getType() != null && Boolean.class.isAssignableFrom( e.getType() ) ) {
+      return pickTrue( (Expression< Boolean >)o, variableForPick );
+    }
+    return null;
+  }
+  
+  public static < T > T pickTrue( Expression< Boolean > expr,
+                                  Variable< T > variableForPick  ) {
+    if ( expr == null || expr.expression == null ) return null;
+    switch ( expr.getForm() ) {
+      case Constructor:
+      case Function:
+        Call c = (Call)expr.expression;
+        // If the expression embeds a SuggestiveFunctionCall, call it.
+        if ( c instanceof SuggestiveFunctionCall ) {
+          ((SuggestiveFunctionCall)c).pickValue( variableForPick );
+        } else {
+          // Evaluate the function and see if we can pickFrom the result.
+          try {
+            Object o = c.evaluate( false );
+            return pickTrue( o, variableForPick );
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          }
+          return null;
+        }
+      case Parameter:
+        // This assumes that the Parameter and the Variable are the same.
+        Parameter< Boolean > p = (Parameter< Boolean >)expr.expression;
+        if ( variableForPick != null && variableForPick.equals( p )) {
+          return (T)(Boolean)true;
+        }
+        return pickTrue( p.getValueNoPropagate(), variableForPick );
+      case Value:
+        return pickTrue( expr.expression, variableForPick );
+      case None:
+        return pickTrue( expr.expression, variableForPick );
+      default:
+        // TODO -- ERROR -- Bad Form
+    };
+    return null;
+  }
+  
+  public static boolean pickTrue( Expression< Boolean > o1,
+                                  Expression< Boolean > o2 ) {
+    return true;
+  }
+  public static < T > T pickTrue( Expression< Boolean > o1,
+                                  Expression< Boolean > o2,
+                                  Variable< T > variableForPick ) {
+    T t1 = pickTrue( o1, variableForPick );
+    T t2 = pickTrue( o1, variableForPick );
+    if ( t1 == null ) return t2;
+    if ( t2 == null ) return t1;
+    return Random.global.nextBoolean() ? t1 : t2;
   }
   
   // Picking Sum (Add/Plus are subtypes of Sum) /////////////////////////////////////////
@@ -2195,9 +2421,12 @@ public class Functions {
   public static < T > T pickRandomValueInDomain(Domain< T > domain) {
      
     T t = null;
-    t = domain.pickRandomValue();
-    return t;
-       
+    try {
+      t = (T)domain.pickRandomValue();
+    } catch ( ClassCastException e ) {
+      // TODO???
+    }
+    return t;       
   }
 
 
@@ -2206,7 +2435,7 @@ public class Functions {
 
   
   public static < T extends Comparable< ? super T > > Boolean
-      greaterThanOrEqual( Expression< T > o1, Expression< T > o2 ) {
+      greaterThanOrEqual( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
 ////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
 //        return false;
@@ -2233,37 +2462,104 @@ public class Functions {
   }
 
   public static < T > Boolean
-      equals( Expression< T > o1, Expression< T > o2 ) {
-    if ((o1 ==null) && (o2 == null)){
-      Debug.outln( "" );
-    }
+      equals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == o2 ) return true;
     //if ( o1 == null || o2 == null ) return false;
     T r1 = o1 == null ? null : o1.evaluate( false );
     T r2 = o2 == null ? null : o2.evaluate( false );
-    if ((r1 ==null) && (r2 == null)){
-      Debug.outln( "" );
+    return eq(r1, r2);
+//    if ((r1 ==null) && (r2 == null)){
+//      Debug.outln( "" );
+//    }
+//    if ( r1 == r2 ) return true;
+//    if ( r1 == null || r2 == null ) 
+//      return false;
+//    boolean b = true;
+//    if ( r1 instanceof Comparable ) {
+//      if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
+//        b = ((Parameter<T>)r1).valueEquals( r2 );
+//      } else
+//      if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
+//        b = ((Parameter<T>)r2).valueEquals( r1 );
+//      } else {
+//        b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+//      }
+//    } else {
+//      b = r1.equals( r2 );
+//    }
+//    if ( !b ) {
+//      Object r11 = null;
+//      Object r22 = null;
+//      if ( r1 instanceof Wraps ) {
+//        r11 = ((Wraps<?>)r1).getValue( false );
+//        
+//      }
+//    }
+//    if ( Debug.isOn() ) Debug.outln( o1 + " == " + o2 + " = " + b );
+//    return b;
+  }
+  
+  protected static <T> Boolean eq( T r1, T r2 ) {    
+    if ( Expression.valuesEqual( r1, r2, null, true, true )) return true;
+    if ( Utils.valuesLooselyEqual( r1, r2, true ) ) return true;
+//    if ((r1 ==null) && (r2 == null)){
+//      Debug.outln( "" );
+//    }
+//    if ( r1 == r2 ) return true;
+//    if ( r1 == null || r2 == null ) 
+//      return false;
+    boolean b = false;
+    b = CompareUtils.compare( r1, r2, false ) == 0;
+    if ( !b ) {
+      boolean isNum1 = r1 instanceof Number;
+      boolean isNum2 = r2 instanceof Number;
+      if (isNum1 && isNum2) {
+        b = DoubleDomain.defaultDomain.equals( ((Number)r1).doubleValue(), ((Number)r2).doubleValue());
+      }
     }
-    if ( r1 == r2 ) return true;
-    if ( r1 == null || r2 == null ) 
-      return false;
-    boolean b = true;
-    if ( r1 instanceof Comparable ) {
+    if ( !b && r1 instanceof Comparable ) {
       if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
-        return ((Parameter<T>)r1).valueEquals( r2 );
-      }
+        b = ((Parameter<?>)r1).valueEquals( r2 );
+      } else
       if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
-        return ((Parameter<T>)r2).valueEquals( r1 );
+        b = ((Parameter<?>)r2).valueEquals( r1 );
+      } else {
+        try {
+          b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+        } catch ( Throwable t ) { 
+          b = false;
+        }
       }
-      b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;  
     } else {
-      b = r1.equals( r2 );
+      b = b || r1.equals( r2 );
     }
-    if ( Debug.isOn() ) Debug.outln( o1 + " == " + o2 + " = " + b );
+    if ( !b ) {
+      Object r11 = null;
+      Object r22 = null;
+      boolean changed1 = false;
+      boolean changed2 = false;
+      if ( r1 instanceof Wraps ) {
+        r11 = ((Wraps<?>)r1).getValue( false );
+        changed1 = !r1.equals( r11 );
+        if ( changed1 ) b = eq( r11, r2 );
+      }
+      if ( !b && r2 instanceof Wraps ) {
+        r22 = ((Wraps<?>)r2).getValue( false );
+        changed2 = !r2.equals( r22 );
+        if ( changed2 ) b = eq( r22, r1 );
+        if ( !b && r11 != null ) {
+          if ( changed1 && changed2 ) {
+            b = eq( r11, r22 );
+          }
+        }
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( "eq(): " + r1 + " == " + r2 + " = " + b );
     return b;
   }
+  
   public static < T > Boolean
-      notEquals( Expression< T > o1, Expression< T > o2 ) {
+      notEquals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( o1 == o2 ) return false;
 //    if ( o1 == null || o2 == null ) return true;
 //    T r1 = o1.evaluate( false );
@@ -2284,24 +2580,38 @@ public class Functions {
   
   public static class And extends BooleanBinary< Boolean > {
     public And( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-      super( o1, o2, "and" );
+      super( o1, o2, "and", "pickTrue", "pickTrue" );
     }
     public And( Expression< Boolean > o1, FunctionCall o2 ) {
-      super( o1, o2, "and" );
+      super( o1, o2, "and", "pickTrue", "pickTrue" );
     }
     public And(  FunctionCall o2, Expression< Boolean > o1 ) {
-      super( o1, o2, "and" );
+      super( o1, o2, "and", "pickTrue", "pickTrue" );
     }
-    /* (non-Javadoc)
-     * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
+    
+    /**
+     * The inverse for And must evaluate the argument to the specified
+     * returnValue, so we want the argument to be the same as the returnValue.
+     * Thus, Equals is the inverse.
+     * 
+     * @see gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall#inverseSingleValue(java.lang.Object,
+     *      java.lang.Object)
      */
     @Override
-    public boolean isGrounded(boolean deep, Set< Groundable > seen) {
-      return evaluate( false ) != null;
+    public //< T1  extends Comparable< ? super T1 > > 
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      //Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null // || otherArg == null 
+          ) return null; // arg can be null!
+      return new Equals< Boolean >( forceExpression( returnValue ),
+                                    forceExpression( arg ) );
     }
+
   }
   // REVIEW -- Should a propagate flag be added?  Currently false.
-  public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) {
+  public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null && o2 == null ) return null;
     Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
     Boolean r2 = (o2 == null ? null : o2.evaluate( false ));
@@ -2314,20 +2624,55 @@ public class Functions {
 
   public static class Or extends BooleanBinary< Boolean > {
     public Or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
-      super( o1, o2, "or" );
+      super( o1, o2, "or", "pickTrue", "pickTrue" );
     }
     public Or( Expression< Boolean > o1, FunctionCall o2 ) {
-      super( o1, o2, "or" );
+      super( o1, o2, "or", "pickTrue", "pickTrue" );
     }
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
      */
     @Override
     public boolean isGrounded(boolean deep, Set< Groundable > seen) {
-      return evaluate( false ) != null;
+      try {
+        return evaluate( false ) != null;
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return false;
     }
+    
+    /**
+     * The inverse for Or must evaluate the argument to the specified
+     * returnValue, so we want the argument to be the same as the returnValue.
+     * Thus, Equals is the inverse.
+     * 
+     * @see gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall#inverseSingleValue(java.lang.Object,
+     *      java.lang.Object)
+     */
+    @Override
+    public //< T1  extends Comparable< ? super T1 > > 
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      //Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null // || otherArg == null 
+          ) return null; // arg can be null!
+      return new Equals< Boolean >( forceExpression( returnValue ),
+                                    forceExpression( arg ) );
+    }
+
   }
-  public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
+  
+  
+  public static Boolean or( Expression< Boolean > o1, Expression< Boolean > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null && o2 == null ) return null;
     Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
     Boolean r2 = (o2 == null ? null : o2.evaluate( false ));
@@ -2347,7 +2692,7 @@ public class Functions {
     }
   }
   public static Boolean
-      xor( Expression< Boolean > o1, Expression< Boolean > o2 ) {
+      xor( Expression< Boolean > o1, Expression< Boolean > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     Boolean r1 = o1.evaluate( false );
     Boolean r2 = o2.evaluate( false );
@@ -2364,7 +2709,8 @@ public class Functions {
 
     @Override
     public < T > T pickValue( Variable< T > variable ) {
-      Object arg = ((FunctionCall)this.expression).getArguments().get( 0 );
+      Object arg = //((FunctionCall)this.expression).
+          getArgument( 0 );
       if ( arg == variable ) {
         return (T)(Boolean)false;
       }
@@ -2376,7 +2722,7 @@ public class Functions {
     }
   }
 
-  public static Boolean not( Expression< Boolean > o ) {
+  public static Boolean not( Expression< Boolean > o ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o == null ) return null;
     Boolean r = o.evaluate( false );
     if ( r == null ) return null;
@@ -2448,11 +2794,11 @@ public class Functions {
 //    return null;
 //  }
   public static < T > TimeVaryingMap< T > times( Object o,
-                                                 TimeVaryingMap< T > tv ) {
+                                                 TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return times(tv, o);
   }
   public static < T > TimeVaryingMap< T > times( TimeVaryingMap< T > tv,
-                                                 Object o ) {
+                                                 Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
     Number n = Expression.evaluate( o, Number.class, false );
     if ( n != null ) return tv.times( n );
@@ -2462,12 +2808,12 @@ public class Functions {
     return null;
   }
   public static < T, TT extends Number > TimeVaryingMap< T > times( TimeVaryingMap< T > tv1,
-                                                                    TimeVaryingMap< TT > tv2 ) {
+                                                                    TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return TimeVaryingMap.times( tv1, tv2 );
   }
 
   public static < T > TimeVaryingMap< T > divide( TimeVaryingMap< T > tv,
-                                                  Object o ) {
+                                                  Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
     Number n = Expression.evaluate( o, Number.class, false );
     if ( n != null ) return tv.divide( n );
@@ -2477,17 +2823,17 @@ public class Functions {
     return null;
   }
   public static < T, TT extends Number > TimeVaryingMap< T > divide( TimeVaryingMap< T > tv1,
-                                                                     TimeVaryingMap< TT > tv2 ) {
+                                                                     TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return TimeVaryingMap.dividedBy( tv1, tv2 );
   }
 
   
   public static < T > TimeVaryingMap< T > plus( Object o,
-                                                TimeVaryingMap< T > tv ) {
+                                                TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return plus( tv, o );
   }
   public static < T > TimeVaryingMap< T > plus( TimeVaryingMap< T > tv,
-                                                Object o ) {
+                                                Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
     Number n = null;
     try {
@@ -2502,16 +2848,16 @@ public class Functions {
     return null;
   }   
   public static < T, TT extends Number > TimeVaryingMap< T > plus( TimeVaryingMap< T > tv1,
-                                                                   TimeVaryingMap< TT > tv2 ) {
+                                                                   TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
      return TimeVaryingMap.plus( tv1, tv2 );
    }
   
   public static < T > TimeVaryingMap< T > minus( Object o,
-                                                 TimeVaryingMap< T > tv ) {
+                                                 TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return minus( tv, o );
   }
   public static < T > TimeVaryingMap< T > minus( TimeVaryingMap< T > tv,
-                                                 Object o ) {
+                                                 Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
     Number n = Expression.evaluate( o, Number.class, false );
     if ( n != null ) return tv.minus( n );
@@ -2521,7 +2867,7 @@ public class Functions {
     return null;
   }   
   public static < T, TT extends Number > TimeVaryingMap< T > minus( TimeVaryingMap< T > tv1,
-                                                                    TimeVaryingMap< TT > tv2 ) {
+                                                                    TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
      return TimeVaryingMap.minus( tv1, tv2 );
    }
   
@@ -2546,7 +2892,19 @@ public class Functions {
   }
   protected static <T1> T1 pickValueBF2( Variable< T1 > variable,
                                          FunctionCall pickFunctionCall ) {
-    return (T1)pickFunctionCall.evaluate( false );
+    try {
+      return (T1)pickFunctionCall.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
+    return null;
   }
   protected static <T1> T1 pickValueBF2( SuggestiveFunctionCall functionCall,
                                          Variable< T1 > variable ) {
@@ -2573,7 +2931,7 @@ public class Functions {
                                                               boolean returnOnlyOne,
                                                               boolean mustBeOnlyOne ) {
     if ( fCall == null || variable == null ) return null;
-    Vector< Object > arguments = fCall.getArguments();
+    Vector< Object > arguments = fCall.getArgumentVector();
     ArrayList< Object > argsWithVariable = new ArrayList<Object>();
     if ( variable instanceof Parameter ) {
       for ( Object arg : arguments ) {
@@ -2593,6 +2951,20 @@ public class Functions {
       }
     }
     return argsWithVariable;
+  }
+  
+  protected static SuggestiveFunctionCall getSuggestiveFunctionCall( Object o ) {
+    SuggestiveFunctionCall call = null;
+    
+    try {
+      call = Expression.evaluate( o, SuggestiveFunctionCall.class, true );
+    } catch ( ClassCastException e ) {
+    } catch ( IllegalAccessException e ) {
+    } catch ( InvocationTargetException e ) {
+    } catch ( InstantiationException e ) {
+    }
+    
+    return call;
   }
   
   /**
@@ -2620,8 +2992,8 @@ public class Functions {
     // arguments of the pick functions
     if ( pickFunctionCall == null && reversePickFunctionCall == null ) return null;
     Vector< Object > args =
-        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArguments()
-                                     : pickFunctionCall.getArguments();
+        ( pickFunctionCall == null ) ? reversePickFunctionCall.getArgumentVector()
+                                     : pickFunctionCall.getArgumentVector();
     assert( args.size() == 2 );
     if ( args.size() != 2 ) return null;
     Object arg1 = args.get( 0 );
@@ -2671,7 +3043,19 @@ public class Functions {
     equal = first ? isFirst : isSecond;
     
     // pick a value for the chosen argument    
-    T1 t1 = (T1)chosenPickCall.evaluate( false );
+    T1 t1 = null;
+    try {
+      t1 = (T1)chosenPickCall.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     
     // If the argument is the variable, then picking a value for the function is
     // the same as picking a value for the variable.
@@ -2685,9 +3069,10 @@ public class Functions {
 
     // If the argument is a FunctionCall, try to invert the call with the target
     // value, t1, to solve for the variable.
-    if ( arg.expression instanceof SuggestiveFunctionCall ) {
+    SuggestiveFunctionCall fCall = getSuggestiveFunctionCall( arg.expression );
+    if ( fCall != null ) { //arg.expression instanceof SuggestiveFunctionCall ) {
       // fCall=Plus(x,y)
-      SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
+      //SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
       ArrayList< Object > argsWithVar = getArgumentsWithVariable( fCall, variable );
       if ( Utils.isNullOrEmpty( argsWithVar ) || argsWithVar.size() > 1 ) {
         // TODO -- solve for variable! or simplify expression!
@@ -2704,12 +3089,62 @@ public class Functions {
       if ( inverseCall instanceof SuggestiveFunctionCall ) {
         T1 t11 = ((SuggestiveFunctionCall)inverseCall).pickValue( variable );
         return t11;
+      } else if ( inverseCall != null ) {
+        Object result = null;
+        try {
+          result = inverseCall.evaluate( true );
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        if ( result instanceof Collection ) {
+          Collection<T1> coll = (Collection<T1>)result;
+          T1 t11 = get( coll, Random.global.nextInt( coll.size() ) );
+          return t11;
+        } else {
+          Class<T1> cls = (Class< T1 >)variable.getClass();
+          try {
+            T1 t11 = Expression.evaluate( result, cls, true );
+            return t11;
+          } catch ( ClassCastException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
       }
     }
 
     return null;
   }
 
+  public static < T > T get( Collection<T> coll, int index ) {
+    if ( coll instanceof List ) {
+      return ((List<T>)coll).get( index );
+    } else {
+      T t = null;
+      Iterator<T> iter = coll.iterator();
+      for ( int i = 0; i != index+1 && iter.hasNext(); ++i ) {
+        t = iter.next();
+      }
+      return t;
+    }
+  }
+  
   // delete this function
   private static <T, T1> T1 pickValueBB( BooleanBinary< T > booleanBinary,
                                          Variable< T1 > variable ) {
@@ -2737,7 +3172,11 @@ public class Functions {
                   && variable instanceof Parameter ) {
         if ( ( (Expression< ? >)arg ).hasParameter( (Parameter< T1 >)variable,
                                                      false, null ) ) {
-          newValue = variable.pickRandomValue();
+         try {
+           newValue = (T1)variable.pickRandomValue();
+         } catch ( ClassCastException e ) {
+           // TODO??
+         }
         }
       } else {
 //        if ( arg instanceof Variable ) {
@@ -2767,7 +3206,18 @@ public class Functions {
         if ( otherArg instanceof Variable ) {
           otherValue = ( (Variable<?>)otherArg ).getValue( propagate );
         } else if ( otherArg instanceof Expression ) {
-          otherValue = ( (Expression<?>)otherArg ).evaluate( propagate );
+          try {
+            otherValue = ( (Expression<?>)otherArg ).evaluate( propagate );
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+          }
         }
         if ( otherValue instanceof Variable ) {
           if ( value != null
@@ -2784,7 +3234,12 @@ public class Functions {
       newValue = null;
       Boolean r = false;
       for ( int i=0; i < 5; ++i ) {
-        T1 v = variable.pickRandomValue();
+        T1 v = null;
+        try {
+        v = (T1)variable.pickRandomValue();
+        } catch ( ClassCastException e ) {
+          // TODO??
+        }
         Pair< Boolean, Object > p = null;
         try {
           p = ClassUtils.runMethod( false, (Object)null, f.method,

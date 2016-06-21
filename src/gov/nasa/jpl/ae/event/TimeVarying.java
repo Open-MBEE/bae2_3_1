@@ -19,10 +19,10 @@ public interface TimeVarying< V > extends Comparable< TimeVarying< V > >, HasId<
   public V setValue( Parameter< Integer > t, V value );
   public V unsetValue( Parameter< Integer > t, V value );
 //  public Iterator< ? > iterator();
-////	public T getValueAtTime( Timepoint t );
-////	public T setValueAtTime( Timepoint t, T value );
-////	// allows iteration through values
-////	public Timepoint timeOfNextValue( Timepoint t );
+////  public T getValueAtTime( Timepoint t );
+////  public T setValueAtTime( Timepoint t, T value );
+////  // allows iteration through values
+////  public Timepoint timeOfNextValue( Timepoint t );
   boolean isApplied( Effect effect );
   public boolean canBeApplied( Effect effect );
   public Object getOwner();

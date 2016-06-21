@@ -1,5 +1,6 @@
-package gov.nasa.jpl.ae.event;
 
+package gov.nasa.jpl.ae.event;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -7,7 +8,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import junit.framework.Assert;
-
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.CollectionTree;
@@ -92,25 +92,69 @@ public class Dependency< T > extends HasIdImpl
     if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
-    Object val = expression.evaluate(propagate);
-    if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
-      T valT = Expression.evaluate( val, getType(), propagate, true );
-      parameter.setValue( valT, propagate );
-      return true;
+    try {
+      Object val = expression.evaluate(propagate);
+      if ( parameter.isStale() || val != parameter.getValueNoPropagate() ) {
+        T valT = Expression.evaluate( val, getType(), propagate, true );
+        parameter.setValue( valT, propagate );
+        return true;
+      }
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
     }
     if ( Debug.isOn() ) Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
     return false;
+  }
+  
+  Boolean amApplying = false;
+  
+  /**
+   * @param propagate
+   * @return whether the value was set to the evaluated expression
+   */
+  public boolean apply( boolean propagate ) {
+    synchronized(amApplying) {
+      if ( amApplying ) return false;
+      amApplying = true;
+    }
+    boolean b = false;
+    try {
+      b = reallyApply(propagate);
+    } finally {
+      amApplying = false;
+    }
+    return b;
   }
 
   /**
    * @param propagate
    * @return whether the value was set to the evaluated expression
    */
-  public boolean apply( boolean propagate ) {
+  public boolean reallyApply( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
     if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
-    Object val = expression.evaluate(propagate);
-    T value = Expression.evaluate( val, getType(), propagate, true );
+    Object val = null;
+    T value = null;
+    try {
+      val = expression.evaluate(propagate);
+      value = Expression.evaluate( val, getType(), propagate, true );
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
     // Avoid setting to bad value.  How can we know if it's bad? Is null always bad?
     if ( value == null
         && parameter.isSatisfied( false, null )
@@ -167,8 +211,12 @@ public class Dependency< T > extends HasIdImpl
       if ( !sat ) {
         parameter.setStale( true );
         if ( Debug.isOn() && parameter != null && expression != null) {
-          Debug.outln( "Dependency.isSatisfied(): parameter value (" + parameter.getValueNoPropagate()
-                       + ") not equal to evaluated expression (" + expression.evaluate( false ) + ") " ); // + this );
+          try {
+            Debug.outln( "Dependency.isSatisfied(): parameter value (" + parameter.getValueNoPropagate()
+                         + ") not equal to evaluated expression (" + expression.evaluate( false ) + ") " ); // + this );
+          } catch ( Throwable e ) {
+            
+          }
         }
       }
     }
@@ -324,7 +372,7 @@ public class Dependency< T > extends HasIdImpl
    * @see solver.Constraint#pickValue(solver.Variable)
    */
   @Override
-  public < T1 > boolean pickValue( Variable< T1 > variable ) {
+  public < T1 > boolean pickParameterValue( Variable< T1 > variable ) {
     if ( variable == null || !Parameter.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
@@ -342,7 +390,7 @@ public class Dependency< T > extends HasIdImpl
       boolean changedSomething = false;
       if ( !(var instanceof Parameter) || !((Parameter) var).isDependent()){
         if ( c != null) {
-          if ( c.pickValue( var ) ) changedSomething = true;
+          if ( c.pickParameterValue( var ) ) changedSomething = true;
         } else {
           if ( var.pickValue() ) changedSomething = true;
         }
@@ -357,7 +405,7 @@ public class Dependency< T > extends HasIdImpl
     }
     Constraint c = getConstraintExpression();
     if ( c != null ) {
-      if ( c.pickValue( variable ) ) return true;
+      if ( c.pickParameterValue( variable ) ) return true;
     }
     // TODO Auto-generated method stub
     return false;
@@ -391,11 +439,23 @@ public class Dependency< T > extends HasIdImpl
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
     if ( v == parameter ) {
-      Object ov = expression.evaluate(true);
-      T val = Expression.evaluate( ov, getType(), false, true );
-      Domain<T1> d = v.getDomain().clone();
-      d.restrictToValue( (T1)val );
-      v.setDomain( d );
+      Object ov = null;
+      try {
+        ov = expression.evaluate(true);
+        T val = Expression.evaluate( ov, getType(), false, true );
+        Domain<T1> d = v.getDomain().clone();
+        d.restrictToValue( (T1)val );
+        v.setDomain( d );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     } else {
       if ( getConstraintExpression() == null) return false;
       getConstraintExpression().restrictDomain( v );
@@ -570,9 +630,14 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
     if ( expression == null ) return;
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     if ( expression.hasParameter( changedParameter, true, null ) ) {
+      expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
     }
   }
@@ -666,5 +731,11 @@ public class Dependency< T > extends HasIdImpl
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+
 
 }

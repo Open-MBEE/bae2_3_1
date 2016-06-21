@@ -251,28 +251,29 @@ public class MdDebug extends Debug {
     }
 
     public void logWithColor( String msg, Color color ) {
-        JDialog log = gl.getLog();
-        //JPanel jp = getComponentOfType( log, JPanel.class );//(JPanel)((java.awt.Container)log).getComponent( 0 ); //.getComponents();
-        //JEditorPane jep = getComponentOfType( jp, JEditorPane.class );//(JEditorPane)jp.getComponent( 0 );
-        StyledDocument doc = getComponentOfType( log, StyledDocument.class );
-        if ( doc == null ) {
-          JEditorPane jep = getComponentOfType( log, JEditorPane.class );//(JEditorPane)jp.getComponent( 0 );
-          if ( jep != null ) {
-            doc = (StyledDocument)jep.getDocument();
-          } else {
-            System.out.println("ERROR! Failed to find Document!");
-            System.err.println("ERROR! Failed to find Document!");
-            return;
-          }
-        }
-        SimpleAttributeSet set = new SimpleAttributeSet();
-        StyleConstants.setForeground( set, color ); // Color.GREEN
-        int i = doc.getLength();
-        try {
-          doc.insertString( i, msg, set );
-        } catch ( BadLocationException e ) {
-          e.printStackTrace();
-        }
+      log(msg);
+//        JDialog log = gl.getLog();
+//        //JPanel jp = getComponentOfType( log, JPanel.class );//(JPanel)((java.awt.Container)log).getComponent( 0 ); //.getComponents();
+//        //JEditorPane jep = getComponentOfType( jp, JEditorPane.class );//(JEditorPane)jp.getComponent( 0 );
+//        StyledDocument doc = getComponentOfType( log, StyledDocument.class );
+//        if ( doc == null ) {
+//          JEditorPane jep = getComponentOfType( log, JEditorPane.class );//(JEditorPane)jp.getComponent( 0 );
+//          if ( jep != null ) {
+//            doc = (StyledDocument)jep.getDocument();
+//          } else {
+//            System.out.println("ERROR! Failed to find Document!");
+//            System.err.println("ERROR! Failed to find Document!");
+//            return;
+//          }
+//        }
+//        SimpleAttributeSet set = new SimpleAttributeSet();
+//        StyleConstants.setForeground( set, color ); // Color.GREEN
+//        int i = doc.getLength();
+//        try {
+//          doc.insertString( i, msg, set );
+//        } catch ( BadLocationException e ) {
+//          e.printStackTrace();
+//        }
       }
 
 }

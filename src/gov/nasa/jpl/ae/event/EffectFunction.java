@@ -4,6 +4,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.Vector;
@@ -13,11 +14,15 @@ import java.util.Vector;
  */
 public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryingObjects {
 
+  
+  // FIXME -- need to change constructors to take a return type!
+  
+  
 	/**
 	 * @param method
 	 */
 	public EffectFunction(Method method) {
-		super(method);
+		super(method, (Class<?>)null);
 	}
 
 	/**
@@ -25,16 +30,17 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 	 * @param method
 	 */
 	public EffectFunction(Object object, Method method) {
-		super(object, method);
+		super(object, method, (Class<?>)null);
 	}
 
 	/**
 	 * @param object
 	 * @param method
 	 * @param arguments
+	 * @param returnType 
 	 */
-	public EffectFunction(Object object, Method method, Vector<Object> arguments) {
-		super(object, method, arguments);
+	public EffectFunction(Object object, Method method, Vector<Object> arguments, Class< ? > returnType ) {
+		super(object, method, arguments, returnType);
 	}
 
   /**
@@ -45,7 +51,12 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    */
   public EffectFunction(Object object, Method method, Object[] arguments,
                         Call nestedCall) {
-    super(object, method, arguments, nestedCall);
+    this(object, method, arguments, nestedCall, (Class<?>)null);
+  }
+
+  public EffectFunction(Object object, Method method, Object[] arguments,
+                        Call nestedCall, Class<?> cls) {
+    super(object, method, arguments, nestedCall, cls);
   }
 
   /**
@@ -56,7 +67,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    */
   public EffectFunction(Object object, Method method, Object[] arguments,
                         Parameter<Call> nestedCall) {
-    super(object, method, arguments, nestedCall);
+    super(object, method, arguments, nestedCall, (Class<?>)null);
   }
 
   /**
@@ -65,9 +76,14 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    * @param arguments
    */
   public EffectFunction(Object object, Method method, Object[] arguments) {
-    super(object, method, arguments);
+    this(object, method, arguments, (Class<?>)null);
   }
 
+  public EffectFunction( Object object , Method method , Object argumentsA[] , Class< ? > returnType  ) {
+    super(object, method, argumentsA, returnType);
+  }
+
+  
 	/**
 	 * @param effectFunction
 	 */
@@ -140,9 +156,20 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 		}
 		*/
 		//T result = (T) evaluate();
-    evaluate(propagate);
-    if (tv instanceof TimeVaryingMap) {
-      ((TimeVaryingMap<T>) tv).wasApplied(this);
+    try {
+      evaluate(propagate);
+      if (tv instanceof TimeVaryingMap) {
+        ((TimeVaryingMap<T>) tv).wasApplied(this);
+      }
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
     }
 		//tv.setValue( t, result );//setValueAtTime( t, result );
 		return tv;

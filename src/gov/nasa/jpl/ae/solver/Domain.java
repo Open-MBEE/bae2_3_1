@@ -7,7 +7,7 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
 
   public Domain< T > clone();
 
-  public long size();
+  public int size();
 
   public boolean isEmpty();
 

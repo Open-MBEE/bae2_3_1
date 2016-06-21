@@ -7,6 +7,7 @@ import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 
@@ -59,14 +60,26 @@ public class ConstraintExpression extends Expression< Boolean >
     super( functionCall );
   }
 
-  /*
+  /**
    * (non-Javadoc)
    * 
    * @see event.Constraint#isSatisfied()
    */
   @Override
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
-    Boolean sat = evaluate(false);
+    Boolean sat = null;
+    try {
+      sat = evaluate(false);
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     if ( sat == null ) sat = new Boolean( false );
     if ( false && deep & sat ) {
       sat = HasParameters.Helper.isSatisfied( this, false, null );
@@ -75,7 +88,7 @@ public class ConstraintExpression extends Expression< Boolean >
     return sat;
   }
 
-  /*
+  /**
    * (non-Javadoc)
    * 
    * @see event.Constraint#satisfy()
@@ -87,14 +100,22 @@ public class ConstraintExpression extends Expression< Boolean >
     //Debug.turnOn();
     if ( Debug.isOn() ) Debug.outln( "ConstraintExpression.satisfy() for " + this );
     if ( isSatisfied(deep, seen) ) return true;
+    
+    // Try satisfying the contained Parameters individually to make sure they
+    // have valid values.
     HasParameters.Helper.satisfy( this, true, null );
+    
+    // Now try choosing new values for the variables to meet this constraint.
     if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
       Set< Variable< ? > > vars = getVariables();
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
+      if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
       for ( Variable< ? > v : Utils.scramble(a) ) {
-        if (!(v instanceof Parameter) || !((Parameter) v).isDependent()){
-          pickValue( v );  
+        // Make sure the variable is not dependent and not locked.
+        if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
+             && ( v.getDomain() == null || v.getDomain().size() != 1 ) ) {
+          pickParameterValue( v );  
         }
         if ( isSatisfied(deep, seen) ) break;
       }
@@ -110,50 +131,50 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public Set< Variable< ? > > getVariables() {
     return ParameterConstraint.Helper.getVariables( this, false, null );
-//    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
-//    s.addAll( getParameters( true ) );
-//    return s;
   }
 
   @Override
-  public < T > boolean pickValue( Variable< T > v ) {
-//    if ( type.equals( Type.Function ) ) {
-      if ( expression instanceof Suggester ) {
-        T newValue = ((Suggester)expression).pickValue( v );
-        if ( newValue != null ) {
-          v.setValue( newValue );
-          return true;
-        }
+  public < T > boolean pickParameterValue( Variable< T > v ) {
+    if ( expression instanceof Suggester ) {
+      T newValue = ((Suggester)expression).pickValue( v );
+      if ( newValue != null ) {
+        //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        setValue( v, newValue );
+        return true;
       }
-//    }
+    }
     // TODO
-//    Set< Variable< ? > > vars = getVariables();
-    return false;//ParameterConstraint.Helper.pickValue( this, v );
+    if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    return false;
   }
 
+  protected < T > void setValue( Variable<T> v, T newValue ) {
+    v.setValue( newValue );
+  }
+  
   @Override
   public < T > boolean restrictDomain( Variable< T > v ) {
+    // TODO
+    assert(false);
     return ParameterConstraint.Helper.restrictDomain( this, v );
   }
 
   @Override
   public < T > boolean isFree( Variable< T > v ) {
     return ParameterConstraint.Helper.isFree( this, v, false, null );
-//    if ( v instanceof Parameter<?> ) {
-//      return freeParameters.contains( v );
-//    }
-//    return true; // REVIEW -- Is true ok for "don't know" case?
   }
 
   @Override
   public < T > boolean isDependent( Variable< T > v ) {
     return ParameterConstraint.Helper.isDependent( this, v, false, null );
-//    return false;
   }
 
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    return ParameterConstraint.Helper.getFreeVariables( this, false, null );
+    // TODO
+    assert(false);
+    return null;
 //    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
 //    s.addAll( getFreeParameters( true ) );
 //    return s;
@@ -162,6 +183,8 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public void setFreeVariables( Set< Variable< ? > > freeVariables ) {
     ParameterConstraint.Helper.setFreeVariables( this, freeVariables, false, null );
+    // TODO
+    assert(false);
 //    if ( freeParameters == null ) {
 //      freeParameters = new TreeSet< Parameter< ? > >();
 //    }
@@ -188,20 +211,21 @@ public class ConstraintExpression extends Expression< Boolean >
 //    return this.toString().compareTo( o.toString() );
   }
 
-  @Override
-  public boolean isStale() {
-    return ParameterConstraint.Helper.isStale( this, false, null );
-    //return HasParameters.Helper.isStale( this, false );
-//    for ( Parameter< ? > p : getParameters( false ) ) {
-//      if ( p.isStale() ) return true;
-//    }
-//    return false;
-  }
+//  @Override
+//  public boolean isStale() {
+//    if ( expression instanceof La)
+//    return ParameterConstraint.Helper.isStale( this, false, null );
+//    //return HasParameters.Helper.isStale( this, false );
+////    for ( Parameter< ? > p : getParameters( false ) ) {
+////      if ( p.isStale() ) return true;
+////    }
+////    return false;
+//  }
 
-  @Override
-  public void setStale( boolean staleness ) {
-    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
-    ParameterConstraint.Helper.setStale( this, staleness );
-  }
+//  @Override
+//  public void setStale( boolean staleness ) {
+//    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
+//    ParameterConstraint.Helper.setStale( this, staleness );
+//  }
   
 }

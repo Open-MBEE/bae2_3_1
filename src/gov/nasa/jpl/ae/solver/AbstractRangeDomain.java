@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,7 +91,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public abstract long size();
+	public abstract int size();
 	
   @Override
 	public boolean isEmpty() {
@@ -118,7 +119,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#getValue(boolean)
+   * @see gov.nasa.jpl.mbee.util.Wraps#getValue(boolean)
    */
   @Override
   public T getValue( boolean propagate ) {
@@ -132,7 +133,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#setValue(java.lang.Object)
+   * @see gov.nasa.jpl.mbee.util.Wraps#setValue(java.lang.Object)
    */
   @Override
   public void setValue( T value ) {
@@ -143,7 +144,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   /*
    * (non-Javadoc)
    * 
-   * @see gov.nasa.jpl.ae.solver.Wraps#getPrimitiveType()
+   * @see gov.nasa.jpl.mbee.util.Wraps#getPrimitiveType()
    */
   @Override
   public Class< ? > getPrimitiveType() {
@@ -168,7 +169,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#getType()
+   * @see gov.nasa.jpl.mbee.util.Wraps#getType()
    */
   @Override
   public Class< ? > getType() {
@@ -180,7 +181,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Wraps#getTypeNameForClassName(java.lang.String)
+   * @see gov.nasa.jpl.mbee.util.Wraps#getTypeNameForClassName(java.lang.String)
    */
   @Override
   public String getTypeNameForClassName( String className ) {
@@ -219,20 +220,36 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       wl = d1.width();
       wu = d2.width();
     }
-    Number totalWidth = Functions.plus( wl, wu );
-    totalSizeDouble = totalWidth.doubleValue();
-    double r = Random.global.nextDouble() * totalSizeDouble;
-    if ( r < wl.byteValue() ) {
-      if ( wl instanceof Long || wl instanceof Integer ) {
-        return d1.getNthValue( (long)r );
+    Number totalWidth;
+    try {
+      totalWidth = Functions.plus( wl, wu );
+      totalSizeDouble = totalWidth.doubleValue();
+      double r = Random.global.nextDouble() * totalSizeDouble;
+      if ( r < wl.byteValue() ) {
+        if ( wl instanceof Long || wl instanceof Integer ) {
+          return d1.getNthValue( (long)r );
+        }
+        return Functions.plus( d1.getLowerBound(), (Double)r );
       }
-      return Functions.plus( d1.getLowerBound(), (Double)r );
+      if ( wl instanceof Long || wl instanceof Integer ) {
+        return d2.getNthValue( ((long)r) - zl );
+      }
+      return Functions.plus( d2.getLowerBound(),
+                             (Double)( r - wl.doubleValue() ) );
+    } catch ( ClassCastException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
     }
-    if ( wl instanceof Long || wl instanceof Integer ) {
-      return d2.getNthValue( ((long)r) - zl );
-    }
-    return Functions.plus( d2.getLowerBound(),
-                           (Double)( r - wl.doubleValue() ) );
+    return null;
 	}
 	
   /* (non-Javadoc)
@@ -243,7 +260,22 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	  T lb = getLowerBound();
     T ub = getUpperBound();
     if ( lb instanceof Number && ub instanceof Number ) {
-      T diff = Functions.minus( ub, lb );
+      T diff = null;
+      try {
+        diff = Functions.minus( ub, lb );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       if ( diff instanceof Number ) return (Number)diff;
     }
     Debug.error( "width() needs to be redefined for "
@@ -513,7 +545,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
         //getClass().getMethod( "lessEquals", Class< ? >[]{} );
       Expression< T > expr = 
           new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                                 new Object[]{ propagate } ) );
+                                                 new Object[]{ propagate }, (Class<?>)null ) );
 //      if ( t.getValue() instanceof Variable ) {
 //        expr = 
 //            new Expression< T >( new FunctionCall( null, Variable.class, "getValue",
@@ -521,7 +553,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 //      }
       args = new Object[] { getLowerBound(), expr };
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                             args ) ) );
+                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // upper bound constraint
@@ -530,11 +562,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
       Expression< T > expr = 
         new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                               new Object[]{ propagate } ) );
+                                               new Object[]{ propagate }, (Class<?>)null ) );
       args = new Object[] { getUpperBound(), expr };
 
       cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                             args ) ) );
+                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // grounded constraint
@@ -543,7 +575,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       args = new Object[] { false, (Set< Groundable >)null };
       method = getIsGroundedMethod();
       if ( method != null ) {
-        cList.add( new ConstraintExpression( new FunctionCall( g, method, args ) ) );
+        cList.add( new ConstraintExpression( new FunctionCall( g, method, args, (Class<?>)null ) ) );
       }
       //Utils.getMethodForArgs( Groundable.class, "isGrounded", args );
     }

@@ -7,6 +7,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -497,12 +498,27 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
   
   public boolean isConditionalAddApplicable( EffectFunction effectFunction ) {
     boolean doSend = true;
-    if ( effectFunction.getArguments() == null
-         || effectFunction.getArguments().size() < 3 ) {
+    if ( effectFunction.getArgumentArray() == null
+         || effectFunction.getArgumentArray().length < 3 ) {
       doSend = true;
     } else {
-      Object bo = effectFunction.getArguments().get( 2 );
-      Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
+      Object bo = effectFunction.getArgument( 2 );
+      Boolean b = null;
+      try {
+        b = Expression.evaluate( bo, Boolean.class, false, false );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      }
       if ( b == null ) doSend = true;
       else doSend = b.booleanValue();
     }

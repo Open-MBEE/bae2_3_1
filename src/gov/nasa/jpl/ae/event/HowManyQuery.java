@@ -2,7 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Variable;
 
-class HowManyQuery extends Query {
+public class HowManyQuery extends Query {
   // construct query
   public HowManyQuery( Variable< Number > numVarParam1,
                        Expression< Boolean > boolExprParam2 ) {

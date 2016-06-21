@@ -7,6 +7,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
@@ -64,7 +65,19 @@ public class TestPlugin extends MDPlugin {
           if ( Utils.isNullOrEmpty( expr ) ) continue;
           Expression< ? > aeExpr = translator.javaToAeExpression( expr, null, false );
           if ( aeExpr == null ) continue;
-          return aeExpr.evaluate( true );
+          try {
+            return aeExpr.evaluate( true );
+          } catch ( IllegalAccessException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( InvocationTargetException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch ( InstantiationException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+          // REVIEW -- should we return if there's an exception?
         }
       }
       EList< EObject > contents = element.eContents();

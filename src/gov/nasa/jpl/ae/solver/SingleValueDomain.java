@@ -11,7 +11,7 @@ import gov.nasa.jpl.mbee.util.Wraps;
  */
 public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
 
-  protected static final SingleValueDomain<?> nullDomain = new SingleValueDomain<Object>( null );
+  protected static final SingleValueDomain<?> nullDomain = new SingleValueDomain<Object>();
   public static <T1> SingleValueDomain<T1> getNullDomain() {
     return (SingleValueDomain< T1 >)nullDomain;
   }
@@ -45,7 +45,7 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#size()
    */
   @Override
-  public long size() {
+  public int size() {
     return 1;
   }
 

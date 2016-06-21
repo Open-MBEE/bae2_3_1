@@ -895,6 +895,10 @@ public class ParameterListenerImpl extends HasIdImpl
         ((ParameterListener)tv).handleValueChangeEvent( parameter );
       }
     }
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      c.handleValueChangeEvent( parameter );
+    }
+
   }
 
   @Override
@@ -925,7 +929,7 @@ public class ParameterListenerImpl extends HasIdImpl
   @Override
   public void deconstruct() {
     if ( isDeconstructed() ) {
-      Debug.outln( "Attempted to deconstruct a deconstructed ParameterListener: "
+      if ( Debug.isOn() ) Debug.outln( "Attempted to deconstruct a deconstructed ParameterListener: "
                    + this.toString( true, true, null ) );
       return;
     }
@@ -1022,6 +1026,8 @@ public class ParameterListenerImpl extends HasIdImpl
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.error(true, false,  "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                     + toShortString() );
     // TODO -- REVIEW -- Need anything here?
     assert false;
   }
@@ -1050,15 +1056,22 @@ public class ParameterListenerImpl extends HasIdImpl
    * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // Alert affected dependencies.
     for ( Dependency<?> d : getDependencies() ) {
-      d.setStaleAnyReferencesTo( changedParameter );
+      d.setStaleAnyReferencesTo( changedParameter, seen );
     }
     for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
-        ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter );
+        ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter, seen );
       }
+    }
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      c.setStaleAnyReferencesTo( changedParameter, seen );
     }
   }
 
@@ -1084,14 +1097,19 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   @Override
-  public <T> boolean pickValue( Variable< T > variable ) {
+  public <T> boolean pickParameterValue( Variable< T > variable ) {
     for ( Dependency<?> d : getDependencies() ) {
-      if ( d.pickValue( variable ) ) return true;
+      if ( d.pickParameterValue( variable ) ) return true;
     }
     if ( variable instanceof Parameter && Random.global.nextBoolean() ) {
       return ((Parameter<?>)variable).ownerPickValue();
     }
-    T value = variable.pickRandomValue();
+    T value = null;
+    try {
+      value = (T)variable.pickRandomValue();
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    }
     if ( value != null ) {
       variable.setValue( value );
       return true;
@@ -1312,6 +1330,14 @@ public class ParameterListenerImpl extends HasIdImpl
     num += HasConstraints.Helper.getNumberOfConstraints( getConstraintExpressions(), false, seen );
     num += HasConstraints.Helper.getNumberOfConstraints( getDependencies(), false, seen );
     return num;
+  }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.ParameterListener#translate(gov.nasa.jpl.ae.solver.Variable, java.lang.Object, java.lang.Class)
+   */
+  @Override
+  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
   }
   
 }

@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.fuml;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -141,11 +142,16 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     for ( ObjectFlow<Obj> of : getListeners() ) {
-      of.setStaleAnyReferencesTo( changedParameter );
+      of.setStaleAnyReferencesTo( changedParameter, seen );
     }
-    super.setStaleAnyReferencesTo( changedParameter );
+    seen.remove(this);
+    super.setStaleAnyReferencesTo( changedParameter, seen );
   }
 
   @Override
@@ -202,13 +208,28 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
   public void send( Obj o, Parameter< Integer > t ) {
     breakpoint();
-    Obj thing = Expression.evaluate( o, type, true ); //REVIEW -- This shouldn't be necessary.  Change prototype to send(Object o, IntegerParameter t)? 
-    if ( type == null || type.isInstance( thing ) ) {  
-      this.setValue( t, thing );
-      for ( ObjectFlow< Obj > f : listeners ) {
-        f.send( thing, t );
+    Obj thing;
+    try {
+      thing = Expression.evaluate( o, type, true );
+      if ( type == null || type.isInstance( thing ) ) {  
+        this.setValue( t, thing );
+        for ( ObjectFlow< Obj > f : listeners ) {
+          f.send( thing, t );
+        }
       }
-    }
+    } catch ( ClassCastException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    } //REVIEW -- This shouldn't be necessary.  Change prototype to send(Object o, IntegerParameter t)? 
   }
   
 //  public void send( Obj o, Integer t ) {
@@ -228,7 +249,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       EffectFunction effunc = (EffectFunction)effect;
       
       if (isAReceiveEffect(effunc)) {
-        Parameter<Integer> tp = tryEvaluateTimepoint(effunc.getArguments().get( 0 ),true);
+        Parameter<Integer> tp = tryEvaluateTimepoint(effunc.getArgument( 0 ),true);
         unsetValue(tp,null);
         return;
       }
@@ -378,7 +399,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
     // Is receive() applied
     if ( effectFunction.getMethod().getName().equals("receive") ) {
-      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArguments().get( 0 ) );
+      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArgument( 0 ) );
     }
 
     // Is method (send()?) applied?
@@ -393,12 +414,27 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
   public boolean isSendIfApplicable( EffectFunction effectFunction ) {
     boolean doSend = true;
-    if ( effectFunction.getArguments() == null
-         || effectFunction.getArguments().size() < 3 ) {
+    if ( effectFunction.getArgumentArray() == null
+         || effectFunction.getArgumentArray().length < 3 ) {
       doSend = false;
     } else {
-      Object bo = effectFunction.getArguments().get( 2 );
-      Boolean b = Expression.evaluate( bo, Boolean.class, false, false );
+      Object bo = effectFunction.getArgument( 2 );
+      Boolean b = null;
+      try {
+        b = Expression.evaluate( bo, Boolean.class, false, false );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       if ( b == null ) doSend = false;
       else doSend = b.booleanValue();
     }
@@ -434,12 +470,12 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public boolean isSetValueApplied( EffectFunction effectFunction ) {
     if ( effectFunction.getMethod() == null ) return false;
     if ( effectFunction.getMethod().getName().startsWith( "receive" ) &&
-         effectFunction.getArguments().size() < 2 ) {
+         effectFunction.getArgumentArray().length < 2 ) {
       Debug.error(true, "Error!  isSetValueApplied() is not applicable for this receive effects with one argument! This call is a bug.");
       return true;
     }
-    if ( effectFunction.getArguments() != null
-         && effectFunction.getArguments().size() >= 2 ) {
+    if ( effectFunction.getArgumentArray() != null
+         && effectFunction.getArgumentArray().length >= 2 ) {
       Pair< Parameter<Integer>, Obj > p =
           getTimeAndValueOfEffect( effectFunction, !isASendEffect( effectFunction ) );
       if ( p == null ) return false;

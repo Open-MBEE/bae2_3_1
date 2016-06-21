@@ -70,6 +70,8 @@ public class JavaForFunctionCall {
   protected boolean evaluateCall = false;
   protected String preferredPackageName = null;
   
+  protected Class<?> returnType;
+  
   protected Call call = null;
   
 //  /**
@@ -84,9 +86,10 @@ public class JavaForFunctionCall {
   public JavaForFunctionCall( JavaToConstraintExpression expressionTranslator,
                               Expression expression,
                               boolean convertArgumentsToExpressions,
-                              String preferredPackageName ) {
+                              String preferredPackageName,
+                              Class<?> returnType ) {
     this( expressionTranslator, expression, convertArgumentsToExpressions,
-          preferredPackageName, false );
+          preferredPackageName, false, returnType );
   }
                               
 //  public JavaForFunctionCall( EventXmlToJava eventXmlToJava,
@@ -109,7 +112,7 @@ public class JavaForFunctionCall {
                                 Expression expression,
                                 boolean convertArgumentsToExpressions,
                                 String preferredPackageName,
-                                boolean evaluateCall ) {
+                                boolean evaluateCall, Class< ? > returnType  ) {
 
     // Arguments may be Expressions, Parameters, or other. Method parameter
     // types may also be Expressions, Parameters, or other.
@@ -134,6 +137,8 @@ public class JavaForFunctionCall {
     // that match Expressions to those that match Parameters and Parameters to
     // other.
 
+     this.returnType = returnType;
+      
     assert expression != null;
     
     setExpression( expression ); // this replaces commented out code below
@@ -468,10 +473,15 @@ public class JavaForFunctionCall {
   }
   
   public Call toNewFunctionCall() {
-    Debug.outln( "JavaForFunctionCall.toNewFunctionCall() --> " + getCall() );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewFunctionCall() --> " + getCall() );
     return getCall();
   }
 
+  public String getReturnTypeString() {
+    String s = returnType == null ? "(Class<?>)null" : returnType + ".class";
+    return s;
+  }
+  
   public String toNewFunctionCallString() {
     String fcnCallStr = null;
     String callTypeName = 
@@ -483,26 +493,26 @@ public class JavaForFunctionCall {
       || getObject().startsWith( "new EffectFunction" ) ) {
       // nest the function calls
       fcnCallStr = "new " + callTypeName + "( null, " + getMethodJava() + ", "
-                   + getArgumentArrayJava() + ", " + getObject() + " )";
+                   + getArgumentArrayJava() + ", " + getObject() + ", " + getReturnTypeString() + " )";
     } else {
       String instance = getObject();
       if ( isStatic() ) {
         instance = "null";
       }
       fcnCallStr = "new " + callTypeName + "( " + instance + ", " + getMethodJava()
-                   + ", " + getArgumentArrayJava() + " )";
+                   + ", " + getArgumentArrayJava() + ", " + getReturnTypeString() + " )";
     }
     if ( isEvaluateCall() && !Utils.isNullOrEmpty( fcnCallStr ) ) {
       if ( !isConvertingArgumentsToExpressions() ) {
         fcnCallStr = "(" + fcnCallStr + ").evaluate(true)";
       }
     }
-    Debug.outln( "JavaForFunctionCall.toNewFunctionCallString() --> " + fcnCallStr );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewFunctionCallString() --> " + fcnCallStr );
     return fcnCallStr;
   }
   public String toNewExpressionString() {
     String s = "new Expression( " + toNewFunctionCallString() + " )";
-    Debug.outln( "JavaForFunctionCall.toNewExpressionString() --> " + s );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewExpressionString() --> " + s );
     return s;
   }
   
@@ -514,7 +524,7 @@ public class JavaForFunctionCall {
   public <T> gov.nasa.jpl.ae.event.Expression< T > toNewExpression() {
     gov.nasa.jpl.ae.event.Expression< T > r =
         new gov.nasa.jpl.ae.event.Expression< T >( toNewFunctionCall() );
-    Debug.outln( "JavaForFunctionCall.toNewExpression() --> " + r );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewExpression() --> " + r );
     return r;
   }
 
@@ -631,7 +641,7 @@ public class JavaForFunctionCall {
         if ( tmp != null ) {
           setObjectExpr(new gov.nasa.jpl.ae.event.Expression<Object>( tmp ) );
         } else {
-          Debug.errln( "Warning!  JavaToFunctionCall.getCall() is having to parse the object text, \""
+          if ( Debug.isOn() ) Debug.errln( "Warning!  JavaToFunctionCall.getCall() is having to parse the object text, \""
                        + getObject()
                        + "\" to create the expression of the caller!" );
           setObjectExpr( exprXlator.javaToAeExpression( getObject(),
@@ -824,9 +834,6 @@ public class JavaForFunctionCall {
                                                           getPreferredPackageName(),
                                                           getCallName(),
                                                           getArgTypes(), false ) );
-//      if ( matchingMethod == null ) {
-//        matchingConstructor
-//      }
     }
     return matchingMethod;
   }
@@ -1229,7 +1236,7 @@ public class JavaForFunctionCall {
                                           getMatchingConstructor(),
                                           //(Constructor< ? >)methodExpr.evaluate( true ),
                                           //(Object[])argumentArrayExpr.evaluate( true ) );
-                                          getArgs() ) );
+                                          getArgs(), this.returnType ) );
         }
       } else {
         if ( getMatchingMethod() == null ) {
@@ -1244,13 +1251,15 @@ public class JavaForFunctionCall {
                                        getMatchingMethod(),
                                        //(Method)methodExpr.evaluate( true ),
                                        //(Object[])argumentArrayExpr.evaluate( true ) );
-                                       getArgs() ) );
+                                       getArgs(),
+                                       this.returnType ) );
         } else {
           setCall( new FunctionCall( getObjectExpr(),
                                      getMatchingMethod(),
                                      //(Method)methodExpr.evaluate( true ),
                                      //(Object[])argumentArrayExpr.evaluate( true ) );
-                                     getArgs() ) );
+                                     getArgs(),
+                                     this.returnType ) );
         }
       }
     }
@@ -1318,20 +1327,21 @@ public class JavaForFunctionCall {
 //      else {
         // 2.
         call = JavaToConstraintExpression.javaCallToEventFunction(operationName,
+                                                                  null,
                                                                   arguments,
                                                                   argTypes.toArray(new Class[]{}));
 
         if (call == null) {
           //3.
           if ( arguments.size() == 1 ) {
-              call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString() );
+              call = JavaToConstraintExpression.unaryOpNameToEventFunction( operationName.toString(), null, false );
           } 
           else if ( arguments.size() == 2 ) {
-              call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString() );
+              call = JavaToConstraintExpression.binaryOpNameToEventFunction( operationName.toString(), null );
           } 
           else if ( arguments.size() == 3
                       && operationName.toString().equalsIgnoreCase( "if" ) ) {
-              call = JavaToConstraintExpression.getIfThenElseConstructorCall();
+              call = JavaToConstraintExpression.getIfThenElseConstructorCall(null);
           }
           
           if ( call != null ) {
@@ -1360,13 +1370,12 @@ public class JavaForFunctionCall {
       
       // Make the FunctionCall if it was not a ConstructorCall:
       if ( method != null ) {
-        call = new FunctionCall( object, method, arguments );
+        call = new FunctionCall( object, method, arguments, null );
       }
     
     return call;
   }
 
-  
   
   /**
    * @param call the call to set

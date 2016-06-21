@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +56,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   // Other Members
 
-  protected static boolean writeConstraintsOut = true;
+  public static boolean writeConstraintsOut = false;
 
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
@@ -754,8 +755,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
-    Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
-                 + runPlotter + " ): starting stop watch\n" );
+    if ( Debug.isOn() ) {
+      Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
+                   + runPlotter + " ): starting stop watch\n" );
+    }
     Timer timer = new Timer();
     try {
       EventSimulation sim = createEventSimulation();
@@ -765,8 +768,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     } catch ( Exception e ) {
       e.printStackTrace();
     }
-    Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
-        + runPlotter + " ): completed\n" + timer + "\n" );
+    if ( Debug.isOn() ) {
+      Debug.outln( "\nsimulate( timeScale=" + timeScale + ", runPlotter="
+                   + runPlotter + " ): completed\n" + timer + "\n" );
+    }
   }
 
   @Override
@@ -891,7 +896,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                          Object obj, Method effectFunction,
                          Vector< Object > arguments ) {
     assert sv != null;
-    Effect e = new EffectFunction( obj, effectFunction, arguments );
+    Effect e = new EffectFunction( obj, effectFunction, arguments, (Class<?>)null );  // TODO?  last arg?
     addEffect( sv, e );
   }
 
@@ -914,7 +919,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       effectSet = new HashSet< Effect >();
       effects.add( new Pair< Parameter< ? >, Set< Effect > >( sv, effectSet ) );
     }
-    Debug.outln(getName() + "'s effect (" + e + ") in being added to set (" + effectSet + ") for variable (" + sv + ").");
+    if ( Debug.isOn() ) Debug.outln(getName() + "'s effect (" + e + ") in being added to set (" + effectSet + ") for variable (" + sv + ").");
     effectSet.add( e );
   }
 
@@ -926,7 +931,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set< Effect > effectSet = null;
     for ( Pair< Parameter< ? >, Set< Effect > > pp : effects ) {
       if ( pp.first.getValue(true) != null && Utils.valuesEqual( pp.first.getValue(true), sv.getValue(true) ) ) {
-        Debug.outln( getName() + "'s addEffect() says " + pp.first.getValue(true) + " == " + sv.getValue(true) );
+        if ( Debug.isOn() ) Debug.outln( getName() + "'s addEffect() says " + pp.first.getValue(true) + " == " + sv.getValue(true) );
         effectSet = pp.second;
         break;
       }
@@ -988,6 +993,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       catch (ClassCastException e) {
         //ignore
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        //e.printStackTrace();
       }
       if ( affectable != null ) {
         if ( affectable.doesAffect( call.getMethod() ) ) {
@@ -1314,9 +1328,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    */
   protected boolean isElaborated( Vector< Event > events ) {
     boolean r = !Utils.isNullOrEmpty( events );
-    if ( this.getName().equals( "fork_ForkNode_CustomerCB" )) {
-      Debug.out( "" );
-    }
     if ( Debug.isOn() ) Debug.outln( "isElaborated(" + events + ") = " + r  + " for " + this.getName() );
     return r;
   }
@@ -1402,7 +1413,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Parameter< ? > tvp = p.first;
       TimeVarying< ? > tv = null;
       if ( tvp != null ) {
-        tv = Expression.evaluate( tvp, TimeVarying.class, false );
+        try {
+          tv = Expression.evaluate( tvp, TimeVarying.class, false );
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InvocationTargetException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        } catch ( InstantiationException e ) {
+          // TODO Auto-generated catch block
+          //e.printStackTrace();
+        }
         tvp.deconstruct();
       }
       Set< Effect > set = p.second;
@@ -1429,9 +1454,24 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           continue;
         }
         if ( effectFunction.getObject() != null ) {
-          TimeVarying<?> tv = Expression.evaluate( effectFunction.getObject(),
-                                                   TimeVarying.class,
-                                                   false, false );
+          TimeVarying< ? > tv = null;
+          try {
+            tv = Expression.evaluate( effectFunction.getObject(),
+                                                     TimeVarying.class,
+                                                     false, false );
+          } catch ( ClassCastException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( IllegalAccessException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InvocationTargetException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          } catch ( InstantiationException e1 ) {
+            // TODO Auto-generated catch block
+            //e1.printStackTrace();
+          }
           if ( tv != null ) {
             effectFunction.unApplyTo( tv );
           }
@@ -1446,7 +1486,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( TimeVarying< ? > tv : timeVaryingObjs  ) {
       if ( tv instanceof TimeVaryingMap ) {
         for ( Parameter<?> p : timepoints ) {
-          Debug.out( "i" );
+          if ( Debug.isOn() ) Debug.out( "i" );
           ( (TimeVaryingMap<?>)tv ).detach( p );
         }
 //        ( (TimeVaryingMap<?>)tv ).keySet().removeAll( timepoints );
@@ -1864,14 +1904,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    seen.remove(this);  // removing this so that call to super succeeds 
 
     // Alert affected dependencies.
-    super.setStaleAnyReferencesTo( changedParameter );
-
+    super.setStaleAnyReferencesTo( changedParameter, seen );
+    
     for ( Event e : getEvents( false, null ) ) {
       if ( e instanceof ParameterListener ) {
-        ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter );
+        ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
   }
@@ -1912,12 +1956,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     FunctionCall evalFunc =
         new FunctionCall( null, Expression.class, "evaluate",
                           new Object[] { systemVariable, TimeVarying.class,
-                                        true, true } );
+                                        true, true }, (Class<?>)null );
     Expression< V > getValExpr =
         new Expression< V >( new FunctionCall( null,
                                                TimeVarying.class, "getValue",
                                                new Object[] { timeSampled },
-                                               evalFunc ) );
+                                               evalFunc, (Class<?>)null ) );
     Functions.Equals< V > eqExpr = new Functions.Equals< V >( value, getValExpr );
     ConstraintExpression c = new ConstraintExpression( eqExpr );
     constraintExpressions.add( c );

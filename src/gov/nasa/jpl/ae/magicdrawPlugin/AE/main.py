@@ -3,9 +3,20 @@ from com.nomagic.magicdraw.actions import DiagramContextAMConfigurator
 from com.nomagic.magicdraw.ui.actions import DefaultDiagramAction
 from com.nomagic.magicdraw.uml.symbols import DiagramPresentationElement
 from com.nomagic.magicdraw.uml.symbols import PresentationElement
+from com.nomagic.magicdraw.actions import MDAction
 from com.nomagic.magicdraw.actions import *
 from com.nomagic.actions import *
 from com.nomagic.magicdraw.core import Application
+
+from com.nomagic.actions import AMConfigurator
+from com.nomagic.actions import ActionsCategory
+from com.nomagic.actions import ActionsManager
+from com.nomagic.magicdraw.actions import ActionsConfiguratorsManager
+from com.nomagic.magicdraw.actions import BrowserContextAMConfigurator
+from com.nomagic.magicdraw.actions import BrowserToolbarAMConfigurator
+#from com.nomagic.magicdraw.actions import DiagramContextAMConfigurator
+from com.nomagic.magicdraw.actions import DiagramContextToolbarAMConfigurator
+
 
 #from com.nomagic.magicdraw.uml import *
 from java.lang import String
@@ -20,7 +31,7 @@ workspacePath = gitDir
 projectPath = workspacePath + os.sep + 'bae'
 #workspacePath = home + os.sep + 'workspaceYoxos'
 #mdPath = 'C:\\MD'
-mdPath = home + os.sep + 'apps' + os.sep + 'MD'
+mdPath = home + os.sep + 'Applications' + os.sep + 'MD'
 aePluginDirName = 'AE'
 
 if home == '/Users/mjackson': 

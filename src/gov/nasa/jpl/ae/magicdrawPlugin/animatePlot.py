@@ -1,7 +1,7 @@
 import os
 
 # debugMode can be passed in at the command line to turn it on
-debugMode = True
+debugMode = False
 # A modes for a data sources below can be passed at the command line and
 # override these assignments 
 useSocket = True
@@ -755,7 +755,8 @@ def addAx(subplotId):
     global lineNames
     
     subplotIds.add(subplotId)
-    idx = [s for s in subplotIds].index(subplotId)
+    idx = [s for s in subplotIds].index(subplotId) + 1
+    debugPrint("ax = fig.add_subplot(" + str(len(subplotIds)) + ",1," + str(idx) + ")")
     ax = fig.add_subplot(len(subplotIds), 1, idx)
     if len(subplotIds) >= len(fig.axes):
         for i in range(len(fig.axes)):
