@@ -348,6 +348,9 @@ public class Expression< ResultType > extends HasIdImpl
                   //System.out.print("\nevaluate(" + this + ") = ");
                   //System.out.println("o1 = "+o);
                   return (ResultType)o;
+                } else if ( resultType.isInstance( p ) ) {
+                  evaluationSucceeded = true;
+                  return (ResultType)p;
                 } else {
                   if ( resultType == Integer.class && Double.class.isAssignableFrom(o.getClass()) ) {
                     Double d = (Double)o;

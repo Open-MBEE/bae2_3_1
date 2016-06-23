@@ -748,9 +748,18 @@ public class Functions {
     if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines 
         result = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
+    } else if (o1 instanceof TimeVarying) {
+      
+    } else if (o2 instanceof TimeVarying) { 
     } else {
-          Number n1 = Expression.evaluate( o1, Number.class, false );
-          Number n2 = Expression.evaluate( o2, Number.class, false );
+          Number n1 = null;
+          Number n2 = null;
+          try {
+            n1 = Expression.evaluate( o1, Number.class, false );
+            n2 = Expression.evaluate( o2, Number.class, false );
+          } catch ( Throwable e ) {
+            // ignore
+          }
           if ( n1 != null && n2 != null ) {
             if ( Infinity.isEqual( n1 ) ) {
               try {
@@ -772,39 +781,20 @@ public class Functions {
               } catch ( ClassCastException e ) {
                 e.printStackTrace();
               }
-            } else if ( n1 instanceof Double || n2 instanceof Double ) {              
-//        result = ((Double)n1.doubleValue()) + ((Double)n2.doubleValue());
+            } else if ( n1 instanceof Double || n2 instanceof Double ) {         
               result = (Double)gov.nasa.jpl.ae.util.Math.plus(n1.doubleValue(), n2.doubleValue());
-//        double rd1 = ClassUtils.castNumber( (Number)n1, Double.class ).doubleValue();
-//        double rd2 = ClassUtils.castNumber( (Number)n2, Double.class ).doubleValue();
-//        result = plus( rd1, rd2 );
             } else if ( n1 instanceof Float || n2 instanceof Float ) {
-//        result = ((Float)n1.floatValue()) + ((Float)n2.floatValue());
-        result = (Float)gov.nasa.jpl.ae.util.Math.plus(n1.floatValue(), n2.floatValue());
-//        float rd1 = ClassUtils.castNumber( (Number)n1, Float.class ).floatValue();
-//        float rd2 = ClassUtils.castNumber( (Number)n2, Float.class ).floatValue();
-//        result = plus( rd1, rd2 );
+              result = (Float)gov.nasa.jpl.ae.util.Math.plus(n1.floatValue(), n2.floatValue());
             } else if ( n1 instanceof Long || n2 instanceof Long ) {
-//      result = ((Long)n1.longValue()) + ((Long)n2.longValue());
               result = (Long)gov.nasa.jpl.ae.util.Math.plus(n1.longValue(), n2.longValue());
-//        long rd1 = ClassUtils.castNumber( (Number)n1, Long.class ).longValue();
-//        long rd2 = ClassUtils.castNumber( (Number)n2, Long.class ).longValue();
-//        result = plus( rd1, rd2 );
-//      } else if ( n1 instanceof Integer || n2 instanceof Integer ) {
-////        result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
-//        result = plus(n1.intValue(), n2.intValue());
-////        int rd1 = ClassUtils.castNumber( (Number)n1, Integer.class ).intValue();
-////        int rd2 = ClassUtils.castNumber( (Number)n2, Integer.class ).intValue();
-////        result = plus( rd1, rd2 );
             } else {
               result = (Integer)gov.nasa.jpl.ae.util.Math.plus( n1.intValue(), n2.intValue() );
-        //result = ((Integer)n1.intValue()) + ((Integer)n2.intValue());
             }
           } else {
             TimeVaryingMap<?> map = null;
             try {
               map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-            } catch ( ClassCastException e ) {
+            } catch ( Throwable e ) {
               //ignore
             }
             if ( map != null ) result = plus( map, o2 );
@@ -814,7 +804,7 @@ public class Functions {
                 if ( obj instanceof TimeVaryingMap ) {
                   map = (TimeVaryingMap< ? >)obj;
                 }
-              } catch ( ClassCastException e ) {
+              } catch ( Throwable e ) {
                 //ignore
               }
               if ( map != null ) result = plus( o1, map );
@@ -832,7 +822,7 @@ public class Functions {
         // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
-    } catch (ClassCastException e) {
+    } catch (Throwable e) {
       e.printStackTrace();
     }
     return null;
@@ -863,8 +853,14 @@ public class Functions {
         }
         if ( map != null ) result = min( o1, map );
         else {
-          Number n1 = Expression.evaluate( o1, Number.class, false );
-          Number n2 = Expression.evaluate( o2, Number.class, false );
+          Number n1 = null;
+          Number n2 = null;
+          try {
+            n1 = Expression.evaluate( o1, Number.class, false );
+            n2 = Expression.evaluate( o2, Number.class, false );
+          } catch ( Throwable e ) {
+            // ignore
+          }
           if ( n1 != null && n2 != null ) {
             if ( NegativeInfinity.isEqual( n1 ) || NegativeInfinity.isEqual( n2 ) ) {
               try {
@@ -943,8 +939,14 @@ public class Functions {
         }
         if ( map != null ) result = max( o1, map );
         else {
-          Number n1 = Expression.evaluate( o1, Number.class, false );
-          Number n2 = Expression.evaluate( o2, Number.class, false );
+          Number n1 = null;
+          Number n2 = null;
+          try {
+            n1 = Expression.evaluate( o1, Number.class, false );
+            n2 = Expression.evaluate( o2, Number.class, false );
+          } catch ( Throwable e ) {
+            // ignore
+          }
           if ( n1 != null && n2 != null ) {
             if ( Infinity.isEqual( n1 ) || Infinity.isEqual( n2 ) ) {
               try {
@@ -982,56 +984,6 @@ public class Functions {
     return null;
   }
 
-  
-  public static double plus( double rd1, double rd2 ) {
-    double result;
-    // check for overflow
-    if ( rd1 >= 0 && Double.MAX_VALUE - rd1 <= rd2 ) {
-      result = Double.MAX_VALUE;
-    } else if ( rd1 < 0 && -Double.MAX_VALUE - rd1 >= rd2 ) {
-      result = -Double.MAX_VALUE;
-    } else {
-      result = rd1 + rd2;
-    }
-    return result;
-  }
-  public static float plus( float rd1, float rd2 ) {
-    float result;
-    // check for overflow
-    if ( rd1 >= 0 && Float.MAX_VALUE - rd1 <= rd2 ) {
-      result = Float.MAX_VALUE;
-    } else if ( rd1 < 0 && -Float.MAX_VALUE - rd1 >= rd2 ) {
-      result = -Float.MAX_VALUE;
-    } else {
-      result = rd1 + rd2;
-    }
-    return result;
-  }
-  public static long plus( long rd1, long rd2 ) {
-    long result;
-    // check for overflow
-    if ( rd1 >= 0 && Long.MAX_VALUE - rd1 <= rd2 ) {
-      result = Long.MAX_VALUE;
-    } else if ( rd1 < 0 && Long.MIN_VALUE - rd1 >= rd2 ) {
-      result = Long.MIN_VALUE;
-    } else {
-      result = rd1 + rd2;
-    }
-    return result;
-  }
-  public static int plus( int rd1, int rd2 ) {
-    int result;
-    // check for overflow
-    if ( rd1 >= 0 && Integer.MAX_VALUE - rd1 <= rd2 ) {
-      result = Integer.MAX_VALUE;
-    } else if ( rd1 < 0 && Integer.MIN_VALUE - rd1 >= rd2 ) {
-      result = Integer.MIN_VALUE;
-    } else {
-      result = rd1 + rd2;
-    }
-    return result;
-  }
-
 
   //public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
   public static <V1, V2> V1 times( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -1052,8 +1004,14 @@ public class Functions {
       }
       if ( map != null ) result = times( o1, map );
       else {
-        Number n1 = Expression.evaluate( o1, Number.class, false );
-        Number n2 = Expression.evaluate( o2, Number.class, false );
+        Number n1 = null;
+        Number n2 = null;
+        try {
+          n1 = Expression.evaluate( o1, Number.class, false );
+          n2 = Expression.evaluate( o2, Number.class, false );
+        } catch ( Throwable e ) {
+          // ignore
+        }
         if ( n1 != null && n2 != null ) {
           if ( Infinity.isEqual( n1 ) ) {
             try {
@@ -1148,8 +1106,14 @@ public class Functions {
       }
       if ( map != null ) result = divide( o1, map );
       else {
-        Number n1 = Expression.evaluate( o1, Number.class, false );
-        Number n2 = Expression.evaluate( o2, Number.class, false );
+        Number n1 = null;
+        Number n2 = null;
+        try {
+          n1 = Expression.evaluate( o1, Number.class, false );
+          n2 = Expression.evaluate( o2, Number.class, false );
+        } catch ( Throwable e ) {
+          // ignore
+        }
         if ( n1 != null && n2 != null ) {
           if ( Infinity.isEqual( n1 ) ) {
             try {
@@ -2012,6 +1976,7 @@ public class Functions {
     return true;
   }
   
+  // TODO -- make this work for TimeVarying
   public static < T extends Comparable< ? super T > > Boolean
       lessThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
@@ -2039,6 +2004,7 @@ public class Functions {
     return b;
   }
 
+  // TODO -- make this work for TimeVarying
   public static < T extends Comparable< ? super T > > Boolean
       lessThanOrEqual( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
@@ -2066,6 +2032,7 @@ public class Functions {
     return b;
   }
 
+  // TODO -- make this work for TimeVarying
   public static < T extends Comparable< ? super T > > Boolean
       greaterThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
@@ -2433,7 +2400,7 @@ public class Functions {
 
 
 
-  
+  // TODO -- make this work for TimeVarying  
   public static < T extends Comparable< ? super T > > Boolean
       greaterThanOrEqual( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
@@ -2800,13 +2767,23 @@ public class Functions {
   public static < T > TimeVaryingMap< T > times( TimeVaryingMap< T > tv,
                                                  Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
-    Number n = Expression.evaluate( o, Number.class, false );
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
     if ( n != null ) return tv.times( n );
-    TimeVaryingMap< ? extends Number > tvm =
-        Expression.evaluate( o, TimeVaryingMap.class, false );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+        tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (  Throwable e ) {
+      // ignore
+    }
     if ( tvm != null ) return times( tv, tvm );
     return null;
   }
+  
   public static < T, TT extends Number > TimeVaryingMap< T > times( TimeVaryingMap< T > tv1,
                                                                     TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return TimeVaryingMap.times( tv1, tv2 );
@@ -2815,10 +2792,19 @@ public class Functions {
   public static < T > TimeVaryingMap< T > divide( TimeVaryingMap< T > tv,
                                                   Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
-    Number n = Expression.evaluate( o, Number.class, false );
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
     if ( n != null ) return tv.divide( n );
-    TimeVaryingMap< ? extends Number > tvm =
-        Expression.evaluate( o, TimeVaryingMap.class, false );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+        tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
     if ( tvm != null ) return divide( tv, tvm );
     return null;
   }
@@ -2859,10 +2845,15 @@ public class Functions {
   public static < T > TimeVaryingMap< T > minus( TimeVaryingMap< T > tv,
                                                  Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
-    Number n = Expression.evaluate( o, Number.class, false );
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch( Throwable t ) {}
     if ( n != null ) return tv.minus( n );
-    TimeVaryingMap< ? extends Number > tvm =
-        Expression.evaluate( o, TimeVaryingMap.class, false );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+        tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch ( Throwable t ) {}
     if ( tvm != null ) return minus( tv, tvm );
     return null;
   }   
