@@ -748,9 +748,6 @@ public class Functions {
     if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines 
         result = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
-    } else if (o1 instanceof TimeVarying) {
-      
-    } else if (o2 instanceof TimeVarying) { 
     } else {
           Number n1 = null;
           Number n2 = null;

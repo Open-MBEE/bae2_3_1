@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -23,6 +24,26 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   
   protected boolean dataProjected = false;
 
+  public StringParameter category = new StringParameter( "category", "", this );
+  
+  public Set<Parameter<?>> parameters = new HashSet<Parameter<?>>() {
+    private static final long serialVersionUID = 3251438984877026858L;
+    {
+    add(category);
+    }
+  };
+  
+  protected void init(){
+//    category.owner = this;
+//    getParameters().add(category);
+  }
+  
+  @Override
+  public Set< Parameter< ? > > getParameters() {
+    // TODO Auto-generated method stub
+    return super.getParameters();
+  }
+
   /**
    * @param name
    * @param initialValueFunction
@@ -34,6 +55,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                                   Object o, int samplePeriod,
                                   int horizonDuration ) {
     super( name, initialValueFunction, o, samplePeriod, horizonDuration );
+    init();
   }
 
   /**
@@ -49,6 +71,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                                   int horizonDuration, boolean projected ) {
     this( name, initialValueFunction, o, samplePeriod, horizonDuration );
     dataProjected = projected;
+    init();
   }
 
 //  /**
@@ -67,6 +90,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    */
   public TimeVaryingPlottableMap( String name, String fileName, V defaultValue, Class<V> cls ) {
     super( name, fileName, defaultValue, cls );
+    init();
   }
 
   /**
@@ -78,6 +102,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   public TimeVaryingPlottableMap( String name, String fileName, Class<V> cls, boolean projected ) {
     super( name, fileName, cls );
     dataProjected = projected;
+    init();
   }
 
   /**
@@ -89,6 +114,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   public TimeVaryingPlottableMap( String name, String fileName, V defaultValue, boolean projected ) {
     super( name, fileName, defaultValue );
     dataProjected = projected;
+    init();
   }
 
   /**
@@ -103,6 +129,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                                   boolean projected ) {
     super( name, fileName, defaultValue, cls );
     dataProjected = projected;
+    init();
   }
   
   /**
@@ -110,6 +137,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    */
   public TimeVaryingPlottableMap( String name ) {
     super( name );
+    init();
   }
 
   /**
@@ -117,6 +145,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    */
   public TimeVaryingPlottableMap( String name, String fileName ) {
     super( name, fileName );
+    init();
   }
 
   /**
@@ -125,6 +154,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   public TimeVaryingPlottableMap( String name, boolean projected ) {
     this( name );
     dataProjected = projected;
+    init();
   }
 
   /**
@@ -133,24 +163,29 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   public TimeVaryingPlottableMap( String name, String fileName, boolean projected ) {
     this( name, fileName );
     dataProjected = projected;
+    init();
   }
 
   public TimeVaryingPlottableMap( String name, TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
     super( name, timeVaryingPlottableMap );
     dataProjected = timeVaryingPlottableMap.dataProjected;
+    init();
   }
 
   public TimeVaryingPlottableMap( TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
     this( timeVaryingPlottableMap.getName(), timeVaryingPlottableMap );
+    init();
   }
 
   public TimeVaryingPlottableMap<V> clone() {
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this);
+    init();
     return tvm;
   }
   
   @Override
   public boolean okToSample() {
+    init();
     return true;
   }
 
