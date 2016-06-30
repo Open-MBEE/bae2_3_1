@@ -21,7 +21,6 @@
         </excludes>
       </resource>
     </resources>
-    <pluginManagement>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -30,9 +29,9 @@
           <source>1.7</source>
           <target>1.7</target>
           <excludes>
-<!--               <exclude>**/magicdrawPlugin/**</exclude>
+               <exclude>**/magicdrawPlugin/**</exclude>
               <exclude>**/tests/**</exclude>
- -->          </excludes>
+          </excludes>
         </configuration>
       </plugin>
 	<plugin>
@@ -59,14 +58,13 @@
                         <source>src</source>
                         <source>thirdParty/douglascrockford-JSON-java-d15e776</source>
                         <source>thirdParty/javaparser-1.0.8-src</source>
-                        <source>thirdParty</source>
+                        <!-- <source>thirdParty</source> -->
                     </sources>
                 </configuration>
             </execution>
         </executions>
       </plugin>
     </plugins>
-    </pluginManagement>
   </build>
   <dependencies>
     <dependency>
