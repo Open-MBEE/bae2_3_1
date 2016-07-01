@@ -737,8 +737,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( TimeVarying< ? > tv : tvs ) {
       if ( tv instanceof TimeVaryingMap ) {
         String category = "";
-        if ( tv.getOwner() instanceof ParameterListener ) {
-          category = ( (ParameterListener)tv.getOwner() ).getName();
+        if ( tv instanceof TimeVaryingPlottableMap ){
+          category = ((TimeVaryingPlottableMap<?>)tv).category.getValue();
+        }
+        if ( Utils.isNullOrEmpty( category ) && tv.getOwner() instanceof ParameterListener ) {
+           category = ( (ParameterListener)tv.getOwner() ).getName();
         }
         sim.add( (TimeVaryingMap< ? >)tv, category );
       }
