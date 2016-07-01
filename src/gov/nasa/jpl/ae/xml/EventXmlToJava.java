@@ -1742,9 +1742,9 @@ public class EventXmlToJava {
 
     String addDepStmt = "addDependency( " + sink + ", " + source + " );";
     if ( scope != null ) {
-      addDepStmt = "( ((Object)" + scope
-                   + ") instanceof ParameterListenerImpl) ? ((ParameterListenerImpl)((Object)"
-                   + scope + "))." + addDepStmt + " : " + addDepStmt;
+      addDepStmt = "if ( ((Object)" + scope
+                   + ") instanceof ParameterListenerImpl) {\n((ParameterListenerImpl)((Object)"
+                   + scope + "))." + addDepStmt + "\n} else {\n" + addDepStmt + "\n}";
     }
 //    String constructorArgs = sink + ", " + source;
 //    Statement s =
