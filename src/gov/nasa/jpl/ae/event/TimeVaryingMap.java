@@ -2027,6 +2027,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return tvm;
   }
   
+  public TimeVaryingMap< V > integrate() {
+    return integrate(new Timepoint(0), new Timepoint(Timepoint.horizonDuration));
+    
+  }
+    
+  
   /**
    * @param n
    * @param fromKey
