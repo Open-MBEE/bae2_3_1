@@ -668,6 +668,7 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+    if ( expression == null ) return false;
     if (expression instanceof Groundable) {
       return ((Groundable)expression).isGrounded(deep, seen);
     }

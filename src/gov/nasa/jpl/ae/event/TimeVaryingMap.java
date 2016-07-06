@@ -2005,15 +2005,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         timeDiff = e.getKey().getValueNoPropagate() - ePrev.getKey().getValueNoPropagate();
       }
       try {
-        V endValue = ePrev.getValue();
-        if ( this.interpolation.isLinear() ) {
-          endValue = e.getValue();
-        }
-        integralValue =
-            tryCastValue( ( (Double)lastIntegralValue )
-                          + ( ( ( (Double)endValue ) + (Double)ePrev.getValue() ) / 2.0 )
-                          * timeDiff );
-        succeededSomewhere = true;
+          if ( ePrev == null ) {
+            integralValue = tryCastValue( (Double)0.0 );
+          } else {
+          V endValue = ePrev.getValue();
+          if ( this.interpolation.isLinear() ) {
+            endValue = e.getValue();
+          }
+          integralValue =
+              tryCastValue( ( (Double)lastIntegralValue )
+                            + ( ( ( (Double)endValue ) + (Double)ePrev.getValue() ) / 2.0 )
+                            * timeDiff );
+          succeededSomewhere = true;
+          }
       } catch ( ClassCastException exc ) {
         exc.printStackTrace();
       }

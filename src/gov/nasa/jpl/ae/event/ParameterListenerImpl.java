@@ -227,7 +227,8 @@ public class ParameterListenerImpl extends HasIdImpl
   public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Expression< T2 > e, boolean fire ) {
   //public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e, boolean fire ) {
     Debug.errorOnNull( "try to add a dependency on null", p );
-    
+    if ( p == null ) return null;
+ 
     // Check if p is in enclosing class and call the enclosing class's addDependency() 
     if ( p.getOwner() != null && p.getOwner() != this ) {
       if ( p.getOwner() instanceof ParameterListenerImpl ) {
@@ -1019,6 +1020,7 @@ public class ParameterListenerImpl extends HasIdImpl
   @Override
   public boolean isStale() {
     for ( Parameter< ? > p : getParameters() ) {
+      if ( p == null ) continue;
       if ( p.isStale() ) return true;
     }
     return false;
