@@ -236,7 +236,7 @@ public class ParameterListenerImpl extends HasIdImpl
         externalDependencies.add( d );
         return d;
       }
-      Debug.error(getName() + " adding a dependency on a parameter it doesn't own.");
+      Debug.error(true, false, getName() + " adding a dependency on a parameter it doesn't own.");
     }
     removeDependenciesForParameter( p );
     Dependency< ? > d = new Dependency< T1 >( p, e );
