@@ -177,11 +177,24 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     init();
   }
 
+  public TimeVaryingPlottableMap( String string, Class< V > type ) {
+    super( string, type );
+    init();
+  }
+
   public TimeVaryingPlottableMap<V> clone() {
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this);
     init();
     return tvm;
   }
+
+  public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
+                                       Parameter< Integer > toKey) {
+
+    TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap< V >( this.name + "Integral", this.type );
+    return integrate( fromKey, toKey, tvm );
+  }
+
   
   @Override
   public boolean okToSample() {

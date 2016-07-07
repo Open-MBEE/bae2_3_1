@@ -1979,7 +1979,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
                                        Parameter< Integer > toKey) {
-    TimeVaryingMap< V > tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
+    return integrate( fromKey, toKey, null );
+  }
+  public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
+                                       Parameter< Integer > toKey, TimeVaryingMap< V > tvm ) {
+    if ( tvm == null ) tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
+    //TimeVaryingMap< V > tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
     if ( same ) {
