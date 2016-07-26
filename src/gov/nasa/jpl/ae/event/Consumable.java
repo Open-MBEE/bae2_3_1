@@ -55,6 +55,12 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     this( name, defaultValue, projected, minCap, maxCap );
     this.interpolation = interpolation;
   }
+  
+  public Consumable( String name, Double initialValue, TimeVaryingMap<Double> deltaMap, Double minCap, Double maxCap ) {
+    this( name, initialValue, false, minCap, maxCap );
+    initializeFromDeltaMap( deltaMap );
+  }
+  
   public Consumable( String name, Double defaultValue, boolean projected,
                      Double minCap, Double maxCap ) {
     this( name, defaultValue, projected );
@@ -150,30 +156,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     }
   }
   
-  /**
-   * @return a generated map of the changes in values from the previous point.
-   *         <p>
-   *         For example, the deltaMap of { 0=0.0, 3=4.4, 7=10.0 } is { 0=0.0,
-   *         3=4.4, 7=5.6 }. The map is fully computed on each call. For any
-   *         Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
-   *         change the entries in c.
-   *         
-   *         TODO -- REVIEW -- This is similar to differentiation.
-   */
- public TimeVaryingMap< Double > getDeltaMap() {
-    TimeVaryingPlottableMap< Double > deltaMap =
-      new TimeVaryingPlottableMap< Double >( "delta_" + name );
-    Double lastValue = 0.0;
-    for ( Entry< Parameter<Integer>, Double > e : entrySet() ) {
-      Double thisValue = 0.0; // null value is interpreted as 0.0
-      if ( e.getValue() != null ) {
-        thisValue = e.getValue();
-      }
-      deltaMap.put( e.getKey(), thisValue - lastValue );
-      lastValue = thisValue;
-    }
-    return deltaMap;
-  }
+ 
   
   public Double getValueBefore( Parameter<Integer> t ) {
     Parameter<Integer> justBeforeTime = getTimepointBefore( t );

@@ -4544,5 +4544,29 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return null;
   }
 
+  /**
+   * @return a generated map of the changes in values from the previous point.
+   *         <p>
+   *         For example, the deltaMap of { 0=0.0, 3=4.4, 7=10.0 } is { 0=0.0,
+   *         3=4.4, 7=5.6 }. The map is fully computed on each call. For any
+   *         Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
+   *         change the entries in c.
+   *         
+   *         TODO -- REVIEW -- This is similar to differentiation.
+   */
+ public TimeVaryingMap< Double > getDeltaMap() {
+    TimeVaryingPlottableMap< Double > deltaMap =
+      new TimeVaryingPlottableMap< Double >( "delta_" + name );
+    Double lastValue = 0.0;
+    for ( Entry< Parameter<Integer>, V > e : entrySet() ) {
+       Double thisValue = 0.0; // null value is interpreted as 0.0
+      if ( e.getValue() instanceof Number ) {
+        thisValue = ( (Number)e.getValue() ).doubleValue();
+      }
+      deltaMap.put( e.getKey(), thisValue - lastValue );
+      lastValue = thisValue;
+    }
+    return deltaMap;
+  }
 
 }
