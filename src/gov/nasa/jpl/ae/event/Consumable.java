@@ -58,7 +58,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   
   public Consumable( String name, Double initialValue, TimeVaryingMap<Double> deltaMap, Double minCap, Double maxCap ) {
     this( name, initialValue, false, minCap, maxCap );
-    initializeFromDeltaMap( deltaMap );
+    addDeltaMap( deltaMap );
   }
   
   public Consumable( String name, Double defaultValue, boolean projected,
@@ -147,16 +147,14 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   public void initializeFromDeltaMap( TimeVaryingMap< Double > deltaMap ) {
     clear();
-//    double summedValue = 0.0;
-    for ( java.util.Map.Entry< Parameter<Integer>, Double > e : deltaMap.entrySet() ) {
-//      if ( e.getValue() != null && e.getValue() != 0 ) {
-//        summedValue += e.getValue();
-//      }
-      add( e.getKey(), e.getValue() ); //summedValue );
-    }
+    addDeltaMap( deltaMap );
   }
   
- 
+  public void addDeltaMap( TimeVaryingMap< Double > deltaMap ) {
+    for ( java.util.Map.Entry< Parameter<Integer>, Double > e : deltaMap.entrySet() ) {
+      add( e.getKey(), e.getValue() );
+    }
+  } 
   
   public Double getValueBefore( Parameter<Integer> t ) {
     Parameter<Integer> justBeforeTime = getTimepointBefore( t );
