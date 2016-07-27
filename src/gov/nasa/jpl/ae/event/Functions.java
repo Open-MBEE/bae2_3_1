@@ -462,7 +462,13 @@ public class Functions {
                                     Expression< T > thenExpr,
                                     Expression< T > elseExpr ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( conditionExpr == null && elseExpr == null ) return null;
-    Boolean b = (conditionExpr == null ? null : conditionExpr.evaluate( false ) );
+    Object o = Expression.evaluate( conditionExpr, Boolean.class, true );
+    if (o == null || (!(o instanceof Boolean) && o.getClass() != boolean.class)) {
+      Debug.error( false, "Could not evaluate condition of if-then-else as true/false; got " + o );
+      return null;
+    }
+    Boolean b = (Boolean)o;
+    //Boolean b = (conditionExpr == null ? null : conditionExpr.evaluate( false ) );
     T thenT = (thenExpr == null ? null : thenExpr.evaluate( false ) );
     T elseT = (elseExpr == null ? null : elseExpr.evaluate( false ) );
     if ( b == null || !b.booleanValue() ) return elseT;
