@@ -735,6 +735,11 @@ public class ParameterListenerImpl extends HasIdImpl
   @Override
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
+    return getTimeVaryingObjects( deep, true, seen );
+  }
+  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+                                                        boolean includeDependencies,
+                                                        Set<HasTimeVaryingObjects> seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -743,12 +748,14 @@ public class ParameterListenerImpl extends HasIdImpl
     s.addAll( timeVaryingObjects );
     s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( false,
                                                                                  null ),
-                                                                  deep, seen ) );
+                                                                             deep, seen ) );
     if ( deep ) {
-      s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
-                                                                    false, seen ) );
-      s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
-                                                                    false, seen ) );
+      if (includeDependencies) {
+        s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
+                                                                                 false, seen ) );
+        s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
+                                                                                 false, seen ) );
+      }
     }
     if ( settingTimeVaryingMapOwners ) {
       for ( TimeVarying< ? > tv : s ) {
