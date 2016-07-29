@@ -731,18 +731,20 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     EventSimulation sim = new EventSimulation( events, 1.0e12 );
     sim.add( this );
     settingTimeVaryingMapOwners = true;
-    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, null );
+    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, false, null );
     settingTimeVaryingMapOwners = false;
     System.out.println("Simulating " + tvs.size() + " state variables.");
     for ( TimeVarying< ? > tv : tvs ) {
       if ( tv instanceof TimeVaryingMap ) {
         String category = "";
         if ( tv instanceof TimeVaryingPlottableMap ){
-          category = ((TimeVaryingPlottableMap<?>)tv).category.getValue();
+          category = ((TimeVaryingPlottableMap<?>)tv).getName();
+//          category = ((TimeVaryingPlottableMap<?>)tv).category.getValue();
         }
         if ( Utils.isNullOrEmpty( category ) && tv.getOwner() instanceof ParameterListener ) {
            category = ( (ParameterListener)tv.getOwner() ).getName();
         }
+//        Debug.turnOn();
         sim.add( (TimeVaryingMap< ? >)tv, category );
       }
     }
@@ -1024,11 +1026,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
+    return getTimeVaryingObjects( deep, true, seen );
+  }
+  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+                                                        boolean includeDependencies,
+                                                          Set<HasTimeVaryingObjects> seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     if ( seen != null ) seen.remove( this );
-    Set< TimeVarying< ? > > set = super.getTimeVaryingObjects( deep, seen );
+    Set< TimeVarying< ? > > set = super.getTimeVaryingObjects( deep, includeDependencies, seen );
     //Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen ) );
     if ( deep ) {

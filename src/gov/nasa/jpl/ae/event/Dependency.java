@@ -180,7 +180,7 @@ public class Dependency< T > extends HasIdImpl
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    boolean sat;
+    boolean sat = false;
     // REVIEW -- The criteria for being satisfied should be reviewed since some
     // of these are short-circuited with false.
     if ( constraint != null ) {
@@ -207,7 +207,16 @@ public class Dependency< T > extends HasIdImpl
       sat = false;
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " );// + this );
     } else {
-      sat = Expression.valuesEqual( parameter, expression, getType() );
+      // Check to see if values are equal. In this case of a constructor, just
+      // make sure that the value is an instance of the constructed type. Actually,
+      // since the constructor could be constructing another ConstructorCall, just
+      // make sure the value is non-null.
+      if ( expression != null && expression.form == Form.Constructor ) {
+        sat = parameter.getValueNoPropagate() != null;
+      } else {
+        // Check for equality.
+        sat = Expression.valuesEqual( parameter, expression, getType() );
+      }
       if ( !sat ) {
         parameter.setStale( true );
         if ( Debug.isOn() && parameter != null && expression != null) {
