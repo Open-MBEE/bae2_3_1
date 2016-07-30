@@ -951,7 +951,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( e.getKey().equals( t )
            || ( valuesEqualForKeysOk && Expression.valuesEqual( e.getKey(), t,
                                                                 Integer.class ) ) ) {
-        return m.lastEntry().getValue();
+        return e.getValue();
       }
     }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -975,42 +975,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     } else if ( interpolation.type == Interpolation.NONE ) {
       return null;
     } else if ( interpolation.type == Interpolation.LINEAR ) {
-      Parameter<Integer> t1 = null;
-      if ( !m.isEmpty() ) {
-        t1 = m.lastEntry().getKey();
-        v1 = m.lastEntry().getValue();
-      }
-      if ( Debug.isOn() ) {
-        Assert.assertEquals( t1, getTimepointBefore( t ) );
-        Assert.assertEquals( v1, get( t1 ) );
-        Debug.outln("getValue() change looks good.");
-      }
-      Parameter<Integer> t2 = getTimepointAfter( t );
-      //v1 = get( t1 );
-      if ( t1.valueEquals( t2 ) ) return v1;
-      v2 = get( t2 );
-      if ( v1 == null ) return null;
-      if ( v2 == null ) return v1;
-      // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-      try {
-        v1 = Functions.plus( v1,
-                             Functions.divide( Functions.times( Functions.minus( v2, v1 ),
-                                                                Functions.minus( t, t1 ) ),
-                                               Functions.minus( t2, t1 ) ) );
-      } catch ( ClassCastException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      }
-      return v1;
+      if ( m.isEmpty() ) return null;
+      V v = interpolatedValue( t, m.lastEntry() );
+      return v;
     }
     Debug.error( true,
                  "TimeVaryingMap.getValue(): invalid interpolation type! "
@@ -1024,13 +991,32 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   @Override
   public V getValue( Integer t ) {
     if ( t == null ) return null;
+    if ( isEmpty() ) return null;
     Parameter<Integer> tp = makeTempTimepoint( t, true );
+    // Find the entry for this timepoint or the preceding timepoint. 
     Entry< Parameter<Integer>, V > e = this.floorEntry( tp );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
-    if ( e != null ) return e.getValue();
-//  if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
-//    return firstEntry().getValue();
-//  }
+    if ( e != null ) {
+      Parameter< Integer > k = e.getKey();
+      if ( k != null && k.getValue( false ) != null
+           && IntegerDomain.defaultDomain.equals( t, k.getValue( false ) ) ) {
+        return e.getValue();
+      }
+      if ( interpolation.type == Interpolation.NONE ) {
+        return null;
+      }
+      if ( interpolation.type == Interpolation.STEP ) {
+        return e.getValue();
+      }
+      if ( interpolation.isLinear() ) {
+        V v = interpolatedValue( tp, e );
+        return v;
+      } else {
+        Debug.error( true, "Interpolation " + interpolation + " not expected!");
+      }
+    }
+    // If we couldn't find a value, then there are no values defined for the point.
+    // See if the first entry could work in case of multiple entries at the same time.
     if ( !isEmpty() ) {
       Entry< Parameter<Integer>, V > f = firstEntry();
       Parameter<Integer> k = f.getKey();
@@ -1039,6 +1025,42 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
     }
     return null;
+  }
+  
+  public V interpolatedValue(Parameter<Integer> t, Entry< Parameter<Integer>, V > entryBefore) {
+    if ( t == null ) return null;
+    if ( entryBefore == null ) return null;
+    Parameter<Integer> t1 = null;
+    V v1 = null, v2 = null;
+    t1 = entryBefore.getKey();
+    v1 = entryBefore.getValue();
+    if ( Debug.isOn() ) {
+      Assert.assertEquals( t1, getTimepointBefore( t ) );
+      Assert.assertEquals( v1, get( t1 ) );
+      Debug.outln("getValue() change looks good.");
+    }
+    Parameter<Integer> t2 = getTimepointAfter( t );
+    //v1 = get( t1 );
+    if ( t1.valueEquals( t2 ) ) return v1;
+    v2 = get( t2 );
+    if ( v1 == null ) return null;
+    if ( v2 == null ) return v1;
+    // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
+    try {
+      v1 = Functions.plus( v1,
+                           Functions.divide( Functions.times( Functions.minus( v2, v1 ),
+                                                              Functions.minus( t.getValue(), t1.getValue() ) ),
+                                             Functions.minus( t2.getValue(), t1.getValue() ) ) );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return v1;
   }
 
   /**
@@ -1984,6 +2006,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
                                        Parameter< Integer > toKey, TimeVaryingMap< V > tvm ) {
     if ( tvm == null ) tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
+    if ( this.interpolation.type == Interpolation.STEP ) {
+      tvm.interpolation.type = Interpolation.LINEAR;
+    } else {
+      Debug.error( true, "No support yet for quadratic interpolation as integral of linear function!" );
+    }
     //TimeVaryingMap< V > tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
