@@ -1314,7 +1314,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         String argValName = "" + model.getIdentifier( (C)arg );
         
         // TODO can we assume this will always be size one?
-        Object argValueNode = Utils.isNullOrEmpty(argValueNodes) ? arg : argValueNodes.iterator().next();
+        Object argValueNode = !Utils.isNullOrEmpty(argValueNodes) && argValueNodes.size() == 1 ? argValueNodes.iterator().next() : argValueNodes;
         if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
 
         String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
