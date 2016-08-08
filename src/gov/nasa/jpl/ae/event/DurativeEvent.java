@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
@@ -15,6 +16,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Timer;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -408,7 +411,25 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public DurativeEvent(String name, ParameterListenerImpl listener) {
     super(name, listener);
   }
-
+  
+  public DurativeEvent( String name, Date start, Long duration ) {
+    this( name );
+    if ( start != null ) {
+      this.startTime.setValue( start );
+    }
+    if ( duration == null ) duration = new Long(1);
+    this.duration.setValue( duration.intValue(), true );
+  }
+  
+  public DurativeEvent( String name, String activitiesFileName ) {
+    this(name);
+    try {
+      fromCsvFile( activitiesFileName );
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+  
   public DurativeEvent( DurativeEvent durativeEvent ) {
     this( null, durativeEvent );
   }
@@ -457,6 +478,169 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // }
   }
 
+
+  /**
+   * Read a CSV file and create an event for each row that elaborates from this
+   * event. Assume that a row has the following fields:
+   * <ul>
+   * <li>start time as a date (in supported formats for {@link TimeUtils.dateFromTimestamp()}) or integer offset
+   * <li>duration as an integer offset (optional)
+   * <li>end time as a date or integer offset (optional and only if no duration)
+   * <li>name as a string (optional)
+   * </ul>
+   * Any lines that do not have at least a start time are ignored.
+   * <p>
+   * The first line is checked to see if it is a column header to specify which
+   * field is which. The following regular expression patterns (ignoring letter
+   * case) are matched to field names to disambiguate the fields:
+   * <ol>
+   * <li>name --&gt; name
+   * <li>duration --&gt; duration
+   * <li>end --&gt; end time
+   * <li>start|time --&gt; start time
+   * <li>activity  --&gt;  name
+   * <li>'[^a-zA-Z]id[^a-zA-Z]' --&gt;  name
+   * </ol>
+   * 
+   * @param fileName
+   * @throws IOException 
+   */
+  public void fromCsvFile( String fileName ) throws IOException {
+    if ( fileName == null ) return;
+    ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( fileName );
+    
+    if ( Utils.isNullOrEmpty( lines ) ) {
+      // TODO -- error?
+      return;
+    }
+
+    // A map to remember which field is which
+    HashMap<String, Integer> fieldMap = new HashMap<String, Integer>();
+    
+    // TODO -- Get the header if there is one to help determine fields by name.
+       
+    // process lines
+    boolean fieldMapInitialized = false;
+    //HashMap<Object, Integer> fieldMapI = new HashMap<Object, Integer>();
+    for ( ArrayList< String > fields : lines ) {
+      Date start = null;
+      Date end = null;
+      String name = null;
+      Double duration = null;
+      String type = null;
+      
+      fieldMapInitialized = fieldMapInitialized || !fieldMap.isEmpty();
+      
+      //for ( String field : fields ) {
+      for ( int i = 0; i < fields.size(); ++i ) {
+        String field = fields.get( i );
+        // Try to match start or end time
+        Date d = TimeUtils.dateFromTimestamp( field );
+        if ( d != null ) {
+          if ( ( fieldMapInitialized && fieldMap.get( "start" ) == i ) || 
+               ( !fieldMapInitialized && start == null ) ) {
+            start = d;
+            if ( !fieldMapInitialized ) {
+              fieldMap.put("start", i);
+            }
+          } else if ( ( fieldMapInitialized && fieldMap.get( "end" ) == i ) || 
+                      ( !fieldMapInitialized && end == null ) ) {
+            end = d;
+            if ( !fieldMapInitialized ) {
+              fieldMap.put("end", i);
+            }
+          }
+          continue;
+        }
+        
+        // Try to match duration
+        if ( ( fieldMapInitialized && fieldMap.get( "duration" ) == i ) || 
+             ( !fieldMapInitialized && duration == null ) ) {
+          duration = TimeUtils.toDurationInSeconds( field );
+          if ( !fieldMapInitialized ) {
+            fieldMap.put("duration", i);
+          }
+          if ( duration != null ) continue;
+        }
+        
+        // Try to match name
+        if ( ( fieldMapInitialized && fieldMap.get( "name" ) == i ) || 
+            ( !fieldMapInitialized &&
+              ( name == null || ( !name.matches( ".*[A-Za-z].*" ) &&
+                                  field.matches( ".*[A-Za-z].*" ) ) ) ) ) {
+          if ( !fieldMapInitialized ) {
+            fieldMap.put("name", i);
+          }
+          name = field;
+          if ( name != null ) continue;
+        }
+        
+        // Try to match type
+        if ( ( fieldMapInitialized && fieldMap.get( "type" ) == i ) || 
+            ( !fieldMapInitialized &&
+              ( type == null || ( !type.matches( ".*[A-Za-z].*" ) &&
+                                  field.matches( ".*[A-Za-z].*" ) ) ) &&
+              ClassUtils.getClassForName( field, (String)null, (String)null, false ) != null ) ) {
+          if ( !fieldMapInitialized ) {
+            fieldMap.put("type", i);
+          }
+          type = field;
+        }
+        
+        // Make sure start is before end.
+        if ( !fieldMapInitialized && end != null && end.before( start ) ) {
+          // swap start and end values
+          Date tmp = start;
+          start = end;
+          end = tmp;
+          // swap indices in field map
+          int tmpi = fieldMap.get("start");
+          fieldMap.put( "start", fieldMap.get( "end" ) );
+          fieldMap.put( "end", tmpi );
+        }
+
+        // Add elaboration
+        if ( start != null && (end == null || end.after( Timepoint.epoch ) ) &&
+             start.before( Timepoint.getHorizon() )) {
+          addElaborationRule( start, end, duration, type );
+        }
+        
+      } // end for field in fields
+    } // for line in lines
+    
+    if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n"
+                                     + this.toString() );
+  }
+  
+  public boolean addElaborationRule(Date start, Date end, Double duration, String typeName ) {
+    if ( start == null ) return false;
+    // Compute duration if not given.
+    if ( duration == null && end != null ) {
+      duration = (end.getTime() - start.getTime()) / 1000.0;
+    }
+    Expression<String> nameExpr = new Expression<String>(name);
+    Expression<Integer> startExpr = 
+        new Expression<Integer>( new Timepoint( start ), Integer.class );
+    //Duration dd = new Duration( name, durVal, durUnits, o );
+    Expression<Integer> durationExpr =
+        new Expression<Integer>( (new Double( duration == null ? 1 :
+                                   duration / Timepoint.conversionFactor( Units.seconds ) ) ).intValue(),
+                                 Integer.class );
+    Class<?> cls = 
+        typeName == null ? DurativeEvent.class :
+        ClassUtils.getClassForName( typeName, (String)null, (String)null, false );
+    Class<? extends Event> eventClass = (Class<? extends Event>)cls;
+
+    if ( !Event.class.isAssignableFrom( eventClass ) ) {
+      eventClass = DurativeEvent.class;
+    }
+    this.addElaborationRule( new Expression< Boolean >(true), null,
+                             DurativeEvent.class, "",
+                             new Expression<?>[] { nameExpr, startExpr,
+                                                   durationExpr } );
+    return true;
+  }
+  
   public static boolean checkIfEffectVariableMatches( Parameter<?> variable,
                                                       Effect e ) {
     if ( e instanceof EffectFunction ) {

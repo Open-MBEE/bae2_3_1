@@ -525,7 +525,11 @@ public class ParameterListenerImpl extends HasIdImpl
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
           System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
-          System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+          if ( Debug.isOn() ) {
+              System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+          } else {
+              System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints." );
+          }
         }
       } else {
         mostResolvedConstraints = numResolvedConstraints;

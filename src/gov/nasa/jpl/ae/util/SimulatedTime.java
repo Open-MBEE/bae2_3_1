@@ -48,7 +48,9 @@ public class SimulatedTime {
       systemMillis = tmp;
       actualMillisPassed += actualDelta;
       simDelta  = actualDelta / simToActualConversionFactor;
+//      if (Debug.isOn()) Debug.out("simDelta = actualDelta("+actualDelta+") / simToActualConversionFactor("+simToActualConversionFactor+")=" + simDelta);
       simTimePassed += simDelta;
+//      if (Debug.isOn()) Debug.out("simTimePassed = "+simTimePassed);
 ////  if ( Debug.isOn() ) Debug.outln("timePassed = " + timePassed );
 ////  if ( Debug.isOn() ) Debug.outln("nextEventTime = " + nextEventTime );
 ////  if ( Debug.isOn() ) Debug.outln("nextEventTimeScaled = " + nextEventTimeScaled );

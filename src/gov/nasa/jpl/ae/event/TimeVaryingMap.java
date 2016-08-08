@@ -13,11 +13,12 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -3932,18 +3934,50 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return value;
   }
 
-  public void fromStringMap( Map<String,String> map, Class<V> cls ) {
+  public void fromStringMapWithJulianDates( Map<String,String> map, Class<V> cls ) {
     clear();
     for ( Entry<String, String> ss : map.entrySet() ) {
       Integer key = null;
       try {
-        key = Integer.parseInt( ss.getKey() );
-      } catch (Exception e) {
-        key = (int)Double.parseDouble( ss.getKey() );
+          Double dKey = Double.parseDouble( ss.getKey() );
+          key = Timepoint.julianToInteger( dKey );
+      } catch (NumberFormatException e) {
       }
-      Timepoint tp = new Timepoint( null, key, this );
-      V value = valueFromString( ss.getValue() );
-      setValue( tp, value );
+      if ( key != null && key >= 0 ) {
+        Timepoint tp = new Timepoint( null, key, this );
+        V value = valueFromString( ss.getValue() );
+        setValue( tp, value );
+      }
+    }    
+  }
+  
+  
+  public void fromStringMap( Map<String,String> map, Class<V> cls ) {
+    clear();
+    for ( Entry<String, String> ss : map.entrySet() ) {
+      Integer key = null;
+      Date d = TimeUtils.dateFromTimestamp( ss.getKey() );
+      if ( d != null ) key = Timepoint.fromDateToInteger( d );
+      if ( key == null ) {
+        try {
+          key = Integer.parseInt( ss.getKey() );
+        } catch (NumberFormatException e) {
+          try {
+            Double dKey = Double.parseDouble( ss.getKey() );
+            key = dKey.intValue();
+          } catch (NumberFormatException ee) {
+          }
+        }
+      }
+      if ( key != null && key >= 0 ) {
+        Timepoint tp = new Timepoint( null, key, this );
+        // add time-value pair if time is within the horizon.
+        Integer t = tp.getValueNoPropagate();
+        if ( t == null || ( t > 0 && t < Timepoint.getHorizonDuration() ) ) {
+          V value = valueFromString( ss.getValue() );
+          setValue( tp, value );
+        }
+      }
     }
   }
 
@@ -3980,13 +4014,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public void fromCsvFile( String fileName, Class<V> cls ) {
     if ( fileName == null ) return;
     try {
-    File f = FileUtils.findFile( fileName );
-    String s = FileUtils.fileToString( f );
-    Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
-    fromStringMap( map, cls );
-    if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
-    } catch ( FileNotFoundException e ) {
+      File f = FileUtils.findFile( fileName );
+      ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
+      //String s = FileUtils.fileToString( f );
+      Map<String,String> map = new HashMap<String,String>();
+      //MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
+      for ( ArrayList<String> line : lines ) {
+        if ( line.size() >= 2 ) {
+          map.put( line.get(0), line.get(1) );
+        }
+      }
+      fromStringMap( map, cls );
+      if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
+    } catch ( IOException e ) {
       e.printStackTrace();
     }
   }
