@@ -60,7 +60,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
                      TimeVaryingMap< Double > deltaMap, Double minCap,
                      Double maxCap, Interpolation interpolation ) {
     this( name, initialValue, false, minCap, maxCap, interpolation );
-    System.out.println("deltaMap = " + deltaMap);
+    //System.out.println("deltaMap = " + deltaMap);
     addDeltaMap( deltaMap );
   }
   

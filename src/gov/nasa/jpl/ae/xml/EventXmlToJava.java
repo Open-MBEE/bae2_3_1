@@ -1381,6 +1381,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.ConstructorCall" );
     addImport( "gov.nasa.jpl.ae.event.Call" );
     addImport( "gov.nasa.jpl.ae.event.Effect" );
+    addImport( "gov.nasa.jpl.ae.event.EffectFunction" );
     addImport( "gov.nasa.jpl.ae.event.TimeDependentConstraintExpression" );
     addImport( "gov.nasa.jpl.ae.event.Dependency" );
     addImport( "gov.nasa.jpl.ae.event.ElaborationRule" );

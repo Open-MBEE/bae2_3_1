@@ -916,14 +916,40 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     sim.add( this );
     settingTimeVaryingMapOwners = true;
     Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, false, null );
+    Set<Parameter<?>> params = getParameters( true, null );
+    Set<Object> paramsAndTvms = new HashSet<Object>();
+    for ( Parameter<?> p : params ) {
+        Object o = p.getValueNoPropagate();
+        if ( o instanceof TimeVarying ) {
+          paramsAndTvms.add( p );
+          tvs.remove( o );
+        }
+    }
+    paramsAndTvms.addAll( tvs );
     settingTimeVaryingMapOwners = false;
-    System.out.println("Simulating " + tvs.size() + " state variables.");
-    for ( TimeVarying< ? > tv : tvs ) {
+    System.out.println("Simulating " + paramsAndTvms.size() + " state variables.");
+    for ( Object tvo : paramsAndTvms ) {
+      Parameter<?> p = null;
+      TimeVarying<?> tv = null;
+      String name = null;
+      if ( tvo instanceof Parameter ) {
+        p = (Parameter<?>)tvo;
+        name = p.getName();
+        if ( p.getValueNoPropagate() instanceof TimeVarying ) {
+          tv = (TimeVarying<?>)p.getValueNoPropagate();
+        }
+      } else if ( tvo instanceof TimeVarying ) {
+        tv = (TimeVarying<?>)tvo;
+      }
       if ( tv instanceof TimeVaryingMap ) {
         String category = "";
-        if ( tv instanceof TimeVaryingPlottableMap ){
-          category = ((TimeVaryingPlottableMap<?>)tv).getName();
-//          category = ((TimeVaryingPlottableMap<?>)tv).category.getValue();
+        if ( !Utils.isNullOrEmpty( name ) ) {
+          category = name;
+        } else {
+          if ( tv instanceof TimeVaryingPlottableMap ){
+            category = ((TimeVaryingPlottableMap<?>)tv).getName();
+  //          category = ((TimeVaryingPlottableMap<?>)tv).category.getValue();
+          }
         }
         if ( Utils.isNullOrEmpty( category ) && tv.getOwner() instanceof ParameterListener ) {
            category = ( (ParameterListener)tv.getOwner() ).getName();
