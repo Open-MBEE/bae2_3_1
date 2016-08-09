@@ -265,6 +265,44 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     return !existingEntry;
   }
   
+  public < V > boolean add( Parameter< TimeVaryingMap< V > > tv, String category ) {
+    if ( tv == null ) {
+      Assert.fail("Trying to add null event to simulation.");
+      return false;
+    }
+    TimeVaryingMap<V> tvm = tv.getValueNoPropagate();
+    if ( tvm != null ) { 
+      Assert.fail("Trying to add null event to simulation.");
+      return false;
+    }
+    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation category " + category + ": " + tv.getName() );
+    
+    categories.put( tv, category );
+    
+    if ( isProjectedPlottable( tvm ) ) {
+      boolean alreadyAdded = projections.add((Plottable)tvm);
+      return alreadyAdded;
+    }
+    
+    boolean existingEntry = false;
+    for ( Map.Entry< Parameter<Integer>, V > e : tvm.entrySet() ) {
+      if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
+        System.err.println( "Warning: adding time varying map entry with null time key "
+                            + " to simulation " + e );
+        continue;
+      }
+      if ( !put( e.getKey().getValueNoPropagate(), tv, e.getValue() ) ) {
+        existingEntry = true;
+      }
+    }
+    if ( currentPlottableValues != null && !tvm.isEmpty() && 
+         tvm instanceof Plottable ) {
+      currentPlottableValues.put( tv,  tvm.firstEntry().getValue() );
+    }
+    return !existingEntry;
+  }
+  
+
   public void add( Executor exec ) {
     executors.add( exec );
   }
@@ -612,7 +650,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
           Object o = e.getKey();
           String nn = "?";
-          if (o instanceof TimeVaryingMap) {
+          if (o instanceof Parameter) {
+            nn = ((Parameter<?>)o).getName();
+            o = ((Parameter<?>)o).getValueNoPropagate();
+          } else if (o instanceof TimeVaryingMap) {
             nn = ((TimeVaryingMap<?>)o).getName();
           } else {
             nn = "..." + o.toString().split( "@" )[0];
@@ -659,10 +700,16 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * @return whether {@code o} is a projection of data (for visualization purposes)
    */
   protected boolean isProjectedPlottable( Object o ) {
-    return (!(o instanceof gov.nasa.jpl.ae.fuml.ObjectFlow)) && 
-           ( o instanceof Plottable && ( (Plottable)o ).isProjection()  ); //||
+    if ( (!(o instanceof gov.nasa.jpl.ae.fuml.ObjectFlow)) && 
+             ( o instanceof Plottable && ( (Plottable)o ).isProjection() ) ) {//||
            //( o instanceof TimeVaryingMap && !( (TimeVaryingMap<?>)o ).isEmpty() &&
            // ( (TimeVaryingMap<?>)o ).firstEntry().getValue() instanceof TimeVarying ));
+      return true;
+    }
+    if ( o instanceof Parameter ) {
+      return isProjectedPlottable( ( (Parameter<?>)o ).getValueNoPropagate() );
+    }
+    return false;
   }
 
   public void plotProjectionsThatChangeAtTime( double time ) {
@@ -821,6 +868,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Object o = e.getKey();
       Object v = e.getValue();
       // TODO -- Support different sampling periods for different Plottables.
+      if ( o instanceof Parameter ) {
+        o = ((Parameter<?>)o).getValueNoPropagate();
+      }
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
           try {

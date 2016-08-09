@@ -64,6 +64,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   private static final long serialVersionUID = -2428504938515591538L;
 
+  public static Interpolation STEP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.STEP);
+  public static Interpolation LINEAR = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.LINEAR);
+  public static Interpolation RAMP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.RAMP);
+  public static Interpolation NONE = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.NONE);
+  
   public static class Interpolation  {
     public static final byte STEP = 0; // value for key = get(floorKey( key ))
     public static final byte LINEAR = 1; // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
@@ -2042,15 +2047,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           if ( ePrev == null ) {
             integralValue = tryCastValue( (Double)0.0 );
           } else {
-          V endValue = ePrev.getValue();
-          if ( this.interpolation.isLinear() ) {
-            endValue = e.getValue();
-          }
-          integralValue =
-              tryCastValue( ( (Double)lastIntegralValue )
-                            + ( ( ( (Double)endValue ) + (Double)ePrev.getValue() ) / 2.0 )
-                            * timeDiff );
-          succeededSomewhere = true;
+            V endValue = ePrev.getValue();
+            if ( this.interpolation.isLinear() ) {
+              endValue = e.getValue();
+            }
+            if ( lastIntegralValue == null || endValue == null || ePrev.getValue() == null ) {
+              integralValue = null;
+            } else {
+              integralValue =
+                  tryCastValue( ( (Double)lastIntegralValue )
+                                + ( ( ( (Double)endValue ) + (Double)ePrev.getValue() ) / 2.0 )
+                                * timeDiff );
+            }
+            succeededSomewhere = integralValue != null;
           }
       } catch ( ClassCastException exc ) {
         exc.printStackTrace();

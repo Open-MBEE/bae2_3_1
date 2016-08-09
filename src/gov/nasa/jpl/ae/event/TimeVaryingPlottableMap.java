@@ -182,12 +182,14 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     init();
   }
 
+  @Override
   public TimeVaryingPlottableMap<V> clone() {
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this);
     init();
     return tvm;
   }
 
+  @Override
   public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
                                        Parameter< Integer > toKey) {
 
