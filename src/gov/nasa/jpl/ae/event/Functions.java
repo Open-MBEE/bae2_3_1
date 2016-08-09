@@ -1872,7 +1872,7 @@ public class Functions {
       // If we are selection a value for the first arg then evaluate the second arg expression,
       // otherwise due the reverse:
       try {
-        t = forward ? o2.evaluate(false) : o1.evaluate(false);
+        t = forward ? o2.evaluate(true) : o1.evaluate(true);
       } catch ( IllegalAccessException e ) {
         // TODO Auto-generated catch block
         //e.printStackTrace();
