@@ -195,19 +195,20 @@ public class Functions {
                    String pickFunctionMethod2 ) {
       this( o1, o2, functionMethod );
       //functionCall.
+      Object[] arr = getArgumentArray();
       pickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
-                            getArgumentArray(), (Class<?>)null );
-      Vector< Object > args = new Vector<Object>( //functionCall.
-          getArgumentVector() );
-      Collections.reverse( args );
+                            arr, (Class<?>)null );
+      //Vector< Object > args = new Vector<Object>( //functionCall.
+          //getArgumentVector() );
+      //Collections.reverse( args );
       //functionCall.
       reversePickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod2 ),
-                            args.toArray(), (Class<?>)null );
+                            arr, (Class<?>)null );
     }
 
     public Binary( Object o1, Object o2, String functionMethod,
