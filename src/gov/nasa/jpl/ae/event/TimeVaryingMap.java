@@ -13,11 +13,12 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -951,7 +953,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( e.getKey().equals( t )
            || ( valuesEqualForKeysOk && Expression.valuesEqual( e.getKey(), t,
                                                                 Integer.class ) ) ) {
-        return m.lastEntry().getValue();
+        return e.getValue();
       }
     }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -975,42 +977,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     } else if ( interpolation.type == Interpolation.NONE ) {
       return null;
     } else if ( interpolation.type == Interpolation.LINEAR ) {
-      Parameter<Integer> t1 = null;
-      if ( !m.isEmpty() ) {
-        t1 = m.lastEntry().getKey();
-        v1 = m.lastEntry().getValue();
-      }
-      if ( Debug.isOn() ) {
-        Assert.assertEquals( t1, getTimepointBefore( t ) );
-        Assert.assertEquals( v1, get( t1 ) );
-        Debug.outln("getValue() change looks good.");
-      }
-      Parameter<Integer> t2 = getTimepointAfter( t );
-      //v1 = get( t1 );
-      if ( t1.valueEquals( t2 ) ) return v1;
-      v2 = get( t2 );
-      if ( v1 == null ) return null;
-      if ( v2 == null ) return v1;
-      // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-      try {
-        v1 = Functions.plus( v1,
-                             Functions.divide( Functions.times( Functions.minus( v2, v1 ),
-                                                                Functions.minus( t, t1 ) ),
-                                               Functions.minus( t2, t1 ) ) );
-      } catch ( ClassCastException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      }
-      return v1;
+      if ( m.isEmpty() ) return null;
+      V v = interpolatedValue( t, m.lastEntry() );
+      return v;
     }
     Debug.error( true,
                  "TimeVaryingMap.getValue(): invalid interpolation type! "
@@ -1024,13 +993,32 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   @Override
   public V getValue( Integer t ) {
     if ( t == null ) return null;
+    if ( isEmpty() ) return null;
     Parameter<Integer> tp = makeTempTimepoint( t, true );
+    // Find the entry for this timepoint or the preceding timepoint. 
     Entry< Parameter<Integer>, V > e = this.floorEntry( tp );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
-    if ( e != null ) return e.getValue();
-//  if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
-//    return firstEntry().getValue();
-//  }
+    if ( e != null ) {
+      Parameter< Integer > k = e.getKey();
+      if ( k != null && k.getValue( false ) != null
+           && IntegerDomain.defaultDomain.equals( t, k.getValue( false ) ) ) {
+        return e.getValue();
+      }
+      if ( interpolation.type == Interpolation.NONE ) {
+        return null;
+      }
+      if ( interpolation.type == Interpolation.STEP ) {
+        return e.getValue();
+      }
+      if ( interpolation.isLinear() ) {
+        V v = interpolatedValue( tp, e );
+        return v;
+      } else {
+        Debug.error( true, "Interpolation " + interpolation + " not expected!");
+      }
+    }
+    // If we couldn't find a value, then there are no values defined for the point.
+    // See if the first entry could work in case of multiple entries at the same time.
     if ( !isEmpty() ) {
       Entry< Parameter<Integer>, V > f = firstEntry();
       Parameter<Integer> k = f.getKey();
@@ -1039,6 +1027,42 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
     }
     return null;
+  }
+  
+  public V interpolatedValue(Parameter<Integer> t, Entry< Parameter<Integer>, V > entryBefore) {
+    if ( t == null ) return null;
+    if ( entryBefore == null ) return null;
+    Parameter<Integer> t1 = null;
+    V v1 = null, v2 = null;
+    t1 = entryBefore.getKey();
+    v1 = entryBefore.getValue();
+    if ( Debug.isOn() ) {
+      Assert.assertEquals( t1, getTimepointBefore( t ) );
+      Assert.assertEquals( v1, get( t1 ) );
+      Debug.outln("getValue() change looks good.");
+    }
+    Parameter<Integer> t2 = getTimepointAfter( t );
+    //v1 = get( t1 );
+    if ( t1.valueEquals( t2 ) ) return v1;
+    v2 = get( t2 );
+    if ( v1 == null ) return null;
+    if ( v2 == null ) return v1;
+    // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
+    try {
+      v1 = Functions.plus( v1,
+                           Functions.divide( Functions.times( Functions.minus( v2, v1 ),
+                                                              Functions.minus( t.getValue(), t1.getValue() ) ),
+                                             Functions.minus( t2.getValue(), t1.getValue() ) ) );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return v1;
   }
 
   /**
@@ -1984,6 +2008,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
                                        Parameter< Integer > toKey, TimeVaryingMap< V > tvm ) {
     if ( tvm == null ) tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
+    if ( this.interpolation.type == Interpolation.STEP ) {
+      tvm.interpolation.type = Interpolation.LINEAR;
+    } else {
+      Debug.error( true, "No support yet for quadratic interpolation as integral of linear function!" );
+    }
     //TimeVaryingMap< V > tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
@@ -3905,18 +3934,50 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return value;
   }
 
-  public void fromStringMap( Map<String,String> map, Class<V> cls ) {
+  public void fromStringMapWithJulianDates( Map<String,String> map, Class<V> cls ) {
     clear();
     for ( Entry<String, String> ss : map.entrySet() ) {
       Integer key = null;
       try {
-        key = Integer.parseInt( ss.getKey() );
-      } catch (Exception e) {
-        key = (int)Double.parseDouble( ss.getKey() );
+          Double dKey = Double.parseDouble( ss.getKey() );
+          key = Timepoint.julianToInteger( dKey );
+      } catch (NumberFormatException e) {
       }
-      Timepoint tp = new Timepoint( null, key, this );
-      V value = valueFromString( ss.getValue() );
-      setValue( tp, value );
+      if ( key != null && key >= 0 ) {
+        Timepoint tp = new Timepoint( null, key, this );
+        V value = valueFromString( ss.getValue() );
+        setValue( tp, value );
+      }
+    }    
+  }
+  
+  
+  public void fromStringMap( Map<String,String> map, Class<V> cls ) {
+    clear();
+    for ( Entry<String, String> ss : map.entrySet() ) {
+      Integer key = null;
+      Date d = TimeUtils.dateFromTimestamp( ss.getKey() );
+      if ( d != null ) key = Timepoint.fromDateToInteger( d );
+      if ( key == null ) {
+        try {
+          key = Integer.parseInt( ss.getKey() );
+        } catch (NumberFormatException e) {
+          try {
+            Double dKey = Double.parseDouble( ss.getKey() );
+            key = dKey.intValue();
+          } catch (NumberFormatException ee) {
+          }
+        }
+      }
+      if ( key != null && key >= 0 ) {
+        Timepoint tp = new Timepoint( null, key, this );
+        // add time-value pair if time is within the horizon.
+        Integer t = tp.getValueNoPropagate();
+        if ( t == null || ( t > 0 && t < Timepoint.getHorizonDuration() ) ) {
+          V value = valueFromString( ss.getValue() );
+          setValue( tp, value );
+        }
+      }
     }
   }
 
@@ -3953,13 +4014,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public void fromCsvFile( String fileName, Class<V> cls ) {
     if ( fileName == null ) return;
     try {
-    File f = FileUtils.findFile( fileName );
-    String s = FileUtils.fileToString( f );
-    Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
-    fromStringMap( map, cls );
-    if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
-    } catch ( FileNotFoundException e ) {
+      File f = FileUtils.findFile( fileName );
+      ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
+      //String s = FileUtils.fileToString( f );
+      Map<String,String> map = new HashMap<String,String>();
+      //MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
+      for ( ArrayList<String> line : lines ) {
+        if ( line.size() >= 2 ) {
+          map.put( line.get(0), line.get(1) );
+        }
+      }
+      fromStringMap( map, cls );
+      if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
+    } catch ( IOException e ) {
       e.printStackTrace();
     }
   }

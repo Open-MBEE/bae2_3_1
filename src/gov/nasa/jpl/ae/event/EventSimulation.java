@@ -10,7 +10,6 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.SocketClient;
 import gov.nasa.jpl.mbee.util.TimeUtils;
-import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.io.ByteArrayOutputStream;
@@ -80,7 +79,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   TimeUtils.Units plotAxisTimeUnits = TimeUtils.Units.seconds;
   public boolean usingSamplePeriod = true;
 
-  public double plotSamplePeriod = 60.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // 15 min
+  public double plotSamplePeriod = 
+      60.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // convert to minutes
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 
@@ -229,7 +229,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Assert.fail("Trying to add null event to simulation.");
       return false;
     }
-    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
+    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation category " + category + ": " + tv.getName() );
     
     categories.put( tv, category );
     
@@ -297,6 +297,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
     boolean firstLoop = true;
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
+    boolean doneOnce = false;
     for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e1 : entrySet() ) {
       for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
@@ -310,16 +311,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
             while ( true ) {
               int simTimeToSleepUntil =
                   (int)Math.min( nextEventSimTime, nextSampleSimTime );
+              if (Debug.isOn()) Debug.out("nextEventSimTime="+ nextEventSimTime);
+              if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
+              if (Debug.isOn()) Debug.out("simTimeToSleepUntil="+ simTimeToSleepUntil);
               simTimer.sleepUntilSimTime( simTimeToSleepUntil );
               int simTime = simTimer.getSimTimePassed();
+              if (Debug.isOn()) Debug.out("simTime="+ simTime);
+              
               // Update the plot based on the sample period.
-              boolean doneOnce = false;
-              while ( tryToPlot && (!doneOnce || usingSamplePeriod
+              while ( tryToPlot && (!doneOnce || ( usingSamplePeriod
                       && nextSampleSimTime <= simTime
                       && nextSampleSimTime <= nextEventSimTime
-                      && (!simulatingHorizon || nextSampleSimTime <= Timepoint.getHorizonDuration())) 
+                      && (!simulatingHorizon || nextSampleSimTime <= Timepoint.getHorizonDuration()))) 
                       //&& nextPlotSimTime <= 500.0
-                      ) {
+                    ) {
+                if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
                 doneOnce = true;
                 plotValues( lastSampleSimTime, nextSampleSimTime );
                 lastSampleSimTime = nextSampleSimTime;
@@ -328,6 +334,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                 assert this.plotSamplePeriod > 0.0;
                 nextSampleSimTime += this.plotSamplePeriod;
               }
+              
+
               if ( nextEventSimTime <= simTime) break;
               if ( simulatingHorizon && simTimer.passedHorizon() ) {
                 break;

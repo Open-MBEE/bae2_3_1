@@ -40,10 +40,10 @@ public class ParameterListenerImpl extends HasIdImpl
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
-  protected double timeoutSeconds = 12*3600.0;
-  protected int maxLoopsWithNoProgress = 100;
+  protected double timeoutSeconds = 600.0;
+  protected int maxLoopsWithNoProgress = 5;
   protected long maxPassesAtConstraints = 10000;
-  protected boolean usingTimeLimit = false;
+  protected boolean usingTimeLimit = true;
   protected boolean usingLoopLimit = true;
 
   protected boolean snapshotSimulationDuringSolve = true;
@@ -525,7 +525,11 @@ public class ParameterListenerImpl extends HasIdImpl
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
           System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
-          System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+          if ( Debug.isOn() ) {
+              System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+          } else {
+              System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints." );
+          }
         }
       } else {
         mostResolvedConstraints = numResolvedConstraints;

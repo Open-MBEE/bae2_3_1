@@ -32,6 +32,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   //    1341614935
   // The units of time and the epoch are specified by Units units below.  
   protected static Date epoch = new Date();
+  protected static Date horizon = null;
   // The unit of time for the epoch and all other integer values of time.  
   protected static TimeUtils.Units units = TimeUtils.Units.seconds;
 
@@ -39,7 +40,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   protected static int horizonDuration = 24 * 3600;
   
   private final static Timepoint epochTimepoint = new Timepoint( "", 0, null );
-
+  private static Timepoint horizonTimepoint = null;
+  
   protected static IntegerDomain defaultDomain = IntegerDomain.positiveDomain;
                                                //= TimeDomain.horizonDomain;
   
@@ -84,6 +86,11 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 		super(timepoint);
 	}
 	
+  public Timepoint( Date date ) {
+    this( Timepoint.fromDateToInteger( date ) );
+  }
+
+
   /* (non-Javadoc)
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
@@ -101,37 +108,27 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
       try {
         v1 = Expression.evaluate( this, Integer.class, propagate );
       } catch ( ClassCastException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       }
       try {
         v2 = Expression.evaluate( o, Integer.class, propagate );
       } catch ( ClassCastException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
       }
       compare = CompareUtils.compare( v1, v2, true );
       if ( compare != 0 ) return compare;
     }
     return super.compareTo( o, checkId );
+  }
+  
+  public void setValue( Date date ) {
+    if ( date != null ) {
+      this.value = fromMillisToInteger( date.getTime() ); 
+    }
   }
 	
   public static synchronized Timepoint fromMillis( long millis ) {
@@ -243,6 +240,23 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     return epochTimepoint;
   }
 
+  public synchronized static Date getHorizon() {
+    horizon = getHorizonTimepoint().getDate(); 
+    return horizon;
+  }
+  
+  public synchronized static Timepoint getHorizonTimepoint() {
+    // TODO REVIEW -- consider adding a dependency so that these parameters can
+    // change during problem solving.
+    if (horizonTimepoint == null ) {
+      horizonTimepoint = 
+          new Timepoint( "", getHorizonDuration(), null );
+    }
+    if ( horizonTimepoint.getValueNoPropagate() == null ) {
+      horizonTimepoint.setValue( getHorizonDuration() );
+    }
+    return horizonTimepoint;
+  }
 
   /**
    * @param epoch the epoch to set
@@ -286,6 +300,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     horizonDuration = duration;
     System.out.println("Horizon duration set to " + horizonDuration + " " + units );
     TimeDomain.horizonDomain.setUpperBound( horizonDuration );
+    horizon = null;
+    if ( horizonTimepoint != null ) horizonTimepoint.value = null;
   }
 
   /**
@@ -298,6 +314,12 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 
   public static Timepoint now() {
     return fromDate( Calendar.getInstance().getTime() );
+  }
+
+  public static Integer julianToInteger( Double julianDate ) {
+    long millis = TimeUtils.julianToMillis( julianDate );
+    Integer i = fromMillisToInteger( millis );
+    return i;
   }
 
 }

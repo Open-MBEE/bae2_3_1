@@ -286,7 +286,7 @@
         <dependencies>
           <!-- Again, hardcoding uncontrollable/uncertain value. -->
           <!--<dependency><name>loadReductionActual</name><type>Double</type><value>1000.0</value></dependency>-->
-          <!-- TODO: optionally elaborate into IncreaseGeneration. -->
+          <!-- TODO: optionally elaborate into IncrebaseGeneration. -->
           <dependency><name>increaseGeneration</name><value>LoadReductionNeeded - projectedLoadReduction &gt;= 500.0</value></dependency>
           <dependency><name>increasedGeneration</name><value>0.0</value></dependency>
           <dependency><name>amountToIncrease</name><value>1000.0</value></dependency>
