@@ -195,20 +195,19 @@ public class Functions {
                    String pickFunctionMethod2 ) {
       this( o1, o2, functionMethod );
       //functionCall.
-      Object[] arr = getArgumentArray();
       pickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod1 ),
                             //functionCall.
-                            arr, (Class<?>)null );
-      //Vector< Object > args = new Vector<Object>( //functionCall.
-          //getArgumentVector() );
-      //Collections.reverse( args );
+                            getArgumentArray(), (Class<?>)null );
+      Vector< Object > args = new Vector<Object>( //functionCall.
+          getArgumentVector() );
+      Collections.reverse( args );
       //functionCall.
       reversePickFunctionCall =
           new FunctionCall( (Object)null,
                             getFunctionMethod( pickFunctionMethod2 ),
-                            arr, (Class<?>)null );
+                            args.toArray(), (Class<?>)null );
     }
 
     public Binary( Object o1, Object o2, String functionMethod,
@@ -1167,10 +1166,10 @@ public class Functions {
                         extends BooleanBinary< T > {
     
     public EQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToForward");
     }
     public EQ( Object o1, Object o2 ) {
-      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToForward");
     }
     
     @Override
@@ -1264,10 +1263,10 @@ public class Functions {
   public static class NEQ< T > 
                         extends BooleanBinary< T > {
     public NEQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToForward");
     }
     public NEQ( Object o1, Object o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToForward");
     }
 
 //    @Override
