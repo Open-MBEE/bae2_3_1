@@ -1404,6 +1404,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return this;
   }
 
+  
   /**
    * @param n the number by which the map is multiplied
    * @param fromKey the first key whose value is multiplied by {@code n}
@@ -1511,6 +1512,320 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return newTvm;
   }
 
+
+  /**
+   * @param n the power by which this map is raised
+   * @return this map after multiplying each value by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> power( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this;
+    if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+      for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+        V v = e.getValue();
+        if ( v instanceof TimeVaryingMap ) {
+          TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)v;
+          tvm.power( n );
+        }
+      }
+      return this;
+    }
+    return power( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the power to which the map is raised
+   * @return a copy of the map whose values are each raised to the {@code n} power
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> pow( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this.clone();
+    return pow( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return this map after multiplying each value in the range [fromKey,
+   *         toKey) by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > power( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return power( n, fromKey, null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey the first key whose value is multiplied by {@code n}
+   * @param toKey is not multiplied.  To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after multiplying each value in the range [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > power( Number n, Parameter< Integer > fromKey,
+                                    Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      e.setValue( Functions.pow(e.getValue(), n ) );
+    }
+    return this;
+  }
+
+  /**
+   * Multiply this map with another. This achieves for all {@code t} in
+   * {@code thisBefore.keySet()} and {@code tvm.keySet()},
+   * {@code thisAfter.get(t) == thisBefore.get(t) * tvm.get(t)}.
+   *
+   * @param tvm
+   *          the {@code TimeVaryingMap} with which this map is multiplied
+   * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public <VV> TimeVaryingMap< V > power( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tvm == null ) return null;
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      power( n, k, k );
+    }
+    return removeDuplicates();
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return a copy of this map for which each value in the range [{@code fromKey},
+   *         {@code toKey}) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > pow( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return pow( n, fromKey, null );
+  }
+
+  /**
+   * Return the product of this map with another. This achieves for all
+   * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
+   * {@code newTvm.get(t) == this.get(t) * tvm.get(t)}.
+   *
+   * @param n
+   *          the number by which the map is multiplied
+   * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public < VV > TimeVaryingMap< V > pow( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.power( tvm );
+    return newTvm;
+  }
+
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > pow( TimeVaryingMap< VV1 > tvm1,
+                                                                       TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return tvm1.pow( tvm2 );
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} with which this map is multiplied
+   * @return a copy of this map for which each value in the range [fromKey,
+   *         toKey) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > pow( Number n, Parameter< Integer > fromKey,
+                                  Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.power( n, fromKey, toKey );
+    return newTvm;
+  }
+
+
+  
+  /**
+   * @param n the number by which this map is multiplied
+   * @return this map after multiplying each value by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> npower( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this;
+    if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+      for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+        V v = e.getValue();
+        if ( v instanceof TimeVaryingMap ) {
+          TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)v;
+          tvm.npower( n );
+        }
+      }
+      return this;
+    }
+    return npower( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the number to raise to the power of the map
+   * @return a copy of the map with the values, {@code v}, replaced by {@code n^v}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> npow( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this.clone();
+    return npow( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return this map after multiplying each value in the range [fromKey,
+   *         toKey) by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > npower( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return npower( n, fromKey, null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey the first key whose value is multiplied by {@code n}
+   * @param toKey is not multiplied.  To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after multiplying each value in the range [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > npower( Number n, Parameter< Integer > fromKey,
+                                    Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+
+    Map< Parameter< Integer >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+      Number r = Functions.pow(n, e.getValue() );
+      e.setValue( tryCastValue( (Double)r.doubleValue() ) );
+    }
+    return this;
+  }
+
+  /**
+   * Multiply this map with another. This achieves for all {@code t} in
+   * {@code thisBefore.keySet()} and {@code tvm.keySet()},
+   * {@code thisAfter.get(t) == thisBefore.get(t) * tvm.get(t)}.
+   *
+   * @param tvm
+   *          the {@code TimeVaryingMap} with which this map is multiplied
+   * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public <VV> TimeVaryingMap< V > npower( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tvm == null ) return null;
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Integer > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      npower( n, k, k );
+    }
+    return removeDuplicates();
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return a copy of this map for which each value in the range [{@code fromKey},
+   *         {@code toKey}) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > npow( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return npow( n, fromKey, null );
+  }
+
+  /**
+   * Return the product of this map with another. This achieves for all
+   * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
+   * {@code newTvm.get(t) == this.get(t) * tvm.get(t)}.
+   *
+   * @param n
+   *          the number by which the map is multiplied
+   * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public < VV > TimeVaryingMap< V > npow( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.npower( tvm );
+    return newTvm;
+  }
+
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > npow( TimeVaryingMap< VV1 > tvm1,
+                                                                       TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return tvm1.npow( tvm2 );
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} with which this map is multiplied
+   * @return a copy of this map for which each value in the range [fromKey,
+   *         toKey) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > npow( Number n, Parameter< Integer > fromKey,
+                                  Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.npower( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  
+  
 
   /**
    * @param n the number by which this map is divided
