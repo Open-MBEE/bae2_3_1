@@ -742,6 +742,16 @@ public class Functions {
     }
   }
 
+  public static class Pow<T,R> extends Binary< T, R > {
+    public Pow( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "pow", "pickValueForward", "pickValueReverse" );
+      setMonotonic( true );
+    }
+    public Pow( Object o1, Object c ) {
+      super( o1, c, "pow", "log", "log" );
+      setMonotonic( true );
+    }
+  }
 
 
   
@@ -1203,6 +1213,105 @@ public class Functions {
     }
     return null;
   }
+  
+  
+  public static <V1, V2> V1 pow( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( o1 == null || o2 == null ) return null;
+    Object result = null;
+    TimeVaryingMap<?> map = null;
+    try {
+      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+    } catch ( ClassCastException e ) {
+      //ignore
+    }
+    if ( map != null ) result = pow( map, o2 );
+    else {
+      try {
+      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+      } catch ( ClassCastException e ) {
+        //ignore
+      }
+      if ( map != null ) result = pow( o1, map );
+      else {
+        Number n1 = null;
+        Number n2 = null;
+        try {
+          n1 = Expression.evaluate( o1, Number.class, false );
+          n2 = Expression.evaluate( o2, Number.class, false );
+        } catch ( Throwable e ) {
+          // ignore
+        }
+        if ( n1 != null && n2 != null ) {
+          if ( Infinity.isEqual( n1 ) ) {
+            try {
+              if ( Zero.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else if ( Utils.isNegative( n2 ) ){
+                result = NegativeInfinity.forClass( o1.getClass() );
+              } else {
+                result = Infinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( NegativeInfinity.isEqual( n1 ) ) {
+            try {
+              if ( Zero.isEqual( n2 ) ) {
+                result = NegativeOne.forClass( o1.getClass() );
+              } else if ( Utils.isNegative( n2 ) ){
+                result = Infinity.forClass( o1.getClass() );
+              } else {
+                result = NegativeInfinity.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          } else if ( Zero.isEqual( n1 ) ) {
+            try {
+              if ( Infinity.isEqual( n2 ) ) {
+                result = One.forClass( o1.getClass() );
+              } else if ( NegativeInfinity.isEqual( n2 ) ){
+                result = NegativeOne.forClass( o1.getClass() );
+              } else {
+                result = Zero.forClass( o1.getClass() );
+              }
+            } catch ( ClassCastException e ) {
+              e.printStackTrace();
+            }
+          // TODO -- other types, like BigDecimal
+          // TODO -- Need to add a gov.nasa.jpl.ae.util.Math.pow() to handle overflow.
+          result = (Double)Math.pow( n1.doubleValue(), n2.doubleValue() );
+          } else if ( n1 instanceof Double || n2 instanceof Double ) {
+          } else if ( n1 instanceof Float || n2 instanceof Float ) {
+            result = (Float)((Double)result).floatValue();
+          } else if ( n1 instanceof Long || n2 instanceof Long ) {
+            result = (Long)((Double)result).longValue();
+          } else {
+            result = (Integer)((Double)result).intValue();
+          }
+          return (V1)result;
+        }
+      }
+    }
+    try {
+      if ( o1 != null ) {
+        Class<?> cls1 = o1.getClass();
+        Class<?> cls2 = o2.getClass();
+        // TOOD -- what if cls1 is not a Number?
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
+        if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
+        return (V1)x;
+      }
+      return (V1)result;
+    } catch (ClassCastException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   
   public static <V1, V2> V1 minus( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return plus( o1, times( o2, -1 ) );
@@ -2792,6 +2901,55 @@ public class Functions {
     return TimeVaryingMap.times( tv1, tv2 );
   }
 
+
+  
+  
+  public static < T extends Number > TimeVaryingMap< T > pow( Object o,
+                                                              TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tv == null || o == null ) return null;
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
+    if ( n != null ) return tv.npow( n );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+        tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (  Throwable e ) {
+      // ignore
+    }
+    if ( tvm != null ) return (TimeVaryingMap< T >)pow( tvm, tv );
+    return null;
+  }
+  public static < T extends Number > TimeVaryingMap< T > pow( TimeVaryingMap< T > tv,
+                                                              Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tv == null || o == null ) return null;
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
+    if ( n != null ) return tv.pow( n );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+        tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (  Throwable e ) {
+      // ignore
+    }
+    if ( tvm != null ) return pow( tv, tvm );
+    return null;
+  }
+  
+  public static < T extends Number, TT extends Number > TimeVaryingMap< T > pow( TimeVaryingMap< T > tv1,
+                                                                                 TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return TimeVaryingMap.pow( tv1, tv2 );
+  }
+
+
+  
   public static < T > TimeVaryingMap< T > divide( TimeVaryingMap< T > tv,
                                                   Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
