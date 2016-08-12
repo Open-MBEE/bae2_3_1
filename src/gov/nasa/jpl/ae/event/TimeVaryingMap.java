@@ -427,6 +427,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static < T > T tryCast( Object obj, Class<T> cls ) {
     if ( cls != null ) {
       try {
+        if ( Number.class.isAssignableFrom( cls ) && ClassUtils.isNumber( obj.getClass() ) ) {
+          T x = ClassUtils.castNumber( (Number)obj, cls );
+          if ( x != null ) return x;
+        }
         return cls.cast( obj );
       } catch ( ClassCastException e ) {
         // ignore
@@ -667,7 +671,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Parameter<Integer> justAfterTime = getTimepointAfter( t );
     while ( justAfterTime != null ) {
       justAfterTimeVal = justAfterTime.getValue( false );
-      if ( justAfterTimeVal < t ) {
+      if ( justAfterTimeVal > t ) {
         break;
       }
       justAfterTime = getTimepointAfter( justAfterTime );
@@ -2281,7 +2285,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( toKey.compareTo( fromKey, false ) < 0 ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       boolean same = toKey.equals(fromKey);  // include the key if same
@@ -2321,6 +2325,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return add( n, fromKey, null );
   }
 
+  public V integral(Parameter< Integer > fromKey, Parameter< Integer > toKey) {
+    TimeVaryingMap< V > tvm = integrate(fromKey, toKey,null);
+    if ( tvm == null || tvm.isEmpty() ) return tryCastValue( 0 );
+    return tvm.getValue( tvm.lastKey() );
+  }
+  
   public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
                                        Parameter< Integer > toKey) {
     return integrate( fromKey, toKey, null );
@@ -2344,9 +2354,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( toKey.compareTo( fromKey, false ) < 0 ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
+      if ( toKey.compareTo( fromKey, false ) < 0 ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, same );
     }
     boolean succeededSomewhere = false;
@@ -2390,7 +2401,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
   
   public TimeVaryingMap< V > integrate() {
-    return integrate(new Timepoint(0), new Timepoint(Timepoint.horizonDuration));
+    return integrate(new SimpleTimepoint(0), new SimpleTimepoint(Timepoint.horizonDuration));
     
   }
     
@@ -2419,7 +2430,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( toKey.compareTo( fromKey, false ) < 0 ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
@@ -2503,7 +2514,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( toKey.compareTo( fromKey, false ) < 0 ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
@@ -2619,7 +2630,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( toKey.compareTo( fromKey, false ) < 0 ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
@@ -4294,7 +4305,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         }
       }
       if ( key != null && key >= 0 ) {
-        Timepoint tp = new Timepoint( null, key, this );
+        
+        SimpleTimepoint tp = new SimpleTimepoint( null, key, this );
         // add time-value pair if time is within the horizon.
         Integer t = tp.getValueNoPropagate();
         if ( t == null || ( t > 0 && t < Timepoint.getHorizonDuration() ) ) {

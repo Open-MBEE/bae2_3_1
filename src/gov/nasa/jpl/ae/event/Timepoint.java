@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -62,6 +63,15 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	public Timepoint(String name, ParameterListener o) {
 		super(name, defaultDomain, o);
 	}
+	
+  /**
+   * @param name
+   * @param domain
+   * @param o
+   */
+  public Timepoint(String name, Domain<Integer> domain, ParameterListener o) {
+    super(name, domain, o);
+  }
 
 	/**
 	 * @param o 
@@ -73,6 +83,16 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	}
 
   /**
+   * @param name
+   * @param domain
+   * @param value
+   * @param o
+   */
+  public Timepoint(String name, Domain<Integer> domain, Integer value, ParameterListener o) {
+    super(name, domain, value, o);
+  }
+
+	/**
    * @param value
    */
   public Timepoint( int value ) {
