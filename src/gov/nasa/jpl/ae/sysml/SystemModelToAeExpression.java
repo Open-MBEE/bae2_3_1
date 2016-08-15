@@ -1299,48 +1299,95 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         return toAeExpression(arg, expectedType);
       }
                   
+      else if (typeString.equals("OpaqueExpression")) {
+        String k = null;
+        //Collection< P > bodies = model.getProperty((C)arg, "body");
+        
+        Collection< U > bodies = model.getValue((C)arg, "body");
+        if ( !Utils.isNullOrEmpty( bodies ) ) {
+          U body = bodies.iterator().next();
+          if ( body instanceof String ) {
+            k = (String)body;
+          }
+        }
+        Object sysmlExpr = null;
+        if ( !Utils.isNullOrEmpty( k ) ) {
+          sysmlExpr = model.createConstraint(model.asContext( k ));
+        }
+        if ( sysmlExpr == null ) {
+          return unclassifiedElementToAeExpression(arg, typeString, maySetValue);
+        }
+        return toAeExpression(sysmlExpr, expectedType);
+      }
+      else if (false && (typeString.equals("Connector") || typeString.equals("BindingConnector")) ) {
+        // TODO -- create a constraint that the two elements are equal.
+        // REVIEW -- Does it make sense to do this here?
+        // Set the ends of the property paths equal to each other. TODO -- create an instance?
+        Collection< P > sourcePath = model.getProperty((C)arg, "sourcePath");
+        Collection< P > targetPath = model.getProperty((C)arg, "targetPath");
+        // assume that the connected ends are the last of the paths
+        P source = Utils.isNullOrEmpty( sourcePath ) ? null : last(sourcePath);
+        P target = Utils.isNullOrEmpty( targetPath ) ? null : last(targetPath);
+        if ( source != null && target != null ) {
+          Object c = model.createConstraint( model.asContext( model.getIdentifier( model.asContext( source ) ) + " = " + model.getIdentifier( model.asContext( target ) ) ) );
+          return toAeExpression( c, Boolean.class );
+        }
+      }
       // All other cases failed, then just create a Parameter for
       // it, ie it is a Property, Parameter, Element, a LiteralInt, etc:
       else {  //if (typeString.equals("Property")) {
-                
-        // Get the argument Node:
-        Collection<U > argValueNodes = model.getValue((C)arg, null);
-
-        // Get the name of the argument Node:
-//        Collection<N > argValueNames = model.getName(arg);
-//        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
-//                                                                 argValueNames.iterator().next().toString();
-        // This needs to be unique, so we'll use the identifier.
-        String argValName = "" + model.getIdentifier( (C)arg );
-        
-        // TODO can we assume this will always be size one?
-        Object argValueNode = !Utils.isNullOrEmpty(argValueNodes) && argValueNodes.size() == 1 ? argValueNodes.iterator().next() : argValueNodes;
-        if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
-
-        String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
-
-        // Create a Parameter for the argument and add to arguments:
-        //System.out.println( "\nelementArgumentToAeExpression(" + arg + " = elementValueToAeExpression(" + argValueNode + ", " + argName + ")" );
-        if ( !model.getElementClass().isInstance( argValueNode ) ) {
-          argValueNode = arg;
-        }
-        return (Expression< T >)elementValueToAeExpression( argValueNode,
-                                                            argName, typeString,
-                                                            maySetValue );
-
-//      } else {
-//        // Get the argument Node:
-//        Collection<U > argValueNodes = model.getValue((C)arg, null);
-//        
-//        if ( Utils.isNullOrEmpty(argValueNodes) ) {
-//          return new Expression< Object >( (Object) arg );
-//        }
-//
-//        return new Expression< Object >( (Object) argValueNodes );
+        return unclassifiedElementToAeExpression(arg, typeString, maySetValue);
       }  // ends else
       
       return null;
       
+    }
+    
+    protected <T> T last( Collection<T> tt ) {
+      T t = null;
+      Iterator<T> i = tt.iterator();
+      while ( i.hasNext() ) {
+        t = i.next();
+      }
+      return t;
+    }
+    
+    protected <T> Expression<T> unclassifiedElementToAeExpression(P arg, String typeString, boolean maySetValue) {
+      // Get the argument Node:
+      Collection<U > argValueNodes = model.getValue((C)arg, null);
+
+      // Get the name of the argument Node:
+//      Collection<N > argValueNames = model.getName(arg);
+//      String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+//                                                               argValueNames.iterator().next().toString();
+      // This needs to be unique, so we'll use the identifier.
+      String argValName = "" + model.getIdentifier( (C)arg );
+      
+      // TODO can we assume this will always be size one?
+      Object argValueNode = !Utils.isNullOrEmpty(argValueNodes) && argValueNodes.size() == 1 ? argValueNodes.iterator().next() : argValueNodes;
+      if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
+
+      String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
+
+      // Create a Parameter for the argument and add to arguments:
+      //System.out.println( "\nelementArgumentToAeExpression(" + arg + " = elementValueToAeExpression(" + argValueNode + ", " + argName + ")" );
+      if ( !model.getElementClass().isInstance( argValueNode ) ) {
+        argValueNode = arg;
+      }
+      return (Expression< T >)elementValueToAeExpression( argValueNode,
+                                                          argName, typeString,
+                                                          maySetValue );
+
+//    } else {
+//      // Get the argument Node:
+//      Collection<U > argValueNodes = model.getValue((C)arg, null);
+//      
+//      if ( Utils.isNullOrEmpty(argValueNodes) ) {
+//        return new Expression< Object >( (Object) arg );
+//      }
+//
+//      return new Expression< Object >( (Object) argValueNodes );
+
     }
     
     /**

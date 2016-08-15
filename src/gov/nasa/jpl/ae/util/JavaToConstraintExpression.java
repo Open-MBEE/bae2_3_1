@@ -2018,6 +2018,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     try {
       expr = parser.Expression();
     } catch ( ParseException e ) {
+      Debug.error( true, false,
+                   "Failed to parse Java expression \"" + exprString + "\"" );
       e.printStackTrace();
     }
     return expr;
