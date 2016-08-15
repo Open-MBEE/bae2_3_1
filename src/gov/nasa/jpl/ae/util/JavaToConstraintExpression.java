@@ -2131,7 +2131,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
 
     // HACK -- TODO
-    if ( args.contains( ", new FunctionCall" ) ) {
+    if ( args.contains( ", new FunctionCall" ) && "Parameter".equals( type ) ) {
       args += ", true";
     }
 

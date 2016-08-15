@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -155,6 +156,17 @@ public class ConstraintExpression extends Expression< Boolean >
   
   @Override
   public < T > boolean restrictDomain( Variable< T > v ) {
+    switch ( form ) {
+      case Function:
+        FunctionCall f = (FunctionCall)expression;
+        if ( f instanceof SuggestiveFunctionCall ) {
+          //((SuggestiveFunctionCall)f).res
+        }
+      case Constructor:
+      case Parameter:
+      case Value:
+      case None:
+    }
     // TODO
     assert(false);
     return ParameterConstraint.Helper.restrictDomain( this, v );
