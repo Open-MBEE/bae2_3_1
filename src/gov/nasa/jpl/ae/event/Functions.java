@@ -3427,8 +3427,8 @@ public class Functions {
   
   public static void main( String[] args ) {
     Parameter<Double> z = new Parameter<Double>( "z", (Domain<Double>)(new DoubleDomain( 0.0, 10.0 )), 10.0, null );
-    Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 0, 10 ), 1, null );
-    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 0, 10 ), 1, null );
+    Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 1, 5 ), 1, null );
+    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 4, 10 ), 1, null );
     Parameter<Double> w = new Parameter<Double>( "w", new DoubleDomain( 0.0, 10.0 ), 2.0, null );
     Sum< Integer, Integer > xPlusY = new Sum< Integer, Integer >( x, y );
     Sum< Integer, Integer > xPlusYPlusW =
@@ -3445,6 +3445,26 @@ public class Functions {
     Less< Double > exprLess = new Less< Double >( z, w );
     Double zVal = exprLess.pickValue( z );
     System.out.println("Picked " + zVal + " for z = " + z + " in exprLess = " + exprLess );
+    
+    
+    // test for inverse functions
+    System.out.println( "x = " + x + "; domain = " + x.getDomain() );
+    System.out.println( "y = " + y + "; domain = " + y.getDomain() );
+    EQ< Integer > eq = new EQ< Integer >( x, y );
+    FunctionCall i = eq.inverse( Boolean.TRUE, x );
+    System.out.println( "eq: " + eq );
+    System.out.println( "inverse of eq: " + i );
+    try {
+      Object r = i.evaluate( true );
+      System.out.println( "evaluation of i: " + r );
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    
     
     // TODO -- Add tests for overflow!!
     

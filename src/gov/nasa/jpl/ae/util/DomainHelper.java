@@ -26,6 +26,7 @@ import gov.nasa.jpl.mbee.util.Wraps;
 public class DomainHelper {
 
   public static <T> Domain<T> getDomainForClass( Class<T> cls ) {
+    if ( cls == null ) return null;
     if ( cls.equals( Boolean.class ) ) {
       return (Domain< T >)new BooleanDomain();
     }
@@ -70,7 +71,7 @@ public class DomainHelper {
       else dominantType = ClassUtils.dominantTypeClass( dominantType, objDomainType );
     }
     
-    Domain< ? > domain = DomainHelper.getDomainForClass( dominantType );
+    Domain< ? > domain = dominantType == null ? null : DomainHelper.getDomainForClass( dominantType );
     if ( domain == null ) return null;
 
     Object lb = null;
