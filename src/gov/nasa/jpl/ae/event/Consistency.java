@@ -47,7 +47,7 @@ public class Consistency {
       }
       ++ct;
     }
-    return true;
+    return false;
   }
   
 }

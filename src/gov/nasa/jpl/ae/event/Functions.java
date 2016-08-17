@@ -118,16 +118,6 @@ public class Functions {
      * be an argument to f. g.evaluate() returns a Domain representing the set
      * of values that ai may be assigned such that f.evaluate() == r.
      * 
-     * is that makes the n-1 arguments passed in to f.inverse() its own
-     * arguments and when evaluated computes what this missing argument computes
-     * with a Method that takes an array of n-1 variables So,
-     * functionCall.inverse(z) returns inv, a FunctionCall, inv, that has the
-     * same arguments takes Method that takes functionCall with one argument z,
-     * which when evaluated returns a functionCallwhose arguments are
-     * 
-     * 
-     * f.setArg(x f.inverse(f.evaluate()).evaluate() == f.arguments
-     * 
      * @param returnValue
      * @param arg
      *          the single argument with respect to which the inverse is
