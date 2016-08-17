@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -4366,16 +4367,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       e.printStackTrace();
     }
   }
-  public void toCsvFile( String fileName ) {
-    String s = toCsvString();
+  public void toCsvFile( String fileName, String header, String format, Calendar cal ) {
+    String s = toCsvString(header, format, cal);
     if ( Debug.isOn() ) Debug.outln( "wrote map to file, " + fileName + ":\n" + s );
     FileUtils.stringToFile( s, fileName );
   }
 
+  public void toCsvFile( String fileName ) {
+    toCsvFile(fileName, null, null, null);
+  }
+
   public String toCsvString() {
+    return toCsvString( null, null, null );
+  }
+
+  public String toCsvString(String header, String dateFormat, Calendar cal ) {
     StringBuffer sb = new StringBuffer();
+    if ( !Utils.isNullOrEmpty( header ) ) {
+      sb.append(header + "\n");
+    }
     for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
-      sb.append( e.getKey().toShortString() + ","
+      String timeString = null;
+      if ( dateFormat != null  ) {
+        if ( cal == null ) cal = Calendar.getInstance();
+        if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
+          continue;
+        }
+        long t = e.getKey().getValueNoPropagate();
+        timeString = Timepoint.toTimestamp( t, dateFormat, cal );
+      } else {
+        timeString = e.getKey().toShortString();
+      }
+      sb.append( timeString + ","
                  + MoreToString.Helper.toShortString( e.getValue() ) + "\n" );
     }
     return sb.toString();

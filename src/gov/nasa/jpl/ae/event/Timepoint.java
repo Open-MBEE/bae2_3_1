@@ -212,10 +212,13 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   // Assumes t is an offset from Timepoint.epoch in Timepoint.units. 
   public static String toTimestamp( long t ) {
     Calendar cal = Calendar.getInstance();
+    return toTimestamp(t, TimeUtils.timestampFormat, cal);
+  }
+  public static String toTimestamp( long t, String dateFormat, Calendar cal) {
     double cf = conversionFactor( Units.milliseconds );
     cal.setTimeInMillis( (long)( Timepoint.getEpoch().getTime() + t * cf  ) );
     String timeString =
-        new SimpleDateFormat( TimeUtils.timestampFormat ).format( cal.getTime() );
+        new SimpleDateFormat( dateFormat ).format( cal.getTime() );
     return timeString;
   }
 
@@ -341,5 +344,6 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     Integer i = fromMillisToInteger( millis );
     return i;
   }
+
 
 }
