@@ -21,14 +21,17 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -47,7 +50,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   //private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
   //private static final String enthoughtPythonPath = "/usr/local/epd_free-7.3-2-rh5-x86_64/";
   //private static final String enthoughtPython = "/usr/local/epd_free-7.3-2-rh5-x86_64/bin/python";
-  public static final String homeDir = "/Users/carolinechouinard";
+  public static final String homeDir = "/Users/bclement";
   public static final String gitDir = homeDir + "/git";
   public static final String enthoughtDir = homeDir + "/canopy";
   public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
@@ -57,6 +60,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   //private static final String enthoughtPython = "c:\\Python27\\python.exe";
   public static final String enthoughtTempDir = "/tmp";
   //private static final String enthoughtTempDir = "c:\\temp";
+
+  private static boolean writingTimelinesToFile = true;
+  public static String csvDir = "data" + File.separator + "output";
 
   public static double maxSecondsToNextEvent = 43200;
   
@@ -173,6 +179,86 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   }
   
   // Methods
+  
+  
+  /**
+   * Write the plottable timelines out to CSV files.
+   */
+  public void writeTimelines() {
+    Set<String> fileNames = new HashSet<String>();
+    Set<String> cats = new HashSet<String>();
+
+    // Use category names for file names if they are unique.
+    boolean areCategoriesUnique = true;
+    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+      Object o = e.getKey();
+      String cat = categories.get( o );
+      if ( cat != null ) {
+        if ( cats.contains( cat ) ) {
+          areCategoriesUnique = false;
+          break;
+        }
+      }
+    }
+    // Find a unique file name for each plottable timeline and write out to file.
+    int ct = 0;
+    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+      Object o = e.getKey();
+      // unwrap the timeline if stuffed in a parameter
+      String name = null; 
+      if ( o instanceof Parameter ) {
+        name = ((Parameter<?>)o).getName(); 
+        o = ((Parameter<?>)o).getValueNoPropagate();
+      }
+      if ( o instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tv = (TimeVaryingMap< ? >)o;
+        String fileName = null;
+        
+        // get the name if not already gotten from the parameter
+        boolean gotName = !Utils.isNullOrEmpty( name );
+        if ( !gotName ) name = tv.getName();
+        gotName = !Utils.isNullOrEmpty( name );
+
+        // use the category if unique
+        String cat = categories.get(o);
+        boolean gotCat = !Utils.isNullOrEmpty( cat );
+        if ( areCategoriesUnique && gotCat ) {
+          fileName = cat + ".csv";
+        } else {
+          // if the categories are not unique, use the timeline name appended to the category.
+          fileName = (gotCat ? cat + "_" : "")+ (gotName ? name : "") + ".csv";
+          if ( !gotCat && !gotName ) {
+            fileName = "TL_" + o.hashCode() + ".csv";
+          }
+        }
+        // If the file name is somehow not unique, number it.
+        if ( fileNames.contains( fileName ) ) {
+          fileName = fileName.replaceFirst( ".csv$", String.format( "%03d", ct ) + ".csv" );
+          // If the file name is still somehow not unique, throw an error, give up, and move on to the next.
+          if ( fileNames.contains( fileName ) ) {
+            Debug.error( true, false, "Duplicate output timeline csv file name! " + fileName );
+            continue;
+          }
+        }
+        // remember the name 
+        fileNames.add( fileName );
+        
+        // get the path where the output will be stored
+        String path = Utils.isNullOrEmpty( csvDir ) ? "." : csvDir ;
+        File p = new File(path);
+        if ( !p.exists() ) {
+          boolean succ = p.mkdirs();
+          if (!succ) path = ".";
+        }
+        String pathAndFile = path + File.separator + fileName;
+        
+        // write to file
+        String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSS";//TimeUtils.aspenTeeFormat;
+        Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "UTC" ) );
+        tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
+      }
+    }
+  }
   
   // Returns whether the event was added properly. If the event was not added or
   // its start or stop were already added, the function returns false.
@@ -320,6 +406,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   }
   
   public void simulate( double scale, java.io.OutputStream os ) {
+    if ( writingTimelinesToFile) {
+      writeTimelines();
+    }
+    
+    
     this.timeScale = scale;
     PrintWriter w = new PrintWriter( os, true );
     //long startClock = -1;
