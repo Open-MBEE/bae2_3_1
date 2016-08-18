@@ -2605,10 +2605,13 @@ public class Functions {
       if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
         b = ((Parameter<?>)r2).valueEquals( r1 );
       } else {
-        try {
-          b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
-        } catch ( Throwable t ) { 
-          b = false;
+        if ( r2 == null ) b = false;
+        else {
+          try {
+            b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
+          } catch ( Throwable t ) { 
+            b = false;
+          }
         }
       }
     } else {

@@ -233,7 +233,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         }
         // If the file name is somehow not unique, number it.
         if ( fileNames.contains( fileName ) ) {
-          fileName = fileName.replaceFirst( ".csv$", String.format( "%03d", ct ) + ".csv" );
+          fileName = fileName.replaceFirst( ".csv$", String.format( "%03d", ct++ ) + ".csv" );
           // If the file name is still somehow not unique, throw an error, give up, and move on to the next.
           if ( fileNames.contains( fileName ) ) {
             Debug.error( true, false, "Duplicate output timeline csv file name! " + fileName );
@@ -329,8 +329,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //    boolean first = true;
     for ( Map.Entry< Parameter<Integer>, V > e : tv.entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
-        System.err.println( "Warning: adding time varying map entry with null time key "
-                            + " to simulation " + e );
+        System.err.println( "Warning: adding entry, " + e
+                            + ", of time varying map, " + tv.getName()
+                            + ", with null time key to simulation!" );
         continue;
       }
 //      if ( first ) first = false;

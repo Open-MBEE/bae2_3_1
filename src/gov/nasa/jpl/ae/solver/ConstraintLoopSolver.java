@@ -87,7 +87,7 @@ public class ConstraintLoopSolver implements Solver {
         }
       }
       for ( Integer j : deleteList ) {
-        unsatisfiedConstraints.remove( j );
+        unsatisfiedConstraints.remove( j.intValue() );
       }
       numConstrs = unsatisfiedConstraints.size();
       boolean progress = numConstrs < lastSize;
