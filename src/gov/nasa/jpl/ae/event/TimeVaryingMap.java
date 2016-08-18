@@ -295,6 +295,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   }
 
+  public static boolean before( Parameter< Integer > o1, Parameter< Integer > o2 ) {
+    int c = compareTo( o1, o2 );
+    return c < 0;
+  }
+  public static boolean after( Parameter< Integer > o1, Parameter< Integer > o2 ) {
+    int c = compareTo( o1, o2 );
+    return c > 0;
+  }
   public static int compareTo( Parameter< Integer > o1, Parameter< Integer > o2 ) {
     return TimeComparator.instance.compare( o1, o2 );
   }
@@ -2291,7 +2299,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( compareTo( toKey, fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       boolean same = toKey.equals(fromKey);  // include the key if same
@@ -2360,10 +2368,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( compareTo( toKey, fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
-      if ( compareTo( toKey, fromKey) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, same );
     }
     boolean succeededSomewhere = false;
@@ -2436,7 +2444,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( compareTo( toKey, fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
@@ -2520,7 +2528,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( compareTo( toKey, fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
@@ -2636,7 +2644,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( compareTo( toKey, fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
