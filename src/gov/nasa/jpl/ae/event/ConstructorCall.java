@@ -2,6 +2,8 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -330,6 +332,16 @@ public class ConstructorCall extends Call {
     }
     return returnValue; //newObject;
   }
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#calculateDomain(boolean, java.util.Set)
+   */
+  @Override
+  public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
+    assert(false); // Must be overridden!
+    return null;
+  }
+
   
 //  @Override
 //  public boolean isStale() {

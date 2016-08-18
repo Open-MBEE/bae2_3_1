@@ -899,4 +899,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return ClassUtils.parameterPartOfName( className, false );
   }
 
+  @Override
+  public < T > Domain< ? > restrictDomain( Domain< T > domain,
+                                           boolean propagate,
+                                           Set< HasDomain > seen ) {
+    this.domain.restrictTo( domain );
+    return this.domain;
+  }
+
 }

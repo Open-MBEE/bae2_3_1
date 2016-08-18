@@ -24,4 +24,6 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
   public void setDefaultDomain( Domain< T > domain );
 
   public void restrictToValue( T v );
+
+  public <TT> void restrictTo( Domain< TT > domain );
 }

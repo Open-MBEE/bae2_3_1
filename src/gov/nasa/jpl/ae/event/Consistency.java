@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import gov.nasa.jpl.ae.solver.BooleanDomain;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -36,10 +37,15 @@ public class Consistency {
     while ( ct < maxCount ) {
       boolean restrictedSomething = false;
       for ( Constraint c : constraints ) {
-        Set< Variable< ? > > vars = c.getVariables();
-        for ( Variable< ? > v : vars ) {
-          boolean b = c.restrictDomain( v );
-          restrictedSomething = restrictedSomething || b;
+        if ( c instanceof ConstraintExpression ) {
+          ConstraintExpression cx = (ConstraintExpression)c;
+          cx.restrictDomain( BooleanDomain.trueDomain, true, null );
+        } else {
+          Set< Variable< ? > > vars = c.getVariables();
+          for ( Variable< ? > v : vars ) {
+            boolean b = c.restrictDomain( v );
+            restrictedSomething = restrictedSomething || b;
+          }
         }
       }
       if ( !restrictedSomething ) {

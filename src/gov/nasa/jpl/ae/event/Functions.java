@@ -1856,27 +1856,62 @@ public class Functions {
       // functionCall.
       setMonotonic( true );
     }
-    //    @Override
-//    public < T1 > T1 pickValue( Variable< T1 > variable ) {
-//      Vector< Object > args = this.//functionCall.
-//                                   getArguments();
-//      if ( args.size() < 2 ) return null;
-//      Object arg1 = args.get( 0 );
-//      Object arg2 = args.get( 1 );
-//      Expression< T1 > o1 = null;
-//      Expression< T1 > o2 = null;
-//      if ( arg1 instanceof Expression ) {
-//        o1 = (Expression< T1 >)arg1;
-//      }
-//      if ( arg2 instanceof Expression ) {
-//        o2 = (Expression< T1 >)arg2;
-//      }
-//      if ( o1 == null && variable == null && o2 ) return Functions.pickGreaterThan( Comparable<T1>) o2 );
-//      if ( args.get( 0 ).equals( variable ) ) {
-//        return Functions.pickLessThanOrEqual( o1, o2 );
-//      }
-//      return pickValueBB(this, variable, getClass().getMethod( "pickGreaterThan", parameterTypes ) );
-//    }
+    
+    /* (non-Javadoc)
+     * @see gov.nasa.jpl.ae.event.FunctionCall#calculateDomain(boolean, java.util.Set)
+     */
+    @Override
+    public Domain< ? > calculateDomain( boolean propagate,
+                                        Set< HasDomain > seen ) {
+      // TODO Auto-generated method stub
+      return super.calculateDomain( propagate, seen );
+    }
+
+    /* (non-Javadoc)
+     * @see gov.nasa.jpl.ae.event.Call#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
+     */
+    @Override
+    public < TT > Domain< TT > restrictDomain( Domain< TT > domain,
+                                             boolean propagate,
+                                             Set< HasDomain > seen ) {
+      if ( domain.size() == 1 ) {
+        Object v = domain.getValue( propagate );
+        if ( v instanceof Boolean ) {
+          restrictDomains(((Boolean)v) == Boolean.TRUE);
+        }
+      }
+      return (Domain< TT >)getDomain(propagate, null);
+    }
+    
+    // REVIEW -- This seems out of place.  Does something else do this?
+    public boolean restrictDomains( boolean targetResult ) {
+      if ( arguments.size() < 2 ) return false;
+      Expression< T > e1 = (Expression< T >)arguments.get( 0 );
+      Expression< T > e2 = (Expression< T >)arguments.get( 1 );
+      Domain< T > d1 = e1.getDomain( false, null );
+      Domain< T > d2 = e2.getDomain( false, null );
+      boolean changed = false;
+      if ( d1 instanceof AbstractRangeDomain && d2 instanceof AbstractRangeDomain ) {
+        AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
+        AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
+        if ( targetResult == true ) {
+          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+            ard1.setLowerBound( ard2.getLowerBound() );
+            ard1.excludeLowerBound();
+            changed = true;
+          }
+          if ( ard2.greater( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+            ard2.setUpperBound( ard1.getUpperBound() );
+            ard2.excludeUpperBound();
+            changed = true;
+          }
+        } else {
+          // TODO
+        }
+      }
+      return changed;
+    }
+
   }
 
   public static class Greater< T extends Comparable< ? super T > > extends
@@ -1891,29 +1926,6 @@ public class Functions {
       setMonotonic( true );
     }
 
-    // REVIEW -- This seems out of place.  Does something else do this?
-    public boolean restrictDomains( boolean targetResult ) {
-      if ( arguments.size() < 2 ) return false;
-      Expression< T > e1 = (Expression< T >)arguments.get( 0 );
-      Expression< T > e2 = (Expression< T >)arguments.get( 1 );
-      Domain< T > d1 = e1.getDomain( false, null );
-      Domain< T > d2 = e2.getDomain( false, null );
-      if ( d1 instanceof AbstractRangeDomain && d1 instanceof AbstractRangeDomain ) {
-        AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
-        AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
-        if ( targetResult == true ) {
-          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
-            ard1.setLowerBound( ard2.getLowerBound() );
-            ard1.excludeLowerBound();
-          }
-          if ( ard2.greater( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
-            ard2.setUpperBound( ard1.getUpperBound() );
-            ard2.excludeUpperBound();
-          }
-        }
-      }
-      return false;
-    }
   }
 
   public static class GTE< T extends Comparable< ? super T > > extends BooleanBinary< T > {

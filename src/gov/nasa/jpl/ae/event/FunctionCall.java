@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -21,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -421,6 +424,15 @@ public class FunctionCall extends Call {
     return returnType;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#calculateDomain(boolean, java.util.Set)
+   */
+  @Override
+  public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
+    assert(false); // Must be overridden!
+    return null;
+  }
+  
   /**
    * A deep search looking for FunctionCalls
    */

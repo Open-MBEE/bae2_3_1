@@ -817,6 +817,74 @@ public class Expression< ResultType > extends HasIdImpl
     }
   }
 
+  // REVIEW -- Should Expression remember its domain?  No, if anything the FunctionCall (wrapped by the Expression) should remember.
+  @Override
+  public <T> Domain< T > restrictDomain( Domain< T > domain, boolean propagate,
+                                         Set< HasDomain > seen ) {
+    // check for bad input
+    if ( domain == null ) return null;
+    
+    // avoid infinite recursion
+    Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
+    if ( pair.first ) return null;
+    seen = pair.second;
+
+    // If the expression is null, check to see if null is in the domain.
+    if ( expression == null ) {
+      if ( domain.contains( null ) ) {
+        return domain;  // TODO -- should really return the intersection of the input domain with getDomain() 
+      } else {
+        return null;
+      }
+    }
+
+    switch (form) {
+    case Value:
+      // If the expression is a value, then the value must be in the input domain.
+      Throwable throwable = null;
+      try {
+        if ( !domain.contains( (T)evaluate(expression, domain.getType(), true ) ) ) {
+          expression = null; // REVIEW -- Do we really want to set it to null?
+          return null;
+        }
+      } catch (ClassCastException e) {
+        throwable = e;
+      } catch ( IllegalAccessException e ) {
+        throwable = e;
+      } catch ( InvocationTargetException e ) {
+        throwable = e;
+      } catch ( InstantiationException e ) {
+        throwable = e;
+      } finally {
+        if ( throwable != null ) {
+          T t = domain.getValue( true );
+          if ( !valuesEqual( t, expression ) ) {
+            expression = null; // REVIEW -- Do we really want to set it to null?
+            return null;
+          }
+        }
+      }
+    case Parameter:
+      return (Domain< T >)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
+    case Function:
+    case Constructor:
+      return ((FunctionCall)expression).restrictDomain( domain, propagate, seen );
+    case None:
+    default:
+      Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
+      return null;
+    }
+  }
+
+
+  
   @Override
   public Set< TimeVarying< ? >>
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {

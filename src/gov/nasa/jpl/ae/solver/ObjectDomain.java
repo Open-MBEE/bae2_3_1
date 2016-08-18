@@ -202,4 +202,13 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     add( v );
   }
 
+  @Override
+  public < TT > void restrictTo( Domain< TT > domain ) {
+    if ( domain instanceof SingleValueDomain ) {
+      this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+    } else {
+      // TODO???
+    }
+  }
+
 }

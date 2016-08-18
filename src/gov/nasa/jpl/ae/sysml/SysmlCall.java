@@ -5,8 +5,11 @@ package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
+import java.util.Set;
 
 import gov.nasa.jpl.ae.event.Call;
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
 
 /**
  * @author bclement
@@ -86,6 +89,13 @@ public class SysmlCall extends Call {
    */
   @Override
   public Call clone() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Domain< ? > calculateDomain( boolean propagate,
+                                      Set< HasDomain > seen ) {
     // TODO Auto-generated method stub
     return null;
   }

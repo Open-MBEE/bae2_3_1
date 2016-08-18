@@ -163,4 +163,15 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
     this.value = value;
   }
 
+  @Override
+  public <TT> void restrictTo( Domain< TT > domain ) {
+    try {
+      if ( !domain.contains( (TT)value ) ) {
+        value = null;  // REVIEW -- Do we want to do this??!!
+      }
+    } catch ( ClassCastException e ) {
+      value = null;  // REVIEW -- Do we want to do this??!!
+    }
+  }
+
 }

@@ -43,6 +43,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   /**
    * A function call on the result of this function call.
    */
+  protected Domain<?> domain = null;
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
   protected Class<?> returnType = null;
@@ -1241,16 +1242,30 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
   }
 
-  
+
+  abstract public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen );
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.HasDomain#getDomain(boolean, java.util.Set)
    */
   @Override
   public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-    // TODO Auto-generated method stub
-    return null;
+    if ( domain == null ) {
+      domain = calculateDomain(propagate, seen);
+    }
+    return domain;
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasDomain#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
+   */
+  @Override
+  public <T> Domain< T > restrictDomain( Domain< T > domain, boolean propagate,
+                                         Set< HasDomain > seen ) {
+    this.domain.restrictTo(domain);
+    return domain;
+  }
+
   // The following code was re-factored from MethodCall:
   /**
    * @param objects

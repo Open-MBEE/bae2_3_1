@@ -442,6 +442,20 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return this.size() != 0;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.Domain#restrictTo(gov.nasa.jpl.ae.solver.Domain)
+   */
+  @Override
+  public < TT > void restrictTo( Domain< TT > domain ) {
+    if ( domain instanceof AbstractRangeDomain ) {
+      intersectRestrict( (AbstractRangeDomain< T >)domain );
+    } else if ( domain instanceof SingleValueDomain ) {
+      this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+    } else {
+      // TODO???
+    }
+  }
+
   @Override
   public boolean excludeLowerBound() {
     lowerIncluded = false;

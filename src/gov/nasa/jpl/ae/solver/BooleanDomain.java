@@ -11,7 +11,9 @@ import gov.nasa.jpl.mbee.util.Random;
  */
 public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 
-	public static BooleanDomain defaultDomain = new BooleanDomain();
+	public static final BooleanDomain trueDomain = new BooleanDomain(true, true);
+  public static final BooleanDomain falseDomain = new BooleanDomain(false, false);
+  public static BooleanDomain defaultDomain = new BooleanDomain();
 	
 //  protected boolean lowerBound = false;
 //  protected boolean upperBound = true;
