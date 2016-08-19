@@ -22,6 +22,7 @@ import japa.parser.ast.expr.ArrayCreationExpr;
 import japa.parser.ast.expr.AssignExpr;
 import japa.parser.ast.expr.BinaryExpr;
 import japa.parser.ast.expr.BooleanLiteralExpr;
+import japa.parser.ast.expr.CastExpr;
 import japa.parser.ast.expr.CharLiteralExpr;
 import japa.parser.ast.expr.ClassExpr;
 import japa.parser.ast.expr.ConditionalExpr;
@@ -684,6 +685,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             astToAeExpr( ( (EnclosedExpr)expr ).getInner(), type,
                          convertFcnCallArgsToExprs, lookOutsideClassDataForTypes,
                          complainIfDeclNotFound);
+    /*** CastExpr ***/
+    } else if ( expr.getClass() == CastExpr.class ) {
+      CastExpr ce = (CastExpr)expr;
+      middle =
+          astToAeExpr( ce.getExpr(), type,
+                             convertFcnCallArgsToExprs, lookOutsideClassDataForTypes,
+                                 complainIfDeclNotFound);
     /*** NameExpr ***/
     } else if ( expr.getClass() == NameExpr.class ) {
       middle = nameExprToAe( (NameExpr)expr, true, evaluateCall, false, true );
@@ -976,6 +984,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                                    ? o
                                                    : new gov.nasa.jpl.ae.event.Expression( o ) );
           //return aeExpr;
+      /*** CastExpr ***/
+      } else if ( expr.getClass() == CastExpr.class ) {
+        CastExpr ce = (CastExpr)expr;
+        Object o =
+            astToAeExpression( ce.getExpr(), type,
+                               convertFcnCallArgsToExprs, lookOutsideClassDataForTypes,
+                               complainIfDeclNotFound);
+        aeExpr =
+            (gov.nasa.jpl.ae.event.Expression< ? >)( ( o instanceof gov.nasa.jpl.ae.event.Expression )
+                                                 ? o
+                                                 : new gov.nasa.jpl.ae.event.Expression( o ) );
       /*** NameExpr ***/
       } else if ( expr.getClass() == NameExpr.class ) {
         aeExpr = nameExprToAeExpression( (NameExpr)expr, true, evaluateCall, false, true, false );
@@ -1243,6 +1262,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                        + "; ok for MethodCallExpr!" );
           complainIfNotFound = false;
         }
+      } else if ( expr.getClass() == CastExpr.class ) {
+        CastExpr ce = (CastExpr)expr;
+        if ( ce.getType() != null ) {
+          result = "" + ce.getType();
+        }
       } else if ( expr.getClass() == NameExpr.class ) {
         name = ( (NameExpr)expr ).getName();
   /*      // HACK? to avoid errors for package name prefix.  What about org?
@@ -1337,7 +1361,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         }
       }
       
-      if ( complainIfNotFound && Utils.isNullOrEmpty( result ) )
+      if ( complainIfNotFound && (result == null || result.length() <= 0) )
         Debug.errorOnNull( "Error! null type for expression " + expr + "!", result );
       if ( Debug.isOn() ) Debug.outln( "astToAeExprType(" + expr + ") = " + result );
       // Nested type cannot be referenced by its binary name.
@@ -1952,12 +1976,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       //ClassData.Param p = classData.lookupCurrentClassMember( aeString, false, false );
       //if ( p == null ) 
       ClassData.Param p = getClassData().getParam( null, aeString, true, true,
-                                                   addIfNotFound, complainIfNotFound );
+                                                   addIfNotFound, false );
       Parameter< T > parameter =
           (Parameter< T >)( p == null ? null : getClassData().getParameterMap().get( p ) );
 
       // REVIEW -- Why not check for things other than a member?
       if ( parameter == null ) {
+        
+        Class<?> cls = ClassUtils.getClassForName( aeString, null, (String)null, true );
+        if ( cls != null ) {
+          return new gov.nasa.jpl.ae.event.Expression< T >(cls);
+        }
+        if ( complainIfNotFound ) {
+          Debug.error( true, "Could not find a parameter or class for name expression \"" + aeString + "\"." );
+        }
+        
         return null;
       }
 

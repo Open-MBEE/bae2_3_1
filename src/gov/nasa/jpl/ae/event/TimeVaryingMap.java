@@ -2359,11 +2359,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     
     boolean same = toKey == fromKey;  // include the key if same
-    fromKey = putKey( fromKey, false );
+    boolean insertedFromKey = false;
+    boolean insertedToKey = false;
+    if ( !containsKey( fromKey ) ) {
+      fromKey = putKey( fromKey, false );
+      insertedFromKey = true;
+    }
     if ( same ) {
       toKey = fromKey;
     } else {
-      toKey = putKey( toKey, false );
+      if ( !containsKey( toKey ) ) {
+        toKey = putKey( toKey, false );
+        insertedToKey = true;
+      }
     }
     Map< Parameter< Integer >, V > map = null;
     if ( toKey == null ) {
@@ -2409,6 +2417,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         lastIntegralValue = integralValue;
       }
       ePrev = e;
+    }
+    if ( insertedFromKey ) {
+      remove(fromKey);
+    }
+    if ( insertedToKey ) {
+      remove(toKey);
     }
     //if (succeededSomewhere) appliedSet.add(  )
     return tvm;
