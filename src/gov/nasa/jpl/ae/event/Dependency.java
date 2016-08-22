@@ -536,8 +536,7 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( hasParameter( parameter, true, null )
-         && this.parameter != parameter ) {
+    if ( this.parameter != parameter && hasParameter( parameter, false, null ) ) {
       apply( true );
     }
   }

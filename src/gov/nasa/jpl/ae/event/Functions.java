@@ -2964,7 +2964,7 @@ public class Functions {
     } catch ( Throwable e ) {
       // ignore
     }
-    if ( n != null ) return tv.divide( n );
+    if ( n != null ) return tv.dividedBy( n );
     TimeVaryingMap< ? extends Number > tvm = null;
     try {
         tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
