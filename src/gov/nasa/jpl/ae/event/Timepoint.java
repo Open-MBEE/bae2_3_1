@@ -12,6 +12,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 
 /**
@@ -211,19 +212,30 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   // Converts time offset to a date-time String in Timepoint.timestamp format.
   // Assumes t is an offset from Timepoint.epoch in Timepoint.units. 
   public static String toTimestamp( long t ) {
-    Calendar cal = Calendar.getInstance();
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ) );
     return toTimestamp(t, TimeUtils.timestampFormat, cal);
   }
   public static String toTimestamp( long t, String dateFormat, Calendar cal) {
     double cf = conversionFactor( Units.milliseconds );
-    cal.setTimeInMillis( (long)( Timepoint.getEpoch().getTime() + t * cf  ) );
+    cal.setTimeInMillis( (long)( Timepoint.getEpoch().getTime() + (t * cf)  ) );
+    //DateFormat df = new Da
+    SimpleDateFormat sdf = new SimpleDateFormat( dateFormat ); 
+    sdf.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
     String timeString =
-        new SimpleDateFormat( dateFormat ).format( cal.getTime() );
+        sdf.format( cal.getTime() );
     return timeString;
   }
 
+  public String toTimestamp( String dateFormat, Calendar cal) {
+    Integer val = getValue(false);
+    if ( val == null ) return null;
+    return toTimestamp( val, dateFormat, cal );
+  }
+  
   public String toTimestamp() {
-    return toTimestamp( getValue(false) );
+    Integer val = getValue(false);
+    if ( val == null ) return null;
+    return toTimestamp( val );
 //    Double cf = Units.conversionFactor( Units.milliseconds );
 //    return millisToTimestamp( (long)( getValue() * cf ) );
 ////    Calendar cal = Calendar.getInstance();
@@ -345,5 +357,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     return i;
   }
 
-
+  public static void main( String[] args ) {
+    //Double jdDouble = 
+  }
+  
 }
