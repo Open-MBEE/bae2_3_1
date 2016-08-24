@@ -7,6 +7,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.ae.util.SimulatedTime;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.SocketClient;
 import gov.nasa.jpl.mbee.util.TimeUtils;
@@ -24,9 +25,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -141,6 +144,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   double timeScale;
   
+  Set<Event> events = new LinkedHashSet<Event>();
   Map< Object, Object > currentPlottableValues =
       new TreeMap< Object, Object >( new CompareUtils.GenericComparator< Object >() );
   Map< Object, String > categories = new HashMap< Object, String >();
@@ -180,6 +184,54 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   
   // Methods
   
+  /**
+   * Write the Events out to CSV files.
+   */
+  public void writeEvents() {
+    Map< String, Set< Event > > eventCategories =
+        new LinkedHashMap< String, Set< Event > >();
+    for ( Event event : events ) {
+      if ( event == null ) continue;
+      String name = event.getClass().getSimpleName();
+      Utils.add( eventCategories, name, event );
+    }
+    
+    // get the path where the output will be stored
+    String path = Utils.isNullOrEmpty( csvDir ) ? "." : csvDir ;
+    File p = new File(path);
+    if ( !p.exists() ) {
+      boolean succ = p.mkdirs();
+      if (!succ) path = ".";
+    }
+
+    // write to file
+    String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSS";//TimeUtils.aspenTeeFormat;
+    Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "UTC" ) );
+    for ( String name : eventCategories.keySet() ) {
+      String fileName = name + ".activities.csv";
+      String pathAndFile = path + File.separator + fileName;
+      StringBuffer sb = new StringBuffer();
+      sb.append("Tstart Assigned,Activity Name,Tend Assigned,,,,,,,,,,");
+      for ( Event event : eventCategories.get( name ) ) {
+        String eventName = event.getName();
+        if ( Utils.isNullOrEmpty( eventName ) ) {
+          eventName = event.getClass().getSimpleName();
+        }
+        Timepoint startTime = event.getStartTime();
+        if ( startTime == null || startTime.getValueNoPropagate() == null ) continue;
+        String startDate = startTime.toTimestamp( dateFormat, cal );
+        if ( startDate == null ) continue;
+        Timepoint endTime = event.getEndTime();
+        if ( endTime == null || endTime.getValueNoPropagate() == null ) continue;
+        String endDate = endTime.toTimestamp( dateFormat, cal );
+        if ( endDate == null ) continue;
+        // Don't want to end the file with a newline because of a bug in TMS/MPSWeb.
+        sb.append("\n" + startDate + "," + name + "," + endDate + ",,,,,,,,,,");
+      }
+      FileUtils.stringToFile( sb.toString(), pathAndFile );
+    }
+    
+  }
   
   /**
    * Write the plottable timelines out to CSV files.
@@ -253,8 +305,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         String pathAndFile = path + File.separator + fileName;
         
         // write to file
-        String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSS";//TimeUtils.aspenTeeFormat;
-        Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "UTC" ) );
+        String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";//TimeUtils.aspenTeeFormat;
+        Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
         tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
       }
     }
@@ -270,6 +322,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Assert.fail("Tried to add null event to simulation.");
       return false;
     }
+    
+    events.add( event );
     
     boolean ungroundedTiming =
         ( event.getStartTime() == null
@@ -408,6 +462,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   
   public void simulate( double scale, java.io.OutputStream os ) {
     if ( writingTimelinesToFile) {
+      writeEvents();
       writeTimelines();
     }
     
