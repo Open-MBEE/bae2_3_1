@@ -255,6 +255,29 @@ public class Functions {
                                                                             Expression.class ) );
       return argExprs;
     }
+    
+    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+      FunctionCall inverse = inverse( returnValue, argument );
+      if ( inverse == null ) return null;
+      return inverse.getDomain( false, null );
+    }
+    
+    @Override
+    public < T > Domain< T > restrictDomain( Domain< T > domain,
+                                             boolean propagate,
+                                             Set< HasDomain > seen ) {
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+        HasDomain hd1 = (HasDomain)o1;
+        HasDomain hd2 = (HasDomain)o2;
+        Domain d1 = inverseDomain( domain, o1 );
+        Domain d2 = inverseDomain( domain, o2 );
+        hd1.restrictDomain( d1, propagate, seen );
+        hd2.restrictDomain( d2, propagate, seen );  
+      }
+      return (Domain< T >)getDomain(propagate, seen );
+    }
   }
 
   public static class BooleanBinary< T > extends Binary< T, Boolean >
@@ -651,6 +674,23 @@ public class Functions {
     }
     public Plus( Object o1, Object c ) {
       super( o1, c );
+    }
+    
+    @Override
+    public < T > Domain< T > restrictDomain( Domain< T > domain,
+                                             boolean propagate,
+                                             Set< HasDomain > seen ) {
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+        HasDomain hd1 = (HasDomain)o1;
+        HasDomain hd2 = (HasDomain)o2;
+        Domain d1 = inverseDomain( domain, o1 );
+        Domain d2 = inverseDomain( domain, o2 );
+        hd1.restrictDomain( d1, propagate, seen );
+        hd2.restrictDomain( d2, propagate, seen );  
+      }
+      return (Domain< T >)getDomain(propagate, seen );
     }
   }
 
@@ -1629,6 +1669,24 @@ public class Functions {
     public EQ( Object o1, Object o2 ) {
       super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
     }
+    
+    @Override
+    public < T > Domain< T > restrictDomain( Domain< T > domain,
+                                             boolean propagate,
+                                             Set< HasDomain > seen ) {
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+        HasDomain hd1 = (HasDomain)o1;
+        HasDomain hd2 = (HasDomain)o2;
+        Domain d1 = hd1.getDomain( propagate, seen );
+        Domain d2 = hd2.getDomain( propagate, seen );
+        d1.restrictTo( d2 );
+        d2.restrictTo( d1 );     
+      }
+      return (Domain< T >)getDomain(propagate, seen );
+    }
+    
     
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {

@@ -83,20 +83,18 @@ public class DomainHelper {
         if ( objDomain instanceof RangeDomain ) {
           Object odlb = ( (RangeDomain< ? >)objDomain ).getLowerBound();
           Object odub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
-          if ( lb == null ) {
+          if ( lb == null && ub == null ) {
             lb = odlb;
+            ub = odub;
           } else {
             List< Object > list = Arrays.asList( new Object[] { odlb, lb } );
             fCall.setArguments( new Vector< Object >( list ) );
             try {
               lb = fCall.evaluate( true );
-              if ( ub == null ) {
-                ub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
-              } else {
-                list = Arrays.asList( new Object[] { odub, ub } );
-                fCall.setArguments( new Vector< Object >( list ) );
-                ub = fCall.evaluate( true );
-              }
+              list = Arrays.asList( new Object[] {odub, ub} );
+              fCall.setArguments( new Vector< Object >( list ) );
+              ub = fCall.evaluate( true );
+
             } catch ( IllegalAccessException e ) {
               // TODO Auto-generated catch block
               //e.printStackTrace();

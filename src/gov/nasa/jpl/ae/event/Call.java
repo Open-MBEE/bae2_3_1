@@ -1262,7 +1262,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public <T> Domain< T > restrictDomain( Domain< T > domain, boolean propagate,
                                          Set< HasDomain > seen ) {
-    this.domain.restrictTo(domain);
+    this.getDomain(propagate, seen).restrictTo(domain);
     return domain;
   }
 
