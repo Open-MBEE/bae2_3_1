@@ -1624,10 +1624,10 @@ public class Functions {
                         extends BooleanBinary< T > {
     
     public EQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToForward");
     }
     public EQ( Object o1, Object o2 ) {
-      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
+      super( o1, o2, "equals", "pickEqualToForward", "pickEqualToForward");
     }
     
     @Override
@@ -1721,10 +1721,10 @@ public class Functions {
   public static class NEQ< T > 
                         extends BooleanBinary< T > {
     public NEQ( Expression< T > o1, Expression< T > o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToForward");
     }
     public NEQ( Object o1, Object o2 ) {
-      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToReverse");
+      super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToForward");
     }
 
 //    @Override

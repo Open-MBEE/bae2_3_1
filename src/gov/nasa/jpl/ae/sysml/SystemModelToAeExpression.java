@@ -852,107 +852,86 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                                               "expression" );
                 Collection<P> opParamProps = model.getProperty( (C)valueOfElementNode, 
                                                                "parameters" );
+                P postcond = getPostconditionFromOperation( valueOfElementNode );
                 
-                // If the Operation has no expression then 
-                // make a Call for it:
-                //if (Utils.isNullOrEmpty( opExpProps )) {
+                Vector<Object> opEmptyArgs = new Vector<Object>();
+
+                // If it has parameter make a empty arg
+                // for each parameter:
+                if (!Utils.isNullOrEmpty( opParamProps )) {
+                  //for (int i = 0; i < opParamProps.size(); ++i) {
+                  for ( P p : opParamProps ) {
+                    N name = model.getName( (C)p );
+                    // Make sure not to add the result parameter of the postcondition. 
                     
-                    Vector<Object> opEmptyArgs = new Vector<Object>();
-    
-                    // If it has parameter make a empty arg
-                    // for each parameter:
-                    if (!Utils.isNullOrEmpty( opParamProps )) {
-                        
-                        for (int i = 0; i < opParamProps.size(); ++i) {
-                            opEmptyArgs.add( new Expression< Object >( (Object)null ) );//new Object() ) );
-                        }
+                    if ( postcond == null || !"result".equals( name ) ) { 
+                      opEmptyArgs.add( new Expression< Object >( (Object)null ) );//new Object() ) );
+                    } else {
+                      
+                      // p should be the result parameter. Use it to set the return type
+                      // if it's null.
+                      if ( returnType == null ) {
+                        Collection< P > c = model.getProperty((C)p, "parameterType");
+                        if ( !Utils.isNullOrEmpty( c ) ) {
+                          P pType = c.iterator().next();
+                          if ( pType instanceof String ) {
+                            Class<?> cls = null;
+                            try {
+                              cls = ClassUtils.classForName( (String)pType );
+                            } catch ( ClassNotFoundException e ) {
+                            }
+                            if ( cls != null ) {
+                              returnType = cls;
+                            }
+                          }
+                        } 
+                      }
+                      
                     }
+                  }
+                }
 
 //                    opEmptyArgs.add( returnType );
                     
-                    // The object from which the operation is invoked.
-                    Object object = null;
-                    
-                    // 
-                    Call argCall;
-                    
-                    // If an expression is defined for the operation, we wrap the invocation
-                    // of the operation in a Java method call, that we later wrap as a
-                    // FunctionCall.
-                    if (!Utils.isNullOrEmpty( opExpProps )) {
-                      EvaluateOperation evo =
-                          new EvaluateOperation( valueOfElementNode, returnType );
-                      object = this;
-                      operationName = (N)"evaluate";
-                      Vector<Object> newArgs = new Vector< Object >();
-                      newArgs.add( evo );
-                      newArgs.add( opEmptyArgs );//.toArray() );
-                      newArgs.add( returnType );
-                      opEmptyArgs = newArgs;
-                      //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
-                      //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
-                      ////call = new OperationFunctionCall( object, arguments );
-                      argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs, returnType);//OperationFunctionCall.class );  // TODO not sure about returnType here
+                // The object from which the operation is invoked.
+                Object object = null;
+                
+                Call argCall;
+                
+                // If an expression is defined for the operation, we wrap the invocation
+                // of the operation in a Java method call, that we later wrap as a
+                // FunctionCall.
+                if (!Utils.isNullOrEmpty( opExpProps ) || postcond != null) {
+                  EvaluateOperation evo =
+                      new EvaluateOperation( valueOfElementNode, returnType );
+                  object = this;
+                  operationName = (N)"evaluate";
+                  Vector<Object> newArgs = new Vector< Object >();
+                  newArgs.add( evo );
+                  newArgs.add( opEmptyArgs );//.toArray() );
+                  newArgs.add( returnType );
+                  opEmptyArgs = newArgs;
+                  //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
+                  //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
+                  ////call = new OperationFunctionCall( object, arguments );
+                  argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs, returnType);//OperationFunctionCall.class );  // TODO not sure about returnType here
 
-                    } else {
-                      // Create a Call for the argument 
-                      argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs, returnType);
-                                            
-                    }
-                    //System.out.println("*******************************************");
-                    //System.out.println("args for call=" + opEmptyArgs);
-                    //System.out.println("*******************************************");
-                    
-                    if ( argCall != null ) {
-                       
-                      // Add to the argument list:
-                      arguments.add(new Expression<Object>(argCall));
-            
-                    } // Ends if argCall != null
+                } else {
+                  // Create a Call for the argument 
+                  argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs, returnType);
+                                        
+                }
+                //System.out.println("*******************************************");
+                //System.out.println("args for call=" + opEmptyArgs);
+                //System.out.println("*******************************************");
+                
+                if ( argCall != null ) {
+                   
+                  // Add to the argument list:
+                  arguments.add(new Expression<Object>(argCall));
+        
+                } // Ends if argCall != null
                       
-//                }
-//                
-//                // TODO FIXME this is no longer correct below:
-//                // If the Operation has a expression then
-//                // use operationToAeExpression to process
-//                else {
-//                  
-//                  // Create a function call for 
-//                  //   operationToAeExpression( valueOfElementNode, opParamOps ).evaluate()
-//                  //      
-//                  EvaluateOperation evo = new EvaluateOperation< P >( valueOfElementNode );
-//                  // Create a Call for the argument 
-//                  Call argCall = createCall(null, operationName, opEmptyArgs);
-//                  
-//                  
-//                  
-//                  Debug.error("Error: dont know how to process a Operation arg with a expression!");
-//
-//                  System.out.println("This is weird!");
-////                    List<Object> parameterValues = new ArrayList<Object>();
-////                    
-////                    // If it has parameters then pass in the
-////                    // parameter values:
-////                    if (!Utils.isNullOrEmpty( opParamProps )) {
-////                        // If the argument is a Parameter (wrapped in an expression),
-////                        // then get its value:
-////                        for (Object arg : arguments) {
-////                            if (arg instanceof Expression) {
-////                                Expression<?> expr = (Expression<?>)arg;
-////                                
-////                                if (expr.form.equals(Expression.Form.Parameter)) {
-////                                    Parameter<?> param = (Parameter<?>)expr.expression;
-////                                    parameterValues.add( param.getValue() );
-////                                }
-////                            }
-////                        }
-////                    }
-////                    
-////                    arguments.add( operationToAeExpression(valueOfElementNode,
-////                                                           parameterValues));
-////                
-//                }
-            
             } // ends if operand arg
          
         }
@@ -1178,6 +1157,47 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                           expectedType );
     }
 
+    protected P getExpressionFromPostcondition( P postCond ) {
+      P sysmlExpr = null;
+      Collection< P > coll = model.getProperty((C)postCond, "expression");
+      if ( !Utils.isNullOrEmpty( coll ) ) {
+        P constrExp = coll.iterator().next();
+
+        coll = model.getProperty((C)constrExp, "operand");
+        Iterator<P> iter = coll == null ? null : coll.iterator();
+        if ( iter != null && coll.size() == 3 ) {
+          P function = iter.next();
+          P arg1 = iter.next();
+          P arg2 = iter.next();
+          N name = arg1 == null ? null : model.getName( (C)arg1 );
+          if ("result".equals( name ) ) {
+            sysmlExpr = arg2;
+          } else {
+            name = arg2 == null ? null : model.getName( (C)arg2 );
+            if ("result".equals( name ) ) {
+              sysmlExpr = arg1;
+            }
+          }
+        }
+      }
+      return sysmlExpr;
+    }
+    
+    protected P getPostconditionFromOperation( Object operation ) {
+      Collection< P > opPostConds =
+          model.getProperty( (C)operation, "postconditions" );
+      if ( !Utils.isNullOrEmpty( opPostConds ) ) {
+        if ( opPostConds.size() > 1 ) {
+          Debug.error(true, false, "WARNING! Operation has "
+                      + opPostConds.size() 
+                      + " postconditions!  Ignoring all but the first." );
+        }
+        P postCond = opPostConds.iterator().next();
+        return postCond;
+      }
+      return null;
+    }
+    
     protected <X> Expression<X> operationToAeExpressionImpl( Object operation,
                                                              Vector< Object > aeArgs,
                                                              Vector< Object > rawArgs,
@@ -1191,12 +1211,37 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       if ( operationType != null && operationType.equals( "Operation" ) ) {
         Collection< P > opExpProps =
             model.getProperty( (C)operation, "expression" );
+//        Collection< P > opPostConds =
+//            model.getProperty( (C)operation, "postconditions" );
         Collection< P > opParamProps =
             model.getProperty( (C)operation, "parameters" );
 
+        // Try to dig the expression out of the postcondition constraint.
+        P sysmlExpr = null;
+        P maybeSysmlExpr = null;
+        P postCond = getPostconditionFromOperation( operation );
+        if ( postCond != null ) {
+          // if ( !Utils.isNullOrEmpty( opPostConds ) ) {
+          // P postCond = opPostConds.iterator().next();
+          Collection< P > coll = model.getProperty((C)postCond, "expression");
+          if ( !Utils.isNullOrEmpty( coll ) ) {
+            sysmlExpr = getExpressionFromPostcondition( postCond );
+            if ( sysmlExpr == null ) {
+              P constrExp = coll.iterator().next();
+              maybeSysmlExpr = constrExp;
+            }
+          }
+        }
+        
         // Replace the parameters with the arguments.
-        if ( !Utils.isNullOrEmpty( opExpProps ) ) {
-          Expression< X > opExpression = toAeExpression( opExpProps.iterator().next(), returnType );
+        if ( sysmlExpr == null &&!Utils.isNullOrEmpty( opExpProps ) ) {
+          sysmlExpr = opExpProps.iterator().next();
+        }
+        if ( sysmlExpr == null ) {
+          sysmlExpr = maybeSysmlExpr;
+        }
+        if ( sysmlExpr != null ) {
+          Expression< X > opExpression = toAeExpression( sysmlExpr, returnType );
           if ( !Utils.isNullOrEmpty( opParamProps ) ) {
             Iterator< Object > it = aeArgs.iterator();
             // TODO -- Check to see if last Parameter is for a variable number of arguments!
