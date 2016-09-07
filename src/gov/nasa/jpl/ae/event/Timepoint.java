@@ -201,6 +201,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     Integer t = null;
     DateFormat df = new SimpleDateFormat( TimeUtils.timestampFormat );
     df.setCalendar( gmtCalendar );
+    df.setTimeZone( TimeZone.getTimeZone( "GMT" ) );;
     try {
       Date d = df.parse( timestamp );
       assert ( d != null );
@@ -223,6 +224,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
     cal.setTimeInMillis( (long)( Timepoint.getEpoch().getTime() + (t * cf)  ) );
     //DateFormat df = new Da
     SimpleDateFormat sdf = new SimpleDateFormat( dateFormat ); 
+    sdf.setCalendar( gmtCalendar );
     sdf.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
     String timeString =
         sdf.format( cal.getTime() );
