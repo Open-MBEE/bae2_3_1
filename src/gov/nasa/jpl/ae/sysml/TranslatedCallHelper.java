@@ -157,8 +157,8 @@ public class TranslatedCallHelper<P> {
         Object originalArg = originalArguments.get( i );
         Object evaluatedArg = translatedCall.getEvaluatedArguments()[ i ];
         //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
-        Class< ? > parameterType =
-            translatedCall.getParameterTypes()[ Math.min( i, translatedCall.getParameterTypes().length - 1 ) ];
+        Class< ? > parameterType = translatedCall.getParameterTypes().length == 0 ? null :
+            translatedCall.getParameterTypes()[ Math.max(0, Math.min( i, translatedCall.getParameterTypes().length - 1 ) ) ];
   
         Object newEvaluatedArg = parameterizeArgument( originalArg, evaluatedArg, parameterType );
         if ( newEvaluatedArg != null ) translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;      
