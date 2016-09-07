@@ -195,9 +195,12 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	  return d;
 	}
 	
+	public static Calendar gmtCalendar = TimeUtils.gmtCal;
+	
   public static Integer fromTimestampToInteger( String timestamp ) {
     Integer t = null;
     DateFormat df = new SimpleDateFormat( TimeUtils.timestampFormat );
+    df.setCalendar( gmtCalendar );
     try {
       Date d = df.parse( timestamp );
       assert ( d != null );
@@ -212,7 +215,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   // Converts time offset to a date-time String in Timepoint.timestamp format.
   // Assumes t is an offset from Timepoint.epoch in Timepoint.units. 
   public static String toTimestamp( long t ) {
-    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ) );
+    Calendar cal = gmtCalendar;
     return toTimestamp(t, TimeUtils.timestampFormat, cal);
   }
   public static String toTimestamp( long t, String dateFormat, Calendar cal) {

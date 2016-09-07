@@ -5019,6 +5019,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       deltaMap.put( e.getKey(), thisValue - lastValue );
       lastValue = thisValue;
     }
+    deltaMap.interpolation = NONE;
     return deltaMap;
   }
 

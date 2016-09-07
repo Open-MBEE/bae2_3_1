@@ -206,7 +206,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
     // write to file
     String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSS";//TimeUtils.aspenTeeFormat;
-    Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "UTC" ) );
+    Calendar cal = TimeUtils.gmtCal;
     for ( String name : eventCategories.keySet() ) {
       String fileName = name + ".activities.csv";
       String pathAndFile = path + File.separator + fileName;
