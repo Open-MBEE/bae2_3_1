@@ -4416,7 +4416,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
       String timeString = null;
       if ( dateFormat != null  ) {
-        if ( cal == null ) cal = Calendar.getInstance();
+        if ( cal == null ) cal = TimeUtils.gmtCal;
         if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
           continue;
         }

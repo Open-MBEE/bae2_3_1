@@ -1016,7 +1016,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       } catch ( IOException e1 ) {
         // ignore
       }
-      System.out.println( Calendar.getInstance().getTime().toString() );
+      System.out.println( TimeUtils.gmtCal.getTime().toString() );
       if ( writeSimulation( file ) ) {
         String fn = FileUtils.removeFileExtension( fileName );
         writeAspen( fn + ".mdl", fn + ".ini" );
