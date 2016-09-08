@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.magicdrawPlugin.modelQuery;
 
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.io.IOException;
@@ -137,8 +138,7 @@ public final class EmfUtils {
   public static String toTimeString(long millis, String format) {
     if (format == null)
       return null;
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+    Calendar cal = TimeUtils.gmtCal;
     cal.setTimeInMillis(millis);
     String timeString = new SimpleDateFormat(format).format(cal.getTime());
     return timeString;

@@ -195,9 +195,13 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	  return d;
 	}
 	
+	public static Calendar gmtCalendar = TimeUtils.gmtCal;
+	
   public static Integer fromTimestampToInteger( String timestamp ) {
     Integer t = null;
     DateFormat df = new SimpleDateFormat( TimeUtils.timestampFormat );
+    df.setCalendar( gmtCalendar );
+    df.setTimeZone( TimeZone.getTimeZone( "GMT" ) );;
     try {
       Date d = df.parse( timestamp );
       assert ( d != null );
@@ -212,15 +216,16 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   // Converts time offset to a date-time String in Timepoint.timestamp format.
   // Assumes t is an offset from Timepoint.epoch in Timepoint.units. 
   public static String toTimestamp( long t ) {
-    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ) );
+    Calendar cal = gmtCalendar;
     return toTimestamp(t, TimeUtils.timestampFormat, cal);
   }
   public static String toTimestamp( long t, String dateFormat, Calendar cal) {
     double cf = conversionFactor( Units.milliseconds );
-    cal.setTimeInMillis( (long)( Timepoint.getEpoch().getTime() + (t * cf)  ) );
     //DateFormat df = new Da
     SimpleDateFormat sdf = new SimpleDateFormat( dateFormat ); 
+    sdf.setCalendar( cal );
     sdf.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+    cal.setTimeInMillis( (long)( Timepoint.getEpoch().getTime() + (t * cf)  ) );
     String timeString =
         sdf.format( cal.getTime() );
     return timeString;
@@ -246,8 +251,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
   }
   
   public static int timeSinceMidnight( Date start ) {
-    Calendar c1 = Calendar.getInstance();
-    Calendar c2 = Calendar.getInstance();
+    Calendar c1 = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ));
+    Calendar c2 = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ));
     c1.setTime( start );
     c2.setTime( start );
     c2.set( Calendar.HOUR_OF_DAY, 0 );
@@ -348,7 +353,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 
 
   public static Timepoint now() {
-    return fromDate( Calendar.getInstance().getTime() );
+    return fromDate( TimeUtils.gmtCal.getTime() );
   }
 
   public static Integer julianToInteger( Double julianDate ) {
