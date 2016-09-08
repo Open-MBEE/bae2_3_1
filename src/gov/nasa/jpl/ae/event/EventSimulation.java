@@ -49,20 +49,13 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   // Constants & Types
 
   private static final long serialVersionUID = 7629618647715394322L;
-  //private static final String enthoughtPythonPath = "/Applications/OpsRevMD1702-20120818/plugins/com.nomagic.magicdraw.jpython/scripts/magicdrawPlugin:/Library/Frameworks/Python.framework/Versions/7.3/lib";
-  //private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
-  //private static final String enthoughtPythonPath = "/usr/local/epd_free-7.3-2-rh5-x86_64/";
-  //private static final String enthoughtPython = "/usr/local/epd_free-7.3-2-rh5-x86_64/bin/python";
-  public static final String homeDir = "/Users/bclement";
-  public static final String gitDir = homeDir + "/git";
-  public static final String enthoughtDir = homeDir + "/canopy";
-  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
-  //private static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
-  public static final String enthoughtPython = enthoughtDir + "/bin/python";
-  //private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
-  //private static final String enthoughtPython = "c:\\Python27\\python.exe";
-  public static final String enthoughtTempDir = "/tmp";
-  //private static final String enthoughtTempDir = "c:\\temp";
+
+  public static final String homeDir = System.getProperty("user.home");
+  public static final String gitDir = homeDir + File.separator + "git";
+  public static final String enthoughtDir = homeDir + File.separator + "canopy";
+  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin".replaceAll( "/", File.separator ) + File.pathSeparator + enthoughtDir + File.separator + "lib";
+  public static final String enthoughtPython = enthoughtDir + "/bin/python".replaceAll( "/", File.separator );
+  public static final String enthoughtTempDir = File.separator + "tmp";
 
   private static boolean writingTimelinesToFile = true;
   public static String csvDir = "data" + File.separator + "output";
