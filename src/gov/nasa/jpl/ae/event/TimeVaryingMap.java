@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -4317,6 +4316,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   public void fromStringMap( Map<String,String> map, Class<V> cls ) {
     clear();
+    SimpleTimepoint pre_tp = null;
+    V pre_value = null;
     for ( Entry<String, String> ss : map.entrySet() ) {
       Integer key = null;
       Date d = TimeUtils.dateFromTimestamp( ss.getKey() );
@@ -4332,21 +4333,39 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           }
         }
       }
-      if ( key != null && key >= 0 ) {
+      if ( key != null ) {
         
         SimpleTimepoint tp = new SimpleTimepoint( null, key, this );
         // add time-value pair if time is within the horizon.
         Integer t = tp.getValueNoPropagate();
-        if ( t == null || ( t > 0 && t < Timepoint.getHorizonDuration() ) ) {
-          V value = valueFromString( ss.getValue() );
-          setValue( tp, value );
+        if ( t != null ) 
+        {
+           if(t < 0 ) {
+             if ( pre_tp == null || tp.compareTo( pre_tp ) > 0 )
+             {
+               pre_tp = tp;
+               pre_value = valueFromString( ss.getValue() );
+             }
+           }
+           else if ( t < Timepoint.getHorizonDuration() ) {
+               V value = valueFromString( ss.getValue() );
+               setValue( tp, value );
+           }
         }
+      }
+    }
+    if( pre_tp != null )
+    {
+      if( getValue(0) == null )
+      {
+        SimpleTimepoint zero_tp = new SimpleTimepoint( null, 0, this ); 
+        setValue( zero_tp, pre_value );
       }
     }
   }
 
   public void fromString( String s, Class<V> cls ) {
-    Map<String,String> map = new HashMap<String,String>();
+    Map<String,String> map = new TreeMap<String,String>();
     Pattern p = Pattern.compile( "([^{@]*)?([^{@]*)(@[^{]*)?" );
     Matcher matcher = p.matcher( s );
     int end = 0;
@@ -4367,7 +4386,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public void fromCsvString( String s, Class<V> cls ) {
-    Map<String,String> map = new HashMap<String,String>();
+    Map<String,String> map = new TreeMap<String,String>();
     MoreToString.Helper.fromString( map, s, "", "\\s*", "", "", "\\s*,\\s*", "" );
     fromStringMap( map, cls );
   }
@@ -4381,7 +4400,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       File f = FileUtils.findFile( fileName );
       ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
       //String s = FileUtils.fileToString( f );
-      Map<String,String> map = new HashMap<String,String>();
+      Map<String,String> map = new TreeMap<String,String>();
       //MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
       for ( ArrayList<String> line : lines ) {
         if ( line.size() >= 2 ) {
