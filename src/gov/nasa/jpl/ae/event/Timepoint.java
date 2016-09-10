@@ -178,6 +178,35 @@ public class Timepoint extends IntegerParameter implements TimeVariable {
 	  return (long)( f.longValue() );
 	}
 	
+  public int microseconds( double microseconds ) {
+    return ( (Double)( microseconds
+                       / conversionFactor( Units.microseconds ) ) ).intValue();
+  }
+  public int nanoseconds( double nanoseconds ) {
+    return ( (Double)( nanoseconds
+                       / conversionFactor( Units.nanoseconds ) ) ).intValue();
+  }
+  public int seconds( double seconds ) {
+    return ( (Double)( seconds
+                       / conversionFactor( Units.seconds ) ) ).intValue();
+  }
+  public int milliseconds( double milliseconds ) {
+    return ( (Double)( milliseconds
+                       / conversionFactor( Units.milliseconds ) ) ).intValue();
+  }
+  public int minutes( double minutes ) {
+    return ( (Double)( minutes
+                       / conversionFactor( Units.minutes ) ) ).intValue();
+  }
+  public int hours( double hours ) {
+    return ( (Double)( hours
+                       / conversionFactor( Units.hours ) ) ).intValue();
+  }
+  public int days( double days ) {
+    return ( (Double)( days
+                       / conversionFactor( Units.days ) ) ).intValue();
+  }
+  
   public static Integer fromMillisToInteger( long millis ) {
     int t = (int)( Units.conversionFactor( Units.milliseconds, Timepoint.units )
                    * ( millis - Timepoint.epoch.getTime() ) );
