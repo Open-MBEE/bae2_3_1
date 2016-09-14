@@ -191,25 +191,23 @@ public class ParameterListenerImpl extends HasIdImpl
       sb.append("@" + this.hashCode() );
     }
     // TODO -- REVIEW -- Can this just call MoreToString.Helper.toString(params)?
-    if ( deep ) {
-      sb.append( "(" );
-      boolean first = true;
-      if ( !Utils.isNullOrEmpty( name ) ) {
-        sb.append( "name=" + name );
-        first = false;
-      }
-      Set< Parameter< ? > > allParams = getParameters( false, null );
-      for ( Parameter<?> p : allParams ) {
-        if ( first ) first = false;
-        else sb.append( ", " );
-        if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
-          sb.append( p.toString( false, withHash, false, seen, otherOptions ) );
-        } else {
-          sb.append( p.toString( false, withHash, deep, seen, otherOptions ) );
-        }
-      }
-      sb.append( ")" );
+    sb.append( "(" );
+    boolean first = true;
+    if ( !Utils.isNullOrEmpty( name ) ) {
+      sb.append( "name=" + name );
+      first = false;
     }
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter<?> p : allParams ) {
+      if ( first ) first = false;
+      else sb.append( ", " );
+      if ( deep && p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+        sb.append( p.toString( false, withHash, false, seen, otherOptions ) );
+      } else {
+        sb.append( p.toString( false, withHash, deep, seen, otherOptions ) );
+      }
+    }
+    sb.append( ")" );
     return sb.toString();
   }
 
@@ -783,10 +781,14 @@ public class ParameterListenerImpl extends HasIdImpl
       if ( deep ) {
         s.addAll( pl.getNonEventObjects( deep, seen ) );
       }
-    } else if ( deep ) {
+    } else {
       for ( Parameter< ? > p : HasParameters.Helper.getParameters( o, false,
                                                                    null, true ) ) {
-        s.addAll( getNonEventObjects( p.getValueNoPropagate(), deep, seen ) );
+        if ( deep ) {
+          s.addAll( getNonEventObjects( p.getValueNoPropagate(), deep, seen ) );
+        } else if (p.getValueNoPropagate() instanceof ParameterListenerImpl) {
+          s.add( (ParameterListenerImpl)p.getValueNoPropagate() );
+        }
       }
     }
     return s;

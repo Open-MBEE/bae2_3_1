@@ -1763,7 +1763,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
     for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( tv, true, false, null ) + "\n" );
+      sb.append( MoreToString.Helper.toString( tv, true, true, null ) + "\n" );
     }
     return sb.toString();
   }

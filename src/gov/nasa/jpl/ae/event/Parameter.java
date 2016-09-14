@@ -666,6 +666,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     if ( !deep ) {
       sb.append( value == null ? "null" : MoreToString.Helper.toShortString( value ) );
+      // TODO -- It seems like toShortString() should take a withHash argument.
+      // Maybe add an additional call to the interface for this.
+      if ( withHash && !ClassUtils.isPrimitive( value.getClass() ) ) {
+        sb.append("@" + value.hashCode());
+      }
     } else if ( isGrounded( false, null ) ) {
       T value = getValueNoPropagate();
       String valueString = null;
