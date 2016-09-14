@@ -704,9 +704,9 @@ public class Expression< ResultType > extends HasIdImpl
     if (expression instanceof Groundable) {
       return ((Groundable)expression).ground(deep, seen);
     }
-//    if ( expression == null ) {
-//      return false;
-//    }
+    if ( expression == null ) {
+      return true;  // added 2016-09-13, this doesn't seem right -- TODO -- FIXME
+    }
     switch (form) {
     case Value:
       return true; // null should be ok, right?
