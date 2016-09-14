@@ -169,7 +169,7 @@ public class Math {
       long ad1 = java.lang.Math.abs( rd1 );
       long ad2 = java.lang.Math.abs( rd2 ); //if they're the same sign, take abs...
       if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Long.MAX_VALUE / ad1 <= ad2 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
+        if ( Long.MAX_VALUE / ad1 <= ad2 && Long.MAX_VALUE / ad2 <= ad1 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
         else result = rd1 * rd2;
       }
       else  result = rd1 * rd2;
@@ -183,7 +183,7 @@ public class Math {
       int ad1 = java.lang.Math.abs( rd1 );
       int ad2 = java.lang.Math.abs( rd2 ); //if they're the same sign, take abs...
       if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
+        if ( ((double)Integer.MAX_VALUE) / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
         else result = rd1 * rd2;
       }
       else  result = rd1 * rd2;
