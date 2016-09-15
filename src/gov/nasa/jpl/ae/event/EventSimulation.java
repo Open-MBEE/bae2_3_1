@@ -493,7 +493,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
               if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
               if (Debug.isOn()) Debug.out("simTimeToSleepUntil="+ simTimeToSleepUntil);
               simTimer.sleepUntilSimTime( simTimeToSleepUntil );
-              int simTime = simTimer.getSimTimePassed();
+              long simTime = simTimer.getSimTimePassed();
               if (Debug.isOn()) Debug.out("simTime="+ simTime);
               
               // Update the plot based on the sample period.
@@ -513,11 +513,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                 nextSampleSimTime += this.plotSamplePeriod;
               }
               
-
-              if ( nextEventSimTime <= simTime) break;
-              if ( simulatingHorizon && simTimer.passedHorizon() ) {
-                break;
-              }
+              if ( nextSampleSimTime > nextEventSimTime ) break;
+//              if ( nextEventSimTime <= simTime) break;
+//              if ( simulatingHorizon && simTimer.passedHorizon() ) {
+//                break;
+//              }
             }
           } catch ( InterruptedException e ) {
             System.err.println("Simulation sleep interrupted unexpectedly.");
@@ -525,6 +525,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         }
         
         // the event & value(s)
+        if ( simulatingHorizon && nextEventSimTime >= Timepoint.getHorizonDuration() ) break;
         int t = e1.getKey().intValue();
         Object variable = p.first; //e2.getKey();
         Object value = p.second; //e2.getValue();
@@ -593,9 +594,16 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                     classNames );
         }
         lastT = t;
-        if ( simulatingHorizon && simTimer.passedHorizon() ) break;
+        //if ( simulatingHorizon && simTimer.passedHorizon() ) break;
       }
-      if ( simulatingHorizon && simTimer.passedHorizon() ) break;
+      if ( simulatingHorizon && e1.getKey() >= Timepoint.getHorizonDuration() ) break;
+      //if ( simulatingHorizon && simTimer.passedHorizon() ) break;
+    }
+    if ( simTimer.passedHorizon() ) {
+      Debug.outln( "Passed horizon: getSimTimePassed()="
+                   + simTimer.getSimTimePassed()
+                   + " > Timepoint.getHorizonDuration()="
+                   + Timepoint.getHorizonDuration() );
     }
     w.println("--- simulation end ---");
     closePlotSocket();

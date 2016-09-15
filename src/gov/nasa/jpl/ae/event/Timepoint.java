@@ -22,7 +22,7 @@ import java.util.TimeZone;
 /**
  *
  */
-public class Timepoint extends IntegerParameter implements TimeVariable {
+public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME -- Integer does not have enough precision for small time units, like nanoseconds, over years
 
   // epoch is a timestamp corresponding to TimePoint = 0 as the date/time that
   // the simulation starts. It is an offset of the time since Jan 1, 1970.

@@ -9,10 +9,10 @@ public class SimulatedTime {
     public double simToActualConversionFactor = 1.0;
     public long actualStartMillis = -1;
     public long systemMillis;
-    public int simStart = 0;
+    public long simStart = 0;
     public long actualMillisPassed = 0;
     public long actualDelta = 0;
-    public int simTimePassed = 0;
+    public long simTimePassed = 0;
     public double simDelta = 0;
     public TimeUtils.Units units = Timepoint.getUnits();
     
@@ -82,7 +82,7 @@ public class SimulatedTime {
       simToActualConversionFactor = Timepoint.conversionFactor( TimeUtils.Units.milliseconds ) / timeScale;
     }
 
-    public long convertSimToActualDuration( int simDuration ) {
+    public long convertSimToActualDuration( long simDuration ) {
       return (long)( simDuration * simToActualConversionFactor );
     }
 
@@ -101,11 +101,11 @@ public class SimulatedTime {
       if ( simTime < simStart + simTimePassed ) {
 //        Debug.errln("Warning: If time scale changed, past sim time may be incorrectly translated to actual.");
       }
-      int simDeltaToFutureTime = simTime - ( simStart + simTimePassed );
+      long simDeltaToFutureTime = simTime - ( simStart + simTimePassed );
       return actualMillisPassed + convertSimToActualDuration( simDeltaToFutureTime );
     }
 
-    public int getSimTimePassed() {
+    public long getSimTimePassed() {
       updateTime();
       return simTimePassed;
     }
