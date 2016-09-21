@@ -2155,6 +2155,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       // args = "\"" + p.name + "\", this";
       // } else if ( p.type.startsWith( "TimeVaryingMap" ) ) {
       // args = "\"" + p.name + "\", this";
+    } else if ( p.type.startsWith( "TimeVarying" )
+        || p.type.trim().replaceAll( " ", "" )
+                 .startsWith( "Parameter<TimeVarying" ) ) {
+      String ttype = p.type.trim().replaceAll( " ", "" );
+      type = "StateVariable";
+      parameterTypes = null;
+      if (ttype.matches( "Parameter<TimeVarying[^<>]*<[^<>]*>>" ) ) {
+        int bpos = ttype.lastIndexOf( '<' + 1 );
+        int epos = ttype.lastIndexOf( ">" ) - 1;
+        parameterTypes = ttype.substring( bpos, epos );
+      }
     }
     if ( Utils.isNullOrEmpty( castType ) ) {
       typePlaceholder = "(" + typePlaceholder + ")";

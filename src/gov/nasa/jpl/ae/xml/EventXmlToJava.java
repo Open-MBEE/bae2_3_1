@@ -1,5 +1,8 @@
 package gov.nasa.jpl.ae.xml;
 
+import org.json.JSONObject;
+import org.json.XML;
+
 import japa.parser.ASTHelper;
 import japa.parser.ASTParser;
 import japa.parser.ParseException;
@@ -30,6 +33,7 @@ import japa.parser.ast.type.VoidType;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
@@ -75,6 +79,7 @@ import gov.nasa.jpl.ae.fuml.*;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Timer;
@@ -179,6 +184,26 @@ public class EventXmlToJava {
     init();
     translate();
   }
+  
+  public static String xmlFileToJsonFile(String xmlFileName, String jsonFileName) {
+    String xml = null;
+    try {
+      xml = FileUtils.fileToString( xmlFileName );
+    } catch ( FileNotFoundException e ) {
+      e.printStackTrace();
+      return null;
+    }
+    JSONObject json = XML.toJSONObject(xml);
+    String jsonString = null;
+    if ( json == null ) {
+      return null;
+    } else {
+      jsonString = json.toString( 4 );
+      FileUtils.stringToFile( jsonString, jsonFileName );
+    }
+    return jsonString;
+  }
+  
   public void init() throws ParserConfigurationException, SAXException, IOException {
 
     if ( Debug.isOn() ) Debug.outln( "random double to test repeatability = "
@@ -207,6 +232,14 @@ public class EventXmlToJava {
                           + "Continuing anyway." );
     }
 
+    // output json
+    System.out.println("XML TO JSON");
+    String jsonFileName = xmlFileName.replaceAll( "[.][Xx][Mm][Ll]", ".json" );
+    if ( xmlFileName.equals( jsonFileName ) ) {
+      jsonFileName = jsonFileName + ".json";
+    }
+    xmlFileToJsonFile( xmlFileName, jsonFileName );
+    
     scenarioNode = XmlUtils.findNode( xmlDocDOM, "scenario" );
     Assert.assertNotNull( scenarioNode );
     
@@ -1373,6 +1406,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.DoubleParameter" );
     addImport( "gov.nasa.jpl.ae.event.StringParameter" );
     addImport( "gov.nasa.jpl.ae.event.BooleanParameter" );
+    addImport( "gov.nasa.jpl.ae.event.StateVariable" );
     addImport( "gov.nasa.jpl.ae.event.Timepoint" );
     addImport( "gov.nasa.jpl.ae.event.Expression" );
     addImport( "gov.nasa.jpl.ae.event.ConstraintExpression" );
