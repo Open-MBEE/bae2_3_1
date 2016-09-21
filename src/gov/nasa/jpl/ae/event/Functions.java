@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
+import gov.nasa.jpl.ae.solver.BooleanDomain;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.HasDomain;
@@ -676,22 +677,22 @@ public class Functions {
       super( o1, c );
     }
     
-    @Override
-    public < T > Domain< T > restrictDomain( Domain< T > domain,
-                                             boolean propagate,
-                                             Set< HasDomain > seen ) {
-      Object o1 = this.arguments.get( 0 );
-      Object o2 = this.arguments.get( 1 );
-      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
-        HasDomain hd1 = (HasDomain)o1;
-        HasDomain hd2 = (HasDomain)o2;
-        Domain d1 = inverseDomain( domain, o1 );
-        Domain d2 = inverseDomain( domain, o2 );
-        hd1.restrictDomain( d1, propagate, seen );
-        hd2.restrictDomain( d2, propagate, seen );  
-      }
-      return (Domain< T >)getDomain(propagate, seen );
-    }
+//    @Override
+//    public < T > Domain< T > restrictDomain( Domain< T > domain,
+//                                             boolean propagate,
+//                                             Set< HasDomain > seen ) {
+//      Object o1 = this.arguments.get( 0 );
+//      Object o2 = this.arguments.get( 1 );
+//      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+//        HasDomain hd1 = (HasDomain)o1;
+//        HasDomain hd2 = (HasDomain)o2;
+//        Domain d1 = inverseDomain( domain, o1 );
+//        Domain d2 = inverseDomain( domain, o2 );
+//        hd1.restrictDomain( d1, propagate, seen );
+//        hd2.restrictDomain( d2, propagate, seen );  
+//      }
+//      return (Domain< T >)getDomain(propagate, seen );
+//    }
   }
 
   public static class Sub<T,R>//< T extends Comparable< ? super T >,
@@ -1670,22 +1671,22 @@ public class Functions {
       super( o1, o2, "equals", "pickEqualToForward", "pickEqualToReverse");
     }
     
-    @Override
-    public < T > Domain< T > restrictDomain( Domain< T > domain,
-                                             boolean propagate,
-                                             Set< HasDomain > seen ) {
-      Object o1 = this.arguments.get( 0 );
-      Object o2 = this.arguments.get( 1 );
-      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
-        HasDomain hd1 = (HasDomain)o1;
-        HasDomain hd2 = (HasDomain)o2;
-        Domain d1 = hd1.getDomain( propagate, seen );
-        Domain d2 = hd2.getDomain( propagate, seen );
-        d1.restrictTo( d2 );
-        d2.restrictTo( d1 );     
-      }
-      return (Domain< T >)getDomain(propagate, seen );
-    }
+//    @Override
+//    public < T > Domain< T > restrictDomain( Domain< T > domain,
+//                                             boolean propagate,
+//                                             Set< HasDomain > seen ) {
+//      Object o1 = this.arguments.get( 0 );
+//      Object o2 = this.arguments.get( 1 );
+//      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+//        HasDomain hd1 = (HasDomain)o1;
+//        HasDomain hd2 = (HasDomain)o2;
+//        Domain d1 = hd1.getDomain( propagate, seen );
+//        Domain d2 = hd2.getDomain( propagate, seen );
+//        d1.restrictTo( d2 );
+//        d2.restrictTo( d1 );     
+//      }
+//      return (Domain< T >)getDomain(propagate, seen );
+//    }
     
     
     @Override
@@ -1696,6 +1697,7 @@ public class Functions {
       return f;
     }
 
+    //TODO should handle returnValue = false
     public LinkedHashSet<?> invert( Object returnValue, Object arg ) {
       LinkedHashSet< Object > otherArgs = getOtherArgs( arg );
       LinkedHashSet< Object > values = new LinkedHashSet< Object >();
@@ -1723,6 +1725,38 @@ public class Functions {
       }
       return values;
     }
+    
+    @Override
+    public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
+      assert(false); // Must be overridden!
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+        HasDomain hd1 = (HasDomain)o1;
+        HasDomain hd2 = (HasDomain)o2;
+        Domain d1 = hd1.getDomain(propagate, seen);
+        Domain d2 = hd2.getDomain( propagate, seen );
+        if(d1 instanceof RangeDomain && d2 instanceof RangeDomain){
+          AbstractRangeDomain rd1 = (AbstractRangeDomain)d1;
+          AbstractRangeDomain rd2 = (AbstractRangeDomain)d2;
+          if (rd1.size() == 1 && rd2.size() == 1 && rd1 == rd2 ){
+            System.out.println( "true" );
+            return new BooleanDomain( true, true );
+          }
+          else if( rd1.greaterEquals(rd1.getUpperBound(), rd2.getLowerBound()) &&
+                  rd1.lessEquals(rd1.getLowerBound(), rd2.getUpperBound()) ){
+            System.out.println( "true or false" );
+            return new BooleanDomain(false, true);
+          }
+          else 
+            System.out.println( "false" );
+            return new BooleanDomain( false, false );
+        }
+        //TODO else case
+        }
+      return null;
+    }
+    
     /*
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
