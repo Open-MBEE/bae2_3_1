@@ -87,14 +87,22 @@ public class DomainHelper {
             lb = odlb;
             ub = odub;
           } else {
-            List< Object > list = Arrays.asList( new Object[] { odlb, lb } );
+            List< Object > list = null; 
+            if ( fCall.getParameterTypes().length == 1 ) {
+              list = Arrays.asList( new Object[] { lb } );
+            } else {
+              list = Arrays.asList( new Object[] { odlb, lb } );
+            }
             fCall.setArguments( new Vector< Object >( list ) );
             try {
               lb = fCall.evaluate( true );
-              list = Arrays.asList( new Object[] {odub, ub} );
+              if ( fCall.getParameterTypes().length == 1 ) {
+                list = Arrays.asList( new Object[] {ub} );
+              } else {
+                list = Arrays.asList( new Object[] {odub, ub} );
+              }
               fCall.setArguments( new Vector< Object >( list ) );
               ub = fCall.evaluate( true );
-
             } catch ( IllegalAccessException e ) {
               // TODO Auto-generated catch block
               //e.printStackTrace();

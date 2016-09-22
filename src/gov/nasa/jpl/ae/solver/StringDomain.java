@@ -154,4 +154,10 @@ public class StringDomain extends AbstractRangeDomain<String> {
     return String.class;  // TODO -- REVIEW -- return null??
   }
 
+  @Override
+  public StringDomain make( String lowerBound, String upperBound ) {
+      return new StringDomain(lowerBound, upperBound);
+  }
+
+
 }

@@ -212,4 +212,9 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
     }
   }
 
+  @Override
+  public DoubleDomain make( Double lowerBound, Double upperBound ) {
+    return new DoubleDomain(lowerBound, upperBound);
+  }
+
 }

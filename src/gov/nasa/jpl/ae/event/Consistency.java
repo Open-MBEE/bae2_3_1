@@ -90,9 +90,14 @@ public class Consistency {
     Collection< Constraint > list2 = new ArrayList< Constraint >();
     list2.add( s );
     arcConsistency( list2 );
+    System.out.println();
     System.out.println( "x = " + x + "; new domain = " + x.getDomain() );
+    System.out.println( "should be  x domain = [5 8]\n" );
     System.out.println( "y = " + y + "; new domain = " + y.getDomain() );
-    System.out.println( "z = " + z + "; domain = " + z.getDomain() );
+    System.out.println( "should be  y domain = [2 5]\n" );
+    System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
+    System.out.println( "should be  z domain = [10 13]\n" );
+    
     
     
     }

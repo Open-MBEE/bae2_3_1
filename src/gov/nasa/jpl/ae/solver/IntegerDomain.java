@@ -203,4 +203,10 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
       defaultDomain = new IntegerDomain((RangeDomain< Integer >)domain);
     }
   }
+  
+  @Override
+  public IntegerDomain make( Integer lowerBound, Integer upperBound ) {
+    return new IntegerDomain(lowerBound, upperBound);
+  }
+
 }

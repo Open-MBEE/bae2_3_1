@@ -252,15 +252,75 @@ public class Functions {
 
     public Vector< Expression > getArgumentExpressions() {
       Vector< Expression > argExprs =
-          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArgumentArray(),
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( Utils.newList( super.getArgumentArray() ),
                                                                             Expression.class ) );
       return argExprs;
     }
     
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
-      FunctionCall inverse = inverse( returnValue, argument );
-      if ( inverse == null ) return null;
-      return inverse.getDomain( false, null );
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
+      if ( returnValue == null ) return null;
+      //FunctionCall inverse = inverse( returnValue, argument );
+      //if ( inverse == null ) return null;
+      if ( returnValue instanceof AbstractRangeDomain ) {
+        if ( isMonotonic() ) {
+            FunctionCall inverse = inverse(((AbstractRangeDomain)returnValue).getLowerBound(), argument );
+            if ( inverse == null ) return null;
+            Object ilb = null;
+            Object iub = null;
+            try {
+              ilb = inverse.evaluate(false, true);
+              inverse = inverse(((AbstractRangeDomain)returnValue).getUpperBound(), argument );
+              if ( inverse == null ) return null;
+              iub = inverse.evaluate(false, true);
+            } catch ( IllegalAccessException e ) {
+              e.printStackTrace();
+            } catch ( InvocationTargetException e ) {
+              e.printStackTrace();
+            } catch ( InstantiationException e ) {
+              e.printStackTrace();
+            }
+            if ( ilb == null || iub == null ) return null;
+            if ( argument instanceof HasDomain ) {
+                Domain<?> d = ((HasDomain)argument).getDomain(false, null);
+                if ( d instanceof AbstractRangeDomain) {
+                    AbstractRangeDomain ard = (AbstractRangeDomain)d;
+                    boolean lt = ard.less(ilb, iub);
+                    Domain<?> dd = ard.make(lt ? ilb : iub, lt ? iub : ilb);
+                    return dd;
+                }
+            }
+        } else {
+          // not monotonic, such as Equals
+          if ( !returnValue.isInfinite() ) {
+            RangeDomain<?> theCombineDomain = null;
+            LinkedHashSet<Object> possibleValues = new LinkedHashSet< Object >();
+            for( int i = 0; i < returnValue.size(); ++i ) {
+              Object rv = ((AbstractRangeDomain)returnValue).getNthValue( i );
+              FunctionCall inverse = inverse(rv, argument );
+              Object cObj = null;
+              try {
+                cObj = inverse.evaluate( false, true );
+              } catch ( IllegalAccessException e ) {
+                e.printStackTrace();
+              } catch ( InvocationTargetException e ) {
+                e.printStackTrace();
+              } catch ( InstantiationException e ) {
+                e.printStackTrace();
+              }
+              if ( cObj instanceof Collection ) {
+                Collection<?> c = (Collection<?>)cObj;
+                possibleValues.addAll( c );
+              } else {
+                possibleValues.add( cObj );
+              }
+            }
+            theCombineDomain = DomainHelper.combineDomains( Utils.asList( possibleValues ), new Identity( null ) );
+            return theCombineDomain;
+          }
+        }
+      }
+      // TODO -- Handle the million other cases
+      return null;
     }
     
     @Override
@@ -536,7 +596,7 @@ public class Functions {
      * @param argument
      * @return
      */
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
       FunctionCall inverse = inverse( returnValue, argument );
       if ( inverse == null ) return null;
       return inverse.getDomain( false, null );
@@ -583,7 +643,7 @@ public class Functions {
      * @param argument
      * @return
      */
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
       FunctionCall inverse = inverse( returnValue, argument );
       if ( inverse == null ) return null;
       return inverse.getDomain( false, null );
@@ -634,7 +694,7 @@ public class Functions {
      * @param argument
      * @return
      */
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
       FunctionCall inverse = inverse( returnValue, argument );
       if ( inverse == null ) return null;
       return inverse.getDomain( false, null );
@@ -1605,6 +1665,26 @@ public class Functions {
     if ( Debug.isOn() ) Debug.outln( r1 + " / " + r2 + " = " + result );
     return result;
 */  }
+
+  public static class Identity<T> extends Unary< T, T > {
+    public Identity( Expression< T > o ) {
+      super( o, "identity" );
+      setMonotonic( true );
+    }
+    
+    @Override
+    public < T > T pickValue( Variable< T > variable ) {
+      return variable.getValue( false );
+    }
+  }
+
+  public static <T> T identity(T t) {
+    return t;
+  }
+  public static Expression<?> identity(Expression<?> e) {
+    return e;
+  }
+
   
   public static class Negative<T> extends Unary< T, T > {
     public Negative( Expression< T > o ) {
@@ -1682,48 +1762,89 @@ public class Functions {
 //        HasDomain hd2 = (HasDomain)o2;
 //        Domain d1 = hd1.getDomain( propagate, seen );
 //        Domain d2 = hd2.getDomain( propagate, seen );
-//        d1.restrictTo( d2 );
-//        d2.restrictTo( d1 );     
+//        hd1.restrictDomain( d2, propagate, seen );
+//        hd2.restrictDomain( d1, propagate, seen );
 //      }
 //      return (Domain< T >)getDomain(propagate, seen );
 //    }
     
-    
+//    public FunctionCall inverse( Object returnValue, Object arg ) { //Variable<?> variable ) {
+//      FunctionCall singleValueFcn = inverseSingleValue( returnValue, arg );
+//      if ( singleValueFcn == null ) return null;
+//      return new FunctionCall(null,
+//                              ClassUtils.getMethodsForName( Utils.class, "newList" )[0],
+//                              new Object[] { singleValueFcn }, (Class<?>)null );
+//    }
+
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {
-      FunctionCall f =
-          new FunctionCall( this, getClass(), "invert",
-                            new Object[] { returnValue, arg }, (Class<?>)null );
+      FunctionCall f = invert( Utils.isTrue( returnValue ) == Boolean.TRUE, arg );
+      f.arguments = new Vector<Object>(Utils.newList( Boolean.FALSE ) ); // this argument is ignored
       return f;
+//          new FunctionCall( this, getClass(), "invert",
+//                            new Object[] { Utils.isTrue( returnValue ), arg }, (Class<?>)null );
+//      return f.evaluate();
     }
 
     //TODO should handle returnValue = false
-    public LinkedHashSet<?> invert( Object returnValue, Object arg ) {
+    public FunctionCall invert( final boolean eqReturnValue, Object arg ) {
       LinkedHashSet< Object > otherArgs = getOtherArgs( arg );
-      LinkedHashSet< Object > values = new LinkedHashSet< Object >();
-      Class<?> type = arg.getClass();
-      if ( arg instanceof Wraps ) {
-        type = ((Wraps)arg).getType();
+      // should only be one
+      final Object otherArg = otherArgs.iterator().next();
+      
+      try {
+        return new FunctionCall( (Method)Functions.class.getMethod( "not", new Class<?>[]{Expression.class} ), (Class<?>)null ) {
+          @Override
+          public Object
+                 invoke( Object evaluatedObject,
+                         Object[] evaluatedArgs ) throws IllegalArgumentException,
+                                                  InstantiationException,
+                                                  IllegalAccessException,
+                                                  InvocationTargetException {
+            return otherArg;
+          }
+          @Override
+          public Domain< ? > getDomain( boolean propagate,
+                                        Set< HasDomain > seen ) {
+            if( otherArg instanceof HasDomain ) {
+              if ( eqReturnValue )
+              return ((HasDomain)otherArg).getDomain(propagate, seen);
+              return null;
+            }
+            return null;
+          }
+        };
+      } catch ( NoSuchMethodException e ) {
+        e.printStackTrace();
+      } catch ( SecurityException e ) {
+        e.printStackTrace();
       }
-      for ( Object o : otherArgs ) {
-        try {
-          Object r = Expression.evaluate( o, type, true );
-          values.add(r);
-        } catch ( ClassCastException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( IllegalAccessException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( InvocationTargetException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( InstantiationException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-      return values;
+         
+      return null;
+//      LinkedHashSet< Object > values = new LinkedHashSet< Object >();
+//      Class<?> type = arg.getClass();
+//      if ( arg instanceof Wraps ) {
+//        type = ((Wraps)arg).getType();
+//      }
+//      for ( Object o : otherArgs ) {
+//        try {
+//          Object r = Expression.evaluate( o, type, true );
+//          values.add(r);
+//        } catch ( ClassCastException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        } catch ( IllegalAccessException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        } catch ( InvocationTargetException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        } catch ( InstantiationException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        }
+//      }
+//      return values;
     }
     
     @Override
