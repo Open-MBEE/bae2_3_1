@@ -432,16 +432,45 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 //    return new MyRangeDomain( this );
 //  }
 
-  public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
-    if ( less(lowerBound, o.lowerBound) ) {
-      lowerBound = o.lowerBound;
+  @Override
+  public boolean equals( Object obj ) {
+    if (this == obj) return true;
+    if ( obj instanceof RangeDomain ) {
+      RangeDomain r = (RangeDomain)obj;
+      if ( !getLowerBound().equals( r.getLowerBound() ) ) return false;
+      if ( !getUpperBound().equals( r.getUpperBound() ) ) return false;
+      if ( isLowerBoundIncluded() != r.isLowerBoundIncluded() ) return false;
+      if ( isUpperBoundIncluded() != r.isUpperBoundIncluded() ) return false;
+      if ( isInfinite() != r.isInfinite() ) return false;
+      if ( size() != r.size() ) return false;
+      // REVIEW -- consider checking r.getType() -- one Class just needs to be assignable to the other, maybe? 
+    } else {
+      return false;
     }
-    if ( greater(upperBound, o.upperBound) ) {
+    return true;
+  }
+  
+  public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
+    if ( lessEquals( lowerBound, o.lowerBound) ) {
+      lowerBound = o.lowerBound;
+      if ( !o.isLowerBoundIncluded() ) excludeLowerBound();
+      //else if ( equals( lowerBound, o.lowerBound ) && includeLowerBound()
+    }
+    if ( greaterEquals( upperBound, o.upperBound) ) {
       upperBound = o.upperBound;
+      if ( !o.isUpperBoundIncluded() ) excludeUpperBound();
     }
     return this.size() != 0;
   }
 
+  public boolean intersects( AbstractRangeDomain<T> ard2 ) {
+    AbstractRangeDomain< T > ard1 = clone();
+    return ard1.intersectRestrict( ard2 );
+  }
+  public boolean overlaps( AbstractRangeDomain<T> ard2 ) {
+    return intersects( ard2 );
+  }
+  
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#restrictTo(gov.nasa.jpl.ae.solver.Domain)
    */
