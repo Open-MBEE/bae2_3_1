@@ -1,10 +1,12 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -797,6 +799,10 @@ public class Expression< ResultType > extends HasIdImpl
     switch (form) {
     case Value:
 //    case Method:
+      AbstractRangeDomain<ResultType> d = (AbstractRangeDomain< ResultType >)DomainHelper.makeRangeDomainFromValue(expression);
+      if ( d != null ) {
+        return d;
+      }
       return new SingleValueDomain<ResultType>( (ResultType)expression ); // since expression is not null
     case Parameter:
       return ((Parameter<ResultType>)expression).getDomain( propagate, seen );

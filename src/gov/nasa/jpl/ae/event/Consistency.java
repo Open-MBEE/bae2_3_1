@@ -12,6 +12,7 @@ import gov.nasa.jpl.ae.event.Functions.EQ;
 import gov.nasa.jpl.ae.event.Functions.Less;
 import gov.nasa.jpl.ae.event.Functions.Plus;
 import gov.nasa.jpl.ae.event.Functions.Sum;
+import gov.nasa.jpl.ae.event.Functions.Times;
 import gov.nasa.jpl.ae.solver.BooleanDomain;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
@@ -87,9 +88,12 @@ public class Consistency {
 //    System.out.println( "x = " + x + "; domain = " + x.getDomain() );
 //    System.out.println( "y = " + y + "; domain = " + y.getDomain() );    
     
+    Collection< Constraint > list1 = new ArrayList< Constraint >();
     Collection< Constraint > list2 = new ArrayList< Constraint >();
-    list2.add( s );
-    arcConsistency( list2 );
+    Collection< Constraint > list3 = new ArrayList< Constraint >();
+
+    list1.add( s );
+    arcConsistency( list1 );
     System.out.println();
     System.out.println( "x = " + x + "; new domain = " + x.getDomain() );
     System.out.println( "should be  x domain = [5 8]\n" );
@@ -97,6 +101,27 @@ public class Consistency {
     System.out.println( "should be  y domain = [2 5]\n" );
     System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
     System.out.println( "should be  z domain = [10 13]\n" );
+    
+
+    Times<Integer, Integer> XtimesY = new Times<Integer, Integer>(x, y);
+    EQ< Integer > product = new EQ< Integer >(XtimesY, z);
+    ConstraintExpression p = new ConstraintExpression( product );
+
+    list2.add( p );
+    arcConsistency( list2 );
+    System.out.println();
+    System.out.println( "x = " + x + "; new domain = " + x.getDomain() );
+    System.out.println( "should be  x domain = [5 5]\n" );
+    System.out.println( "y = " + y + "; new domain = " + y.getDomain() );
+    System.out.println( "should be  y domain = [2 2]\n" );
+    System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
+    System.out.println( "should be  z domain = [10 10]\n" );
+
+    
+    list3.add( s );
+    list3.add( p );
+    
+    
     
     
     

@@ -429,7 +429,8 @@ public class FunctionCall extends Call {
    */
   @Override
   public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
-    assert(false); // Must be overridden!
+    // Must be overridden
+    Debug.error(true, true, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
     return null;
   }
   

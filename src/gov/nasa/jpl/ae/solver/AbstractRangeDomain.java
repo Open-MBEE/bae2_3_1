@@ -95,9 +95,12 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	
   @Override
 	public boolean isEmpty() {
+    if ( getLowerBound() == null || getUpperBound() == null ) {
+      return true;
+    }
     return ( less( getUpperBound(), getLowerBound() ) ||
              ( equals( getUpperBound(), getLowerBound() ) &&
-               !lowerIncluded && !upperIncluded ) );
+               (!lowerIncluded || !upperIncluded) ) );
   }
 
 
