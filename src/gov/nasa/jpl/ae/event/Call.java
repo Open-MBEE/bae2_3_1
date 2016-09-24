@@ -1250,7 +1250,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   @Override
   public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-    if ( domain == null ) {
+    if ( domain == null || isStale() ) {
       domain = calculateDomain(propagate, seen);
     }
     return domain;
@@ -1260,10 +1260,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.solver.HasDomain#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
    */
   @Override
-  public <T> Domain< T > restrictDomain( Domain< T > domain, boolean propagate,
+  public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
                                          Set< HasDomain > seen ) {
     this.getDomain(propagate, seen).restrictTo(domain);
-    return domain;
+    return new Pairthis.domain;
   }
 
   // The following code was re-factored from MethodCall:

@@ -134,8 +134,12 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)
    */
   @Override
-  public void restrictToValue( T v ) {
-    value = v;
+  public boolean restrictToValue( T v ) {
+    if ( value != v && (value == null || !value.equals( v ) ) ) {
+      value = v;
+      return true;
+    }
+    return false;
   }
 
   @Override
@@ -164,14 +168,30 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   }
 
   @Override
-  public <TT> void restrictTo( Domain< TT > domain ) {
+  public <TT> boolean restrictTo( Domain< TT > domain ) {
     try {
       if ( !domain.contains( (TT)value ) ) {
-        value = null;  // REVIEW -- Do we want to do this??!!
+        if ( value != null ) {
+          value = null;  // REVIEW -- Do we want to do this??!!
+          return true;
+        }
       }
     } catch ( ClassCastException e ) {
-      value = null;  // REVIEW -- Do we want to do this??!!
+      if ( value != null ) {
+        value = null;  // REVIEW -- Do we want to do this??!!
+        return true;
+      }
     }
+    return false;
+  }
+
+  @Override
+  public boolean clear() {
+    if ( value != null ) {
+      value = null;  // REVIEW -- Do we want to do this??!!
+      return true;
+    }
+    return false;
   }
 
 }

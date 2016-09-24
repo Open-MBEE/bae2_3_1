@@ -315,18 +315,24 @@ public class Functions {
     }
     
     @Override
-    public < T > Domain< T > restrictDomain( Domain< T > domain,
+    public < T > Pair<Domain< T >,Boolean> restrictDomain( Domain< T > domain,
                                              boolean propagate,
                                              Set< HasDomain > seen ) {
       Object o1 = this.arguments.get( 0 );
       Object o2 = this.arguments.get( 1 );
+      boolean changed = false;
       if (o1 instanceof HasDomain && o2 instanceof HasDomain){
         HasDomain hd1 = (HasDomain)o1;
         HasDomain hd2 = (HasDomain)o2;
         Domain d1 = inverseDomain( domain, o1 );
+        Pair< Domain<?>, Boolean > p = hd1.restrictDomain( d1, propagate, seen );
+        if ( p != null && p.second == Boolean.TRUE ) changed = true;
+        if ( p != null && p.first != null && p.first.isEmpty() ) {
+          if (this.domain.clear()) changed = true;
+          return new Pair<Domain<T>, Boolean>( this.domain, changed );
+        }
         Domain d2 = inverseDomain( domain, o2 );
-        hd1.restrictDomain( d1, propagate, seen );
-        hd2.restrictDomain( d2, propagate, seen );
+        p = hd2.restrictDomain( d2, propagate, seen );
       }
       this.domain = (Domain< T >)getDomain(propagate, seen );
       return (Domain< T >)this.domain;
@@ -539,7 +545,7 @@ public class Functions {
         condo.restrictTo( new BooleanDomain( false, false ) );
         this.domain = dcb;
       } else {
-        this.domain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<>( null ) );
+        this.domain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( null ) );
       }
 
       return (Domain< T >)this.domain;

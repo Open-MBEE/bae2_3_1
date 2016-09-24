@@ -19,6 +19,7 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 
 public class Consistency {
@@ -49,7 +50,7 @@ public class Consistency {
       for ( Constraint c : constraints ) {
         if ( c instanceof ConstraintExpression ) {
           ConstraintExpression cx = (ConstraintExpression)c;
-          cx.restrictDomain( BooleanDomain.trueDomain, true, null );
+          Pair<Boolean, Domain<Boolean>> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
         } else {
           Set< Variable< ? > > vars = c.getVariables();
           for ( Variable< ? > v : vars ) {
@@ -115,7 +116,7 @@ public class Consistency {
     System.out.println( "y = " + y + "; new domain = " + y.getDomain() );
     System.out.println( "should be  y domain = [2 2]\n" );
     System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
-    System.out.println( "should be  z domain = [10 10]\n" );
+    System.out.println( "should be  z domain = [10 12]\n" );
 
     
     list3.add( s );

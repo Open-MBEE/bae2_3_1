@@ -76,8 +76,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	        domain.isNullInDomain() );
   }
 
-  public void restrictToValue( T v ) {
+	@Override
+  public boolean restrictToValue( T v ) {
+    if ( !contains( v ) ) return false;
     setBounds( v, v );
+    return true;
   }
 
 	
@@ -310,6 +313,16 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return tt;
   }
 	
+  @Override
+  public boolean clear() {
+    boolean e1 = isEmpty();
+    if (!e1) {
+      makeEmpty();
+      return true;
+    }
+    return false;
+  }
+
   public void makeEmpty() {
     lowerIncluded = true;
     upperIncluded = true;
@@ -478,14 +491,17 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
    * @see gov.nasa.jpl.ae.solver.Domain#restrictTo(gov.nasa.jpl.ae.solver.Domain)
    */
   @Override
-  public < TT > void restrictTo( Domain< TT > domain ) {
+  public < TT > boolean restrictTo( Domain< TT > domain ) {
+    boolean changed = false;
     if ( domain instanceof AbstractRangeDomain ) {
-      intersectRestrict( (AbstractRangeDomain< T >)domain );
+      changed = intersectRestrict( (AbstractRangeDomain< T >)domain );
     } else if ( domain instanceof SingleValueDomain ) {
-      this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+      changed = this.restrictToValue( ((SingleValueDomain< T >)domain).value );
     } else {
       // TODO???
+      Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
     }
+    return changed;
   }
 
   @Override

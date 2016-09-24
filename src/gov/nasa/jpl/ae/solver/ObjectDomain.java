@@ -197,13 +197,15 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)
    */
   @Override
-  public void restrictToValue( T v ) {
-    clear();
-    add( v );
+  public boolean restrictToValue( T v ) {
+    boolean changed = false;
+    if ( clear() ) changed = true;
+    if ( add( v ) ) changed = true;
+    return changed;
   }
 
   @Override
-  public < TT > void restrictTo( Domain< TT > domain ) {
+  public < TT > boolean restrictTo( Domain< TT > domain ) {
     if ( domain instanceof SingleValueDomain ) {
       this.restrictToValue( ((SingleValueDomain< T >)domain).value );
     } else {

@@ -134,6 +134,8 @@ public class DomainHelper {
 
     Object lb = null;
     Object ub = null;          
+    Object lbPrev = null;
+    Object ubPrev = null;          
     for ( Object obj : objects ) {
       Domain<?> objDomain = null;
       if ( obj instanceof HasDomain ) {
@@ -146,15 +148,19 @@ public class DomainHelper {
             runOnArgs( results, fCall, odlb );
             runOnArgs( results, fCall, odub );
           } else {
-            if ( lb == null && ub == null ) {
-              results.add( odlb );
-              results.add( odub );
-            } else {
-              runOnArgs( results, fCall, lb, odlb );
-              runOnArgs( results, fCall, ub, odlb );
-              runOnArgs( results, fCall, lb, odub );
-              runOnArgs( results, fCall, ub, odub );
+            if ( lbPrev == null && ubPrev == null ) {
+              lbPrev = odlb;
+              ubPrev = odub;
+              continue;
             }
+            if ( lb != null || ub != null ) {
+              lbPrev = lb;
+              ubPrev = ub;
+            }
+            runOnArgs( results, fCall, lbPrev, odlb );
+            runOnArgs( results, fCall, ubPrev, odlb );
+            runOnArgs( results, fCall, lbPrev, odub );
+            runOnArgs( results, fCall, ubPrev, odub );
           }
           // get new lb and ub out of results
           if ( !results.isEmpty() ) {

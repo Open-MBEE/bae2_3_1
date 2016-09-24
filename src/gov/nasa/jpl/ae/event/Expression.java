@@ -825,7 +825,7 @@ public class Expression< ResultType > extends HasIdImpl
 
   // REVIEW -- Should Expression remember its domain?  No, if anything the FunctionCall (wrapped by the Expression) should remember.
   @Override
-  public <T> Domain< T > restrictDomain( Domain< T > domain, boolean propagate,
+  public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
                                          Set< HasDomain > seen ) {
     // check for bad input
     if ( domain == null ) return null;
@@ -838,7 +838,7 @@ public class Expression< ResultType > extends HasIdImpl
     // If the expression is null, check to see if null is in the domain.
     if ( expression == null ) {
       if ( domain.contains( null ) ) {
-        return domain;  // TODO -- should really return the intersection of the input domain with getDomain() 
+        return new Pair(domain, false);  // REVIEW -- Does this make sense?
       } else {
         return null;
       }
@@ -871,10 +871,10 @@ public class Expression< ResultType > extends HasIdImpl
         }
       }
     case Parameter:
-      return (Domain< T >)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
+      return (Pair<Domain< T >,Boolean>)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
     case Function:
     case Constructor:
-      return ((FunctionCall)expression).restrictDomain( domain, propagate, seen );
+      return (Pair<Domain< T >,Boolean>)((FunctionCall)expression).restrictDomain( domain, propagate, seen );
     case None:
     default:
       Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
