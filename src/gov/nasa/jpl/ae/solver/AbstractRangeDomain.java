@@ -331,6 +331,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public AbstractRangeDomain<T> createSubDomainAbove( T t, boolean include ) {
     if ( t == null ) return null;
     AbstractRangeDomain<T> d = this.clone();
+    try{
+      t = (T)ClassUtils.castNumber( (Number)t, getType() );
+    }catch( ClassCastException e ){
+      //ignore
+    }
     boolean belowLb = less( t, getLowerBound() );
     boolean eqLb = t.equals( getLowerBound() );
     if ( !belowLb || eqLb ) {
