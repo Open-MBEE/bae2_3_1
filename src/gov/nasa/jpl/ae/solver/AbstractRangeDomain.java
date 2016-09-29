@@ -314,7 +314,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 	
   @Override
-  public boolean clear() {
+  public boolean clearValues() {
     boolean e1 = isEmpty();
     if (!e1) {
       makeEmpty();

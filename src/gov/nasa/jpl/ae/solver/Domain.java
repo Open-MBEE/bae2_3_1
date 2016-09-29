@@ -23,7 +23,7 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
    * Make the domain empty, containing no values, not even null.
    * @return whether any domain changed as a result of this call 
    */
-  public boolean clear();
+  public boolean clearValues();
 
   public boolean contains( T t );
 

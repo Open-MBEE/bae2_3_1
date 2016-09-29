@@ -1262,8 +1262,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
                                          Set< HasDomain > seen ) {
-    this.getDomain(propagate, seen).restrictTo(domain);
-    return new Pairthis.domain;
+    boolean changed = this.getDomain(propagate, seen).restrictTo(domain);
+    return new Pair<Domain<T>, Boolean>((Domain<T>)this.domain, changed);
   }
 
   // The following code was re-factored from MethodCall:

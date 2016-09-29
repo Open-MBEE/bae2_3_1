@@ -186,7 +186,7 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   }
 
   @Override
-  public boolean clear() {
+  public boolean clearValues() {
     if ( value != null ) {
       value = null;  // REVIEW -- Do we want to do this??!!
       return true;

@@ -315,7 +315,7 @@ public class Functions {
     }
     
     @Override
-    public < T > Pair<Domain< T >,Boolean> restrictDomain( Domain< T > domain,
+    public < TT > Pair<Domain< TT >,Boolean> restrictDomain( Domain< TT > domain,
                                              boolean propagate,
                                              Set< HasDomain > seen ) {
       Object o1 = this.arguments.get( 0 );
@@ -328,14 +328,14 @@ public class Functions {
         Pair< Domain<?>, Boolean > p = hd1.restrictDomain( d1, propagate, seen );
         if ( p != null && p.second == Boolean.TRUE ) changed = true;
         if ( p != null && p.first != null && p.first.isEmpty() ) {
-          if (this.domain.clear()) changed = true;
-          return new Pair<Domain<T>, Boolean>( this.domain, changed );
+          if (this.domain.clearValues()) changed = true;
+          return new Pair( this.domain, changed );
         }
         Domain d2 = inverseDomain( domain, o2 );
         p = hd2.restrictDomain( d2, propagate, seen );
       }
       this.domain = (Domain< T >)getDomain(propagate, seen );
-      return (Domain< T >)this.domain;
+      return new Pair(this.domain, changed);
     }
   }
 
@@ -465,10 +465,10 @@ public class Functions {
     }
     
     @Override
-    public < T > Domain< T > restrictDomain( Domain< T > domain,
+    public < TT > Pair<Domain< TT >, Boolean> restrictDomain( Domain< TT > domain,
                                              boolean propagate,
                                              Set< HasDomain > seen ) {
-      if ( domain == null ) return (Domain< T >)getDomain(propagate, null);
+      if ( domain == null ) return new Pair(getDomain(propagate, null), false);
 
       if ( arguments == null || arguments.size() != 3 ) {
         // TODO -- ERROR
@@ -498,7 +498,8 @@ public class Functions {
           Domain d2c = d2.clone();
           if ( d2c instanceof AbstractRangeDomain ) ((AbstractRangeDomain)d2c).makeEmpty();
           else d2c.setValue( null );
-          return d2c;
+          boolean changed = Utils.valuesEqual( this.domain, d2c );
+          return new Pair(d2c, changed);
         }
         return null;
       }
@@ -510,14 +511,22 @@ public class Functions {
           if ( ard2 != null && !ard2.isEmpty() ) {
             ard2.restrictTo( domain );
           }
-          this.domain = ard2 == null ? null : ard2.clone();
-          return (Domain< T >)this.domain;
+          Domain<TT> newDomain = ard2 == null ? null : ard2.clone();
+          boolean changed = Utils.valuesEqual( this.domain, newDomain );
+          if ( changed ) {
+            this.domain = newDomain;
+          }
+          return new Pair(this.domain, changed);
         } else if ( condo.contains(Boolean.FALSE) ) {
           if ( ard3 != null && !ard3.isEmpty() ) {
             ard3.restrictTo( domain );
           }
-          this.domain = ard3 == null ? null : ard3.clone();
-          return (Domain< T >)this.domain;
+          Domain<TT> newDomain = ard3 == null ? null : ard3.clone();
+          boolean changed = Utils.valuesEqual( this.domain, newDomain );
+          if ( changed ) {
+            this.domain = newDomain;
+          }
+          return new Pair(this.domain, changed);
         } else {
           // This case is not possible since we check for condo.isEmpty() above.
           return null;
@@ -529,26 +538,30 @@ public class Functions {
       // check to see if neither or only one of d2 and d3 intersect with domain.
       Domain dca = domain.clone();
       Domain dcb = domain.clone();
-      dca.restrictTo( d2 );
-      dcb.restrictTo( d3 );
+      boolean changed = false;
+      boolean changedA = dca.restrictTo( d2 );
+      boolean changedB = dcb.restrictTo( d3 );
       if ( dca.isEmpty() && dcb.isEmpty() ) {
         // No values in domain can be produced--no solution! return an empty domain.
         this.domain = dca;
-        return (Domain< T >)this.domain;
+        return new Pair(this.domain, changedA);
       }
       if ( dca.isEmpty() ) {
         // We can restrict the condition to be true.
         condo.restrictTo( new BooleanDomain( true, true ) );
         this.domain = dca;
+        changed = changedA;
       } else if ( dcb.isEmpty() ) {
         // We can restrict the condition to be false.
         condo.restrictTo( new BooleanDomain( false, false ) );
         this.domain = dcb;
+        changed = changedB;
       } else {
-        this.domain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( null ) );
+        Domain newDomain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( null ) );
+        changed = Utils.valuesEqual(this.domain, newDomain);
       }
 
-      return (Domain< T >)this.domain;
+      return new Pair(this.domain, changed);
     }
   }
 
@@ -2085,16 +2098,21 @@ public class Functions {
      * @see gov.nasa.jpl.ae.event.Call#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
      */
     @Override
-    public < TT > Domain< TT > restrictDomain( Domain< TT > domain,
-                                             boolean propagate,
-                                             Set< HasDomain > seen ) {
+    public < TT > Pair<Domain< TT >,Boolean> restrictDomain( Domain< TT > domain,
+                                                             boolean propagate,
+                                                             Set< HasDomain > seen ) {
+      boolean changed = false;
       if ( domain.size() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
-          restrictDomains(((Boolean)v) == Boolean.TRUE);
+          changed = restrictDomains(((Boolean)v) == Boolean.TRUE);
         }
       }
-      return (Domain< TT >)getDomain(propagate, null);
+      Domain oldDomain = this.domain.clone();
+      Domain newDomain = (Domain< TT >)getDomain(propagate, null);
+      boolean thisChanged = Utils.valuesEqual( oldDomain, newDomain );
+      this.domain = newDomain;
+      return new Pair(this.domain, changed || thisChanged);
     }
     
     // REVIEW -- This seems out of place.  Does something else do this?

@@ -50,7 +50,8 @@ public class Consistency {
       for ( Constraint c : constraints ) {
         if ( c instanceof ConstraintExpression ) {
           ConstraintExpression cx = (ConstraintExpression)c;
-          Pair<Boolean, Domain<Boolean>> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
+          Pair<Domain<Boolean>,Boolean> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
+          restrictedSomething = restrictedSomething || p.second; 
         } else {
           Set< Variable< ? > > vars = c.getVariables();
           for ( Variable< ? > v : vars ) {
