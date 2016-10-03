@@ -339,6 +339,20 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           case '|':
             if ( second == '|' ) return "Or";
             return null;
+          case '=':
+            if ( second == '=' ) return "Equals";
+            if ( second == '~' ) return "RegexMatch"; //TODO 
+            return null;            
+          case '<':
+            if ( second == '=' ) return "LTE";
+            if ( second == '>' ) return "NEQ";
+            return null;
+          case '>':
+            if ( second == '=' ) return "GTE";
+            return null;
+          case '!':
+            if ( second == '=' ) return "NEQ";
+            return null;  
           default:
             // unknown
             return null;
@@ -362,6 +376,12 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             return "Xor"; // bitwise?
           case '%':
             return "Mod"; // TODO -- add to Functions.java
+          case '<':
+            return "LT";
+          case '>':
+            return "GT";
+          case '=':
+            return "EQ";
           default:
             // unknown
             return null;
@@ -417,8 +437,12 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       
         if ( Utils.isNullOrEmpty( opName ) ) return null;
         
-        String fName = opName;
         Class< ? extends T > cls = null;
+        
+        String newOpName = binaryOperatorSymbolToFunctionName( opName );
+        if ( newOpName != null ) opName = newOpName;
+        
+        String fName = opName;
         
         // Capitalize the first character of the fName:
         fName = "" + Character.toUpperCase( fName.toString().charAt( 0 ) )
