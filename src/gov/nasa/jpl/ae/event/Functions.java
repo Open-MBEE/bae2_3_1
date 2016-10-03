@@ -1187,7 +1187,7 @@ public class Functions {
       }
     }
     try {
-      if ( o1 != null ) {
+      if ( o1 != null && o2 != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         Object x = Expression.evaluate( result,
