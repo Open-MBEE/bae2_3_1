@@ -750,19 +750,40 @@ public class Functions {
   // add(Expr, Expr) should call this fcn.
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
-      Object result = null;
+    Object result = null;
     if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines 
         result = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
-          Number n1 = null;
-          Number n2 = null;
-          try {
-            n1 = Expression.evaluate( o1, Number.class, false );
-            n2 = Expression.evaluate( o2, Number.class, false );
-          } catch ( Throwable e ) {
-            // ignore
-          }
+      Number n1 = null;
+      Number n2 = null;
+      TimeVaryingMap<?> map1 = null;
+      TimeVaryingMap<?> map2 = null;
+      
+      Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+      n1 = p1.first;
+      map1 = p1.second;
+
+      if ( map1 != null ) {
+        result = (V1)plus( map1, o2 );
+      } else {
+        Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+        n2 = p2.first;
+        map2 = p2.second;
+    
+        if ( map2 != null ) {
+          result = (V1)plus( o1, map2 );
+        }
+      }
+
+//          Number n1 = null;
+//          Number n2 = null;
+//          try {
+//            n1 = Expression.evaluate( o1, Number.class, false );
+//            n2 = Expression.evaluate( o2, Number.class, false );
+//          } catch ( Throwable e ) {
+//            // ignore
+//          }
           if ( n1 != null && n2 != null ) {
             if ( Infinity.isEqual( n1 ) ) {
               try {
@@ -793,29 +814,30 @@ public class Functions {
             } else {
               result = (Integer)gov.nasa.jpl.ae.util.Math.plus( n1.intValue(), n2.intValue() );
             }
-          } else {
-            TimeVaryingMap<?> map = null;
-            try {
-              map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-            } catch ( Throwable e ) {
-              //ignore
-            }
-            if ( map != null ) result = plus( map, o2 );
-            else {
-              try {
-                Object obj = Expression.evaluate( o2, TimeVaryingMap.class, false );
-                if ( obj instanceof TimeVaryingMap ) {
-                  map = (TimeVaryingMap< ? >)obj;
-                }
-              } catch ( Throwable e ) {
-                //ignore
-              }
-              if ( map != null ) result = plus( o1, map );
-        }
-      }
+          }
+//          else {
+//            TimeVaryingMap<?> map = null;
+//            try {
+//              map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+//            } catch ( Throwable e ) {
+//              //ignore
+//            }
+//            if ( map != null ) result = plus( map, o2 );
+//            else {
+//              try {
+//                Object obj = Expression.evaluate( o2, TimeVaryingMap.class, false );
+//                if ( obj instanceof TimeVaryingMap ) {
+//                  map = (TimeVaryingMap< ? >)obj;
+//                }
+//              } catch ( Throwable e ) {
+//                //ignore
+//              }
+//              if ( map != null ) result = plus( o1, map );
+//            }
+//          }
     }
     try {
-      if ( o1 != null ) {
+      if ( o1 != null && o2 != null && result != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         Object x = Expression.evaluate( result,
@@ -825,6 +847,7 @@ public class Functions {
         // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
+      return (V1)result;
     } catch (Throwable e) {
       e.printStackTrace();
     }
@@ -841,29 +864,50 @@ public class Functions {
         result = ( comp == 1 ) ? s2 : s1;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
-      TimeVaryingMap<?> map = null;
-      try {
-        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-      } catch ( Throwable e ) {
-        //ignore
-      }
-      if ( map != null ) result = min( map, o2 );
-      else {
-        try {
-          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-        } catch ( Throwable e ) {
-          //ignore
+      Number n1 = null;
+      Number n2 = null;
+      TimeVaryingMap<?> map1 = null;
+      TimeVaryingMap<?> map2 = null;
+      
+      Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+      n1 = p1.first;
+      map1 = p1.second;
+
+      if ( map1 != null ) {
+        result = (V1)min( map1, o2 );
+      } else {
+        Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+        n2 = p2.first;
+        map2 = p2.second;
+    
+        if ( map2 != null ) {
+          result = (V1)min( o1, map2 );
         }
-        if ( map != null ) result = min( o1, map );
-        else {
-          Number n1 = null;
-          Number n2 = null;
-          try {
-            n1 = Expression.evaluate( o1, Number.class, false );
-            n2 = Expression.evaluate( o2, Number.class, false );
-          } catch ( Throwable e ) {
-            // ignore
-          }
+      }
+
+//      TimeVaryingMap<?> map = null;
+//      try {
+//        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+//      } catch ( Throwable e ) {
+//        //ignore
+//      }
+//      if ( map != null ) result = min( map, o2 );
+//      else {
+//        try {
+//          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+//        } catch ( Throwable e ) {
+//          //ignore
+//        }
+//        if ( map != null ) result = min( o1, map );
+//        else {
+//          Number n1 = null;
+//          Number n2 = null;
+//          try {
+//            n1 = Expression.evaluate( o1, Number.class, false );
+//            n2 = Expression.evaluate( o2, Number.class, false );
+//          } catch ( Throwable e ) {
+//            // ignore
+//          }
           if ( n1 != null && n2 != null ) {
             if ( NegativeInfinity.isEqual( n1 ) || NegativeInfinity.isEqual( n2 ) ) {
               try {
@@ -882,10 +926,10 @@ public class Functions {
             }
           }
         }
-      }
-    }
+//      }
+//    }
     try {
-      if ( o1 != null ) {
+      if ( o1 != null && o2 != null && result != null) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         Object x = Expression.evaluate( result,
@@ -895,6 +939,7 @@ public class Functions {
         // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
+      return (V1)result;
     } catch (ClassCastException e) {
       e.printStackTrace();
     }
@@ -927,29 +972,49 @@ public class Functions {
         result = ( comp == -1 ) ? s2 : s1;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
-      TimeVaryingMap<?> map = null;
-      try {
-        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-      } catch ( Throwable e ) {
-        //ignore
-      }
-      if ( map != null ) result = max( map, o2 );
-      else {
-        try {
-          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-        } catch ( Throwable e ) {
-          //ignore
+      Number n1 = null;
+      Number n2 = null;
+      TimeVaryingMap<?> map1 = null;
+      TimeVaryingMap<?> map2 = null;
+      
+      Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+      n1 = p1.first;
+      map1 = p1.second;
+
+      if ( map1 != null ) {
+        result = (V1)max( map1, o2 );
+      } else {
+        Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+        n2 = p2.first;
+        map2 = p2.second;
+    
+        if ( map2 != null ) {
+          result = (V1)max( o1, map2 );
         }
-        if ( map != null ) result = max( o1, map );
-        else {
-          Number n1 = null;
-          Number n2 = null;
-          try {
-            n1 = Expression.evaluate( o1, Number.class, false );
-            n2 = Expression.evaluate( o2, Number.class, false );
-          } catch ( Throwable e ) {
-            // ignore
-          }
+      }
+//      TimeVaryingMap<?> map = null;
+//      try {
+//        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+//      } catch ( Throwable e ) {
+//        //ignore
+//      }
+//      if ( map != null ) result = max( map, o2 );
+//      else {
+//        try {
+//          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+//        } catch ( Throwable e ) {
+//          //ignore
+//        }
+//        if ( map != null ) result = max( o1, map );
+//        else {
+//          Number n1 = null;
+//          Number n2 = null;
+//          try {
+//            n1 = Expression.evaluate( o1, Number.class, false );
+//            n2 = Expression.evaluate( o2, Number.class, false );
+//          } catch ( Throwable e ) {
+//            // ignore
+//          }
           if ( n1 != null && n2 != null ) {
             if ( Infinity.isEqual( n1 ) || Infinity.isEqual( n2 ) ) {
               try {
@@ -968,10 +1033,10 @@ public class Functions {
             }
           }
         }
-      }
-    }
+//      }
+//    }
     try {
-      if ( o1 != null ) {
+      if ( o1 != null && o2 != null && result != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         Object x = Expression.evaluate( result,
@@ -981,40 +1046,82 @@ public class Functions {
         // TODO: type casting this w/ V1 assume that it is the dominant class
         return (V1)x;
       }
+      return (V1)result;
     } catch (ClassCastException e) {
       e.printStackTrace();
     }
     return null;
   }
 
+  public static Pair< Number, TimeVaryingMap<?> > numberOrTimeline(Object o) {
+    Number n = tryToGetNumberQuick( o );
+    TimeVaryingMap< ? > tvm = null;
+    if ( n != null ) {
+      new Pair< Number, TimeVaryingMap<?> >( n, tvm );
+    }
+    tvm = tryToGetTimelineQuick( o );
+    if ( tvm != null ) {
+        return new Pair< Number, TimeVaryingMap<?> >( n, tvm );
+    }
+    try {
+        n = Expression.evaluate( o, Number.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
+    if ( n == null ) {
+      try {
+          tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+      } catch (  Throwable e ) {
+        // ignore
+      }
+    }
+    Pair< Number, TimeVaryingMap<?> > p = new Pair< Number, TimeVaryingMap<?> >( n, tvm );
+    return p;
+  }
+  
 
+  protected static TimeVaryingMap<?> tryToGetTimelineQuick( Object o ) {
+    if ( o == null ) return null;
+    if ( o instanceof TimeVaryingMap ) return (TimeVaryingMap)o;
+    if ( o instanceof Expression ) o = ((Expression<?>)o).expression;
+    if ( o instanceof Parameter ) o = ((Parameter<?>)o).getValueNoPropagate();
+    if ( o instanceof TimeVaryingMap ) return (TimeVaryingMap)o;
+    return null;
+  }
+  protected static Number tryToGetNumberQuick( Object o ) {
+    if ( o == null ) return null;
+    if ( o instanceof Number ) return (Number)o;
+    if ( o instanceof Expression ) o = ((Expression<?>)o).expression;
+    if ( o instanceof Parameter ) o = ((Parameter<?>)o).getValueNoPropagate();
+    if ( o instanceof Number ) return (Number)o;
+    return null;
+  }
+  
   //public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
   public static <V1, V2> V1 times( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
+    Number n1 = null;
+    Number n2 = null;
+    TimeVaryingMap<?> map1 = null;
+    TimeVaryingMap<?> map2 = null;
+    
     Object result = null;
-    TimeVaryingMap<?> map = null;
-    try {
-      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-    } catch ( ClassCastException e ) {
-      //ignore
-    }
-    if ( map != null ) result = times( map, o2 );
-    else {
-      try {
-      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-      } catch ( ClassCastException e ) {
-        //ignore
+    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+    n1 = p1.first;
+    map1 = p1.second;
+
+    if ( map1 != null ) {
+      result = (V1)times( map1, o2 );
+    } else {
+      Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+      n2 = p2.first;
+      map2 = p2.second;
+  
+      if ( map2 != null ) {
+        result = (V1)times( o1, map2 );
       }
-      if ( map != null ) result = times( o1, map );
-      else {
-        Number n1 = null;
-        Number n2 = null;
-        try {
-          n1 = Expression.evaluate( o1, Number.class, false );
-          n2 = Expression.evaluate( o2, Number.class, false );
-        } catch ( Throwable e ) {
-          // ignore
-        }
+    }
+    
         if ( n1 != null && n2 != null ) {
           if ( Infinity.isEqual( n1 ) ) {
             try {
@@ -1069,12 +1176,12 @@ public class Functions {
             // result = ((Integer)n1.intValue()) * ((Integer)n2.intValue());
             result = (Integer)gov.nasa.jpl.ae.util.Math.times( n1.intValue(), n2.intValue() );
           }
-          return (V1)result;
+          if ( result == null ) return null;
+          if ( o1.getClass().equals( result.getClass() ) ) return (V1)result;
         }
-      }
-    }
+
     try {
-      if ( o1 != null ) {
+      if ( o1 != null && o2 != null && result != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         // TOOD -- what if cls1 is not a Number?
@@ -1094,29 +1201,49 @@ public class Functions {
   
   public static <V1, V2> V1 divide( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Object result = null;
-    TimeVaryingMap<?> map = null;
-    try {
-      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-    } catch ( ClassCastException e ) {
-      //ignore
-    }
-    if ( map != null ) result = divide( map, o2 );
-    else {
-      try {
-      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-      } catch ( ClassCastException e ) {
-        //ignore
+    Number n1 = null;
+    Number n2 = null;
+    TimeVaryingMap<?> map1 = null;
+    TimeVaryingMap<?> map2 = null;
+    
+    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+    n1 = p1.first;
+    map1 = p1.second;
+
+    if ( map1 != null ) {
+      result = (V1)divide( map1, o2 );
+    } else {
+      Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+      n2 = p2.first;
+      map2 = p2.second;
+  
+      if ( map2 != null ) {
+        result = (V1)divide( o1, map2 );
       }
-      if ( map != null ) result = divide( o1, map );
-      else {
-        Number n1 = null;
-        Number n2 = null;
-        try {
-          n1 = Expression.evaluate( o1, Number.class, false );
-          n2 = Expression.evaluate( o2, Number.class, false );
-        } catch ( Throwable e ) {
-          // ignore
-        }
+    }
+//    TimeVaryingMap<?> map = null;
+//    try {
+//      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+//    } catch ( ClassCastException e ) {
+//      //ignore
+//    }
+//    if ( map != null ) result = divide( map, o2 );
+//    else {
+//      try {
+//      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+//      } catch ( ClassCastException e ) {
+//        //ignore
+//      }
+//      if ( map != null ) result = divide( o1, map );
+//      else {
+//        Number n1 = null;
+//        Number n2 = null;
+//        try {
+//          n1 = Expression.evaluate( o1, Number.class, false );
+//          n2 = Expression.evaluate( o2, Number.class, false );
+//        } catch ( Throwable e ) {
+//          // ignore
+//        }
         if ( n1 != null && n2 != null ) {
           if ( Infinity.isEqual( n1 ) ) {
             try {
@@ -1184,10 +1311,10 @@ public class Functions {
             result = (Integer)gov.nasa.jpl.ae.util.Math.dividedBy( n1.intValue(), n2.intValue() );
           }
         }
-      }
-    }
+//      }
+//    }
     try {
-      if ( o1 != null && o2 != null ) {
+      if ( o1 != null && o2 != null && result != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         Object x = Expression.evaluate( result,
@@ -1208,29 +1335,49 @@ public class Functions {
   public static <V1, V2> V1 pow( V1 o1, V2 o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     Object result = null;
-    TimeVaryingMap<?> map = null;
-    try {
-      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-    } catch ( ClassCastException e ) {
-      //ignore
-    }
-    if ( map != null ) result = pow( map, o2 );
-    else {
-      try {
-      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-      } catch ( ClassCastException e ) {
-        //ignore
+    Number n1 = null;
+    Number n2 = null;
+    TimeVaryingMap<?> map1 = null;
+    TimeVaryingMap<?> map2 = null;
+    
+    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+    n1 = p1.first;
+    map1 = p1.second;
+
+    if ( map1 != null ) {
+      result = (V1)max( map1, o2 );
+    } else {
+      Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+      n2 = p2.first;
+      map2 = p2.second;
+  
+      if ( map2 != null ) {
+        result = (V1)max( o1, map2 );
       }
-      if ( map != null ) result = pow( o1, map );
-      else {
-        Number n1 = null;
-        Number n2 = null;
-        try {
-          n1 = Expression.evaluate( o1, Number.class, false );
-          n2 = Expression.evaluate( o2, Number.class, false );
-        } catch ( Throwable e ) {
-          // ignore
-        }
+    }
+//    TimeVaryingMap<?> map = null;
+//    try {
+//      map = Expression.evaluate( o1, TimeVaryingMap.class, false );
+//    } catch ( ClassCastException e ) {
+//      //ignore
+//    }
+//    if ( map != null ) result = pow( map, o2 );
+//    else {
+//      try {
+//      map = Expression.evaluate( o2, TimeVaryingMap.class, false );
+//      } catch ( ClassCastException e ) {
+//        //ignore
+//      }
+//      if ( map != null ) result = pow( o1, map );
+//      else {
+//        Number n1 = null;
+//        Number n2 = null;
+//        try {
+//          n1 = Expression.evaluate( o1, Number.class, false );
+//          n2 = Expression.evaluate( o2, Number.class, false );
+//        } catch ( Throwable e ) {
+//          // ignore
+//        }
         if ( n1 != null && n2 != null ) {
           if ( Infinity.isEqual( n1 ) ) {
             try {
@@ -1279,12 +1426,12 @@ public class Functions {
           } else {
             result = (Integer)((Double)result).intValue();
           }
-          return (V1)result;
+          //return (V1)result;
         }
-      }
-    }
+//      }
+//    }
     try {
-      if ( o1 != null ) {
+      if ( o1 != null && o2 != null && result != null ) {
         Class<?> cls1 = o1.getClass();
         Class<?> cls2 = o2.getClass();
         // TOOD -- what if cls1 is not a Number?
@@ -2881,22 +3028,13 @@ public class Functions {
                                                  TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return times(tv, o);
   }
+  
   public static < T > TimeVaryingMap< T > times( TimeVaryingMap< T > tv,
                                                  Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ( tv == null || o == null ) return null;
-    Number n = null;
-    try {
-      n = Expression.evaluate( o, Number.class, false );
-    } catch ( Throwable e ) {
-      // ignore
-    }
+    Pair< Number, TimeVaryingMap< ? > > p = numberOrTimeline( o );
+    Number n = p.first;
+    TimeVaryingMap< ? extends Number > tvm = (TimeVaryingMap< ? extends Number >)p.second;
     if ( n != null ) return tv.times( n );
-    TimeVaryingMap< ? extends Number > tvm = null;
-    try {
-        tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
-    } catch (  Throwable e ) {
-      // ignore
-    }
     if ( tvm != null ) return times( tv, tvm );
     return null;
   }
