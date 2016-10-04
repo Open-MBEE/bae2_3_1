@@ -913,6 +913,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set< Event > events = getEvents( true, null );
     System.out.println("Simulating " + events.size() + " events.");
     EventSimulation sim = new EventSimulation( events, 1.0e12 );
+    sim.topEvent = this;
     sim.add( this );
     settingTimeVaryingMapOwners = true;
     Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, false, null );

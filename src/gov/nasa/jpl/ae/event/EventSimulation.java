@@ -90,6 +90,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   protected Thread readStdoutPlotThread = null;
   protected Thread readStderrPlotThread = null;
   
+  protected DurativeEvent topEvent = null;
+  
   //  protected static java.util.Random portRandomNumberGenerator =
 //      new java.util.Random( System.currentTimeMillis() );
 //  protected Pair<Integer, Integer > portRange = new Pair( 65000, 66000 );
@@ -243,26 +245,49 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           areCategoriesUnique = false;
           break;
         }
+        cats.add( cat );
       }
     }
+    
+    Set< TimeVarying< ? > > tvs = topEvent.getTimeVaryingObjects( true, false, null );
+    Set<Parameter<?>> params = topEvent.getParameters( true, null );
+    Set<Object> paramsAndTvms = new HashSet<Object>();
+    for ( Parameter<?> p : params ) {
+        Object o = p.getValueNoPropagate();
+        if ( o instanceof TimeVarying ) {
+//          System.out.println( p );
+//          if ( p.getName() != null && p.getName().contains( "telecomPower" ) ) {
+//            System.out.println("here1ß");
+//          }
+          paramsAndTvms.add( p );
+          tvs.remove( o );
+        }
+    }
+    paramsAndTvms.addAll( tvs );
+
+    
     // Find a unique file name for each plottable timeline and write out to file.
     int ct = 0;
-    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
-      Object o = e.getKey();
+//    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+    for ( Object obj : paramsAndTvms ) {
+      Object o = obj;//e.getKey();
       // unwrap the timeline if stuffed in a parameter
       String name = null; 
       if ( o instanceof Parameter ) {
         name = ((Parameter<?>)o).getName(); 
         o = ((Parameter<?>)o).getValueNoPropagate();
       }
+//      if ( name != null && name.contains( "telecomPower" ) ) {
+//        System.out.println("here3");
+//      }
       if ( o instanceof TimeVaryingMap ) {
         TimeVaryingMap<?> tv = (TimeVaryingMap< ? >)o;
         String fileName = null;
         
         // get the name if not already gotten from the parameter
         boolean gotName = !Utils.isNullOrEmpty( name );
-        if ( !gotName ) name = tv.getName();
-        gotName = !Utils.isNullOrEmpty( name );
+        if ( !gotName ) { name = tv.getName();
+        gotName = !Utils.isNullOrEmpty( name ); }
 
         // use the category if unique
         String cat = categories.get(o);
@@ -271,7 +296,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           fileName = cat + ".csv";
         } else {
           // if the categories are not unique, use the timeline name appended to the category.
-          fileName = (gotCat ? cat + "_" : "")+ (gotName ? name : "") + ".csv";
+          if ( gotName ) fileName = name + ".csv";
+          if ( !gotName || fileNames.contains( fileName ) ) {
+            fileName = (gotCat ? cat + "_" : "")+ (gotName ? name : "") + ".csv";
+          }
           if ( !gotCat && !gotName ) {
             fileName = "TL_" + o.hashCode() + ".csv";
           }
@@ -300,6 +328,9 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         // write to file
         String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";//TimeUtils.aspenTeeFormat;
         Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
+//        if ( pathAndFile.contains( "telecomPower" ) ) {
+//          System.out.println("here");
+//        }
         tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
       }
     }
