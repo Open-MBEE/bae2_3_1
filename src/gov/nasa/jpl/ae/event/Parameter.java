@@ -481,7 +481,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
    */
   @Override
   public int compareTo( Parameter< ? > o ) {
-    return compareTo( o, true );
+    return compareTo( o, false );
   }
   public int compareTo( Parameter< ? > o, boolean checkId ) {
     if ( this == o ) return 0;
@@ -519,6 +519,9 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 //      }
 //      if ( compare != 0 ) return compare;
 //    }
+    compare = CompareUtils.compare( getValue(), o.getValue(), true );
+    if ( compare != 0 ) return compare;
+
     compare = CompareUtils.compare( name, o.name, true );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( getClass().getName(), o.getClass().getName(), true );
@@ -530,8 +533,6 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     compare = CompareUtils.compare( getOwner(), o.getOwner(), true );
     if ( compare != 0 ) return compare;
 //    Debug.errln("Parameter.compareTo() potentially accessing value information");
-    compare = CompareUtils.compare( getValue(), o.getValue(), true );
-    if ( compare != 0 ) return compare;
 //    compare = CompareUtils.compareTo( this, o, false );
 //    if ( compare != 0 ) return compare;
 
@@ -668,7 +669,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       sb.append( value == null ? "null" : MoreToString.Helper.toShortString( value ) );
       // TODO -- It seems like toShortString() should take a withHash argument.
       // Maybe add an additional call to the interface for this.
-      if ( withHash && !ClassUtils.isPrimitive( value.getClass() ) ) {
+      if ( value != null && withHash && !ClassUtils.isPrimitive( value.getClass() ) ) {
         sb.append("@" + value.hashCode());
       }
     } else if ( isGrounded( false, null ) ) {
