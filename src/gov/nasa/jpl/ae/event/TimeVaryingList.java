@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.ae.fuml.ObjectFlow;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -97,6 +98,28 @@ public class TimeVaryingList< T > extends TimeVaryingMap< List< T > > {
     super( name, initialValueFunction, o, samplePeriod, horizonDuration );
     // TODO Auto-generated constructor stub
   }
+  public TimeVaryingList( TimeVaryingList<T> tvm) {
+    super(tvm);
+    this.maxSize = tvm.maxSize();
+    this.duplicatesAllowed = tvm.duplicatesAllowed; 
+    this.monotonic = tvm.monotonic;
+  }
+  
+  @Override
+  public TimeVaryingList< T > clone() {
+    TimeVaryingList< T > tvm = new TimeVaryingList< T >(this);
+    return tvm;
+  }
+
+  @Override
+  public TimeVaryingList< T > emptyClone() {
+    TimeVaryingList< T > tvm = new TimeVaryingList< T >(this.getName(), this.maxSize());
+    tvm.monotonic = this.monotonic;
+    tvm.duplicatesAllowed = this.duplicatesAllowed;
+    return tvm;
+  }
+
+
 
   public int maxSize() { return maxSize; }
   

@@ -121,16 +121,40 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     this.maxCap = consumable.maxCap;
   }
   
+  public Consumable( Consumable consumable ) {
+    super(consumable);
+    minCap = consumable.minCap;
+    maxCap = consumable.maxCap;
+  }
+  
+  @Override
+  public Consumable clone() {
+    return new Consumable(this);
+  }
+  
+  @Override
+  public Consumable emptyClone() {
+    Consumable consumable = new Consumable( getName(), null, isProjection(), getMinCap(), getMaxCap(), getInterpolation() );
+    return consumable;
+  }
+  
   public double add( Parameter<Integer> t, Double delta ) {
+    
     Double valBefore = getValueBefore( t );
     setValue( t, valBefore );  // we're going to add delta to this below.
     SortedMap< Parameter<Integer>, Double > tail = this.tailMap( t );
     // Had trouble changing the value while iterating through the tail map, so
     // keys are copied to a list, and setValue() is called while walking the list.
     // So, this is nlogn when it should be n.
-    List< Parameter<Integer> > laterTimes = new ArrayList< Parameter<Integer> >( tail.keySet() );
-    for ( Parameter<Integer> tt : laterTimes ) {
-      setValue( tt, getValue( tt ) + delta );
+    if ( delta != null ) {
+      List< Parameter<Integer> > laterTimes = new ArrayList< Parameter<Integer> >( tail.keySet() );
+      for ( Parameter<Integer> tt : laterTimes ) {
+        Double v = getValue( tt );
+        if ( v != null ) {
+          v = v + delta;
+          setValue( tt, v );
+        }
+      }
     }
     double valueSet = getValue( t );
     return valueSet;

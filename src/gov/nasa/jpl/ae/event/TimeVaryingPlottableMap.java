@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.event;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -174,6 +175,9 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
 
   public TimeVaryingPlottableMap( TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
     this( timeVaryingPlottableMap.getName(), timeVaryingPlottableMap );
+    this.category = timeVaryingPlottableMap.category;
+    this.dataProjected = timeVaryingPlottableMap.dataProjected;
+    this.parameters = new LinkedHashSet< Parameter< ? > >(timeVaryingPlottableMap.parameters);
     init();
   }
 
@@ -185,7 +189,12 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   @Override
   public TimeVaryingPlottableMap<V> clone() {
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this);
-    init();
+    return tvm;
+  }
+
+  @Override
+  public TimeVaryingPlottableMap<V> emptyClone() {
+    TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this.getName(), (String)null, this.getType(), this.isProjection());
     return tvm;
   }
 

@@ -438,7 +438,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return obj cast to T or {@code null} if the cast fails
    */
   public static < T > T tryCast( Object obj, Class<T> cls ) {
-    if ( cls != null ) {
+    if ( cls != null && obj != null ) {
       try {
         if ( Number.class.isAssignableFrom( cls ) && ClassUtils.isNumber( obj.getClass() ) ) {
           T x = ClassUtils.castNumber( (Number)obj, cls );
@@ -582,6 +582,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap<V> clone() {
     TimeVaryingMap<V> tvm = new TimeVaryingMap<V>(this);
     return tvm;
+  }
+  public TimeVaryingMap< V > emptyClone() {
+    TimeVaryingMap<V> tvm = new TimeVaryingMap<V>(this.name, this.type);
+    return tvm;
+  }
+
+  public TimeVaryingMap< V > makeNew() {
+    return makeNew(this.getName());
+  }
+  public TimeVaryingMap< V > makeNew(String name) {
+    TimeVaryingMap< V > copy = emptyClone();
+    copy.setName( name );
+    return copy;
   }
 
   public static void maybeDeconstructParameter( ParameterListener pl,
@@ -2762,9 +2775,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public <VV> TimeVaryingMap< V > add( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
-    keys.addAll( this.keySet() );
-    keys.addAll( tvm.keySet() );
-    for ( Parameter< Integer > k : keys ) {
+    for ( Parameter< Integer >  k : tvm.keySet() ) {
+      putKey( k, true );
+    }
+    for ( Parameter< Integer > k : keySet() ) {
       VV v = tvm.getValue( k, false );
       Number n = Expression.evaluate( v, Number.class, false );
       add( n, k, k );
@@ -2870,10 +2884,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       remove( k );
     }
     if ( Debug.isOn() ) Debug.outln( " after removing duplicates " + this );
-    return this;
+     return this;
   }
 
-
+  
   /**
    * @param n
    * @param fromKey
@@ -2908,12 +2922,32 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV extends Number> TimeVaryingMap< V > plusOld( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( map );
     return newTvm;
   }
 
+  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = emptyClone();
+    newTvm.clear();
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( map.keySet() );
+    for ( Parameter<Integer> k : keys ) {
+      V v1 = this.get( k );
+      VV v2 = map.get( k );
+      Object v3 = Functions.plus( v1, v2 );
+      V v4 = tryCastValue( v3 );
+      if ( v4 != null || v1 == null ) {
+        newTvm.setValue( k, v4 );
+      }
+    }
+    return newTvm;
+  }
+
+  
   /**
    * @param map1
    * @param map2

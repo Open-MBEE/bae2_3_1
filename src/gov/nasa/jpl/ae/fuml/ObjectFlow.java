@@ -17,6 +17,7 @@ import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.HasParameters;
+import gov.nasa.jpl.ae.event.NestedTimeVaryingMap;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
@@ -62,6 +63,23 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public ObjectFlow( String name, Class< Obj > type ) {
     super( name, type );
   }
+  
+  public ObjectFlow( ObjectFlow<Obj> flow ) {
+    super(flow);
+  }
+
+  @Override
+  public ObjectFlow<Obj> clone() {
+    ObjectFlow<Obj> tvm = new ObjectFlow<Obj>(this);
+    return tvm;
+  }
+
+  @Override
+  public ObjectFlow<Obj> emptyClone() {
+    ObjectFlow<Obj> tvm = new ObjectFlow<Obj>(this.getName(), this.getType());
+    return tvm;
+  }
+
 
   protected void breakpoint() {
     if ( getName() != null && getName().contains( "14272" ) ) {

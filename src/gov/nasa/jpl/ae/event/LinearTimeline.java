@@ -48,6 +48,21 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
                          int samplePeriod, int horizonDuration ) {
     super( name, initialValueFunction, o, samplePeriod, horizonDuration );
   }
+  
+  public LinearTimeline( LinearTimeline timeline ) {
+    super(timeline);
+  }
+  
+  @Override
+  public LinearTimeline clone() {
+    return new LinearTimeline( this );
+  }
+  
+  @Override
+  public LinearTimeline emptyClone() {
+    LinearTimeline timeline = new LinearTimeline( getName(), null, isProjection() );
+    return timeline;
+  }
 
   @Override
   public Double getValue( Integer t ) {
