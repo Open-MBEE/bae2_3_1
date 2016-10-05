@@ -2922,13 +2922,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public <VV extends Number> TimeVaryingMap< V > plusOld( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( map );
     return newTvm;
   }
 
-  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV extends Number> TimeVaryingMap< V > plusNew( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = emptyClone();
     newTvm.clear();
     Set< Parameter< Integer > > keys =
