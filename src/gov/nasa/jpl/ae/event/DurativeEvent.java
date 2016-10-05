@@ -28,7 +28,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,6 +53,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                            HasTimeVaryingObjects {
 
   // Static members
+
+  public static boolean doPlot = false;
 
   protected static int counter = 0;
 
@@ -967,7 +968,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate( double timeScale, java.io.OutputStream os ) {
-    simulate( timeScale, os, true );
+    simulate( timeScale, os, doPlot );
   }
 
   public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
