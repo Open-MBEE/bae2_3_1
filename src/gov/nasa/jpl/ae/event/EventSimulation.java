@@ -70,7 +70,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * Whether or not the external plotter should be launched and connected to by
    * socket.
    */
-  public boolean tryToPlot = true;
+  public boolean tryToPlot = true; // see DurativeEvent.doPlot that overrides this variable.
   
   /**
    * Whether to limit the simulation to the horizon bounds and include an event
