@@ -1516,11 +1516,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public < VV > TimeVaryingMap< V > times( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public < VV > TimeVaryingMap< V > timesOld( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.multiply( tvm );
     return newTvm;
   }
+  
+  
+  public <VV extends Number> TimeVaryingMap< V > times( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.TIMES );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Integer > > keys =
+//        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter<Integer> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.times( v1, v2 );
+//      // Multiplying a number and null will return the number.
+//      // But this doesn't make sense when the interpolation is NONE.
+//      if ( v3 == null && interpolation != NONE ) {
+//        v3 = v1 != null ? v1 : v2;
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
 
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > times( TimeVaryingMap< VV1 > tvm1,
                                                                          TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -1663,19 +1690,45 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
    * {@code newTvm.get(t) == this.get(t) * tvm.get(t)}.
    *
-   * @param n
-   *          the number by which the map is multiplied
+   * @param tvm
+   *          the map/timeline by which the map is multiplied
    * @return a copy of this map multiplied by {@code tvm}
    * @throws InstantiationException 
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public < VV > TimeVaryingMap< V > pow( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public < VV > TimeVaryingMap< V > powOld( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.power( tvm );
     return newTvm;
   }
+
+  public < VV > TimeVaryingMap< V > pow( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.POW );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Integer > > keys =
+//        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter<Integer> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.pow( v1, v2 );
+//      // Multiplying a number and null will return the number.
+//      // But this doesn't make sense when the interpolation is NONE.
+//      if ( v3 == null && interpolation != NONE ) {
+//        v3 = v1 != null ? v1 : v2;
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
 
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > pow( TimeVaryingMap< VV1 > tvm1,
                                                                        TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -1854,7 +1907,98 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return newTvm;
   }
 
+  public enum MathOperation { PLUS, MINUS, TIMES, DIVIDE, POW, LOG, MIN, MAX, MOD };
+  public static boolean symmetric( MathOperation op ) {
+    switch ( op ) {
+      case DIVIDE:
+      case LOG:
+      case MINUS:
+      case MOD:
+      case POW:
+        return false;
+      case MIN:
+      case MAX:
+      case PLUS:
+      case TIMES: 
+        return true;        
+      default:
+        Debug.error("Unknown MathOperation " + op + "!");
+    };
+    return false;
+  }
   
+  /**
+   * Return the result of applying a binary operation to this map and another.
+   * This achieves for all {@code t} in {@code this.keySet()} and
+   * {@code tvm.keySet()}, {@code newTvm.get(t) == this.get(t) OP tvm.get(t)}
+   * for operation OP.
+   *
+   * @param tvm
+   *          the map/timeline by which the map is multiplied
+   * @param op
+   *          the binary operation
+   * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException
+   * @throws InvocationTargetException
+   * @throws IllegalAccessException
+   * @throws ClassCastException
+   */
+  public < VV > TimeVaryingMap< V > applyOperation( TimeVaryingMap< VV > map, MathOperation op ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = emptyClone();
+    newTvm.clear();
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( map.keySet() );
+    for ( Parameter<Integer> k : keys ) {
+      V v1 = this.getValue( k );
+      VV v2 = map.getValue( k );
+      Object v3 = null;
+      switch ( op ) {
+        case DIVIDE:
+          v3 = Functions.divide( v1, v2 );
+          break;
+        case LOG:
+          //v3 = Functions.log( v1, v2 );
+          Debug.error("log(TimeVaryingMap) not yet supported!");
+          break;
+        case MAX:
+          v3 = Functions.max( v1, v2 );
+          break;
+        case MIN:
+          v3 = Functions.min( v1, v2 );
+          break;
+        case MINUS:
+          v3 = Functions.minus( v1, v2 );
+          break;
+        case MOD:
+          //v3 = Functions.mod( v1, v2 );
+          Debug.error("mod(TimeVaryingMap) not yet supported!");
+          break;
+        case PLUS:
+          v3 = Functions.plus( v1, v2 );
+          break;
+        case POW:
+          v3 = Functions.pow( v1, v2 );
+          break;
+        case TIMES: 
+          v3 = Functions.times( v1, v2 );
+          break;
+        default:
+          Debug.error("Unknown MathOperation " + op + "!");
+      };
+      // Applying the operation to a number and null (in that order) will return the number.  If the order of the operands is (null, number), then the number is used only if the operation is symmetric.  This behavior may be interpreted as not modifying the existing timeline if the other operand does not exist.
+      // But this doesn't make sense when the interpolation is NONE, so nothing is set in that case.
+      if ( v3 == null && (interpolation != NONE || map.interpolation != NONE) ) {
+        v3 = v1 != null ? v1 : (symmetric(op) ? v2 : null);
+      }
+      V v4 = tryCastValue( v3 );
+      if ( v4 != null ) {
+        newTvm.setValue( k, v4 );
+      }
+    }
+    return newTvm;
+  }
   
 
   /**
@@ -1976,7 +2120,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     return removeDuplicates();
   }
-
+  
   /**
    * @param n the number by which the map is divided
    * @param fromKey
@@ -2022,11 +2166,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public < VV extends Number > TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public < VV extends Number > TimeVaryingMap< V > dividedByOld( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.divide( tvm );
     return newTvm;
   }
+  
+  public <VV extends Number> TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.DIVIDE );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Integer > > keys =
+//        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter<Integer> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.divide( v1, v2 );
+//      // Multiplying a number and null will return the number.
+//      // But this doesn't make sense when the interpolation is NONE.
+//      if ( v3 == null && interpolation != NONE ) {
+//        v3 = v1 != null ? v1 : v2;
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
+
 
   /**
    * Return the quotient of two maps. This achieves for all
@@ -2442,7 +2613,6 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   public TimeVaryingMap< V > integrate() {
     return integrate(new SimpleTimepoint(0), new SimpleTimepoint(Timepoint.horizonDuration));
-    
   }
     
   
@@ -2922,29 +3092,35 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV extends Number> TimeVaryingMap< V > plusOld( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( map );
     return newTvm;
   }
 
-  public <VV extends Number> TimeVaryingMap< V > plusNew( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    TimeVaryingMap< V > newTvm = emptyClone();
-    newTvm.clear();
-    Set< Parameter< Integer > > keys =
-        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
-    keys.addAll( this.keySet() );
-    keys.addAll( map.keySet() );
-    for ( Parameter<Integer> k : keys ) {
-      V v1 = this.get( k );
-      VV v2 = map.get( k );
-      Object v3 = Functions.plus( v1, v2 );
-      V v4 = tryCastValue( v3 );
-      if ( v4 != null || v1 == null ) {
-        newTvm.setValue( k, v4 );
-      }
-    }
-    return newTvm;
+  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.PLUS );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Integer > > keys =
+//        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter<Integer> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.plus( v1, v2 );
+//      // Adding null to a number should return the number. This is important
+//      // when interpolation is NONE.
+//      if ( v3 == null ) {
+//        v3 = v1 != null ? v1 : v2; 
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
   }
 
   
@@ -3065,19 +3241,28 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} min'd with it
    */
-  public <VV extends Number> TimeVaryingMap< V > minClone( TimeVaryingMap< VV > map ) {
+  public <VV extends Number> TimeVaryingMap< V > minCloneOld( TimeVaryingMap< VV > map ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.min( map );
     return newTvm;
   }
 
+  public <VV> TimeVaryingMap< V > minClone( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( tvm, MathOperation.MIN );
+  }
+
+
   /**
    * @param map1
    * @param map2
    * @return a new map that mins {@code map1} and {@code map2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > min( TimeVaryingMap< VV1 > map1,
-                                                                       TimeVaryingMap< VV2 > map2 ) {
+                                                                       TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return map1.minClone( map2 );
   }
 
@@ -3111,7 +3296,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map
    * @return a copy of this TimeVaryingMap with {@code map} max'd with it
    */
-  public <VV extends Number> TimeVaryingMap< V > maxClone( TimeVaryingMap< VV > map ) {
+  public <VV> TimeVaryingMap< V > maxClone( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( tvm, MathOperation.MAX );
+  }
+
+  public <VV extends Number> TimeVaryingMap< V > maxCloneOld( TimeVaryingMap< VV > map ) {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.max( map );
     return newTvm;
@@ -3121,9 +3310,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map1
    * @param map2
    * @return a new map that maxes {@code map1} and {@code map2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
    */
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > max( TimeVaryingMap< VV1 > map1,
-                                                                       TimeVaryingMap< VV2 > map2 ) {
+                                                                       TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return map1.maxClone( map2 );
   }
 

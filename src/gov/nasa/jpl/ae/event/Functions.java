@@ -2965,11 +2965,11 @@ public class Functions {
   // TimeVaryingMap functions
 
   public static < T > TimeVaryingMap< T > min( Object o,
-                                               TimeVaryingMap< T > tv ) {
+                                               TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return min( tv, o );
   }
   public static < T > TimeVaryingMap< T > min( TimeVaryingMap< T > tv,
-                                               Object o ) {
+                                               Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
     Number n = null;
     try {
@@ -2984,16 +2984,16 @@ public class Functions {
     return null;
   }   
   public static < T, TT extends Number > TimeVaryingMap< T > min( TimeVaryingMap< T > tv1,
-                                                                  TimeVaryingMap< TT > tv2 ) {
+                                                                  TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return TimeVaryingMap.min( tv1, tv2 );
   }
   
   public static < T > TimeVaryingMap< T > max( Object o,
-                                               TimeVaryingMap< T > tv ) {
+                                               TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return max( tv, o );
   }
   public static < T > TimeVaryingMap< T > max( TimeVaryingMap< T > tv,
-                                               Object o ) {
+                                               Object o ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tv == null || o == null ) return null;
     Number n = null;
     try {
@@ -3008,7 +3008,7 @@ public class Functions {
     return null;
   }   
   public static < T, TT extends Number > TimeVaryingMap< T > max( TimeVaryingMap< T > tv1,
-                                                                  TimeVaryingMap< TT > tv2 ) {
+                                                                  TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return TimeVaryingMap.max( tv1, tv2 );
   }
   
