@@ -69,6 +69,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static Interpolation RAMP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.RAMP);
   public static Interpolation NONE = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.NONE);
   
+  public static final TimeVaryingMap<Double> zero = new TimeVaryingMap< Double >( "zero", 0.0, Double.class ); 
+  public static final TimeVaryingMap<Double> one = new TimeVaryingMap< Double >( "one", 1.0, Double.class ); 
+  
   public static class Interpolation  {
     public static final byte STEP = 0; // value for key = get(floorKey( key ))
     public static final byte LINEAR = 1; // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)

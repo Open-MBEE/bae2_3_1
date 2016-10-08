@@ -2730,11 +2730,10 @@ public class Functions {
   protected static <T> Boolean eq( T r1, T r2 ) {    
     if ( Expression.valuesEqual( r1, r2, null, true, true )) return true;
     if ( Utils.valuesLooselyEqual( r1, r2, true ) ) return true;
-//    if ((r1 ==null) && (r2 == null)){
+    if ( r1 == null || r2 == null ) return false;
 //      Debug.outln( "" );
 //    }
 //    if ( r1 == r2 ) return true;
-//    if ( r1 == null || r2 == null ) 
 //      return false;
     boolean b = false;
     b = CompareUtils.compare( r1, r2, false ) == 0;

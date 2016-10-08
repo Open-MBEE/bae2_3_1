@@ -23,6 +23,9 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    */
   private static final long serialVersionUID = -897416349437818390L;
   
+  public static final TimeVaryingPlottableMap<Double> zero = new TimeVaryingPlottableMap< Double >( "zero", null, 0.0, Double.class ); 
+  public static final TimeVaryingPlottableMap<Double> one = new TimeVaryingPlottableMap< Double >( "one", null, 1.0, Double.class ); 
+
   protected boolean dataProjected = false;
 
   public StringParameter category = new StringParameter( "category", "", this );
@@ -130,6 +133,23 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                                   boolean projected ) {
     super( name, fileName, defaultValue, cls );
     dataProjected = projected;
+    init();
+  }
+  
+  /**
+   * @param name
+   * @param fileName
+   * @param defaultValue
+   * @param cls
+   * @param projected
+   */
+  public TimeVaryingPlottableMap( String name, String fileName, V defaultValue,
+                                  Class<V> cls,
+                                  Interpolation interpolation,
+                                  boolean projected ) {
+    super( name, fileName, defaultValue, cls );
+    this.interpolation = interpolation;
+    this.dataProjected = projected;
     init();
   }
   
