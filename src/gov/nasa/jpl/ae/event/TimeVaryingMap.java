@@ -1992,7 +1992,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       };
       // Applying the operation to a number and null (in that order) will return the number.  If the order of the operands is (null, number), then the number is used only if the operation is symmetric.  This behavior may be interpreted as not modifying the existing timeline if the other operand does not exist.
       // But this doesn't make sense when the interpolation is NONE, so nothing is set in that case.
-      if ( v3 == null && (interpolation != NONE || map.interpolation != NONE) ) {
+      if ( v3 == null && (interpolation != NONE || map.interpolation != NONE || op != MathOperation.TIMES ) ) {
         v3 = v1 != null ? v1 : (symmetric(op) ? v2 : null);
       }
       V v4 = tryCastValue( v3 );
@@ -3321,6 +3321,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > max( TimeVaryingMap< VV1 > map1,
                                                                        TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return map1.maxClone( map2 );
+  }
+
+  public static Object getValueAtTime(Object object, Parameter<Integer> t) {
+    if ( object instanceof TimeVarying ) {
+      return ((TimeVarying<?>)object).getValue( t );
+    }
+    return object;
+  }
+  
+  public TimeVaryingMap<Object> ifThenElse( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<Object> newTvm = new TimeVaryingMap<>();
+    newTvm.clear();
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    if ( thenObj instanceof TimeVaryingMap ) {
+      keys.addAll( ((TimeVaryingMap<?>)thenObj).keySet() );
+    }
+    if ( elseObj instanceof TimeVaryingMap ) {
+      keys.addAll( ((TimeVaryingMap<?>)elseObj).keySet() );
+    }
+    for ( Parameter<Integer> k : keys ) {
+      Object v3 = null;
+      V v1 = this.getValue( k );
+      if ( Utils.isTrue( v1 ) ) {
+        v3 = getValueAtTime(thenObj, k);
+      } else {
+        v3 = getValueAtTime(elseObj, k);
+      }
+      newTvm.setValue( k, v3 );
+    }
+    return newTvm;
   }
 
   

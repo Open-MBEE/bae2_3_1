@@ -439,6 +439,27 @@ public class Functions {
     return elseT;
   }
   
+  public static < T > Object ifThenElse( Object condition, T thenT, T elseT ) {
+    if ( condition == null ) return elseT;
+    Pair< Boolean, TimeVaryingMap< ? > > p = booleanOrTimeline( condition );
+    if ( p != null && p.first != null ) {
+      if ( p.first.booleanValue() ) return thenT;
+      return elseT;
+    }
+    TimeVaryingMap< ? > tvm = p.second;
+    if ( tvm == null ) return elseT;
+//    if (tvm.size() == 1) {
+//      Object o = tvm.values().iterator().next();
+//      Boolean b = tryToGetBooleanQuick( o );
+//      if ( b != null ) {
+//        return ifThenElse(b, thenT, elseT);
+//      }
+//    }
+    Object t = tvm.ifThenElse(thenT, elseT);
+    return t;
+  }
+
+  
   /**
    * Evaluate if-then-else conditional function. If the condition evaluates to
    * null, it is interpreted as "false."
@@ -463,9 +484,11 @@ public class Functions {
     }
     Boolean b = (Boolean)o;
     //Boolean b = (conditionExpr == null ? null : conditionExpr.evaluate( false ) );
+    if ( b == null || !b.booleanValue() ) {
+      T elseT = (elseExpr == null ? null : elseExpr.evaluate( false ) );
+      return elseT;
+    }
     T thenT = (thenExpr == null ? null : thenExpr.evaluate( false ) );
-    T elseT = (elseExpr == null ? null : elseExpr.evaluate( false ) );
-    if ( b == null || !b.booleanValue() ) return elseT;
     return thenT;
   }
   
@@ -1053,6 +1076,46 @@ public class Functions {
     return null;
   }
 
+  public static TimeVaryingMap<?> getTimeline(Object o) {
+    TimeVaryingMap< ? > tvm = null;
+    tvm = tryToGetTimelineQuick( o );
+    if ( tvm != null ) {
+      return tvm;
+    }
+    try {
+      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (  Throwable e ) {
+      // ignore
+    }
+    return tvm;
+  }
+  
+  public static Pair< Boolean, TimeVaryingMap<?> > booleanOrTimeline(Object o) {
+    Boolean n = tryToGetBooleanQuick( o );
+    TimeVaryingMap< ? > tvm = null;
+    if ( n != null ) {
+      new Pair< Boolean, TimeVaryingMap<?> >( n, tvm );
+    }
+    tvm = tryToGetTimelineQuick( o );
+    if ( tvm != null ) {
+        return new Pair< Boolean, TimeVaryingMap<?> >( n, tvm );
+    }
+    try {
+        n = Expression.evaluate( o, Boolean.class, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
+    if ( n == null ) {
+      try {
+          tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+      } catch (  Throwable e ) {
+        // ignore
+      }
+    }
+    Pair< Boolean, TimeVaryingMap<?> > p = new Pair< Boolean, TimeVaryingMap<?> >( n, tvm );
+    return p;
+  }
+  
   public static Pair< Number, TimeVaryingMap<?> > numberOrTimeline(Object o) {
     Number n = tryToGetNumberQuick( o );
     TimeVaryingMap< ? > tvm = null;
@@ -1094,6 +1157,14 @@ public class Functions {
     if ( o instanceof Expression ) o = ((Expression<?>)o).expression;
     if ( o instanceof Parameter ) o = ((Parameter<?>)o).getValueNoPropagate();
     if ( o instanceof Number ) return (Number)o;
+    return null;
+  }
+  protected static Boolean tryToGetBooleanQuick( Object o ) {
+    if ( o == null ) return null;
+    if ( o instanceof Boolean ) return (Boolean)o;
+    if ( o instanceof Expression ) o = ((Expression<?>)o).expression;
+    if ( o instanceof Parameter ) o = ((Parameter<?>)o).getValueNoPropagate();
+    if ( o instanceof Boolean ) return (Boolean)o;
     return null;
   }
   
