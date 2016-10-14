@@ -249,32 +249,19 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       }
     }
     
-    Set< TimeVarying< ? > > tvs = topEvent.getTimeVaryingObjects( true, false, null );
-    Set<Parameter<?>> params = topEvent.getParameters( true, null );
-    Set<Object> paramsAndTvms = new HashSet<Object>();
-    for ( Parameter<?> p : params ) {
-        Object o = p.getValueNoPropagate();
-        if ( o instanceof TimeVarying ) {
-//          System.out.println( p );
-//          if ( p.getName() != null && p.getName().contains( "telecomPower" ) ) {
-//            System.out.println("here1ß");
-//          }
-          paramsAndTvms.add( p );
-          tvs.remove( o );
-        }
-    }
-    paramsAndTvms.addAll( tvs );
+    Map<String, Object> paramsAndTvms = topEvent.getTimeVaryingObjectMap( true, null );
 
     
     // Find a unique file name for each plottable timeline and write out to file.
     int ct = 0;
 //    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
-    for ( Object obj : paramsAndTvms ) {
-      Object o = obj;//e.getKey();
+    //Map.Entry<String, TimeVarying<?>> obj;
+    for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
+      Object o = entry.getValue();//e.getKey();
       // unwrap the timeline if stuffed in a parameter
-      String name = null; 
+      String name = entry.getKey(); 
       if ( o instanceof Parameter ) {
-        name = ((Parameter<?>)o).getName(); 
+        //name = ((Parameter<?>)o).getName(); 
         o = ((Parameter<?>)o).getValueNoPropagate();
       }
 //      if ( name != null && name.contains( "telecomPower" ) ) {

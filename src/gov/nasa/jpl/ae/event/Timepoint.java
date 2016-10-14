@@ -336,7 +336,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
   }
 
   public static void setEpoch( String epochString ) {
-    setEpoch( TimeUtils.dateFromTimestamp( epochString ) );
+    setEpoch( TimeUtils.dateFromTimestamp( epochString, TimeZone.getTimeZone( "GMT" ) ) );
   }
 
   /**

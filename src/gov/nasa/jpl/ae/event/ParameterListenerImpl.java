@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -731,12 +732,45 @@ public class ParameterListenerImpl extends HasIdImpl
     return constraintCollection;
   }
 
+  
+  
+  public Map< String, Object > getTimeVaryingObjectMap( boolean deep,
+                                                        Set<HasTimeVaryingObjects> seen ) {
+    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( deep, false, seen );
+    Set<Parameter<?>> params = getParameters( deep, null );
+    Map<String, Object> paramsAndTvms = new LinkedHashMap<String,Object>();
+    for ( Parameter<?> p : params ) {
+        Object o = p.getValueNoPropagate();
+        if ( o instanceof TimeVarying ) {
+//          System.out.println( p );
+//          if ( p.getName() != null && p.getName().contains( "telecomPower" ) ) {
+//            System.out.println("here1ß");
+//          }
+          if ( paramsAndTvms.containsKey( p.getName() ) ) {
+            Debug.error( "Already have a parameter with name " + p.getName() + "!");
+          } else {
+            paramsAndTvms.put(p.getName(), p );
+            tvs.remove( o );
+          }
+        }
+    }
+    for ( TimeVarying< ? > tv : tvs ) {
+      if ( tv instanceof TimeVaryingMap ) {
+        String name = ((TimeVaryingMap<?>)tv).getName();
+        if ( !paramsAndTvms.containsKey( name ) ) {
+          paramsAndTvms.put( name, tv );
+        }
+      }
+    }
+    return paramsAndTvms;
+  }
+  
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
    */
   @Override
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
-                                                        Set<HasTimeVaryingObjects> seen ) {
+                                                          Set<HasTimeVaryingObjects> seen ) {
     return getTimeVaryingObjects( deep, true, seen );
   }
   public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,

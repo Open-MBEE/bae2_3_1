@@ -32,10 +32,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -532,11 +534,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       
       fieldMapInitialized = fieldMapInitialized || !fieldMap.isEmpty();
       
+      TimeZone gmtZone = TimeZone.getTimeZone( "GMT" );
+      
       //for ( String field : fields ) {
       for ( int i = 0; i < fields.size(); ++i ) {
         String field = fields.get( i );
         // Try to match start or end time
-        Date d = TimeUtils.dateFromTimestamp( field );
+        Date d = TimeUtils.dateFromTimestamp( field, gmtZone );
         if ( d != null ) {
           if ( ( fieldMapInitialized && fieldMap.get( "start" ) == i ) || 
                ( !fieldMapInitialized && start == null ) ) {
@@ -917,26 +921,19 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     sim.topEvent = this;
     sim.add( this );
     settingTimeVaryingMapOwners = true;
-    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, false, null );
-    Set<Parameter<?>> params = getParameters( true, null );
-    Set<Object> paramsAndTvms = new HashSet<Object>();
-    for ( Parameter<?> p : params ) {
-        Object o = p.getValueNoPropagate();
-        if ( o instanceof TimeVarying ) {
-          paramsAndTvms.add( p );
-          tvs.remove( o );
-        }
-    }
-    paramsAndTvms.addAll( tvs );
+
+    Map<String, Object> paramsAndTvms = getTimeVaryingObjectMap( true, null );
+
     settingTimeVaryingMapOwners = false;
     System.out.println("Simulating " + paramsAndTvms.size() + " state variables.");
-    for ( Object tvo : paramsAndTvms ) {
+    for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
+      Object tvo = entry.getValue();//e.getKey();
       Parameter<?> p = null;
       TimeVarying<?> tv = null;
-      String name = null;
+      String name = entry.getKey();
       if ( tvo instanceof Parameter ) {
         p = (Parameter<?>)tvo;
-        name = p.getName();
+        //name = p.getName();
         if ( p.getValueNoPropagate() instanceof TimeVarying ) {
           tv = (TimeVarying<?>)p.getValueNoPropagate();
         }
@@ -1764,8 +1761,17 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( tv, true, true, null ) + "\n" );
+//    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+//      sb.append( MoreToString.Helper.toString( tv, true, true, null ) + "\n" );
+//    }
+    for ( Object o : getTimeVaryingObjectMap(true, null).values() ) {
+//      TimeVarying<?> tv = null;
+//      if ( o instanceof TimeVarying ) {
+//        tv = (TimeVarying<?>)o;
+//      } else if (o instanceof Parameter && ) {
+//        tv =
+//      }
+      sb.append( MoreToString.Helper.toString( o, true, true, null ) + "\n" );
     }
     return sb.toString();
   }

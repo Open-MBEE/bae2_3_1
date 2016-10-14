@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -4580,9 +4581,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     clear();
     SimpleTimepoint pre_tp = null;
     V pre_value = null;
+    TimeZone gmtZone = TimeZone.getTimeZone( "GMT" );
+
     for ( Entry<String, String> ss : map.entrySet() ) {
       Integer key = null;
-      Date d = TimeUtils.dateFromTimestamp( ss.getKey() );
+      Date d = TimeUtils.dateFromTimestamp( ss.getKey(), gmtZone );
       if ( d != null ) key = Timepoint.fromDateToInteger( d );
       if ( key == null ) {
         try {
