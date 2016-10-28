@@ -10,6 +10,7 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.ObjectDomain;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -415,6 +416,12 @@ public class Functions {
     public Conditional( Expression<Boolean> condition, Expression< T > thenExpr, Expression< T > elseExpr ) {
       super( null, getIfThenElseMethod(), new Object[] {condition, thenExpr, elseExpr} );
     }
+    
+    @Override
+    public boolean isMonotonic() {
+      // TODO Auto-generated method stub
+      return super.isMonotonic();
+    }
 
     public static Method getIfThenElseMethod() {
       Method m = null;
@@ -431,6 +438,12 @@ public class Functions {
         e.printStackTrace();
       }
       return m;
+    }
+  }
+  
+  public static class IF< T > extends Conditional< T > {
+    public IF( Expression<Boolean> condition, Expression< T > thenExpr, Expression< T > elseExpr ) {
+      super( condition, thenExpr, elseExpr );
     }
   }
 
@@ -492,6 +505,64 @@ public class Functions {
     return thenT;
   }
   
+  
+  public static class ArgMin< R, T > extends SuggestiveFunctionCall implements Suggester {
+    public ArgMin( Expression< R > argLabel1, Expression< T > arg1,
+                   Expression< R > argLabel2,  Expression< T > arg2 ) {
+      super( null, getArgMinMethod(), new Object[] {argLabel1, arg1, argLabel2, arg2} );
+    }
+    
+    @Override
+    public boolean isMonotonic() {
+      // TODO Auto-generated method stub
+      return false;//super.isMonotonic();
+    }
+
+    public static Method getArgMinMethod() {
+      Method m = null;
+      try {
+        m = Functions.class.getMethod( "argmin", 
+                                       Expression.class,Expression.class,
+                                       Expression.class,Expression.class );
+      } catch ( SecurityException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return m;
+    }
+  }
+  public static class ArgMax< R, T > extends SuggestiveFunctionCall implements Suggester {
+    public ArgMax( Expression< R > argLabel1, Expression< T > arg1,
+                   Expression< R > argLabel2,  Expression< T > arg2 ) {
+      super( null, getArgMinMethod(), new Object[] {argLabel1, arg1, argLabel2, arg2} );
+    }
+    
+    @Override
+    public boolean isMonotonic() {
+      // TODO Auto-generated method stub
+      return false;//super.isMonotonic();
+    }
+
+    public static Method getArgMinMethod() {
+      Method m = null;
+      try {
+        m = Functions.class.getMethod( "argmax", 
+                                       Expression.class,Expression.class,
+                                       Expression.class,Expression.class );
+      } catch ( SecurityException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return m;
+    }
+  }
+
   
   // Simple math functions
 
@@ -1015,29 +1086,6 @@ public class Functions {
           result = (V1)max( o1, map2 );
         }
       }
-//      TimeVaryingMap<?> map = null;
-//      try {
-//        map = Expression.evaluate( o1, TimeVaryingMap.class, false );
-//      } catch ( Throwable e ) {
-//        //ignore
-//      }
-//      if ( map != null ) result = max( map, o2 );
-//      else {
-//        try {
-//          map = Expression.evaluate( o2, TimeVaryingMap.class, false );
-//        } catch ( Throwable e ) {
-//          //ignore
-//        }
-//        if ( map != null ) result = max( o1, map );
-//        else {
-//          Number n1 = null;
-//          Number n2 = null;
-//          try {
-//            n1 = Expression.evaluate( o1, Number.class, false );
-//            n2 = Expression.evaluate( o2, Number.class, false );
-//          } catch ( Throwable e ) {
-//            // ignore
-//          }
           if ( n1 != null && n2 != null ) {
             if ( Infinity.isEqual( n1 ) || Infinity.isEqual( n2 ) ) {
               try {
@@ -1056,8 +1104,6 @@ public class Functions {
             }
           }
         }
-//      }
-//    }
     try {
       if ( o1 != null && o2 != null && result != null ) {
         Class<?> cls1 = o1.getClass();
@@ -1076,6 +1122,69 @@ public class Functions {
     return null;
   }
 
+  public static <L, V1, V2> Object argmin( L l1, V1 o1, L l2, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( l1, o1, l2, o2, true );
+  }
+  public static <L, V1, V2> Object argmax( L l1, V1 o1, L l2, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( l1, o1, l2, o2, false );
+  }
+  public static <L, V1, V2> Object argminormax( L l1, V1 o1, L l2, V2 o2, boolean isMin ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( o1 == null || o2 == null ) return null;
+    Object result = null;
+    if ( o1 instanceof String || o2 instanceof String ) {
+        String s1 = "" + o1;
+        String s2 = "" + o2;
+        int comp = s1.compareTo( s2 );
+        result = (comp == (isMin ? 1 : -1)) ? l2 : l1;
+        //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
+    } else {
+      Number n1 = null;
+      Number n2 = null;
+      TimeVaryingMap<?> map1 = null;
+      TimeVaryingMap<?> map2 = null;
+      
+      Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+      n1 = p1.first;
+      map1 = p1.second;
+
+      if ( map1 != null ) {
+        result = argminormax( l1, map1, l2, o2, isMin );
+      } else {
+        Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+        n2 = p2.first;
+        map2 = p2.second;
+    
+        if ( map2 != null ) {
+          result = argminormax( l1, o1, l2, map2, isMin );
+        }
+      }
+      if ( n2 == null ) {
+        result = l1;
+      } else if ( n1 == null ) { 
+        result = l2;
+      } else {
+        result = (Double.compare( n1.doubleValue(), n2.doubleValue() ) == ( isMin ? 1 : -1 )) ? l2 : l1;
+      }
+    }
+    try {
+      if ( l1 != null && l2 != null && result != null ) {
+        Class<?> cls1 = l1.getClass();
+        Class<?> cls2 = l2.getClass();
+        Object x = Expression.evaluate( result,
+                                        ClassUtils.dominantTypeClass(cls1,cls2),
+                                        false );
+        if ( x == null ) x = result;
+        // TODO: type casting this w/ V1 assume that it is the dominant class
+        return (L)x;
+      }
+      return (L)result;
+    } catch (ClassCastException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  
   public static TimeVaryingMap<?> getTimeline(Object o) {
     TimeVaryingMap< ? > tvm = null;
     tvm = tryToGetTimelineQuick( o );
@@ -2179,7 +2288,18 @@ public class Functions {
                            // Domain<T> d,
                            Expression< Boolean > o ) {
       super( variable, o, "thereExists" ); // TODO -- pickFunctions?
-      // functionCall.
+      setMonotonic( Functions.isMonotonic( o ) );
+    }
+
+    public DoesThereExist( Variable< T > variable, Collection< T > valueSet,
+                           Expression< Boolean > o ) {
+      this( variable, o ); // TODO -- pickFunctions?
+      variable.setDomain( new ObjectDomain< T >( valueSet ) );
+    }
+
+    public DoesThereExist( Collection< T > valueSet, Expression< Boolean > o ) {
+      super( new Parameter< T >( "", new ObjectDomain< T >( valueSet ), null ),
+             o, "forAll" ); // TODO -- pickFunctions?
       setMonotonic( Functions.isMonotonic( o ) );
     }
   }  
@@ -2191,15 +2311,33 @@ public class Functions {
                         Expression< Boolean > o ) {
       super( variable, o );
     }
+    public ThereExists( Variable< T > variable,
+                   Collection< T > valueSet,
+                   Expression< Boolean > o ) {
+      super(variable, valueSet, o);
+    }
+    public ThereExists( Collection< T > valueSet,
+                        Expression< Boolean > o ) {
+      super(valueSet, o);
+    }
   }  
 
   public static class Exists< T > extends DoesThereExist< T > {
 
     public Exists( Variable< T > variable,
-                   // Domain<T> d,
                    Expression< Boolean > o ) {
       super( variable, o );
     }
+    public Exists( Variable< T > variable,
+                   Collection< T > valueSet,
+                   Expression< Boolean > o ) {
+      super( variable, valueSet, o ); // TODO -- pickFunctions?
+    }
+    public Exists( Collection< T > valueSet,
+                   Expression< Boolean > o ) {
+      super( valueSet, o ); // TODO -- pickFunctions?
+    }
+
   }  
 
   public static class ForAll< T > extends BooleanBinary< T > {
@@ -2209,10 +2347,19 @@ public class Functions {
     // super( variables, o, "forAll" );
     // }
     public ForAll( Variable< T > variable,
-    // Domain<T> d,
                    Expression< Boolean > o ) {
       super( variable, o, "forAll" ); // TODO -- pickFunctions?
-      // functionCall.
+      setMonotonic( Functions.isMonotonic( o ) );
+    }
+    public ForAll( Variable< T > variable,
+                   Collection< T > valueSet,
+                   Expression< Boolean > o ) {
+      this( variable, o ); // TODO -- pickFunctions?
+      variable.setDomain( new ObjectDomain<T>(valueSet) );
+    }
+    public ForAll( Collection< T > valueSet,
+                   Expression< Boolean > o ) {
+      super( new Parameter<T>("", new ObjectDomain<T>(valueSet), null), o, "forAll" ); // TODO -- pickFunctions?
       setMonotonic( Functions.isMonotonic( o ) );
     }
   }
@@ -3082,7 +3229,35 @@ public class Functions {
     return TimeVaryingMap.max( tv1, tv2 );
   }
   
+
+  public static < L, T > TimeVaryingMap< L > argminormax( L l1, Object o,
+                                                          L l2, TimeVaryingMap< T > tv,
+                                                          boolean isMin) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax(l2, tv, l1, o, isMin);
+  }
   
+  public static < L, T > TimeVaryingMap< L > argminormax( L l1, TimeVaryingMap< T > tv,
+                                                          L l2, Object o,
+                                                          boolean isMin ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tv == null || o == null ) return null;
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, false );
+    } catch( Throwable t ) {}
+    if ( n != null ) return TimeVaryingMap.argminormax( l1, tv, l2, n, isMin );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch (Throwable t) {}
+    if ( tvm != null ) return TimeVaryingMap.argminormax( l1, tv, l2, tvm, isMin );
+    return null;
+  }
+  
+  public static < L, T, TT extends Number > TimeVaryingMap< L > argmax( L l1, TimeVaryingMap< T > tv1,
+                                                                        L l2, TimeVaryingMap< TT > tv2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return TimeVaryingMap.argmax( l1, tv1, l2, tv2 );
+  }
+
   
 //  public static < T > TimeVaryingMap< T > times( Object o1,
 //                                                 Object o2 ) {

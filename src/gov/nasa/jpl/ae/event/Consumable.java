@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.TimeVaryingMap.TimeValue;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Pair;
@@ -126,18 +127,28 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     minCap = consumable.minCap;
     maxCap = consumable.maxCap;
   }
-  
+
+
   @Override
   public Consumable clone() {
     return new Consumable(this);
   }
   
   @Override
+  public <VV> TimeVaryingPlottableMap< VV > clone(Class<VV> cls) {
+    return (TimeVaryingPlottableMap< VV >)clone();
+  };
+  
+  @Override
   public Consumable emptyClone() {
     Consumable consumable = new Consumable( getName(), null, isProjection(), getMinCap(), getMaxCap(), getInterpolation() );
     return consumable;
   }
-  
+  @Override
+  public <VV> TimeVaryingPlottableMap<VV> emptyClone(Class<VV> cls) {
+    return (TimeVaryingPlottableMap< VV >)emptyClone();
+  };
+
   public double add( Parameter<Integer> t, Double delta ) {
     
     Double valBefore = getValueBefore( t );

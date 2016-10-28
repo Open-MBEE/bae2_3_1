@@ -4,12 +4,16 @@
 package gov.nasa.jpl.ae.event;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import gov.nasa.jpl.ae.event.TimeVaryingMap.TimeValue;
 
 /**
  * This class is the same as TimeVaryingMap< V > but implements Plottable.
@@ -205,16 +209,34 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     super( string, type );
     init();
   }
+  
+  public <VV>TimeVaryingPlottableMap( String name, TimeVaryingPlottableMap<VV> tvm, Class<V> cls ) {
+    super(name, tvm, cls);
+  }
+
+  public <VV> TimeVaryingPlottableMap( TimeVaryingPlottableMap<VV> tvm, Class<V> cls ) {
+    this( tvm.getName(), tvm, cls );
+  }
 
   @Override
   public TimeVaryingPlottableMap<V> clone() {
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this);
     return tvm;
   }
+  @Override
+  public <VV> TimeVaryingPlottableMap<VV> clone(Class<VV> cls) {
+    TimeVaryingPlottableMap<VV> tvm = new TimeVaryingPlottableMap<VV>(this, cls);
+    return tvm;
+  }
 
   @Override
   public TimeVaryingPlottableMap<V> emptyClone() {
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap<V>(this.getName(), (String)null, this.getType(), this.isProjection());
+    return tvm;
+  }
+  @Override
+  public <T> TimeVaryingPlottableMap< T > emptyClone(Class<T> cls) {
+    TimeVaryingPlottableMap<T> tvm = new TimeVaryingPlottableMap<T>(this.name, cls);
     return tvm;
   }
 

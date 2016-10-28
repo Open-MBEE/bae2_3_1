@@ -432,6 +432,19 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       e.printStackTrace();
     }
   }
+
+  public DurativeEvent( String name, TimeVaryingMap<?> tvm, String type ) {
+    this(name);
+    Parameter<Integer> lastStart = null;
+    Object lastValue = null;
+    // Add an elaboration for every non-null value
+    for ( Entry< Parameter< Integer >, ? > e : tvm.entrySet() ) {
+      // TODO!! HERE!!
+      //addElaborationRule( condition, enclosingInstance, eventClass, eventName, arguments );
+      //addElaborationRule( start, end, duration, typeName );
+      //addElaborationRule( lastStart, e.getKey(), duration, "" + lastValue );
+    }
+  }
   
   public DurativeEvent( DurativeEvent durativeEvent ) {
     this( null, durativeEvent );
@@ -634,9 +647,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Class<?> cls = 
         typeName == null ? DurativeEvent.class :
         ClassUtils.getClassForName( typeName, (String)null, (String)null, false );
-    Class<? extends Event> eventClass = (Class<? extends Event>)cls;
+    Class<? extends Event> eventClass = null;
 
-    if ( !Event.class.isAssignableFrom( eventClass ) ) {
+    if ( cls != null && Event.class.isAssignableFrom( eventClass ) ) {
+      eventClass = (Class<? extends Event>)cls;
+    } else {
       eventClass = DurativeEvent.class;
     }
     this.addElaborationRule( new Expression< Boolean >(true), null,
