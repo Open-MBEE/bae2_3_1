@@ -511,6 +511,9 @@ public class Functions {
                    Expression< R > argLabel2,  Expression< T > arg2 ) {
       super( null, getArgMinMethod(), new Object[] {argLabel1, arg1, argLabel2, arg2} );
     }
+    public ArgMin( Expression< ? >...keysAndValues ) {
+      super( null, getVarArgMinMethod(), keysAndValues );
+    }
     
     @Override
     public boolean isMonotonic() {
@@ -518,26 +521,40 @@ public class Functions {
       return false;//super.isMonotonic();
     }
 
+    protected static Method _argMinMethod = null;
     public static Method getArgMinMethod() {
-      Method m = null;
+      if ( _argMinMethod != null ) return _argMinMethod; 
       try {
-        m = Functions.class.getMethod( "argmin", 
-                                       Expression.class,Expression.class,
-                                       Expression.class,Expression.class );
+        _argMinMethod = Functions.class.getMethod( "argmin", 
+                                                   Object.class,Object.class,
+                                                   Object.class,Object.class );
       } catch ( SecurityException e ) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       } catch ( NoSuchMethodException e ) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
-      return m;
+      return _argMinMethod;
+    }
+    protected static Method _varArgMinMethod = null;
+    public static Method getVarArgMinMethod() {
+      if ( _varArgMinMethod != null ) return _varArgMinMethod; 
+      try {
+        _varArgMinMethod = Functions.class.getMethod( "argmin", Object[].class );
+      } catch ( SecurityException e ) {
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
+        e.printStackTrace();
+      }
+      return _varArgMinMethod;
     }
   }
   public static class ArgMax< R, T > extends SuggestiveFunctionCall implements Suggester {
     public ArgMax( Expression< R > argLabel1, Expression< T > arg1,
                    Expression< R > argLabel2,  Expression< T > arg2 ) {
-      super( null, getArgMinMethod(), new Object[] {argLabel1, arg1, argLabel2, arg2} );
+      super( null, getArgMaxMethod(), new Object[] {argLabel1, arg1, argLabel2, arg2} );
+    }
+    public ArgMax( Expression< ? >...keysAndValues ) {
+      super( null, getVarArgMaxMethod(), keysAndValues );
     }
     
     @Override
@@ -546,20 +563,31 @@ public class Functions {
       return false;//super.isMonotonic();
     }
 
-    public static Method getArgMinMethod() {
-      Method m = null;
+    protected static Method _argMaxMethod = null;
+    public static Method getArgMaxMethod() {
+      if ( _argMaxMethod != null ) return _argMaxMethod; 
       try {
-        m = Functions.class.getMethod( "argmax", 
-                                       Expression.class,Expression.class,
-                                       Expression.class,Expression.class );
+        _argMaxMethod = Functions.class.getMethod( "argmax", 
+                                                   Object.class,Object.class,
+                                                   Object.class,Object.class );
       } catch ( SecurityException e ) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       } catch ( NoSuchMethodException e ) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
-      return m;
+      return _argMaxMethod;
+    }
+    protected static Method _varArgMaxMethod = null;
+    public static Method getVarArgMaxMethod() {
+      if ( _varArgMaxMethod != null ) return _varArgMaxMethod; 
+      try {
+        _varArgMaxMethod = Functions.class.getMethod( "argmax", Object[].class );
+      } catch ( SecurityException e ) {
+        e.printStackTrace();
+      } catch ( NoSuchMethodException e ) {
+        e.printStackTrace();
+      }
+      return _varArgMaxMethod;
     }
   }
 
@@ -1128,6 +1156,35 @@ public class Functions {
   public static <L, V1, V2> Object argmax( L l1, V1 o1, L l2, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return argminormax( l1, o1, l2, o2, false );
   }
+  public static <L, V1, V2> Object argmin( Object...keysAndValues ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( true, keysAndValues );
+  }
+  public static <L, V1, V2> Object argmax( Object...keysAndValues ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( false, keysAndValues );
+  }
+  public static Object argminormax( boolean isMin, Object...args ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( args.length % 2 == 1 ) {
+      Debug.error("argmin/max expects key-value pairs but received an odd number of arguments!");
+    }
+    Object bestLabel = null;
+    Object bestValue = null;
+    for ( int i = 0; i < args.length-1; i += 2 ) {
+      Object label = args[i];
+      Object value = args[i+1];
+      if ( bestLabel == null ) {
+        bestLabel = label;
+        bestValue = value;
+      } else {
+        Object winningLabel = argminormax(label, value, bestLabel, bestValue, isMin);
+        if ( winningLabel != bestLabel && winningLabel == label ) {
+          bestLabel = label;
+          bestValue = value;
+        }
+      }
+    }
+    return bestLabel;
+  }
+
   public static <L, V1, V2> Object argminormax( L l1, V1 o1, L l2, V2 o2, boolean isMin ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     Object result = null;
