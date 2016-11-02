@@ -197,12 +197,20 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     init();
   }
 
+  public TimeVaryingPlottableMap( String name, TimeVaryingMap< V > timeVaryingMap ) {
+    super( name, timeVaryingMap );
+    init();
+  }
+
   public TimeVaryingPlottableMap( TimeVaryingPlottableMap< V > timeVaryingPlottableMap ) {
     this( timeVaryingPlottableMap.getName(), timeVaryingPlottableMap );
     this.category = timeVaryingPlottableMap.category;
     this.dataProjected = timeVaryingPlottableMap.dataProjected;
     this.parameters = new LinkedHashSet< Parameter< ? > >(timeVaryingPlottableMap.parameters);
-    init();
+  }
+
+  public TimeVaryingPlottableMap( TimeVaryingMap< V > timeVaryingMap ) {
+    this( timeVaryingMap.getName(), timeVaryingMap );
   }
 
   public TimeVaryingPlottableMap( String string, Class< V > type ) {
@@ -212,6 +220,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   
   public <VV>TimeVaryingPlottableMap( String name, TimeVaryingPlottableMap<VV> tvm, Class<V> cls ) {
     super(name, tvm, cls);
+    init();
   }
 
   public <VV> TimeVaryingPlottableMap( TimeVaryingPlottableMap<VV> tvm, Class<V> cls ) {

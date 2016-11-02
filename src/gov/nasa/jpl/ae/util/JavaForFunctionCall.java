@@ -1343,6 +1343,12 @@ public class JavaForFunctionCall {
                       && operationName.toString().equalsIgnoreCase( "if" ) ) {
               call = JavaToConstraintExpression.getIfThenElseConstructorCall(null);
           }
+          else if ( arguments.size() > 3
+              && operationName.toString().toLowerCase().startsWith( "argm" ) ) {
+            call = JavaToConstraintExpression.getArgMinMaxConstructorCall( operationName.toString().toLowerCase(),
+                                                                           arguments.size(),
+                                                                           null );
+          }
           
           if ( call != null ) {
             call.setArguments( arguments );

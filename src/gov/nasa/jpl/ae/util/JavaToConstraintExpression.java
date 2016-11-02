@@ -8,6 +8,7 @@ import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Functions.Binary;
+import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.event.Functions.Unary;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
@@ -432,6 +433,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         return (Class< ? extends Binary< T, R > >)foo ;
     }
      
+    public static < T, R > Class< ? > functionNameToFunctionClass( String opName ) {
+        Class< ? > foo = getFunctionClassOfType( opName, SuggestiveFunctionCall.class );;
+        return foo;
+    }
+   
     public static < T > Class< ? extends T >
             getFunctionClassOfType( String opName, Class< T > type ) {
       
@@ -528,6 +534,24 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                                        emptyExpression,
                                                        emptyExpression },
                                                        returnType );
+    return ctorCall;
+  }
+
+  public static ConstructorCall getArgMinMaxConstructorCall(String fName, int numArgs, Class<?> returnType) {
+    Class< ? > cls = null;
+    if ( fName.toLowerCase().equals( "argmin" ) ) {
+      cls = Functions.ArgMin.class;
+    } else if ( fName.toLowerCase().equals( "argmax" ) ) {
+      cls = Functions.ArgMax.class;
+    } else {
+      return null;
+    }
+    Object[] args = new Object[numArgs];
+    for ( int i = 0; i < numArgs; ++i ) {
+      args[i] = emptyExpression;
+    }
+    ConstructorCall ctorCall =
+        new ConstructorCall( null, cls, args, returnType );
     return ctorCall;
   }
 
@@ -766,13 +790,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     /*** ObjectCreationExpr ***/
     } else if ( expr.getClass() == MethodCallExpr.class ||
                 expr.getClass() == ObjectCreationExpr.class ) {
-      // try treating as a binary operation
+
+      // try treating as a binary operation or other function in Functions.java
       middle = null;
-      if ( expr.getClass() == MethodCallExpr.class &&
-           ((MethodCallExpr)expr).getArgs() != null && 
-           ((MethodCallExpr)expr).getArgs().size() == 2 ) {        
-        MethodCallExpr mx = (MethodCallExpr)expr;
-        Class<?> fcnClass = binaryOpNameToFunctionClass(mx.getName());
+      MethodCallExpr mx = expr.getClass() == MethodCallExpr.class ? (MethodCallExpr)expr : null;
+      if ( mx != null && mx.getScope() == null &&
+           ((MethodCallExpr)expr).getArgs() != null ) {//&& 
+           //((MethodCallExpr)expr).getArgs().size() == 2 ) {        
+        Class<?> fcnClass = null;
+        if ( ((MethodCallExpr)expr).getArgs().size() == 2 ) {
+          fcnClass = binaryOpNameToFunctionClass(mx.getName());
+        }
+        // See if this is a function like argmax.
+        if (fcnClass == null) {// && ((MethodCallExpr)expr).getArgs().size() > 2 ) {
+          fcnClass = functionNameToFunctionClass(mx.getName());
+        }
         if ( fcnClass != null ) {
           StringBuilder sb = new StringBuilder();
           String fName = fcnClass.getSimpleName();
@@ -793,8 +825,9 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             middle = "(" + middle + ").evaluate(true)"; 
           }
         }
-        
       }
+
+      // If not a built-in class in Functions, then create the call the old-fashioned way.
       if ( middle == null ) {
         JavaForFunctionCall javaForFunctionCall =
             new JavaForFunctionCall( this, expr, convertFcnCallArgsToExprs,

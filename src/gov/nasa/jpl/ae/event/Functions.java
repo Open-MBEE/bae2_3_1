@@ -1176,7 +1176,14 @@ public class Functions {
         bestValue = value;
       } else {
         Object winningLabel = argminormax(label, value, bestLabel, bestValue, isMin);
-        if ( winningLabel != bestLabel && winningLabel == label ) {
+        if ( winningLabel instanceof TimeVaryingMap ) {
+          bestLabel = winningLabel;
+          if (isMin) {
+            bestValue = (new Functions.Min( new Expression(value), new Expression(bestValue) )).evaluate( true );
+          } else {
+            bestValue = (new Functions.Max( new Expression(value), new Expression(bestValue) )).evaluate( true );
+          }
+        } else if ( winningLabel != null && winningLabel != bestLabel && winningLabel == label ) {
           bestLabel = label;
           bestValue = value;
         }
@@ -1215,15 +1222,20 @@ public class Functions {
           result = argminormax( l1, o1, l2, map2, isMin );
         }
       }
-      if ( n2 == null ) {
-        result = l1;
-      } else if ( n1 == null ) { 
-        result = l2;
-      } else {
-        result = (Double.compare( n1.doubleValue(), n2.doubleValue() ) == ( isMin ? 1 : -1 )) ? l2 : l1;
+      if ( result == null && map1 == null && map2 == null  ) {
+        if ( n2 == null && n1 != null ) {
+          result = l1;
+        } else if ( n1 == null && n2 != null ) { 
+          result = l2;
+        } else if ( n1 != null && n2 != null ) {
+          result = (Double.compare( n1.doubleValue(), n2.doubleValue() ) == ( isMin ? 1 : -1 )) ? l2 : l1;
+        }
       }
     }
     try {
+      if ( result instanceof TimeVaryingMap ) {
+        return result;
+      }
       if ( l1 != null && l2 != null && result != null ) {
         Class<?> cls1 = l1.getClass();
         Class<?> cls2 = l2.getClass();
