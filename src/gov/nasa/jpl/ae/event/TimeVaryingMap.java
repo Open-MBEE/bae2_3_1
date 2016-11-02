@@ -1606,7 +1606,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public <VV> TimeVaryingMap< VV > times( Number n, Parameter< Integer > fromKey,
                                      Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
-    TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_times_" + n, this, cls); 
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_times_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = clone(cls);
+    newTvm.setName( getName() + "_times_" + n );
     newTvm.multiply( n, fromKey, toKey );
     return newTvm;
   }
@@ -1795,9 +1797,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public <VV> TimeVaryingMap< VV > pow( Number n, Parameter< Integer > fromKey,
                                   Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    //TimeVaryingMap< V > newTvm = this.clone();
     Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
-    TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("pow_" + getName() + "_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.setName( "pow_" + getName() + "_" + n );
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("pow_" + getName() + "_" + n, this, cls); 
     newTvm.power( n, fromKey, toKey );
     return newTvm;
   }
@@ -1957,8 +1960,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public <VV> TimeVaryingMap< VV > npow( Number n, Parameter< Integer > fromKey,
                                   Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
-    TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("now_" + getName() + "_" + n, this, cls); 
-//TimeVaryingMap< V > newTvm = this.clone();
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("now_" + getName() + "_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.setName( "now_" + getName() + "_" + n );
     newTvm.npower( n, fromKey, toKey );
     return newTvm;
   }
@@ -2213,7 +2217,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public <VV> TimeVaryingMap< VV > dividedBy( Number n, Parameter< Integer > fromKey,
                                         Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
-    TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_div_" + n, this, cls); 
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_div_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = clone(cls);
+    newTvm.setName( getName() + "_div_" + n );
     newTvm.divide( n, fromKey, toKey );
     return newTvm;
   }
@@ -3145,7 +3151,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public <VV> TimeVaryingMap< VV > plus( Number n, Parameter< Integer > fromKey,
                                     Parameter< Integer > toKey ) {
     Class<VV> cls = (Class< VV >)ClassUtils.dominantTypeClass( getType(), n.getClass() );
-    TimeVaryingMap< VV > newTvm = new TimeVaryingMap<VV>(getName() + "_plus_" + n, this, cls);//this.clone();
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap<VV>(getName() + "_plus_" + n, this, cls);//this.clone();
+    TimeVaryingMap< VV > newTvm = clone(cls);
+    newTvm.setName( getName() + "_plus_" + n );
     newTvm.add( n, fromKey, toKey );
     return newTvm;
   }
@@ -3358,7 +3366,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                                        Parameter< Integer > toKey ) {
     Class<VV> cls = (Class< VV >)ClassUtils.dominantTypeClass( getType(), n.getClass() );
     //TimeVaryingMap< VV > newTvm = this.clone(cls);
-    TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("max_" + getName() + "_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.setName( "max_" + getName() + "_" + n );
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("max_" + getName() + "_" + n, this, cls); 
     newTvm.max( n, fromKey, toKey );
     return newTvm;
   }
@@ -3411,10 +3421,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     boolean m2empty = Utils.isNullOrEmpty( map2 );
     if ( m1empty && m2empty ) { return newTvm; }
     if ( m1empty ) {
-      newTvm.setValue( map2.firstKey(), l2 );
+      L label = l2 instanceof TimeVaryingMap ? (L)((TimeVaryingMap<?>)l2).getValue( map2.firstKey() ) : l2;
+      newTvm.setValue( map2.firstKey(), label );
       return newTvm;
     }
     if ( m2empty ) {
+      L label = l1 instanceof TimeVaryingMap ? (L)((TimeVaryingMap<?>)l1).getValue( map1.firstKey() ) : l1;
       newTvm.setValue( map1.firstKey(), l1 );
       return newTvm;
     }
@@ -3433,6 +3445,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       else {
         int comp = CompareUtils.compare( v1, v2 );
         label = (comp == (isMin ? 1 : -1)) ? l2 : l1;
+      }
+      if ( label instanceof TimeVaryingMap ) {
+        label = (L)((TimeVaryingMap<?>)label).getValue( k );
       }
       newTvm.setValue( k, label );
     }
@@ -3474,6 +3489,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         comp = CompareUtils.compare( vminormax, v3 );
         label = (comp == (isMin ? 1 : -1)) ? l3 : label;
       }
+      if ( label instanceof TimeVaryingMap ) {
+        label = (L)((TimeVaryingMap<?>)label).getValue( k );
+      }
       newTvm.setValue( k, label );
     }
     return newTvm;
@@ -3498,6 +3516,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       VV1 v1 = map1.getValue( k );
       int comp = CompareUtils.compare( v1, v2 );
       L label = (comp == (isMin ? 1 : -1)) ? l2 : l1;
+      if ( label instanceof TimeVaryingMap ) {
+        label = (L)((TimeVaryingMap<?>)label).getValue( k );
+      }
       newTvm.setValue( k, label );
     }
     return newTvm;

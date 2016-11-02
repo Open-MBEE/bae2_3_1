@@ -1179,9 +1179,17 @@ public class Functions {
         if ( winningLabel instanceof TimeVaryingMap ) {
           bestLabel = winningLabel;
           if (isMin) {
-            bestValue = (new Functions.Min( new Expression(value), new Expression(bestValue) )).evaluate( true );
+            if ( i < args.length-2 ) { // Don't compute if nothing left to compare against
+              bestValue =
+                  ( new Functions.Min( new Expression( value ),
+                                       new Expression( bestValue ) ) ).evaluate( true );
+            }
           } else {
-            bestValue = (new Functions.Max( new Expression(value), new Expression(bestValue) )).evaluate( true );
+            if ( i < args.length-2 ) { // Don't compute if nothing left to compare against
+              bestValue =
+                  ( new Functions.Max( new Expression( value ),
+                                       new Expression( bestValue ) ) ).evaluate( true );
+            }
           }
         } else if ( winningLabel != null && winningLabel != bestLabel && winningLabel == label ) {
           bestLabel = label;
