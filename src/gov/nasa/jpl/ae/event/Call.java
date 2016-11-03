@@ -861,7 +861,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
     }
     if ( paramTypes.length > ecLength 
-         && ( arguments == null || arguments.size() - ecLength != paramTypes.length ) ) {
+         && ( arguments == null || (!isVarArgs() && arguments.size() - ecLength != paramTypes.length ) ) ) {
       
       return false;
     }
