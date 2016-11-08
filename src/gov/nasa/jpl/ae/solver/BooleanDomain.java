@@ -145,4 +145,9 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
       defaultDomain = new BooleanDomain((RangeDomain< Boolean >)domain);
     }
   }
+
+  @Override
+  public BooleanDomain make( Boolean lowerBound, Boolean upperBound ) {
+    return new BooleanDomain(lowerBound, upperBound);
+  }
 }

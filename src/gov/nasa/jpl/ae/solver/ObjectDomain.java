@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.solver;
 
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Random;
 
 import java.util.Collection;
@@ -103,7 +104,7 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    */
   @Override
   public void setValue( T value ) {
-    clear();
+    clearValues();
     add( value );
   }
 
@@ -207,18 +208,31 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)
    */
   @Override
-  public void restrictToValue( T v ) {
-    clear();
-    add( v );
+  public boolean restrictToValue( T v ) {
+    boolean changed = false;
+    if ( clearValues() ) changed = true;
+    if ( add( v ) ) changed = true;
+    return changed;
   }
 
   @Override
-  public < TT > void restrictTo( Domain< TT > domain ) {
+  public < TT > boolean restrictTo( Domain< TT > domain ) {
     if ( domain instanceof SingleValueDomain ) {
-      this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+      return this.restrictToValue( ((SingleValueDomain< T >)domain).value );
     } else {
       // TODO???
+      Debug.error("");
     }
+    return false;
+  }
+
+  @Override
+  public boolean clearValues() {
+    if ( !isEmpty() ) {
+      clear();
+      return true;
+    }
+    return false;
   }
 
 }

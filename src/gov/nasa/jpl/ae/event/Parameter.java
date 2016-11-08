@@ -906,11 +906,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   }
 
   @Override
-  public < T > Domain< ? > restrictDomain( Domain< T > domain,
+  public < TT > Pair<Domain<TT>, Boolean> restrictDomain( Domain< TT > domain,
                                            boolean propagate,
                                            Set< HasDomain > seen ) {
-    this.domain.restrictTo( domain );
-    return this.domain;
+    boolean changed = this.domain.restrictTo( domain );
+    return new Pair(this.domain, changed);
   }
 
 }

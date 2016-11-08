@@ -76,8 +76,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	        domain.isNullInDomain() );
   }
 
-  public void restrictToValue( T v ) {
+	@Override
+  public boolean restrictToValue( T v ) {
+    if ( !contains( v ) ) return false;
     setBounds( v, v );
+    return true;
   }
 
 	
@@ -95,9 +98,12 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	
   @Override
 	public boolean isEmpty() {
+    if ( getLowerBound() == null || getUpperBound() == null ) {
+      return true;
+    }
     return ( less( getUpperBound(), getLowerBound() ) ||
              ( equals( getUpperBound(), getLowerBound() ) &&
-               !lowerIncluded && !upperIncluded ) );
+               (!lowerIncluded || !upperIncluded) ) );
   }
 
 
@@ -307,6 +313,16 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return tt;
   }
 	
+  @Override
+  public boolean clearValues() {
+    boolean e1 = isEmpty();
+    if (!e1) {
+      makeEmpty();
+      return true;
+    }
+    return false;
+  }
+
   public void makeEmpty() {
     lowerIncluded = true;
     upperIncluded = true;
@@ -437,28 +453,60 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 //    return new MyRangeDomain( this );
 //  }
 
-  public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
-    if ( less(lowerBound, o.lowerBound) ) {
-      lowerBound = o.lowerBound;
+  @Override
+  public boolean equals( Object obj ) {
+    if (this == obj) return true;
+    if ( obj instanceof RangeDomain ) {
+      RangeDomain r = (RangeDomain)obj;
+      if ( !getLowerBound().equals( r.getLowerBound() ) ) return false;
+      if ( !getUpperBound().equals( r.getUpperBound() ) ) return false;
+      if ( isLowerBoundIncluded() != r.isLowerBoundIncluded() ) return false;
+      if ( isUpperBoundIncluded() != r.isUpperBoundIncluded() ) return false;
+      if ( isInfinite() != r.isInfinite() ) return false;
+      if ( size() != r.size() ) return false;
+      // REVIEW -- consider checking r.getType() -- one Class just needs to be assignable to the other, maybe? 
+    } else {
+      return false;
     }
-    if ( greater(upperBound, o.upperBound) ) {
+    return true;
+  }
+  
+  public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
+    if ( lessEquals( lowerBound, o.lowerBound) ) {
+      lowerBound = o.lowerBound;
+      if ( !o.isLowerBoundIncluded() ) excludeLowerBound();
+      //else if ( equals( lowerBound, o.lowerBound ) && includeLowerBound()
+    }
+    if ( greaterEquals( upperBound, o.upperBound) ) {
       upperBound = o.upperBound;
+      if ( !o.isUpperBoundIncluded() ) excludeUpperBound();
     }
     return this.size() != 0;
   }
 
+  public boolean intersects( AbstractRangeDomain<T> ard2 ) {
+    AbstractRangeDomain< T > ard1 = clone();
+    return ard1.intersectRestrict( ard2 );
+  }
+  public boolean overlaps( AbstractRangeDomain<T> ard2 ) {
+    return intersects( ard2 );
+  }
+  
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#restrictTo(gov.nasa.jpl.ae.solver.Domain)
    */
   @Override
-  public < TT > void restrictTo( Domain< TT > domain ) {
+  public < TT > boolean restrictTo( Domain< TT > domain ) {
+    boolean changed = false;
     if ( domain instanceof AbstractRangeDomain ) {
-      intersectRestrict( (AbstractRangeDomain< T >)domain );
+      changed = intersectRestrict( (AbstractRangeDomain< T >)domain );
     } else if ( domain instanceof SingleValueDomain ) {
-      this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+      changed = this.restrictToValue( ((SingleValueDomain< T >)domain).value );
     } else {
       // TODO???
+      Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
     }
+    return changed;
   }
 
   @Override
@@ -527,7 +575,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
 
   public boolean setBounds( T lowerBound, T upperBound ) {
-    if ( less( lowerBound, upperBound ) ) {
+    if ( lessEquals( lowerBound, upperBound ) ) {
       this.lowerBound = lowerBound;
       this.upperBound = upperBound;
       return true;

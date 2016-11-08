@@ -1017,9 +1017,9 @@ public class ParameterListenerImpl extends HasIdImpl
     
     dependencies.clear();
     externalDependencies.clear();
-    constraintExpressions.clear();
-    this.timeVaryingObjects.clear();
-    parameters.clear();
+    constraintExpressions.clearValues();
+    this.timeVaryingObjects.clearValues();
+    parameters.clearValues();
     if ( Debug.isOn() ) {
       Debug.outln( "Done deconstructing ParameterListener: "
                    + this.toString( true, true, null ) );

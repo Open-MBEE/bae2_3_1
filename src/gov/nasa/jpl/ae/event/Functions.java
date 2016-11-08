@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
+import gov.nasa.jpl.ae.solver.BooleanDomain;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.HasDomain;
@@ -99,6 +100,18 @@ public class Functions {
       return c;
     }
     
+    @Override
+    public Domain< ? > calculateDomain( boolean propagate,
+                                        Set< HasDomain > seen ) {
+      if ( !isMonotonic() ) {
+        // Must be overridden
+        Debug.error(true, true, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+        return null;
+      }
+      SuggestiveFunctionCall fc = this.clone();
+      Domain<?> d = DomainHelper.combineDomains( arguments, fc );
+      return d;
+    }
     /**
      * Invert the function with respect to a range/return value and a given 
      * argument.
@@ -252,9 +265,78 @@ public class Functions {
 
     public Vector< Expression > getArgumentExpressions() {
       Vector< Expression > argExprs =
-          new Vector< Expression >( (Collection< Expression >)Utils.asList( super.getArgumentArray(),
+          new Vector< Expression >( (Collection< Expression >)Utils.asList( Utils.newList( super.getArgumentArray() ),
                                                                             Expression.class ) );
       return argExprs;
+    }
+    
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
+      if ( returnValue == null ) return null;
+      //FunctionCall inverse = inverse( returnValue, argument );
+      //if ( inverse == null ) return null;
+      RangeDomain<?> theCombineDomain = null;
+      LinkedHashSet<Object> possibleValues = new LinkedHashSet< Object >();
+      if ( returnValue instanceof AbstractRangeDomain ) {
+        if ( isMonotonic() ) {
+          addInverseToList( ((AbstractRangeDomain)returnValue).getLowerBound(), argument, possibleValues );
+          addInverseToList( ((AbstractRangeDomain)returnValue).getUpperBound(), argument, possibleValues );
+        } else {
+          // not monotonic, such as Equals
+          if ( !returnValue.isInfinite() ) {
+            for( int i = 0; i < returnValue.size(); ++i ) {
+              Object rv = ((AbstractRangeDomain)returnValue).getNthValue( i );
+              addInverseToList( rv, argument, possibleValues );
+            }
+          }
+        }
+      }
+      // TODO -- Handle the million other cases
+      theCombineDomain = DomainHelper.combineDomains( Utils.asList( possibleValues ), new Identity( null ) );
+      return theCombineDomain;
+    }
+    
+    protected void addInverseToList(Object returnValue, Object argument, Collection<Object> listOfInverseResults) {
+      FunctionCall inverse = inverse(returnValue, argument );
+      Object cObj = null;
+      try {
+        cObj = inverse.evaluate( false, true );
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        e.printStackTrace();
+      }
+      if ( cObj instanceof Collection ) {
+        Collection<?> c = (Collection<?>)cObj;
+        listOfInverseResults.addAll( c );
+      } else {
+        listOfInverseResults.add( cObj );
+      }
+    }
+    
+    @Override
+    public < TT > Pair<Domain< TT >,Boolean> restrictDomain( Domain< TT > domain,
+                                             boolean propagate,
+                                             Set< HasDomain > seen ) {
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      boolean changed = false;
+      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+        HasDomain hd1 = (HasDomain)o1;
+        HasDomain hd2 = (HasDomain)o2;
+        Domain d1 = inverseDomain( domain, o1 );
+        Pair< Domain<?>, Boolean > p = hd1.restrictDomain( d1, propagate, seen );
+        if ( p != null && p.second == Boolean.TRUE ) changed = true;
+        if ( p != null && p.first != null && p.first.isEmpty() ) {
+          if (this.domain.clearValues()) changed = true;
+          return new Pair( this.domain, changed );
+        }
+        Domain d2 = inverseDomain( domain, o2 );
+        p = hd2.restrictDomain( d2, propagate, seen );
+      }
+      this.domain = (Domain< T >)getDomain(propagate, seen );
+      return new Pair(this.domain, changed);
     }
   }
 
@@ -278,20 +360,6 @@ public class Functions {
                           String pickFunctionMethod1, String pickFunctionMethod2 ) {
       super( o1, o2, functionMethod, pickFunctionMethod1, pickFunctionMethod2 );
     }
-////    public BooleanBinary( Expression< T > o1, FunctionCall o2,
-////                          String functionMethod ) {
-////      super( o1, o2, functionMethod );
-////    }
-////    public BooleanBinary( FunctionCall o1, Expression< T > o2,
-////                          String functionMethod ) {
-////      super( o1, o2, functionMethod );
-////    }
-//
-//    @Override
-//    public < T1 > T1 pickValue( Variable< T1 > variable ) {
-//      return pickValueBB2(this, variable, functionMethod1,
-//                          functionMethod2 );
-//    }
   }
     
   public static class Unary< T, R > extends SuggestiveFunctionCall implements Suggester {
@@ -299,7 +367,6 @@ public class Functions {
                    String functionMethod ) {
       super( (Object)null, getFunctionMethod( functionMethod ),
              new Object[]{ o } );
-      //functionCall = this;//(SuggestiveFunctionCall)this.expression;
     }
   
     public Unary( Expression< T > o1, String functionMethod ) {
@@ -375,42 +442,6 @@ public class Functions {
 
   }
   
-//  public abstract static class Unary< T , R > extends Sugges //< R > implements Suggester {
-//    public SuggestiveFunctionCall functionCall = null;
-//
-//    public Unary( Expression< T > o, String functionMethod ) {
-//      super( new SuggestiveFunctionCall( (Object)null,
-//                                         getFunctionMethod( functionMethod ),
-//                                         new Object[]{ o } ) );
-//      functionCall = (SuggestiveFunctionCall)this.expression;
-////      Vector< Object > v = new Vector< Object >();
-////      v.add( o );
-////      functionCall.arguments = v;
-//    }
-//    public Unary( Object o, String functionMethod ) {
-//      this( forceExpression( o ), functionMethod );
-//    }
-//    private static Method getFunctionMethod( String functionMethod ) {
-//      Method m = null;
-//      try {
-//        m = Functions.class.getMethod( functionMethod, 
-//                                       Expression.class );
-//      } catch ( SecurityException e ) {
-//        // TODO Auto-generated catch block
-//        e.printStackTrace();
-//      } catch ( NoSuchMethodException e ) {
-//        // TODO Auto-generated catch block
-//        e.printStackTrace();
-//      }
-//      return m;
-//    }
-////    @Override
-////    public < T > T pickValue( Variable< T > variable ) {
-////      // TODO Auto-generated method stub
-////      Debug.error(true, "Need to redefine Unary.pickValue(v)!" );
-////      return null;
-////    }
-//  }
 
   public static class Conditional< T > extends SuggestiveFunctionCall implements Suggester {
     public Conditional( Expression<Boolean> condition, Expression< T > thenExpr, Expression< T > elseExpr ) {
@@ -439,6 +470,106 @@ public class Functions {
       }
       return m;
     }
+    
+    @Override
+    public < TT > Pair<Domain< TT >, Boolean> restrictDomain( Domain< TT > domain,
+                                             boolean propagate,
+                                             Set< HasDomain > seen ) {
+      if ( domain == null ) return new Pair(getDomain(propagate, null), false);
+
+      if ( arguments == null || arguments.size() != 3 ) {
+        // TODO -- ERROR
+        return null;
+      }
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      Object o3 = this.arguments.get( 2 );
+      
+      Domain d1 = o1 == null ? null : DomainHelper.getDomain( o1 );
+      Domain d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
+      Domain d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
+      AbstractRangeDomain ard2 = o2 instanceof AbstractRangeDomain ? (AbstractRangeDomain)d2 : null;
+      AbstractRangeDomain ard3 = o3 instanceof AbstractRangeDomain ? (AbstractRangeDomain)d3 : null;
+      BooleanDomain condo = d1 instanceof BooleanDomain ? (BooleanDomain)d1 : null;
+      
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // TODO -- DON'T CREATE A NEW DOMAIN IF this.domain IS CORRECT!!!!!!! 
+      // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      
+      if ( condo == null || condo.isEmpty() ) {
+        // TODO -- ERROR
+        if ( d2 != null ) {
+          Domain d2c = d2.clone();
+          if ( d2c instanceof AbstractRangeDomain ) ((AbstractRangeDomain)d2c).makeEmpty();
+          else d2c.setValue( null );
+          boolean changed = Utils.valuesEqual( this.domain, d2c );
+          return new Pair(d2c, changed);
+        }
+        return null;
+      }
+      
+      if ( condo.size() > 1 ) {
+        // Can't tell whether to restrict the domain for true case (ard2) or the false (ard3).
+      } else {
+        if ( condo.contains(Boolean.TRUE) ) { 
+          if ( ard2 != null && !ard2.isEmpty() ) {
+            ard2.restrictTo( domain );
+          }
+          Domain<TT> newDomain = ard2 == null ? null : ard2.clone();
+          boolean changed = Utils.valuesEqual( this.domain, newDomain );
+          if ( changed ) {
+            this.domain = newDomain;
+          }
+          return new Pair(this.domain, changed);
+        } else if ( condo.contains(Boolean.FALSE) ) {
+          if ( ard3 != null && !ard3.isEmpty() ) {
+            ard3.restrictTo( domain );
+          }
+          Domain<TT> newDomain = ard3 == null ? null : ard3.clone();
+          boolean changed = Utils.valuesEqual( this.domain, newDomain );
+          if ( changed ) {
+            this.domain = newDomain;
+          }
+          return new Pair(this.domain, changed);
+        } else {
+          // This case is not possible since we check for condo.isEmpty() above.
+          return null;
+        }
+      }
+      
+      // condo must contain both true and false at this point.
+      
+      // check to see if neither or only one of d2 and d3 intersect with domain.
+      Domain dca = domain.clone();
+      Domain dcb = domain.clone();
+      boolean changed = false;
+      boolean changedA = dca.restrictTo( d2 );
+      boolean changedB = dcb.restrictTo( d3 );
+      if ( dca.isEmpty() && dcb.isEmpty() ) {
+        // No values in domain can be produced--no solution! return an empty domain.
+        this.domain = dca;
+        return new Pair(this.domain, changedA);
+      }
+      if ( dca.isEmpty() ) {
+        // We can restrict the condition to be true.
+        condo.restrictTo( new BooleanDomain( true, true ) );
+        this.domain = dca;
+        changed = changedA;
+      } else if ( dcb.isEmpty() ) {
+        // We can restrict the condition to be false.
+        condo.restrictTo( new BooleanDomain( false, false ) );
+        this.domain = dcb;
+        changed = changedB;
+      } else {
+        Domain newDomain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( null ) );
+        changed = Utils.valuesEqual(this.domain, newDomain);
+      }
+
+      return new Pair(this.domain, changed);
+    }
   }
   
   public static class IF< T > extends Conditional< T > {
@@ -447,6 +578,7 @@ public class Functions {
     }
   }
 
+  
   public static < T > T ifThenElse( boolean b, T thenT, T elseT ) {
     if ( b ) return thenT;
     return elseT;
@@ -503,6 +635,8 @@ public class Functions {
     }
     T thenT = (thenExpr == null ? null : thenExpr.evaluate( false ) );
     return thenT;
+    
+    
   }
   
   
@@ -634,7 +768,7 @@ public class Functions {
      * @param argument
      * @return
      */
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
       FunctionCall inverse = inverse( returnValue, argument );
       if ( inverse == null ) return null;
       return inverse.getDomain( false, null );
@@ -681,7 +815,7 @@ public class Functions {
      * @param argument
      * @return
      */
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
+    public Domain< ? > inverseDomain( Domain<?> returnValue, Object argument ) {
       FunctionCall inverse = inverse( returnValue, argument );
       if ( inverse == null ) return null;
       return inverse.getDomain( false, null );
@@ -705,57 +839,8 @@ public class Functions {
       Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
       if ( returnValue == null || otherArg == null ) return null; // arg can be null!
       return new Minus<T,T>( returnValue, otherArg );
-//      FunctionCall i = null;
-//      i = new FunctionCall( this, ClassUtils.getMethodsForName( getClass(), "invert" )[0],
-//                            new Object[]{returnValue, arg} );
-//      return i;
     }
     
-    @Override
-    public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-      // avoid infinite recursion
-      Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
-      if ( pair.first ) return null;
-      seen = pair.second;
-      
-      RangeDomain<?> rd =
-          DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
-                                       new Sum<T,R>( null, null ) );
-      return rd;
-    }
-    
-    /**
-     * Return a domain for the matching input argument restricted by the domain
-     * of the other arguments and of an expected return value.
-     * 
-     * @param returnValue
-     * @param argument
-     * @return
-     */
-    public Domain< ? > inverseDomain( Object returnValue, Object argument ) {
-      FunctionCall inverse = inverse( returnValue, argument );
-      if ( inverse == null ) return null;
-      return inverse.getDomain( false, null );
-//      // check for bad or degenerate input while getting domains of args
-//      if ( arguments == null || arguments.size() != 2 ) return null;
-//      if ( arg == null || returnValue == null ) return null;
-//      int whichArg = ( arg == arguments.get( 0 ) ? 0 : arg == arguments.get( 1 ) ? 1 : -1 );
-//      Object otherArg = ( whichArg == 1 ? arguments.get( 0 ) : arguments.get( 1 ) );
-//      if ( !( arg instanceof HasDomain ) ) return null;
-//      HasDomain argWithDomain = (HasDomain)arg;
-//      if ( !( otherArg instanceof HasDomain ) || whichArg == -1 )
-//        return argWithDomain.getDomain( false, null );
-//      HasDomain otherArgWithDomain = (HasDomain)otherArg;
-//      Domain<?> domainArg = argWithDomain.getDomain( false, null );
-//      Domain<?> domainOtherArg = otherArgWithDomain.getDomain( false, null );
-//      //
-//      if ( domainArg instanceof AbstractRangeDomain && domainOtherArg instanceof AbstractRangeDomain ) {
-//        RangeDomain<?> inverseDomain =
-//        DomainHelper.combineDomains( Utils.newList( returnValue, otherArg ),
-//                                     new Minus<Object,Object>( null, null ) );
-//        if ( whichArg == 0 ) ((AbstractRangeDomain)domainArg).intersectRestrict( inverseDomain );
-    }
-        
   }
   public static class Add< T , R > extends Sum< T, R > {
     public Add( Expression< T > o1, Expression< T > o2 ) {
@@ -789,10 +874,19 @@ public class Functions {
       //functionCall.
       setMonotonic( true );
     }
+    @Override
+    public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      boolean firstArg = otherArg != arguments.get( 0 );  // thus arg is the first
+      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+      if ( firstArg ) {
+        return new Sum<T,T>( returnValue, otherArg );
+      }
+      return new Sub<T,T>( otherArg, returnValue );
+    }
   }
-  public static class Minus<T,R>//< T  extends Comparable< ? super T >,
-                           //  R  extends Comparable< ? super R > > 
-  extends Sub< T, R > {
+  public static class Minus<T,R> extends Sub< T, R > {
     public Minus( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2 );
       //functionCall.
@@ -816,6 +910,16 @@ public class Functions {
       //functionCall.
       setMonotonic( true );
     }
+    
+    @Override
+    public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+      return new Divide<T,T>( returnValue, otherArg );
+    }
+
+    
   }
   
   public static class Mul<T,R> extends Times< T, R > {
@@ -841,6 +945,18 @@ public class Functions {
       //functionCall.
       setMonotonic( true );
     }
+    @Override
+    public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if ( arguments == null || arguments.size() != 2 ) return null;
+      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+      boolean firstArg = otherArg != arguments.get( 0 );  // thus arg is the first
+      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+      if ( firstArg ) {
+        return new Times<T,T>( returnValue, otherArg );
+      }
+      return new Divide<T,T>( otherArg, returnValue );
+    }
+
   }
   
   public static class Div<T,R> extends Divide< T, R > {
@@ -1968,6 +2084,26 @@ public class Functions {
     if ( Debug.isOn() ) Debug.outln( r1 + " / " + r2 + " = " + result );
     return result;
 */  }
+
+  public static class Identity<T> extends Unary< T, T > {
+    public Identity( Expression< T > o ) {
+      super( o, "identity" );
+      setMonotonic( true );
+    }
+    
+    @Override
+    public < T > T pickValue( Variable< T > variable ) {
+      return variable.getValue( false );
+    }
+  }
+
+  public static <T> T identity(T t) {
+    return t;
+  }
+  public static Expression<?> identity(Expression<?> e) {
+    return e;
+  }
+
   
   public static class Negative<T> extends Unary< T, T > {
     public Negative( Expression< T > o ) {
@@ -2034,41 +2170,132 @@ public class Functions {
       super( o1, o2, "equals", "pickEqualToForward", "pickEqualToForward");
     }
     
+//    @Override
+//    public < T > Domain< T > restrictDomain( Domain< T > domain,
+//                                             boolean propagate,
+//                                             Set< HasDomain > seen ) {
+//      Object o1 = this.arguments.get( 0 );
+//      Object o2 = this.arguments.get( 1 );
+//      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+//        HasDomain hd1 = (HasDomain)o1;
+//        HasDomain hd2 = (HasDomain)o2;
+//        Domain d1 = hd1.getDomain( propagate, seen );
+//        Domain d2 = hd2.getDomain( propagate, seen );
+//        hd1.restrictDomain( d2, propagate, seen );
+//        hd2.restrictDomain( d1, propagate, seen );
+//      }
+//      return (Domain< T >)getDomain(propagate, seen );
+//    }
+    
+//    public FunctionCall inverse( Object returnValue, Object arg ) { //Variable<?> variable ) {
+//      FunctionCall singleValueFcn = inverseSingleValue( returnValue, arg );
+//      if ( singleValueFcn == null ) return null;
+//      return new FunctionCall(null,
+//                              ClassUtils.getMethodsForName( Utils.class, "newList" )[0],
+//                              new Object[] { singleValueFcn }, (Class<?>)null );
+//    }
+
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {
-      FunctionCall f =
-          new FunctionCall( this, getClass(), "invert",
-                            new Object[] { returnValue, arg }, (Class<?>)null );
+      FunctionCall f = invert( Utils.isTrue( returnValue ) == Boolean.TRUE, arg );
+      f.arguments = new Vector<Object>(Utils.newList( Boolean.FALSE ) ); // this argument is ignored
       return f;
+//          new FunctionCall( this, getClass(), "invert",
+//                            new Object[] { Utils.isTrue( returnValue ), arg }, (Class<?>)null );
+//      return f.evaluate();
     }
 
-    public LinkedHashSet<?> invert( Object returnValue, Object arg ) {
+    //TODO should handle returnValue = false
+    public FunctionCall invert( final boolean eqReturnValue, Object arg ) {
       LinkedHashSet< Object > otherArgs = getOtherArgs( arg );
-      LinkedHashSet< Object > values = new LinkedHashSet< Object >();
-      Class<?> type = arg.getClass();
-      if ( arg instanceof Wraps ) {
-        type = ((Wraps)arg).getType();
+      // should only be one
+      final Object otherArg = otherArgs.iterator().next();
+      
+      try {
+        return new FunctionCall( (Method)Functions.class.getMethod( "not", new Class<?>[]{Expression.class} ), (Class<?>)null ) {
+          @Override
+          public Object
+                 invoke( Object evaluatedObject,
+                         Object[] evaluatedArgs ) throws IllegalArgumentException,
+                                                  InstantiationException,
+                                                  IllegalAccessException,
+                                                  InvocationTargetException {
+            return otherArg;
+          }
+          @Override
+          public Domain< ? > getDomain( boolean propagate,
+                                        Set< HasDomain > seen ) {
+            if( otherArg instanceof HasDomain ) {
+              if ( eqReturnValue )
+              return ((HasDomain)otherArg).getDomain(propagate, seen);
+              return null;
+            }
+            return null;
+          }
+        };
+      } catch ( NoSuchMethodException e ) {
+        e.printStackTrace();
+      } catch ( SecurityException e ) {
+        e.printStackTrace();
       }
-      for ( Object o : otherArgs ) {
-        try {
-          Object r = Expression.evaluate( o, type, true );
-          values.add(r);
-        } catch ( ClassCastException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( IllegalAccessException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( InvocationTargetException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch ( InstantiationException e ) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-      return values;
+         
+      return null;
+//      LinkedHashSet< Object > values = new LinkedHashSet< Object >();
+//      Class<?> type = arg.getClass();
+//      if ( arg instanceof Wraps ) {
+//        type = ((Wraps)arg).getType();
+//      }
+//      for ( Object o : otherArgs ) {
+//        try {
+//          Object r = Expression.evaluate( o, type, true );
+//          values.add(r);
+//        } catch ( ClassCastException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        } catch ( IllegalAccessException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        } catch ( InvocationTargetException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        } catch ( InstantiationException e ) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//        }
+//      }
+//      return values;
     }
+    
+    @Override
+    public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      if (o1 instanceof HasDomain && o2 instanceof HasDomain){
+        HasDomain hd1 = (HasDomain)o1;
+        HasDomain hd2 = (HasDomain)o2;
+        Domain d1 = hd1.getDomain(propagate, seen);
+        Domain d2 = hd2.getDomain( propagate, seen );
+        if(d1 instanceof RangeDomain && d2 instanceof RangeDomain){
+          AbstractRangeDomain rd1 = (AbstractRangeDomain)d1;
+          AbstractRangeDomain rd2 = (AbstractRangeDomain)d2;
+          if (rd1.size() == 1 && rd2.size() == 1 && rd1.equals( rd2 ) ) {
+            System.out.println( "true" );
+            return new BooleanDomain( true, true );
+          }
+          else if( rd1.intersects( rd1 ) ) {//greaterEquals(rd1.getUpperBound(), rd2.getLowerBound()) &&
+                  //rd1.lessEquals(rd1.getLowerBound(), rd2.getUpperBound()) ){
+            System.out.println( "true or false" );
+            return new BooleanDomain(false, true);
+          }
+          else 
+            System.out.println( "false" );
+            return new BooleanDomain( false, false );
+        }
+        //TODO else case
+      }
+      return null;
+    }
+    
     /*
     @Override
     public < T1 > T1 pickValue( Variable< T1 > variable ) {
@@ -2275,16 +2502,21 @@ public class Functions {
      * @see gov.nasa.jpl.ae.event.Call#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
      */
     @Override
-    public < TT > Domain< TT > restrictDomain( Domain< TT > domain,
-                                             boolean propagate,
-                                             Set< HasDomain > seen ) {
+    public < TT > Pair<Domain< TT >,Boolean> restrictDomain( Domain< TT > domain,
+                                                             boolean propagate,
+                                                             Set< HasDomain > seen ) {
+      boolean changed = false;
       if ( domain.size() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
-          restrictDomains(((Boolean)v) == Boolean.TRUE);
+          changed = restrictDomains(((Boolean)v) == Boolean.TRUE);
         }
       }
-      return (Domain< TT >)getDomain(propagate, null);
+      Domain oldDomain = this.domain.clone();
+      Domain newDomain = (Domain< TT >)getDomain(propagate, null);
+      boolean thisChanged = Utils.valuesEqual( oldDomain, newDomain );
+      this.domain = newDomain;
+      return new Pair(this.domain, changed || thisChanged);
     }
     
     // REVIEW -- This seems out of place.  Does something else do this?
@@ -3106,12 +3338,15 @@ public class Functions {
   public static class And extends BooleanBinary< Boolean > {
     public And( Expression< Boolean > o1, Expression< Boolean > o2 ) {
       super( o1, o2, "and", "pickTrue", "pickTrue" );
+      setMonotonic( true );
     }
     public And( Expression< Boolean > o1, FunctionCall o2 ) {
       super( o1, o2, "and", "pickTrue", "pickTrue" );
+      setMonotonic( true );
     }
     public And(  FunctionCall o2, Expression< Boolean > o1 ) {
       super( o1, o2, "and", "pickTrue", "pickTrue" );
+      setMonotonic( true );
     }
     
     /**
@@ -3150,9 +3385,11 @@ public class Functions {
   public static class Or extends BooleanBinary< Boolean > {
     public Or( Expression< Boolean > o1, Expression< Boolean > o2 ) {
       super( o1, o2, "or", "pickTrue", "pickTrue" );
+      setMonotonic( true );
     }
     public Or( Expression< Boolean > o1, FunctionCall o2 ) {
       super( o1, o2, "or", "pickTrue", "pickTrue" );
+      setMonotonic( true );
     }
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
@@ -3230,6 +3467,7 @@ public class Functions {
   public static class Not extends Unary< Boolean, Boolean > implements Suggester {
     public Not( Expression< Boolean > o ) {
       super( o, "not" );
+      setMonotonic( true );
     }
 
     @Override
