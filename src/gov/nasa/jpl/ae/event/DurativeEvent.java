@@ -424,6 +424,15 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     this.duration.setValue( duration.intValue(), true );
   }
   
+  public DurativeEvent( String name, Integer start, Long duration ) {
+    this( name );
+    if ( start != null ) {
+      this.startTime.setValue( start );
+    }
+    if ( duration == null ) duration = new Long(1);
+    this.duration.setValue( duration.intValue(), true );
+  }
+  
   public DurativeEvent( String name, String activitiesFileName ) {
     this(name);
     try {
@@ -436,13 +445,34 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public DurativeEvent( String name, TimeVaryingMap<?> tvm, String type ) {
     this(name);
     Parameter<Integer> lastStart = null;
-    Object lastValue = null;
+    //Object lastValue = null;
     // Add an elaboration for every non-null value
+    Class<? extends Event> eventClass = DurativeEvent.class;
+    if ( type != null && !type.equals( "DurativeEvent" ) ) {
+      Class< ? > cls = null;
+      try {
+        cls = ClassUtils.classForName( type );
+      } catch ( ClassNotFoundException e1 ) {
+      }
+      if ( cls != null && Event.class.isAssignableFrom( cls ) ) {
+        eventClass = (Class<? extends Event>)cls;
+      }
+    }
     for ( Entry< Parameter< Integer >, ? > e : tvm.entrySet() ) {
-      // TODO!! HERE!!
-      //addElaborationRule( condition, enclosingInstance, eventClass, eventName, arguments );
-      //addElaborationRule( start, end, duration, typeName );
+      // TODO!! What to do with the value?
+      if ( lastStart != null ) {
+        //String n = name + "_" + e.getValue();
+        Long duration = new Long(lastStart.getValue( true ) - e.getKey().getValue( true )); 
+        addElaborationRule( new Expression< Boolean >( true ), this,
+                            eventClass, name,
+                            new Expression[] { new Expression< String >( name ),
+                                               new Expression< Integer >( lastStart.getValue( true ) ),
+                                               new Expression< Long >( duration ) } );
+      }
+      //addElaborationRule( lastStart, e.getKey(), (Double)null, "event_" + e.getValue().toString() );
       //addElaborationRule( lastStart, e.getKey(), duration, "" + lastValue );
+      lastStart = e.getKey();
+      //lastValue = e.getValue();
     }
   }
   
