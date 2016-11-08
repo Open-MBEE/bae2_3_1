@@ -671,7 +671,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     for ( TimeValue tv : floatingEffects ) {
       tv.deconstruct();
     }
-    floatingEffects.clearValues();
+    floatingEffects.clear();
   }
 
   protected void breakpoint() {}
@@ -3859,7 +3859,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( arithmeticMethods == null ) {
       arithmeticMethods = new TreeSet< Method >( methodComparator );
     } else {
-      arithmeticMethods.clearValues();
+      arithmeticMethods.clear();
     }
     try {
       addNumberMethod =

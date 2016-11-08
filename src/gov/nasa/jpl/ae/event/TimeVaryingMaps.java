@@ -84,7 +84,7 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
   public <VV extends V> void fromCsvFiles( Map< String, Number > fileNames,
                                            String prefix, Class<VV> cls ) {
     int count = 0;
-    maps.clearValues();
+    maps.clear();
     numberOfSubmaps = 0;
     for ( java.util.Map.Entry< String, Number > e : fileNames.entrySet() ) {
       Number numInstances = e.getValue();
@@ -149,7 +149,7 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
    * Populate maps with all of the files in the directory but not subdirectories.
    */
   public <VV extends V> void fromFolder( String folderName, String fileNamePattern, Class<VV> cls ) {
-    maps.clearValues();
+    maps.clear();
     numberOfSubmaps = 0;
     File[] dirFiles = FileUtils.filesInDirectory( folderName );
     if ( dirFiles != null ) {
