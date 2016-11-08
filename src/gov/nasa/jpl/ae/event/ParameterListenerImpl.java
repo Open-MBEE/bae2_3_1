@@ -747,7 +747,7 @@ public class ParameterListenerImpl extends HasIdImpl
 //            System.out.println("here1ß");
 //          }
           if ( paramsAndTvms.containsKey( p.getName() ) ) {
-            Debug.error( "Already have a parameter with name " + p.getName() + "!");
+            Debug.error( false, false, "Already have a parameter with name " + p.getName() + "!");
           } else {
             paramsAndTvms.put(p.getName(), p );
             tvs.remove( o );
