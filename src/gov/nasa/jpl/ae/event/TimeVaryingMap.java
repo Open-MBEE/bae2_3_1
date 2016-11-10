@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
-import com.panayotis.gnuplot.JavaPlot;
+//import com.panayotis.gnuplot.JavaPlot;
 
 /**
  *
@@ -5516,9 +5516,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
   
     public static void testJavaPlot(String[] args) {
-        JavaPlot p = new JavaPlot();
-        p.addPlot("sin(x)");
-        p.plot();
+//        JavaPlot p = new JavaPlot();
+//        p.addPlot("sin(x)");
+//        p.plot();
     }
 
   @Override
