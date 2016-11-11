@@ -649,7 +649,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       Object argValProp = null;
       String type = model.getTypeString((C)argValueNode, (Object) null);
       Object v = null;
-      if ( type.equals("Property") ) {
+      if ( type != null && type.equals("Property") ) {
         // TODO -- deal with collections and arrays instead of just getting one
         v = model.getValue((C)argValueNode, null);
         int ct = 0;
@@ -781,7 +781,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                          null );
       Collection< P > valueOfElemNodes = null; 
               //model.getProperty(model.asContext( operandProp ), "element");
-      if ( type.equals( "ElementValue" ) ) {
+      if ( type != null && type.equals( "ElementValue" ) ) {
         Object o = model.getValue(model.asContext( operandProp ), null );
         if ( o instanceof Collection ) {
           valueOfElemNodes = Utils.asList( (Collection< P >)o, model.getPropertyClass(), false );
@@ -1089,6 +1089,56 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       return null;
     }
 
+    /**
+     * Converts an opaque expression as a String to an AE Expression that
+     * evaluates to the specified type.  The string expression may refer to
+     * Properties/variables by name, in which case, the names must be resolved,
+     * and appropriate AE Parameters are created, linked to the appropriate Properties. 
+     * 
+     * @param opaqueExpression
+     * @param expectedType the type of object to which the expression evaluates
+     * @return
+     */
+    public <X> Expression<X> opaqueToAeExpression( C opaqueExpression,
+                                                   Class< ? > expectedType ) {
+      // Create a value from the opaque expression, and translate that to
+      // an AE expression.
+      
+      // Try to create a value from the body of the expression.
+      Collection< U > bodies =
+          model.getValue( opaqueExpression, "expressionBody" );
+      if ( bodies == null ) return null;
+      ArrayList< Expression< ? > > arr = new ArrayList< Expression< ? > >();
+      for ( U body : bodies ) {
+        if ( body != null ) {
+  
+          Object value = null;
+          // If a string, try to parse as text expression, which can be parsed and
+          // converted into a value specification element.
+          if ( body instanceof String ) {
+            value = model.createElement( model.asContext( body ) ); // Should we
+                                                                    // call this
+          }
+          Expression< ? > x = toAeExpression( value, expectedType );
+          if ( x != null ) {
+            arr.add( x );
+          }
+        }
+      }
+      if ( arr.size() == 0 ) {
+        return null;
+      } else if ( arr.size() == 1
+                  && ( expectedType == null
+                       || !expectedType.isAssignableFrom( arr.getClass() ) ) ) {
+
+        Expression< X > expr = (Expression< X >)arr.get( 0 );
+        System.out.println("opaqueToAeExpression("+ bodies + ") --> " + expr);
+        return expr;
+      }
+    
+      return new Expression< X >( arr ); // TODO -- REVIEW -- Do we handle
+                                         // collections in expressions properly?
+    }
     
     /**
      * Converts the passed sysml expression to an AE expression.
@@ -1110,14 +1160,20 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
       // If it is not an Expression than we cannot process it:
       String expressionType = model.getTypeString((C)expressionElement, null);
-      if (!expressionType.equals("Expression")) {
+      System.out.println("expressionType = " + expressionType);
+      if (!expressionType.endsWith("Expression")) {
         Debug.error( "The passed expression is not an Expression type, got type "
                      + expressionType + "; expressionsElement="
                      + expressionElement + "; expectedType="
-                     + expectedType.getSimpleName() );
+                     + expectedType == null ? "null" : expectedType.getSimpleName() );
         return null;
       }
 
+      if ( expressionType.equals("OpaqueExpression") ) {
+        System.out.println( "Found an opaque expression!" );
+        return opaqueToAeExpression( model.asContext( expressionElement ), expectedType );
+      }
+      
       // Pull out the operation, and recursively process the arguments. 
       
       Collection< P > operands = model.getProperty( (C)expressionElement, "operand");
@@ -1278,7 +1334,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       if ( expression == null || ( expression.expression == null && expression.form != Form.Value ) ) {
         N operationName = getOperationName( operation );
         Call call = createCall(null, operationName, aeArgs, rawArgs, returnType );
-        expression = new Expression( call ); // FIXME what to do if call is null?
+        expression = new Expression< X >( call ); // FIXME what to do if call is null?
         //expression = new Expression( call.evaluate( false ) ); // This breaks test case 22
       }
       
@@ -1348,7 +1404,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         String k = null;
         //Collection< P > bodies = model.getProperty((C)arg, "body");
         
-        Collection< U > bodies = model.getValue((C)arg, "body");
+        Collection< U > bodies = model.getValue((C)arg, "expressionBody");
         if ( !Utils.isNullOrEmpty( bodies ) ) {
           U body = bodies.iterator().next();
           if ( body instanceof String ) {
