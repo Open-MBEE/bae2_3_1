@@ -488,20 +488,20 @@ public class JavaForFunctionCall {
         ( getMethodCallExpr() == null ? "ConstructorCall"
                                  : ( isEffectFunction() ? "EffectFunction"
                                                         : "FunctionCall" ) ); 
-    if ( getObject().startsWith( "new FunctionCall" ) 
-         || getObject().startsWith( "new ConstructorCall" )
-      || getObject().startsWith( "new EffectFunction" ) ) {
-      // nest the function calls
-      fcnCallStr = "new " + callTypeName + "( null, " + getMethodJava() + ", "
-                   + getArgumentArrayJava() + ", " + getObject() + ", " + getReturnTypeString() + " )";
-    } else {
+//    if ( getObject().startsWith( "new FunctionCall" ) 
+//         || getObject().startsWith( "new ConstructorCall" )
+//      || getObject().startsWith( "new EffectFunction" ) ) {
+//      // nest the function calls
+//      fcnCallStr = "new " + callTypeName + "( null, " + getMethodJava() + ", "
+//                   + getArgumentArrayJava() + ", " + getObject() + ", " + getReturnTypeString() + " )";
+//    } else {
       String instance = getObject();
       if ( isStatic() ) {
         instance = "null";
       }
       fcnCallStr = "new " + callTypeName + "( " + instance + ", " + getMethodJava()
                    + ", " + getArgumentArrayJava() + ", " + getReturnTypeString() + " )";
-    }
+//    }
     if ( isEvaluateCall() && !Utils.isNullOrEmpty( fcnCallStr ) ) {
       if ( !isConvertingArgumentsToExpressions() ) {
         fcnCallStr = "(" + fcnCallStr + ").evaluate(true)";

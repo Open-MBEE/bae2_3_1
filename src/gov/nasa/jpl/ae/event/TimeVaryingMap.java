@@ -1247,6 +1247,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return keyForValueAt( value, t ) != null;
   }
 
+//  public V setValue( Integer t, V value ) {
+//  }
+  
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.TimeVarying#setValue(gov.nasa.jpl.ae.event.Parameter<Integer>, java.lang.Object)
    */
@@ -1967,7 +1970,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return newTvm;
   }
 
-  public enum MathOperation { PLUS, MINUS, TIMES, DIVIDE, POW, LOG, MIN, MAX, MOD };
+  public enum MathOperation { PLUS, MINUS, NEG, TIMES, DIVIDE, POW, LOG, MIN, MAX,
+                              MOD, AND, OR, NOT, LT, LTE, GT, GTE, EQ, NEQ };
+
   public static boolean symmetric( MathOperation op ) {
     switch ( op ) {
       case DIVIDE:
@@ -1975,11 +1980,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       case MINUS:
       case MOD:
       case POW:
+      case NOT:
+      case LT:
+      case LTE:
+      case GT:
+      case GTE:
+      case NEG:
         return false;
       case MIN:
       case MAX:
       case PLUS:
       case TIMES: 
+      case AND:
+      case OR:
+      case EQ:
+      case NEQ:
         return true;        
       default:
         Debug.error("Unknown MathOperation " + op + "!");
@@ -2004,17 +2019,23 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws ClassCastException
    */
   public < VV, VVV > TimeVaryingMap< VVV > applyOperation( TimeVaryingMap< VV > map, MathOperation op ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    Class<VVV> cls = (Class< VVV >)ClassUtils.dominantTypeClass( getType(), map.getType() );
-    TimeVaryingMap< VVV > newTvm = emptyClone(cls);
-    newTvm.setType( cls );
+    Class<VVV> resultClass = (Class< VVV >)ClassUtils.dominantTypeClass( getType(), map.getType() );
+    return applyOperation( map, op, resultClass );
+  }
+  public < VV, VVV > TimeVaryingMap< VVV > applyOperation( TimeVaryingMap< VV > map, MathOperation op, Class<VVV> resultType ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    //Class<VVV> cls = (Class< VVV >)ClassUtils.dominantTypeClass( getType(), map.getType() );
+    TimeVaryingMap< VVV > newTvm = emptyClone(resultType);
+    newTvm.setType( resultType );
     newTvm.clear();
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
-    keys.addAll( map.keySet() );
+    if ( map != null ) {
+      keys.addAll( map.keySet() );
+    }
     for ( Parameter<Integer> k : keys ) {
       V v1 = this.getValue( k );
-      VV v2 = map.getValue( k );
+      VV v2 = map == null ? null : map.getValue( k );
       Object v3 = null;
       switch ( op ) {
         case DIVIDE:
@@ -2022,8 +2043,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           break;
         case LOG:
           //v3 = Functions.log( v1, v2 );
-          Debug.error("log(TimeVaryingMap) not yet supported!");
-          break;
+          throw new IllegalArgumentException("log(TimeVaryingMap) not yet supported!");
+          //break;
         case MAX:
           v3 = Functions.max( v1, v2 );
           break;
@@ -2035,8 +2056,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           break;
         case MOD:
           //v3 = Functions.mod( v1, v2 );
-          Debug.error("mod(TimeVaryingMap) not yet supported!");
-          break;
+          throw new IllegalArgumentException("mod(TimeVaryingMap) not yet supported!");
+          //break;
         case PLUS:
           v3 = Functions.plus( v1, v2 );
           break;
@@ -2046,8 +2067,44 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         case TIMES: 
           v3 = Functions.times( v1, v2 );
           break;
+        case NEG: 
+          v3 = Functions.negative( v1 );
+          break;
+        case AND:
+          v3 = Functions.and( v1, v2 );
+          break;
+        case OR:
+          throw new IllegalArgumentException( "or(V1,V1) not yet implemented!" );
+          //v3 = Functions.or( v1, v2 );
+          //break;
+        case NOT:
+          throw new IllegalArgumentException( "not(V1,V1) not yet implemented!" );
+          //v3 = Functions.not( v1 );
+          //break;
+        case LT:
+          v3 = Functions.lessThan( v1, v2 );
+          break;
+        case LTE:
+          v3 = Functions.lessThanOrEqual( v1, v2 );
+          break;
+        case GT:
+          throw new IllegalArgumentException( "greaterThan(V1,V1) not yet implemented!" );
+          //v3 = Functions.greaterThan( v1, v2 );
+          //break;
+        case GTE:
+          throw new IllegalArgumentException( "greaterThanOrEqual(V1,V1) not yet implemented!" );
+          //v3 = Functions.greaterThanOrEqual( v1, v2 );
+          //break;
+        case EQ:
+          throw new IllegalArgumentException( "equals(V1,V1) not yet implemented!" );
+          //v3 = Functions.equals( v1, v2 );
+          //break;
+        case NEQ:
+          throw new IllegalArgumentException( "notEquals(V1,V1) not yet implemented!" );
+          //v3 = Functions.notEquals( v1, v2 );
+          //break;
         default:
-          Debug.error("Unknown MathOperation " + op + "!");
+          throw new IllegalArgumentException("Unknown MathOperation " + op + "!");
       };
       // Applying the operation to a number and null (in that order) will return
       // the number. If the order of the operands is (null, number), then the
@@ -2324,6 +2381,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( isEmpty() ) return this.clone();
     return maxClone( n, firstKey(), null );
   }
+
+//  /**
+//   * @param n
+//   * @return a copy of this map for which {@code n} is lessThan'd with each value
+//   */
+//  public TimeVaryingMap<V> lessThanClone( Number n ) {
+//    if ( isEmpty() ) return this.clone();
+//    return lessThanClone( n, firstKey(), null );
+//  }
+//
+//  /**
+//   * @param n
+//   * @return a copy of this map for which {@code n} is lessThanOrEqual'd with each value
+//   */
+//  public TimeVaryingMap<V> lessThanOrEqualClone( Number n ) {
+//    if ( isEmpty() ) return this.clone();
+//    return lessThanOrEqualClone( n, firstKey(), null );
+//  }
 
   public boolean contains( Integer t ) {
     return getKey( t ) != null;
@@ -3003,8 +3078,123 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return removeDuplicates();
   }
 
+//  /**
+//   * @param n
+//   * @param fromKey
+//   * @param toKey
+//   *          the first key after {@code fromKey} to whose value is not max'd {@code n}. To
+//   *          include the last key, pass {@code null} for {@code toKey}.  null values are
+//   *          treated as zero when maxing with a non-null.
+//   * @return this map after maxing {@code n} with each value in the range [{@code fromKey},
+//   *         {@code toKey})
+//   */
+//  public TimeVaryingMap< Boolean > lessThan( Number n, Parameter< Integer > fromKey,
+//                                             Parameter< Integer > toKey ) {
+//
+//    //if ( n == null ) return; //REVIEW
+//    boolean same = toKey == fromKey;  // include the key if same
+//    fromKey = putKey( fromKey, false );
+//    if ( same ) {
+//      toKey = fromKey;
+//    } else {
+//      toKey = putKey( toKey, false );
+//    }
+//    Map< Parameter< Integer >, V > map = null;
+//    if ( toKey == null ) {
+//      toKey = lastKey();
+//      if ( before( toKey, fromKey ) ) toKey = fromKey;
+//      map = subMap( fromKey, true, toKey, true );
+//    } else {
+//      map = subMap( fromKey, true, toKey, same );
+//    }
+//    boolean succeededSomewhere = false;
+//    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+//      if ( e.getValue() == null ) {
+//        try {
+//          e.setValue( tryCastValue( n ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Double ) {
+//        Double v = (Double)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = Math.max(v, n.doubleValue() );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Float ) {
+//        Float v = (Float)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = Math.max( v, n.floatValue() );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Integer ) {
+//        Integer v = (Integer)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = (int)( Math.max(v, n.doubleValue() ) );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Long ) {
+//        Long v = (Long)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = (long)( Math.max( v, n.doubleValue() ) );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      }
+//    }
+//    //if (succeededSomewhere) appliedSet.add(  )
+//    return this;
+//  }
+//
+//  /**
+//   * @param tvm the {@code TimeVaryingMap} to be max'd to this {@code TimeVaryingMap}
+//   * @return this {@code TimeVaryingMap} after maxing {@code tvm}
+//   */
+//  public <VV> TimeVaryingMap< V > lessThan( TimeVaryingMap< VV > tvm ) {
+//    Set< Parameter< Integer > > keys =
+//        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( tvm.keySet() );
+//    for ( Parameter< Integer > k : keys ) {
+//      VV v = tvm.getValue( k, false );
+//      Number n;
+//      try {
+//        n = Expression.evaluate( v, Number.class, false );
+//        max( n, k, k );
+//      } catch ( ClassCastException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( IllegalAccessException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( InvocationTargetException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( InstantiationException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      }
+//    }
+//    return removeDuplicates();
+//  }
+//
 
-  
   /**
    * @param tvm the {@code TimeVaryingMap} to be added to this {@code TimeVaryingMap}
    * @return this {@code TimeVaryingMap} after adding {@code tvm}
@@ -3392,8 +3582,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param map2
    * @return a new map that maxes {@code map1} and {@code map2}
    * @throws InstantiationException 
-   * @throws InvocationTargetException 
    * @throws IllegalAccessException 
+   * @throws InvocationTargetException 
    * @throws ClassCastException 
    */
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > max( TimeVaryingMap< VV1 > map1,
@@ -3523,6 +3713,130 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     return newTvm;
   }
+
+  public static enum Inequality { EQ, NEQ, LT, LTE, GT, GTE }; 
+
+  public static TimeVaryingMap<Boolean> equals(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.EQ);
+  }
+  public static TimeVaryingMap<Boolean> equals(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.EQ);
+  }
+  public static TimeVaryingMap<Boolean> equals(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.EQ);
+  }
+
+  public static TimeVaryingMap<Boolean> notEquals(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.NEQ);
+  }
+  public static TimeVaryingMap<Boolean> notEquals(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.NEQ);
+  }
+  public static TimeVaryingMap<Boolean> notEquals(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.NEQ);
+  }
+
+  public static TimeVaryingMap<Boolean> lessThan(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.LT);
+  }
+  public static TimeVaryingMap<Boolean> lessThan(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.LT);
+  }
+  public static TimeVaryingMap<Boolean> lessThan(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.LT);
+  }
+  public static TimeVaryingMap<Boolean> lessThanOrEqual(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.LTE);
+  }
+  public static TimeVaryingMap<Boolean> lessThanOrEqual(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.LTE);
+  }
+  public static TimeVaryingMap<Boolean> lessThanOrEqual(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.LTE);
+  }
+
+  public static TimeVaryingMap<Boolean> greaterThan(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.GT);
+  }
+  public static TimeVaryingMap<Boolean> greaterThan(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.GT);
+  }
+  public static TimeVaryingMap<Boolean> greaterThan(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.GT);
+  }
+  public static TimeVaryingMap<Boolean> greaterThanOrEqual(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.GTE);
+  }
+  public static TimeVaryingMap<Boolean> greaterThanOrEqual(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.GTE);
+  }
+  public static TimeVaryingMap<Boolean> greaterThanOrEqual(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.GTE);
+  }
+
+  
+  public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map, Number n, boolean reverse, Inequality i) {
+    if ( map == null || n == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
+      Object mapVal = map.getValue( e.getKey() );
+      Boolean value = null;
+      if ( mapVal != null ) {
+        value = reverse ? doesInequalityHold( n, mapVal, i )
+                        : doesInequalityHold( mapVal, n, i );
+      }
+      result.setValue( e.getKey(), value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+
+  public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2, Inequality i) {
+    if ( map1 == null || map2 == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    Set< Parameter< Integer > > keys =
+        new TreeSet< Parameter< Integer > >(map1.keySet());
+    keys.addAll( map2.keySet() );
+    for ( Parameter<Integer> t : keys ) {
+      Object v1 = map1.getValue(t);
+      Object v2 = map2.getValue(t);
+      Boolean value = null;
+      if ( v1 != null && v2 != null ) {
+        value = doesInequalityHold( v1, v2, i );
+      }
+      result.setValue( t, value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+  
+  public static boolean doesInequalityHold( Object v1, Object v2, Inequality i) {
+    boolean value = false;
+    int comp = CompareUtils.compare( v1, v2 );
+    switch (i) {
+      case EQ:
+        value = comp == 0;
+        break;
+      case NEQ:
+        value = comp != 0;
+        break;
+      case LT:
+        value = comp < 0;
+        break;
+      case LTE:
+        value = comp <= 0;
+        break;
+      case GT:
+        value = comp > 0;
+        break;
+      case GTE:
+        value = comp >= 0;
+        break;
+      default:
+        // TODO -- error
+    }
+    return value;
+  }
   
   public static Object getValueAtTime(Object object, Parameter<Integer> t) {
     if ( object instanceof TimeVarying ) {
@@ -3531,9 +3845,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return object;
   }
   
+  public static Object ifThenElse( Object condition, Object thenObj, Object elseObj ) {
+    Pair< Boolean, TimeVaryingMap< ? > > p = Functions.booleanOrTimeline( condition );
+    if ( p.second != null ) {
+      return p.second.ifThenElse( thenObj, elseObj );
+    }
+    Boolean b = Utils.isTrue( condition, false );
+    if ( b == null ) return null;
+    if ( b ) return thenObj;
+    return elseObj;
+  }
+
   public TimeVaryingMap<Object> ifThenElse( Object thenObj, Object elseObj ) {
-    TimeVaryingMap<Object> newTvm = new TimeVaryingMap<>();
-    newTvm.clear();
+    TimeVaryingMap<Object> newTvm = new TimeVaryingMap<Object>();
     Set< Parameter< Integer > > keys =
         new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
@@ -3553,6 +3877,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
       newTvm.setValue( k, v3 );
     }
+    if ( newTvm != null ) newTvm.removeDuplicates();
     return newTvm;
   }
 
@@ -3836,6 +4161,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( compare != 0 ) return compare;
     return compare;
   }
+
+  // TODO -- use getValue() to compare TimeVaryingMaps!!!
+  //public int compareValues
 
   public static Method getSetValueMethod() {
     return getSetValueWithParameterMethod();

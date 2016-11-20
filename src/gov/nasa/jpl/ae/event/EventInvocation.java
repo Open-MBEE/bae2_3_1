@@ -34,6 +34,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   protected Constructor< ? extends Event > constructor = null;
   //protected Class< ? >[] constructorParameterTypes = null;
   protected Parameter< ? > enclosingInstance = null;
+  private Expression< TimeVaryingMap< ? > > fromTimeVarying = null;
 
   public EventInvocation( Class< ? extends Event > eventClass,
                           String eventName,
@@ -49,11 +50,13 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
                                             //Constructor< T > constructor,
                                             Parameter< ? > enclosingInstance,
                                             Object[] arguments,
+                                            Expression< TimeVaryingMap<?> > fromTimeVarying,
                                             Map< String, Object > memberAssignments ) {
     this.eventClass = eventClass;
     this.eventName = eventName;
     this.enclosingInstance  = enclosingInstance;
     this.arguments = arguments;
+    this.fromTimeVarying  = fromTimeVarying;
     this.memberAssignments = memberAssignments;
     this.constructor = null;
     //this.constructorParameterTypes  = constructorParameterTypes;
@@ -85,6 +88,26 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   
   public Event invoke() {
     if ( Debug.isOn() ) Debug.outln( "invoke(): " + this );
+    if ( fromTimeVarying == null ) {
+      return invoke(null, null);
+    }
+    TimeVaryingMap< ? > tvm = null;
+    //try {
+      tvm = Functions.getTimeline( fromTimeVarying );
+//    } catch ( IllegalAccessException e ) {
+//      e.printStackTrace();
+//    } catch ( InvocationTargetException e ) {
+//      e.printStackTrace();
+//    } catch ( InstantiationException e ) {
+//      e.printStackTrace();
+//    }
+    if ( tvm == null ) return null;
+    Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
+    Event parent = new DurativeEvent(eventName, tvm, enclosingInstance, eventClass, exprArguments );
+    parent.elaborate( false );
+    return parent;
+  }
+  public Event invoke(Parameter<Integer> start, Parameter<Integer> end) {
     Event event = constructEvent();
     
     if ( event != null ) {
@@ -96,6 +119,10 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   }
 
   private Event constructEvent() {
+    return constructEvent(null, null);
+    
+  }
+  private Event constructEvent(Parameter<Integer> start, Parameter<Integer> end) {
     Event event = null;
     Pair< Constructor< ? >, Object[] > ctorAndArgs =
         // makeConstructor();
@@ -106,6 +133,12 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( ctorAndArgs == null || constructor == null ) {
         try {
           event = eventClass.newInstance();
+          if ( start != null ) {
+            event.getStartTime().setValue(start.getValue());
+          }
+          if ( end != null ) {
+            event.getEndTime().setValue(end.getValue());
+          }
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           e.printStackTrace();

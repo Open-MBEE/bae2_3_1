@@ -189,4 +189,21 @@ public class Math {
       else  result = rd1 * rd2;
       return result;
     }
+    
+    public static int compare( double rd1, double rd2 ) {
+      double diff = minus( rd2, rd1 );
+      // See if they are close enough.
+      if ( java.lang.Math.abs(diff) < java.lang.Math.abs(rd1) * 1.0e-14 ) {
+        return 0;
+      }
+      return ((Double)rd1).compareTo(rd2);
+    }
+    public static int compare( float rd1, float rd2 ) {
+      double diff = minus( rd2, rd1 );
+      // See if they are close enough.
+      if ( java.lang.Math.abs(diff) < java.lang.Math.abs(rd1) * 1.0e-5 ) {
+        return 0;
+      }
+      return ((Float)rd1).compareTo(rd2);
+    }
 }

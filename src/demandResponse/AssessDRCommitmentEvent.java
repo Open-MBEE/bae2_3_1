@@ -86,6 +86,7 @@ public class AssessDRCommitmentEvent extends DurativeEvent {
                                              null,
                                              null, //MonitorLoadReductionEvent.class.getConstructor( parameterTypes ),
                                              arguments,
+                                             null,
                                              (Map< String, Object >)null ) );
       } catch ( Exception e ) {
         // TODO Auto-generated catch block

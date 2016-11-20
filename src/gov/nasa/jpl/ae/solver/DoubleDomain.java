@@ -118,7 +118,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean greater( Double t1, Double t2 ) {
     if ( t1 == null ) return false;
     if ( t2 == null ) return t1 != null;
-    return t1 > t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2);
+    return comp > 0;
   }
 
   /* (non-Javadoc)
@@ -128,7 +129,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean less( Double t1, Double t2 ) {
     if ( t1 == null ) return t2 != null;
     if ( t2 == null ) return false;
-    return t1 < t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2);
+    return comp < 0;
   }
 
 //  /* (non-Javadoc)
@@ -146,7 +148,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean greaterEquals( Double t1, Double t2 ) {
     if ( t1 == null ) return t2 == null;
     if ( t2 == null ) return true;
-    return t1 >= t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2);
+    return comp >= 0;
   }
 
   /* (non-Javadoc)
@@ -156,7 +159,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean lessEquals( Double t1, Double t2 ) {
     if ( t1 == null ) return true;
     if ( t2 == null ) return t1 == null;
-    return t1 <= t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2); 
+    return comp <= 0;
   }
 
   @Override

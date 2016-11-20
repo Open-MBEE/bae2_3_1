@@ -163,6 +163,7 @@ public class TestEventXmlToJava {
    * @param args
    */
   public static void main( String[] args ) {
+    //Debug.turnOn();
     System.out.println("Started TestEventXmlToJava " + Utils.toString( args, false ) + ": starting timer");
     Timer timer = new Timer();
     // Try to find the XML file to read in.

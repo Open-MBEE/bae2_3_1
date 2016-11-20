@@ -378,9 +378,16 @@ public class EventXmlToJava {
         if ( superClass != null && !superClass.isEmpty() ) {
           superParams = paramTable.get( superClass );
           if ( superParams == null ) {
-            continue;
+            superClass = expressionTranslator.getClassData().getClassNameWithScope( superClass );
+            if ( superClass != null && !superClass.isEmpty() ) {
+              superParams = paramTable.get( superClass );
+              if ( superParams == null ) {
+                continue;
+              }
+            }
           }
         }
+        
         // Make an entry in the table for this class.
         //Map< String, ClassData.Param > 
         params = paramTable.get( className );
@@ -748,12 +755,24 @@ public class EventXmlToJava {
         if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< ClassData.Param > arguments = new ArrayList< ClassData.Param >();
-        if ( argumentsNode != null ) {
-          List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode,
-                                                             "parameter" );
-          for ( int j = 0; j < argNodeList.size(); j++ ) {
-            Node argNode = argNodeList.get( j );
-            arguments.add( makeParam( argNode ) );
+        // If instantiating from a timeline, add start time and durection to parameters.
+        String fromTimeVarying =
+            fixName( XmlUtils.getChildElementText( invocationNode,
+                                                   "fromTimeVarying" ) );
+        if ( argumentsNode != null || !Utils.isNullOrEmpty( fromTimeVarying ) ) {
+          if ( argumentsNode != null ) {
+            List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode,
+                                                               "parameter" );
+            for ( int j = 0; j < argNodeList.size(); j++ ) {
+              Node argNode = argNodeList.get( j );
+              arguments.add( makeParam( argNode ) );
+            }
+          }
+          if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
+            ClassData.Param p = new ClassData.Param( "startTime", "Integer", null );
+            arguments.add( p );
+            p = new ClassData.Param( "duration", "Integer", null );
+            arguments.add( p );
           }
           List< japa.parser.ast.body.Parameter > parameters =
               new ArrayList< japa.parser.ast.body.Parameter >();
@@ -783,7 +802,23 @@ public class EventXmlToJava {
                                            p.name );
             parameters.add( param );
           }
+//          // If instantiating from a timeline, add start time and durection to parameters.
+//          String fromTimeVarying =
+//              fixName( XmlUtils.getChildElementText( invocationNode,
+//                                                     "fromTimeVarying" ) );
+//          if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
+//            japa.parser.ast.body.Parameter param =
+//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Integer>" ),
+//                                           "startTime" );
+//            parameters.add( param );
+//            param =
+//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Integer>" ),
+//                                           "duration" );
+//            parameters.add( param );
+//          }
+          
           ctor.setParameters( parameters );
+
           addStatementsToConstructor( ctor, arguments );
         }
 
@@ -1161,28 +1196,32 @@ public class EventXmlToJava {
                                                               boolean isNested,
                                                               boolean justClassDeclarations ) {
     // Get class name.
-    getClassData().setCurrentClass( getClassName( clsNode ) );
+    String clsName = getClassName( clsNode );
+    getClassData().setCurrentClass( clsName );
     
     if ( justClassDeclarations ) if ( Debug.isOn() ) Debug.out( "pre-" );
-    if ( Debug.isOn() ) Debug.outln( "processing class " + getClassData().getCurrentClass() );
+    String currentClass = getClassData().getCurrentClass();
+    if ( Debug.isOn() ) Debug.outln( "processing class " + currentClass );
     if ( !isNested ) { 
       if ( justClassDeclarations ) {
-        getClassData().setCurrentCompilationUnit( initClassCompilationUnit( getClassData().getCurrentClass() ) );
+        getClassData().setCurrentCompilationUnit( initClassCompilationUnit( currentClass ) );
       } else {
-        getClassData().setCurrentCompilationUnit( getClassData().getClasses().get( getClassData().getCurrentClass() ) );
+        getClassData().setCurrentCompilationUnit( getClassData().getClasses().get( currentClass ) );
       }
       assert getClassData().getCurrentCompilationUnit() != null;
     }
     ClassOrInterfaceDeclaration newClassDecl = null;
+    currentClass = getClassData().getCurrentClass();
     if ( justClassDeclarations ) {
       newClassDecl =
           new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, 
-                                           ClassUtils.simpleName( getClassData().getCurrentClass() ) );
-      if ( getClassData().isClassStatic( getClassData().getCurrentClass() ) ) {
+                                           ClassUtils.simpleName( currentClass ) );
+      currentClass = getClassData().getCurrentClass();
+      if ( getClassData().isClassStatic( currentClass ) ) {
         makeStatic( newClassDecl );
       }
     } else {
-      newClassDecl = getClassData().getClassDeclaration( ClassUtils.simpleName( getClassData().getCurrentClass() ) );
+      newClassDecl = getClassData().getClassDeclaration( ClassUtils.simpleName( currentClass ) );
     }
     
     if ( justClassDeclarations ) {
@@ -1866,6 +1905,7 @@ public class EventXmlToJava {
       createElaborationField( String name, String enclosingInstance,
                               String eventType,
                               String eventName, List< ClassData.Param > arguments,
+                              String fromTimeVarying,
                               String conditionExpression,
                               String applicableStartTime,
                               String applicableEndTime,
@@ -1918,6 +1958,11 @@ public class EventXmlToJava {
                         + expressionTranslator.javaToAeExpr( conditionExpression,
                                                              "Boolean", true )
                         + ";\n" );
+    String timelineArg =
+        Utils.isNullOrEmpty( fromTimeVarying ) ? ""
+                                               : ", " + expressionTranslator.javaToAeExpr( fromTimeVarying,
+                                                                                           "TimeVaryingMap<?>",
+                                                                                           true );
 
     String scopeName = getClassData().getClassNameWithScope( eventType );
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "
@@ -1926,7 +1971,7 @@ public class EventXmlToJava {
                         + ".class, "
                         + ( Utils.isNullOrEmpty( eventName ) ? "null" : "\"" 
                             + eventName + "\"" )
-                        + ", " + argumentsName + " );\n" );
+                        + ", " + argumentsName + timelineArg + " );\n" );
 
     addStatements( initMembers.getBody(), stmtsString.toString() );
 
@@ -2047,6 +2092,7 @@ public class EventXmlToJava {
         if ( enclosingInstance == null ) enclosingInstance = "null";
         String eventType = fixName( XmlUtils.getChildElementText( invocationNode, "eventType" ) );
         String eventName = fixName( XmlUtils.getChildElementText( invocationNode, "eventName" ) );
+        String fromTimeVarying = fixName( XmlUtils.getChildElementText( invocationNode, "fromTimeVarying" ) );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< ClassData.Param > arguments = new ArrayList< ClassData.Param >();
         if ( argumentsNode != null ) {
@@ -2071,7 +2117,7 @@ public class EventXmlToJava {
         }
         FieldDeclaration f =
             createElaborationField( null, enclosingInstance, eventType,
-                                    eventName, arguments,
+                                    eventName, arguments, fromTimeVarying,
                                     expression, applicableStartTime,
                                     applicableEndTime, initMembers );
         if ( f != null ) {

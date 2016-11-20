@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.event.Expression.Form;
+import gov.nasa.jpl.ae.event.TimeVaryingMap.Inequality;
 import gov.nasa.jpl.ae.solver.AbstractFiniteRangeDomain;
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.BooleanDomain;
@@ -618,10 +619,17 @@ public class Functions {
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public static < T > T ifThenElse( Expression< Boolean > conditionExpr,
+  public static < T > T ifThenElse( Expression< ? > conditionExpr,
                                     Expression< T > thenExpr,
                                     Expression< T > elseExpr ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( conditionExpr == null && elseExpr == null ) return null;
+    Pair< Boolean, TimeVaryingMap< ? > > p = booleanOrTimeline( conditionExpr.expression );
+    if ( p != null && p.second != null ) {
+      Object thenObj = thenExpr.evaluate( true );
+      Object elseObject = elseExpr.evaluate( true );
+      T result = (T)p.second.ifThenElse( thenObj, elseObject );
+      return result;
+    }
     Object o = Expression.evaluate( conditionExpr, Boolean.class, true );
     if (o == null || (!(o instanceof Boolean) && o.getClass() != boolean.class)) {
       Debug.error( false, "Could not evaluate condition of if-then-else as true/false; got " + o );
@@ -989,7 +997,7 @@ public class Functions {
   public static <V1, V2> V1 plus( V1 o1, V2 o2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null || o2 == null ) return null;
     Object result = null;
-    if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines 
+    if ( o1 instanceof String || o2 instanceof String ) { // TODO -- this won't work for timelines
         result = "" + o1 + o2;
         //String s = MoreToString.Helper.toString( o1 ) + MoreToString.Helper.toString( o2 ); 
     } else {
@@ -1421,6 +1429,9 @@ public class Functions {
   public static Pair< Number, TimeVaryingMap<?> > numberOrTimeline(Object o) {
     Number n = tryToGetNumberQuick( o );
     TimeVaryingMap< ? > tvm = null;
+    if ( n == null && o instanceof String ) {
+      n = toNumber(o, true);
+    }
     if ( n != null ) {
       new Pair< Number, TimeVaryingMap<?> >( n, tvm );
     }
@@ -2129,12 +2140,45 @@ public class Functions {
     }
   }
 
-  public static <T> java.lang.Number negative( Variable< T > v ) {
-    T r = v.getValue( false );
-    if ( r instanceof Number ) {
-      return negative( (Number)r );
+  public static <T> java.lang.Number negative( T v ) {
+    if ( v instanceof Number ) {
+      return negative((Number)v);
+    }
+    if ( v instanceof Variable ) {
+      return negative((Variable<T>)v);
+    }
+    if ( v instanceof String ) {
+      return negative((Number)v);
     }
     return null;
+  }
+
+  public static <T> java.lang.Number negative( Variable< T > v ) {
+    T r = v.getValue( false );
+    return negative( r );
+//    if ( r instanceof Number ) {
+//      return negative( (Number)r );
+//    }
+//    return null;
+  }
+
+  public static java.lang.Number negative( String v ) {
+    Long i = Utils.toLong( v );
+    Double n = Utils.toDouble( v );
+    if ( i == null && n == null ) {
+      // TODO -- ERROR!
+      return null;
+    }
+    if ( i != null && n != null && i.doubleValue() == n.doubleValue() ) {
+      i = -i;
+      return i;
+    }
+    if ( n != null ) {
+      n = -n;
+      return n;
+    }
+    i = -i;
+    return i;
   }
 
   public static Number negative( Number n ) {
@@ -2763,7 +2807,8 @@ public class Functions {
     }
     return true;
   }
-  
+
+  /*
   // TODO -- make this work for TimeVarying
   public static < T extends Comparable< ? super T > > Boolean
       lessThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -2791,7 +2836,160 @@ public class Functions {
     if ( Debug.isOn() ) Debug.outln( o1 + " < " + o2 + " = " + b );
     return b;
   }
+  */
+  
+  public static < T extends Comparable< ? super T > > Object
+         lessThan( Expression< T > o1,
+                   Expression< T > o2 ) throws IllegalAccessException,
+                                        InvocationTargetException,
+                                        InstantiationException {
+    return compare(o1, o2, Inequality.LT);
+  }
 
+  public static < V1, V2 > Object lessThan( V1 o1,
+                                            V2 o2 ) throws IllegalAccessException,
+                                                    InvocationTargetException,
+                                                    InstantiationException {
+    return compare( o1, o2, Inequality.LT );
+  }
+  
+  public static < T extends Comparable< ? super T > > Object
+         lessThanOrEqual( Expression< T > o1,
+                          Expression< T > o2 ) throws IllegalAccessException,
+                                               InvocationTargetException,
+                                               InstantiationException {
+    return compare( o1, o2, Inequality.LTE );
+  }
+
+  public static < V1, V2 > Object
+         greaterThanOrEqual( V1 o1, V2 o2 ) throws IllegalAccessException,
+                                            InvocationTargetException,
+                                            InstantiationException {
+    return compare( o1, o2, Inequality.GTE );
+  }
+
+  public static < T extends Comparable< ? super T > > Object
+         greaterThanOrEqual( Expression< T > o1,
+                             Expression< T > o2 ) throws IllegalAccessException,
+                                                  InvocationTargetException,
+                                                  InstantiationException {
+    return compare( o1, o2, Inequality.GTE );
+  }
+
+  public static < V1, V2 > Object greaterThan( V1 o1,
+                                               V2 o2 ) throws IllegalAccessException,
+                                                       InvocationTargetException,
+                                                       InstantiationException {
+    return compare( o1, o2, Inequality.GT );
+  }
+
+  public static < T extends Comparable< ? super T > > Object
+         greaterThan( Expression< T > o1,
+                      Expression< T > o2 ) throws IllegalAccessException,
+                                           InvocationTargetException,
+                                           InstantiationException {
+    return compare( o1, o2, Inequality.GT );
+  }
+
+  public static < V1, V2 > Object
+         lessThanOrEqual( V1 o1, V2 o2 ) throws IllegalAccessException,
+                                         InvocationTargetException,
+                                         InstantiationException {
+    return compare( o1, o2, Inequality.LTE );
+  }
+  
+  public static Number toNumber( Object o, boolean simple ) {
+    if ( o == null ) return null;
+    if ( o instanceof Number ) return (Number)o;
+    if ( o instanceof String ) return toNumber( (String)o );
+    if ( simple ) return null;
+    Number n = null;
+    try {
+      n = Expression.evaluate( o, Number.class, true );
+    } catch ( ClassCastException e ) {}
+      catch ( IllegalAccessException e ) {}
+      catch ( InvocationTargetException e ) {}
+      catch ( InstantiationException e ) {}
+    return n;
+  }
+  
+  // TODO -- need to be able to return BigDecimal if others fail.
+  public static Double toNumber( String s ) {
+    if ( Utils.isNullOrEmpty( s ) ) return null;
+    try {
+      return Double.parseDouble( s );
+    } catch ( NumberFormatException e ) {}
+      catch ( NullPointerException e ) {}
+    return null;
+  }
+
+  public static < T extends Comparable< ? super T > > Object
+         compare( Expression< T > o1, Expression< T > o2,
+                  Inequality i ) throws IllegalAccessException,
+                                 InvocationTargetException,
+                                 InstantiationException {
+    if ( o1 == null && o2 == null ) return null;
+    Object r1 = ( o1 == null ? null : o1.evaluate( false ) );
+    Object r2 = ( o2 == null ? null : o2.evaluate( false ) );
+    return compare( r1, r2, i );
+  }
+
+  public static < V1, V2 > Object
+         compare( V1 o1, V2 o2, Inequality i ) throws IllegalAccessException,
+                                               InvocationTargetException,
+                                               InstantiationException {
+    Object result = null;
+    if ( o1 == null || o2 == null ) result = null;
+    else if ( o1 instanceof String || o2 instanceof String ) {
+      Number n1 = toNumber( o1, true );
+      Number n2 = toNumber( o2, true );
+      if ( !( o1 instanceof String ) || n1 != null && !( o2 instanceof String )
+           || n2 != null ) {
+        if ( o1 instanceof String && n1 != null ) {
+          o1 = (V1)n1;
+        }
+        if ( o2 instanceof String && n2 != null ) {
+          o2 = (V2)n2;
+        }
+        result = TimeVaryingMap.doesInequalityHold( o1, o2, i );
+      } else {
+        result = TimeVaryingMap.doesInequalityHold( o1.toString(), o2.toString(), i );
+        //o1.toString().compareTo( o2.toString() ) <= 0;
+      }
+    } else {
+      Number r1 = null;
+      Number r2 = null;
+      TimeVaryingMap< ? > map1 = null;
+      TimeVaryingMap< ? > map2 = null;
+
+      Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( o1 );
+      r1 = p1.first;
+      map1 = p1.second;
+
+      if ( map1 != null ) {
+        result = (V1)compare( map1, o2, i );
+      } else {
+        Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( o2 );
+        r2 = p2.first;
+        map2 = p2.second;
+
+        if ( map2 != null ) {
+          result = (V1)compare( o1, map2, i );
+        }
+      }
+      if ( result == null ) {
+        if ( r1 == r2 ) result = true;
+        else if ( r1 == null || r2 == null ) result = ( r2 != null );
+        else {
+          result = TimeVaryingMap.doesInequalityHold( r1, r2, i );
+        }
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( o1 + " i " + o2 + " = " + result );
+    return result;
+  }
+
+  /*
   // TODO -- make this work for TimeVarying
   public static < T extends Comparable< ? super T > > Boolean
       lessThanOrEqual( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -2819,34 +3017,34 @@ public class Functions {
     if ( Debug.isOn() ) Debug.outln( o1 + " <= " + o2 + " = " + b );
     return b;
   }
-
-  // TODO -- make this work for TimeVarying
-  public static < T extends Comparable< ? super T > > Boolean
-      greaterThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-//    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
-////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
-//        return false;  // TODO -- REVIEW -- throw exception?
-////      }
-////      return lessThan( o2, o1 );
+*/
+//  // TODO -- make this work for TimeVarying
+//  public static < T extends Comparable< ? super T > > Boolean
+//      greaterThan( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+////    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
+//////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
+////        return false;  // TODO -- REVIEW -- throw exception?
+//////      }
+//////      return lessThan( o2, o1 );
+////    }
+//    if ( o1 == o2 ) return false;
+//    if ( o1 == null || o2 == null ) return (o1 != null);
+//    T r1 = o1.evaluate( false );
+//    T r2 = o2.evaluate( false );
+//    if ( r1 == r2 ) return false;
+//    if ( r1 == null || r2 == null ) return (r1 != null);
+//    boolean b;
+//    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
+//         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+//      Number n1 = Expression.evaluate( o1, Number.class, false );
+//      Number n2 = Expression.evaluate( o2, Number.class, false );      
+//      b = n1.doubleValue() > n2.doubleValue();
+//    } else {
+//      b = r1.compareTo( r2 ) > 0;
 //    }
-    if ( o1 == o2 ) return false;
-    if ( o1 == null || o2 == null ) return (o1 != null);
-    T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
-    if ( r1 == r2 ) return false;
-    if ( r1 == null || r2 == null ) return (r1 != null);
-    boolean b;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
-         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
-      Number n1 = Expression.evaluate( o1, Number.class, false );
-      Number n2 = Expression.evaluate( o2, Number.class, false );      
-      b = n1.doubleValue() > n2.doubleValue();
-    } else {
-      b = r1.compareTo( r2 ) > 0;
-    }
-    if ( Debug.isOn() ) Debug.outln( o1 + " > " + o2 + " = " + b );
-    return b;
-  }
+//    if ( Debug.isOn() ) Debug.outln( o1 + " > " + o2 + " = " + b );
+//    return b;
+//  }
   
   // HERE!!! TODO
   public static < T > T
@@ -3184,84 +3382,33 @@ public class Functions {
     return t;       
   }
 
-
-
-
-
-  // TODO -- make this work for TimeVarying  
-  public static < T extends Comparable< ? super T > > Boolean
-      greaterThanOrEqual( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-//    if ( !expressionsAreOkay( complainAboutBadExpressions, o1, o2 ) ) {
-////    if ( !o1.isGrounded() || !o2.isGrounded() ) {
-//        return false;
-////      }
-////      return lessThanOrEqual( o2, o1 );
-//    }
-    if ( o1 == o2 ) return true;
-    if ( o1 == null || o2 == null ) return (o2 == null);
-    T r1 = o1.evaluate( false );
-    T r2 = o2.evaluate( false );
-    if ( r1 == r2 ) return true;
-    if ( r1 == null || r2 == null ) return (r2 == null);
-    boolean b;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
-         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
-      Number n1 = Expression.evaluate( o1, Number.class, false );
-      Number n2 = Expression.evaluate( o2, Number.class, false );      
-      b = n1.doubleValue() >= n2.doubleValue();
-    } else {
-      b = r1.compareTo( r2 ) >= 0;
-    }
-    if ( Debug.isOn() ) Debug.outln( o1 + " >= " + o2 + " = " + b );
-    return b;
-  }
-
-  public static < T > Boolean
+  public static < T, V1, V2 > Object
       equals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ( o1 == o2 ) return true;
-    //if ( o1 == null || o2 == null ) return false;
+//    if ( o1 == o2 ) return true;
+//    if ( o1 == null || o2 == null ) return false;
     T r1 = o1 == null ? null : o1.evaluate( false );
     T r2 = o2 == null ? null : o2.evaluate( false );
+    if ( r1 == r2 ) return true;
+    if ( r1 == null || r2 == null ) return false;
+    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( r1 );
+    Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( r2 );
+    TimeVaryingMap<?> tvm1 = p1 == null ? null : p1.second;
+    TimeVaryingMap<?> tvm2 = p2 == null ? null : p2.second;
+    if ( tvm1 != null ) {
+      if ( tvm2 != null ) {
+        return TimeVaryingMap.compare(tvm1, tvm2, Inequality.EQ);
+      }
+      return compare(tvm1, r2, Inequality.EQ);
+    } else if ( tvm2 != null ) {
+      return compare(r1, tvm2, Inequality.EQ);
+    }
     return eq(r1, r2);
-//    if ((r1 ==null) && (r2 == null)){
-//      Debug.outln( "" );
-//    }
-//    if ( r1 == r2 ) return true;
-//    if ( r1 == null || r2 == null ) 
-//      return false;
-//    boolean b = true;
-//    if ( r1 instanceof Comparable ) {
-//      if ( r1 instanceof Parameter && !( r2 instanceof Parameter ) ) {
-//        b = ((Parameter<T>)r1).valueEquals( r2 );
-//      } else
-//      if ( r2 instanceof Parameter && !( r1 instanceof Parameter ) ) {
-//        b = ((Parameter<T>)r2).valueEquals( r1 );
-//      } else {
-//        b = ( (Comparable<T>)r1 ).compareTo( r2 ) == 0;
-//      }
-//    } else {
-//      b = r1.equals( r2 );
-//    }
-//    if ( !b ) {
-//      Object r11 = null;
-//      Object r22 = null;
-//      if ( r1 instanceof Wraps ) {
-//        r11 = ((Wraps<?>)r1).getValue( false );
-//        
-//      }
-//    }
-//    if ( Debug.isOn() ) Debug.outln( o1 + " == " + o2 + " = " + b );
-//    return b;
   }
   
   protected static <T> Boolean eq( T r1, T r2 ) {    
     if ( Expression.valuesEqual( r1, r2, null, true, true )) return true;
     if ( Utils.valuesLooselyEqual( r1, r2, true ) ) return true;
     if ( r1 == null || r2 == null ) return false;
-//      Debug.outln( "" );
-//    }
-//    if ( r1 == r2 ) return true;
-//      return false;
     boolean b = false;
     b = CompareUtils.compare( r1, r2, false ) == 0;
     if ( !b ) {
@@ -3315,20 +3462,23 @@ public class Functions {
     return b;
   }
   
-  public static < T > Boolean
+  public static < T > Object
       notEquals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-//    if ( o1 == o2 ) return false;
-//    if ( o1 == null || o2 == null ) return true;
-//    T r1 = o1.evaluate( false );
-//    T r2 = o2.evaluate( false );
-//    if ( r1 == r2 ) return false;
-//    if ( r1 == null || r2 == null ) return true;
-    boolean b = !equals( o1, o2 );
-//    if ( r1 instanceof Comparable ) {
-//      b = ( (Comparable<T>)r1 ).compareTo( r2 ) != 0;
-//    } else {
-//      b = !r1.equals( r2 );
-//    }
+    T r1 = o1 == null ? null : o1.evaluate( false );
+    T r2 = o2 == null ? null : o2.evaluate( false );
+    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( r1 );
+    Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( r2 );
+    TimeVaryingMap<?> tvm1 = p1 == null ? null : p1.second;
+    TimeVaryingMap<?> tvm2 = p2 == null ? null : p2.second;
+    if ( tvm1 != null ) {
+      if ( tvm2 != null ) {
+        return TimeVaryingMap.compare(tvm1, tvm2, Inequality.NEQ);
+      }
+      return compare(tvm1, r2, Inequality.NEQ);
+    } else if ( tvm2 != null ) {
+      return compare(r1, tvm2, Inequality.NEQ);
+    }
+    Boolean b = !eq( o1, o2 );
     if ( Debug.isOn() ) Debug.outln( o1 + " != " + o2 + " = " + b );
     return b;
   }
@@ -3371,15 +3521,51 @@ public class Functions {
 
   }
   // REVIEW -- Should a propagate flag be added?  Currently false.
-  public static Boolean and(Expression<Boolean> o1, Expression<Boolean> o2) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public static Object and(Expression<Boolean> o1, Expression<Boolean> o2) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( o1 == null && o2 == null ) return null;
-    Boolean r1 = (o1 == null ? null : o1.evaluate( false ));
-    Boolean r2 = (o2 == null ? null : o2.evaluate( false ));
-    if ( ( r1 != null && r1 == false ) || ( r2 != null && r2 == false ) ) return false;
-    if ( r1 == null || r2 == null ) return null;
-    boolean b = r1 && r2;
-    if ( Debug.isOn() ) Debug.outln( o1 + " && " + o2 + " = " + b );
-    return b;
+    Object r1 = (o1 == null ? null : o1.evaluate( false ));
+    Object r2 = (o2 == null ? null : o2.evaluate( false ));
+    return and( r1, r2 );
+  }
+
+  public static < V1, V2 > Object
+         and( V1 o1, V2 o2 ) throws IllegalAccessException,
+                             InvocationTargetException, InstantiationException {
+    Object result = null;
+    if ( o1 == null || o2 == null ) result = null;
+    else if ( o1 instanceof String || o2 instanceof String ) {
+      Boolean b1 = Utils.isTrue( o1, true );
+      Boolean b2 = Utils.isTrue( o2, true );
+      result = and( b1, b2 );
+    } else {
+      Boolean r1 = null;
+      Boolean r2 = null;
+      TimeVaryingMap< ? > map1 = null;
+      TimeVaryingMap< ? > map2 = null;
+
+      Pair< Boolean, TimeVaryingMap< ? > > p1 = booleanOrTimeline( o1 );
+      r1 = p1.first;
+      map1 = p1.second;
+
+      if ( map1 != null ) {
+        result = (V1)and( map1, o2 );
+      } else {
+        Pair< Boolean, TimeVaryingMap< ? > > p2 = booleanOrTimeline( o2 );
+        r2 = p2.first;
+        map2 = p2.second;
+
+        if ( map2 != null ) {
+          result = (V1)and( o1, map2 );
+        }
+      }
+      if ( result == null ) {
+        if ( ( r1 != null && !r1 ) || ( r2 != null && !r2 ) ) result = false;
+        else if ( r1 == null || r2 == null ) result = null;
+        else result = r1 && r2;
+      }
+    }
+    if ( Debug.isOn() ) Debug.outln( o1 + " && " + o2 + " = " + result );
+    return result;
   }
 
   public static class Or extends BooleanBinary< Boolean > {
@@ -3495,6 +3681,123 @@ public class Functions {
   }
 
   // TimeVaryingMap functions
+
+  public static < T > TimeVaryingMap< Boolean >
+         compare( Object o, TimeVaryingMap< T > tv,
+                  Inequality i ) throws ClassCastException,
+                                 IllegalAccessException,
+                                 InvocationTargetException,
+                                 InstantiationException {
+    return compare( tv, o, i );
+  }
+
+  public static < T > TimeVaryingMap< Boolean >
+         compare( TimeVaryingMap< T > tv, Object o,
+                  Inequality i ) throws ClassCastException,
+                                 IllegalAccessException,
+                                 InvocationTargetException,
+                                 InstantiationException {
+    if ( tv == null || o == null ) return null;
+    Number n = null;
+    try {
+      n = toNumber( o, false );// Expression.evaluate( o, Number.class, false );
+    } catch ( Throwable t ) {}
+    if ( n != null ) return TimeVaryingMap.compare( tv, n, false, i );
+    TimeVaryingMap< ? extends Number > tvm = null;
+    try {
+      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+    } catch ( Throwable t ) {}
+    if ( tvm != null ) return compare( tv, tvm, i );
+    return null;
+  }
+
+  public static < T, TT extends Number > TimeVaryingMap< Boolean >
+         compare( TimeVaryingMap< T > tv1, TimeVaryingMap< TT > tv2,
+                  Inequality i ) throws ClassCastException,
+                                 IllegalAccessException,
+                                 InvocationTargetException,
+                                 InstantiationException {
+    return TimeVaryingMap.compare( tv1, tv2, i );
+  }
+
+  public static < T > TimeVaryingMap< Boolean >
+         lessThan( Object o, TimeVaryingMap< T > tv ) throws ClassCastException,
+                                                      IllegalAccessException,
+                                                      InvocationTargetException,
+                                                      InstantiationException {
+    return compare(o, tv, Inequality.LT);
+  }
+
+  public static < T > TimeVaryingMap< Boolean >
+         lessThan( TimeVaryingMap< T > tv, Object o ) throws ClassCastException,
+                                                      IllegalAccessException,
+                                                      InvocationTargetException,
+                                                      InstantiationException {
+    return compare(tv, o, Inequality.LT);
+//    if ( tv == null || o == null ) return null;
+//    Pair< Number, TimeVaryingMap< ? > > p = numberOrTimeline( o );
+//    if ( tvm != null ) return lessThan( tv, tvm );
+//    
+//    Number n = p.first;
+//    TimeVaryingMap<?> tvm = p.second;
+//    try {
+//      n = toNumber( o, false );// Expression.evaluate( o, Number.class, false );
+//    } catch ( Throwable t ) {}
+//    if ( n != null ) return tv.lessThanClone( n );
+//    TimeVaryingMap< ? extends Number > tvm = null;
+//    try {
+//      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+//    } catch ( Throwable t ) {}
+//    return null;
+  }
+
+  public static < T, TT extends Number > TimeVaryingMap< Boolean >
+         lessThan( TimeVaryingMap< T > tv1,
+                   TimeVaryingMap< TT > tv2 ) throws ClassCastException,
+                                              IllegalAccessException,
+                                              InvocationTargetException,
+                                              InstantiationException {
+    return compare( tv1, tv2, Inequality.LT );
+  }
+
+  public static < T > TimeVaryingMap< Boolean >
+         lessThanOrEqual( Object o,
+                          TimeVaryingMap< T > tv ) throws ClassCastException,
+                                                   IllegalAccessException,
+                                                   InvocationTargetException,
+                                                   InstantiationException {
+    return compare(o, tv, Inequality.LTE);
+  }
+
+  public static < T > TimeVaryingMap< Boolean >
+         lessThanOrEqual( TimeVaryingMap< T > tv,
+                          Object o ) throws ClassCastException,
+                                     IllegalAccessException,
+                                     InvocationTargetException,
+                                     InstantiationException {
+    return compare(tv, o, Inequality.LT);
+//    if ( tv == null || o == null ) return null;
+//    Number n = null;
+//    try {
+//      n = toNumber( o, false );// Expression.evaluate( o, Number.class, false );
+//    } catch ( Throwable t ) {}
+//    if ( n != null ) return tv.lessThanOrEqualClone( n );
+//    TimeVaryingMap< ? extends Number > tvm = null;
+//    try {
+//      tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+//    } catch ( Throwable t ) {}
+//    if ( tvm != null ) return lessThanOrEqual( tv, tvm );
+//    return null;
+  }
+
+  public static < T, TT extends Number > TimeVaryingMap< Boolean >
+         lessThanOrEqual( TimeVaryingMap< T > tv1,
+                          TimeVaryingMap< TT > tv2 ) throws ClassCastException,
+                                                     IllegalAccessException,
+                                                     InvocationTargetException,
+                                                     InstantiationException {
+    return compare( tv1, tv2, Inequality.LTE );
+  }
 
   public static < T > TimeVaryingMap< T > min( Object o,
                                                TimeVaryingMap< T > tv ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {

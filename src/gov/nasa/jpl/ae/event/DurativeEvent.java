@@ -442,11 +442,35 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
   }
 
-  public DurativeEvent( String name, TimeVaryingMap<?> tvm, String type ) {
+  public DurativeEvent( String name, TimeVaryingMap< ? > tvm,
+                        Object enclosingInstance, String type,
+                        Expression[] arguments) {
     this(name);
-    Parameter<Integer> lastStart = null;
-    //Object lastValue = null;
-    // Add an elaboration for every non-null value
+    addElaborationFromTimeVarying( tvm, enclosingInstance, type, arguments );
+  }
+  
+  public DurativeEvent( String name, TimeVaryingMap< ? > tvm,
+                        Object enclosingInstance, Class<? extends Event> type,
+                        Expression[] arguments ) {
+    this(name);
+    addElaborationFromTimeVarying( tvm, enclosingInstance, type, arguments,
+                                   new Expression<Boolean>(true) );
+  }
+  
+  public void addElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                             Object enclosingInstance,
+                                             String type,
+                                             Expression[] arguments ) {
+    addElaborationFromTimeVarying( tvm, enclosingInstance, type,
+                                   arguments,
+                                   new Expression<Boolean>(true) );
+  }
+  public void addElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                             Object enclosingInstance,
+                                             String type,
+                                             Expression[] arguments,
+                                             Expression<Boolean> condition) {
+    
     Class<? extends Event> eventClass = DurativeEvent.class;
     if ( type != null && !type.equals( "DurativeEvent" ) ) {
       Class< ? > cls = null;
@@ -458,21 +482,42 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         eventClass = (Class<? extends Event>)cls;
       }
     }
+    addElaborationFromTimeVarying( tvm, enclosingInstance, eventClass, arguments, condition );
+  }
+  
+  public void addElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                             Object enclosingInstance,
+                                             Class<? extends Event> eventClass,
+                                             Expression<?>[] arguments, 
+                                             Expression<Boolean> condition) {
+    Parameter<Integer> lastStart = null;
+    Object lastValue = null;
+    // Add an elaboration for every non-null value
     for ( Entry< Parameter< Integer >, ? > e : tvm.entrySet() ) {
       // TODO!! What to do with the value?
-      if ( lastStart != null ) {
+      if ( lastStart != null && lastValue != null
+           && !Utils.valuesEqual( lastValue, 0 )
+           && !Utils.valuesEqual( lastValue, "" ) ) {
         //String n = name + "_" + e.getValue();
-        Long duration = new Long(lastStart.getValue( true ) - e.getKey().getValue( true )); 
-        addElaborationRule( new Expression< Boolean >( true ), this,
-                            eventClass, name,
-                            new Expression[] { new Expression< String >( name ),
-                                               new Expression< Integer >( lastStart.getValue( true ) ),
-                                               new Expression< Long >( duration ) } );
+        Long duration = new Long(e.getKey().getValue( true ) - lastStart.getValue( true ));
+        String childName = String.format( "%s%06d", name, counter++ );
+        Expression<?>[] augmentedArgs = new Expression<?>[arguments.length + 2];
+        // Repackage arguments, passing in the start time and duration.
+        for ( int i = 0; i < arguments.length; ++i ) {
+          augmentedArgs[i] = arguments[i];
+        }
+        augmentedArgs[arguments.length] = new Expression< Integer >( lastStart );
+        augmentedArgs[arguments.length+1] = new Expression< Integer >( duration.intValue() );
+        addElaborationRule( condition, enclosingInstance,
+                            eventClass, childName, augmentedArgs );
+//                            new Expression[] { new Expression< String >( childName ),
+//                                               new Expression< Integer >( lastStart.getValue( true ) ),
+//                                               new Expression< Long >( duration ) } );
       }
       //addElaborationRule( lastStart, e.getKey(), (Double)null, "event_" + e.getValue().toString() );
       //addElaborationRule( lastStart, e.getKey(), duration, "" + lastValue );
       lastStart = e.getKey();
-      //lastValue = e.getValue();
+      lastValue = e.getValue();
     }
   }
   
@@ -1119,7 +1164,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                           Parameter< ? > enclosingInstance,
                           Class< T > eventClass,
                           String eventName,
-                          Expression<?>[] arguments ) {
+                          Expression<?>[] arguments,
+                          Expression<TimeVaryingMap<?>> fromTimeVarying ) {
 
     // Now create the EventInvocation from the constructor and arguments.
     Vector<EventInvocation> invocation = new Vector<EventInvocation>();
@@ -1127,6 +1173,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     newInvocation =
         new EventInvocation( eventClass, eventName,
                              enclosingInstance, arguments,
+                             fromTimeVarying,
                              (Map< String, Object >)null );
     invocation.add(newInvocation);
     Vector<Event> eventVector = new Vector<Event>();
@@ -1141,12 +1188,28 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                       Class< T > eventClass,
                       String eventName,
                       Expression<?>[] arguments ) {
+    Parameter<?> p = null;
+    if ( enclosingInstance instanceof Parameter ) {
+      p = (Parameter< ? >)enclosingInstance;
+    } else {//if ( enclosingInstance != null ) {
+      p = new Parameter< Object >( "", null, enclosingInstance, this );
+    }
+    return addElaborationRule( condition, p,
+                               eventClass, eventName, arguments, null );
+  }
+
+  public < T extends Event > ElaborationRule
+  addElaborationRule( Expression< Boolean > condition,
+                      Object enclosingInstance,
+                      Class< T > eventClass,
+                      String eventName,
+                      Expression<?>[] arguments,
+                      Expression<TimeVaryingMap<?>> fromTimeVarying) {
     return addElaborationRule( condition,
                                new Parameter< Object >( "", null,
                                                         enclosingInstance, this ),
-                               eventClass, eventName, arguments );
+                               eventClass, eventName, arguments, fromTimeVarying );
   }
-
   /* (non-Javadoc)
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
