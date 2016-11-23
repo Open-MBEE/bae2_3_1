@@ -1019,6 +1019,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
   protected static boolean possiblyStale( Object obj ) {
     if ( obj == null || obj instanceof TimeVarying ) return true;
+    //if ( obj == null ) return true;
     if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
     if ( obj instanceof Variable ) {
       Object v = ((Variable<?>)obj).getValue( false );

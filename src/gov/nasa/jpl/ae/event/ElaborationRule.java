@@ -104,8 +104,8 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     boolean elaborated = !elaboratedEvents.isEmpty();
     
     // Deal with change in the elaboration.
-    if ( elaborated && !conditionSatisfied ||
-         eventInvocations == null || eventInvocations.isEmpty() ) {
+    if ( ( elaborated && !conditionSatisfied ) ||
+         eventInvocations == null || eventInvocations.isEmpty() || isStale() ) {
       // Need to un-elaborate!
       // TODO -- REVIEW -- Does this leak memory?
       // TODO -- REVIEW -- Is this called by anyone keeping constraints and
@@ -115,7 +115,11 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
         //System.err.println("detatched " + event);
       }
       elaboratedEvents.clear();
-    } else if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
+      elaborated = false;
+    }
+    // This assumes that isConditionSatisfied() would not have changed from
+    // false to true since it was called above.
+    if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
       // Need to elaborate!
       for ( EventInvocation ei : eventInvocations ) {
         Event event = ei.invoke();
@@ -291,12 +295,35 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 
   @Override
   public boolean isStale() {
-    for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.isStale() ) return true;
+    for ( EventInvocation i : eventInvocations ) {
+      if ( i.isStale() ) return true;
     }
+    if ( condition.isStale() ) return true;
+//    for ( Parameter< ? > p : getParameters( false, null ) ) {
+//      if ( p.isStale() ) return true;
+//    }
     return false;
   }
 
+  public boolean setStaleAnyReferenceTo(Parameter<?> p, Set< HasParameters > seen) {
+    Pair< Boolean, Set< HasParameters > > sp = Utils.seen( this, true, seen );
+    if (sp.first) return false;
+    seen = sp.second;
+
+    boolean becameStale = false;
+    for ( EventInvocation i : eventInvocations ) {
+      if ( i.setStaleAnyReferenceTo( p, seen ) ) {
+        becameStale = true;
+      }
+    }
+    Set<Parameter<?>> params = condition.getParameters( false, null );
+    if ( params.contains( p ) ) {
+      condition.setStale( true );
+      becameStale = true;
+    }
+    return becameStale;
+  }
+  
   @Override
   public void setStale( boolean staleness ) {
     // TODO -- REVIEW -- Need anything here?

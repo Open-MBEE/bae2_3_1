@@ -115,7 +115,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       for ( Pair< ElaborationRule, Vector< Event > > p : list ) {
         ElaborationRule r = p.first;
         Vector< Event > events = p.second;
-        if ( isElaborated( events ) != r.isConditionSatisfied() ) {
+        if ( r.isStale() || isElaborated( events ) != r.isConditionSatisfied() ) {
           if ( r.attemptElaboration( events, true,
                                      tryToSatisfyOnElaboration,
                                      deepSatisfyOnElaboration ) ) {
@@ -134,6 +134,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
       if ( pair.first ) return true;
       seen = pair.second;
+      if ( isStale() ) return false;
       for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
         if ( !startTime.isGrounded(deep, null) ) return false;
         if ( startTime.getValueNoPropagate() < Timepoint.getHorizonDuration() ) {
@@ -495,7 +496,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // Add an elaboration for every non-null value
     for ( Entry< Parameter< Integer >, ? > e : tvm.entrySet() ) {
       // TODO!! What to do with the value?
-      if ( lastStart != null && lastValue != null
+      if ( lastStart != null && lastStart.getValue() != null && lastValue != null
            && !Utils.valuesEqual( lastValue, 0 )
            && !Utils.valuesEqual( lastValue, "" ) ) {
         //String n = name + "_" + e.getValue();
@@ -1755,7 +1756,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           // TODO Auto-generated catch block
           //e.printStackTrace();
         }
-        tvp.deconstruct();
+        //tvp.deconstruct();
       }
       Set< Effect > set = p.second;
       if ( set != null ) {
@@ -2253,6 +2254,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( e instanceof ParameterListener ) {
         ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter, seen );
       }
+    }
+    
+    for ( ElaborationRule e : getElaborations().keySet() ) {
+      e.setStaleAnyReferenceTo( changedParameter, seen );
     }
   }
   public static void doEditCommandFile(DurativeEvent d) throws IOException {

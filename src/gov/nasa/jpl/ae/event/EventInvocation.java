@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
@@ -34,7 +35,8 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   protected Constructor< ? extends Event > constructor = null;
   //protected Class< ? >[] constructorParameterTypes = null;
   protected Parameter< ? > enclosingInstance = null;
-  private Expression< TimeVaryingMap< ? > > fromTimeVarying = null;
+  protected Expression< TimeVaryingMap< ? > > fromTimeVarying = null;
+  protected boolean stale = true;
 
   public EventInvocation( Class< ? extends Event > eventClass,
                           String eventName,
@@ -68,6 +70,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     this.eventClass = null;
     this.eventName = null;
     this.enclosingInstance  = null;
+    this.fromTimeVarying = null;
     if ( this.arguments != null ) {
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
@@ -105,8 +108,10 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
     Event parent = new DurativeEvent(eventName, tvm, enclosingInstance, eventClass, exprArguments );
     parent.elaborate( false );
+    stale = false;
     return parent;
   }
+  
   public Event invoke(Parameter<Integer> start, Parameter<Integer> end) {
     Event event = constructEvent();
     
@@ -115,6 +120,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
       assignMembers( event );
     }
 
+    stale = false;
     return event;
   }
 
@@ -372,7 +378,12 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    return HasParameters.Helper.getParameters( getArguments(), deep, seen );
+    Set< Parameter< ? > > params = 
+        HasParameters.Helper.getParameters( getArguments(), deep, seen );
+    if ( fromTimeVarying != null && fromTimeVarying.form == Form.Parameter ) {
+      params.add( (Parameter< ? >)fromTimeVarying.expression );
+    }
+    return params;
   }
 
   @Override
@@ -414,13 +425,16 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 
   @Override
   public boolean isStale() {
-    return HasParameters.Helper.isStale( getArguments(), false, null );
+    if ( stale ) return true;
+    if ( HasParameters.Helper.isStale( getArguments(), false, null ) ) {
+      stale = true;
+    }
+    return stale;
   }
 
   @Override
   public void setStale( boolean staleness ) {
-    // TODO -- REVIEW -- Need anything here?
-    assert false;
+    stale = staleness;
   }
 
   @Override
@@ -453,6 +467,19 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
     return 0;
+  }
+
+  public boolean setStaleAnyReferenceTo( Parameter< ? > p, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > sp = Utils.seen( this, true, seen );
+    if (sp.first) return false;
+    seen = sp.second;
+    
+    Set<Parameter<?>> params = getParameters( false, null );
+    if ( params.contains( p ) ) {
+      setStale( true );
+      return true;
+    }
+    return false;
   }
 
 }

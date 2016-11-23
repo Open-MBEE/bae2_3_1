@@ -42,9 +42,6 @@ import gov.nasa.jpl.mbee.util.Utils;
 // TODO -- REVIEW -- Should this class be removed and have dependencies captured
 // as time-invariant effects? Or should effects be TimeVarying Dependencies?
 
-// TODO -- REVIEW -- How about constructing a constraint from a dependency
-// ( parameter == expression )
-
 // TODO -- REVIEW -- Should dependencies be applicable to a time period, like
 // constraints (& effects)?
 public class Dependency< T > extends HasIdImpl
@@ -54,7 +51,12 @@ public class Dependency< T > extends HasIdImpl
   protected Parameter< T > parameter;
   protected Expression< ? > expression;
   private ConstraintExpression constraint = null;
-  protected boolean refreshing = false; // to prevent propagation cycles
+  /**
+   * Should the dependency recompute the value of the target parameter when a
+   * variable in the expression changes (handleChangeEvent())
+   */
+  public boolean propagate = true;
+  protected boolean refreshing = false; // to prevent propagation cycles in refresh()
 
   public <T2> Dependency( Parameter< T > p, Expression< T2 > e ) {
     parameter = p;
@@ -536,7 +538,7 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( this.parameter != parameter && hasParameter( parameter, false, null ) ) {
+    if ( propagate && this.parameter != parameter && hasParameter( parameter, false, null ) ) {
       apply( true );
     }
   }
