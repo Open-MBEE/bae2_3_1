@@ -16,6 +16,7 @@ import gov.nasa.jpl.mbee.util.HasName;
  * 
  */
 public interface ParameterListener extends HasParameters, HasName< String > {
+  // TODO -- need to pass a seen set in handle*() methods.
   /**
    * Propagate this parameter's change to other objects. This may involve
    * updating dependencies, re-elaboration of events, and maybe constraint

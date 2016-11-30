@@ -174,6 +174,92 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 		//tv.setValue( t, result );//setValueAtTime( t, result );
 		return tv;
 	}
+	
+	@Override
+  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+    if ( returnValue != null && !isStale() ) {// && isGrounded( propagate, null ) ) {
+      evaluationSucceeded = true;
+      return returnValue;
+    }
+    Object oldValue = returnValue;
+    returnValue = null;
+    setStaleAnyReferencesToTimeVarying();
+    Object result =  evaluate(propagate, true);
+    if ( returnValue != null && !returnValue.equals( oldValue ) ) {
+      handleChangeToTimeVaryingMap();
+    }
+    return result;
+  }
+
+	public void handleChangeToTimeVaryingMap() {
+    Pair< Parameter< ? >, ParameterListener > pair = getTimeVaryingMapOwners();
+    Parameter<?> p = pair.first;
+    ParameterListener pl = pair.second;
+    if ( pl != null && p != null ) {
+      pl.handleValueChangeEvent( p );
+    }
+  }
+
+  public void setStaleAnyReferencesToTimeVarying() {
+    Pair< Parameter< ? >, ParameterListener > pair = getTimeVaryingMapOwners();
+    Parameter<?> p = pair.first;
+    ParameterListener pl = pair.second;
+    if ( pl != null && p != null ) {
+      pl.setStaleAnyReferencesTo( p, null );
+    }
+	}
+	
+  public Pair< Parameter<?>, ParameterListener > getTimeVaryingMapOwners() {
+    TimeVaryingMap<?> tvm = getTimeVaryingMap();
+    ParameterListener pl = null;
+    Parameter<?> p = null;
+    if ( object instanceof Parameter ) {
+      p = (Parameter<?>)object;
+      pl = p.getOwner();
+    } else if ( object instanceof ParameterListener ) {
+      pl = (ParameterListener)object;
+      for ( Parameter<?> pp : pl.getParameters( false, null ) ) {
+        if ( Utils.valuesEqual( pp.getValue( false ), tvm ) ) {
+          p = pp;
+          break;
+        }
+      }
+    }
+    if ( p != null && pl != null ) {
+      return new Pair< Parameter< ? >, ParameterListener >( p, pl );
+    }
+    
+    Object tvmOwner = tvm == null ? null : tvm.getOwner();
+    if ( tvmOwner != null ) {
+      if ( tvmOwner instanceof Parameter ) {
+        p = (Parameter<?>)tvmOwner;
+        pl = p.getOwner();
+      } else if (tvmOwner instanceof ParameterListener ) {
+        pl = (ParameterListener)getTimeVaryingMap().owner;
+        for ( Parameter<?> pp : pl.getParameters( false, null ) ) {
+          if ( Utils.valuesEqual( pp.getValue( false ), tvm ) ) {
+            p = pp;
+            break;
+          }
+        }
+      }
+    }
+    return new Pair< Parameter< ? >, ParameterListener >( p, pl );
+  }
+  
+  public < V > TimeVaryingMap< V > getTimeVaryingMap() {
+    if ( object instanceof Parameter ) {
+      Parameter<?> p = (Parameter<?>)object;
+      if ( p.getValue() instanceof TimeVaryingMap ) {
+        return (TimeVaryingMap< V >)p.getValue();
+      }
+      return null;
+    }
+    if ( object instanceof TimeVaryingMap ) {
+      return (TimeVaryingMap< V >)object;
+    }
+    return null;
+  }
 
 //  abstract public void setDurationArgument( Duration d );
 //
@@ -184,7 +270,8 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep, Set< HasParameters > seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
   
   /* (non-Javadoc)
@@ -225,4 +312,6 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     return HasTimeVaryingObjects.Helper.getTimeVaryingObjects( object, deep, seen );
   }
 
+  
+  
 }

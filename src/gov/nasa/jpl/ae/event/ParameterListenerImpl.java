@@ -38,6 +38,7 @@ public class ParameterListenerImpl extends HasIdImpl
                                               ParameterListener,
                                               HasConstraints,
                                               HasTimeVaryingObjects,
+                                              HasOwner,
                                               Comparable< ParameterListenerImpl > {
   // Constants
   
@@ -77,6 +78,7 @@ public class ParameterListenerImpl extends HasIdImpl
   protected Set< TimeVarying< ? > > timeVaryingObjects =
       new HashSet< TimeVarying< ? > >();
   protected boolean usingCollectionTree = false;
+  protected Object owner = null;
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
@@ -94,7 +96,7 @@ public class ParameterListenerImpl extends HasIdImpl
   public ParameterListenerImpl( String name,
                                 ParameterListenerImpl parameterListenerImpl ) {
     setName( name );
-
+    setOwner( parameterListenerImpl.getOwner() );
     // copy containers after clearing
     constraintExpressions.clear();
     dependencies.clear();
@@ -1122,6 +1124,16 @@ public class ParameterListenerImpl extends HasIdImpl
     for ( ConstraintExpression c : getConstraintExpressions() ) {
       c.setStaleAnyReferencesTo( changedParameter, seen );
     }
+    
+    // Pass message up the chain if necessary.
+    Object o = getOwner();
+    if ( o instanceof Parameter ) {
+      o = ((Parameter<?>)o).getOwner();
+    }
+    if ( o instanceof ParameterListener ) {
+      ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
+    }
+    
   }
 
   @Override
@@ -1131,7 +1143,10 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
-    return getParameters( deep, seen ).contains( parameter );
+    if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
+    
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override
@@ -1387,6 +1402,16 @@ public class ParameterListenerImpl extends HasIdImpl
   @Override
   public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
     return null;
+  }
+  
+  @Override
+  public Object getOwner() {
+    return owner ;
+  }
+
+  @Override
+  public void setOwner( Object owner ) {
+    this.owner = owner;
   }
   
 }

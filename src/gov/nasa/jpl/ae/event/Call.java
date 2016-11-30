@@ -1018,8 +1018,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
 
   protected static boolean possiblyStale( Object obj ) {
-    if ( obj == null || obj instanceof TimeVarying ) return true;
-    //if ( obj == null ) return true;
+    //if ( obj == null || obj instanceof TimeVarying ) return true;
+    if ( obj == null ) return true;
     if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
     if ( obj instanceof Variable ) {
       Object v = ((Variable<?>)obj).getValue( false );
@@ -1072,7 +1072,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         return true;
       }
     }
-    if ( possiblyStale( returnValue ) ) return true;
+    if ( possiblyStale( returnValue ) )
+      return true;
     return false;
   }
 
@@ -1095,7 +1096,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set<HasParameters> seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    if ( parameter == null ) return false;
+    Object val = parameter.getValueNoPropagate();
+    Set< Parameter< ? > > parameters = getParameters( deep, seen );
+    if ( val instanceof HasOwner ) {
+      for ( Parameter<?> p : parameters ) {
+        if ( val.equals( p.getValueNoPropagate() ) ) {
+          return true;
+        }
+      }
+    }
+    boolean b = parameters.contains( parameter );
+    return b;
   }
 
   @Override

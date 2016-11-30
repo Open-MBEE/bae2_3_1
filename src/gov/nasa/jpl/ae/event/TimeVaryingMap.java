@@ -62,6 +62,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                                             TimeVarying< V >,
                                             Affectable,
                                             ParameterListener,
+                                            HasOwner,
                                             AspenTimelineWritable {
 
   protected static boolean checkConsistency = false;
@@ -991,6 +992,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter,
                                        Set< HasParameters > seen ) { // ignoring since there's no recursive call here
     breakpoint();
+
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + ")" );
     if ( changedParameter == null ) return;
     if ( containsKey( changedParameter ) ) {
@@ -1000,6 +1006,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + "): does not contain" );
     }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
+    
+//    // Pass message up the chain if necessary.
+//    Object o = getOwner();
+//    if ( o instanceof Parameter ) {
+//      o = ((Parameter<?>)o).getOwner();
+//    }
+//    if ( o instanceof ParameterListener ) {
+//      ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
+//    }
   }
 
   /* (non-Javadoc)
@@ -5029,9 +5044,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Object t = p.first;
     V value = p.second;
 //    if ( value != null ) {
+    // FIXME!!! t is converted to a Parameter even if the time of the effect is
+    // an integer.
       if ( t instanceof Parameter
            && ( (Parameter<?>)t ).getValueNoPropagate() instanceof Integer ) {
-        return hasValueAt( value, tryCastTimepoint( t ), true );
+        return hasValueAt( value, tryCastTimepoint( t ), true );  
       } if ( t instanceof Integer ) {
         return hasValueAt( value, (Integer)t );
       }

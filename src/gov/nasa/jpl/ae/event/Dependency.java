@@ -48,6 +48,7 @@ public class Dependency< T > extends HasIdImpl
              implements HasParameters, ParameterListener, Constraint,
                         LazyUpdate, HasConstraints, HasTimeVaryingObjects {
 
+  public boolean debug = false;
   protected Parameter< T > parameter;
   protected Expression< ? > expression;
   private ConstraintExpression constraint = null;
@@ -167,6 +168,11 @@ public class Dependency< T > extends HasIdImpl
     }
     if ( parameter.isStale() || value != parameter.getValueNoPropagate() ) {
       if ( Debug.isOn() ) Debug.outln( "Setting the dependent parameter to the evaluation of expression = " + value );
+      if ( debug ) {
+        System.out.println("****");
+        System.out.println("setting dependency on " + parameter + " to value " + value );
+        System.out.println("****");
+      }
       parameter.setValue( value, propagate );
       return true;
     }
@@ -660,7 +666,9 @@ public class Dependency< T > extends HasIdImpl
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
-    return getParameters( deep, seen ).contains( parameter );
+    
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override

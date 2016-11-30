@@ -116,6 +116,8 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( startTime == parameter ) return true;
     if ( duration == parameter ) return true;
+    
+    if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
     return HasParameters.Helper.hasParameter( effect, parameter, deep, null, true );
   }
   @Override

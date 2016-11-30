@@ -30,7 +30,8 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 //  protected Vector< ConstraintInvocation > constraintsToAdd = null;
   private boolean tryToSatisfyOnElaboration = false;
   protected boolean satisfyDeepOnElaboration = false;
-
+  protected boolean stale = false;
+  
   public ElaborationRule() {}
 
   public ElaborationRule( Expression< Boolean > condition,
@@ -102,8 +103,12 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     // Find out if the rule is satisfied and elaborated.
     boolean conditionSatisfied = isConditionSatisfied();
     boolean elaborated = !elaboratedEvents.isEmpty();
+    boolean deconstructed = false;
     
     // Deal with change in the elaboration.
+    // Don't deconstruct because of staleness without a careful check; we get
+    // that by resetting stale to false.
+    if ( elaborated ) stale = false;
     if ( ( elaborated && !conditionSatisfied ) ||
          eventInvocations == null || eventInvocations.isEmpty() || isStale() ) {
       // Need to un-elaborate!
@@ -117,10 +122,25 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       elaboratedEvents.clear();
       elaborated = false;
     }
+    
+    if ( !conditionSatisfied && !elaborated && !condition.isStale() ) {
+      setStale( false );
+    }
+    // Quit early after deconstructing to avoid immediate re-elaboration and
+    // allow other possible variables to settle so that we don't have to
+    // deconstruct again.
+    if ( deconstructed ) {
+      return false;
+    }
+//    stale = false;
+//    if ( isStale() ) {
+//      return !elaboratedEvents.isEmpty();
+//    }
     // This assumes that isConditionSatisfied() would not have changed from
     // false to true since it was called above.
     if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
       // Need to elaborate!
+      //boolean gotStale = false;
       for ( EventInvocation ei : eventInvocations ) {
         Event event = ei.invoke();
         if ( event != null ) {
@@ -134,9 +154,18 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
             }
           }
         }
+        //if ( ei.isStale() ) gotStale = true;
+        //if ( gotStale ) {
+        //  Debug.error("is stale: " + ei);
+        //}
       }
+      //if ( gotStale ) {
+      //  Debug.error("How did it get stale?!");
+      //}
     }  // else no change
-    
+
+    setStale( false );
+
     return !elaboratedEvents.isEmpty();
   }
 
@@ -295,10 +324,31 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 
   @Override
   public boolean isStale() {
-    for ( EventInvocation i : eventInvocations ) {
-      if ( i.isStale() ) return true;
+    if ( stale ) return true;
+    if ( condition.isStale() ) {
+      setStale( true );
+      return true;
     }
-    if ( condition.isStale() ) return true;
+    Boolean b = null;
+    try {
+      b = condition.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+    } catch ( InvocationTargetException e ) {
+    } catch ( InstantiationException e ) {
+    }
+    for ( EventInvocation i : eventInvocations ) {
+      if ( b == Boolean.TRUE ) {
+        if ( i.isStale() ) {
+          setStale( true );
+          return true;
+        }
+      } else {
+        if ( i.isStaleNoPropagate() ) {
+          setStale( true );
+          return true;
+        }
+      }
+    }
 //    for ( Parameter< ? > p : getParameters( false, null ) ) {
 //      if ( p.isStale() ) return true;
 //    }
@@ -321,19 +371,29 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       condition.setStale( true );
       becameStale = true;
     }
+    if ( becameStale ) {
+      setStale( true );
+    }
     return becameStale;
   }
   
   @Override
   public void setStale( boolean staleness ) {
-    // TODO -- REVIEW -- Need anything here?
-    assert false;
+    stale = staleness;
+    if ( staleness == true ) {
+      //Debug.error("Setting an elaboration rule stale is not supported!");
+      return;
+    }
+    for ( EventInvocation ei : eventInvocations ) {
+      ei.setStale( false );
+    }
   }
 
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set<HasParameters> seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override

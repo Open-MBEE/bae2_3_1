@@ -36,7 +36,7 @@ import gov.nasa.jpl.mbee.util.Wraps;
  */
 public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                             Comparable< Parameter< ? > >, Satisfiable, Node,
-                            Variable< T >, LazyUpdate, HasConstraints,
+                            Variable< T >, LazyUpdate, HasConstraints, HasOwner,
                             MoreToString, Deconstructable {
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
@@ -79,6 +79,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 //      domain = new SingleValueDomain< T >(v);
 //    }
     value = v;
+    setValueOwner(value);
     owner = o;
     stale = !isGrounded( true, null );
   }
@@ -91,6 +92,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( fc != null ) {
       try {
         value = (T)fc.evaluate( propagate );
+        setValueOwner(value);
       } catch ( IllegalAccessException e ) {
         // TODO Auto-generated catch block
         //e.printStackTrace();
@@ -113,6 +115,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public Parameter( Parameter< T > parameter ) {
     name = parameter.name;
     value = parameter.value;
+    setValueOwner(value);
     domain = parameter.domain;
     owner = parameter.owner;
     stale = !isGrounded( true, null );
@@ -227,6 +230,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() start: " + this );
     assert mayPropagate;
     if ( isStale() ) {
+      if ( value instanceof ParameterListener && ((ParameterListener)value).isStale() ) 
       if ( owner != null ) { 
         owner.refresh( this );
         if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() refreshed: " + this );
@@ -351,6 +355,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): setStaleAnyReferencesTo("
                                          + this.toString( true, false, null ) + ")" );
+        setValueOwner(val);
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this, null );
       } else {
@@ -379,6 +384,17 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     setStale( false );
     if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString + ") finish: " + this.toString( true, true, null ) );
+  }
+
+  protected boolean setValueOwner( T val ) {
+    if ( val instanceof HasOwner ) {
+      HasOwner ho = (HasOwner)val;
+      if ( ho.getOwner() == null ) {
+        ho.setOwner(this);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -911,6 +927,15 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                                            Set< HasDomain > seen ) {
     boolean changed = this.domain.restrictTo( domain );
     return new Pair(this.domain, changed);
+  }
+
+  @Override
+  public void setOwner( Object owner ) {
+    if ( owner == null || owner instanceof ParameterListener ) {
+      setOwner((ParameterListener)owner);
+    } else {
+      Debug.error( "A Parameter's owner must be a ParameterListener!  Trying to set to " + owner );
+    }
   }
 
 }

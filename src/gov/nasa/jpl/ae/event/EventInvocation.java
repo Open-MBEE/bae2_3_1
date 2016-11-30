@@ -36,7 +36,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   //protected Class< ? >[] constructorParameterTypes = null;
   protected Parameter< ? > enclosingInstance = null;
   protected Expression< TimeVaryingMap< ? > > fromTimeVarying = null;
-  protected boolean stale = true;
+  protected boolean stale = false;
 
   public EventInvocation( Class< ? extends Event > eventClass,
                           String eventName,
@@ -106,9 +106,11 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 //    }
     if ( tvm == null ) return null;
     Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
-    Event parent = new DurativeEvent(eventName, tvm, enclosingInstance, eventClass, exprArguments );
+    DurativeEvent parent = new DurativeEvent(eventName, tvm, enclosingInstance, eventClass, exprArguments );
+    parent.addDependency( parent.startTime,  new Expression<Integer>(0) );
+    parent.addDependency( parent.duration,  new Expression<Integer>(1) );
     parent.elaborate( false );
-    stale = false;
+    setStale( false );
     return parent;
   }
   
@@ -120,7 +122,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
       assignMembers( event );
     }
 
-    stale = false;
+    setStale( false );
     return event;
   }
 
@@ -380,8 +382,22 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > params = 
         HasParameters.Helper.getParameters( getArguments(), deep, seen );
-    if ( fromTimeVarying != null && fromTimeVarying.form == Form.Parameter ) {
-      params.add( (Parameter< ? >)fromTimeVarying.expression );
+    if ( fromTimeVarying != null ) {
+      if ( fromTimeVarying.form == Form.Parameter ) {
+        params.add( (Parameter< ? >)fromTimeVarying.expression );
+      } else {
+        Object v = null;
+        try {
+          v = Expression.evaluate( fromTimeVarying, Parameter.class, false );
+        } catch ( ClassCastException e ) {
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+        if ( v instanceof Parameter ) {
+          params.add( (Parameter< ? >)v );
+        }
+      } 
     }
     return params;
   }
@@ -423,11 +439,18 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     return HasParameters.Helper.substitute( getArguments(), p1, p2, deep, seen );
   }
 
+  public boolean isStaleNoPropagate() {
+    return stale;
+  }
+
   @Override
   public boolean isStale() {
     if ( stale ) return true;
     if ( HasParameters.Helper.isStale( getArguments(), false, null ) ) {
-      stale = true;
+      setStale( true );
+    }
+    if ( !stale && fromTimeVarying != null && fromTimeVarying.isStale() ) {
+      setStale( true );
     }
     return stale;
   }
@@ -440,7 +463,8 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set< HasParameters > seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override
@@ -470,14 +494,26 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   }
 
   public boolean setStaleAnyReferenceTo( Parameter< ? > p, Set< HasParameters > seen ) {
+    if ( p == null ) return false;
     Pair< Boolean, Set< HasParameters > > sp = Utils.seen( this, true, seen );
     if (sp.first) return false;
     seen = sp.second;
-    
-    Set<Parameter<?>> params = getParameters( false, null );
+    Set<Parameter<?> > params = getParameters( false, null );
     if ( params.contains( p ) ) {
       setStale( true );
       return true;
+    }
+    // Sometimes the effect?Var has a timeline that matches the input parameter.
+    if ( p.getValueNoPropagate() instanceof TimeVaryingMap ) {
+      TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)p.getValueNoPropagate();
+      for ( Parameter<?> pp : params ) {
+        Object o = pp.getValueNoPropagate();
+        TimeVaryingMap<?> tvm2 = Functions.tryToGetTimelineQuick( o ); 
+        if ( tvm.equals( tvm2 ) ) {
+          setStale(true);
+          return true;
+        }
+      }
     }
     return false;
   }
