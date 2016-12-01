@@ -477,7 +477,7 @@ public class Dependency< T > extends HasIdImpl
       if ( getConstraintExpression() == null) return false;
       getConstraintExpression().restrictDomain( v );
     }
-    return v.getDomain() != null && v.getDomain().size() > 0; 
+    return v.getDomain() != null && v.getDomain().magnitude() > 0; 
   }
 
   /* (non-Javadoc)
@@ -719,13 +719,13 @@ public class Dependency< T > extends HasIdImpl
   }
       
   @Override
-  public Set< TimeVarying< ? > >
+  public Set< TimeVarying< ?, ? > >
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+    Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     return set;

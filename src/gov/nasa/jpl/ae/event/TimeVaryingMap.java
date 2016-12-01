@@ -59,7 +59,7 @@ import junit.framework.AssertionFailedError;
  */
 public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                                  implements Cloneable,
-                                            TimeVarying< V >,
+                                            TimeVarying< Integer, V >,
                                             Affectable,
                                             ParameterListener,
                                             HasOwner,
@@ -3855,7 +3855,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   
   public static Object getValueAtTime(Object object, Parameter<Integer> t) {
     if ( object instanceof TimeVarying ) {
-      return ((TimeVarying<?>)object).getValue( t );
+      return ((TimeVarying<Integer, ?>)object).getValue( t );
     }
     return object;
   }
@@ -4150,7 +4150,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public boolean equals( Object o ) {
     if ( this == o ) return true;
     if ( o instanceof TimeVarying ) {
-      return ( compareTo( (TimeVarying<V>)o, false ) == 0 );
+      return ( compareTo( (TimeVarying<Integer, V>)o, false ) == 0 );
     }
     return false;
   }
@@ -4159,10 +4159,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   @Override
-  public int compareTo( TimeVarying< V > o ) {
+  public int compareTo( TimeVarying< Integer, V > o ) {
     return compareTo( o, true );
   }
-  public int compareTo( TimeVarying< V > o, boolean checkId ) {
+  public int compareTo( TimeVarying< Integer, V > o, boolean checkId ) {
     if ( o == null ) return 1;
     if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     int compare = 0;

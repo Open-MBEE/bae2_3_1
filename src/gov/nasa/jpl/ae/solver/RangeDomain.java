@@ -60,6 +60,8 @@ public interface RangeDomain< T > extends Domain< T > {
    *         bounds; for example, the width of the range, [1.2, 1.5], is 0.3
    */
   public Number width();
+  
+  public long size();
 
   public RangeDomain< T > clone();
 }

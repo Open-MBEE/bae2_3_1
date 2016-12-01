@@ -143,9 +143,9 @@ public class ConstraintLoopSolver implements Solver {
     T value = v.getValue(true);
     Domain<T> d = v.getDomain();
     boolean gotNewValue = false;
-    if ( d != null && d.size() > 1 ) {
+    if ( d != null && d.magnitude() > 1 ) {
       T newValue = null;
-      for ( int i=0; i < Math.max( d.size(), 10 ); ++i ) {
+      for ( long i=0; i < Math.max( d.magnitude(), 10 ); ++i ) {
         newValue = d.pickRandomValue();
         if ( Debug.isOn() ) Debug.outln("Picked new value for " + v + ": " + newValue );
         if ( !newValue.equals( value ) ) {

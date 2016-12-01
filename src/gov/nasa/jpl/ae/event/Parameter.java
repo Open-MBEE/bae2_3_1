@@ -575,7 +575,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public boolean inDomain() {
     boolean inDom = false;
     try {
-      inDom = domain == null || domain.size() == 0
+      inDom = domain == null || domain.magnitude() == 0
               || ( value != null && domain.contains( value ) );
     } catch ( ClassCastException e ) {
       if ( Debug.isOn() ) Debug.errln( "Warning! Parameter value and domain types do not match! " + this );
@@ -595,7 +595,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     //if ( owner == null ) return false;
     boolean nullDomain = domain == null;
     if ( nullDomain ) return true;
-    boolean emptyDomain = domain.size() == 0;
+    boolean emptyDomain = domain.magnitude() == 0;
     if ( emptyDomain ) return true;
     boolean grounded = isGrounded(deep, null);
     boolean stale = isStale();

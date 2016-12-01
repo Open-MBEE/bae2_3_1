@@ -45,7 +45,11 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#size()
    */
   @Override
-  public int size() {
+  public long magnitude() {
+    return 1;
+  }
+
+  public long size() {
     return 1;
   }
 

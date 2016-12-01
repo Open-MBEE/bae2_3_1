@@ -46,7 +46,7 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public int size() {
+	public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
     return Math.plus( (int)upperBound, (int)-lowerBound );

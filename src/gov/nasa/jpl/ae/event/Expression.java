@@ -893,14 +893,14 @@ public class Expression< ResultType > extends HasIdImpl
 
   
   @Override
-  public Set< TimeVarying< ? >>
+  public Set< TimeVarying< ?, ? >>
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
     // TODO -- use HasParameters.Helper!!
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying<?> > set = new HashSet< TimeVarying<?> >();
+    Set< TimeVarying<?,?> > set = new HashSet< TimeVarying<?,?> >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     // REVIEW -- We could make Call extend HasTimeVaryingObject, but it seems
     // like everybody has to know about everybody!

@@ -124,7 +124,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 	 * @see Effect#applyTo(TimeVarying, Timepoint, Duration)
 	 */
 	@Override
-	public < T > TimeVarying< T > applyTo( TimeVarying< T > tv, boolean propagate ) {//, Timepoint t, Duration d ) {
+	public < TT, T > TimeVarying< TT, T > applyTo( TimeVarying< TT, T > tv, boolean propagate ) {//, Timepoint t, Duration d ) {
 	  //setStartTimeArgument( t );
 	  //setDurationArgument( d );
     if ( object != tv && tv != null
@@ -278,7 +278,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
    * @see gov.nasa.jpl.ae.event.Effect#unApplyTo(gov.nasa.jpl.ae.event.TimeVarying)
    */
   @Override
-  public < T > TimeVarying< T > unApplyTo( TimeVarying< T > tv ) {//, Timepoint t,
+  public < T, V > TimeVarying< T, V > unApplyTo( TimeVarying< T, V > tv ) {//, Timepoint t,
                                            //Duration d ) {
     if ( tv instanceof TimeVaryingMap ) { 
       ((TimeVaryingMap< T >)tv).unapply( this );
@@ -300,11 +300,11 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
       if ( Debug.isOn() ) Debug.errln( "Effect variable is not TimeVarying! " + variable );
       return false;
     }
-    return ((TimeVarying<?>)value).isApplied( this );
+    return ((TimeVarying<?,?>)value).isApplied( this );
   }
 
   @Override
-  public Set< TimeVarying< ? >>
+  public Set< TimeVarying< ?,? >>
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();

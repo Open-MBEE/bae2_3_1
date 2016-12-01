@@ -922,7 +922,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       int lastTime = Integer.MIN_VALUE;
       if ( !map.isEmpty() &&
            TimeVarying.class.isAssignableFrom( map.getType() ) ) {
-        TimeVarying<?> tv = (TimeVarying< ? >)map.getValue( t );
+        TimeVarying<?,?> tv = (TimeVarying< ?, ? >)map.getValue( t );
         if ( tv != null && tv instanceof TimeVaryingMap ) {
           map = (TimeVaryingMap< ? >)tv;
         } else {
@@ -1040,7 +1040,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
           try {
-            v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+            v = Expression.evaluate( ((TimeVarying<Integer,?>)o).getValue( (Integer)((Double)time).intValue() ), null, false );
           } catch ( ClassCastException e1 ) {
             // TODO Auto-generated catch block
             //e1.printStackTrace();

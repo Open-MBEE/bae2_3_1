@@ -75,8 +75,8 @@ public class ParameterListenerImpl extends HasIdImpl
       new ArrayList< Dependency< ? > >();
   protected Solver solver = new ConstraintLoopSolver();
 
-  protected Set< TimeVarying< ? > > timeVaryingObjects =
-      new HashSet< TimeVarying< ? > >();
+  protected Set< TimeVarying< ?, ? > > timeVaryingObjects =
+      new HashSet< TimeVarying< ?, ? > >();
   protected boolean usingCollectionTree = false;
   protected Object owner = null;
 
@@ -738,7 +738,7 @@ public class ParameterListenerImpl extends HasIdImpl
   
   public Map< String, Object > getTimeVaryingObjectMap( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
-    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( deep, false, seen );
+    Set< TimeVarying< ?, ? > > tvs = getTimeVaryingObjects( deep, false, seen );
     Set<Parameter<?>> params = getParameters( deep, null );
     Map<String, Object> paramsAndTvms = new LinkedHashMap<String,Object>();
     for ( Parameter<?> p : params ) {
@@ -756,7 +756,7 @@ public class ParameterListenerImpl extends HasIdImpl
           }
         }
     }
-    for ( TimeVarying< ? > tv : tvs ) {
+    for ( TimeVarying< ?, ? > tv : tvs ) {
       if ( tv instanceof TimeVaryingMap ) {
         String name = ((TimeVaryingMap<?>)tv).getName();
         if ( !paramsAndTvms.containsKey( name ) ) {
@@ -771,18 +771,18 @@ public class ParameterListenerImpl extends HasIdImpl
    * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
    */
   @Override
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
                                                           Set<HasTimeVaryingObjects> seen ) {
     return getTimeVaryingObjects( deep, true, seen );
   }
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
                                                         boolean includeDependencies,
                                                         Set<HasTimeVaryingObjects> seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > s = new HashSet< TimeVarying< ? > >();
+    Set< TimeVarying< ?, ? > > s = new HashSet< TimeVarying< ?, ? > >();
     s.addAll( timeVaryingObjects );
     s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( false,
                                                                                  null ),
@@ -796,7 +796,7 @@ public class ParameterListenerImpl extends HasIdImpl
       }
     }
     if ( settingTimeVaryingMapOwners ) {
-      for ( TimeVarying< ? > tv : s ) {
+      for ( TimeVarying< ?, ? > tv : s ) {
         if ( tv.getOwner() == null ) {
           tv.setOwner( this );
         }
@@ -940,7 +940,7 @@ public class ParameterListenerImpl extends HasIdImpl
       d.handleValueChangeEvent( parameter );
     }
     // Alert affected timelines.
-    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
         ((ParameterListener)tv).handleValueChangeEvent( parameter );
       }
@@ -1002,7 +1002,7 @@ public class ParameterListenerImpl extends HasIdImpl
     for ( ConstraintExpression ce : constraintExpressions ) {
       ce.deconstruct();
     }
-    for ( TimeVarying< ? > tv : timeVaryingObjects ) {
+    for ( TimeVarying< ?, ? > tv : timeVaryingObjects ) {
       if ( tv instanceof Deconstructable ) {
         ( (Deconstructable)tv ).deconstruct();
       }
@@ -1059,7 +1059,7 @@ public class ParameterListenerImpl extends HasIdImpl
       --i;
     }
     // Detach from timelines.
-    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
         ((ParameterListener)tv).detach( parameter );
       }
@@ -1116,7 +1116,7 @@ public class ParameterListenerImpl extends HasIdImpl
     for ( Dependency<?> d : getDependencies() ) {
       d.setStaleAnyReferencesTo( changedParameter, seen );
     }
-    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
         ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter, seen );
       }

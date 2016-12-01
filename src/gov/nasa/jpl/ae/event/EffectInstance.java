@@ -50,7 +50,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     effect = null;
   }
   
-  public void applyTo( TimeVarying< ? > tv, boolean propagate ) {
+  public void applyTo( TimeVarying< ?, ? > tv, boolean propagate ) {
     if ( effect != null ) {
       effect.applyTo( tv, propagate );//, startTime, duration );
     }

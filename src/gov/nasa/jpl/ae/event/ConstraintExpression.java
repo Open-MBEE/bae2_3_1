@@ -115,7 +115,7 @@ public class ConstraintExpression extends Expression< Boolean >
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
         if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
-             && ( v.getDomain() == null || v.getDomain().size() != 1 ) ) {
+             && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
           pickParameterValue( v );  
         }
         if ( isSatisfied(deep, seen) ) break;

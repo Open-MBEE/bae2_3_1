@@ -284,7 +284,7 @@ public class Functions {
         } else {
           // not monotonic, such as Equals
           if ( !returnValue.isInfinite() ) {
-            for( int i = 0; i < returnValue.size(); ++i ) {
+            for( long i = 0; i < returnValue.magnitude(); ++i ) {
               Object rv = ((AbstractRangeDomain)returnValue).getNthValue( i );
               addInverseToList( rv, argument, possibleValues );
             }
@@ -2550,7 +2550,7 @@ public class Functions {
                                                              boolean propagate,
                                                              Set< HasDomain > seen ) {
       boolean changed = false;
-      if ( domain.size() == 1 ) {
+      if ( domain.magnitude() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
           changed = restrictDomains(((Boolean)v) == Boolean.TRUE);
@@ -2739,7 +2739,7 @@ public class Functions {
     // The variable doesnt have a domain, then just need to evaluate the
     // expression:
     // REVIEW
-    if ( d == null || d.size() == 0 ) {
+    if ( d == null || d.magnitude() == 0 ) {
       b = o.evaluate( false );
     }
     
@@ -2767,10 +2767,10 @@ public class Functions {
     }
     
     // If the range is finite then try every value in the domain:
-    if ( b == null && d.size() > 0 && d instanceof AbstractFiniteRangeDomain ) {//!d.isInfinite() ) {
+    if ( b == null && d.magnitude() > 0 && d instanceof AbstractFiniteRangeDomain ) {//!d.isInfinite() ) {
       AbstractFiniteRangeDomain<T> afrd = (AbstractFiniteRangeDomain<T>)d;
       b = true;
-      for ( long i=0; i<d.size(); ++i ) {
+      for ( long i=0; i<d.magnitude(); ++i ) {
         variable.setValue( afrd.getNthValue( i ) );
         if ( !o.evaluate( true ) ) {
           b = false; 

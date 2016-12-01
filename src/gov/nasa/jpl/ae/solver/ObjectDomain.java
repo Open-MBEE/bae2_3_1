@@ -125,6 +125,12 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     return super.size();
   }
 
+  @Override
+  public long magnitude() {
+    return size();
+  }
+
+  
 //  /* (non-Javadoc)
 //   * @see gov.nasa.jpl.ae.solver.Domain#isEmpty()
 //   */

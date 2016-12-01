@@ -277,7 +277,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects,
         		                                    deep, seen);
         	  } else if (value instanceof TimeVarying) {
-        	    TimeVarying<?> tv = (TimeVarying<?>) value;
+        	    TimeVarying<?,?> tv = (TimeVarying<?,?>) value;
         	    if ( tv.canBeApplied( e ) ) {
         	      e.applyTo( tv, true );
         	    } else {
@@ -1032,16 +1032,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
       Object tvo = entry.getValue();//e.getKey();
       Parameter<?> p = null;
-      TimeVarying<?> tv = null;
+      TimeVarying<?,?> tv = null;
       String name = entry.getKey();
       if ( tvo instanceof Parameter ) {
         p = (Parameter<?>)tvo;
         //name = p.getName();
         if ( p.getValueNoPropagate() instanceof TimeVarying ) {
-          tv = (TimeVarying<?>)p.getValueNoPropagate();
+          tv = (TimeVarying<?,?>)p.getValueNoPropagate();
         }
       } else if ( tvo instanceof TimeVarying ) {
-        tv = (TimeVarying<?>)tvo;
+        tv = (TimeVarying<?,?>)tvo;
       }
       if ( tv instanceof TimeVaryingMap ) {
         String category = "";
@@ -1354,18 +1354,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#getTimeVaryingObjects(boolean, java.util.Set)
    */
   @Override
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
     return getTimeVaryingObjects( deep, true, seen );
   }
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
                                                         boolean includeDependencies,
                                                           Set<HasTimeVaryingObjects> seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     if ( seen != null ) seen.remove( this );
-    Set< TimeVarying< ? > > set = super.getTimeVaryingObjects( deep, includeDependencies, seen );
+    Set< TimeVarying< ?, ? > > set = super.getTimeVaryingObjects( deep, includeDependencies, seen );
     //Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen ) );
     if ( deep ) {
@@ -1733,7 +1733,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
     // Get time varying objects to use later before potentially disconnecting
     // them.
-    Set< TimeVarying< ? > > timeVaryingObjs = getTimeVaryingObjects( true, null );
+    Set< TimeVarying< ?, ? > > timeVaryingObjs = getTimeVaryingObjects( true, null );
 
     // Detach elaborations.
     if ( elaborations != null ) {
@@ -1751,7 +1751,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     assert effects != null;
     for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
       Parameter< ? > tvp = p.first;
-      TimeVarying< ? > tv = null;
+      TimeVarying< ?, ? > tv = null;
       if ( tvp != null ) {
         try {
           tv = Expression.evaluate( tvp, TimeVarying.class, false );
@@ -1794,7 +1794,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           continue;
         }
         if ( effectFunction.getObject() != null ) {
-          TimeVarying< ? > tv = null;
+          TimeVarying< ?, ? > tv = null;
           try {
             tv = Expression.evaluate( effectFunction.getObject(),
                                                      TimeVarying.class,
@@ -1823,7 +1823,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // TODO -- REVIEW -- Is this already being done by ParameterListenerImpl.detach()
     // and TimeVaryingMap.detach( parameter )?
     Set<Timepoint> timepoints = getTimepoints( false, null );
-    for ( TimeVarying< ? > tv : timeVaryingObjs  ) {
+    for ( TimeVarying< ?, ? > tv : timeVaryingObjs  ) {
       if ( tv instanceof TimeVaryingMap ) {
         for ( Parameter<?> p : timepoints ) {
           if ( Debug.isOn() ) Debug.out( "i" );
@@ -1997,8 +1997,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     // write timelines
-    Set< TimeVarying< ? > > states = getTimeVaryingObjects( true, null );
-    for ( TimeVarying< ? > state : states ) {
+    Set< TimeVarying< ?, ? > > states = getTimeVaryingObjects( true, null );
+    for ( TimeVarying< ?, ? > state : states ) {
       String tlName = "";
       if ( state instanceof TimeVaryingMap ) {
         tlName = ( (TimeVaryingMap< ? >)state ).getName();

@@ -12,7 +12,7 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
    *         Integer.MAX_VALUE (which is to be interpreted as infinity).<p>
    *         TODO -- Make the return value type long or Number.
    */
-  public int size();
+  public long magnitude();
 
   /**
    * @return whether the domain contains no values (including null)
