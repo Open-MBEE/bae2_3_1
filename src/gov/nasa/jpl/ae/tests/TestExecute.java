@@ -33,10 +33,10 @@ public class TestExecute {
         new PlanAndControlLoadReductionEvent();
     top.DRArea.setValue( "Area 51" );
     top.LoadReductionNeeded.setValue( 10000.0 );
-    top.DREventStartTime.setValue( 1200 );
-    top.DREventEndTime.setValue( 1800 );
-    top.startTime.setValue( 0 );
-    top.duration.setValue( 10000 );
+    top.DREventStartTime.setValue( 1200L );
+    top.DREventEndTime.setValue( 1800L );
+    top.startTime.setValue( 0L );
+    top.duration.setValue( 10000L );
     double animationDuration = 30.0;
     top.executeAndSimulate(Timepoint.getHorizonDuration() / animationDuration);
     //System.out.println( "execution:\n" + top.executionToString() );

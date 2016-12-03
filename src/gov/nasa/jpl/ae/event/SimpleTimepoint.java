@@ -30,16 +30,16 @@ public class SimpleTimepoint extends Timepoint {
    * @param value
    * @param o
    */
-  public SimpleTimepoint( String name, Integer value, ParameterListener o ) {
-    super( name, null, value, o );//value == null ? null : new SingleValueDomain<Integer>(value), value, o );
+  public SimpleTimepoint( String name, Long value, ParameterListener o ) {
+    super( name, null, value, o );//value == null ? null : new SingleValueDomain< Long>(value), value, o );
     init();
   }
 
   /**
    * @param value
    */
-  public SimpleTimepoint( int value ) {
-    super( "", null, value, null );//new SingleValueDomain<Integer>(value), value, null );
+  public SimpleTimepoint( long value ) {
+    super( "", null, value, null );//new SingleValueDomain< Long>(value), value, null );
     init();
   }
 
@@ -65,7 +65,7 @@ public class SimpleTimepoint extends Timepoint {
 //   * @param value
 //   * @param o
 //   */
-//  public SimpleTimepoint( String name, Domain< Integer > domain, Integer value,
+//  public SimpleTimepoint( String name, Domain< Long > domain, Long value,
 //                          ParameterListener o ) {
 //    super( name, value, o );
 //    init();
@@ -74,7 +74,7 @@ public class SimpleTimepoint extends Timepoint {
   public void init() {
     setDomain(null);
 //    if ( value != null && !(this.getDomain() instanceof SingleValueDomain)) {
-//      this.setDomain( new SingleValueDomain< Integer >( value ) );
+//      this.setDomain( new SingleValueDomain< Long >( value ) );
 //    }
 //    this.constraintList.clear();
   }

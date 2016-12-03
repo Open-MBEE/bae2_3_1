@@ -44,7 +44,7 @@ import junit.framework.Assert;
 /**
  *
  */
-public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Object, Object > > > {
+public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object, Object > > > {
 
   // Constants & Types
 
@@ -94,7 +94,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   
   //  protected static java.util.Random portRandomNumberGenerator =
 //      new java.util.Random( System.currentTimeMillis() );
-//  protected Pair<Integer, Integer > portRange = new Pair( 65000, 66000 );
+//  protected Pair< Long, Integer > portRange = new Pair( 65000, 66000 );
 
   public enum EventType {
     start,
@@ -160,7 +160,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     this.timeScale = timeScale;
   }
 
-  protected boolean put( Integer time, Object variable, Object value ) {
+  protected boolean put( Long time, Object variable, Object value ) {
     Set< Pair< Object, Object > > m = get( time );
     if ( m == null ) {
       //m = new TreeMap< Object, Object >( new ObjectComparator() );
@@ -345,8 +345,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //    }
 
     // Get start and end times if they exist.
-    Integer startTime = event.getStartTime().getValueOrMin();
-    Integer endTime = event.getEndTime().getValueOrMax();
+    Long startTime = event.getStartTime().getValueOrMin();
+    Long endTime = event.getEndTime().getValueOrMax();
     if ( startTime == null || endTime == null ) {
       if ( Debug.isOn() ) {
         Debug.outln( "Warning: can't add event with no time information: "
@@ -392,7 +392,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     boolean existingEntry = false;
 //    Object lastValue = null;
 //    boolean first = true;
-    for ( Map.Entry< Parameter<Integer>, V > e : tv.entrySet() ) {
+    for ( Map.Entry< Parameter< Long>, V > e : tv.entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
         System.err.println( "Warning: adding entry, " + e
                             + ", of time varying map, " + tv.getName()
@@ -411,7 +411,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     if ( currentPlottableValues != null && !tv.isEmpty() && 
          tv instanceof Plottable ) {
 //        ( tv.firstEntry().getValue() instanceof Double ||
-//            tv.firstEntry().getValue() instanceof Integer ) ) {
+//            tv.firstEntry().getValue() instanceof Long ) ) {
       currentPlottableValues.put( tv,  tv.firstEntry().getValue() );
     }
     return !existingEntry;
@@ -423,7 +423,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       return false;
     }
     TimeVaryingMap<V> tvm = tv.getValueNoPropagate();
-    if ( tvm != null ) { 
+    if ( tvm == null ) { 
       Assert.fail("Trying to add null event to simulation.");
       return false;
     }
@@ -437,7 +437,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
     
     boolean existingEntry = false;
-    for ( Map.Entry< Parameter<Integer>, V > e : tvm.entrySet() ) {
+    for ( Map.Entry< Parameter< Long>, V > e : tvm.entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
         System.err.println( "Warning: adding time varying map entry with null time key "
                             + " to simulation " + e );
@@ -481,10 +481,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     this.timeScale = scale;
     PrintWriter w = new PrintWriter( os, true );
     //long startClock = -1;
-    int lastT = -1;
+    long lastT = -1;
     SimulatedTime simTimer = new SimulatedTime( timeScale );
     double lastSampleSimTime = Timepoint.getEpochTimepoint().getValue(false) - 1.0;
-    double nextSampleSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Integer.MAX_VALUE;
+    double nextSampleSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Long.MAX_VALUE;
     
     if ( tryToPlot ) {
       //Debug.turnOn();
@@ -494,19 +494,19 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     boolean firstLoop = true;
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
     boolean doneOnce = false;
-    for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e1 : entrySet() ) {
+    for ( Map.Entry< Long, Set< Pair< Object, Object > > > e1 : entrySet() ) {
       for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
         // Delay between events
-        int nextEventSimTime = e1.getKey();
+        long nextEventSimTime = e1.getKey();
         if (firstLoop) {
           firstLoop = false;
           simTimer.reset();
         } else {
           try {
             while ( true ) {
-              int simTimeToSleepUntil =
-                  (int)Math.min( nextEventSimTime, nextSampleSimTime );
+              long simTimeToSleepUntil =
+                  (long)Math.min( nextEventSimTime, nextSampleSimTime );
               if (Debug.isOn()) Debug.out("nextEventSimTime="+ nextEventSimTime);
               if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
               if (Debug.isOn()) Debug.out("simTimeToSleepUntil="+ simTimeToSleepUntil);
@@ -544,7 +544,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         
         // the event & value(s)
         if ( simulatingHorizon && nextEventSimTime >= Timepoint.getHorizonDuration() ) break;
-        int t = e1.getKey().intValue();
+        long t = e1.getKey().longValue();
         Object variable = p.first; //e2.getKey();
         Object value = p.second; //e2.getValue();
         Object originalValue = value; //e2.getValue();
@@ -885,10 +885,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     for ( Plottable plottable : projections ) {
       if ( plottable instanceof TimeVaryingMap ) {
         TimeVaryingMap< ? > map = (TimeVaryingMap< ? >)plottable;
-        NavigableMap< Parameter< Integer >, ? > m = map.subMap( (int)lastTime, false, (int)time, true );
-        //if ( map.contains( (int)time ) ) {
+        NavigableMap< Parameter< Long >, ? > m = map.subMap( (long)lastTime, false, (long)time, true );
+        //if ( map.contains( (long)time ) ) {
         if ( !m.isEmpty() ) {
-          plotProjection( map, (int)time );
+          plotProjection( map, (long)time );
         }
       }
     }
@@ -904,10 +904,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   protected void plotProjection( TimeVaryingMap< ? > plottable ) {
     // TODO Auto-generated method stub
-    plotProjection( plottable, 0 );
+    plotProjection( plottable, 0L );
   }
 
-  public void plotProjection( TimeVaryingMap< ? > map, Integer t) {
+  public void plotProjection( TimeVaryingMap< ? > map, Long t) {
     if ( map == null || plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
@@ -919,7 +919,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       plotSocket.send( map.getName() );
       plotSocket.send( getCategory( map ) );
       //doubleVector.add( new Double(map.hashCode()) );
-      int lastTime = Integer.MIN_VALUE;
+      long lastTime = Long.MIN_VALUE;
       if ( !map.isEmpty() &&
            TimeVarying.class.isAssignableFrom( map.getType() ) ) {
         TimeVarying<?,?> tv = (TimeVarying< ?, ? >)map.getValue( t );
@@ -934,10 +934,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         throw new IllegalArgumentException( "Projection to plot is null or empty " + map );
       }
       if ( Debug.isOn() ) Debug.outln( "plotting projection: " + map );
-      for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
-        Integer timeInteger = e.getKey().getValue();
+      for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+        Long timeInteger = e.getKey().getValue();
         if ( timeInteger <= lastTime ) continue;
-        lastTime = timeInteger.intValue();
+        lastTime = timeInteger.longValue();
         Double time =
             Timepoint.conversionFactor( this.plotAxisTimeUnits )
                 * timeInteger.doubleValue();
@@ -957,7 +957,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           // TODO Auto-generated catch block
           //e1.printStackTrace();
         }
-        assert v instanceof Double || v instanceof Integer || v instanceof Float
+        assert v instanceof Double || v instanceof Integer || v instanceof Long ||v instanceof Float
                || v instanceof Parameter;
         while ( v instanceof Parameter ) {
           v = ( (Parameter< ? >)v ).getValue( false );
@@ -1040,7 +1040,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
           try {
-            v = Expression.evaluate( ((TimeVarying<Integer,?>)o).getValue( (Integer)((Double)time).intValue() ), null, false );
+            v = Expression.evaluate( ((TimeVarying< Long,?>)o).getValue( (Long)((Double)time).longValue() ), null, false );
           } catch ( ClassCastException e1 ) {
             // TODO Auto-generated catch block
             //e1.printStackTrace();
@@ -1057,18 +1057,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           if ( Debug.isOn() ) Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }
-      assert v == null || v instanceof Double || v instanceof Integer|| v instanceof Float
+      assert v == null || v instanceof Double || v instanceof Integer || v instanceof Long || v instanceof Float
               || v instanceof Boolean || v instanceof Parameter;
       while ( v instanceof Parameter ) {
         v = ( (Parameter<?>)v ).getValue(false);
       }
-      if ( v instanceof Integer ) {
-        v = ( (Integer)v ).doubleValue();
-      }
-      if ( v instanceof Float ) {
-          v = ( (Float)v ).doubleValue();
-      }
-      if ( v instanceof Boolean ) {
+      if ( v instanceof Number ) {
+        v = ( (Number)v ).doubleValue();
+      } else if ( v instanceof Boolean ) {
         v = ( (Boolean)v ) ? 1.0 : 0.0;
       }
       if ( v == null ) v = 0.0;
@@ -1115,21 +1111,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   /**
    * @param comparator
    */
-  public EventSimulation( Comparator< ? super Integer > comparator ) {
+  public EventSimulation( Comparator< ? super Long > comparator ) {
     super( comparator );
     if ( simulatingHorizon ) addHorizonEvent();
   }
 
   private void addHorizonEvent() {
     DurativeEvent event = new DurativeEvent( "horizon" );
-    event.startTime.setValue( 0 );
+    event.startTime.setValue( 0L );
     event.duration.setValue( Timepoint.getHorizonDuration() );
     add( event );
   }
 
   public int numEvents() {
     int sum = 0;
-    for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e : entrySet() ) {
+    for ( Map.Entry< Long, Set< Pair< Object, Object > > > e : entrySet() ) {
       if ( e.getValue() != null ) sum += e.getValue().size();
     }
     return sum;
@@ -1138,7 +1134,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //  /**
 //   * @param m
 //   */
-//  public EventSimulation( Map< ? extends Integer, ? extends Map< Object, Object > > m ) {
+//  public EventSimulation( Map< ? extends Long, ? extends Map< Object, Object > > m ) {
 //    super( m );
 //    // TODO Auto-generated constructor stub
 //  }
@@ -1146,7 +1142,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //  /**
 //   * @param m
 //   */
-//  public EventSimulation( SortedMap< Integer, ? extends Map< Object, Object > > m ) {
+//  public EventSimulation( SortedMap< Long, ? extends Map< Object, Object > > m ) {
 //    super( m );
 //    // TODO Auto-generated constructor stub
 //  }

@@ -62,18 +62,18 @@ public class Generation extends LinearTimeline {
     }
     System.out.println("Initializing Generation with dayProfile = " + dayProfile );
     // Copy the dayProfile into this map based on the epoch offset from midnight.
-    int timeSinceMidnight = Timepoint.timeSinceMidnight( Timepoint.getEpoch() );
+    long timeSinceMidnight = Timepoint.timeSinceMidnight( Timepoint.getEpoch() );
     System.out.println( "timeSinceMidnight = " + timeSinceMidnight );
     //putAll( dayProfile );
-    Parameter< Integer > tp = dayProfile.floorKey( new Timepoint( "", timeSinceMidnight, dayProfile ) );
+    Parameter< Long > tp = dayProfile.floorKey( new Timepoint( "", timeSinceMidnight, dayProfile ) );
     System.out.println( "dayProfile.floorKey(timeSinceMidnight) = " + tp );
-    int _24hours = (int)( 24.0 / Timepoint.conversionFactor( TimeUtils.Units.hours ) );
+    long _24hours = (long)( 24.0 / Timepoint.conversionFactor( TimeUtils.Units.hours ) );
     System.out.println( "_24hours = " + _24hours );
     // Start with time zero == epoch.
-    int timeSinceEpoch = 0;
+    long timeSinceEpoch = 0;
     while ( timeSinceEpoch < Timepoint.getHorizonDuration() ) {
       // Translate the time to the time of day.
-      int timeOfDay = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
+      long timeOfDay = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
 
       // Reduce the midday generation by a predicted amount if having a DR event
       double generationAmount = dayProfile.getValue( timeOfDay );
@@ -94,7 +94,7 @@ public class Generation extends LinearTimeline {
       }
       setValue( new Timepoint( "", timeSinceEpoch, this ), generationAmount );
 
-      int thisTime = tp.getValue(false);
+      long thisTime = tp.getValue(false);
       tp = dayProfile.getTimepointAfter( tp );
       // If we're at the end of the dayProfile points, roll over to the start.
       if ( tp == null ) {
@@ -106,7 +106,7 @@ public class Generation extends LinearTimeline {
     }
     // Set the value at the horizon end.
     timeSinceEpoch = Timepoint.getHorizonDuration() - 1;
-    int tMod = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
+    long tMod = (timeSinceEpoch + timeSinceMidnight) % _24hours; 
     setValue( new Timepoint( "", timeSinceEpoch, this ),
               dayProfile.getValue( tMod ) );
 
@@ -117,8 +117,8 @@ public class Generation extends LinearTimeline {
       Timepoint st = new Timepoint( drObject.getStartTime() );
       Timepoint et = new Timepoint( drObject.getEndTime() );
       double rt = drObject.rampDuration;
-      st.setValue( (int)( st.getValue( true ) + rt ) );
-      et.setValue( (int)( et.getValue( true ) + rt ) );
+      st.setValue( (long)( st.getValue( true ) + rt ) );
+      et.setValue( (long)( et.getValue( true ) + rt ) );
 
       double gs = getValue( st );
       double ge = getValue( et );
@@ -143,22 +143,22 @@ public class Generation extends LinearTimeline {
     LinearTimeline profile = new LinearTimeline( "dayProfile" );
     double conversionFactor = 1.0 / Timepoint.conversionFactor( TimeUtils.Units.hours );
     double[] t = new double[]{0.0, 2.0, 6.0, 11.0, 21.5, 24.0};
-    profile.setValue( new Timepoint( "", new Integer( (int)t[0] ), null ),
+    profile.setValue( new Timepoint( "", new Long( (long)t[0] ), null ),
                       nightGenerationLevelPerCustomer
                           + ( middayGenerationLevelPerCustomer - nightGenerationLevelPerCustomer )
                           * 2.0 / ( 24.0 - 21.5 + 2.0 ) );
-    //    profile.setValue( new Timepoint( "", new Integer(0), null ), nightGenerationLevel );
-    profile.setValue( new Timepoint( "", new Integer((int)( t[1] * conversionFactor )), null ),
+    //    profile.setValue( new Timepoint( "", new Long(0), null ), nightGenerationLevel );
+    profile.setValue( new Timepoint( "", new Long((long)( t[1] * conversionFactor )), null ),
                       nightGenerationLevelPerCustomer );
-    profile.setValue( new Timepoint( "", new Integer((int)( t[2] * conversionFactor )), null ),
+    profile.setValue( new Timepoint( "", new Long((long)( t[2] * conversionFactor )), null ),
                       nightGenerationLevelPerCustomer  );
-    profile.setValue( new Timepoint( "", new Integer((int)( t[3] * conversionFactor )), null ),
+    profile.setValue( new Timepoint( "", new Long((long)( t[3] * conversionFactor )), null ),
                       middayGenerationLevelPerCustomer );
-    profile.setValue( new Timepoint( "", new Integer((int)( t[4] * conversionFactor )), null ),
+    profile.setValue( new Timepoint( "", new Long((long)( t[4] * conversionFactor )), null ),
                       middayGenerationLevelPerCustomer );
-//    profile.setValue( new Timepoint( "", new Integer((int)( t[5] * conversionFactor )), null ),
-//                      profile.getValue( (int)t[0] ) );
-    for ( Map.Entry< Parameter< Integer >, Double > e : profile.entrySet() ) {
+//    profile.setValue( new Timepoint( "", new Long((long)( t[5] * conversionFactor )), null ),
+//                      profile.getValue( (long)t[0] ) );
+    for ( Map.Entry< Parameter< Long >, Double > e : profile.entrySet() ) {
       e.setValue( e.getValue() * numberOfCustomers );
     }
     return profile;

@@ -35,7 +35,7 @@ public class AssessDRCommitmentEvent extends DurativeEvent {
   /**
 	 * 
 	 */
-  public AssessDRCommitmentEvent( Expression< Integer > startTimeExpression ) {
+  public AssessDRCommitmentEvent( Expression< Long > startTimeExpression ) {
     super();
     initMembers( true );
     addDependency( startTime, startTimeExpression );
@@ -78,7 +78,7 @@ public class AssessDRCommitmentEvent extends DurativeEvent {
       elaborations.clear(); // TODO -- REVIEW -- memory leak??
       Vector< EventInvocation > invocation = new Vector< EventInvocation >();
       Expression< ? >[] arguments = new Expression< ? >[2];
-      arguments[0] = new Expression< Integer >( endTime );
+      arguments[0] = new Expression< Long >( endTime );
       arguments[1] = new Expression< Double >( projectedLoadReductionBasedOnResponse );
       //Class< ? > parameterTypes[] = { Expression.class, Expression.class };
       try {

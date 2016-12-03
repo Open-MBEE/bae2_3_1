@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.LongDomain;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
@@ -14,17 +14,17 @@ import gov.nasa.jpl.mbee.util.TimeUtils.Units;
  * @author bclement
  *
  */
-public class Duration extends IntegerParameter { // TODO -- LongParameter
+public class Duration extends LongParameter { // TODO -- LongParameter
 
   protected static int counter = 0;
   
   // TODO -- add accessors, toString(), and fromString(), and constructors from
-  // String instead of Integer.
+  // String instead of Long.
   protected TimeUtils.Units units = Timepoint.getUnits();
 
   public static final String durationFormat = "yyyy-DDD'T'HH:mm:ss.SSS";
   public static final String durationFormatForIdentifier = "yyyy-DDD'T'HH.mm.ss.SSS";
-  public static IntegerDomain defaultDomain = Timepoint.defaultDomain;
+  public static LongDomain defaultDomain = Timepoint.defaultDomain;
       //Timepoint.timestampFormat.replace( "Z", "" ); //"HH:mm:ss.SSS";
 
   /**
@@ -46,7 +46,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	 * @param o 
 	 * @param v
 	 */
-	public Duration(Integer value, ParameterListener o) {
+	public Duration(Long value, ParameterListener o) {
 		super( "duration", defaultDomain, value, o );
 	}
 
@@ -55,7 +55,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
    * @param n
    * @param v
    */
-  public Duration(String name, Integer value, ParameterListener o) {
+  public Duration(String name, Long value, ParameterListener o) {
     super( name, defaultDomain, value, o );
   }
 
@@ -66,7 +66,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	public Duration( String name, double durVal,
                    TimeUtils.Units durUnits, ParameterListener o ) {
     super( name, defaultDomain,
-           new Integer( (int)(durVal * Timepoint.conversionFactor( durUnits )) ),
+           new Long( (long)(durVal * Timepoint.conversionFactor( durUnits )) ),
            o );
   }
 
@@ -95,7 +95,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
         return null;
       }
     }
-    Duration d = new Duration( "duration" + ( counter++ ), (int)t, null );
+    Duration d = new Duration( "duration" + ( counter++ ), (long)t, null );
     d.units = units;
     return d;
     // TODO -- REVIEW -- other formats?  0.0003s?
@@ -146,7 +146,7 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
   public static String fixYear( String dateString ) {
     if ( dateString.length() >= 5 ) {
       String yearStr = dateString.substring( 0, 4 );
-      Integer year = Integer.parseInt( yearStr );
+      Long year = Long.parseLong( yearStr );
       String newYearStr = "0000"; 
       if ( year > 1970 ) {
         year = year - 1970;
@@ -189,16 +189,16 @@ public class Duration extends IntegerParameter { // TODO -- LongParameter
 	  return toStringWithUnits( true, true );
   }
 
-  public static long ticksToMillis( Integer d ) {
+  public static long ticksToMillis( Long d ) {
     return durationToMillis( d );
   }
-  public static long durationToMillis( Integer d ) {
+  public static long durationToMillis( Long d ) {
     return (long)( ((double)d)
                    * Timepoint.conversionFactor( TimeUtils.Units.milliseconds ) );
   }
 
-  public static int lengthOfOne( TimeUtils.Units u ) {
-    return (int) (1.0 / Timepoint.conversionFactor( u ) );
+  public static long lengthOfOne( TimeUtils.Units u ) {
+    return (long) (1.0 / Timepoint.conversionFactor( u ) );
   }
 	
 	

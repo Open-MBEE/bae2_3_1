@@ -68,6 +68,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
@@ -571,17 +572,16 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     if ( Utils.isNullOrEmpty( type ) ) {
       //type = "null";
     } else if ( type.toLowerCase().equals( "time" ) 
-                || type.toLowerCase().startsWith( "int" )
-                || type.toLowerCase().startsWith( "integer" )
-                || type.toLowerCase().startsWith( "long" ) ) {
+        || type.toLowerCase().startsWith( "long" ) ) {
+      type = "Long";
+    } else if ( type.toLowerCase().startsWith( "int" )
+                || type.toLowerCase().startsWith( "integer" ) ) {
       type = "Integer";
-    } else if ( type.toLowerCase().startsWith( "float" )
-                || type.toLowerCase().startsWith( "real" ) ) {
-      type = "Float";
-    } else if ( type.toLowerCase().equals( "double" ) 
-                || type.toLowerCase().startsWith( "float" )
+    } else if ( type.toLowerCase().equals( "double" )
                 || type.toLowerCase().startsWith( "real" ) ) {
       type = "Double";
+    } else if ( type.toLowerCase().startsWith( "float" ) ) {
+      type = "Float";
     } else if ( type.toLowerCase().equals( "boolean" )
                 || type.toLowerCase().equals( "bool" ) ) {
       type = "Boolean";
@@ -848,7 +848,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       if ( expr.getClass() == NullLiteralExpr.class ) {
         return "null";
       } else {
-        middle = expr.toString(); 
+        middle = expr.toString();
       }
     } else  { //if ( expr.getClass() == ConditionalCallExpr.class ) {
       //case "ConditionalExpr": // TODO
@@ -859,6 +859,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     return prefix + middle + suffix;
   }
+  
+  private static HashSet<String> someNumberTypes = new HashSet<String>( Utils.newList( "Long", "Double", "Float" ) ); 
   
   public Object //gov.nasa.jpl.ae.event.Expression< ? >
       astToAeExpression( Expression expr, boolean convertFcnCallArgsToExprs,
@@ -2160,6 +2162,20 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         ClassData.typeToParameterType( p.type );
     if ( Utils.isNullOrEmpty( p.type ) ) {
       System.err.println( "Error! creating a field " + p + " of unknown type!" );
+    } else if ( p.type.toLowerCase().startsWith( "long" )
+                || p.type.trim().replaceAll( " ", "" )
+                         .equals( "Parameter<Long>" ) ) {
+      type = "LongParameter";
+      parameterTypes = null; // "Integer";
+      // args = "\"" + p.name + "\", this";
+      if ( !Utils.isNullOrEmpty( castType ) ) {
+        args = "\"" + p.name + "\", " + valueArg + ", this";
+        
+        if ( p.value != null && !Utils.isNullOrEmpty( p.value.trim() )
+             && Character.isDigit( p.value.trim().charAt( 0 ) ) ) {
+          castType = castType.toLowerCase();
+        }
+      }
     } else if ( !parameterClass.equals( p.type ) ) {
       type = parameterClass;
       if ( !type.equals( "Parameter" ) ) {
@@ -2176,8 +2192,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         args = "\"" + p.name + "\", " + valueArg + ", this";
       }
     } else if ( p.type.toLowerCase().startsWith( "int" )
-                || p.type.toLowerCase().startsWith( "long" ) // TODO -- Need a
-                                                             // LongParameter
                 || p.type.trim().replaceAll( " ", "" )
                          .equals( "Parameter<Integer>" ) ) {
       type = "IntegerParameter";

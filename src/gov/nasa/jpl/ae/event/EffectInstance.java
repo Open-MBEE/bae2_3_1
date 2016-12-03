@@ -30,7 +30,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     this.effect = effect;
   }
   
-  EffectInstance( Timepoint startTime, Integer duration, Effect effect ) {
+  EffectInstance( Timepoint startTime, Long duration, Effect effect ) {
     this.startTime = startTime;
     this.duration = new Duration( duration, null );
     this.effect = effect;

@@ -9,6 +9,6 @@ import gov.nasa.jpl.ae.event.TimeVarying;
  * @author bclement
  *
  */
-public interface DataSentState extends TimeVarying<Integer, String> {
+public interface DataSentState extends TimeVarying< Long, String> {
 
 }

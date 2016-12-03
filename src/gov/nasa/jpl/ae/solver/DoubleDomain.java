@@ -79,7 +79,7 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   }
 
   /* (non-Javadoc)
-   * @see solver.AbstractRangeDomain#getNthValue(int)
+   * @see solver.AbstractRangeDomain#getNthValue(long)
    */
   @Override
   public Double getNthValue( long n ) {

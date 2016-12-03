@@ -98,7 +98,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( !DurativeEvent.this.startTime.isGrounded(deep, null) ) return false;
 
       // Don't elaborate outside the horizon.  Need startTime grounded to know.
-      Integer value = startTime.getValue(true);
+      Long value = startTime.getValue(true);
       //if ( !startTime.isGrounded(deep, null) ) return false;
       if ( value >= Timepoint.getHorizonDuration() ) {
         if ( Debug.isOn() ) Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
@@ -403,20 +403,20 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
     // create the dependency, endTime = startTime + duration
     // TODO -- REVIEW -- should this dependency just be a constraint instead?
-    Functions.Sum< Integer, Integer > sum =
-        new Functions.Sum< Integer, Integer >(
-            new Expression< Integer >( startTime ),
-            new Expression< Integer >( duration ) );
+    Functions.Sum< Long, Long > sum =
+        new Functions.Sum< Long, Long >(
+            new Expression< Long >( startTime ),
+            new Expression< Long >( duration ) );
     endTimeDependency  = addDependency( endTime, sum, false );
-    Functions.Sub< Integer, Integer > sub1 =
-        new Functions.Sub< Integer, Integer >(
-            new Expression< Integer >( endTime ),
-            new Expression< Integer >( duration ) );
+    Functions.Sub< Long, Long > sub1 =
+        new Functions.Sub< Long, Long >(
+            new Expression< Long >( endTime ),
+            new Expression< Long >( duration ) );
     startTimeDependency = addDependency( startTime, sub1, false );
-    Functions.Sub< Integer, Integer > sub2 =
-        new Functions.Sub< Integer, Integer >(
-            new Expression< Integer >( endTime ),
-            new Expression< Integer >( startTime ) );
+    Functions.Sub< Long, Long > sub2 =
+        new Functions.Sub< Long, Long >(
+            new Expression< Long >( endTime ),
+            new Expression< Long >( startTime ) );
     durationDependency = addDependency( duration, sub2, false );
   }
 
@@ -434,16 +434,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       this.startTime.setValue( start );
     }
     if ( duration == null ) duration = new Long(1);
-    this.duration.setValue( duration.intValue(), true );
+    this.duration.setValue( duration.longValue(), true );
   }
   
-  public DurativeEvent( String name, Integer start, Long duration ) {
+  public DurativeEvent( String name, Long start, Long duration ) {
     this( name );
     if ( start != null ) {
       this.startTime.setValue( start );
     }
     if ( duration == null ) duration = new Long(1);
-    this.duration.setValue( duration.intValue(), true );
+    this.duration.setValue( duration.longValue(), true );
   }
   
   public DurativeEvent( String name, String activitiesFileName ) {
@@ -503,10 +503,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                                              Class<? extends Event> eventClass,
                                              Expression<?>[] arguments, 
                                              Expression<Boolean> condition) {
-    Parameter<Integer> lastStart = null;
+    Parameter< Long> lastStart = null;
     Object lastValue = null;
     // Add an elaboration for every non-null value
-    for ( Entry< Parameter< Integer >, ? > e : tvm.entrySet() ) {
+    for ( Entry< Parameter< Long >, ? > e : tvm.entrySet() ) {
       // TODO!! What to do with the value?
       if ( lastStart != null && lastStart.getValue() != null && lastValue != null
            && !Utils.valuesEqual( lastValue, 0 )
@@ -519,12 +519,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         for ( int i = 0; i < arguments.length; ++i ) {
           augmentedArgs[i] = arguments[i];
         }
-        augmentedArgs[arguments.length] = new Expression< Integer >( lastStart );
-        augmentedArgs[arguments.length+1] = new Expression< Integer >( duration.intValue() );
+        augmentedArgs[arguments.length] = new Expression< Long >( lastStart );
+        augmentedArgs[arguments.length+1] = new Expression< Long >( duration.longValue() );
         addElaborationRule( condition, enclosingInstance,
                             eventClass, childName, augmentedArgs );
 //                            new Expression[] { new Expression< String >( childName ),
-//                                               new Expression< Integer >( lastStart.getValue( true ) ),
+//                                               new Expression< Long >( lastStart.getValue( true ) ),
 //                                               new Expression< Long >( duration ) } );
       }
       //addElaborationRule( lastStart, e.getKey(), (Double)null, "event_" + e.getValue().toString() );
@@ -725,13 +725,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       duration = (end.getTime() - start.getTime()) / 1000.0;
     }
     Expression<String> nameExpr = new Expression<String>(name);
-    Expression<Integer> startExpr = 
-        new Expression<Integer>( new Timepoint( start ), Integer.class );
+    Expression< Long> startExpr = 
+        new Expression< Long>( new Timepoint( start ), Long.class );
     //Duration dd = new Duration( name, durVal, durUnits, o );
-    Expression<Integer> durationExpr =
-        new Expression<Integer>( (new Double( duration == null ? 1 :
-                                   duration / Timepoint.conversionFactor( Units.seconds ) ) ).intValue(),
-                                 Integer.class );
+    Expression< Long> durationExpr =
+        new Expression< Long>( (new Double( duration == null ? 1 :
+                                   duration / Timepoint.conversionFactor( Units.seconds ) ) ).longValue(),
+                                 Long.class );
     Class<?> cls = 
         typeName == null ? DurativeEvent.class :
         ClassUtils.getClassForName( typeName, (String)null, (String)null, false );
@@ -1727,7 +1727,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return;
     }
-    String msg = "Deconstructing event: " + this.toString( true, true, null );
+    String msg = "Deconstructing event: " + this.toString( true, false, null );
     if ( Debug.isOn() ) Debug.outln( msg );
     System.err.println( msg );
 
@@ -2296,7 +2296,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 ////
 ////  }
 
-  public <V> Constraint addObservation( Parameter<Integer> timeSampled,
+  public <V> Constraint addObservation( Parameter< Long> timeSampled,
                                         Parameter< V > systemVariable,
                                         V value ) {
 //    String exprString =
@@ -2320,7 +2320,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     constraintExpressions.add( c );
     return c;
   }
-//  public <V> Constraint addObservation( Parameter<Integer> timeSampled,
+//  public <V> Constraint addObservation( Parameter< Long> timeSampled,
 //                                        Parameter<V> systemVariable,
 //                                        V value ) {
 //    return null;

@@ -65,13 +65,13 @@ public class LinearTimeline extends TimeVaryingPlottableMap< Double > {
   }
 
   @Override
-  public Double getValue( Integer t ) {
+  public Double getValue( Long t ) {
     if ( t == null ) return null;
     if ( Debug.isOn() ) isConsistent();
-    Parameter<Integer> tp = makeTempTimepoint( t, true );
-    Entry< Parameter<Integer>, Double > eBefore = this.floorEntry( tp );
+    Parameter< Long > tp = makeTempTimepoint( t, true );
+    Entry< Parameter< Long >, Double > eBefore = this.floorEntry( tp );
     if ( eBefore == null ) return null;
-    Entry< Parameter<Integer>, Double > eAfter = this.ceilingEntry( tp );
+    Entry< Parameter< Long >, Double > eAfter = this.ceilingEntry( tp );
     if ( eAfter == null ) return eBefore.getValue();
     double timeDiff =
         eAfter.getKey().getValue( false ) - eBefore.getKey().getValue( false );

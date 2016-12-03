@@ -48,7 +48,7 @@ public class ParameterListenerImpl extends HasIdImpl
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
-  protected boolean snapshotSimulationDuringSolve = true;
+  protected boolean snapshotSimulationDuringSolve = false;
   protected boolean snapshotToSameFile = true;
   protected int loopsPerSnapshot = 20;  // set to 1 to take snapshot every time
   protected String baseSnapshotFileName = "simulationSnapshot.txt";

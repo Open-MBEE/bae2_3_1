@@ -360,6 +360,12 @@ public class Expression< ResultType > extends HasIdImpl
                     //System.out.print("\nevaluate(" + this + ") = ");
                     //System.out.println("d1.intValue() = " + d.intValue());
                     return (ResultType)(Integer)d.intValue();
+                  } else if ( resultType == Long.class && Double.class.isAssignableFrom(o.getClass()) ) {
+                    Double d = (Double)o;
+                    evaluationSucceeded = true;
+                    //System.out.print("\nevaluate(" + this + ") = ");
+                    //System.out.println("d1.intValue() = " + d.intValue());
+                    return (ResultType)(Long)d.longValue();
                   }
                   evaluationSucceeded = false;
                   throw new ClassCastException();
@@ -388,7 +394,7 @@ public class Expression< ResultType > extends HasIdImpl
                   evaluationSucceeded = true;
                   //System.out.print("\nevaluate(" + this + ") = ");
                   //System.out.println("d2.intValue() = "+d.intValue());
-                  return (ResultType)(Integer)d.intValue();
+                  return (ResultType)(Long)d.longValue();
                 }
               } catch ( Exception e ) {
                 evaluationSucceeded = false;

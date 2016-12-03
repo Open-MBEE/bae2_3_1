@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.event.TimeDomain;
 import gov.nasa.jpl.ae.solver.BooleanDomain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.LongDomain;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -544,9 +545,19 @@ public class ClassData {
 //        args = "\"" + paramName + "\", " + valueArg + ", this";
         argArr = new Object[]{ paramName, TimeDomain.positiveDomain, getCurrentAeClass() };
       }
+    } else if ( paramTypeName.toLowerCase().startsWith( "long" )
+                || paramTypeName.trim().replaceAll( " ", "" )
+                                .equals( "Parameter<Long>" ) ) {
+      type = "LongParameter";
+      parameterTypes = null; // "Integer";
+      // args = "\"" + p.name + "\", this";
+      if ( !Utils.isNullOrEmpty( castType ) ) {
+        // args = "\"" + paramName + "\", " + valueArg + ", this";
+        argArr = new Object[] { paramName, LongDomain.defaultDomain,
+                                getCurrentAeClass() };
+        //castType = castType.toLowerCase();
+      }
     } else if ( paramTypeName.toLowerCase().startsWith( "int" )
-                || paramTypeName.toLowerCase().startsWith( "long" ) // TODO -- Need a
-                                                             // LongParameter
                 || paramTypeName.trim().replaceAll( " ", "" )
                          .equals( "Parameter<Integer>" ) ) {
       type = "IntegerParameter";

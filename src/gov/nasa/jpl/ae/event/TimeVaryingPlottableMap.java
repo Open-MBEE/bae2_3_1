@@ -60,8 +60,8 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    * @param horizonDuration
    */
   public TimeVaryingPlottableMap( String name, Method initialValueFunction,
-                                  Object o, int samplePeriod,
-                                  int horizonDuration ) {
+                                  Object o, long samplePeriod,
+                                  long horizonDuration ) {
     super( name, initialValueFunction, o, samplePeriod, horizonDuration );
     init();
   }
@@ -75,8 +75,8 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
    * @param projected
    */
   public TimeVaryingPlottableMap( String name, Method initialValueFunction,
-                                  Object o, int samplePeriod,
-                                  int horizonDuration, boolean projected ) {
+                                  Object o, long samplePeriod,
+                                  long horizonDuration, boolean projected ) {
     this( name, initialValueFunction, o, samplePeriod, horizonDuration );
     dataProjected = projected;
     init();
@@ -250,8 +250,8 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   }
 
   @Override
-  public TimeVaryingMap< V > integrate(Parameter< Integer > fromKey,
-                                       Parameter< Integer > toKey) {
+  public TimeVaryingMap< V > integrate(Parameter< Long > fromKey,
+                                       Parameter< Long > toKey) {
 
     TimeVaryingPlottableMap<V> tvm = new TimeVaryingPlottableMap< V >( this.name + "Integral", this.type );
     return integrate( fromKey, toKey, tvm );

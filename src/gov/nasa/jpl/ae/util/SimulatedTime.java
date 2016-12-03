@@ -57,7 +57,7 @@ public class SimulatedTime {
 ////  if ( Debug.isOn() ) Debug.outln("waitMillis = " + waitMillis );
     }
     
-    public void sleepUntilSimTime( int simTime ) throws InterruptedException {
+    public void sleepUntilSimTime( long simTime ) throws InterruptedException {
       if ( simTime <= 0 ) return;
       updateTime();
       long actualMillisToSleep = convertSimToActualTimePassed( simTime ) - actualMillisPassed;
@@ -96,7 +96,7 @@ public class SimulatedTime {
      * @param simTime
      * @return
      */
-    public long convertSimToActualTimePassed( int simTime ) {
+    public long convertSimToActualTimePassed( long simTime ) {
       // NOTE: No need to call update() here.
       if ( simTime < simStart + simTimePassed ) {
 //        Debug.errln("Warning: If time scale changed, past sim time may be incorrectly translated to actual.");

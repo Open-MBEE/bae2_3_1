@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.LongDomain;
 import gov.nasa.jpl.ae.solver.TimeVariable;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.TimeUtils;
@@ -22,7 +23,7 @@ import java.util.TimeZone;
 /**
  *
  */
-public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME -- Integer does not have enough precision for small time units, like nanoseconds, over years
+public class Timepoint extends LongParameter implements TimeVariable {//FIXME -- Integer does not have enough precision for small time units, like nanoseconds, over years
 
   // epoch is a timestamp corresponding to TimePoint = 0 as the date/time that
   // the simulation starts. It is an offset of the time since Jan 1, 1970.
@@ -39,21 +40,21 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
   protected static TimeUtils.Units units = TimeUtils.Units.seconds;
 
   protected static int counter = 0;
-  protected static int horizonDuration = 24 * 3600;
+  protected static long horizonDuration = 24 * 3600;
   
-  private final static Timepoint epochTimepoint = new Timepoint( "", 0, null );
+  private final static Timepoint epochTimepoint = new Timepoint( "", 0L, null );
   private static Timepoint horizonTimepoint = null;
   
-  protected static IntegerDomain defaultDomain = IntegerDomain.positiveDomain;
+  protected static LongDomain defaultDomain = LongDomain.positiveDomain;
                                                //= TimeDomain.horizonDomain;
   
-  public int timeSinceMidnight() {
+  public long timeSinceMidnight() {
     if ( !isGrounded( false, null ) ) return 0;
     double f = conversionFactor( TimeUtils.Units.milliseconds );
     long v =  (long)(getValue(false) * f + getEpoch().getTime());
     Date d = new Date( v );
     return timeSinceMidnight( d );
-//    return (int)( ( ( (long)( v * f ) ) % ( 24 * 3600 * 1000 ) ) / f );
+//    return (long)( ( ( (long)( v * f ) ) % ( 24 * 3600 * 1000 ) ) / f );
   }
   
 
@@ -70,7 +71,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
    * @param domain
    * @param o
    */
-  public Timepoint(String name, Domain<Integer> domain, ParameterListener o) {
+  public Timepoint(String name, Domain< Long> domain, ParameterListener o) {
     super(name, domain, o);
   }
 
@@ -79,7 +80,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
 	 * @param n
 	 * @param v
 	 */
-	public Timepoint(String name, Integer value, ParameterListener o) {
+	public Timepoint(String name, Long value, ParameterListener o) {
 		super(name, defaultDomain, value, o);
 	}
 
@@ -89,14 +90,14 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
    * @param value
    * @param o
    */
-  public Timepoint(String name, Domain<Integer> domain, Integer value, ParameterListener o) {
+  public Timepoint(String name, Domain< Long> domain, Long value, ParameterListener o) {
     super(name, domain, value, o);
   }
 
 	/**
    * @param value
    */
-  public Timepoint( int value ) {
+  public Timepoint( long value ) {
     this( "", value, null );
   }
 
@@ -124,17 +125,17 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
     if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
     int compare = 0;
     if ( o instanceof Timepoint ) {
-      Integer v1 = null;
-      Integer v2 = null;
+      Long v1 = null;
+      Long v2 = null;
       try {
-        v1 = Expression.evaluate( this, Integer.class, propagate );
+        v1 = Expression.evaluate( this, Long.class, propagate );
       } catch ( ClassCastException e ) {
       } catch ( IllegalAccessException e ) {
       } catch ( InvocationTargetException e ) {
       } catch ( InstantiationException e ) {
       }
       try {
-        v2 = Expression.evaluate( o, Integer.class, propagate );
+        v2 = Expression.evaluate( o, Long.class, propagate );
       } catch ( ClassCastException e ) {
       } catch ( IllegalAccessException e ) {
       } catch ( InvocationTargetException e ) {
@@ -178,42 +179,42 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
 	  return (long)( f.longValue() );
 	}
 	
-  public static int microseconds( double microseconds ) {
+  public static long microseconds( double microseconds ) {
     return ( (Double)( microseconds
-                       / conversionFactor( Units.microseconds ) ) ).intValue();
+                       / conversionFactor( Units.microseconds ) ) ).longValue();
   }
-  public static int nanoseconds( double nanoseconds ) {
+  public static long nanoseconds( double nanoseconds ) {
     return ( (Double)( nanoseconds
-                       / conversionFactor( Units.nanoseconds ) ) ).intValue();
+                       / conversionFactor( Units.nanoseconds ) ) ).longValue();
   }
-  public static int seconds( double seconds ) {
+  public static long seconds( double seconds ) {
     return ( (Double)( seconds
-                       / conversionFactor( Units.seconds ) ) ).intValue();
+                       / conversionFactor( Units.seconds ) ) ).longValue();
   }
-  public static int milliseconds( double milliseconds ) {
+  public static long milliseconds( double milliseconds ) {
     return ( (Double)( milliseconds
-                       / conversionFactor( Units.milliseconds ) ) ).intValue();
+                       / conversionFactor( Units.milliseconds ) ) ).longValue();
   }
-  public static int minutes( double minutes ) {
+  public static long minutes( double minutes ) {
     return ( (Double)( minutes
-                       / conversionFactor( Units.minutes ) ) ).intValue();
+                       / conversionFactor( Units.minutes ) ) ).longValue();
   }
-  public static int hours( double hours ) {
+  public static long hours( double hours ) {
     return ( (Double)( hours
-                       / conversionFactor( Units.hours ) ) ).intValue();
+                       / conversionFactor( Units.hours ) ) ).longValue();
   }
-  public static int days( double days ) {
+  public static long days( double days ) {
     return ( (Double)( days
-                       / conversionFactor( Units.days ) ) ).intValue();
+                       / conversionFactor( Units.days ) ) ).longValue();
   }
   
-  public static Integer fromMillisToInteger( long millis ) {
-    int t = (int)( Units.conversionFactor( Units.milliseconds, Timepoint.units )
+  public static Long fromMillisToInteger( long millis ) {
+    long t = (long)( Units.conversionFactor( Units.milliseconds, Timepoint.units )
                    * ( millis - Timepoint.epoch.getTime() ) );
     return t;
   }
 
-  public static Integer fromDateToInteger( Date date ) {
+  public static Long fromDateToInteger( Date date ) {
     return fromMillisToInteger( date.getTime() );
   }
 
@@ -226,8 +227,8 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
 	
 	public static Calendar gmtCalendar = TimeUtils.gmtCal;
 	
-  public static Integer fromTimestampToInteger( String timestamp ) {
-    Integer t = null;
+  public static Long fromTimestampToInteger( String timestamp ) {
+    Long t = null;
     DateFormat df = new SimpleDateFormat( TimeUtils.timestampFormat );
     df.setCalendar( gmtCalendar );
     df.setTimeZone( TimeZone.getTimeZone( "GMT" ) );;
@@ -261,13 +262,13 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
   }
 
   public String toTimestamp( String dateFormat, Calendar cal) {
-    Integer val = getValue(false);
+    Long val = getValue(false);
     if ( val == null ) return null;
     return toTimestamp( val, dateFormat, cal );
   }
   
   public String toTimestamp() {
-    Integer val = getValue(false);
+    Long val = getValue(false);
     if ( val == null ) return null;
     return toTimestamp( val );
 //    Double cf = Units.conversionFactor( Units.milliseconds );
@@ -279,7 +280,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
 ////    return timeString;
   }
   
-  public static int timeSinceMidnight( Date start ) {
+  public static long timeSinceMidnight( Date start ) {
     Calendar c1 = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ));
     Calendar c2 = Calendar.getInstance(TimeZone.getTimeZone( "GMT" ));
     c1.setTime( start );
@@ -288,9 +289,9 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
     c2.set(Calendar.MINUTE, 0);
     c2.set(Calendar.SECOND, 0);
     c2.set(Calendar.MILLISECOND, 0);
-    long diffMillis = (int)( c1.getTimeInMillis() - c2.getTimeInMillis() ); 
+    long diffMillis = (long)( c1.getTimeInMillis() - c2.getTimeInMillis() ); 
     double f = conversionFactor( Units.milliseconds );
-    return (int)( diffMillis / f );
+    return (long)( diffMillis / f );
   }
 
   @Override
@@ -365,7 +366,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
   /**
    * @param durationString the horizon duration to set 
    */
-  public static void setHorizonDuration( int duration ) {
+  public static void setHorizonDuration( long duration ) {
     horizonDuration = duration;
     System.out.println("Horizon duration set to " + horizonDuration + " " + units );
     TimeDomain.horizonDomain.setUpperBound( horizonDuration );
@@ -376,7 +377,7 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
   /**
    * @return the horizon duration
    */
-  public static Integer getHorizonDuration() {
+  public static Long getHorizonDuration() {
     return horizonDuration;
   }
 
@@ -385,9 +386,9 @@ public class Timepoint extends IntegerParameter implements TimeVariable {//FIXME
     return fromDate( TimeUtils.gmtCal.getTime() );
   }
 
-  public static Integer julianToInteger( Double julianDate ) {
+  public static Long julianToInteger( Double julianDate ) {
     long millis = TimeUtils.julianToMillis( julianDate );
-    Integer i = fromMillisToInteger( millis );
+    Long i = fromMillisToInteger( millis );
     return i;
   }
 

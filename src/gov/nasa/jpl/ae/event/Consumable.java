@@ -74,7 +74,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   }
   public Consumable( String name, Double initialValue,
                      Method deltaValueFunction, Object o,
-                     int samplePeriod, int horizonDuration,
+                     long samplePeriod, long horizonDuration,
                      Double minCap, Double maxCap ) {
 //  super( name, initialValueFunction, o, samplePeriod, horizonDuration );
     super( name, null, initialValue, Double.class, false );
@@ -83,10 +83,10 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     samplePeriod =
         TimeVaryingMap.correctSamplePeriod( samplePeriod, horizonDuration );
     try {
-      int lastT = 0;
+      long lastT = 0;
       double lastValue = initialValue; 
       if ( Debug.isOn() ) Debug.errln("minCap=" + minCap + "; maxCap=" + maxCap );
-      for ( int t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
+      for ( long t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
       double value =
           (Double)ClassUtils.runMethod( false, o, deltaValueFunction, lastT,
                                         lastValue, t ).second;
@@ -107,7 +107,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   public Consumable( String name, Double initialValue,
                      Method deltaValueFunction, Object o,
-                     int samplePeriod, int horizonDuration) {
+                     long samplePeriod, long horizonDuration) {
     this(name, initialValue, deltaValueFunction, o, samplePeriod, horizonDuration,
          Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
   }
@@ -149,17 +149,17 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     return (TimeVaryingPlottableMap< VV >)emptyClone();
   };
 
-  public double add( Parameter<Integer> t, Double delta ) {
+  public double add( Parameter< Long> t, Double delta ) {
     
     Double valBefore = getValueBefore( t );
     setValue( t, valBefore );  // we're going to add delta to this below.
-    SortedMap< Parameter<Integer>, Double > tail = this.tailMap( t );
+    SortedMap< Parameter< Long>, Double > tail = this.tailMap( t );
     // Had trouble changing the value while iterating through the tail map, so
     // keys are copied to a list, and setValue() is called while walking the list.
     // So, this is nlogn when it should be n.
     if ( delta != null ) {
-      List< Parameter<Integer> > laterTimes = new ArrayList< Parameter<Integer> >( tail.keySet() );
-      for ( Parameter<Integer> tt : laterTimes ) {
+      List< Parameter< Long> > laterTimes = new ArrayList< Parameter< Long> >( tail.keySet() );
+      for ( Parameter< Long> tt : laterTimes ) {
         Double v = getValue( tt );
         if ( v != null ) {
           v = v + delta;
@@ -190,13 +190,13 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   
   public void addDeltaMap( TimeVaryingMap< Double > deltaMap ) {
     if ( deltaMap == null ) return;
-    for ( java.util.Map.Entry< Parameter<Integer>, Double > e : deltaMap.entrySet() ) {
+    for ( java.util.Map.Entry< Parameter< Long>, Double > e : deltaMap.entrySet() ) {
       add( e.getKey(), e.getValue() );
     }
   } 
   
-  public Double getValueBefore( Parameter<Integer> t ) {
-    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+  public Double getValueBefore( Parameter< Long> t ) {
+    Parameter< Long> justBeforeTime = getTimepointBefore( t );
     Double valBefore = new Double(0);
     if ( justBeforeTime != null ) {
       valBefore = get( justBeforeTime );
@@ -213,7 +213,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public static TimeVaryingMap< Double >
       deltaMapPlusEquals( TimeVaryingMap< Double > deltaMap,
                           TimeVaryingMap< Double > otherDeltaMap ) {
-    for ( Entry< Parameter<Integer>, Double > e : otherDeltaMap.entrySet() ) {
+    for ( Entry< Parameter< Long>, Double > e : otherDeltaMap.entrySet() ) {
       Double v = deltaMap.get( e.getKey() );
       if ( v == null ) v = 0.0;
       if ( e.getValue() != null ) v += e.getValue();
@@ -296,14 +296,14 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
       if ( appliedSet.contains( effect ) ) return true;
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
         
-        Pair< Parameter<Integer>, ? > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
+        Pair< Parameter< Long>, ? > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
         if ( p == null ) return false;
         Object o = p.first;
         Object value = p.second;
-        Parameter<Integer> t = null;
+        Parameter< Long> t = null;
         if ( o instanceof Parameter
-            && ( ( (Parameter<?>)o ).getValueNoPropagate() == null || ( (Parameter<?>)o ).getValueNoPropagate() instanceof Integer ) ) {
-          t = (Parameter<Integer>)o;
+            && ( ( (Parameter<?>)o ).getValueNoPropagate() == null || ( (Parameter<?>)o ).getValueNoPropagate() instanceof Long ) ) {
+          t = (Parameter< Long>)o;
         }
 //        Timepoint t = (Timepoint)effectFunction.arguments.get( 0 );
 //        Object o = effectFunction.arguments.get( 1 );
@@ -314,7 +314,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
 //          e.printStackTrace();
 //        }
         if ( value != null ) {
-          Parameter<Integer> justBeforeTime = this.lowerKey( t );
+          Parameter< Long> justBeforeTime = this.lowerKey( t );
           Double valBefore = new Double(0);
           if ( justBeforeTime != null ) {
             valBefore = get( justBeforeTime );
@@ -329,7 +329,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   // As is, setValue() effectively is an add of the difference with the prior
   // map value.  It might be smart to somehow disallow the use of this in effects.
   @Override
-  public Double setValue( Parameter< Integer > t, Double value ) {
+  public Double setValue( Parameter< Long > t, Double value ) {
     if ( value == null ) return null;
     if ( minCap != null && maxCap != null ) {
       assert minCap <= maxCap;

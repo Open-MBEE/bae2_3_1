@@ -266,9 +266,9 @@ public class EventXmlToJava {
     if ( durationString == null || durationString.isEmpty() ) {
       if ( Debug.isOn() ) Debug.errln( "no duration specified; using default" );
     } else {
-      int secs = Math.max( 0, 1 );  // stupid class loader
+      long secs = Math.max( 0, 1 );  // stupid class loader
       secs = XmlUtils.getDurationInSeconds( durationString ) ;
-      Timepoint.setHorizonDuration( (int)(secs / Timepoint.conversionFactor( TimeUtils.Units.seconds )) );
+      Timepoint.setHorizonDuration( (long)(secs / Timepoint.conversionFactor( TimeUtils.Units.seconds )) );
     }
     System.out.println( "horizon duration = " + Timepoint.getHorizonDuration()
                         + Timepoint.getUnits() );
@@ -338,7 +338,7 @@ public class EventXmlToJava {
       if ( !params.containsKey( p.getName() ) ) {
         String pType =
             ( p.getValueNoPropagate() == null 
-              ? "Integer" // TODO -- big assumption! Use p.getClass().
+              ? "Long" // TODO -- big assumption! Use p.getClass().
               : p.getValueNoPropagate().getClass().getSimpleName() );
         params.put( p.getName(),
                     new ClassData.Param( p.getName(), pType,
@@ -403,7 +403,7 @@ public class EventXmlToJava {
             if ( !params.containsKey( p.getName() ) ) {
               String pType =
                   ( p.getValueNoPropagate() == null 
-                    ? "Integer" // TODO -- big assumption! Use p.getClass().
+                    ? "Long" // TODO -- big assumption! Use p.getClass().
                     : p.getValueNoPropagate().getClass().getSimpleName() );
               params.put( p.getName(),
                           new ClassData.Param( p.getName(), pType,
@@ -582,7 +582,7 @@ public class EventXmlToJava {
                    "Timepoint.setEpoch(\"" + Timepoint.getEpoch() + "\");\n" );
     addStatements( mainBody,
                    "Timepoint.setHorizonDuration("
-                   + Timepoint.getHorizonDuration() + ");\n" );
+                   + Timepoint.getHorizonDuration() + "L);\n" );
 
     // Create String args[].
     Type type = ASTHelper.createReferenceType( "String", 1 );
@@ -649,7 +649,7 @@ public class EventXmlToJava {
     
     // Create statements for executing & simulating the scenario event.
     //stmtsSB.append( instanceName + ".executeAndSimulate();\n" );
-    stmtsMain.append( "double animationDuration = Timepoint.seconds(30.0);\n" );
+    stmtsMain.append( "double animationDuration = Timepoint.seconds(10.0);\n" );
     stmtsMain.append( "scenario.executeAndSimulate( Timepoint.getHorizonDuration() / animationDuration );\n" );
     
     // Put the statements in the constructor.
@@ -769,9 +769,9 @@ public class EventXmlToJava {
             }
           }
           if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
-            ClassData.Param p = new ClassData.Param( "startTime", "Integer", null );
+            ClassData.Param p = new ClassData.Param( "startTime", "Long", null );
             arguments.add( p );
-            p = new ClassData.Param( "duration", "Integer", null );
+            p = new ClassData.Param( "duration", "Long", null );
             arguments.add( p );
           }
           List< japa.parser.ast.body.Parameter > parameters =
@@ -808,11 +808,11 @@ public class EventXmlToJava {
 //                                                     "fromTimeVarying" ) );
 //          if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
 //            japa.parser.ast.body.Parameter param =
-//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Integer>" ),
+//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Long>" ),
 //                                           "startTime" );
 //            parameters.add( param );
 //            param =
-//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Integer>" ),
+//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Long>" ),
 //                                           "duration" );
 //            parameters.add( param );
 //          }
@@ -1442,6 +1442,7 @@ public class EventXmlToJava {
     //addImport( "gov.nasa.jpl.ae.event.*" );
     addImport( "gov.nasa.jpl.ae.event.Parameter" );
     addImport( "gov.nasa.jpl.ae.event.IntegerParameter" );
+    addImport( "gov.nasa.jpl.ae.event.LongParameter" );
     addImport( "gov.nasa.jpl.ae.event.DoubleParameter" );
     addImport( "gov.nasa.jpl.ae.event.StringParameter" );
     addImport( "gov.nasa.jpl.ae.event.BooleanParameter" );

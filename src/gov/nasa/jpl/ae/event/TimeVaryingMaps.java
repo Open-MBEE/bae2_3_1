@@ -127,7 +127,7 @@ public class TimeVaryingMaps< V > extends TimeVaryingMap< V > {
       }
     }
     if ( computeAvg ) {
-      for ( Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+      for ( Map.Entry< Parameter< Long >, V > e : entrySet() ) {
 //        Number v = Expression.evaluate( e.getValue(), Number.class, false );
         try {
           e.setValue( Functions.divide( e.getValue(), numberOfSubmaps ) );

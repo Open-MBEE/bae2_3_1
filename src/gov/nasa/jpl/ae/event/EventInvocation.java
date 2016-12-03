@@ -107,14 +107,14 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( tvm == null ) return null;
     Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
     DurativeEvent parent = new DurativeEvent(eventName, tvm, enclosingInstance, eventClass, exprArguments );
-    parent.addDependency( parent.startTime,  new Expression<Integer>(0) );
-    parent.addDependency( parent.duration,  new Expression<Integer>(1) );
+    parent.addDependency( parent.startTime,  new Expression< Long>(0) );
+    parent.addDependency( parent.duration,  new Expression< Long>(1) );
     parent.elaborate( false );
     setStale( false );
     return parent;
   }
   
-  public Event invoke(Parameter<Integer> start, Parameter<Integer> end) {
+  public Event invoke(Parameter< Long> start, Parameter< Long> end) {
     Event event = constructEvent();
     
     if ( event != null ) {
@@ -130,7 +130,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     return constructEvent(null, null);
     
   }
-  private Event constructEvent(Parameter<Integer> start, Parameter<Integer> end) {
+  private Event constructEvent(Parameter< Long> start, Parameter< Long> end) {
     Event event = null;
     Pair< Constructor< ? >, Object[] > ctorAndArgs =
         // makeConstructor();
