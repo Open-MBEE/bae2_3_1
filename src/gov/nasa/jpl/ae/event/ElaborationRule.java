@@ -86,14 +86,17 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     return r;//( condition == null || condition.evaluate(true) );
   }
   
-  public boolean attemptElaboration( Vector< Event > elaboratedEvents,
+  public boolean attemptElaboration( Event parent,
+                                     Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan ) {
-    return attemptElaboration( elaboratedEvents, elaborateIfCan,
+    return attemptElaboration( parent,
+                               elaboratedEvents, elaborateIfCan,
                                tryToSatisfyOnElaboration,
                                satisfyDeepOnElaboration );
   }
   // Fix elaboration and return whether it is elaborated.
-  public boolean attemptElaboration( Vector< Event > elaboratedEvents,
+  public boolean attemptElaboration( Event parent,
+                                     Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan,
                                      boolean satisfyOnElaboration,
                                      boolean satisfyDeep ) {
@@ -109,7 +112,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     // that by resetting stale to false.
     if ( elaborated ) stale = false;
     if ( ( elaborated && !conditionSatisfied ) ||
-         eventInvocations == null || eventInvocations.isEmpty() || isStale() ) {
+         eventInvocations == null || eventInvocations.isEmpty() || (!condition.isStale() && isStale()) ) {
       // Need to un-elaborate!
       // TODO -- REVIEW -- Does this leak memory?
       // TODO -- REVIEW -- Is this called by anyone keeping constraints and
@@ -144,6 +147,9 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
         Event event = ei.invoke();
         if ( event != null ) {
           elaboratedEvents.add( event );
+          if ( event instanceof DurativeEvent ) {
+            ((DurativeEvent)event).setOwner( parent );
+          }
           Debug.getInstance().logForce( "elaborated "
                               + MoreToString.Helper.toString( event, true,
                                                               false, null ) );
@@ -189,6 +195,17 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     return v;
   }
   */
+
+  public boolean isTimeVaryingStale() {
+    if ( eventInvocations == null ) return false;
+    for ( EventInvocation i : eventInvocations ) {
+      if ( i.isTimeVaryingStale() ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
 
   @Override
   public int compareTo( ElaborationRule o ) {

@@ -449,11 +449,18 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( HasParameters.Helper.isStale( getArguments(), false, null ) ) {
       setStale( true );
     }
-    if ( !stale && fromTimeVarying != null && fromTimeVarying.isStale() ) {
+    if ( !stale && isTimeVaryingStale() ) {
       setStale( true );
     }
     return stale;
   }
+  
+  public boolean isTimeVaryingStale() {
+    boolean s = fromTimeVarying != null && fromTimeVarying.isStale();
+    return s;
+  }
+
+
 
   @Override
   public void setStale( boolean staleness ) {

@@ -1648,7 +1648,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if (p.first) return;
     seen = p.second;
     if ( changedParameter == null ) return;
-    if ( hasParameter( changedParameter, true, null ) ) {
+    if ( hasParameter( changedParameter, false, null ) ) {
       setStale(true);
     }
     // TODO -- make a helper for ParameterListener since this should be applied

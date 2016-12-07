@@ -230,7 +230,6 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() start: " + this );
     assert mayPropagate;
     if ( isStale() ) {
-      if ( value instanceof ParameterListener && ((ParameterListener)value).isStale() ) 
       if ( owner != null ) { 
         owner.refresh( this );
         if ( Debug.isOn() ) Debug.outln( "Parameter.getValue() refreshed: " + this );
@@ -803,11 +802,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public void setStale( boolean staleness ) {
-    if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
-                                                  + toShortString() );
-    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
-    if ( name.contains( "effect65Var" ) ) {
-      Debug.out( "" );
+    if ( Debug.isOn() ) {
+      if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
+                                                    + toShortString() );
+      Debug.outln( "setStale(" + staleness + ") to " + this );
     }
     stale = staleness;
   }

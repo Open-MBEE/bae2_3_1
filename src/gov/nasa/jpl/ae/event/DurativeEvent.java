@@ -115,8 +115,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       for ( Pair< ElaborationRule, Vector< Event > > p : list ) {
         ElaborationRule r = p.first;
         Vector< Event > events = p.second;
-        if ( r.isStale() || isElaborated( events ) != r.isConditionSatisfied() ) {
-          if ( r.attemptElaboration( events, true,
+        boolean sat = r.isConditionSatisfied();
+        if ( r.isStale() || (isElaborated( events ) != sat )) {
+          if ( r.attemptElaboration( DurativeEvent.this, events, true,
                                      tryToSatisfyOnElaboration,
                                      deepSatisfyOnElaboration ) ) {
             if ( !r.isConditionSatisfied() ) satisfied = false;
@@ -1383,8 +1384,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   @Override
   public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
-                                                               Set< ParameterListenerImpl > seen ) {
-    Pair< Boolean, Set< ParameterListenerImpl > > pair =
+                                                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair =
         Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -1692,7 +1693,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
 
       Vector< Event > oldEvents = entry.getValue();
-      elaborated = entry.getKey().attemptElaboration( oldEvents, true );
+      elaborated = entry.getKey().attemptElaboration( this, oldEvents, true );
     }
     return elaborated;
   }

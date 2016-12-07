@@ -31,6 +31,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,7 @@ import junit.framework.AssertionFailedError;
  * reinserts the entry after the {@link Parameter< Long>} has changed.
  *
  */
-public class TimeVaryingMap< V > extends TreeMap< Parameter< Long>, V >
+public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                  implements Cloneable,
                                             TimeVarying< Long, V >,
                                             Affectable,
@@ -4090,14 +4091,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long>, V >
   public void unapply( Effect effect, boolean timeArgFirst ) {
     if ( isArithmeticEffect( effect ) ) {
       Effect inverseEffect = getInverseEffect( effect );
+      if ( Debug.isOn() ) {
+        Debug.outln( "unapply("
+                     + MoreToString.Helper.toString( effect, true, false, null )
+                     + ") : inverseEffect = "
+                     + MoreToString.Helper.toString( effect, true, false,
+                                                     null ) );
+      }
       if ( canBeApplied( inverseEffect ) ) {
         inverseEffect.applyTo( this, true );
         appliedSet.remove(effect);
+        appliedSet.remove( inverseEffect );
       } else {
         Debug.error( true, "Error! Cannot unapply effect: "
                            + MoreToString.Helper.toLongString( effect ) );
       }
-      return;
+//      return;
     }
     Pair< Parameter< Long>, V > p =
         getTimeAndValueOfEffect( effect, timeArgFirst );
@@ -5559,6 +5568,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long>, V >
     return sb.toString();
   }
 
+  public static Map< Method, Integer > effectMethodsMap() {
+    if ( effectMethods == null ) effectMethods = initEffectMethods();
+    return effectMethods;
+  }
   public Map< Method, Integer > getEffectMethodsMap() {
     if ( effectMethods == null ) effectMethods = initEffectMethods();
     return effectMethods;
@@ -5566,16 +5579,34 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long>, V >
 
   @Override
   public Collection< Method > getEffectMethods() {
-    Map< Method, Integer > m = getEffectMethodsMap();
+    return effectMethods();
+  }
+
+  public static Collection< Method > effectMethods() {
+    Map< Method, Integer > m = effectMethodsMap();
     if ( m == null ) return null;
     return m.keySet();
   }
 
-  @Override
-  public boolean doesAffect( Method method ) {
-    return getEffectMethods().contains( method );
+  protected static LinkedHashSet< String > effectNames = null; 
+  public static Set< String > effectMethodNames() {
+    if ( effectNames == null ) {
+      effectNames = new LinkedHashSet< String >();
+      for ( Method m : effectMethods() ) {
+        effectNames.add( m.getName() );
+      }
+    }
+    return effectNames;
   }
 
+  @Override
+  public boolean doesAffect( Method method ) {
+    return affects(method);
+  }
+  public static boolean affects( Method method ) {
+    return effectMethods().contains( method );
+  }
+  
   protected static Map< Method, Integer > initEffectMethods() {
     methodComparator = new Comparator< Method >() {
 

@@ -1099,7 +1099,21 @@ public class JavaForFunctionCall {
     // Assume it's an effect if the object it's called from is Affectable, and
     // try to prove that the function is not one of the effect functions for
     // that class.
-    setEffectFunction( getObjectType() != null && Affectable.class.isAssignableFrom( getObjectType() ) );
+    if ( getObjectType() != null && Affectable.class.isAssignableFrom( getObjectType() ) ) {
+      if ( isMethodOrConstructor() && getMethodCallExpr() != null
+           && getMethodCallExpr().getName() != null
+           && !getMethodCallExpr().getName().startsWith( "getValue" )
+           && ( getCallName() == null || getObjectType() != TimeVaryingMap.class
+                || TimeVaryingMap.effectMethodNames()
+                                 .contains( getCallName() ) ) ) {
+        setEffectFunction( true );
+      } else {
+        setEffectFunction( false );
+      }
+    } else {
+      setEffectFunction( false );
+    }
+    
     // HACK -- not going to try and prove it isn't.
 //    if ( isEffectFunction && type != null ) {
 //      Class<?>[] types = new Class<?>[]{ TimeVaryingMap, TimeVaryingList, ObjectFlow, Consumable, 

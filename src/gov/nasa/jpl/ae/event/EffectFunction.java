@@ -2,11 +2,13 @@ package gov.nasa.jpl.ae.event;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.Vector;
 
 /**
@@ -120,6 +122,30 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 //		return null;
 //	}
 
+	public < TT, T > String effectStatus(TimeVarying< TT, T > tv, boolean propagate) {
+    if ( tv instanceof TimeVaryingMap ) {
+      TimeVaryingMap<T> tvm = (TimeVaryingMap<T>)tv;
+      Pair< Parameter< Long >, Object > pair = tvm.getTimeAndValueOfEffect( this );
+      Parameter<Long> p = pair.first;
+      if ( p != null && p.getValue(propagate) != null ) {
+        Long t = p.getValue(propagate);
+        Parameter<Long> pb = tvm.getTimepointEarlier( t );
+        if ( pb == null ) pb = p;
+        Parameter<Long> pa = tvm.getTimepointLater( t );
+        if ( pa == null ) pa = p;
+        if ( pa.getValue(propagate) != null && pb.getValue( propagate ) != null ) {   
+          SortedMap< Parameter< Long >, ? > m = tvm.subMap( pb, true, pa, true );
+          return "state of effect on " + tvm.getName() + ": " + m;
+        } else {
+          return "state of effect on " + tvm.getName()
+                 + "): bad timepoints; before=" + pb + ", at=" + p + ", after="
+                 + pa;
+        }
+      }
+    }
+    return "";
+	}
+	
 	/* (non-Javadoc)
 	 * @see Effect#applyTo(TimeVarying, Timepoint, Duration)
 	 */
@@ -127,16 +153,18 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 	public < TT, T > TimeVarying< TT, T > applyTo( TimeVarying< TT, T > tv, boolean propagate ) {//, Timepoint t, Duration d ) {
 	  //setStartTimeArgument( t );
 	  //setDurationArgument( d );
+	  if ( Debug.isOn() ) Debug.outln("applying effect: " + MoreToString.Helper.toString( this, true, false, null ));
+	  if ( Debug.isOn() ) Debug.outln("before " + effectStatus(tv, propagate));
     if ( object != tv && tv != null
          && ( object == null ||
               ( object instanceof Parameter && 
-                ((Parameter)object).getValue( true ) == null ) ) ) {
+                ((Parameter<?>)object).getValue( true ) == null ) ) ) {
       Debug.error( true, "Warning! Assigning object of EffectFunction=(" + this
                          + ") to " + tv + "!" );
       object = tv;
     }
     if ( tv != null && object instanceof Parameter
-         && !( (Parameter)object ).getValue( true ).equals( tv ) ) {
+         && !( (Parameter<?>)object ).getValue( true ).equals( tv ) ) {
       Debug.error( true, "Object of EffectFunction=(" + this
                          + ") does not match " + tv + "!" );
     }
@@ -159,7 +187,8 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     try {
       evaluate(propagate);
       if (tv instanceof TimeVaryingMap) {
-        ((TimeVaryingMap<T>) tv).wasApplied(this);
+        boolean was = ((TimeVaryingMap<?>) tv).wasApplied(this);
+        if ( Debug.isOn() ) Debug.outln("effect was " + (was ? "" : "not ") + "applied: " + effectStatus(tv, propagate));
       }
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block

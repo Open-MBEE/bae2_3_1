@@ -652,7 +652,7 @@ public class Dependency< T > extends HasIdImpl
     if (p.first) return;
     seen = p.second;
     
-    if ( expression.hasParameter( changedParameter, true, null ) ) {
+    if ( expression.hasParameter( changedParameter, false, null ) ) {
       expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
     }

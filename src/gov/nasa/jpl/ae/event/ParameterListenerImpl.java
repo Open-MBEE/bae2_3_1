@@ -807,7 +807,7 @@ public class ParameterListenerImpl extends HasIdImpl
 
   public static HashSet<ParameterListenerImpl> getNonEventObjects( Object o,
                                                                    boolean deep,
-                                                                   Set< ParameterListenerImpl > seen) {
+                                                                   Set< HasParameters > seen) {
     HashSet< ParameterListenerImpl > s = new HashSet< ParameterListenerImpl >();
     if ( o instanceof ParameterListenerImpl ) {
       ParameterListenerImpl pl = (ParameterListenerImpl)o;
@@ -837,8 +837,8 @@ public class ParameterListenerImpl extends HasIdImpl
    * @return
    */
   public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
-                                                               Set< ParameterListenerImpl > seen ) {
-    Pair< Boolean, Set< ParameterListenerImpl > > pair = Utils.seen( this, deep, seen );
+                                                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
 
@@ -944,6 +944,10 @@ public class ParameterListenerImpl extends HasIdImpl
       if ( tv instanceof ParameterListener ) {
         ((ParameterListener)tv).handleValueChangeEvent( parameter );
       }
+    }
+    Collection< ParameterListenerImpl > pls = getNonEventObjects( true, null );
+    for ( ParameterListenerImpl pl : pls ) {
+      pl.handleValueChangeEvent( parameter );
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
       c.handleValueChangeEvent( parameter );
@@ -1116,10 +1120,16 @@ public class ParameterListenerImpl extends HasIdImpl
     for ( Dependency<?> d : getDependencies() ) {
       d.setStaleAnyReferencesTo( changedParameter, seen );
     }
-    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( false, null ) ) {
       if ( tv instanceof ParameterListener ) {
         ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter, seen );
       }
+    }
+    seen.remove( this );
+    Collection< ParameterListenerImpl > pls = getNonEventObjects( false, seen );
+    for ( ParameterListenerImpl pl : pls ) {
+      seen.remove( pl );
+      pl.setStaleAnyReferencesTo( changedParameter, seen );
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
       c.setStaleAnyReferencesTo( changedParameter, seen );
