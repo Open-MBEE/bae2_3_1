@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
   <epoch>2026-04-19T00:00:00-00:00</epoch>
-  <horizon>PT100S</horizon>
+  <horizon>PT30S</horizon>
   <timeUnits>seconds</timeUnits>
   <eventToBeExecuted>
     <eventType>E1</eventType>
-    <eventName>e1</eventName>
+    <!-- <eventName>e1</eventName> -->
     <arguments>
       <parameter><name>startTime</name><type>Long</type><value>0</value></parameter>
       <parameter><name>duration</name><type>Long</type><value>10</value></parameter>
@@ -51,9 +51,10 @@
          <elaboration>
            <eventInvocation>
              <enclosingInstance>this</enclosingInstance>
-             <eventType>E2</eventType><eventName>e2</eventName>
+             <eventType>E2</eventType>
+             <!-- <eventName>e2</eventName> -->
              <arguments>
-                <parameter><name>e1</name><value>this</value></parameter>
+                <parameter><name>p12</name><value>p12</value></parameter>
                 <parameter><name>p2</name><value>"value of p2"</value></parameter>
              </arguments>
              <fromTimeVarying>p1</fromTimeVarying>
@@ -65,14 +66,15 @@
          <elaboration>
            <eventInvocation>
              <enclosingInstance>this</enclosingInstance>
-             <eventType>E1</eventType><eventName>ee1</eventName>
+             <eventType>E1</eventType>
+             <!-- <eventName>ee1</eventName> -->
              <arguments>
                 <parameter><name>startTime</name><type>Long</type><value>endTime</value></parameter>
                 <parameter><name>duration</name><type>Long</type><value>10</value></parameter>
              </arguments>
            </eventInvocation>
            <condition>
-             <expression>startTime &lt; 90</expression>
+             <expression>endTime &lt; 20</expression>
            </condition>
          </elaboration>
        </elaborations>
@@ -82,8 +84,8 @@
          <name>E2</name>
          <members>
            <parameter>
-            <name>e1</name>
-            <type>E1</type>
+            <name>p12</name>
+            <type>TimeVaryingPlottableMap&lt; Double &gt;</type>
            </parameter>
            <parameter>
             <name>p2</name>
@@ -98,10 +100,10 @@
        </class>
        <effects>
         <effect>
-            e1.p12.add(startTime, 2.0)
+            p12.add(2.0, startTime)
         </effect>
         <effect>
-            e1.p12.add(endTime, -2.0)
+            p12.add(-2.0, endTime)
         </effect>
        </effects>
        <elaborations>
