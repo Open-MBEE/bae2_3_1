@@ -464,7 +464,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 
   @Override
   public void setStale( boolean staleness ) {
-    if ( Debug.isOn() && !stale && staleness ) {
+    if ( !stale && staleness ) {
       System.out.println( "event invocation stale: " + this );
     }
     stale = staleness;
