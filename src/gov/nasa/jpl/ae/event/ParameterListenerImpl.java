@@ -26,6 +26,7 @@ import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.HasName;
 import gov.nasa.jpl.mbee.util.Utils;
 
 /**
@@ -196,10 +197,28 @@ public class ParameterListenerImpl extends HasIdImpl
     // TODO -- REVIEW -- Can this just call MoreToString.Helper.toString(params)?
     sb.append( "(" );
     boolean first = true;
-    if ( !Utils.isNullOrEmpty( name ) ) {
-      sb.append( "name=" + name );
-      first = false;
+    
+    if ( !Utils.isNullOrEmpty( getName() ) ) {
+      if ( first ) first = false;
+      else sb.append( ", " );
+      sb.append( "name=" + getName() );
     }
+    
+    String qName = getQualifiedName();
+    if ( !Utils.isNullOrEmpty( qName ) ) {
+      if ( first ) first = false;
+      else sb.append( ", " );
+      sb.append( "qualifiedName=" + qName );
+    }
+    
+    if ( first ) first = false;
+    else sb.append( ", " );
+    sb.append( "id=" + id );
+    
+    if ( first ) first = false;
+    else sb.append( ", " );
+    sb.append( "qualifiedId=" + getQualifiedId() );
+    
     Set< Parameter< ? > > allParams = getParameters( false, null );
     for ( Parameter<?> p : allParams ) {
       if ( first ) first = false;
@@ -748,17 +767,18 @@ public class ParameterListenerImpl extends HasIdImpl
 //          if ( p.getName() != null && p.getName().contains( "telecomPower" ) ) {
 //            System.out.println("here1ß");
 //          }
-          if ( paramsAndTvms.containsKey( p.getName() ) ) {
-            Debug.error( false, false, "Already have a parameter with name " + p.getName() + "!");
+          String qName = p.getQualifiedName(null);
+          if ( paramsAndTvms.containsKey( qName ) ) {
+            Debug.error( false, false, "Already have a parameter with name " + qName + "!");
           } else {
-            paramsAndTvms.put(p.getName(), p );
+            paramsAndTvms.put(qName, p );
             tvs.remove( o );
           }
         }
     }
     for ( TimeVarying< ?, ? > tv : tvs ) {
       if ( tv instanceof TimeVaryingMap ) {
-        String name = ((TimeVaryingMap<?>)tv).getName();
+        String name = ((TimeVaryingMap<?>)tv).getQualifiedName(null);
         if ( !paramsAndTvms.containsKey( name ) ) {
           paramsAndTvms.put( name, tv );
         }
@@ -931,33 +951,40 @@ public class ParameterListenerImpl extends HasIdImpl
   // handleValueChangeEvent( parameter, newValue ) updates dependencies,
   // effects, and elaborations for the changed parameter.
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+
     // REVIEW -- Should we be passing in a set of parameters? Find review/todo
     // note on staleness table.
     
     // Alert affected dependencies.
     for ( Dependency<?> d : getDependencies() ) {
-      d.handleValueChangeEvent( parameter );
+      d.handleValueChangeEvent( parameter, seen );
     }
     // Alert affected timelines.
     for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
-        ((ParameterListener)tv).handleValueChangeEvent( parameter );
+        ((ParameterListener)tv).handleValueChangeEvent( parameter, seen );
       }
     }
     Collection< ParameterListenerImpl > pls = getNonEventObjects( true, null );
     for ( ParameterListenerImpl pl : pls ) {
-      pl.handleValueChangeEvent( parameter );
+      pl.handleValueChangeEvent( parameter, seen );
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
-      c.handleValueChangeEvent( parameter );
+      c.handleValueChangeEvent( parameter, seen );
     }
 
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
-                                       //Domain< ? > newDomain ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
     // TODO -- What are we supposed to do? call satisfy()??? Not caching
     // constraint violations as of 2012-08-03.
   }
@@ -966,6 +993,26 @@ public class ParameterListenerImpl extends HasIdImpl
   public String getName() {
     if ( name != null ) return name;
     return getClass().getSimpleName();
+  }
+  
+  @Override
+  public String getQualifiedName(java.util.Set<Object> seen) {
+    String n = HasOwner.Helper.getQualifiedName( this, seen );
+    return n;
+  };
+  
+  @Override
+  public String getQualifiedId(java.util.Set<Object> seen) {
+    String i = HasOwner.Helper.getQualifiedId( this, seen );
+    return i;
+  };
+  
+  public String getQualifiedName() {
+    return getQualifiedName( null );
+  }
+  
+  public String getQualifiedId() {
+    return getQualifiedId( null );
   }
 
   public void setName( String newName ) {

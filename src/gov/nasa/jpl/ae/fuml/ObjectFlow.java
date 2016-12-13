@@ -129,19 +129,29 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > p ) {
+  public void handleDomainChangeEvent( Parameter< ? > param, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     for ( ObjectFlow<Obj> of : getListeners() ) {
-      of.handleDomainChangeEvent( p );
+      of.handleDomainChangeEvent( param, seen );
     }
-    super.handleDomainChangeEvent( p );
+    seen.remove( this );
+    super.handleDomainChangeEvent( param, seen );
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > p ) {
+  public void handleValueChangeEvent( Parameter< ? > param, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     for ( ObjectFlow<Obj> of : getListeners() ) {
-      of.handleValueChangeEvent( p );
+      of.handleValueChangeEvent( param, seen );
     }
-    super.handleValueChangeEvent( p );
+    seen.remove( this );
+    super.handleValueChangeEvent( param, seen );
   }
 
   @Override

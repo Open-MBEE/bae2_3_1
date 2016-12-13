@@ -179,6 +179,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return false;
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.mbee.util.HasName#getName()
+   */
+  @Override
   public String getName() {
     return name;
   }
@@ -187,6 +191,24 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     this.name = name;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasOwner#getQualifiedName(java.util.Set)
+   */
+  @Override
+  public String getQualifiedName(java.util.Set<Object> seen) {
+    String n = HasOwner.Helper.getQualifiedName( this, seen );
+    return n;
+  };
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasOwner#getQualifiedId(java.util.Set)
+   */
+  @Override
+  public String getQualifiedId(java.util.Set<Object> seen) {
+    String i = HasOwner.Helper.getQualifiedId( this, seen );
+    return i;
+  };
+  
   /**
    * @return the domain
    */
@@ -212,7 +234,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     this.domain = domain;
     if ( propagate && owner != null ) {
       //owner.setStaleAnyReferencesTo( this );
-      owner.handleDomainChangeEvent( this );
+      owner.handleDomainChangeEvent( this, null );
     }
   }
 
@@ -378,7 +400,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): handleValueChangeEvent("
                                          + this.toString( true, false, null ) + ")" );
-        owner.handleValueChangeEvent( this );
+        owner.handleValueChangeEvent( this, null );
       }
     }
     setStale( false );

@@ -10,6 +10,7 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
+import gov.nasa.jpl.mbee.util.HasName;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.Pair;
@@ -919,16 +920,32 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     seen = pair.second;
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() + "::");
-    sb.append( getName() );
+    //sb.append( getName() );
+    sb.append( getQualifiedName() );
     if ( withHash ) sb.append( "@" + hashCode() );
     sb.append( "(" );
+    boolean first = true;
+    
+    if ( !Utils.isNullOrEmpty( getName() ) ) {
+      if ( first ) first = false;
+      else sb.append( ", " );
+      sb.append( "name=" + getName() );
+    }
+    
+    if ( first ) first = false;
+    else sb.append( ", " );
+    sb.append( "id=" + id );
+    
+    if ( first ) first = false;
+    else sb.append( ", " );
+    sb.append( "qualifiedId=" + getQualifiedId() );
+    
     Parameter<?> firstParams[] = { startTime, duration, endTime };  // Could use Arrays.sort() .search()
     List< Parameter< ? > > allParams =
         new ArrayList< Parameter< ? > >(Arrays.asList( firstParams ));
     Set< Parameter< ? > > restParams = getParameters( false, null );
     restParams.removeAll( allParams );
     allParams.addAll( restParams );
-    boolean first = true;
     for ( Object p : allParams ) {
       if ( first ) first = false;
       else sb.append( ", " );
@@ -2150,17 +2167,22 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * effects, and elaborations for the changed parameter.
    */
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // REVIEW -- Should we be passing in a set of parameters? Find review/todo
     // note on staleness table.
 
     // The super class updates the dependencies.
-    super.handleValueChangeEvent( parameter );
+    seen.remove( this );
+    super.handleValueChangeEvent( parameter, seen );
 
     // Update other events
     for ( Event e : getEvents( false, null ) ) {
       if ( e instanceof ParameterListener ) {
-        ((ParameterListener)e).handleValueChangeEvent( parameter );
+        ((ParameterListener)e).handleValueChangeEvent( parameter, seen );
       }
     }
   }

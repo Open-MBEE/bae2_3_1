@@ -14,6 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import gov.nasa.jpl.ae.event.TimeVaryingMap.TimeValue;
+import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.Wraps;
 
 /**
  * This class is the same as TimeVaryingMap< V > but implements Plottable.
@@ -52,6 +55,14 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     return super.getParameters();
   }
 
+  /**
+   * Construct an empty map.
+   */
+  public TimeVaryingPlottableMap() {
+    super();
+    init();
+  }
+  
   /**
    * @param name
    * @param initialValueFunction
@@ -275,6 +286,29 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   public void setProjection( boolean b ) {
     dataProjected = b;
   }
+  
+  protected static boolean isNumber( Object o ) {
+    if ( o instanceof Number ) return true;
+    if ( o instanceof Wraps ) {
+      if ( Number.class.isAssignableFrom( ((Wraps<?>)o).getType() ) ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  @Override
+  protected TimeVaryingMap<Object> getEmptyMap( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<?> mapToClone = mapToClone(thenObj, elseObj);
+    TimeVaryingMap<Object> newTvm;
+    if ( mapToClone == null && isNumber(thenObj) && isNumber(elseObj) ) {
+      newTvm = new TimeVaryingPlottableMap<Object>();
+    } else {
+      newTvm = (TimeVaryingMap< Object >)( mapToClone == null ? new TimeVaryingMap<Object>() : mapToClone.emptyClone() );
+    }
+    return newTvm;
+  }
+  
   
   @Override
   public void fromString( String s, Class< V > cls ) {

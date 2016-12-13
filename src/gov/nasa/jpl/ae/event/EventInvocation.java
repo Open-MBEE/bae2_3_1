@@ -446,9 +446,9 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   @Override
   public boolean isStale() {
     if ( stale ) return true;
-    if ( HasParameters.Helper.isStale( getArguments(), false, null ) ) {
-      setStale( true );
-    }
+//    if ( HasParameters.Helper.isStale( getArguments(), false, null ) ) {
+//      setStale( true );
+//    }
     if ( !stale && isTimeVaryingStale() ) {
       setStale( true );
     }
@@ -464,6 +464,9 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 
   @Override
   public void setStale( boolean staleness ) {
+    if ( Debug.isOn() && !stale && staleness ) {
+      System.out.println( "event invocation stale: " + this );
+    }
     stale = staleness;
   }
 
@@ -502,26 +505,49 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 
   public boolean setStaleAnyReferenceTo( Parameter< ? > p, Set< HasParameters > seen ) {
     if ( p == null ) return false;
+    //if ( p != null ) return false; // short circuiting
+    if ( fromTimeVarying == null ) return false;
+
     Pair< Boolean, Set< HasParameters > > sp = Utils.seen( this, true, seen );
     if (sp.first) return false;
     seen = sp.second;
-    Set<Parameter<?> > params = getParameters( false, null );
-    if ( params.contains( p ) ) {
-      setStale( true );
-      return true;
-    }
+//    Set<Parameter<?> > params = getParameters( false, null );
+//    if ( params.contains( p ) ) {
+//      setStale( true );
+//      return true;
+//    }
     // Sometimes the effect?Var has a timeline that matches the input parameter.
-    if ( p.getValueNoPropagate() instanceof TimeVaryingMap ) {
-      TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)p.getValueNoPropagate();
-      for ( Parameter<?> pp : params ) {
-        Object o = pp.getValueNoPropagate();
-        TimeVaryingMap<?> tvm2 = Functions.tryToGetTimelineQuick( o ); 
-        if ( tvm.equals( tvm2 ) ) {
-          setStale(true);
-          return true;
-        }
+    TimeVaryingMap< ? > tvm1 = Functions.tryToGetTimelineQuick( fromTimeVarying );
+    if ( tvm1 == null ) {
+      try {
+        tvm1 = Expression.evaluate( fromTimeVarying, TimeVaryingMap.class, true );
+      } catch ( ClassCastException e ) {
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        e.printStackTrace();
       }
     }
+    TimeVaryingMap< ? > tvm2 = Functions.tryToGetTimelineQuick( p );
+    if ( tvm1 == tvm2 ) {
+      setStale(true);
+      return true;
+    }
+//    if ( p.getValueNoPropagate() instanceof TimeVaryingMap ) {
+//      TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)p.getValueNoPropagate();
+//      TimeVaryingMap<?> tvm2 = Functions.tryToGetTimelineQuick( o );
+//      for ( Parameter<?> pp : params ) {
+//        Object o = pp.getValueNoPropagate();
+//        TimeVaryingMap<?> tvm2 = Functions.tryToGetTimelineQuick( o ); 
+//        if ( tvm.equals( tvm2 ) ) {
+//          setStale(true);
+//          return true;
+//        }
+//      }
+//    }
     return false;
   }
 

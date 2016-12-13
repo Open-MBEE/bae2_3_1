@@ -627,7 +627,8 @@ public class Functions {
     if ( p != null && p.second != null ) {
       Object thenObj = thenExpr.evaluate( true );
       Object elseObject = elseExpr.evaluate( true );
-      T result = (T)p.second.ifThenElse( thenObj, elseObject );
+      T result = (T)(new TimeVaryingPlottableMap()).ifThenElse( p.second, thenObj, elseObject );
+      //T result = (T)p.second.ifThenElse( thenObj, elseObject );
       return result;
     }
     Object o = Expression.evaluate( conditionExpr, Boolean.class, true );

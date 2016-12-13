@@ -1217,16 +1217,26 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+
     if ( expression instanceof ParameterListener ) {
-      ( (ParameterListener)expression ).handleValueChangeEvent( parameter );
+      ( (ParameterListener)expression ).handleValueChangeEvent( parameter, seen );
     }
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+
     if ( expression instanceof ParameterListener ) {
-      ( (ParameterListener)expression ).handleDomainChangeEvent( parameter );
+      ( (ParameterListener)expression ).handleDomainChangeEvent( parameter, seen );
     }
   }
 

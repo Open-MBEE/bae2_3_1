@@ -444,7 +444,13 @@ public class FunctionCall extends Call {
       for ( Object arg : arguments ) {
         FunctionCall argCall = null;
         try {
-          argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+          if ( arg instanceof FunctionCall ) {
+            argCall = (FunctionCall)arg;
+          } else if ( arg instanceof Expression && ((Expression<?>)arg).expression instanceof FunctionCall ) {
+            argCall = (FunctionCall)((Expression<?>)arg).expression;
+          } else {
+            argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+          }
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           //e.printStackTrace();

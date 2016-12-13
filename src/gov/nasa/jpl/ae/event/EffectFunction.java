@@ -225,7 +225,7 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     Parameter<?> p = pair.first;
     ParameterListener pl = pair.second;
     if ( pl != null && p != null ) {
-      pl.handleValueChangeEvent( p );
+      pl.handleValueChangeEvent( p, null );
     }
   }
 

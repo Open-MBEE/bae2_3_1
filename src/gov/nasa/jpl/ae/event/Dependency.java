@@ -543,14 +543,22 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     if ( propagate && this.parameter != parameter && hasParameter( parameter, false, null ) ) {
       apply( true );
     }
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // TODO -- REVIEW -- Anything to do?
   }
 

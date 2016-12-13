@@ -8,6 +8,8 @@ import gov.nasa.jpl.ae.util.SimulatedTime;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
+import gov.nasa.jpl.mbee.util.HasId;
+import gov.nasa.jpl.mbee.util.HasName;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.SocketClient;
 import gov.nasa.jpl.mbee.util.TimeUtils;
@@ -66,6 +68,12 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
   
   // Members: properties for plotting
   
+  /**
+   * Whether the simulation text and file output will identify variables with
+   * fully qualified names.
+   */
+  boolean showQualifiedName = false; 
+
   /**
    * Whether or not the external plotter should be launched and connected to by
    * socket.
@@ -235,19 +243,19 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
     Set<String> fileNames = new HashSet<String>();
     Set<String> cats = new HashSet<String>();
 
-    // Use category names for file names if they are unique.
-    boolean areCategoriesUnique = true;
-    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
-      Object o = e.getKey();
-      String cat = categories.get( o );
-      if ( cat != null ) {
-        if ( cats.contains( cat ) ) {
-          areCategoriesUnique = false;
-          break;
-        }
-        cats.add( cat );
-      }
-    }
+//    // Use category names for file names if they are unique.
+    boolean areCategoriesUnique = false; //true
+//    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+//      Object o = e.getKey();
+//      String cat = categories.get( o );
+//      if ( cat != null ) {
+//        if ( cats.contains( cat ) ) {
+//          areCategoriesUnique = false;
+//          break;
+//        }
+//        cats.add( cat );
+//      }
+//    }
     
     Map<String, Object> paramsAndTvms = topEvent.getTimeVaryingObjectMap( true, null );
 
@@ -259,7 +267,10 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
     for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
       Object o = entry.getValue();//e.getKey();
       // unwrap the timeline if stuffed in a parameter
-      String name = entry.getKey(); 
+      String name = getVariableName( o );
+      if ( Utils.isNullOrEmpty( name ) || ( !( o instanceof Parameter ) && !( o instanceof HasOwner ) ) ) {
+        name = entry.getKey();
+      }
       if ( o instanceof Parameter ) {
         //name = ((Parameter<?>)o).getName(); 
         o = ((Parameter<?>)o).getValueNoPropagate();
@@ -273,12 +284,14 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
         
         // get the name if not already gotten from the parameter
         boolean gotName = !Utils.isNullOrEmpty( name );
-        if ( !gotName ) { name = tv.getName();
-        gotName = !Utils.isNullOrEmpty( name ); }
+        if ( !gotName ) {
+          name = tv.getName();
+          gotName = !Utils.isNullOrEmpty( name );
+        }
 
         // use the category if unique
         String cat = categories.get(o);
-        boolean gotCat = !Utils.isNullOrEmpty( cat );
+        boolean gotCat = false;//!Utils.isNullOrEmpty( cat );
         if ( areCategoriesUnique && gotCat ) {
           fileName = cat + ".csv";
         } else {
@@ -293,7 +306,8 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
         }
         // If the file name is somehow not unique, number it.
         if ( fileNames.contains( fileName ) ) {
-          fileName = fileName.replaceFirst( ".csv$", String.format( "%03d", ct++ ) + ".csv" );
+          String suffix = "_" + ( (o instanceof HasId) ? ((HasId<?>)o).getId() : String.format( "%03d", ct++ ) );  
+          fileName = fileName.replaceFirst( ".csv$", suffix + ".csv" );
           // If the file name is still somehow not unique, throw an error, give up, and move on to the next.
           if ( fileNames.contains( fileName ) ) {
             Debug.error( true, false, "Duplicate output timeline csv file name! " + fileName );
@@ -495,10 +509,10 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
     boolean doneOnce = false;
     for ( Map.Entry< Long, Set< Pair< Object, Object > > > e1 : entrySet() ) {
+      long nextEventSimTime = e1.getKey();
       for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
         // Delay between events
-        long nextEventSimTime = e1.getKey();
         if (firstLoop) {
           firstLoop = false;
           simTimer.reset();
@@ -549,16 +563,16 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
         Object value = p.second; //e2.getValue();
         Object originalValue = value; //e2.getValue();
         // the names of the event
-        String name;
+        String name = null;
         String longClassName = variable.getClass().getName();
         String shortClassName = variable.getClass().getSimpleName();
         String classNames = shortClassName + " ==> " + longClassName;
-        if ( variable instanceof ParameterListener ) {
-          name = ((ParameterListener)variable).getName();
-        } else {
-          name = variable.getClass().getSimpleName();
+        name = getVariableName( variable );
+        String nameAndId = name;
+        if ( variable instanceof HasId ) {
+          nameAndId = name + "@" + ((HasId<?>)variable).getId();
         }
-        
+
         // get String for Double
         if ( value instanceof Double ) {
           value = String.format( "%.2f", value );
@@ -595,7 +609,7 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );
           formatString = "%s%-60s   %s\n";
-          w.printf( formatString, padding, name + " -> " +
+          w.printf( formatString, padding, nameAndId + " -> " +
                     ( value == null ? "null" : value.toString() ), classNames );
         } else {
           if ( tryToPlot && !usingSamplePeriod ) {
@@ -608,7 +622,7 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
-                    name + " -> " + ( value == null ? "null" : value.toString() ),
+                    nameAndId + " -> " + ( value == null ? "null" : value.toString() ),
                     classNames );
         }
         lastT = t;
@@ -626,6 +640,40 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
     w.println("--- simulation end ---");
     closePlotSocket();
     joinIoThreads();
+  }
+
+  protected String getVariableName( Object variable ) {
+    String name = null;
+    Parameter<?> parameter = null;
+    Object owner = null;
+    if ( variable instanceof HasOwner ) {
+      owner = ((HasOwner)variable).getOwner();
+    }
+    if ( variable instanceof Parameter ) {
+      parameter = (Parameter<?>)variable;
+    } else if ( owner instanceof Parameter ) {
+      parameter = (Parameter<?>)owner;
+    }
+    if ( owner != null ) {
+      if ( parameter != null && !Utils.isNullOrEmpty( parameter.getName() ) ) {
+        if ( showQualifiedName ) {
+          name = parameter.getQualifiedName( null );
+        } else {
+          name = parameter.getName();
+        }
+      } else {
+        if ( showQualifiedName ) {
+          name = ((HasOwner)variable).getQualifiedName( null );
+        }
+      }
+    }
+    if ( Utils.isNullOrEmpty( name ) && variable instanceof HasName ) {
+      name = "" + ((HasName<?>)variable).getName();
+    }
+    if ( Utils.isNullOrEmpty( name ) ) {
+      name = variable.getClass().getSimpleName();
+    }
+    return name;
   }
 
   protected void getPlotProcessOutput() {

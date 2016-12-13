@@ -1578,27 +1578,31 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).handleValueChangeEvent( parameter );
+        ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
       }
     }
     if ( object instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
     }
     if ( evaluatedArguments != null ) {
       for ( Object o : evaluatedArguments ) {
         if ( o instanceof ParameterListener ) {
-          ((ParameterListener)o).handleValueChangeEvent( parameter );
+          ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
         }
       }
     }
     if ( returnValue instanceof ParameterListener ) {
-      ((ParameterListener)returnValue).handleValueChangeEvent( parameter );
+      ((ParameterListener)returnValue).handleValueChangeEvent( parameter, seen );
     }
     
     boolean hasParam = false;
@@ -1628,10 +1632,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#handleDomainChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).handleDomainChangeEvent( parameter );
+        ((ParameterListener)o).handleDomainChangeEvent( parameter, seen );
       }
     }
     // TODO -- do for object, nestedCall, returnValue, and evaluatedArguments.

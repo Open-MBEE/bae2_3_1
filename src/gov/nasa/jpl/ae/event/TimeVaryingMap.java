@@ -820,7 +820,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     breakpoint();
     if ( parameter == null ) return;
     if ( parameter.getValueNoPropagate() instanceof Long ) {
@@ -856,8 +860,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > p ) {
-    unfloatEffects( tryCastTimepoint( p ) );
+  public void handleDomainChangeEvent( Parameter< ? > param, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+    unfloatEffects( tryCastTimepoint( param ) );
   }
 
   @Override
@@ -3875,19 +3883,52 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return object;
   }
   
-  public static Object ifThenElse( Object condition, Object thenObj, Object elseObj ) {
+  public Object ifThenElse( Object condition, Object thenObj, Object elseObj ) {
     Pair< Boolean, TimeVaryingMap< ? > > p = Functions.booleanOrTimeline( condition );
     if ( p.second != null ) {
-      return p.second.ifThenElse( thenObj, elseObj );
+      TimeVaryingMap<Object> newTvm = getEmptyMap( thenObj, elseObj );
+      newTvm = p.second.ifThenElseToTarget( thenObj, elseObj, newTvm );
+      return newTvm;
+//      return p.second.ifThenElse( thenObj, elseObj );
     }
     Boolean b = Utils.isTrue( condition, false );
     if ( b == null ) return null;
     if ( b ) return thenObj;
     return elseObj;
   }
+  
+  protected static TimeVaryingMap<?> mapToClone( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<?> mapToClone = null;
+    if ( thenObj instanceof TimeVaryingMap ) {
+      if ( elseObj instanceof TimeVaryingMap ) {
+        Class<?> cls = ClassUtils.dominantObjectType( thenObj, elseObj );
+        if ( cls != null && cls.isInstance( thenObj ) ) {
+          mapToClone = (TimeVaryingMap<?>)thenObj;
+        } else if ( cls != null && cls.isInstance( elseObj ) ) {
+          mapToClone = (TimeVaryingMap<?>)elseObj;
+        }
+      } else {
+        mapToClone = (TimeVaryingMap<?>)thenObj;
+      }
+    } else if ( elseObj instanceof TimeVaryingMap ) {
+      mapToClone = (TimeVaryingMap<?>)elseObj;
+    }
+    return mapToClone;
+  }
 
+  protected TimeVaryingMap<Object> getEmptyMap( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<?> mapToClone = mapToClone(thenObj, elseObj);
+    TimeVaryingMap<Object> newTvm = (TimeVaryingMap< Object >)( mapToClone == null ? new TimeVaryingMap<Object>() : mapToClone.emptyClone() );
+    return newTvm;
+  }
+  
   public TimeVaryingMap<Object> ifThenElse( Object thenObj, Object elseObj ) {
-    TimeVaryingMap<Object> newTvm = new TimeVaryingMap<Object>();
+    TimeVaryingMap<Object> newTvm = getEmptyMap( thenObj, elseObj );
+    newTvm = ifThenElseToTarget( thenObj, elseObj, newTvm );
+    return newTvm;
+  }
+  
+  public TimeVaryingMap<Object> ifThenElseToTarget( Object thenObj, Object elseObj, TimeVaryingMap<Object> newTvm ) {
     Set< Parameter< Long > > keys =
         new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
@@ -5967,6 +6008,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
     deltaMap.interpolation = NONE;
     return deltaMap;
+  }
+  @Override
+  public String getQualifiedName( Set< Object > seen ) {
+    String n = HasOwner.Helper.getQualifiedName( this, null );
+    return n;
+  }
+  @Override
+  public String getQualifiedId( Set< Object > seen ) {
+    String n = HasOwner.Helper.getQualifiedId( this, null );
+    return n;
   }
 
 }
