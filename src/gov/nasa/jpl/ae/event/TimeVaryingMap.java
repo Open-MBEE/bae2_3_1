@@ -2325,7 +2325,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return newTvm;
   }
   
-  public <VV extends Number> TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV> TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return applyOperation( map, MathOperation.DIVIDE );
 //    TimeVaryingMap< V > newTvm = emptyClone();
 //    newTvm.clear();
@@ -2365,9 +2365,31 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > dividedBy( TimeVaryingMap< VV1 > tvm1,
+  public static < VV1, VV2 > TimeVaryingMap< VV1 > dividedBy( TimeVaryingMap< VV1 > tvm1,
                                                                              TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return tvm1.dividedBy( tvm2 );
+  }
+
+
+  /**
+   * Return the quotient of two maps. This achieves for all
+   * {@code t} in {@code tvm1.keySet()} and {@code tvm2.keySet()},
+   * {@code newTvm.get(t) == tvm1.get(t) / tvm2.get(t)}.
+   *
+   * @param tvm1
+   * @param tvm1
+   * @return a copy of {@code tvm1} divided by {@code tvm2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public static < VV1 extends Number, VV2, VV3 > TimeVaryingMap< VV3 > dividedBy( VV1 o1,
+                                                                             TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( o1 == null ) return null;
+    TimeVaryingMap<VV3> tvm1 = (TimeVaryingMap< VV3 >)tvm2.emptyClone();
+    tvm1.setValue( new SimpleTimepoint( 0L ), (VV3)o1 );
+    return dividedBy(tvm1, tvm2);
   }
 
 
@@ -3753,6 +3775,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   public static enum Inequality { EQ, NEQ, LT, LTE, GT, GTE }; 
+  public static enum BoolOp { AND, OR, XOR, NOT }; 
 
   public static TimeVaryingMap<Boolean> equals(TimeVaryingMap<?> map, Number n) {
     return compare(map, n, false, Inequality.EQ);
@@ -3876,6 +3899,108 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return value;
   }
   
+  public static TimeVaryingMap<Boolean> and(TimeVaryingMap<?> map, Boolean n) {
+    return applyBool(map, n, false, BoolOp.AND);
+  }
+  public static TimeVaryingMap<Boolean> and(Boolean n, TimeVaryingMap<?> map) {
+    return applyBool(map, n, true, BoolOp.AND);
+  }
+  public static TimeVaryingMap<Boolean> and(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return applyBool(map1, map2, BoolOp.AND);
+  }
+
+  public static TimeVaryingMap<Boolean> or(TimeVaryingMap<?> map, Boolean n) {
+    return applyBool(map, n, false, BoolOp.OR);
+  }
+  public static TimeVaryingMap<Boolean> or(Boolean n, TimeVaryingMap<?> map) {
+    return applyBool(map, n, true, BoolOp.OR);
+  }
+  public static TimeVaryingMap<Boolean> or(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return applyBool(map1, map2, BoolOp.OR);
+  }
+
+  public static TimeVaryingMap<Boolean> xor(TimeVaryingMap<?> map, Boolean n) {
+    return applyBool(map, n, false, BoolOp.XOR);
+  }
+  public static TimeVaryingMap<Boolean> xor(Boolean n, TimeVaryingMap<?> map) {
+    return applyBool(map, n, true, BoolOp.XOR);
+  }
+  public static TimeVaryingMap<Boolean> xor(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return applyBool(map1, map2, BoolOp.XOR);
+  }
+
+  public static TimeVaryingMap<Boolean> not(TimeVaryingMap<?> map) {
+    return applyBool(map, null, false, BoolOp.NOT);
+  }
+
+  public static TimeVaryingMap< Boolean > applyBool( TimeVaryingMap< ? > map,
+                                                      Boolean n, boolean reverse,
+                                                      BoolOp boolOp ) {
+    if ( map == null || n == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+      Object mapVal = map.getValue( e.getKey() );
+      Boolean value = null;
+      if ( mapVal != null ) {
+        value = reverse ? applyOp( n, mapVal, boolOp )
+                        : applyOp( mapVal, n, boolOp );
+      }
+      result.setValue( e.getKey(), value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+
+  public static TimeVaryingMap< Boolean > applyBool( TimeVaryingMap< ? > map1,
+                                                      TimeVaryingMap< ? > map2,
+                                                      BoolOp boolOp ) {
+    if ( map1 == null || map2 == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >(map1.keySet());
+    keys.addAll( map2.keySet() );
+    for ( Parameter< Long> t : keys ) {
+      Object v1 = map1.getValue(t);
+      Object v2 = map2.getValue(t);
+      Boolean value = null;
+      if ( v1 != null && v2 != null ) {
+        value = applyOp( v1, v2, boolOp );
+      }
+      result.setValue( t, value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+  
+  public static Boolean applyOp( Object v1, Object v2, BoolOp boolOp ) {
+    Boolean b1 = Utils.isTrue( v1, true ); 
+    Boolean b2 = Utils.isTrue( v2, true );
+    if ( b1 == null && b2 == null ) return null;
+    boolean isOneNull = b1 == null || b2 == null;
+    boolean nonNullValue = b1 == null ? b2.booleanValue() : b1.booleanValue();
+    switch( boolOp ) {
+      case AND:
+        if ( isOneNull ) {
+          if ( !nonNullValue ) return false;
+          return null;
+        }
+        return b1 && b2;
+      case OR:
+        if ( isOneNull ) {
+          if ( nonNullValue ) return true;
+          return null;
+        }
+        return b1 || b2;
+      case XOR:
+        if ( isOneNull ) return null;
+        return b1 ^ b2;
+      case NOT:
+        return !b1;
+      default:
+        return null;
+    }
+  }
+  
   public static Object getValueAtTime(Object object, Parameter< Long> t) {
     if ( object instanceof TimeVarying ) {
       return ((TimeVarying< Long, ?>)object).getValue( t );
@@ -3941,7 +4066,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     for ( Parameter< Long> k : keys ) {
       Object v3 = null;
       V v1 = this.getValue( k );
-      if ( Utils.isTrue( v1 ) ) {
+      if ( Utils.isTrue( v1 ) == Boolean.TRUE ) {
         v3 = getValueAtTime(thenObj, k);
       } else {
         v3 = getValueAtTime(elseObj, k);

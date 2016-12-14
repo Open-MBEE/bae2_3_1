@@ -1903,13 +1903,36 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
 //      sb.append( MoreToString.Helper.toString( tv, true, true, null ) + "\n" );
 //    }
+    Set<Object> seen = new HashSet<Object>();
     for ( Object o : getTimeVaryingObjectMap(true, null).values() ) {
-//      TimeVarying<?> tv = null;
-//      if ( o instanceof TimeVarying ) {
-//        tv = (TimeVarying<?>)o;
-//      } else if (o instanceof Parameter && ) {
-//        tv =
+      if ( o == null ) continue;
+      if ( seen.contains( o ) ) continue;
+      TimeVaryingMap<?> tvm = Functions.tryToGetTimelineQuick( o );
+      if ( seen.contains( tvm ) ) continue;
+      if ( tvm != null ) {
+        Object owner = tvm.getOwner();
+        if ( owner instanceof Parameter ) {
+          if ( seen.contains( owner ) ) continue;
+          seen.add( o );
+          seen.add( owner );
+          o = owner;
+        }
+        seen.add( tvm );
+      }
+//      Object value = o;
+//      if ( o instanceof Parameter ) {
+//        Object v = ( (Parameter)o ).getValueNoPropagate();
+//        if ( v instanceof HasOwner ) {
+//          Object owner = ( (HasOwner)v ).getOwner();
+//          if ( owner instanceof Parameter ) 
+//        }
 //      }
+////      TimeVarying<?> tv = null;
+////      if ( o instanceof TimeVarying ) {
+////        tv = (TimeVarying<?>)o;
+////      } else if (o instanceof Parameter && ) {
+////        tv =
+////      }
       sb.append( MoreToString.Helper.toString( o, true, true, null ) + "\n" );
     }
     return sb.toString();

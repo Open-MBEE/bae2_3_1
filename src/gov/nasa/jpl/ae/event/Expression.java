@@ -310,7 +310,7 @@ public class Expression< ResultType > extends HasIdImpl
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public ResultType evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     evaluationSucceeded = false;
     if ( form == null || ( form != Form.None && expression == null ) ) {
       //System.out.print("\nevaluate(" + this + ") = ");
@@ -331,12 +331,12 @@ public class Expression< ResultType > extends HasIdImpl
     case Value:
       //System.out.print("\nevaluate(" + this + ") = ");
       //System.out.println("expression = " + expression);
-      return (ResultType)expression;
+      return expression;
     case Parameter:
           Parameter< ? > p = (Parameter< ? >)expression;
           while ( p != null ) {
             Object o = null;
-            ResultType r = null;
+            Object r = null;
             o = p.getValue( propagate );
             if ( o == null ) {
               //System.out.print("\nevaluate(" + this + ") = ");
@@ -349,23 +349,23 @@ public class Expression< ResultType > extends HasIdImpl
                   evaluationSucceeded = true;
                   //System.out.print("\nevaluate(" + this + ") = ");
                   //System.out.println("o1 = "+o);
-                  return (ResultType)o;
+                  return o;
                 } else if ( resultType.isInstance( p ) ) {
                   evaluationSucceeded = true;
-                  return (ResultType)p;
+                  return p;
                 } else {
                   if ( resultType == Integer.class && Double.class.isAssignableFrom(o.getClass()) ) {
                     Double d = (Double)o;
                     evaluationSucceeded = true;
                     //System.out.print("\nevaluate(" + this + ") = ");
                     //System.out.println("d1.intValue() = " + d.intValue());
-                    return (ResultType)(Integer)d.intValue();
+                    return (Integer)d.intValue();
                   } else if ( resultType == Long.class && Double.class.isAssignableFrom(o.getClass()) ) {
                     Double d = (Double)o;
                     evaluationSucceeded = true;
                     //System.out.print("\nevaluate(" + this + ") = ");
                     //System.out.println("d1.intValue() = " + d.intValue());
-                    return (ResultType)(Long)d.longValue();
+                    return (Long)d.longValue();
                   }
                   evaluationSucceeded = false;
                   throw new ClassCastException();
@@ -374,13 +374,13 @@ public class Expression< ResultType > extends HasIdImpl
               if ( o instanceof Parameter ) {
                 p = (Parameter< ? >)o;
               } else if ( o instanceof Expression ) {
-                ResultType rt = ( (Expression<ResultType>)o ).evaluate( propagate );
+                Object rt = ( (Expression<ResultType>)o ).evaluate( propagate );
                 evaluationSucceeded = ( (Expression<ResultType>)o ).didEvaluationSucceed();
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("rt1 = "+rt);
                 return rt;
               } else {
-                r = (ResultType)o;
+                r = o;
                 evaluationSucceeded = true;
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("r1 = "+r);
@@ -394,7 +394,7 @@ public class Expression< ResultType > extends HasIdImpl
                   evaluationSucceeded = true;
                   //System.out.print("\nevaluate(" + this + ") = ");
                   //System.out.println("d2.intValue() = "+d.intValue());
-                  return (ResultType)(Long)d.longValue();
+                  return (Long)d.longValue();
                 }
               } catch ( Exception e ) {
                 evaluationSucceeded = false;
@@ -403,7 +403,7 @@ public class Expression< ResultType > extends HasIdImpl
               if ( o instanceof Parameter ) {
                 p = (Parameter< ? >)o;
               } else if ( o instanceof Expression ) {
-                ResultType rt = ( (Expression<ResultType>)o ).evaluate( propagate );
+                Object rt = ( (Expression<ResultType>)o ).evaluate( propagate );
                 evaluationSucceeded = ( (Expression<ResultType>)o ).didEvaluationSucceed();
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("rt2 = "+rt);
@@ -417,14 +417,14 @@ public class Expression< ResultType > extends HasIdImpl
                 evaluationSucceeded = false;
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("(o2 = "+o);
-                return (ResultType)o;
+                return o;
               }
             }
           }
     case Constructor:
     case Function:
       //HERE!!!;
-      ResultType r = (ResultType)((Call)expression).evaluate( propagate );
+      Object r = ((Call)expression).evaluate( propagate );
       evaluationSucceeded = ((Call)expression).didEvaluationSucceed();
       //System.out.print("\nevaluate(" + this + ") = ");
       //System.out.println("r3 = "+r);
@@ -1126,7 +1126,8 @@ public class Expression< ResultType > extends HasIdImpl
     if ( this.resultType != null ) return this.resultType;
     ResultType r = null;
     try {
-      r = evaluate( false );
+      r = (ResultType)evaluate( false );
+    } catch ( ClassCastException e ) {
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       //e.printStackTrace();
@@ -1155,7 +1156,8 @@ public class Expression< ResultType > extends HasIdImpl
       c = ClassUtils.primitiveForClass( getType() );
       ResultType r = null;
       try {
-        r = evaluate( false );
+        r = (ResultType)evaluate( false );
+      } catch ( ClassCastException e ) {
       } catch ( IllegalAccessException e ) {
         // TODO Auto-generated catch block
         //e.printStackTrace();
@@ -1188,7 +1190,9 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public ResultType getValue( boolean propagate ) {
     try {
-      return evaluate( propagate );
+      return (ResultType)evaluate( propagate );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();

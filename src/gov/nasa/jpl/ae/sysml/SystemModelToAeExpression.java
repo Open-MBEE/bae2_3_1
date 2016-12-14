@@ -127,7 +127,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      */
     public <X> X evaluateExpression( Object expressionElement, Class< ? > expectedType ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
       Expression<X> expression = toAeExpression( expressionElement, expectedType );
-      return expression.evaluate( true );
+      return (X)expression.evaluate( true );
     }
 
     public enum CallCase {UNKNOWN, FAIL, EmsSystemModel, sysml, ae, common};

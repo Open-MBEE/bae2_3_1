@@ -70,7 +70,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     if ( isNull ) return true;
     Boolean r = null;
     try {
-      r = c.evaluate( true );
+      r = (Boolean)c.evaluate( true );
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       //e.printStackTrace();
@@ -347,7 +347,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     }
     Boolean b = null;
     try {
-      b = condition.evaluate( false );
+      b = (Boolean)condition.evaluate( false );
     } catch ( IllegalAccessException e ) {
     } catch ( InvocationTargetException e ) {
     } catch ( InstantiationException e ) {

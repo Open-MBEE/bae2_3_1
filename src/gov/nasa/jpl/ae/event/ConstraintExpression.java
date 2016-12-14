@@ -70,7 +70,7 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = null;
     try {
-      sat = evaluate(false);
+      sat = (Boolean)evaluate(false);
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
