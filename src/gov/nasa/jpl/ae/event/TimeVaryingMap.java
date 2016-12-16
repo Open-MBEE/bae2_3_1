@@ -2450,6 +2450,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public boolean contains( Long t ) {
     return getKey( t ) != null;
   }
+  
+  /**
+   * Gets the first key in the map equal the input.  
+   * @param t
+   * @return
+   */
   public Parameter< Long> getKey( Long t ) {
     if ( isEmpty() ) return null;
     Parameter< Long > tt = makeTempTimepoint( t, false );
@@ -2479,10 +2485,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    * on an attempt to insert a key outside of its range, or to construct a
    * submap either of whose endpoints lie outside its range.
    *
-   * @param fromKey low endpoint of the keys in the returned map
+   * @param fromKey low endpoint of the keys in the returned map; null means the first key
    * @param fromInclusive {@code true} if the low endpoint
    *        is to be included in the returned view
-   * @param toKey high endpoint of the keys in the returned map
+   * @param toKey high endpoint of the keys in the returned map; null means the last key
    * @param toInclusive {@code true} if the high endpoint
    *        is to be included in the returned view
    * @return a view of the portion of this map whose keys range from
@@ -2499,34 +2505,72 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                                          Long timeTo,
                                                          boolean toInclusive ) {
     if ( isEmpty() ) return this;
-    Parameter< Long> tpe = getTimepointEarlier( timeFrom );
-    Parameter< Long > f = firstKey();
-    if ( tpe == null ) {
-      tpe = f;
-      fromInclusive = true;
-    }
-    Parameter< Long> tpl = getTimepointLater( timeTo );
-    if ( tpl == null ) {
-      tpl = lastKey();
-      toInclusive = true;
-    }
-    int c = compareTo( tpe, tpl );
 
-    if ( c > 0 ) return this.subMap( f, false, f, false );
-    if ( c == 0 ) {
-      if ( tpe.valueEquals( timeFrom ) ) {
-        return subMap( f, true, f, true );
+    // Interpret null as the first and last key.
+    if ( timeFrom == null ) timeFrom = firstKey().getValue();
+    if ( timeTo == null ) timeTo = lastKey().getValue();
+
+    // Find keys (tpe and tpl) that can be passed into an equivalent call, subMap(tpe, true, tpl, true)
+    Parameter< Long> tpe = getKey( timeFrom );  // warning! This assumes getKey(timeFrom) gets the first key.
+    if ( tpe != null ) {
+      if ( !fromInclusive ) {
+        tpe = getTimepointLater( tpe );   // warning! This assumes getTimepointLater( tpe ) gets the first key.
       }
+    } else {
+      tpe = getTimepointAfter(timeFrom);
+    }
+
+    //Parameter< Long> tpl = toInclusive ? getTimepointLater( timeTo ) : getTimepointEarlier( timeTo );
+    Parameter< Long> tpl = null;
+    if ( toInclusive ) {
+      tpl = getTimepointLater( timeTo );  // warning! This assumes getTimepointLater( timeTo ) gets the first key.
+      if ( tpl != null ) {
+        tpl = getTimepointBefore( tpl );
+      } else {
+        tpl = lastKey();
+      }
+    } else {
+      tpl = getTimepointBefore( timeTo );
+    }
+
+    // Empty set and error cases.
+    if ( tpe == null || tpl == null || tpe.getValue() == null
+         || tpl.getValue() == null || tpe.getValue() > tpl.getValue() ) {  // assumes that tpe <= tpl if tpe.getValue() == tpl.getValue()
+      Parameter< Long > f = firstKey();
       return this.subMap( f, false, f, false );
     }
-    return subMap(tpe, fromInclusive, tpl, toInclusive);
-
-//    Parameter< Long> fromKey, toKey;
-//    fromKey = getKey( timeFrom );
-//    toKey = getKey( nextTime );
-//    return this.subMap( fromKey, fromInclusive, toKey, toInclusive );
+    
+    return this.subMap( tpe, true, tpl, true );
   }
 
+  public NavigableMap< Parameter< Long >, V > subMapBad( Long timeFrom,
+                                                      boolean fromInclusive,
+                                                      Long timeTo,
+                                                      boolean toInclusive ) {
+ if ( isEmpty() ) return this;
+ Parameter< Long> tpe = getTimepointEarlier( timeFrom );
+ Parameter< Long > f = firstKey();
+ if ( tpe == null ) {
+   tpe = f;
+   fromInclusive = true;
+ }
+ Parameter< Long> tpl = getTimepointLater( timeTo );
+ if ( tpl == null ) {
+   tpl = lastKey();
+   toInclusive = true;
+ }
+ int c = compareTo( tpe, tpl );
+
+ if ( c > 0 ) return this.subMap( f, false, f, false );
+ if ( c == 0 ) {
+   if ( tpe.valueEquals( timeFrom ) ) {
+     return subMap( f, true, f, true );
+   }
+   return this.subMap( f, false, f, false );
+ }
+ return subMap(tpe, fromInclusive, tpl, toInclusive);
+}
+  
   /**
    * @param tt
    *          the timepoint to which a key is sought to match
@@ -2611,7 +2655,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
 
     if ( !equalValuesOk ) return null;
     Parameter< Long > bk = getTimepointAfter(tt);
-    if ( bk != null && bk.valueEquals( tt ) ) {
+    if ( bk != null && bk.equals( tt ) ) {
       return bk;
     }
 //    bk = getTimepointBefore( tt );

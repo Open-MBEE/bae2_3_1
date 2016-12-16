@@ -44,7 +44,7 @@ public class ParameterListenerImpl extends HasIdImpl
   // Constants
   
   protected double timeoutSeconds = 900.0;
-  protected int maxLoopsWithNoProgress = 10;
+  protected int maxLoopsWithNoProgress = 50;
   protected long maxPassesAtConstraints = 10000;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
@@ -437,12 +437,12 @@ public class ParameterListenerImpl extends HasIdImpl
    * @param seen
    * @return parameters that are Timepoints
    */
-  public Set< Timepoint > getTimepoints( boolean deep,
+  public Set< Parameter< Long > > getTimepoints( boolean deep,
                                          Set<HasParameters> seen ) {
-   Set< Timepoint > set = new HashSet< Timepoint >();
+   Set< Parameter< Long > > set = new HashSet< Parameter< Long > >();
    for ( Parameter<?> p : getParameters( deep, seen ) ) {
-     if ( p instanceof Timepoint ) {
-       set.add((Timepoint)p);
+     if ( p instanceof Timepoint || p.getValueNoPropagate() instanceof Long ) {
+       set.add((Parameter<Long>)p);
      }
    }
    return set;
@@ -493,8 +493,11 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( isSatisfied(deep, null) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
+    long mostConstraints = 0;
     long mostResolvedConstraints = 0;
+    double highestFractionResolvedConstraint = 0;
     int numLoopsWithNoProgress = 0;
+    long numberOfConstraints = 0;
     
     boolean satisfied = false;
     long millisPassed = (long)( System.currentTimeMillis() - clockStart );
@@ -530,9 +533,13 @@ public class ParameterListenerImpl extends HasIdImpl
       }
       satisfied = tryToSatisfy(deep, null);
 
+      //numberOfConstraints = this.getNumberOfConstraints( true, null );
       long numResolvedConstraints = this.getNumberOfResolvedConstraints( true, null );//solver.getNumberOfResolvedConstraints();
+      double fractionResolved = numberOfConstraints == 0 ? 0 : ((double)numResolvedConstraints) / numberOfConstraints;
       
-      boolean improved = numResolvedConstraints > mostResolvedConstraints; 
+      boolean improved = numResolvedConstraints > mostResolvedConstraints || fractionResolved > highestFractionResolvedConstraint;
+      
+      
       // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
       // move it out of this class and into DurativeEvent since Events simulate.
       if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate
@@ -540,7 +547,12 @@ public class ParameterListenerImpl extends HasIdImpl
         doSnapshotSimulation( improved );
       }
       
-      if ( !satisfied && !improved ) {
+      if ( satisfied || improved || numberOfConstraints > mostConstraints) {
+        numLoopsWithNoProgress = 0;
+        mostResolvedConstraints = 0;
+        highestFractionResolvedConstraint = 0.0;
+        //mostConstraints = 0;
+      } else {
         ++numLoopsWithNoProgress;
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
@@ -551,10 +563,18 @@ public class ParameterListenerImpl extends HasIdImpl
               System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints." );
           }
         }
-      } else {
-        mostResolvedConstraints = numResolvedConstraints;
-        numLoopsWithNoProgress = 0;
       }
+      
+      if ( numResolvedConstraints > mostResolvedConstraints ) {
+        mostResolvedConstraints = numResolvedConstraints;
+      }
+      if ( fractionResolved > highestFractionResolvedConstraint ) {
+        highestFractionResolvedConstraint = fractionResolved;
+      }
+      if ( numberOfConstraints > mostConstraints ) {
+        mostConstraints = numberOfConstraints;
+      }
+
       
       millisPassed = (long)( System.currentTimeMillis() - clockStart );
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
@@ -1023,6 +1043,8 @@ public class ParameterListenerImpl extends HasIdImpl
     this.name = newName;
   }
   
+  
+  protected boolean simpleDeconstruct = true;
   /**
    * Try to remove others' references to this, possibly because it is being
    * deleted.
@@ -1038,6 +1060,7 @@ public class ParameterListenerImpl extends HasIdImpl
       Debug.outln( "Deconstructing ParameterListener: "
                    + this.toString( true, true, null ) );
     }
+    if ( !simpleDeconstruct ) {
     for ( Dependency< ? > d : dependencies ) {
       d.deconstruct();
     }
@@ -1066,6 +1089,7 @@ public class ParameterListenerImpl extends HasIdImpl
         p.deconstruct();
       }
     }
+    }
     name = "DECONSTRUCTED_" + name;
     
     dependencies.clear();
@@ -1092,8 +1116,8 @@ public class ParameterListenerImpl extends HasIdImpl
     int i = dependenciesCopy.size() - 1;
     for ( Dependency<?> d : dependenciesCopy ) {
       boolean hasParam = d.hasParameter( parameter, false, null );
-      d.detach( parameter );
       if ( hasParam ) {
+        d.detach( parameter );
         getDependencies().remove( i );
       }
       --i;

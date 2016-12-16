@@ -65,12 +65,17 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     //this.constructor = constructor;
   }
 
+  boolean simpleDeconstruct = true;
+  protected Event event = null;
+  
   @Override
   public void deconstruct() {
     this.eventClass = null;
     this.eventName = null;
     this.enclosingInstance  = null;
     this.fromTimeVarying = null;
+    
+    if (!simpleDeconstruct) {
     if ( this.arguments != null ) {
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
@@ -83,6 +88,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
       }
       //arguments = null;
     }
+    }
     if ( memberAssignments != null ) {
       this.memberAssignments.clear();
       //memberAssignments = null;
@@ -92,7 +98,8 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   public Event invoke() {
     if ( Debug.isOn() ) Debug.outln( "invoke(): " + this );
     if ( fromTimeVarying == null ) {
-      return invoke(null, null);
+      this.event = invoke(null, null);
+      return event;
     }
     TimeVaryingMap< ? > tvm = null;
     //try {
@@ -111,11 +118,26 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     parent.addDependency( parent.duration,  new Expression< Long>(1) );
     parent.elaborate( false );
     setStale( false );
-    return parent;
+    this.event = parent;
+    return event;
   }
   
+  public boolean repairFromTimeVarying(DurativeEvent parent, Expression<Boolean> condition) {
+    if ( fromTimeVarying == null ) return false;
+    if ( parent == null ) return false;
+    if ( getDurativeEvent() == null ) {
+      Debug.error(false, "repairFromTimeVarying(): getDurativeEvent() is null!" );
+      return false;
+    }
+    TimeVaryingMap< ? > tvm = Functions.getTimeline( fromTimeVarying );
+    Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
+    boolean changed = getDurativeEvent().repairElaborationFromTimeVarying( tvm, enclosingInstance, eventClass, exprArguments, condition );//( tvm, eventClass, exprArguments );
+    return changed;
+  }
+
+  
   public Event invoke(Parameter< Long> start, Parameter< Long> end) {
-    Event event = constructEvent();
+    Event event = constructEvent(start, end);
     
     if ( event != null ) {
       event.setName( eventName );
@@ -142,6 +164,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
         try {
           event = eventClass.newInstance();
           if ( start != null ) {
+            // REVIEW -- Should this be a dependency instead?
             event.getStartTime().setValue(start.getValue());
           }
           if ( end != null ) {
@@ -373,6 +396,20 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     this.constructor = constructor;
   }  
 
+  public DurativeEvent getDurativeEvent() {
+    if ( event instanceof DurativeEvent ) return (DurativeEvent)event;
+    return null;
+  }
+
+  public Event getEvent() {
+    return event;
+  }
+
+  public void setEvent( Event event ) {
+    this.event  = event;
+  }
+
+  
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {

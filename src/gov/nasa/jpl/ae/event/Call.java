@@ -100,6 +100,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return getMember().getDeclaringClass();
   }
   
+  static boolean simpleDeconstruct = true;
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Deconstructable#deconstruct()
    */
@@ -114,6 +115,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //nestedCall = null;
     }
     if ( this.arguments != null ) {
+      if ( !simpleDeconstruct ) {
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
           ((Expression<?>)a).deconstruct();
@@ -122,6 +124,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
             ( (Parameter<?>)a ).deconstruct();
           }
         }
+      }
       }
       this.arguments.clear();
       //arguments = null;
