@@ -151,7 +151,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( parameter == null ) return false;
       if ( o == parameter ) return true;
 
-      if ( parameter.equals( parameter ) ) {
+      if ( parameter.equals( o ) ) {
         return true;
       }
       Object val = parameter.getValueNoPropagate();

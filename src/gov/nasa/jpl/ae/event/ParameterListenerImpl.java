@@ -697,13 +697,19 @@ public class ParameterListenerImpl extends HasIdImpl
     // REVIEW -- why not call satisfy() here and solve elsewhere??
     boolean satisfied = solver.solve( allConstraints );
     if ( Debug.isOn() || amTopEventToSimulate ) {
+      Collection< Constraint > unsat = solver.getUnsatisfiedConstraints();
       System.out.println( this.getClass().getName() + " - " + getName()
                           + ".tryToSatisfy() called solve(): satisfied "
                           + ( allConstraints.size() -
-                              solver.getUnsatisfiedConstraints().size() )
+                              unsat.size() )
                           + " constraints; failed to resolve "
-                          + solver.getUnsatisfiedConstraints().size()
+                          + unsat.size()
                           + " constraints" );
+      if ( unsat.size() <= 5 ) {
+        for ( Constraint c : unsat ) {
+          System.out.println("unsatisfied --> " + c);
+        }
+      }
     }
 
     satisfied = isSatisfied(deep, null);

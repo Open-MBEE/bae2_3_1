@@ -191,6 +191,9 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
    * Write the Events out to CSV files.
    */
   public void writeEvents() {
+    writeEvents(events, csvDir, null);
+  }
+  public static void writeEvents(Set<Event> events, String filePath, String suffix) {
     Map< String, Set< Event > > eventCategories =
         new LinkedHashMap< String, Set< Event > >();
     for ( Event event : events ) {
@@ -200,18 +203,20 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
     }
     
     // get the path where the output will be stored
-    String path = Utils.isNullOrEmpty( csvDir ) ? "." : csvDir ;
+    String path = Utils.isNullOrEmpty( filePath ) ? "." : filePath ;
     File p = new File(path);
     if ( !p.exists() ) {
       boolean succ = p.mkdirs();
       if (!succ) path = ".";
     }
+    
+    if ( suffix == null ) suffix = "";
 
     // write to file
     String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSS";//TimeUtils.aspenTeeFormat;
     Calendar cal = TimeUtils.gmtCal;
     for ( String name : eventCategories.keySet() ) {
-      String fileName = name + ".activities.csv";
+      String fileName = name + ".activities" + suffix + ".csv";
       String pathAndFile = path + File.separator + fileName;
       StringBuffer sb = new StringBuffer();
       sb.append("Tstart Assigned,Activity Name,Tend Assigned,,,,,,,,,,");
@@ -265,78 +270,94 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
 //    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
     //Map.Entry<String, TimeVarying<?>> obj;
     for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
-      Object o = entry.getValue();//e.getKey();
-      // unwrap the timeline if stuffed in a parameter
-      String name = getVariableName( o );
-      if ( Utils.isNullOrEmpty( name ) || ( !( o instanceof Parameter ) && !( o instanceof HasOwner ) ) ) {
-        name = entry.getKey();
-      }
-      if ( o instanceof Parameter ) {
-        //name = ((Parameter<?>)o).getName(); 
-        o = ((Parameter<?>)o).getValueNoPropagate();
-      }
-//      if ( name != null && name.contains( "telecomPower" ) ) {
-//        System.out.println("here3");
-//      }
-      if ( o instanceof TimeVaryingMap ) {
-        TimeVaryingMap<?> tv = (TimeVaryingMap< ? >)o;
-        String fileName = null;
-        
-        // get the name if not already gotten from the parameter
-        boolean gotName = !Utils.isNullOrEmpty( name );
-        if ( !gotName ) {
-          name = tv.getName();
-          gotName = !Utils.isNullOrEmpty( name );
-        }
+      List<Object> result = getCsvFileName( entry, areCategoriesUnique, fileNames, ct );
+      if ( result == null || result.size() != 3 ) continue;
+      String fileName = (String)result.get( 0 );
+      TimeVaryingMap<?> tv = (TimeVaryingMap<?>)result.get(1);
+      ct = (Integer)result.get( 2 );
 
-        // use the category if unique
-        String cat = categories.get(o);
-        boolean gotCat = false;//!Utils.isNullOrEmpty( cat );
-        if ( areCategoriesUnique && gotCat ) {
-          fileName = cat + ".csv";
-        } else {
-          // if the categories are not unique, use the timeline name appended to the category.
-          if ( gotName ) fileName = name + ".csv";
-          if ( !gotName || fileNames.contains( fileName ) ) {
-            fileName = (gotCat ? cat + "_" : "")+ (gotName ? name : "") + ".csv";
-          }
-          if ( !gotCat && !gotName ) {
-            fileName = "TL_" + o.hashCode() + ".csv";
-          }
-        }
-        // If the file name is somehow not unique, number it.
-        if ( fileNames.contains( fileName ) ) {
-          String suffix = "_" + ( (o instanceof HasId) ? ((HasId<?>)o).getId() : String.format( "%03d", ct++ ) );  
-          fileName = fileName.replaceFirst( ".csv$", suffix + ".csv" );
-          // If the file name is still somehow not unique, throw an error, give up, and move on to the next.
-          if ( fileNames.contains( fileName ) ) {
-            Debug.error( true, false, "Duplicate output timeline csv file name! " + fileName );
-            continue;
-          }
-        }
-        // remember the name 
-        fileNames.add( fileName );
-        
-        // get the path where the output will be stored
-        String path = Utils.isNullOrEmpty( csvDir ) ? "." : csvDir ;
-        File p = new File(path);
-        if ( !p.exists() ) {
-          boolean succ = p.mkdirs();
-          if (!succ) path = ".";
-        }
-        String pathAndFile = path + File.separator + fileName;
-        
-        // write to file
-        String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";//TimeUtils.aspenTeeFormat;
-        Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
-//        if ( pathAndFile.contains( "telecomPower" ) ) {
-//          System.out.println("here");
-//        }
-        tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
+      if ( Utils.isNullOrEmpty( fileName ) ) continue;
+
+      // get the path where the output will be stored
+      String path = Utils.isNullOrEmpty( csvDir ) ? "." : csvDir;
+      File p = new File( path );
+      if ( !p.exists() ) {
+        boolean succ = p.mkdirs();
+        if ( !succ ) path = ".";
       }
+      String pathAndFile = path + File.separator + fileName;
+
+      // write to file
+      String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";// TimeUtils.aspenTeeFormat;
+      Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
+      tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
     }
   }
   
+  protected List< Object >
+            getCsvFileName( java.util.Map.Entry< String, Object > entry,
+                            boolean areCategoriesUnique,
+                            Set< String > fileNames, int ct ) {
+    Object o = entry.getValue();
+    // unwrap the timeline if stuffed in a parameter
+    String name = getVariableName( o );
+    if ( Utils.isNullOrEmpty( name )
+         || ( !( o instanceof Parameter ) && !( o instanceof HasOwner ) ) ) {
+      name = entry.getKey();
+    }
+    if ( o instanceof Parameter ) {
+      o = ( (Parameter< ? >)o ).getValueNoPropagate();
+    }
+    String fileName = null;
+    TimeVaryingMap< ? > tv = null;
+    if ( o instanceof TimeVaryingMap ) {
+      tv = (TimeVaryingMap< ? >)o;
+
+      // get the name if not already gotten from the parameter
+      boolean gotName = !Utils.isNullOrEmpty( name );
+      if ( !gotName ) {
+        name = tv.getName();
+        gotName = !Utils.isNullOrEmpty( name );
+      }
+
+      // use the category if unique
+      String cat = categories.get( o );
+      boolean gotCat = false;
+      if ( areCategoriesUnique && gotCat ) {
+        fileName = cat + ".csv";
+      } else {
+        // if the categories are not unique, use the timeline name appended to
+        // the category.
+        if ( gotName ) fileName = name + ".csv";
+        if ( !gotName || fileNames.contains( fileName ) ) {
+          fileName =
+              ( gotCat ? cat + "_" : "" ) + ( gotName ? name : "" ) + ".csv";
+        }
+        if ( !gotCat && !gotName ) {
+          fileName = "TL_" + o.hashCode() + ".csv";
+        }
+      }
+      // If the file name is somehow not unique, number it.
+      if ( fileNames.contains( fileName ) ) {
+        String suffix =
+            "_" + ( ( o instanceof HasId ) ? ( (HasId< ? >)o ).getId()
+                                           : String.format( "%03d", ct++ ) );
+        fileName = fileName.replaceFirst( ".csv$", suffix + ".csv" );
+        // If the file name is still somehow not unique, throw an error, give
+        // up, and move on to the next.
+        if ( fileNames.contains( fileName ) ) {
+          Debug.error( true, false,
+                       "Duplicate output timeline csv file name! " + fileName );
+          fileName = null;
+          // continue;
+        }
+      }
+      // remember the name
+      if ( fileName != null ) fileNames.add( fileName );
+    }
+    return Utils.newList( (Object)fileName, tv, ct );
+  }
+
   // Returns whether the event was added properly. If the event was not added or
   // its start or stop were already added, the function returns false.
   public boolean add( Event event ) {

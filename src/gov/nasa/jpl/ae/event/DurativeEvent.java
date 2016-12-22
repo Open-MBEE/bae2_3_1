@@ -10,7 +10,6 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
-import gov.nasa.jpl.mbee.util.HasName;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.Pair;
@@ -29,12 +28,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +40,6 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeMap;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -547,6 +544,26 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return changed;
   }
 
+  private void debugToCsvFile( TimeVaryingMap< ? > tv, String fileName ) {
+    // write to file
+    String pathAndFile = EventSimulation.csvDir + File.separator + "debug"
+                         + File.separator + fileName;
+    String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";// TimeUtils.aspenTeeFormat;
+    Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
+    tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
+  }
+
+  public static int debugCt = 0;
+
+  private void debugElaborationsToCsvFile() {
+    Set< Event > events = new HashSet< Event >();
+    for ( Entry< ElaborationRule, Vector< Event > > e : elaborations.entrySet() ) {
+      events.addAll( e.getValue() );
+    }
+    EventSimulation.writeEvents( events, EventSimulation.csvDir + File.separator
+                                         + "debug",
+                                 "" + debugCt );
+  }
 
   public boolean
          repairElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
@@ -577,6 +594,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //    Map< ElaborationRule, Vector< Event > > newElaborations = 
 //        new LinkedHashMap< ElaborationRule, Vector<Event> >();    
     
+    ++debugCt;
+    debugToCsvFile( tvm, "dataRateAboveThreshold" + debugCt + ".csv" );
+    debugElaborationsToCsvFile();
+
     ArrayList< ElaborationRule > rules;
     boolean didChange = 
         repairElaborations( tvm, enclosingInstance, eventClass, arguments, condition,
@@ -2469,6 +2490,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return compare;
   }
 
+  private boolean newChanges = false; 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    *
@@ -2488,6 +2510,41 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
     // REVIEW -- Should we be passing in a set of parameters? Find review/todo
     // note on staleness table.
+
+    // Update effects before other things since they're probably going to be
+    // handled more than once, and we want to handle it carefully at first.
+    if ( newChanges )
+    for ( Pair< Parameter< ? >, Set< Effect > > effectPair : effects ) {
+      if (effectPair == null) continue;
+      Parameter< ? > par = effectPair.first;
+      TimeVaryingMap<?> tvm = null;
+      Object pv = par.getValue();
+      if ( pv instanceof TimeVaryingMap ) {
+        tvm = (TimeVaryingMap<?>)pv;
+      }
+      if ( par != null && parameter.equals( par ) ) {
+        // TODO??
+      }
+      Set< Effect > effectSet = effectPair.second;
+      for ( Effect effect : effectSet ) {
+        if ( effect instanceof EffectFunction ) {
+          EffectFunction efff = (EffectFunction)effect;
+          TimeVaryingMap<?> tv = Functions.tryToGetTimelineQuick( efff.getObject() );
+          if ( tv != null ) tvm = tv;
+          if ( tvm == null ) continue;
+          Pair< Parameter< Long >, Object > timeVal = tvm.getTimeAndValueOfEffect( efff );
+          
+          Object v = tvm.getValueOfEffect( efff );
+          if ( HasParameters.Helper.hasParameter( v, parameter, true, null, true ) ) {
+            // unapply and reapply effect
+            tvm.unapply( efff );
+            if ( tv.canBeApplied( efff ) ) {
+              efff.applyTo( tv, true );
+            }
+          }
+        }
+      }
+    }
 
     // The super class updates the dependencies.
     seen.remove( this );

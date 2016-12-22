@@ -1856,85 +1856,8 @@ public class Functions {
     T r1 = (T)o1.evaluate( false );
     TT r2 = (TT)o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    try {
-      return plus(r1,r2);
-    } finally {
-//    if ( !b ) {
-      T r11 = null;
-      TT r22 = null;
-      T s = null;
-      boolean changed1 = false;
-      boolean changed2 = false;
-      if ( r1 instanceof Wraps ) {
-        r11 = ((Wraps<T>)r1).getValue( false );
-        changed1 = !r1.equals( r11 );
-        if ( changed1 ) s = plus( r11, r2 );
-      }
-      if ( s == null && r2 instanceof Wraps ) {
-        r22 = ((Wraps<TT>)r2).getValue( false );
-        changed2 = !r2.equals( r22 );
-        if ( changed2 ) s = plus( r1, r22 );
-        if ( s == null && r11 != null ) {
-          if ( changed1 && changed2 ) { 
-            s = plus( r11, r22 );
-          }
-        }
-      }
-//    }
-    }
-
-/*    Object result = null;
-    if ( r1.getClass().isAssignableFrom( java.lang.String.class ) ||
-         r2.getClass().isAssignableFrom( java.lang.String.class ) ) {
-      String s = "" + r1 + r2;
-      result = s;
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
-                r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
-      double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
-      double rd2 = ClassUtils.castNumber( (Number)r2, Double.class ).doubleValue();
-      // check for overflow
-      if ( rd1 >= 0 && Double.MAX_VALUE - rd1 <= rd2 ) {
-        result = Double.MAX_VALUE;
-      } else if ( rd1 < 0 && -Double.MAX_VALUE - rd1 >= rd2 ) {
-        result = -Double.MAX_VALUE;
-      } else {
-        result = ( (Double)rd1 ) + ( (Double)rd2 );
-      }
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Float.class ) ||
-                r2.getClass().isAssignableFrom( java.lang.Float.class ) ) {
-      float rd1 = ClassUtils.castNumber( (Number)r1, Float.class ).floatValue();
-      float rd2 = ClassUtils.castNumber( (Number)r2, Float.class ).floatValue();
-      // check for overflow
-      if ( rd1 >= 0 && Float.MAX_VALUE - rd1 <= rd2 ) {
-        result = Float.MAX_VALUE;
-      } else if ( rd1 < 0 && -Float.MAX_VALUE - rd1 >= rd2 ) {
-         result = -Float.MAX_VALUE;
-      } else {
-        result = ( (Float)rd1 ) + ( (Float)rd2 );
-      }
-    } else if ( java.lang.Integer.class.isAssignableFrom( r1.getClass() ) && 
-                java.lang.Integer.class.isAssignableFrom( r2.getClass() ) ) {
-      int rd1 = ClassUtils.castNumber( (Number)r1, Integer.class ).intValue();
-      int rd2 = ClassUtils.castNumber( (Number)r2, Integer.class ).intValue();
-      // check for overflow
-      if ( rd1 >= 0 && Integer.MAX_VALUE - rd1 <= rd2 ) {
-        result = Integer.MAX_VALUE;
-      } else if ( rd1 < 0 && Integer.MIN_VALUE - rd1 >= rd2 ) {
-        result = Integer.MIN_VALUE;
-      } else {
-        result = ( (Integer)rd1 ) + ( (Integer)rd2 );
-      }
-    } else {
-      result = (Number)plus( r1, r2 );
-//      try {
-//        throw new IllegalAccessException();
-//      } catch ( IllegalAccessException e ) {
-//        e.printStackTrace();
-//      }
-    }
-    if ( Debug.isOn() ) Debug.outln( r1 + " + " + r2 + " = " + result );
-    return result;
-*/  }
+    return plus(r1,r2);
+  }
   
   public static < T, TT > T subtract( Expression< T > o1, 
                                       Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -1942,57 +1865,8 @@ public class Functions {
     T r1 = (T)o1.evaluate( false );
     TT r2 = (TT)o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
-    return minus( r1, r2 );  // REVIEW -- should this be subtract(r1,r2)?
-/*    Number result = null;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
-         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
-      double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
-      double rd2 = ClassUtils.castNumber( (Number)r2, Double.class ).doubleValue();
-      // check for overflow
-      if ( rd1 >= 0.0 && Double.MAX_VALUE - rd1 <= - rd2 ) {
-        result = Double.MAX_VALUE;
-      } else if ( rd1 <= 0.0 && -Double.MAX_VALUE - rd1 >= - rd2 ) {
-        result = -Double.MAX_VALUE;
-      } else {
-        result = ( (Double)rd1 ) - ( (Double)rd2 );
-      }
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Float.class ) ||
-                r2.getClass().isAssignableFrom( java.lang.Float.class ) ) {
-       float rd1 = ClassUtils.castNumber( (Number)r1, Float.class ).floatValue();
-       float rd2 = ClassUtils.castNumber( (Number)r2, Float.class ).floatValue();
-       // check for overflow
-       if ( rd1 >= 0.0 && Double.MAX_VALUE - rd1 <= - rd2 ) {
-         result = Float.MAX_VALUE;
-       } else if ( rd1 <= 0.0 && -Float.MAX_VALUE - rd1 >= - rd2 ) {
-         result = -Double.MAX_VALUE;
-       } else {
-         result = ( (Float)rd1 ) - ( (Float)rd2 );
-       }
-    } else if ( java.lang.Integer.class.isAssignableFrom( r1.getClass() ) && 
-                java.lang.Integer.class.isAssignableFrom( r2.getClass() )) {
-//    } else if ( r1.getClass().isAssignableFrom( java.lang.Integer.class ) &&
-//                r2.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
-      int rd1 = ClassUtils.castNumber( (Number)r1, Integer.class ).intValue();
-      int rd2 = ClassUtils.castNumber( (Number)r2, Integer.class ).intValue();
-      // check for overflow
-      if ( rd1 >= 0 && Integer.MAX_VALUE - rd1 <= - rd2 ) {
-        result = Integer.MAX_VALUE;
-      } else if ( rd1 < 0 && Integer.MIN_VALUE - rd1 >= - rd2 ) {
-        result = Integer.MIN_VALUE;
-      } else {
-        result = ( (Integer)rd1 ) - ( (Integer)rd2 );
-      }
-    } else {
-      result = (Number)minus( r1, r2 );
-//    try {
-//      throw new IllegalAccessException();
-//    } catch ( IllegalAccessException e ) {
-//      e.printStackTrace();
-//    }
-    }
-    if ( Debug.isOn() ) Debug.outln( r1 + " - " + r2 + " = " + result );
-    return result;
-*/  }
+    return minus( r1, r2 );
+  }
 
   public static < T, TT > T times( Expression< T > o1,
                                                   Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -2001,58 +1875,7 @@ public class Functions {
     TT r2 = (TT)o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     return times(r1, r2);
-/*    Number result = null;
-    if ( r1.getClass().isAssignableFrom( TimeVaryingMap.class ) ) {
-    } else if ( r2.getClass().isAssignableFrom( TimeVaryingMap.class ) ) {
-    } if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
-         r2.getClass().isAssignableFrom( java.lang.Double.class ) ) {
-      double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
-      double rd2 = ClassUtils.castNumber( (Number)r2, Double.class ).doubleValue();
-      // check for overflow
-      boolean signsEqual = (rd1 > 0) == (rd2 > 0);
-      double ad1 = Math.abs( rd1 );
-      double ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-      if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Double.MAX_VALUE / ad1 <= ad2 ) result = Double.MAX_VALUE * ( signsEqual? 1 : -1);
-        else result = ( (Double)rd1 ) * ( (Double)rd2 );
-      }
-      else  result = ( (Double)rd1 ) * ( (Double)rd2 );
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Float.class ) ||
-                r2.getClass().isAssignableFrom( java.lang.Float.class ) ) {
-      float rd1 = ClassUtils.castNumber( (Number)r1, Float.class ).floatValue();
-      float rd2 = ClassUtils.castNumber( (Number)r2, Float.class ).floatValue();
-      // check for overflow
-      boolean signsEqual = (rd1 > 0) == (rd2 > 0);
-      float ad1 = Math.abs( rd1 );
-      float ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-      if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Float.MAX_VALUE / ad1 <= ad2 ) result = Float.MAX_VALUE * ( signsEqual? 1 : -1);
-        else result = ( (Float)rd1 ) * ( (Float)rd2 );
-      }
-      else  result = ( (Float)rd1 ) * ( (Float)rd2 );
-    } else if ( java.lang.Integer.class.isAssignableFrom( r1.getClass() ) && 
-                java.lang.Integer.class.isAssignableFrom( r2.getClass() ) ) {
-      int rd1 = ClassUtils.castNumber( (Number)r1, Integer.class ).intValue();
-      int rd2 = ClassUtils.castNumber( (Number)r2, Integer.class ).intValue();
-      // check for overflow
-      boolean signsEqual = (rd1 > 0) == (rd2 > 0);
-      int ad1 = Math.abs( rd1 );
-      int ad2 = Math.abs( rd2 ); //if they're the same sign, take abs...
-      if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
-        else result = ( (Integer)rd1 ) * ( (Integer)rd2 );
-      }
-      else  result = ( (Integer)rd1 ) * ( (Integer)rd2 );
-    } else {
-      try {
-        throw new IllegalAccessException();
-      } catch ( IllegalAccessException e ) {
-        e.printStackTrace();
-      }
-    }
-    if ( Debug.isOn() ) Debug.outln( r1 + " * " + r2 + " = " + result );
-    return result;
-*/  }
+  }
   
   public static < T, TT > T divide( Expression< T > o1,
                                     Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -2061,52 +1884,7 @@ public class Functions {
     TT r2 = (TT)o2.evaluate( false );
     if ( r1 == null || r2 == null ) return null;
     return divide(r1, r2);
-/*    Number result = null;
-    if ( r1.getClass().isAssignableFrom( java.lang.Double.class ) ||
-         r2.getClass().isAssignableFrom( java.lang.Double.class )) {
-      double rd1 = ClassUtils.castNumber( (Number)r1, Double.class ).doubleValue();
-      double rd2 = ClassUtils.castNumber( (Number)r2, Double.class ).doubleValue();
-      // check for overflow
-      if ( rd2 >= 0.0 && rd2 < 1.0 && Double.MAX_VALUE * rd2 <= rd1 ) {
-        result = Double.MAX_VALUE;
-      } else if ( rd2 < 0.0 && rd2 > -1.0 && -Double.MAX_VALUE * rd2 >= rd1 ) {
-        result = -Double.MAX_VALUE;
-      } else {
-        result = ( (Double)rd1 ) / ( (Double)rd2 );
-      }
-    } else if ( r1.getClass().isAssignableFrom( java.lang.Float.class ) ||
-                r2.getClass().isAssignableFrom( java.lang.Float.class )) {
-      float rd1 = ClassUtils.castNumber( (Number)r1, Float.class ).floatValue();
-      float rd2 = ClassUtils.castNumber( (Number)r2, Float.class ).floatValue();
-      // check for overflow
-      if ( rd2 >= 0.0 && rd2 < 1.0 && Float.MAX_VALUE * rd2 <= rd1 ) {
-        result = Float.MAX_VALUE;
-      } else if ( rd2 < 0.0 && rd2 > -1.0 && -Float.MAX_VALUE * rd2 >= rd1 ) {
-        result = -Float.MAX_VALUE;
-      } else {
-        result = ( (Float)rd1 ) / ( (Float)rd2 );
-      }
-    } else if ( java.lang.Integer.class.isAssignableFrom( r1.getClass() ) && 
-                java.lang.Integer.class.isAssignableFrom( r2.getClass() )) {
-      int rd1 = ClassUtils.castNumber( (Number)r1, Integer.class ).intValue();
-      int rd2 = ClassUtils.castNumber( (Number)r2, Integer.class ).intValue();
-      // check for divide by 0
-      int posNeg = ((rd2 < 0) ^ (rd1 < 0)) ? -1 : 1;
-      if ( rd2 == 0 ) {
-        result = posNeg * Double.MAX_VALUE;
-      } else {
-        result = ( (Integer)rd1 ) / ( (Integer)rd2 );
-      }
-    } else {
-      try {
-        throw new IllegalAccessException();
-      } catch ( IllegalAccessException e ) {
-        e.printStackTrace();
-      }
-    }
-    if ( Debug.isOn() ) Debug.outln( r1 + " / " + r2 + " = " + result );
-    return result;
-*/  }
+  }
 
   public static class Identity<T> extends Unary< T, T > {
     public Identity( Expression< T > o ) {
@@ -3115,8 +2893,10 @@ public class Functions {
     if ( tv == null || o == null ) return null;
     Boolean n = null;
     try {
-      n = Utils.isTrue( o, true );// Expression.evaluate( o, Number.class, false
+      if ( !(o instanceof TimeVaryingMap ) ) {
+        n = Utils.isTrue( o, true );// Expression.evaluate( o, Number.class, false
                                   // );
+      }
     } catch ( Throwable t ) {}
     if ( n != null ) return TimeVaryingMap.applyBool( tv, n, false, i );
     TimeVaryingMap< ? > tvm = null;

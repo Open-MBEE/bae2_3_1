@@ -31,6 +31,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -178,7 +180,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
 
   protected static Map< Method, Integer > effectMethods = initEffectMethods();
 
-  protected static Map< Method, Method > inverseMethods;
+  protected static Map< Method, Method > inverseMethods = null;
+
+  protected static Map< Method, MathOperation > operationForMethod = null;
 
   protected static Comparator< Method > methodComparator;
 
@@ -1290,6 +1294,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter< Long> value into the map!" );
       return null;
     }
+    if ( t.getValueNoPropagate() == 12050959643L ) {
+      System.out.println( getQualifiedName( null ) + " setValue(" + t + ", " + value + ")\n" + Debug.stackTrace() );
+    }
     if ( Debug.isOn() ) {
       if ( t.getOwner() == null ) {
         Debug.error( false, "Warning: inserting a Parameter< Long> with null owner into the map--may be detached!" );
@@ -2193,11 +2200,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    * @throws IllegalAccessException 
    */
   public <TT> TimeVaryingMap<TT> dividedBy( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ( isEmpty() ) return (TimeVaryingMap<TT>)this.clone();
+    if ( isEmpty() ) return (TimeVaryingMap< TT >)this.clone();
     Call c = getCallForThisMethod( n );
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
-      applyToSubMaps( c );
-      return (TimeVaryingMap<TT>)this;
+      TimeVaryingMap<TT> newTvm = (TimeVaryingMap<TT>)this.clone();
+      newTvm.applyToSubMaps( c );
+      return newTvm;
     }
     return (TimeVaryingMap<TT>)dividedBy( n, firstKey(), null );
   }
@@ -2639,6 +2647,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    * @return the key in the map that matches the input timepoint {@code tt}.
    */
   public Parameter< Long> getKey( Parameter< Long > tt, boolean equalValuesOk ) {
+    if ( tt == null ) return null;
     NavigableMap< Parameter< Long >, V > m = headMap( tt, true );
 
     Parameter< Long > k;
@@ -2880,6 +2889,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                   Parameter< Long > toKey ) {
 
     //if ( n == null ) return; //REVIEW
+    System.out.println( getQualifiedName(null) + ".add(" + n + ", " + fromKey + ", " + toKey + ")" );
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
     if ( same ) {
@@ -4298,28 +4308,72 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public void unapply( Effect effect ) {
     unapply( effect, true );
   }
-  public void unapply( Effect effect, boolean timeArgFirst ) {
-    if ( isArithmeticEffect( effect ) ) {
+  
+  public boolean doUndo = false;
+  public Effect getUndoEffect( Effect effect, boolean timeArgFirst ) {
+    Pair< Parameter< Long >, V > p = null;
+    if ( isArithmeticEffect( effect ) && effect instanceof EffectFunction ) {
       Effect inverseEffect = getInverseEffect( effect );
+      if ( !doUndo ) {
+        return inverseEffect;
+      }
+
+      // correct the value argument since it might have changed since originally
+      // applied
+      p = getTimeAndValueOfEffect( effect, timeArgFirst );
+      if ( p != null ) {
+        Parameter< Long > t = p.first;
+        MathOperation op =
+            getOperationForMethod( ( (EffectFunction)effect ).getMethod() );
+        V val = getValueChangeAt( t, op );
+        if ( inverseEffect instanceof EffectFunction ) {
+          int pos = getIndexOfValueArgument( (EffectFunction)inverseEffect );
+          Vector< Object > args = ( (EffectFunction)inverseEffect ).arguments;
+          if ( args != null ) {
+            if ( pos >= 0 && pos < args.size() ) {
+              Object oldVal = args.get( pos );
+              System.out.println( "MMMMMM   Replacing " + oldVal + " with "
+                                  + val + " in undoEffect: " + inverseEffect );
+              args.set( pos, val );
+            }
+          }
+        }
+      }
+
+      return inverseEffect;
+      
+    } else {
+      // if not arithmetic effect
+      // TODO
+    }
+    return null;
+  }
+  
+  public void unapply( Effect effect, boolean timeArgFirst ) {
+    Pair< Parameter< Long>, V > p = null;
+    if ( isArithmeticEffect( effect ) ) {
+      Effect undoEffect = getUndoEffect( effect, timeArgFirst );
+      
       if ( Debug.isOn() ) {
         Debug.outln( "unapply("
                      + MoreToString.Helper.toString( effect, true, false, null )
                      + ") : inverseEffect = "
-                     + MoreToString.Helper.toString( effect, true, false,
+                     + MoreToString.Helper.toString( undoEffect, true, false,
                                                      null ) );
       }
-      if ( canBeApplied( inverseEffect ) ) {
-        inverseEffect.applyTo( this, true );
-        appliedSet.remove(effect);
-        appliedSet.remove( inverseEffect );
+      if ( canBeApplied( undoEffect ) ) {
+        undoEffect.applyTo( this, true );
+        appliedSet.remove( effect );
+        appliedSet.remove( undoEffect );
       } else {
         Debug.error( true, "Error! Cannot unapply effect: "
                            + MoreToString.Helper.toLongString( effect ) );
       }
 //      return;
     }
-    Pair< Parameter< Long>, V > p =
-        getTimeAndValueOfEffect( effect, timeArgFirst );
+    if ( p == null ) {
+      p = getTimeAndValueOfEffect( effect, timeArgFirst );
+    }
     if ( p != null ) {
       unsetValue( p.first, p.second );
       appliedSet.remove(effect);
@@ -4620,16 +4674,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
     return inverseMethods;
   }
+  public static MathOperation getOperationForMethod(Method m) {
+    return getOperationForMethod().get( m );
+  }
+  public static Map< Method, MathOperation > getOperationForMethod() {
+    if ( operationForMethod == null ) {
+      initEffectMethods();
+    }
+    return operationForMethod;
+  }
   public static Comparator< Method > getMethodComparator() {
     return methodComparator;
   }
 
   Parameter< Long> getTimeOfEffect( EffectFunction effectFunction ) {
     Integer i = getIndexOfTimepointArgument( effectFunction );
-    if ( i == null ) {
+    if ( i == null || i < 0 ) {
       i = getIndexOfFirstTimepointParameter( effectFunction );
     }
-    if ( i != null ) {
+    if ( i != null && i >= 0 ) {
       return tryEvaluateTimepoint( effectFunction.arguments.get( i ), false );
     }
     return null;
@@ -4641,6 +4704,40 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                      + effectFunction.getMethod().getName()
                                      + ") = " + i );
     return i;
+  }
+
+  Object getValueOfEffect( EffectFunction effectFunction ) {
+    Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( effectFunction );
+    if ( p == null ) return null;
+    return p.second;
+  }
+
+  
+  public Integer getIndexOfValueArgument( EffectFunction effectFunction ) {
+    if ( effectFunction == null || effectFunction.getArguments() == null ) return null;
+    Integer tpi = getIndexOfTimepointArgument(effectFunction);
+    Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( effectFunction );
+    Object val = p.second;
+    int pos = -1;
+    int posTypeOk = -1;
+    int i = 0;
+    while ( i < effectFunction.getArguments().size() ) {
+      if ( tpi == null || tpi != i ) {
+        pos = i;
+        Object arg = effectFunction.getArgument(i);
+        if ( val == arg ) {
+          return pos;
+        }
+        if ( posTypeOk == -1 && getType() != null && getType().isInstance( arg ) ) {
+          posTypeOk = i;
+        }
+      }
+      ++i;
+    }
+    if ( posTypeOk != -1 ) {
+      return posTypeOk;
+    }
+    return pos;
   }
 
   public <TT> Pair< Parameter< Long>, TT > getTimeAndValueOfEffect( Effect effect ) {
@@ -4680,20 +4777,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       return null;
     }
     if ( effectFunction.getMethod().getParameterTypes().length < 2 ) {
-      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + MoreToString.Helper.toLongString( effect )
-                   + ") Error! Method takes "
-                   + effectFunction.getMethod().getParameterTypes().length
-                   + " parameters, but 2 are required." );
+//      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
+//                   + MoreToString.Helper.toLongString( effect )
+//                   + ") Error! Method takes "
+//                   + effectFunction.getMethod().getParameterTypes().length
+//                   + " parameters, but 2 are required." );
       return null;
     }
 
     if ( effectFunction.arguments == null || effectFunction.arguments.size() < 2 ) {
-      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + MoreToString.Helper.toLongString( effect )
-                   + ") Error! Method has "
-                   + effectFunction.getMethod().getParameterTypes().length
-                   + " arguments, but 2 are required." );
+//      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
+//                   + MoreToString.Helper.toLongString( effect )
+//                   + ") Error! Method has "
+//                   + effectFunction.getMethod().getParameterTypes().length
+//                   + " arguments, but 2 are required." );
       return null;
     }
     boolean complainIfNotTimepoint = timeFirst != null;
@@ -5522,8 +5619,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     sb.append( interpolation + " " );
     sb.append( this.getName() );
     if ( withHash ) sb.append( "@" + hashCode() );
-    sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
-                                             otherOptions, CURLY_BRACES, false ) );
+    //if ( deep ) {
+      sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
+                                               otherOptions, CURLY_BRACES, false ) );
+    //}
     return sb.toString();
   }
 
@@ -5841,39 +5940,171 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( inverseMethods == null ) {
       inverseMethods = new TreeMap< Method, Method >( methodComparator );
     }
+    if ( operationForMethod == null ) {
+      operationForMethod = new TreeMap< Method, MathOperation >( methodComparator );
+    }
+    operationForMethod.clear();
     inverseMethods.clear();
 
     Method m = getSetValueMethod();
     if ( m != null ) effectMethods.put( m, 0 );
     m = getAddNumberAtTimeMethod();
-    inverseMethods.put( m, getSubtractNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getSubtractNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.PLUS );
     m = getAddNumberForTimeRangeMethod();
-    inverseMethods.put( m, getSubtractNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getSubtractNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.PLUS );
     m = getSubtractNumberAtTimeMethod();
-    inverseMethods.put( m, getAddNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getAddNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.MINUS );
     m = getSubtractNumberForTimeRangeMethod();
-    inverseMethods.put( m, getAddNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getAddNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.MINUS );
     m = getMultiplyNumberAtTimeMethod();
-    inverseMethods.put( m, getDivideNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getDivideNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.TIMES );
     m = getMultiplyNumberForTimeRangeMethod();
-    inverseMethods.put( m, getDivideNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getDivideNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.TIMES );
     m = getDivideNumberAtTimeMethod();
-    inverseMethods.put( m, getMultiplyNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getMultiplyNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.DIVIDE );
     m = getDivideNumberForTimeRangeMethod();
-    inverseMethods.put( m, getMultiplyNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getMultiplyNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.DIVIDE );
 
     //m = getSetValueMethod2();
     //m = TimeVaryingMap.class.getMethod("unsetValue");
     //m = TimeVaryingMap.class.getMethod("unapply");
     return effectMethods;
+  }
+  
+  protected V getValueChangeAt(Parameter<Long> t, MathOperation op) {
+    if ( t == null ) return null;
+    // First determine original value applied
+    Parameter<Long> k = getKey( t, true );
+    if ( k == null ) {
+      Debug.error(true, false, "WARNING!!! gettAddedValueAt(" + t + "): no entry found at time");
+      return null;
+    }
+    if ( k != t ) {
+      Debug.error(true, false, "WARNING!!! Unappyling effect with different time object: effect time = " + t.toString( true, false, null ) + "; found time = " + k.toString( true, false, null ));
+    }
+    V v = getValue(t);
+    V vb = getValueBefore( t );
+    V dv = v;
+    try {
+      //if ( vb == null ) dv = v;
+      switch( op ) {
+        case AND:  // vb and dv = v, so dv = v is fine
+          break;
+        case OR:  // vb or dv = v, so dv = v is fine
+          break;
+        case EQ: // vb == dv = v
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = vb;
+            } else {
+              dv = Functions.pickNotEqualToForward( new Expression<V>(dv), new Expression<V>(vb) );
+            }
+          }
+          break;
+        case GT:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickGreater( new Expression<V>(vb), false );
+            } else {
+              dv = Functions.pickLess( new Expression<V>(vb), true );
+            }
+          }
+          break;
+        case GTE:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickGreater( new Expression<V>(vb), true );
+            } else {
+              dv = Functions.pickLess( new Expression<V>(vb), false );
+            }
+          }
+          break;
+        case LT:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickLess( new Expression<V>(vb), false );
+            } else {
+              dv = Functions.pickGreater( new Expression<V>(vb), true );
+            }
+          }
+          break;
+        case LTE:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickLess( new Expression<V>(vb), true );
+            } else {
+              dv = Functions.pickGreater( new Expression<V>(vb), false );
+            }
+          }
+          break;
+        case NEQ:
+          // TODO
+          break;
+        case NOT:
+          Object o = Functions.not( v );
+          dv = tryCastValue( o );
+        case NEG:
+          dv = Functions.times(v, -1);
+          // N/A
+          break;
+        case DIVIDE:  // vb / dv = v, so dv = vb / v
+          dv = Functions.divide( vb, v );
+          break;
+        case LOG:  // log base dv of vb is v, so dv^v = vb and dv = vb^(1/v)
+          if ( vb instanceof Number && v instanceof Number ) {
+            Double d = Math.pow( ( (Number)vb ).doubleValue(), 1.0 / ( (Number)values() ).doubleValue() );
+            dv = tryCastValue( d );
+          }
+          break;
+        case MAX: // dv = v
+          break;
+        case MIN: // dv = v
+          break;
+        case MINUS: // v = vb - dv, so dv = vb - v
+          dv = Functions.minus( vb, v );
+          break;
+        case MOD:  // v = vb mod dv, so one answer is dv = vb - v;  the smallest number is the smallest factor of vb - v that is greater than v; so, it has to be in (v, vb-v].
+          dv = Functions.minus( vb, v );
+        case PLUS:
+          dv = Functions.minus( v, vb );
+          break;
+        case POW:  // vb^dv = v, so log base vb of v = dv
+          if ( vb instanceof Number && v instanceof Number ) {
+            Double d = Math.log( ( (Number)v ).doubleValue() ) / Math.log( ( (Number)vb ).doubleValue() );
+            dv = tryCastValue( d );
+          }
+          break;
+        case TIMES:  // vb * dv = v, so dv = v / vb
+          dv = Functions.divide( v, vb );
+          break;
+        default:
+      }
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return dv;
   }
 
   // TODO -- make this a JUnit
@@ -6153,6 +6384,67 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return null;
   }
 
+  /**
+   * Create a new map that is a translation in time of this map as a function of
+   * time. For example, <code>g = f.translate(5)</code> is interpreted as
+   * <code>g(t) = f(t - 5)</code> and shifts values in <code>f</code> forward 5
+   * time units to get <code>g</code>.
+   * 
+   * @param timeDelta
+   *          the time by which the map is translated
+   * @return a new map translated by o in time.
+   */
+  public TimeVaryingMap<V> translate( Object timeDelta ) {
+    if ( timeDelta == null ) return null;
+    try {
+      Long t = Expression.evaluate( timeDelta, Long.class, true, false );
+      if ( t == null ) return null;
+      return translate( t );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  /**
+   * Create a new map that is a translation in time of this map as a function of
+   * time. For example, <code>g = f.translate(5)</code> is interpreted as
+   * <code>g(t) = f(t - 5)</code> and shifts values in <code>f</code> forward 5
+   * time units to get <code>g</code>.
+   * 
+   * @param timeDelta
+   *          the time by which the map is translated
+   * @return a new map translated by o in time.
+   */
+  public TimeVaryingMap<V> translate( Long timeDelta ) {
+    if ( timeDelta == null ) return null;
+    TimeVaryingMap<V> tvm = emptyClone();
+    Iterator< Entry<Parameter<Long>, V > > i = timeDelta < 0 ? entrySet().iterator() : descendingMap().entrySet().iterator();
+    while ( i.hasNext() ) {
+      Entry<Parameter<Long>, V > e = i.next();
+      Parameter<Long> oldTime = e.getKey();
+      Long newT = oldTime.getValue() + timeDelta;
+      if ( newT >= 0 ) {
+        SimpleTimepoint newTime = new SimpleTimepoint( newT );
+        tvm.put( newTime, e.getValue() );
+      }
+    }
+    return tvm;
+  }
+  
+  public TimeVaryingMap<V> shift( Long t ) {
+    return translate( t );
+  }
+  public TimeVaryingMap<V> shift( Object o ) {
+    return translate( o );
+  }
+  
   /**
    * @return a generated map of the changes in values from the previous point.
    *         <p>

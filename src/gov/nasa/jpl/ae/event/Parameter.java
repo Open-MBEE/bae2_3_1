@@ -27,6 +27,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
@@ -332,9 +333,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   // setValue( value, true ) is proactive updating
   protected void setValue( T val, boolean propagateChange ) {
     String valString = null;
+    //Debug.turnOn();
     if ( Debug.isOn() ) {
-      valString = MoreToString.Helper.toLongString( val );
-      Debug.outln( "Parameter.setValue(" + valString + ") start: " + this.toString( true, true, null ) );
+      valString = MoreToString.Helper.toShortString( val );
+      Debug.outln( "Parameter.setValue(" + valString + ") start: " + this.toString( true, false, null ) );
     }
     assert !propagateChange || mayPropagate;
     assert mayChange;
@@ -360,12 +362,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( val != null && owner != null ) {
       Object newVal = owner.translate(this, val, getType());
       if ( Debug.isOn() ) {
-        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
       }
       if ( newVal != null ) val = (T)newVal;
     } else {
       if ( Debug.isOn() ) {
-        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
+        //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
       }
     }
     boolean changing = !valueEquals( val );
@@ -389,17 +391,27 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                                          + "): owner is null" );
       }
       if ( Debug.isOn() ) {
-        if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
-            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
-            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
-        }
+        //if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
+            //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+            //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        //}
       }
       if ( Debug.isOn() ) {
-        Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
+        //Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
+//      String vvv = null;
+//      if ( val instanceof HasId ) {
+//        vvv = "@" + ( (HasId)val ).getId();
+//      } else if ( ClassUtils.isPrimitive( val ) ) {
+//        vvv = "" + val;
+//      } else if ( val != null ) {
+//        vvv = "@" + val.hashCode();
+//      }
+//      System.out.println( "Parameter " + getName() + "@" + getId() + " setValue(" + vvv
+//                          + "): value set!" );
       constraintList.clear();
       if ( owner != null ) {// && propagateChange ) {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
@@ -409,7 +421,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       }
     }
     setStale( false );
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString + ") finish: " + this.toString( true, true, null ) );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString + ") finish: " + this.toString( true, false, null ) );
+    Debug.turnOff();
   }
 
   protected boolean setValueOwner( T val ) {
