@@ -1294,9 +1294,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter< Long> value into the map!" );
       return null;
     }
-    if ( t.getValueNoPropagate() == 12050959643L ) {
-      System.out.println( getQualifiedName( null ) + " setValue(" + t + ", " + value + ")\n" + Debug.stackTrace() );
-    }
+//    if ( t.getValueNoPropagate() == 12050959643L ) {
+//      System.out.println( getQualifiedName( null ) + " setValue(" + t + ", " + value + ")\n" + Debug.stackTrace() );
+//    }
     if ( Debug.isOn() ) {
       if ( t.getOwner() == null ) {
         Debug.error( false, "Warning: inserting a Parameter< Long> with null owner into the map--may be detached!" );
@@ -4309,12 +4309,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     unapply( effect, true );
   }
   
-  public boolean doUndo = false;
+  public static boolean newChanges = true;
   public Effect getUndoEffect( Effect effect, boolean timeArgFirst ) {
     Pair< Parameter< Long >, V > p = null;
     if ( isArithmeticEffect( effect ) && effect instanceof EffectFunction ) {
       Effect inverseEffect = getInverseEffect( effect );
-      if ( !doUndo ) {
+      if ( !newChanges ) {
         return inverseEffect;
       }
 

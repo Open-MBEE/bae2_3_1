@@ -634,9 +634,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     
     // FIXME -- put inside if (Debug.isOn())
     System.out.println("~~~~~  REPAIR END " + elaborations.size() + "  ~~~~~");
-    if ( elaborations.size() > 50 ) {
-      Debug.breakpoint();
-    }
 
     return changed;
   }
@@ -2490,7 +2487,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return compare;
   }
 
-  private boolean newChanges = false; 
+  private static boolean newChanges = true; 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    *
@@ -2534,12 +2531,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           if ( tvm == null ) continue;
           Pair< Parameter< Long >, Object > timeVal = tvm.getTimeAndValueOfEffect( efff );
           
-          Object v = tvm.getValueOfEffect( efff );
-          if ( HasParameters.Helper.hasParameter( v, parameter, true, null, true ) ) {
+          //Object v = tvm.getValueOfEffect( efff );
+          int pos = tvm.getIndexOfValueArgument(  efff );
+          Object arg = pos >= 0 && pos < efff.getArguments().size() ? efff.getArgument( pos ) : null;
+
+          if ( HasParameters.Helper.hasParameter( arg, parameter, true, null, true ) ) {
             // unapply and reapply effect
-            tvm.unapply( efff );
-            if ( tv.canBeApplied( efff ) ) {
-              efff.applyTo( tv, true );
+            Object owner = tvm.getOwner();
+            if ( owner instanceof Parameter ) {
+              Parameter<?> tvParam = (Parameter<?>)owner;
+              if ( efff.isApplied( tvParam ) ) {
+                tvm.unapply( efff );
+                if ( tvm.canBeApplied( efff ) ) {
+                  efff.applyTo( tvm, true );
+                }
+              }
             }
           }
         }
