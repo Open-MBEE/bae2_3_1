@@ -9,16 +9,16 @@
     </eventType>
     <eventName>firstPlanAndControlLoadReduction</eventName>
     <arguments>
-      <parameter><name>startTime</name><type>Integer</type><value>0</value></parameter>
-      <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>0</value></parameter>-->
-      <parameter><name>DREventStartTime</name><type>Integer</type><value>3600</value></parameter>
-      <parameter><name>DREventEndTime</name><type>Integer</type><value>21600</value></parameter>
+      <parameter><name>startTime</name><type>Long</type><value>0</value></parameter>
+      <!--<parameter><name>lastDREventStartTime</name><type>Long</type><value>0</value></parameter>-->
+      <parameter><name>DREventStartTime</name><type>Long</type><value>3600</value></parameter>
+      <parameter><name>DREventEndTime</name><type>Long</type><value>21600</value></parameter>
       <parameter><name>DRArea</name><type>String</type><value>"Area 51"</value></parameter>
       <parameter><name>LoadReductionNeeded</name><type>Double</type><value>1000.0</value></parameter>
       <parameter><name>numberOfCustomers</name><type>Integer</type><value>10</value></parameter>
       <parameter><name>loadReductionActual</name><type>Double</type><value>1000.0</value></parameter>
       <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>0.0</value></parameter>
-      <parameter><name>assessEventStartTime</name><type>Integer</type><value>150</value></parameter>
+      <parameter><name>assessEventStartTime</name><type>Long</type><value>150</value></parameter>
       <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
       <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>new TimeVaryingMap&lt; String &gt;( "DRState", null, "", String.class )</value></parameter>
       <parameter><name>generator</name><type>Generator</type><value>new Generator()</value></parameter>
@@ -32,8 +32,8 @@
         </name>
         <members>
           <!-- Could encapsulate these in a DRObject class. -->
-          <parameter><name>DREventStartTime</name><type>Integer</type></parameter>
-          <parameter><name>DREventEndTime</name><type>Integer</type></parameter>
+          <parameter><name>DREventStartTime</name><type>Long</type></parameter>
+          <parameter><name>DREventEndTime</name><type>Long</type></parameter>
           <parameter><name>DRArea</name><type>String</type></parameter>
           <parameter><name>LoadReductionNeeded</name><type>Double</type></parameter>
           <parameter><name>numberOfCustomers</name><type>Integer</type></parameter>
@@ -61,10 +61,10 @@
         <inheritsFrom>DREvent</inheritsFrom>
         <members>
           <!-- Any values here are just initializations, and the variables may be reassigned. -->
-          <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>2400</value></parameter>-->
+          <!--<parameter><name>lastDREventStartTime</name><type>Long</type><value>2400</value></parameter>-->
           <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>0.0</value></parameter>
           <parameter><name>loadReductionActual</name><type>Double</type><value>1000.0</value></parameter>
-          <parameter><name>assessEventStartTime</name><type>Integer</type><value>100</value></parameter>
+          <parameter><name>assessEventStartTime</name><type>Long</type><value>100</value></parameter>
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
           <parameter><name>testX</name><type>Integer</type><value>3</value></parameter>
           <parameter><name>theGrid</name><type>Grid</type><value>null</value></parameter>
@@ -83,7 +83,7 @@
             <name>tmp2</name><type>TimeVaryingMap&lt;Double&gt;</type><value>null</value>
           </parameter>
           <parameter>
-            <name>hourAfter</name><type>Integer</type><value>null</value>
+            <name>hourAfter</name><type>Long</type><value>null</value>
           </parameter>
         </members>
         <constraints>
@@ -129,9 +129,9 @@
             <eventType>GenerateDRRequest</eventType>
             <!-- Values specified here are in the scope of PlanAndControlLoadReductionEvent and are dependencies (not just initializations), so if the value changes in PlanAndControlLoadReductionEvent, the dependent variable in GenerateDRRequest is reassigned. -->
             <arguments>
-              <parameter><name>startTime</name><type>Integer</type><value>startTime</value></parameter>
-              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
-              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>startTime</name><type>Long</type><value>startTime</value></parameter>
+              <parameter><name>DREventStartTime</name><type>Long</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Long</type><value>DREventEndTime</value></parameter>
               <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
               <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers</value></parameter>
@@ -144,17 +144,17 @@
           <eventInvocation>
             <eventType>AssessDRCommitmentEvent</eventType>
             <arguments>
-              <parameter><name>startTime</name><type>Integer</type><value>startTime + assessEventStartTime</value></parameter>
+              <parameter><name>startTime</name><type>Long</type><value>startTime + assessEventStartTime</value></parameter>
               <!-- The duration could be uncontrollable/uncertain, but we are hardcoding it for now. -->
-              <!--<parameter><name>duration</name><type>Integer</type><value>200</value></parameter>-->
-              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
-              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <!--<parameter><name>duration</name><type>Long</type><value>200</value></parameter>-->
+              <parameter><name>DREventStartTime</name><type>Long</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Long</type><value>DREventEndTime</value></parameter>
               <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
               <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers</value></parameter>
               <!-- The loadReductionProjectedBasedOnResponses is hardcoded for now as 0 to represent an attack blackholes the responses. -->
               <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type><value>loadReductionProjectedBasedOnResponses</value></parameter>
-              <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>lastDREventStartTime</value></parameter>-->
+              <!--<parameter><name>lastDREventStartTime</name><type>Long</type><value>lastDREventStartTime</value></parameter>-->
               <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>maxNumTimesReplan</value></parameter>
               <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
             </arguments>
@@ -166,10 +166,10 @@
             <eventType>ControlRealTimeLoadReductionEvent</eventType>
             <eventName>monitorAndControl</eventName>
             <arguments>
-              <parameter><name>startTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
-              <parameter><name>endTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
-              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
-              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>startTime</name><type>Long</type><value>DREventStartTime</value></parameter>
+              <parameter><name>endTime</name><type>Long</type><value>DREventEndTime</value></parameter>
+              <parameter><name>DREventStartTime</name><type>Long</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Long</type><value>DREventEndTime</value></parameter>
               <parameter><name>DRArea</name><type>String</type><value>DRArea</value></parameter>
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded</value></parameter>
               <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers</value></parameter>
@@ -195,7 +195,7 @@
         </constraints>
         <methods></methods>
         <dependencies>
-          <dependency><name>duration</name><type>Integer</type><value>100</value></dependency>
+          <dependency><name>duration</name><type>Long</type><value>100</value></dependency>
         </dependencies>
       </class>
       <effects></effects>
@@ -212,7 +212,7 @@
         <members>
           <parameter><name>loadReductionProjectedBasedOnResponses</name><type>Double</type></parameter>
           <parameter><name>loadReductionSufficient</name><type>Boolean</type></parameter>
-          <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>2400</value></parameter>-->
+          <!--<parameter><name>lastDREventStartTime</name><type>Long</type><value>2400</value></parameter>-->
           <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>2</value></parameter>
           <parameter><name>queue</name><type>Queue</type><value>new LinkedList&lt; String &gt;()</value></parameter>
         </members>
@@ -223,7 +223,7 @@
         <dependencies>
           <dependency>
             <!-- The duration could be uncontrollable/uncertain, but we are hardcoding it for now. -->
-            <name>duration</name><type>Integer</type><value>200</value>
+            <name>duration</name><type>Long</type><value>200</value>
           </dependency>
           <dependency>
             <name>loadReductionSufficient</name><type>Boolean</type>
@@ -240,10 +240,10 @@
             </eventType>
             <arguments>
               <!-- This is redundant with a precedence constraint defined above -->
-              <parameter><name>startTime</name><type>Integer</type><value>endTime</value></parameter>
+              <parameter><name>startTime</name><type>Long</type><value>endTime</value></parameter>
               <!-- Could allow a different event start/end. -->
-              <parameter><name>DREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>
-              <parameter><name>DREventEndTime</name><type>Integer</type><value>DREventEndTime</value></parameter>
+              <parameter><name>DREventStartTime</name><type>Long</type><value>DREventStartTime</value></parameter>
+              <parameter><name>DREventEndTime</name><type>Long</type><value>DREventEndTime</value></parameter>
               <!-- A new area should be selected. -->
               <!--<parameter><name>DRArea</name><type>String</type><value>"Area 54"</value></parameter>-->
               <!--<parameter><name>DRArea</name><type>String</type><value>"TA-21"</value></parameter>-->
@@ -251,7 +251,7 @@
               <!-- Compute the additional load to reduce. -->
               <parameter><name>LoadReductionNeeded</name><type>Double</type><value>LoadReductionNeeded - loadReductionProjectedBasedOnResponses</value></parameter>
               <parameter><name>numberOfCustomers</name><type>Integer</type><value>numberOfCustomers - numberOfCustomers * ((loadReductionProjectedBasedOnResponses * 1.0) / LoadReductionNeeded)</value></parameter>
-              <!--<parameter><name>lastDREventStartTime</name><type>Integer</type><value>DREventStartTime</value></parameter>-->
+              <!--<parameter><name>lastDREventStartTime</name><type>Long</type><value>DREventStartTime</value></parameter>-->
               <!-- Decrement replan count. -->
               <parameter><name>maxNumTimesReplan</name><type>Integer</type><value>maxNumTimesReplan-1</value></parameter>
               <parameter><name>DRState</name><type>TimeVaryingMap&lt; String &gt;</type><value>DRState</value></parameter>
