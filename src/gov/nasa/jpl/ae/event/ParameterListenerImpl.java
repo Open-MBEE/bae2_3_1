@@ -20,13 +20,13 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Random;
+import gov.nasa.jpl.mbee.util.Timer;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
-import gov.nasa.jpl.mbee.util.HasName;
 import gov.nasa.jpl.mbee.util.Utils;
 
 /**
@@ -44,7 +44,7 @@ public class ParameterListenerImpl extends HasIdImpl
   // Constants
   
   protected double timeoutSeconds = 900.0;
-  protected int maxLoopsWithNoProgress = 50;
+  protected int maxLoopsWithNoProgress = 100;
   protected long maxPassesAtConstraints = 10000;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
@@ -697,6 +697,9 @@ public class ParameterListenerImpl extends HasIdImpl
     // REVIEW -- why not call satisfy() here and solve elsewhere??
     boolean satisfied = solver.solve( allConstraints );
     if ( Debug.isOn() || amTopEventToSimulate ) {
+        Timer t = new Timer();
+        t.start();
+
       Collection< Constraint > unsat = solver.getUnsatisfiedConstraints();
       System.out.println( this.getClass().getName() + " - " + getName()
                           + ".tryToSatisfy() called solve(): satisfied "
@@ -710,9 +713,18 @@ public class ParameterListenerImpl extends HasIdImpl
           System.out.println("unsatisfied --> " + c);
         }
       }
+      t.stop();
+      if ( Debug.isOn() ) System.out.println( this.getClass().getName() + " - " + getName()
+      + ".tryToSatisfy() time taken to get unsatisfied constraints:\n" + t);
     }
 
+    Timer t = new Timer();
+    t.start();
     satisfied = isSatisfied(deep, null);
+    t.stop();
+    if ( Debug.isOn() ) System.out.println( this.getClass().getName() + " - " + getName()
+    + ".tryToSatisfy() time taken to check if satisfied:\n" + t);
+    
     if ( Debug.isOn() || amTopEventToSimulate ) {
       System.out.println( this.getClass().getName() + " - " + getName()
                           + ".tryToSatisfy() called solve(): satisfied = "

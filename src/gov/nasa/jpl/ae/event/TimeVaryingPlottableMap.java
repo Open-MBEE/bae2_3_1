@@ -31,7 +31,13 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
   private static final long serialVersionUID = -897416349437818390L;
   
   public static final TimeVaryingPlottableMap<Double> zero = new TimeVaryingPlottableMap< Double >( "zero", null, 0.0, Double.class ); 
-  public static final TimeVaryingPlottableMap<Double> one = new TimeVaryingPlottableMap< Double >( "one", null, 1.0, Double.class ); 
+  public static final TimeVaryingPlottableMap<Double> one = new TimeVaryingPlottableMap< Double >( "one", null, 1.0, Double.class ) {
+    private static final long serialVersionUID = 1L;
+    {
+      // adding endpoint so that integrate() will work on it
+      setValue( Timepoint.getHorizonTimepoint(), 1.0 );
+    }
+  };
 
   protected boolean dataProjected = false;
 

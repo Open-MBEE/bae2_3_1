@@ -78,8 +78,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public static Interpolation RAMP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.RAMP);
   public static Interpolation NONE = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.NONE);
   
-  public static final TimeVaryingMap<Double> zero = new TimeVaryingMap< Double >( "zero", 0.0, Double.class ); 
-  public static final TimeVaryingMap<Double> one = new TimeVaryingMap< Double >( "one", 1.0, Double.class ); 
+  public static final TimeVaryingMap<Double> zero = new TimeVaryingMap< Double >( "zero", 0.0, Double.class );
+  public static final TimeVaryingMap<Double> one = new TimeVaryingMap< Double >( "one", null, 1.0, Double.class ) {
+    private static final long serialVersionUID = 1L;
+    {
+      // adding endpoint so that integrate() will work on it
+      setValue( Timepoint.getHorizonTimepoint(), 1.0 );
+    }
+  };
+  public static final TimeVaryingMap<Double> time = one.integrate();
   
   public static class Interpolation  {
     public static final byte STEP = 0; // value for key = get(floorKey( key ))
@@ -2889,7 +2896,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                   Parameter< Long > toKey ) {
 
     //if ( n == null ) return; //REVIEW
-    System.out.println( getQualifiedName(null) + ".add(" + n + ", " + fromKey + ", " + toKey + ")" );
+    if ( Debug.isOn() ) System.out.println( getQualifiedName(null) + ".add(" + n + ", " + fromKey + ", " + toKey + ")" );
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
     if ( same ) {
@@ -4717,6 +4724,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( effectFunction == null || effectFunction.getArguments() == null ) return null;
     Integer tpi = getIndexOfTimepointArgument(effectFunction);
     Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( effectFunction );
+    if ( p == null ) return -1;
     Object val = p.second;
     int pos = -1;
     int posTypeOk = -1;
@@ -5574,25 +5582,49 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return toCsvString( null, null, null );
   }
 
+  protected String getTimeString( Parameter<Long> p, String dateFormat, Calendar cal ) {
+    String timeString = null;
+    if ( dateFormat != null  ) {
+      if ( cal == null ) cal = TimeUtils.gmtCal;
+      if ( p == null || p.getValueNoPropagate() == null ) {
+        return null;
+      }
+      long t = p.getValueNoPropagate();
+      timeString = Timepoint.toTimestamp( t, dateFormat, cal );
+    } else {
+      timeString = p.toShortString();
+    }
+    return timeString;
+  }
+  
+  protected String getCsvLine( Parameter< Long > p, V v, String dateFormat, Calendar cal ) {
+    String timeString = getTimeString( p, dateFormat, cal );
+    if ( Utils.isNullOrEmpty( timeString ) ) return null;
+    String line = timeString + "," + MoreToString.Helper.toShortString( v ) + "\n";
+    return line;
+  }
+  
   public String toCsvString(String header, String dateFormat, Calendar cal ) {
     StringBuffer sb = new StringBuffer();
     if ( !Utils.isNullOrEmpty( header ) ) {
       sb.append(header + "\n");
     }
+    Parameter< Long > lastKey = null;
     for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
-      String timeString = null;
-      if ( dateFormat != null  ) {
-        if ( cal == null ) cal = TimeUtils.gmtCal;
-        if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
-          continue;
-        }
-        long t = e.getKey().getValueNoPropagate();
-        timeString = Timepoint.toTimestamp( t, dateFormat, cal );
-      } else {
-        timeString = e.getKey().toShortString();
+      String line = getCsvLine( e.getKey(), e.getValue(), dateFormat, cal );
+      if ( line == null ) continue;
+      sb.append( line );
+      lastKey = e.getKey();
+    }
+    // Add a final point in case the plotter does not render beyond last point
+    Timepoint h = Timepoint.getHorizonTimepoint();
+    if ( interpolation.type != Interpolation.NONE && lastKey != null
+         && before( lastKey, h ) ) {
+      V v = getValue(h);
+      if ( v != null ) {
+        String line = getCsvLine( h, v, dateFormat, cal );
+        if ( line != null ) sb.append( line );
       }
-      sb.append( timeString + ","
-                 + MoreToString.Helper.toShortString( e.getValue() ) + "\n" );
     }
     return sb.toString();
   }

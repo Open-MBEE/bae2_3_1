@@ -615,7 +615,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     
     elaborationsToDelete.addAll(elaborationsToProcess);
     // FIXME -- put inside if (Debug.isOn())
-    System.out.println("~~~~~  " + elaborationsToDelete.size() + " elaboration to delete  ~~~~~");
+    System.out.println("~~~~~  " + elaborationsToDelete.size() + " elaborations to delete  ~~~~~");
     for ( ElaborationRule rule : elaborationsToDelete ) {
       Vector< Event > removedEvents = elaborations.remove(rule);
       if ( !changed && removedEvents != null ) changed = true;
@@ -1299,7 +1299,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //      if ( Debug.isOn() ) Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
 //    }
     timer.stop();
-    System.out.println( "\n" + getName() + ".execute(): Time to elaborate and resolve constraints:" );
+    System.out.println( "\n" + getName() + ".execute(): Time taken to elaborate and resolve constraints:" );
     System.out.println( timer );
     timer.start();
     Collection<Constraint> constraints = getConstraints( true, null );
@@ -1331,7 +1331,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
 
-    System.out.println( "\n" + getName() + ".execute(): Time to gather and write out constraints:" );
+    System.out.println( "\n" + getName() + ".execute(): Time taken to gather and write out constraints:" );
     System.out.println( timer );
 
     // HACK -- Sleeping to separate system.err from system.out.
