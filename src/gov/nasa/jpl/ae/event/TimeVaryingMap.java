@@ -438,6 +438,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
+  public TimeVaryingMap( String name, String fileName, String backupFileName,
+                         V defaultValue, Class<V> type ) {
+    this( name, defaultValue, type );
+    fromCsvFile( fileName, backupFileName, type );
+  }
   public TimeVaryingMap( String name, String fileName,
                          V defaultValue, Class<V> type ) {
     this( name, defaultValue, type );
@@ -5549,9 +5554,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     fromCsvFile( fileName, null );
   }
   public void fromCsvFile( String fileName, Class<V> cls ) {
-    if ( fileName == null ) return;
+    fromCsvFile( fileName, null, cls );
+  }
+  public void fromCsvFile( String fileName, String backupFileName, Class<V> cls ) {
+    String fName = fileName;
+    if ( fName == null && backupFileName == null ) return;
+    if ( fName == null ) fName = backupFileName;
     try {
-      File f = FileUtils.findFile( fileName );
+      File f = FileUtils.findFile( fName );
+      if ( f == null ) {
+        fName = backupFileName;
+        f = FileUtils.findFile( backupFileName );
+      }
       if (f != null ) System.out.println(f.toString());
       ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
       //String s = FileUtils.fileToString( f );
@@ -5563,7 +5577,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         }
       }
       fromStringMap( map, cls );
-      if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
+      if ( Debug.isOn() ) Debug.outln( "read map from file, " + fName + ":\n" + this.toString() );
     } catch ( IOException e ) {
       e.printStackTrace();
     }

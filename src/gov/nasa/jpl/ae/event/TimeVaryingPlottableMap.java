@@ -156,6 +156,23 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
     dataProjected = projected;
     init();
   }
+
+  /**
+   * @param name
+   * @param fileName
+   * @param defaultValue
+   * @param cls
+   * @param projected
+   */
+  public TimeVaryingPlottableMap( String name, String fileName, String backupFileName, V defaultValue,
+                                  Class<V> cls,
+                                  boolean projected ) {
+    super( name, fileName, backupFileName, defaultValue, cls );
+    dataProjected = projected;
+    init();
+  }
+  
+
   
   /**
    * @param name
