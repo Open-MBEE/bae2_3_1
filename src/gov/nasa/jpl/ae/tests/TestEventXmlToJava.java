@@ -50,7 +50,16 @@ public class TestEventXmlToJava {
   
   public EventXmlToJava initialize( boolean translate ) {
     if ( Debug.isOn() ) Debug.outln( "initialize( ): 1" );
-    File file = FileUtils.findFile( xmlFileName );
+    // look in src directory first
+    String p = File.separator;
+    String srcFileName = "src" + p + "gov" + p + "nasa" + p + "jpl" + p + "ae" + p + "xml" + p + xmlFileName;
+    File file = FileUtils.findFile( srcFileName );
+//    if ( file == null ) {
+//      file = FileUtils.findFile( "src", xmlFileName );
+//    }
+    if ( file == null ) {
+      file = FileUtils.findFile( xmlFileName );
+    }
     if ( file != null && file.exists() ) {
       xmlFileName = file.getAbsolutePath();
     }
