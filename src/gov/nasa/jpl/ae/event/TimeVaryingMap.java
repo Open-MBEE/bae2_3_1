@@ -4344,7 +4344,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
           if ( args != null ) {
             if ( pos >= 0 && pos < args.size() ) {
               Object oldVal = args.get( pos );
-              System.out.println( "MMMMMM   Replacing " + oldVal + " with "
+              if ( Debug.isOn() ) System.out.println( "MMMMMM   Replacing " + oldVal + " with "
                                   + val + " in undoEffect: " + inverseEffect );
               args.set( pos, val );
             }
