@@ -185,8 +185,7 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
                                   Class<V> cls,
                                   Interpolation interpolation,
                                   boolean projected ) {
-    super( name, fileName, defaultValue, cls );
-    this.interpolation = interpolation;
+    super( name, fileName, defaultValue, cls, interpolation );
     this.dataProjected = projected;
     init();
   }

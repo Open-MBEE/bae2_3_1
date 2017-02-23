@@ -132,6 +132,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       }
     }
     
+    public boolean isNone() {
+      return type == NONE;
+    }
+    public boolean isStep() {
+      return type == STEP;
+    }
     public boolean isLinear() {
       return type == LINEAR || type == RAMP;
     }
@@ -630,6 +636,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     this( tvm.getName(), tvm, cls );
   }
 
+  public TimeVaryingMap( String name, String fileName, V defaultValue,
+                         Class< V > cls, Interpolation interpolation ) {
+    this( name, defaultValue, cls );
+    this.interpolation = interpolation;
+    fromCsvFile( fileName, type );
+  }
+  
   @Override
   public TimeVaryingMap<V> clone() {
     TimeVaryingMap<V> tvm = new TimeVaryingMap<V>(this);
@@ -1160,16 +1173,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
     Parameter< Long> t2 = getTimepointAfter( t );
     //v1 = get( t1 );
+    
+    return interpolatedValue( t1, t1, t2, v1, v2 );
+  }
+
+  public V interpolatedValue(Parameter< Long> t1, Parameter< Long> t, Parameter< Long> t2, V v1, V v2 ) {
     if ( t1.valueEquals( t2 ) ) return v1;
     v2 = get( t2 );
     if ( v1 == null ) return null;
     if ( v2 == null ) return v1;
     // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
+    return interpolatedValue( t1.getValue(), t.getValue(), t2.getValue(), v1, v2 );
+  }
+  
+  public V interpolatedValue(Long t1, Long t, Long t2, V v1, V v2 ) {
     try {
       v1 = Functions.plus( v1,
                            Functions.divide( Functions.times( Functions.minus( v2, v1 ),
-                                                              Functions.minus( t.getValue(), t1.getValue() ) ),
-                                             Functions.minus( t2.getValue(), t1.getValue() ) ) );
+                                                              Functions.minus( t, t1 ) ),
+                                             Functions.minus( t2, t1 ) ) );
     } catch ( ClassCastException e ) {
       e.printStackTrace();
     } catch ( IllegalAccessException e ) {
@@ -5515,10 +5537,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
     if( pre_tp != null )
     {
-      if( getValue(0L) == null )
+      if( getValue(0L) == null && this.interpolation.type != Interpolation.NONE )
       {
-        SimpleTimepoint zero_tp = new SimpleTimepoint( null, 0L, this ); 
-        setValue( zero_tp, pre_value );
+        SimpleTimepoint zero_tp = new SimpleTimepoint( null, 0L, this );
+        if ( interpolation.isStep() ) {
+          setValue( zero_tp, pre_value );
+        } else if (interpolation.isLinear() ) {
+          Parameter<Long> t2 = firstKey();
+          V v2 = firstValue();
+          V v = interpolatedValue( pre_tp, zero_tp, t2, pre_value, v2 );
+          if ( v != null ) {
+            setValue( zero_tp, v );
+          }
+        }
       }
     }
   }
