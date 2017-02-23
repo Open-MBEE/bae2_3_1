@@ -615,7 +615,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Debug.error( true, "\nArgument " + result +
                          ( result == null ?
                            "" : " of type " + result.getClass().getCanonicalName() )
-                         + " is not an instance of " + c.getSimpleName() );
+                         + " is not an instance of " + c.getSimpleName() + " for call to " + this.getMember() );
     }
     return result;
   }
