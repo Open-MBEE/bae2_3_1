@@ -731,6 +731,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       Timepoint eventEnd = event.getEndTime();
       if ( eventEnd == null ) continue;  // error??!!
       Parameter< Long > intervalEnd = tvm.getTimepointLater( t );
+      if ( intervalEnd == null || intervalEnd.getValue() == null ) continue;
       if ( !eventEnd.valueEquals( intervalEnd ) ) {
         if ( replace || !( event instanceof DurativeEvent ) ) {
           elaborationsToDelete.add( rule );

@@ -73,6 +73,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
 
   private static final long serialVersionUID = -2428504938515591538L;
 
+  public static Set<String> resourcePaths = Collections.synchronizedSet( new LinkedHashSet<String>());
+  
   public static Interpolation STEP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.STEP);
   public static Interpolation LINEAR = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.LINEAR);
   public static Interpolation RAMP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.RAMP);
@@ -3939,6 +3941,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     result.removeDuplicates();
     return result;
   }
+  
+  public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map, Object o, boolean reverse, Inequality i) {
+    if ( map == null || o == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+      Object mapVal = map.getValue( e.getKey() );
+      Boolean value = null;
+      if ( mapVal != null ) {
+        value = reverse ? doesInequalityHold( o, mapVal, i )
+                        : doesInequalityHold( mapVal, o, i );
+      }
+      result.setValue( e.getKey(), value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+
+
 
   public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2, Inequality i) {
     if ( map1 == null || map2 == null ) return null;
@@ -5580,6 +5600,33 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     MoreToString.Helper.fromString( map, s, "", "\\s*", "", "", "\\s*,\\s*", "" );
     fromStringMap( map, cls );
   }
+  
+  protected static File findFileInResourcePaths(String fileName, String backupFileName) {
+    File f = null;
+    for ( String path : resourcePaths ) {
+      File pFile = new File(path);
+      if ( !pFile.exists() ) continue;
+      f = FileUtils.findFile( pFile, fileName );
+      if ( f == null && !Utils.isNullOrEmpty( backupFileName ) ) {
+        f = FileUtils.findFile( pFile, backupFileName );
+      }
+      if (f != null ) break;
+    }
+    return f;
+  }
+  protected static File findFileSimple(String fileName, String backupFileName) {
+      File f = FileUtils.findFile( fileName );
+      if ( f == null && !Utils.isNullOrEmpty( backupFileName ) ) {
+        f = FileUtils.findFile( backupFileName );
+      }
+      return f;
+  }
+  protected static File findFile(String fileName, String backupFileName) {
+    File f = findFileSimple(fileName, backupFileName);
+    if ( f != null ) return f;
+    f = findFileInResourcePaths( fileName, backupFileName);
+    return f;
+  }
 
   public void fromCsvFile( String fileName ) {
     fromCsvFile( fileName, null );
@@ -5592,11 +5639,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( fName == null && backupFileName == null ) return;
     if ( fName == null ) fName = backupFileName;
     try {
-      File f = FileUtils.findFile( fName );
-      if ( f == null ) {
-        fName = backupFileName;
-        f = FileUtils.findFile( backupFileName );
-      }
+      File f = findFile( fName, backupFileName );
       if (f != null ) System.out.println(f.toString());
       ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
       //String s = FileUtils.fileToString( f );
@@ -6438,6 +6481,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
 
   @Override
   public boolean canBeApplied( Effect effect ) {
+    if ( effect == null ) return false;
     // checks to see if the timepoint is valid
     if ( effect instanceof EffectFunction ) {
       EffectFunction effectFunction = (EffectFunction)effect;
@@ -6503,6 +6547,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( timeDelta == null ) return null;
     TimeVaryingMap<V> tvm = emptyClone();
     Iterator< Entry<Parameter<Long>, V > > i = timeDelta < 0 ? entrySet().iterator() : descendingMap().entrySet().iterator();
+    
+    // Determine value at time zero
+    if ( timeDelta > 0 && interpolation != TimeVaryingMap.NONE && !isEmpty() ) {
+      Parameter< Long > zero = keySet().iterator().next();
+      if ( zero == null || zero.getValueNoPropagate() != 0L ) {
+        zero = new SimpleTimepoint( 0L );
+      }
+      V v = getValue( zero );
+      if ( v != null ) {
+        put( zero, v );
+      }
+    }
+    
     while ( i.hasNext() ) {
       Entry<Parameter<Long>, V > e = i.next();
       Parameter<Long> oldTime = e.getKey();

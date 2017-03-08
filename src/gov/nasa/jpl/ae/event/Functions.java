@@ -1412,6 +1412,32 @@ public class Functions {
     return tvm;
   }
   
+  public static Pair< Object, TimeVaryingMap<?> > objectOrTimeline(Object o) {
+    Object n = tryToGetObjectQuick( o );
+    TimeVaryingMap< ? > tvm = null;
+    if ( n != null ) {
+      new Pair< Object, TimeVaryingMap<?> >( n, tvm );
+    }
+    tvm = tryToGetTimelineQuick( o );
+    if ( tvm != null ) {
+        return new Pair< Object, TimeVaryingMap<?> >( n, tvm );
+    }
+    try {
+        n = Expression.evaluate( o, null, false );
+    } catch ( Throwable e ) {
+      // ignore
+    }
+    if ( n == null ) {
+      try {
+          tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
+      } catch (  Throwable e ) {
+        // ignore
+      }
+    }
+    Pair< Object, TimeVaryingMap<?> > p = new Pair< Object, TimeVaryingMap<?> >( n, tvm );
+    return p;
+  }
+  
   public static Pair< Boolean, TimeVaryingMap<?> > booleanOrTimeline(Object o) {
     Boolean n = tryToGetBooleanQuick( o );
     TimeVaryingMap< ? > tvm = null;
@@ -1491,6 +1517,12 @@ public class Functions {
     if ( o instanceof Parameter ) o = ((Parameter<?>)o).getValueNoPropagate();
     if ( o instanceof Boolean ) return (Boolean)o;
     return null;
+  }
+  protected static Object tryToGetObjectQuick( Object o ) {
+    if ( o == null ) return null;
+    if ( o instanceof Expression ) o = ((Expression<?>)o).expression;
+    if ( o instanceof Parameter ) o = ((Parameter<?>)o).getValueNoPropagate();
+    return o;
   }
   
   //public static <V1, V2> V1 times( V1 o1, V2 o2 ) {
@@ -3316,8 +3348,8 @@ public class Functions {
     T r2 = (T)(o2 == null ? null : o2.evaluate( false ));
     if ( r1 == r2 ) return true;
     if ( r1 == null || r2 == null ) return false;
-    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( r1 );
-    Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( r2 );
+    Pair< Object, TimeVaryingMap< ? > > p1 = objectOrTimeline( r1 );
+    Pair< Object, TimeVaryingMap< ? > > p2 = objectOrTimeline( r2 );
     TimeVaryingMap<?> tvm1 = p1 == null ? null : p1.second;
     TimeVaryingMap<?> tvm2 = p2 == null ? null : p2.second;
     if ( tvm1 != null ) {
@@ -3392,8 +3424,8 @@ public class Functions {
       notEquals( Expression< T > o1, Expression< T > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     T r1 = (T)(o1 == null ? null : o1.evaluate( false ));
     T r2 = (T)(o2 == null ? null : o2.evaluate( false ));
-    Pair< Number, TimeVaryingMap< ? > > p1 = numberOrTimeline( r1 );
-    Pair< Number, TimeVaryingMap< ? > > p2 = numberOrTimeline( r2 );
+    Pair< Object, TimeVaryingMap< ? > > p1 = objectOrTimeline( r1 );
+    Pair< Object, TimeVaryingMap< ? > > p2 = objectOrTimeline( r2 );
     TimeVaryingMap<?> tvm1 = p1 == null ? null : p1.second;
     TimeVaryingMap<?> tvm2 = p2 == null ? null : p2.second;
     if ( tvm1 != null ) {
@@ -3761,7 +3793,7 @@ public class Functions {
       tvm = Expression.evaluate( o, TimeVaryingMap.class, false );
     } catch ( Throwable t ) {}
     if ( tvm != null ) return compare( tv, tvm, i );
-    return null;
+    return TimeVaryingMap.compare( tv, o, false, i );
   }
 
   public static < T, TT extends Number > TimeVaryingMap< Boolean >

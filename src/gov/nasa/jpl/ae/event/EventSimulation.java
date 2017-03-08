@@ -60,7 +60,7 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
   public static final String enthoughtTempDir = File.separator + "tmp";
 
   private static boolean writingTimelinesToFile = true;
-  public static String csvDir = "data" + File.separator + "output" + (new Date()).getTime();
+  public static String csvDir = "output" + File.separator + "output" + (new Date()).getTime();
 
   public static double maxSecondsToNextEvent = 43200;
   

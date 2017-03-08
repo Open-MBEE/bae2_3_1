@@ -214,6 +214,18 @@ public class EventXmlToJava {
     if ( Debug.isOn() ) Debug.outln("xml file name = " + this.xmlFileName );
     if ( Debug.isOn() ) Debug.outln("package name = " + this.packageName );
 
+    // Use path to the xml file as a place to hunt for other resources.
+    File f = FileUtils.findFile( xmlFileName );
+    int ct = 0; // just go two levels down
+    while ( ct < 2 && f != null && f.exists() ) {
+      f = f.getParentFile();
+      if ( f.exists() ) {
+        TimeVaryingMap.resourcePaths.add( f.getAbsolutePath() );
+      }
+      ++ct;
+    }
+    // now be sure that the generated code also adds these resourcePaths -- TODO
+    
     expressionTranslator = new JavaToConstraintExpression( //this.expressionTranslator, 
                                                            packageName );
     
@@ -583,6 +595,9 @@ public class EventXmlToJava {
     addStatements( mainBody,
                    "Timepoint.setHorizonDuration("
                    + Timepoint.getHorizonDuration() + "L);\n" );
+    for ( String path : TimeVaryingMap.resourcePaths ) {
+      addStatements( mainBody,"TimeVaryingMap.resourcePaths.add(\"" + path + "\");\n" );
+    }
 
     // Create String args[].
     Type type = ASTHelper.createReferenceType( "String", 1 );
