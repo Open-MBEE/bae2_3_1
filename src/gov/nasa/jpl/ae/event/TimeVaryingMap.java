@@ -6579,6 +6579,29 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return translate( o );
   }
   
+  public TimeVaryingMap<V> snapToMinuteIncrement( Long minutes, boolean earlier ) {
+    return snapToTimeIncrement( Timepoint.minutes( minutes ), earlier );
+  }
+
+  public TimeVaryingMap<V> snapToTimeIncrement( Long timeIncrement, boolean earlier ) {
+    if ( timeIncrement == null || timeIncrement == 0L ) return null;
+    TimeVaryingMap<V> tvm = emptyClone();
+    for ( Map.Entry< Parameter<Long>, V > e : entrySet() ) {
+      Long t = e.getKey().getValueNoPropagate();
+      Long offset = t % timeIncrement;
+      if ( offset > 0 ) {
+        if ( earlier ) {
+          t = t - offset;
+        } else {
+          t = t + timeIncrement - offset;
+        }
+      }
+      SimpleTimepoint k = new SimpleTimepoint( t );
+      tvm.put( k, e.getValue() );
+    }
+    return tvm;
+  }
+
   /**
    * @return a generated map of the changes in values from the previous point.
    *         <p>
