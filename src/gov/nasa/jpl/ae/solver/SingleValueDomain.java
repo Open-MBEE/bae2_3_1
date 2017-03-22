@@ -45,7 +45,11 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#size()
    */
   @Override
-  public int size() {
+  public long magnitude() {
+    return 1;
+  }
+
+  public long size() {
     return 1;
   }
 
@@ -134,8 +138,12 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)
    */
   @Override
-  public void restrictToValue( T v ) {
-    value = v;
+  public boolean restrictToValue( T v ) {
+    if ( value != v && (value == null || !value.equals( v ) ) ) {
+      value = v;
+      return true;
+    }
+    return false;
   }
 
   @Override
@@ -161,6 +169,33 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   @Override
   public void setValue( T value ) {
     this.value = value;
+  }
+
+  @Override
+  public <TT> boolean restrictTo( Domain< TT > domain ) {
+    try {
+      if ( !domain.contains( (TT)value ) ) {
+        if ( value != null ) {
+          value = null;  // REVIEW -- Do we want to do this??!!
+          return true;
+        }
+      }
+    } catch ( ClassCastException e ) {
+      if ( value != null ) {
+        value = null;  // REVIEW -- Do we want to do this??!!
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean clearValues() {
+    if ( value != null ) {
+      value = null;  // REVIEW -- Do we want to do this??!!
+      return true;
+    }
+    return false;
   }
 
 }

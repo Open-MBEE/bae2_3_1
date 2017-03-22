@@ -13,9 +13,9 @@ import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -30,7 +30,8 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 //  protected Vector< ConstraintInvocation > constraintsToAdd = null;
   private boolean tryToSatisfyOnElaboration = false;
   protected boolean satisfyDeepOnElaboration = false;
-
+  protected boolean stale = false;
+  
   public ElaborationRule() {}
 
   public ElaborationRule( Expression< Boolean > condition,
@@ -47,11 +48,15 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 //    this.constraintsToAdd = constraintsToAdd;
 //  }
 
+  boolean simpleDeconstruct = true;
+  
   @Override
   public void deconstruct() {
+    if (!simpleDeconstruct) {
     if ( condition != null ) {
       condition.deconstruct();
       //condition = null;
+    }
     }
     if ( eventInvocations != null ) {
       for ( EventInvocation i : eventInvocations ) {
@@ -70,7 +75,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     if ( isNull ) return true;
     Boolean r = null;
     try {
-      r = c.evaluate( true );
+      r = (Boolean)c.evaluate( true );
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       //e.printStackTrace();
@@ -86,14 +91,29 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     return r;//( condition == null || condition.evaluate(true) );
   }
   
-  public boolean attemptElaboration( Vector< Event > elaboratedEvents,
+  public boolean attemptElaboration( Event parent,
+                                     Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan ) {
-    return attemptElaboration( elaboratedEvents, elaborateIfCan,
+    return attemptElaboration( parent,
+                               elaboratedEvents, elaborateIfCan,
                                tryToSatisfyOnElaboration,
                                satisfyDeepOnElaboration );
   }
+  
+  public Map<EventInvocation, Expression<TimeVaryingMap<?>> > getTimeVaryingElaborationInvocations() {
+    LinkedHashMap< EventInvocation, Expression<TimeVaryingMap<?>> > timeVaryingElaborationInvocations =
+        new LinkedHashMap< EventInvocation, Expression<TimeVaryingMap<?>> >();
+    for ( EventInvocation ei : eventInvocations ) {
+      if ( ei.fromTimeVarying != null ) {
+        timeVaryingElaborationInvocations.put(ei, ei.fromTimeVarying);
+      }
+    }
+    return timeVaryingElaborationInvocations;
+  }
+  
   // Fix elaboration and return whether it is elaborated.
-  public boolean attemptElaboration( Vector< Event > elaboratedEvents,
+  public boolean attemptElaboration( Event parent,
+                                     Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan,
                                      boolean satisfyOnElaboration,
                                      boolean satisfyDeep ) {
@@ -102,61 +122,118 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     // Find out if the rule is satisfied and elaborated.
     boolean conditionSatisfied = isConditionSatisfied();
     boolean elaborated = !elaboratedEvents.isEmpty();
+    boolean deconstructed = false;
     
     // Deal with change in the elaboration.
-    if ( elaborated && !conditionSatisfied ||
-         eventInvocations == null || eventInvocations.isEmpty() ) {
+    // Don't deconstruct because of staleness without a careful check; we get
+    // that by resetting stale to false.
+    if ( elaborated ) stale = false;
+    boolean conditionStale = false;
+    boolean wasStale = false;
+    boolean gotFromTimeVarying = !getTimeVaryingElaborationInvocations().isEmpty();
+    if ( ( elaborated && !conditionSatisfied ) ||
+         eventInvocations == null || eventInvocations.isEmpty() || ( gotFromTimeVarying && !(conditionStale = condition.isStale()) && (wasStale = isStale()) ) ) {
       // Need to un-elaborate!
       // TODO -- REVIEW -- Does this leak memory?
       // TODO -- REVIEW -- Is this called by anyone keeping constraints and
       // parameters of the lost sub-events?  Do we need ElaborationListeners?
+      if ( gotFromTimeVarying && elaborated && conditionSatisfied && !conditionStale && wasStale ) {
+        repairElaboratedEventsFromTimeVarying( parent, elaboratedEvents, elaborateIfCan, satisfyOnElaboration, satisfyDeep );
+        return !elaboratedEvents.isEmpty();
+      }
       for ( Event event : elaboratedEvents ) {
         event.deconstruct();
         //System.err.println("detatched " + event);
       }
       elaboratedEvents.clear();
-    } else if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
+      elaborated = false;
+    }
+    
+    if ( !conditionSatisfied && !elaborated && !condition.isStale() ) {
+      setStale( false );
+    }
+    // Quit early after deconstructing to avoid immediate re-elaboration and
+    // allow other possible variables to settle so that we don't have to
+    // deconstruct again.
+    if ( deconstructed ) {
+      return false;
+    }
+//    stale = false;
+//    if ( isStale() ) {
+//      return !elaboratedEvents.isEmpty();
+//    }
+    // This assumes that isConditionSatisfied() would not have changed from
+    // false to true since it was called above.
+    if ( !elaborated && conditionSatisfied && elaborateIfCan ) {
       // Need to elaborate!
-      for ( EventInvocation ei : eventInvocations ) {
-        Event event = ei.invoke();
-        if ( event != null ) {
-          elaboratedEvents.add( event );
-          Debug.getInstance().logForce( "elaborated "
-                              + MoreToString.Helper.toString( event, true,
-                                                              false, null ) );
-          if ( satisfyOnElaboration ) {
-            if ( event instanceof Satisfiable ) {
-              ( (Satisfiable)event ).satisfy( satisfyDeep , null );
-            }
+      doElaboration( parent, elaboratedEvents, elaborateIfCan,
+                     satisfyOnElaboration, satisfyDeep );
+    }  // else no change
+
+    setStale( false );
+
+    return !elaboratedEvents.isEmpty();
+  }
+  
+  public boolean doElaboration(Event parent,
+                               Vector< Event > elaboratedEvents,
+                               boolean elaborateIfCan,
+                               boolean satisfyOnElaboration,
+                               boolean satisfyDeep) {
+    boolean changed = false;
+    for ( EventInvocation ei : eventInvocations ) {
+      Event event = ei.invoke();
+      if ( event != null ) {
+        elaboratedEvents.add( event );
+        if ( event instanceof DurativeEvent ) {
+          ((DurativeEvent)event).setOwner( parent );
+        }
+        Debug.getInstance().logForce( "elaborated "
+                            + MoreToString.Helper.toString( event, true,
+                                                            false, null ) );
+        if ( satisfyOnElaboration ) {
+          if ( event instanceof Satisfiable ) {
+            ( (Satisfiable)event ).satisfy( satisfyDeep, null );
           }
         }
       }
-    }  // else no change
-    
-    return !elaboratedEvents.isEmpty();
+    }
+    return changed;
+
   }
 
-  // REVIEW -- dead code? -- remove?
-  /*
-  private Vector< Event > attemptElaboration() {
-    if ( eventInvocations == null ) return null;
-
-    Vector< Event > v = new Vector< Event >();
-    // TODO -- Grounding shouldn't be necessary here, right?
-//    if ( !condition.isGrounded() ) {
-//      condition.ground();
-//    }
-    if ( condition == null || condition.evaluate() ) {
-      for ( EventInvocation ei : eventInvocations ) {
-        Event event = ei.invoke();
-        if ( event != null ) {
-          v.add( event );
-        }
+  protected boolean repairElaboratedEventsFromTimeVarying(Event parent,
+                                                          Vector< Event > elaboratedEvents,
+                                                          boolean elaborateIfCan,
+                                                          boolean satisfyOnElaboration,
+                                                          boolean satisfyDeep) {
+    if ( Utils.isNullOrEmpty( eventInvocations ) ) return false;
+    boolean changed = false;
+    if ( eventInvocations.size() > 1 ) {
+      Debug.error("Multiple invocations when only one is expected!");
+    }
+    for ( EventInvocation ei : eventInvocations ) {
+      if ( parent instanceof DurativeEvent ) {
+        DurativeEvent dParent = (DurativeEvent)parent;
+        boolean didChange = ei.repairFromTimeVarying( dParent, new Expression<Boolean>(true) );
+        //didChange = dParent.repairElaborationFromTimeVarying( tvm, enclosingInstance, eventClass, arguments, condition );
+        if ( didChange ) changed = true;
       }
     }
-    return v;
+    setStale(false);
+    return changed;
   }
-  */
+
+  public boolean isTimeVaryingStale() {
+    if ( eventInvocations == null ) return false;
+    for ( EventInvocation i : eventInvocations ) {
+      if ( i.isTimeVaryingStale() ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
 
   @Override
   public int compareTo( ElaborationRule o ) {
@@ -291,22 +368,76 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 
   @Override
   public boolean isStale() {
-    for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.isStale() ) return true;
+    if ( stale ) return true;
+    if ( condition.isStale() ) {
+      setStale( true );
+      return true;
     }
+    Boolean b = null;
+    try {
+      b = (Boolean)condition.evaluate( false );
+    } catch ( IllegalAccessException e ) {
+    } catch ( InvocationTargetException e ) {
+    } catch ( InstantiationException e ) {
+    }
+    for ( EventInvocation i : eventInvocations ) {
+      if ( b == Boolean.TRUE ) {
+        if ( i.isStale() ) {
+          setStale( true );
+          return true;
+        }
+      } else {
+        if ( i.isStaleNoPropagate() ) {
+          setStale( true );
+          return true;
+        }
+      }
+    }
+//    for ( Parameter< ? > p : getParameters( false, null ) ) {
+//      if ( p.isStale() ) return true;
+//    }
     return false;
   }
 
+  public boolean setStaleAnyReferenceTo(Parameter<?> p, Set< HasParameters > seen) {
+    Pair< Boolean, Set< HasParameters > > sp = Utils.seen( this, true, seen );
+    if (sp.first) return false;
+    seen = sp.second;
+
+    boolean becameStale = false;
+    for ( EventInvocation i : eventInvocations ) {
+      if ( i.setStaleAnyReferenceTo( p, seen ) ) {
+        becameStale = true;
+      }
+    }
+    Set<Parameter<?>> params = condition.getParameters( false, null );
+    if ( params.contains( p ) ) {
+      condition.setStale( true );
+      becameStale = true;
+    }
+    if ( becameStale ) {
+      setStale( true );
+    }
+    return becameStale;
+  }
+  
   @Override
   public void setStale( boolean staleness ) {
-    // TODO -- REVIEW -- Need anything here?
-    assert false;
+    stale = staleness;
+    if ( staleness == true ) {
+      //Debug.error("Setting an elaboration rule stale is not supported!");
+      return;
+    }
+    for ( EventInvocation ei : eventInvocations ) {
+      ei.setStale( false );
+    }
   }
 
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set<HasParameters> seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override

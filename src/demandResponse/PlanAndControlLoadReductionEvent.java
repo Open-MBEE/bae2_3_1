@@ -77,7 +77,7 @@ public class PlanAndControlLoadReductionEvent extends DurativeEvent {
 		  elaborations.clear(); // TODO -- REVIEW -- memory leak??
 //		  Vector< EventInvocation > invocation = new Vector< EventInvocation >();
 		  Expression< ? >[] arguments = new Expression< ? >[1];
-		  arguments[0] = new Expression< Integer >( startTime );
+		  arguments[0] = new Expression< Long >( startTime );
 //      Class< ? > parameterTypes[] = { arguments[0].getClass() };
       addElaborationRule( new Expression< Boolean >( new Boolean( true ) ),
                           null, AssessDRCommitmentEvent.class, null, arguments );

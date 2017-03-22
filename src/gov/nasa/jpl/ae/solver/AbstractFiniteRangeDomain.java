@@ -102,7 +102,7 @@ public abstract class AbstractFiniteRangeDomain< T extends Comparable< T > >
 	@Override
 	public T pickRandomValue() {
 		double r = Random.global.nextDouble();
-		int n = (int)(((double)size()) * r);
+		long n = (long)(((double)size()) * r);
 		return getNthValue( n ); // counts from 0!!
 	}
 	

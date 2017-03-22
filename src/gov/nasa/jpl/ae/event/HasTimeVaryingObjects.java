@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen );
 
   /**
@@ -21,7 +21,7 @@ public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
   public static class Helper {
 
     // WARNING! Do not call from o.getTimeVaryingObjects() -- infinite loop
-    public static Set< TimeVarying< ? > >
+    public static Set< TimeVarying< ?, ? > >
         getTimeVaryingObjects( Object o, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
       if ( o == null ) return Utils.getEmptySet();
@@ -37,14 +37,14 @@ public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
           return getTimeVaryingObjects( (Pair< ?, ? >)o, deep, seen );
         }
       }
-      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
-      if ( o instanceof TimeVarying< ? > ) {
-        set.add( (TimeVarying< ? >)o );
+      Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
+      if ( o instanceof TimeVarying< ?, ? > ) {
+        set.add( (TimeVarying< ?, ? >)o );
       }
       if ( o instanceof HasTimeVaryingObjects ) {
         // if ( Utils.seen( (HasTimeVaryingObjects)o, deep, seen ) )
         // return Utils.getEmptySet();
-        Set< TimeVarying< ? > > oSet =
+        Set< TimeVarying< ?, ? > > oSet =
             ( (HasTimeVaryingObjects)o ).getTimeVaryingObjects( deep, seen );
         set = Utils.addAll( set, oSet );
       }
@@ -55,10 +55,10 @@ public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
       return set;
     }
 
-    public static < K, V > Set< TimeVarying< ? > >
+    public static < K, V > Set< TimeVarying< ?, ? > >
         getTimeVaryingObjects( Map< K, V > map, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+      Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
       if ( map != null ) {
         for ( Map.Entry< K, V > me : map.entrySet() ) {
           set.addAll( getTimeVaryingObjects( me.getKey(), deep, seen ) );
@@ -68,20 +68,20 @@ public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
       return set;
     }
 
-    public static < T > Set< TimeVarying< ? > >
+    public static < T > Set< TimeVarying< ?, ? > >
         getTimeVaryingObjects( Collection< T > c, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+      Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
       for ( T t : c ) {
         set = Utils.addAll( set, getTimeVaryingObjects( t, deep, seen ) );
       }
       return set;
     }
 
-    public static Set< TimeVarying< ? > >
+    public static Set< TimeVarying< ?, ? > >
         getTimeVaryingObjects( Object[] c, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+      Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
       for ( Object t : c ) {
         set = Utils.addAll( set, getTimeVaryingObjects( t, deep, seen ) );
       }
@@ -90,10 +90,10 @@ public interface HasTimeVaryingObjects extends HasId<Integer>, Deconstructable {
 
     // static implementations on Pair
 
-    public static < T1, T2 > Set< TimeVarying< ? > >
+    public static < T1, T2 > Set< TimeVarying< ?, ? > >
         getTimeVaryingObjects( Pair< T1, T2 > p, boolean deep,
                                Set< HasTimeVaryingObjects > seen ) {
-      Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+      Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
       set = Utils.addAll( set, getTimeVaryingObjects( p.first, deep, seen ) );
       set = Utils.addAll( set, getTimeVaryingObjects( p.second, deep, seen ) );
       return set;

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+  <epoch>2012-08-05T11:00:00-07:00</epoch>
+  <horizon>P2D</horizon>
+  <timeUnits>seconds</timeUnits>
+  <eventToBeExecuted>
+    <eventType>
+      X
+    </eventType>
+    <eventName>x</eventName>
+    <arguments>
+    </arguments>
+  </eventToBeExecuted>
+  <events>
+   <event>
+    <class>
+      <name>X</name>
+      <members>
+        <parameter><name>i</name><type>int</type></parameter>
+      </members>
+        <constraints>
+          <constraint>
+            <expression>
+              i &lt; 5
+            </expression>
+          </constraint>
+        </constraints>
+      <events></events>
+      <classes></classes>
+      </class>
+    </event>
+  </events>
+</scenario>

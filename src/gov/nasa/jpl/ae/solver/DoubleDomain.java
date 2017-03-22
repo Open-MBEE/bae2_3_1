@@ -72,14 +72,14 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    * @see solver.AbstractRangeDomain#size()
    */
   @Override
-  public int size() {
+  public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
     return -1;
   }
 
   /* (non-Javadoc)
-   * @see solver.AbstractRangeDomain#getNthValue(int)
+   * @see solver.AbstractRangeDomain#getNthValue(long)
    */
   @Override
   public Double getNthValue( long n ) {
@@ -118,7 +118,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean greater( Double t1, Double t2 ) {
     if ( t1 == null ) return false;
     if ( t2 == null ) return t1 != null;
-    return t1 > t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2);
+    return comp > 0;
   }
 
   /* (non-Javadoc)
@@ -128,7 +129,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean less( Double t1, Double t2 ) {
     if ( t1 == null ) return t2 != null;
     if ( t2 == null ) return false;
-    return t1 < t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2);
+    return comp < 0;
   }
 
 //  /* (non-Javadoc)
@@ -146,7 +148,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean greaterEquals( Double t1, Double t2 ) {
     if ( t1 == null ) return t2 == null;
     if ( t2 == null ) return true;
-    return t1 >= t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2);
+    return comp >= 0;
   }
 
   /* (non-Javadoc)
@@ -156,7 +159,8 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   public boolean lessEquals( Double t1, Double t2 ) {
     if ( t1 == null ) return true;
     if ( t2 == null ) return t1 == null;
-    return t1 <= t2;
+    int comp = gov.nasa.jpl.ae.util.Math.compare(t1, t2); 
+    return comp <= 0;
   }
 
   @Override
@@ -210,6 +214,11 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
     } else if ( domain instanceof RangeDomain ) {
       defaultDomain = new DoubleDomain((RangeDomain< Double >)domain);
     }
+  }
+
+  @Override
+  public DoubleDomain make( Double lowerBound, Double upperBound ) {
+    return new DoubleDomain(lowerBound, upperBound);
   }
 
 }

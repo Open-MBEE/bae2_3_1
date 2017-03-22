@@ -1,4 +1,5 @@
 import os
+import math
 
 # debugMode can be passed in at the command line to turn it on
 debugMode = False
@@ -26,7 +27,7 @@ homeDir = expanduser("~")
 #homeDir = '/home/bclement'
 gitDir = homeDir + os.sep + 'git'
 projectPath = gitDir + os.sep + 'bae'
-fileName = projectPath + os.sep + 'simulationSnapshot.example.txt'
+fileName = projectPath + os.sep + 'simulationSnapshot.spacecraft.txt'
 
 plotLines = True
 allLinesSameStyle = True # linestyle="-" for all lines
@@ -758,6 +759,7 @@ def addAx(subplotId):
     idx = [s for s in subplotIds].index(subplotId) + 1
     debugPrint("ax = fig.add_subplot(" + str(len(subplotIds)) + ",1," + str(idx) + ")")
     ax = fig.add_subplot(len(subplotIds), 1, idx)
+    
     if len(subplotIds) >= len(fig.axes):
         for i in range(len(fig.axes)):
             fig.axes[i].change_geometry(len(fig.axes), 1, i+1)
@@ -768,7 +770,7 @@ def addAx(subplotId):
     if len(subplotForLine) == 0:
         for _ in xrange(numLines): subplotForLine.append(subplotId)
     if len(lineNames) == 0:
-        for _ in xrange(numLines): lineNames.append('_nolegend_')        
+        for _ in xrange(numLines): lineNames.append('_nolegend_')
     for _ in xrange(numLines):
         if subplotForLine[ii] == subplotId:
             debugPrint("adding line " + lineNames[ii] + ", index " + str(ii) + ", for subplot " + subplotId + ", ax=" + str(ax))
@@ -778,9 +780,9 @@ def addAx(subplotId):
     ax.set_xlim(-0.005, 5)
     ax.grid()
     ax.set_xlabel("time")
-    ax.set_ylabel("kWh")
+    #ax.set_ylabel("kWh")
     ax.set_title(subplotId)
-    ax.legend(loc="upper right")
+    ax.legend(loc="upper right")    
     return ax
 
 def pickDataMode(dataModes):
@@ -980,12 +982,14 @@ def main(argv=None):
 
     # create plot figure
     fig = plt.figure(figsize=(20.0,10.0))
-    fig.subplots_adjust(hspace=0.05)
+    fig.subplots_adjust(hspace=0.10)
     fig.subplots_adjust(left=0.05)
     fig.subplots_adjust(right=0.95)
     if len(subplotIds) == 0: subplotIds.add(defaultSubplotTitle)
     for subplotId in subplotIds: addAx(subplotId)
     for subplotId in subplotIds: addNowLine(subplotId)
+#     plt.tight_layout()
+    
 
     if xdata == None:
         xdata = [[0] for _ in xrange(numLines)] #can't be empty

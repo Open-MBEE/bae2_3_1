@@ -16,6 +16,7 @@ import gov.nasa.jpl.mbee.util.HasName;
  * 
  */
 public interface ParameterListener extends HasParameters, HasName< String > {
+  // TODO -- need to pass a seen set in handle*() methods.
   /**
    * Propagate this parameter's change to other objects. This may involve
    * updating dependencies, re-elaboration of events, and maybe constraint
@@ -23,7 +24,7 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * 
    * @param parameter the parameter whose value has changed
    */
-  public void handleValueChangeEvent( Parameter< ? > parameter );
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen );
 
   /**
    * Propagate this change to the parameter's domain to other objects. This may
@@ -31,7 +32,7 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * 
    * @param parameter the parameter whose domain has changed
    */
-  public void handleDomainChangeEvent( Parameter< ? > parameter );
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen );
 
   /**
    * Set to stale anything that references the parameter whose value just
@@ -71,11 +72,12 @@ public interface ParameterListener extends HasParameters, HasName< String > {
   public <T> boolean pickParameterValue( Variable< T > variable );
 
   /**
-   * The initial motivation for {@code getName()} was for if ( Debug.isOn() ) Debug.output.  As of 2012-08-05, 
+   * Get the name of this object. 
    *
    * @return a name
    */
   public String getName();
+  
   
   /**
    * Adjust the value assigned to a variable to make sure it is in in the

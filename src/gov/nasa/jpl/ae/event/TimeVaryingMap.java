@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.LongDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
@@ -13,60 +14,87 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
+//import com.panayotis.gnuplot.JavaPlot;
+
 /**
  *
  * TimeVaryingMap is a {@link TreeMap} for implementing {@link TimeVarying},
- * mapping a {@link Parameter<Integer>} to a generic class, V. It is also
+ * mapping a {@link Parameter< Long>} to a generic class, V. It is also
  * implements {@link ParameterListener} in order to maintain {@link TreeMap}
  * consistency when the key changes. It "floats" entries before its
- * {@link Parameter<Integer>} changes to protect the data structure and
- * reinserts the entry after the {@link Parameter<Integer>} has changed.
+ * {@link Parameter< Long>} changes to protect the data structure and
+ * reinserts the entry after the {@link Parameter< Long>} has changed.
  *
  */
-public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
+public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                  implements Cloneable,
-                                            TimeVarying< V >,
+                                            TimeVarying< Long, V >,
                                             Affectable,
                                             ParameterListener,
+                                            HasOwner,
                                             AspenTimelineWritable {
 
   protected static boolean checkConsistency = false;
 
   private static final long serialVersionUID = -2428504938515591538L;
 
+  public static Set<String> resourcePaths = Collections.synchronizedSet( new LinkedHashSet<String>());
+  
+  public static Interpolation STEP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.STEP);
+  public static Interpolation LINEAR = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.LINEAR);
+  public static Interpolation RAMP = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.RAMP);
+  public static Interpolation NONE = new TimeVaryingMap.Interpolation(TimeVaryingMap.Interpolation.NONE);
+  
+  public static final TimeVaryingMap<Double> zero = new TimeVaryingMap< Double >( "zero", 0.0, Double.class );
+  public static final TimeVaryingMap<Double> one = new TimeVaryingMap< Double >( "one", null, 1.0, Double.class ) {
+    private static final long serialVersionUID = 1L;
+    {
+      // adding endpoint so that integrate() will work on it
+      setValue( Timepoint.getHorizonTimepoint(), 1.0 );
+    }
+  };
+  public static final TimeVaryingMap<Double> time = one.integrate();
+  
   public static class Interpolation  {
-    protected static final byte STEP = 0; // value for key = get(floorKey( key ))
-    protected static final byte LINEAR = 1; // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-    protected static final byte RAMP = 2; // linear
-    protected static final byte NONE = Byte.MAX_VALUE; // value for key = get(key)
+    public static final byte STEP = 0; // value for key = get(floorKey( key ))
+    public static final byte LINEAR = 1; // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
+    public static final byte RAMP = 2; // linear
+    public static final byte NONE = Byte.MAX_VALUE; // value for key = get(key)
     public byte type = STEP;
     public Interpolation() {}
     public Interpolation( byte type ) {
@@ -104,6 +132,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       } else {
         Debug.error(true, "Can't parse interpolation string! " + s );
       }
+    }
+    
+    public boolean isNone() {
+      return type == NONE;
+    }
+    public boolean isStep() {
+      return type == STEP;
+    }
+    public boolean isLinear() {
+      return type == LINEAR || type == RAMP;
+    }
+    public boolean isRamp() {
+      return isLinear();
     }
   }
 
@@ -154,7 +195,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   protected static Map< Method, Integer > effectMethods = initEffectMethods();
 
-  protected static Map< Method, Method > inverseMethods;
+  protected static Map< Method, Method > inverseMethods = null;
+
+  protected static Map< Method, MathOperation > operationForMethod = null;
 
   protected static Comparator< Method > methodComparator;
 
@@ -162,12 +205,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
 
 
-  public class TimeValue extends Pair< Parameter<Integer>, V >
+  public class TimeValue extends Pair< Parameter< Long>, V >
                                implements HasParameters {
 
     protected final int id = HasIdImpl.getNext();
 
-    public TimeValue( Parameter<Integer> t, V v ) {
+    public TimeValue( Parameter< Long> t, V v ) {
       super( t, v );
     }
 
@@ -280,26 +323,39 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   }
 
-  public static class TimeComparator implements Comparator< Parameter< Integer > > {
+  public static boolean before( Parameter< Long > o1, Parameter< Long > o2 ) {
+    int c = compareTo( o1, o2 );
+    return c < 0;
+  }
+  public static boolean after( Parameter< Long > o1, Parameter< Long > o2 ) {
+    int c = compareTo( o1, o2 );
+    return c > 0;
+  }
+  public static int compareTo( Parameter< Long > o1, Parameter< Long > o2 ) {
+    return TimeComparator.instance.compare( o1, o2 );
+  }
+  
+  public static class TimeComparator implements Comparator< Parameter< Long > > {
 
     public boolean propagate = false;
     public boolean checkId = true;
+    public static TimeComparator instance = new TimeComparator();
 
     @Override
-    public int compare( Parameter< Integer > o1, Parameter< Integer > o2 ) {
+    public int compare( Parameter< Long > o1, Parameter< Long > o2 ) {
       if ( o1 == o2 ) return 0;
       if ( o1 == null ) return -1;
       if ( o2 == null ) return 1;
-      if ( ( o1.getType() != null && !Integer.class.isAssignableFrom( o1.getType() ) ) ||
-           ( o2.getType() != null && !Integer.class.isAssignableFrom( o2.getType() ) ) ) {
+      if ( ( o1.getType() != null && !Long.class.isAssignableFrom( o1.getType() ) ) ||
+           ( o2.getType() != null && !Long.class.isAssignableFrom( o2.getType() ) ) ) {
         return o1.compareTo( o2, checkId );
       }
       int compare = 0;
-      Integer v1 = null;
-      Integer v2 = null;
+      Long v1 = null;
+      Long v2 = null;
       try {
         try {
-          v1 = Expression.evaluate( o1, Integer.class, propagate );
+          v1 = Expression.evaluate( o1, Long.class, propagate );
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           //e.printStackTrace();
@@ -311,7 +367,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           //e.printStackTrace();
         }
         try {
-          v2 = Expression.evaluate( o2, Integer.class, propagate );
+          v2 = Expression.evaluate( o2, Long.class, propagate );
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           //e.printStackTrace();
@@ -323,7 +379,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
           //e.printStackTrace();
         }
       } catch (ClassCastException e) {
-        // May be possible to get here if a value was not an Integer.
+        // May be possible to get here if a value was not an Long.
         return o1.compareTo( o2, checkId );
       }
       compare = CompareUtils.compare( v1, v2, true );
@@ -333,7 +389,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public TimeVaryingMap() {
-    super(new TimeComparator());
+    super(TimeComparator.instance);
   }
 
   /**
@@ -384,12 +440,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         //e.printStackTrace();
       }
     }
-    Parameter<Integer> t = new Parameter<Integer>(null, null, 0, this);
+    Parameter< Long> t = new Parameter< Long>(null, null, 0L, this);
     Debug.errorOnNull(true,"this should neeeever be null", t.getValue(false) );
     put( t, valueToInsert );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
+  public TimeVaryingMap( String name, String fileName, String backupFileName,
+                         V defaultValue, Class<V> type ) {
+    this( name, defaultValue, type );
+    fromCsvFile( fileName, backupFileName, type );
+  }
   public TimeVaryingMap( String name, String fileName,
                          V defaultValue, Class<V> type ) {
     this( name, defaultValue, type );
@@ -411,8 +472,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return obj cast to T or {@code null} if the cast fails
    */
   public static < T > T tryCast( Object obj, Class<T> cls ) {
-    if ( cls != null ) {
+    if ( cls != null && obj != null ) {
       try {
+        if ( Number.class.isAssignableFrom( cls ) && ClassUtils.isNumber( obj.getClass() ) ) {
+          T x = ClassUtils.castNumber( (Number)obj, cls );
+          if ( x != null ) return x;
+        }
         return cls.cast( obj );
       } catch ( ClassCastException e ) {
         // ignore
@@ -443,12 +508,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return obj cast to V or {@code null} if the cast fails
    */
   @SuppressWarnings( "unchecked" )
-  public static Parameter<Integer> tryCastTimepoint( Object obj ) {
+  public static Parameter< Long> tryCastTimepoint( Object obj ) {
     if ( obj instanceof Parameter ) {
       Parameter<?> p = (Parameter< ? >)obj;
       Object val = p.getValueNoPropagate();
-      if ( val == null || val instanceof Integer ) {
-        return (Parameter< Integer >)obj;
+      if ( val == null || val instanceof Long ) {
+        return (Parameter< Long >)obj;
       }
     }
     return null;
@@ -477,15 +542,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return obj evaluated as Timepoint or {@code null} if the conversion or
    *         cast fail
    */
-  public Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate ) {
+  public Parameter< Long> tryEvaluateTimepoint( Object obj, boolean propagate ) {
     return tryEvaluateTimepoint( obj, propagate, true );
   }
 
-  private static Parameter<Integer> param = new Parameter< Integer >( "", null, 0, null );
+  private static Parameter< Long> param = new Parameter< Long >( "", null, 0L, null );
   private static Class< ? extends Parameter > pcls = param.getClass();
-      //(Class< ? extends Parameter< Integer >>)param.getClass();
+      //(Class< ? extends Parameter< Long >>)param.getClass();
 
-  //(Class< ? extends Parameter< Integer >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
+  //(Class< ? extends Parameter< Long >>)( isEmpty() ? Parameter.class : firstKey().getClass() );
 
   /**
    * @param obj
@@ -493,15 +558,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param propagate
    *          whether to propagate dependencies as part of the evaluation
    * @param okToWrap
-   *          whether a Parameter may be created to wrap an Integer value into a
+   *          whether a Parameter may be created to wrap an Long value into a
    *          timepoint
    * @return obj evaluated as Timepoint or {@code null} if the conversion or
    *         cast fail
    */
   @SuppressWarnings( "unchecked" )
-  public static Parameter<Integer> tryEvaluateTimepoint( Object obj, boolean propagate, boolean okToWrap ) {
+  public static Parameter< Long> tryEvaluateTimepoint( Object obj, boolean propagate, boolean okToWrap ) {
     try {
-      return Expression.evaluate( obj, (Class<Parameter<Integer>>)pcls, propagate, okToWrap );
+      return Expression.evaluate( obj, (Class<Parameter< Long>>)pcls, propagate, okToWrap );
     } catch ( Throwable e ) {
       // ignore
     }
@@ -509,21 +574,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public TimeVaryingMap( String name, Method initialValueFunction,
-                         Object o, int samplePeriod, int horizonDuration ) {
-    super(new TimeComparator());
+                         Object o, long samplePeriod, long horizonDuration ) {
+    super(TimeComparator.instance);
     this.name = name;
     samplePeriod = correctSamplePeriod( samplePeriod, horizonDuration );
-      for ( int t = 0; t < horizonDuration; t += samplePeriod ) {
-        // WARNING: creating Parameter<Integer> with no owner in order to avoid
+      for ( long t = 0; t < horizonDuration; t += samplePeriod ) {
+        // WARNING: creating Parameter< Long> with no owner in order to avoid
         // unnecessary overhead with constraint processing. If modified while in
         // the map, it can corrupt the map.
         Pair< Boolean, Object > p = ClassUtils.runMethod( false, o, initialValueFunction, t );
         if ( p.first ) {
-          Parameter< Integer > tp = makeTempTimepoint( t, false );
+          Parameter< Long > tp = makeTempTimepoint( t, false );
           if ( tp == null || tp.getValue( false ) == null ) {
             System.err.println( "Error - inserting null timepoint!" );
           } else {
-            put( tp,// new Parameter<Integer>( "", t, this ),
+            put( tp,// new Parameter< Long>( "", t, this ),
                  tryCastValue( p.second ) );
           }
         }
@@ -543,14 +608,68 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     putAll( tvm );
   }
 
+  public <VV>TimeVaryingMap( String name, TimeVaryingMap<VV> tvm, Class<V> cls ) {
+    this( name, null, null, cls );
+    owner = tvm.owner;
+    interpolation = tvm.interpolation;
+    floatingEffects.clear();
+    List< TimeVaryingMap< VV >.TimeValue > effects = tvm.floatingEffects;
+    List< TimeVaryingMap< V >.TimeValue > newEffects = new ArrayList< TimeVaryingMap<V>.TimeValue >();
+    for ( TimeVaryingMap< VV >.TimeValue f : effects ) {
+      TimeVaryingMap< V >.TimeValue tv = new TimeValue( f.first, tryCastValue( f.second ) );
+      newEffects.add(tv);
+    }
+    floatingEffects.addAll( newEffects );
+    appliedSet.clear();
+    appliedSet.addAll( tvm.appliedSet );
+    clear(); // clears the default value.
+    for ( Map.Entry< Parameter< Long >, VV > e : tvm.entrySet() ) {
+      V v = tryCast( e.getValue(), cls );
+      if ( v != null || e.getValue() == null ) {
+        setValue( e.getKey(), v );
+      }
+    }
+  }
+
   public TimeVaryingMap( TimeVaryingMap<V> tvm ) {
     this( tvm.getName(), tvm );
   }
+  public <VV> TimeVaryingMap( TimeVaryingMap<VV> tvm, Class<V> cls ) {
+    this( tvm.getName(), tvm, cls );
+  }
 
+  public TimeVaryingMap( String name, String fileName, V defaultValue,
+                         Class< V > cls, Interpolation interpolation ) {
+    this( name, defaultValue, cls );
+    this.interpolation = interpolation;
+    fromCsvFile( fileName, type );
+  }
+  
   @Override
   public TimeVaryingMap<V> clone() {
     TimeVaryingMap<V> tvm = new TimeVaryingMap<V>(this);
     return tvm;
+  }
+  public <VV> TimeVaryingMap<VV> clone(Class<VV> cls) {
+    TimeVaryingMap<VV> tvm = new TimeVaryingMap<VV>(this, cls);
+    return tvm;
+  }
+  public TimeVaryingMap< V > emptyClone() {
+    TimeVaryingMap<V> tvm = new TimeVaryingMap<V>(this.name, this.type);
+    return tvm;
+  }
+  public <T> TimeVaryingMap< T > emptyClone(Class<T> cls) {
+    TimeVaryingMap<T> tvm = new TimeVaryingMap<T>(this.name, cls);
+    return tvm;
+  }
+
+  public TimeVaryingMap< V > makeNew() {
+    return makeNew(this.getName());
+  }
+  public TimeVaryingMap< V > makeNew(String name) {
+    TimeVaryingMap< V > copy = emptyClone();
+    copy.setName( name );
+    return copy;
   }
 
   public static void maybeDeconstructParameter( ParameterListener pl,
@@ -591,9 +710,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   protected void breakpoint() {}
 
-  public Parameter<Integer> getTimepointBefore( Parameter<Integer> t ) {
+  public Parameter< Long> getTimepointBefore( Parameter< Long> t ) {
     if ( t == null ) return null;
-    Parameter< Integer > k = this.lowerKey( t );
+    Parameter< Long > k = this.lowerKey( t );
     if ( k != null && k.getValueNoPropagate() == null ) {
       Debug.error( true, "Error! Null timepoint " + k + " in TimeVaryingMap: "
                          + this );
@@ -601,21 +720,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return k;
   }
 
-  public Parameter<Integer> getTimepointBefore( Integer t ) {
+  public Parameter< Long> getTimepointBefore( Long t ) {
     if ( t == null ) return null;
-    Parameter<Integer> tp = makeTempTimepoint( t, false );
+    Parameter< Long> tp = makeTempTimepoint( t, false );
     return getTimepointBefore( tp );
   }
 
-  public Parameter<Integer> getTimepointEarlier( Parameter<Integer> t ) {
+  public Parameter< Long> getTimepointEarlier( Parameter< Long> t ) {
     if ( t == null ) return null;
     return getTimepointEarlier( t.getValue( false ) );
   }
 
-  public Parameter<Integer> getTimepointEarlier( Integer t ) {
+  public Parameter< Long> getTimepointEarlier( Long t ) {
     if ( t == null ) return null;
-    Integer justBeforeTimeVal = t;
-    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+    Long justBeforeTimeVal = t;
+    Parameter< Long> justBeforeTime = getTimepointBefore( t );
     while ( justBeforeTime != null && justBeforeTime.getValue( false ) != null ) {
       justBeforeTimeVal = justBeforeTime.getValue( false );
       if ( justBeforeTimeVal < t ) {
@@ -626,9 +745,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return justBeforeTime;
   }
 
-  public Parameter<Integer> getTimepointAfter( Parameter<Integer> t ) {
+  public Parameter< Long> getTimepointAfter( Parameter< Long> t ) {
     if ( t == null ) return null;
-    Parameter< Integer > k = this.higherKey( t );
+    Parameter< Long > k = this.higherKey( t );
     if ( k != null && k.getValueNoPropagate() == null ) {
       Debug.error( true, "Error! Null timepoint " + k + " in TimeVaryingMap: "
                          + this );
@@ -636,24 +755,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return k;
   }
 
-  public Parameter<Integer> getTimepointAfter( Integer t ) {
+  public Parameter< Long> getTimepointAfter( Long t ) {
     if ( t == null ) return null;
-    Parameter<Integer> tp = makeTempTimepoint( t, true );
+    Parameter< Long> tp = makeTempTimepoint( t, true );
     return getTimepointAfter( tp );
   }
 
-  public Parameter<Integer> getTimepointLater( Parameter<Integer> t ) {
+  public Parameter< Long> getTimepointLater( Parameter< Long> t ) {
     if ( t == null ) return null;
     return getTimepointLater( t.getValue( false ) );
   }
 
-  public Parameter<Integer> getTimepointLater( Integer t ) {
+  public Parameter< Long> getTimepointLater( Long t ) {
     if ( t == null ) return null;
-    Integer justAfterTimeVal = t;
-    Parameter<Integer> justAfterTime = getTimepointAfter( t );
+    Long justAfterTimeVal = t;
+    Parameter< Long> justAfterTime = getTimepointAfter( t );
     while ( justAfterTime != null ) {
       justAfterTimeVal = justAfterTime.getValue( false );
-      if ( justAfterTimeVal < t ) {
+      if ( justAfterTimeVal > t ) {
         break;
       }
       justAfterTime = getTimepointAfter( justAfterTime );
@@ -661,9 +780,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return justAfterTime;
   }
 
-  public V getValueBefore( Parameter<Integer> t ) {
+  public V getValueBefore( Parameter< Long> t ) {
     if ( t == null ) return null;
-    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+    Parameter< Long> justBeforeTime = getTimepointBefore( t );
     V valBefore = null;
     if ( justBeforeTime != null ) {
       valBefore = get( justBeforeTime );
@@ -671,9 +790,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return valBefore;
   }
 
-  public V getValueBefore( Integer t ) {
+  public V getValueBefore( Long t ) {
     if ( t == null ) return null;
-    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+    Parameter< Long> justBeforeTime = getTimepointBefore( t );
     V valBefore = null;
     if ( justBeforeTime != null ) {
       valBefore = get( justBeforeTime );
@@ -681,14 +800,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return valBefore;
   }
 
-  public V getValueEarlier( Parameter<Integer> t ) {
+  public V getValueEarlier( Parameter< Long> t ) {
     if ( t == null ) return null;
     return getValueEarlier( t.getValue( false ) );
   }
 
-  public V getValueEarlier( Integer t ) {
+  public V getValueEarlier( Long t ) {
     if ( t == null ) return null;
-    Parameter<Integer> justEarlierTime = getTimepointEarlier( t );
+    Parameter< Long> justEarlierTime = getTimepointEarlier( t );
     V valBefore = null;
     if ( justEarlierTime != null ) {
       valBefore = get( justEarlierTime );
@@ -696,9 +815,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return valBefore;
   }
 
-  public V getValueAfter( Parameter<Integer> t ) {
+  public V getValueAfter( Parameter< Long> t ) {
     if ( t == null ) return null;
-    Parameter<Integer> justAfterTime = getTimepointAfter( t );
+    Parameter< Long> justAfterTime = getTimepointAfter( t );
     V valAfter = null;
     if ( justAfterTime != null ) {
       valAfter = get( justAfterTime );
@@ -706,9 +825,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return valAfter;
   }
 
-  public V getValueAfter( Integer t ) {
+  public V getValueAfter( Long t ) {
     if ( t == null ) return null;
-    Parameter<Integer> justAfterTime = getTimepointAfter( t );
+    Parameter< Long> justAfterTime = getTimepointAfter( t );
     V valAfter = null;
     if ( justAfterTime != null ) {
       valAfter = get( justAfterTime );
@@ -716,15 +835,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return valAfter;
   }
 
-  public Parameter<Integer> makeTempTimepoint( Integer t, boolean maxName ) {
+  public Parameter< Long> makeTempTimepoint( Long t, boolean maxName ) {
     //if ( t == null ) return null;
     String n = ( maxName ? StringDomain.typeMaxValue : null );
-    Parameter<Integer> tp = new Parameter<Integer>( n, null, t, this );
+    Parameter< Long> tp = new Parameter< Long>( n, null, t, this );
     return tp;
   }
 
-  protected static int correctSamplePeriod( int samplePeriod,
-                                            int horizonDuration ) {
+  protected static long correctSamplePeriod( long samplePeriod,
+                                            long horizonDuration ) {
     if ( samplePeriod == 0 ) {
       samplePeriod = Math.max( 1, horizonDuration / 10 );
     }
@@ -732,15 +851,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     breakpoint();
     if ( parameter == null ) return;
-    if ( parameter.getValueNoPropagate() instanceof Integer ) {
+    if ( parameter.getValueNoPropagate() instanceof Long ) {
       unfloatEffects( parameter );
     }
   }
 
-  protected void floatEffects( Parameter<Integer> t ) {
+  protected void floatEffects( Parameter< Long> t ) {
     breakpoint();
     if ( t == null ) return;
     assert t.getValueNoPropagate() != null;
@@ -768,8 +891,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > p ) {
-    unfloatEffects( tryCastTimepoint( p ) );
+  public void handleDomainChangeEvent( Parameter< ? > param, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+    unfloatEffects( tryCastTimepoint( param ) );
   }
 
   @Override
@@ -906,6 +1033,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public void setStaleAnyReferencesTo( Parameter< ? > changedParameter,
                                        Set< HasParameters > seen ) { // ignoring since there's no recursive call here
     breakpoint();
+
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + ")" );
     if ( changedParameter == null ) return;
     if ( containsKey( changedParameter ) ) {
@@ -915,6 +1047,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       if ( Debug.isOn() ) Debug.outln( getName() + ".setStaleAnyReferencesTo(" + changedParameter + "): does not contain" );
     }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
+    
+//    // Pass message up the chain if necessary.
+//    Object o = getOwner();
+//    if ( o instanceof Parameter ) {
+//      o = ((Parameter<?>)o).getOwner();
+//    }
+//    if ( o instanceof ParameterListener ) {
+//      ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
+//    }
   }
 
   /* (non-Javadoc)
@@ -930,21 +1071,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(gov.nasa.jpl.ae.event.Parameter<Integer>)
+   * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(gov.nasa.jpl.ae.event.Parameter< Long>)
    */
   @Override
-  public V getValue( Parameter< Integer > t ) {
+  public V getValue( Parameter< Long > t ) {
     return getValue( t, true );
   }
-  public V getValue( Parameter< Integer > t, boolean valuesEqualForKeysOk ) {
+  public V getValue( Parameter< Long > t, boolean valuesEqualForKeysOk ) {
     if ( t == null ) return null;
-    NavigableMap< Parameter< Integer >, V > m = headMap( t, true );
+    NavigableMap< Parameter< Long >, V > m = headMap( t, true );
     if ( !m.isEmpty() ) {
-      Entry< Parameter< Integer >, V > e = m.lastEntry();
+      Entry< Parameter< Long >, V > e = m.lastEntry();
       if ( e.getKey().equals( t )
            || ( valuesEqualForKeysOk && Expression.valuesEqual( e.getKey(), t,
-                                                                Integer.class ) ) ) {
-        return m.lastEntry().getValue();
+                                                                Long.class ) ) ) {
+        return e.getValue();
       }
     }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -968,42 +1109,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     } else if ( interpolation.type == Interpolation.NONE ) {
       return null;
     } else if ( interpolation.type == Interpolation.LINEAR ) {
-      Parameter<Integer> t1 = null;
-      if ( !m.isEmpty() ) {
-        t1 = m.lastEntry().getKey();
-        v1 = m.lastEntry().getValue();
-      }
-      if ( Debug.isOn() ) {
-        Assert.assertEquals( t1, getTimepointBefore( t ) );
-        Assert.assertEquals( v1, get( t1 ) );
-        Debug.outln("getValue() change looks good.");
-      }
-      Parameter<Integer> t2 = getTimepointAfter( t );
-      //v1 = get( t1 );
-      if ( t1.valueEquals( t2 ) ) return v1;
-      v2 = get( t2 );
-      if ( v1 == null ) return null;
-      if ( v2 == null ) return v1;
-      // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
-      try {
-        v1 = Functions.plus( v1,
-                             Functions.divide( Functions.times( Functions.minus( v2, v1 ),
-                                                                Functions.minus( t, t1 ) ),
-                                               Functions.minus( t2, t1 ) ) );
-      } catch ( ClassCastException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      }
-      return v1;
+      if ( m.isEmpty() ) return null;
+      V v = interpolatedValue( t, m.lastEntry() );
+      return v;
     }
     Debug.error( true,
                  "TimeVaryingMap.getValue(): invalid interpolation type! "
@@ -1012,33 +1120,97 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(java.lang.Integer)
+   * @see gov.nasa.jpl.ae.event.TimeVarying#getValue(java.lang.Long)
    */
   @Override
-  public V getValue( Integer t ) {
+  public V getValue( Long t ) {
     if ( t == null ) return null;
-    Parameter<Integer> tp = makeTempTimepoint( t, true );
-    Entry< Parameter<Integer>, V > e = this.floorEntry( tp );
+    if ( isEmpty() ) return null;
+    Parameter< Long> tp = makeTempTimepoint( t, true );
+    // Find the entry for this timepoint or the preceding timepoint. 
+    Entry< Parameter< Long>, V > e = this.floorEntry( tp );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
-    if ( e != null ) return e.getValue();
-//  if ( !isEmpty() && firstEntry().getKey().getValue() <= t ) {
-//    return firstEntry().getValue();
-//  }
+    if ( e != null ) {
+      Parameter< Long > k = e.getKey();
+      if ( k != null && k.getValue( false ) != null
+           && LongDomain.defaultDomain.equals( t, k.getValue( false ) ) ) {
+        return e.getValue();
+      }
+      if ( interpolation.type == Interpolation.NONE ) {
+        return null;
+      }
+      if ( interpolation.type == Interpolation.STEP ) {
+        return e.getValue();
+      }
+      if ( interpolation.isLinear() ) {
+        V v = interpolatedValue( tp, e );
+        return v;
+      } else {
+        Debug.error( true, "Interpolation " + interpolation + " not expected!");
+      }
+    }
+    // If we couldn't find a value, then there are no values defined for the point.
+    // See if the first entry could work in case of multiple entries at the same time.
     if ( !isEmpty() ) {
-      Entry< Parameter<Integer>, V > f = firstEntry();
-      Parameter<Integer> k = f.getKey();
-      if ( IntegerDomain.defaultDomain.lessEquals( k.getValue( false ), t ) ) {
+      Entry< Parameter< Long>, V > f = firstEntry();
+      Parameter< Long> k = f.getKey();
+      if ( LongDomain.defaultDomain.lessEquals( k.getValue( false ), t ) ) {
         return f.getValue();
       }
     }
     return null;
   }
+  
+  public V interpolatedValue(Parameter< Long> t, Entry< Parameter< Long>, V > entryBefore) {
+    if ( t == null ) return null;
+    if ( entryBefore == null ) return null;
+    Parameter< Long> t1 = null;
+    V v1 = null, v2 = null;
+    t1 = entryBefore.getKey();
+    v1 = entryBefore.getValue();
+    if ( Debug.isOn() ) {
+      Assert.assertEquals( t1, getTimepointBefore( t ) );
+      Assert.assertEquals( v1, get( t1 ) );
+      Debug.outln("getValue() change looks good.");
+    }
+    Parameter< Long> t2 = getTimepointAfter( t );
+    //v1 = get( t1 );
+    
+    return interpolatedValue( t1, t1, t2, v1, v2 );
+  }
+
+  public V interpolatedValue(Parameter< Long> t1, Parameter< Long> t, Parameter< Long> t2, V v1, V v2 ) {
+    if ( t1.valueEquals( t2 ) ) return v1;
+    v2 = get( t2 );
+    if ( v1 == null ) return null;
+    if ( v2 == null ) return v1;
+    // floorVal+(ceilVal-floorVal)*(key-floorKey)/(ceilKey-floorKey)
+    return interpolatedValue( t1.getValue(), t.getValue(), t2.getValue(), v1, v2 );
+  }
+  
+  public V interpolatedValue(Long t1, Long t, Long t2, V v1, V v2 ) {
+    try {
+      v1 = Functions.plus( v1,
+                           Functions.divide( Functions.times( Functions.minus( v2, v1 ),
+                                                              Functions.minus( t, t1 ) ),
+                                             Functions.minus( t2, t1 ) ) );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return v1;
+  }
 
   /**
-   * Return whether there exists a Parameter<Integer>1 for an entry
-   * (Parameter<Integer>1, value1) such that
-   * {@code Parameter<Integer>1 == tp} or, if
-   * {@code mustBeAtSameTimepoint} is false, {@code Parameter<Integer>1.value}
+   * Return whether there exists a Parameter< Long>1 for an entry
+   * (Parameter< Long>1, value1) such that
+   * {@code Parameter< Long>1 == tp} or, if
+   * {@code mustBeAtSameTimepoint} is false, {@code Parameter< Long>1.value}
    * equals {@code tp.value}, and value1 equals value.
    *
    * @param value
@@ -1048,11 +1220,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @param mustBeSameTimepoint
    *          if true, the matching entry must have this timepoint key (tested
    *          with ==)
-   * @return true iff the {@code Parameter<Integer>} key in the map, whose time
+   * @return true iff the {@code Parameter< Long>} key in the map, whose time
    *         value equals {@code tp}'s value and whose map entry equals value or
-   *         {@code null} if there is no such Parameter<Integer>.
+   *         {@code null} if there is no such Parameter< Long>.
    */
-  public boolean hasValueAt( V value, Parameter<Integer> tp,
+  public boolean hasValueAt( V value, Parameter< Long> tp,
                              boolean mustBeSameTimepoint ) {
     if ( tp == null ) return false;
     V v = get( tp );
@@ -1065,47 +1237,47 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /**
-   * Return the {@code Parameter<Integer>1} for an entry
-   * {@code (Parameter<Integer>1, value1)} such that
-   * {@code Parameter<Integer>1 == tp} or if no such key exists
-   * {@code Parameter<Integer>1.value} equals {@code tp.value}, and
+   * Return the {@code Parameter< Long>1} for an entry
+   * {@code (Parameter< Long>1, value1)} such that
+   * {@code Parameter< Long>1 == tp} or if no such key exists
+   * {@code Parameter< Long>1.value} equals {@code tp.value}, and
    * {@code value1} equals {@code value}.
    *
    * @param value
    *          the value to match with a value in the map
    * @param tp
    *          the time required for the returned key
-   * @return a {@code Parameter<Integer>} key in the map, which equals
+   * @return a {@code Parameter< Long>} key in the map, which equals
    *         {@code tp} or whose time value equals that of {@code tp} and whose
    *         map entry equals {@code value} or {@code null} if there is no such
    *         key.
    */
-  public Parameter<Integer> keyForValueAt( V value, Parameter<Integer> tp ) {
+  public Parameter< Long> keyForValueAt( V value, Parameter< Long> tp ) {
     if ( tp == null ) return null;
     if ( containsKey(tp) && Utils.valuesEqual( get( tp ), value ) ) return tp;
     return keyForValueAt( value, tp.getValueNoPropagate() );
   }
 
   /**
-   * Return the {@code Parameter<Integer>1} for an entry
-   * {@code (Parameter<Integer>1, value1)} such that
-   * {@code Parameter<Integer>1.value} equals {@code t}, and {@code value1}
+   * Return the {@code Parameter< Long>1} for an entry
+   * {@code (Parameter< Long>1, value1)} such that
+   * {@code Parameter< Long>1.value} equals {@code t}, and {@code value1}
    * equals {@code value}.
    *
    * @param value
    *          the value to match with a value in the map
    * @param t
    *          the time value required for the returned key
-   * @return a {@code Parameter<Integer>} key in the map, whose time value
+   * @return a {@code Parameter< Long>} key in the map, whose time value
    *         equals {@code t} and whose map entry equals {@code value} or
    *         {@code null} if there is no such key.
    */
-  public Parameter<Integer> keyForValueAt( V value, Integer t ) {
+  public Parameter< Long> keyForValueAt( V value, Long t ) {
     // REVIEW -- use getKeys()?
     if ( t == null ) return null;
-    Parameter<Integer> tp = makeTempTimepoint( t, false );
-    Entry< Parameter<Integer>, V > e = this.floorEntry( tp );
-    Parameter<Integer> startKey = null;
+    Parameter< Long> tp = makeTempTimepoint( t, false );
+    Entry< Parameter< Long>, V > e = this.floorEntry( tp );
+    Parameter< Long> startKey = null;
     if ( e != null ) {
       startKey = e.getKey();
     } else if ( !isEmpty() ) {
@@ -1113,9 +1285,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     } else {
       return null;
     }
-    NavigableMap< Parameter< Integer >, V > tailMap =
+    NavigableMap< Parameter< Long >, V > tailMap =
         this.tailMap( startKey, true );
-    for ( java.util.Map.Entry< Parameter< Integer >, V > te : tailMap.entrySet() ) {
+    for ( java.util.Map.Entry< Parameter< Long >, V > te : tailMap.entrySet() ) {
       Object mVal = te.getValue();
       if ( Utils.valuesEqual( value, mVal )
            && TimeDomain.defaultDomain.equals( t, te.getKey()
@@ -1136,28 +1308,34 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return whether there is a key with a time value equal to {@code t} and and
    *         a value equal to {@code value}.
    */
-  public boolean hasValueAt( V value, Integer t ) {
+  public boolean hasValueAt( V value, Long t ) {
     return keyForValueAt( value, t ) != null;
   }
 
+//  public V setValue( Long t, V value ) {
+//  }
+  
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.TimeVarying#setValue(gov.nasa.jpl.ae.event.Parameter<Integer>, java.lang.Object)
+   * @see gov.nasa.jpl.ae.event.TimeVarying#setValue(gov.nasa.jpl.ae.event.Parameter< Long>, java.lang.Object)
    */
   @Override
-  public V setValue( Parameter< Integer > t, V value ) {
+  public V setValue( Parameter< Long > t, V value ) {
     breakpoint();
     if ( Debug.isOn() ) Debug.outln( getName() + " setValue(" + t + ", " + value + ")" );
     if ( t == null ) {
-      if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter<Integer> into the map!" );
+      if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter< Long> into the map!" );
       return null;
     }
     if ( t.getValueNoPropagate() == null ) {
-      if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter<Integer> value into the map!" );
+      if ( Debug.isOn() ) Debug.error( false, "Error! trying to insert a null Parameter< Long> value into the map!" );
       return null;
     }
+//    if ( t.getValueNoPropagate() == 12050959643L ) {
+//      System.out.println( getQualifiedName( null ) + " setValue(" + t + ", " + value + ")\n" + Debug.stackTrace() );
+//    }
     if ( Debug.isOn() ) {
       if ( t.getOwner() == null ) {
-        Debug.error( false, "Warning: inserting a Parameter<Integer> with null owner into the map--may be detached!" );
+        Debug.error( false, "Warning: inserting a Parameter< Long> with null owner into the map--may be detached!" );
       }
       if ( value != null && value instanceof Parameter
            && ( (Parameter<?>)value ).getOwner() == null ) {
@@ -1165,7 +1343,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       }
     }
     V oldValue = null;
-    Parameter<Integer> tp = keyForValueAt( value, t );
+    Parameter< Long> tp = keyForValueAt( value, t );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
     if ( tp != null && tp != t ) {
       remove( tp );
@@ -1234,7 +1412,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public TimeVaryingMap<V> multiply( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( isEmpty() ) return this;
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
-      for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+      for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
         V v = e.getValue();
         if ( v instanceof TimeVaryingMap ) {
           TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)v;
@@ -1268,7 +1446,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > multiply( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return multiply( n, fromKey, null );
   }
 
@@ -1290,7 +1468,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     // if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
     Integer indexOfBestArgumentToReplace = null;
     boolean isStatic = call.isStatic();
-    for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+    for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
       V v = e.getValue();
       Object retVal = null;
       if ( v instanceof TimeVaryingMap ) {
@@ -1368,6 +1546,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return this;
   }
 
+  
   /**
    * @param n the number by which the map is multiplied
    * @param fromKey the first key whose value is multiplied by {@code n}
@@ -1377,10 +1556,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > multiply( Number n, Parameter< Integer > fromKey,
-                                        Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > multiply( Number n, Parameter< Long > fromKey,
+                                        Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 
-    Map< Parameter< Integer >, V > map = null;
+    Map< Parameter< Long >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
       map = subMap( fromKey, true, toKey, true );
@@ -1388,7 +1567,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       boolean same = toKey.equals(fromKey);  // include the key if same
       map = subMap( fromKey, true, toKey, same );
     }
-    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
       e.setValue( Functions.times(e.getValue(), n ) );
     }
     return this;
@@ -1409,11 +1588,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public <VV> TimeVaryingMap< V > multiply( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tvm == null ) return null;
-    Set< Parameter< Integer > > keys =
-        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
     keys.addAll( tvm.keySet() );
-    for ( Parameter< Integer > k : keys ) {
+    for ( Parameter< Long > k : keys ) {
       VV v = tvm.getValue( k, false );
       Number n = Expression.evaluate( v, Number.class, false );
       //if ( n != null ) {// n.doubleValue() != 0 ) {
@@ -1432,7 +1611,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > times( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return times( n, fromKey, null );
   }
 
@@ -1449,11 +1628,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public < VV > TimeVaryingMap< V > times( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public < VV > TimeVaryingMap< V > timesOld( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.multiply( tvm );
     return newTvm;
   }
+  
+  
+  public <VV extends Number> TimeVaryingMap< V > times( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.TIMES );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Long > > keys =
+//        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter< Long> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.times( v1, v2 );
+//      // Multiplying a number and null will return the number.
+//      // But this doesn't make sense when the interpolation is NONE.
+//      if ( v3 == null && interpolation != NONE ) {
+//        v3 = v1 != null ? v1 : v2;
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
 
   public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > times( TimeVaryingMap< VV1 > tvm1,
                                                                          TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -1468,13 +1674,524 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > times( Number n, Parameter< Integer > fromKey,
-                                     Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    TimeVaryingMap< V > newTvm = this.clone();
+  public <VV> TimeVaryingMap< VV > times( Number n, Parameter< Long > fromKey,
+                                     Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_times_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = clone(cls);
+    newTvm.setName( getName() + "_times_" + n );
     newTvm.multiply( n, fromKey, toKey );
     return newTvm;
   }
 
+
+  /**
+   * @param n the power by which this map is raised
+   * @return this map after multiplying each value by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> power( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this;
+    if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+      for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
+        V v = e.getValue();
+        if ( v instanceof TimeVaryingMap ) {
+          TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)v;
+          tvm.power( n );
+        }
+      }
+      return this;
+    }
+    return power( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the power to which the map is raised
+   * @return a copy of the map whose values are each raised to the {@code n} power
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> pow( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this.clone();
+    return pow( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return this map after multiplying each value in the range [fromKey,
+   *         toKey) by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > power( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return power( n, fromKey, null );
+  }
+
+  // FIXME -- need to repeat changing of type like in the power() method below
+  // for other math operations!
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey the first key whose value is multiplied by {@code n}
+   * @param toKey is not multiplied.  To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after multiplying each value in the range [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > power( Number n, Parameter< Long > fromKey,
+                                    Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+
+    Map< Parameter< Long >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    if ( !map.isEmpty() && n.doubleValue() < 0.0 || n.doubleValue() != n.longValue() ) {
+      Class<?> cls = ClassUtils.mostSpecificCommonSuperclass( new Class<?>[]{Double.class, getType()} );
+      setType( cls );
+    }
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+      e.setValue( tryCast(Functions.pow(e.getValue(), n ), getType()) );
+    }
+    return this;
+  }
+  
+
+  /**
+   * Multiply this map with another. This achieves for all {@code t} in
+   * {@code thisBefore.keySet()} and {@code tvm.keySet()},
+   * {@code thisAfter.get(t) == thisBefore.get(t) * tvm.get(t)}.
+   *
+   * @param tvm
+   *          the {@code TimeVaryingMap} with which this map is multiplied
+   * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public <VV> TimeVaryingMap< V > power( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tvm == null ) return null;
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Long > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      power( n, k, k );
+    }
+    return removeDuplicates();
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return a copy of this map for which each value in the range [{@code fromKey},
+   *         {@code toKey}) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > pow( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return pow( n, fromKey, null );
+  }
+
+  /**
+   * Return the product of this map with another. This achieves for all
+   * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
+   * {@code newTvm.get(t) == this.get(t) * tvm.get(t)}.
+   *
+   * @param tvm
+   *          the map/timeline by which the map is multiplied
+   * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public < VV > TimeVaryingMap< V > powOld( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.power( tvm );
+    return newTvm;
+  }
+
+  public < VV > TimeVaryingMap< V > pow( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.POW );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Long > > keys =
+//        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter< Long> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.pow( v1, v2 );
+//      // Multiplying a number and null will return the number.
+//      // But this doesn't make sense when the interpolation is NONE.
+//      if ( v3 == null && interpolation != NONE ) {
+//        v3 = v1 != null ? v1 : v2;
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
+
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > pow( TimeVaryingMap< VV1 > tvm1,
+                                                                       TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return tvm1.pow( tvm2 );
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} with which this map is multiplied
+   * @return a copy of this map for which each value in the range [fromKey,
+   *         toKey) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public <VV> TimeVaryingMap< VV > pow( Number n, Parameter< Long > fromKey,
+                                  Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.setName( "pow_" + getName() + "_" + n );
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("pow_" + getName() + "_" + n, this, cls); 
+    newTvm.power( n, fromKey, toKey );
+    return newTvm;
+  }
+
+
+  
+  /**
+   * @param n the number by which this map is multiplied
+   * @return this map after multiplying each value by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> npower( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this;
+    if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
+      for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
+        V v = e.getValue();
+        if ( v instanceof TimeVaryingMap ) {
+          TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)v;
+          tvm.npower( n );
+        }
+      }
+      return this;
+    }
+    return npower( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the number to raise to the power of the map
+   * @return a copy of the map with the values, {@code v}, replaced by {@code n^v}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap<V> npow( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return this.clone();
+    return npow( n, firstKey(), null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return this map after multiplying each value in the range [fromKey,
+   *         toKey) by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< Double > npower( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return npower( n, fromKey, null );
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey the first key whose value is multiplied by {@code n}
+   * @param toKey is not multiplied.  To include the last key, pass {@code null} for {@code toKey}.
+   * @return this map after multiplying each value in the range [{@code fromKey}, {@code toKey})
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public <VV> TimeVaryingMap< VV > npower( Number n, Parameter< Long > fromKey,
+                                    Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    Map< Parameter< Long >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      boolean same = toKey.equals(fromKey);  // include the key if same
+      map = subMap( fromKey, true, toKey, same );
+    }
+    if ( !map.isEmpty() ) {
+      setType( Double.class );
+    }
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+      Number r = Functions.pow(n, e.getValue() );
+      e.setValue( tryCastValue( (Double)r.doubleValue() ) );
+    }
+    return (TimeVaryingMap< VV >)this;
+  }
+
+  /**
+   * Multiply this map with another. This achieves for all {@code t} in
+   * {@code thisBefore.keySet()} and {@code tvm.keySet()},
+   * {@code thisAfter.get(t) == thisBefore.get(t) * tvm.get(t)}.
+   *
+   * @param tvm
+   *          the {@code TimeVaryingMap} with which this map is multiplied
+   * @return this {@code TimeVaryingMap} after multiplying by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public <VV> TimeVaryingMap< V > npower( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( tvm == null ) return null;
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Long > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n = Expression.evaluate( v, Number.class, false );
+      npower( n, k, k );
+    }
+    return removeDuplicates();
+  }
+
+  /**
+   * @param n the number by which the map is multiplied
+   * @param fromKey
+   *          the key from which all values are multiplied by {@code n}.
+   * @return a copy of this map for which each value in the range [{@code fromKey},
+   *         {@code toKey}) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public TimeVaryingMap< V > npow( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    return npow( n, fromKey, null );
+  }
+
+  /**
+   * Return the product of this map with another. This achieves for all
+   * {@code t} in {@code this.keySet()} and {@code tvm.keySet()},
+   * {@code newTvm.get(t) == this.get(t) * tvm.get(t)}.
+   *
+   * @param n
+   *          the number by which the map is multiplied
+   * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public < VV > TimeVaryingMap< V > npow( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.npower( tvm );
+    return newTvm;
+  }
+
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > npow( TimeVaryingMap< VV1 > tvm1,
+                                                                       TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return tvm1.npow( tvm2 );
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} with which this map is multiplied
+   * @return a copy of this map for which each value in the range [fromKey,
+   *         toKey) is multiplied by {@code n}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   */
+  public <VV> TimeVaryingMap< VV > npow( Number n, Parameter< Long > fromKey,
+                                  Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("now_" + getName() + "_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.setName( "now_" + getName() + "_" + n );
+    newTvm.npower( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  public enum MathOperation { PLUS, MINUS, NEG, TIMES, DIVIDE, POW, LOG, MIN, MAX,
+                              MOD, AND, OR, NOT, LT, LTE, GT, GTE, EQ, NEQ };
+
+  public static boolean symmetric( MathOperation op ) {
+    switch ( op ) {
+      case DIVIDE:
+      case LOG:
+      case MINUS:
+      case MOD:
+      case POW:
+      case NOT:
+      case LT:
+      case LTE:
+      case GT:
+      case GTE:
+      case NEG:
+        return false;
+      case MIN:
+      case MAX:
+      case PLUS:
+      case TIMES: 
+      case AND:
+      case OR:
+      case EQ:
+      case NEQ:
+        return true;        
+      default:
+        Debug.error("Unknown MathOperation " + op + "!");
+    };
+    return false;
+  }
+  
+  /**
+   * Return the result of applying a binary operation to this map and another.
+   * This achieves for all {@code t} in {@code this.keySet()} and
+   * {@code tvm.keySet()}, {@code newTvm.get(t) == this.get(t) OP tvm.get(t)}
+   * for operation OP.
+   *
+   * @param tvm
+   *          the map/timeline by which the map is multiplied
+   * @param op
+   *          the binary operation
+   * @return a copy of this map multiplied by {@code tvm}
+   * @throws InstantiationException
+   * @throws InvocationTargetException
+   * @throws IllegalAccessException
+   * @throws ClassCastException
+   */
+  public < VV, VVV > TimeVaryingMap< VVV > applyOperation( TimeVaryingMap< VV > map, MathOperation op ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class<VVV> resultClass = (Class< VVV >)ClassUtils.dominantTypeClass( getType(), map.getType() );
+    return applyOperation( map, op, resultClass );
+  }
+  public < VV, VVV > TimeVaryingMap< VVV > applyOperation( TimeVaryingMap< VV > map, MathOperation op, Class<VVV> resultType ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    //Class<VVV> cls = (Class< VVV >)ClassUtils.dominantTypeClass( getType(), map.getType() );
+    TimeVaryingMap< VVV > newTvm = emptyClone(resultType);
+    newTvm.setType( resultType );
+    newTvm.clear();
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    if ( map != null ) {
+      keys.addAll( map.keySet() );
+    }
+    for ( Parameter< Long> k : keys ) {
+      V v1 = this.getValue( k );
+      VV v2 = map == null ? null : map.getValue( k );
+      Object v3 = null;
+      switch ( op ) {
+        case DIVIDE:
+          v3 = Functions.divide( v1, v2 );
+          break;
+        case LOG:
+          //v3 = Functions.log( v1, v2 );
+          throw new IllegalArgumentException("log(TimeVaryingMap) not yet supported!");
+          //break;
+        case MAX:
+          v3 = Functions.max( v1, v2 );
+          break;
+        case MIN:
+          v3 = Functions.min( v1, v2 );
+          break;
+        case MINUS:
+          v3 = Functions.minus( v1, v2 );
+          break;
+        case MOD:
+          //v3 = Functions.mod( v1, v2 );
+          throw new IllegalArgumentException("mod(TimeVaryingMap) not yet supported!");
+          //break;
+        case PLUS:
+          v3 = Functions.plus( v1, v2 );
+          break;
+        case POW:
+          v3 = Functions.pow( v1, v2 );
+          break;
+        case TIMES: 
+          v3 = Functions.times( v1, v2 );
+          break;
+        case NEG: 
+          v3 = Functions.negative( v1 );
+          break;
+        case AND:
+          v3 = Functions.and( v1, v2 );
+          break;
+        case OR:
+          throw new IllegalArgumentException( "or(V1,V1) not yet implemented!" );
+          //v3 = Functions.or( v1, v2 );
+          //break;
+        case NOT:
+          throw new IllegalArgumentException( "not(V1,V1) not yet implemented!" );
+          //v3 = Functions.not( v1 );
+          //break;
+        case LT:
+          v3 = Functions.lessThan( v1, v2 );
+          break;
+        case LTE:
+          v3 = Functions.lessThanOrEqual( v1, v2 );
+          break;
+        case GT:
+          throw new IllegalArgumentException( "greaterThan(V1,V1) not yet implemented!" );
+          //v3 = Functions.greaterThan( v1, v2 );
+          //break;
+        case GTE:
+          throw new IllegalArgumentException( "greaterThanOrEqual(V1,V1) not yet implemented!" );
+          //v3 = Functions.greaterThanOrEqual( v1, v2 );
+          //break;
+        case EQ:
+          throw new IllegalArgumentException( "equals(V1,V1) not yet implemented!" );
+          //v3 = Functions.equals( v1, v2 );
+          //break;
+        case NEQ:
+          throw new IllegalArgumentException( "notEquals(V1,V1) not yet implemented!" );
+          //v3 = Functions.notEquals( v1, v2 );
+          //break;
+        default:
+          throw new IllegalArgumentException("Unknown MathOperation " + op + "!");
+      };
+      // Applying the operation to a number and null (in that order) will return
+      // the number. If the order of the operands is (null, number), then the
+      // number is used only if the operation is symmetric. This behavior may be
+      // interpreted as not modifying the existing timeline if the other operand
+      // does not exist.
+      // But this doesn't make sense when the interpolation is NONE, so nothing
+      // is set in that case.
+      if ( v3 == null && (interpolation != NONE || map.interpolation != NONE || op != MathOperation.TIMES ) ) {
+        v3 = v1 != null ? v1 : (symmetric(op) ? v2 : null);
+      }
+      VVV v4 = newTvm.tryCastValue( v3 );
+      if ( v4 != null ) {
+        newTvm.setValue( k, v4 );
+      }
+    }
+    return newTvm;
+  }
+  
 
   /**
    * @param n the number by which this map is divided
@@ -1518,14 +2235,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap<V> dividedBy( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    if ( isEmpty() ) return this.clone();
+  public <TT> TimeVaryingMap<TT> dividedBy( Number n ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( isEmpty() ) return (TimeVaryingMap< TT >)this.clone();
     Call c = getCallForThisMethod( n );
     if ( TimeVaryingMap.class.isAssignableFrom( getType() ) ) {
-      applyToSubMaps( c );
-      return this;
+      TimeVaryingMap<TT> newTvm = (TimeVaryingMap<TT>)this.clone();
+      newTvm.applyToSubMaps( c );
+      return newTvm;
     }
-    return dividedBy( n, firstKey(), null );
+    return (TimeVaryingMap<TT>)dividedBy( n, firstKey(), null );
   }
 
   /**
@@ -1538,7 +2256,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > divide( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return divide( n, fromKey, null );
   }
 
@@ -1551,9 +2269,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > divide( Number n, Parameter< Integer > fromKey,
-                                     Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    Map< Parameter< Integer >, V > map = null;
+  public TimeVaryingMap< V > divide( Number n, Parameter< Long > fromKey,
+                                     Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    Map< Parameter< Long >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
       map = subMap( fromKey, true, toKey, true );
@@ -1561,8 +2279,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       boolean same = toKey.equals(fromKey);  // include the key if same
       map = subMap( fromKey, true, toKey, same );
     }
-    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
-      e.setValue( Functions.divide(e.getValue(), n ) );
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+      V v = Functions.divide(e.getValue(), n );
+      e.setValue( v );
     }
     return this;
   }
@@ -1582,11 +2301,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public <VV> TimeVaryingMap< V > divide( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tvm == null ) return null;
-    Set< Parameter< Integer > > keys =
-        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
     keys.addAll( tvm.keySet() );
-    for ( Parameter< Integer > k : keys ) {
+    for ( Parameter< Long > k : keys ) {
       VV v = tvm.getValue( k, false );
       Number n = Expression.evaluate( v, Number.class, false );
       //if ( n != null ) {// n.doubleValue() != 0 ) {
@@ -1595,7 +2314,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     return removeDuplicates();
   }
-
+  
   /**
    * @param n the number by which the map is divided
    * @param fromKey
@@ -1606,7 +2325,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV> TimeVaryingMap< VV > dividedBy( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return dividedBy( n, fromKey, null );
   }
 
@@ -1621,9 +2340,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > dividedBy( Number n, Parameter< Integer > fromKey,
-                                        Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    TimeVaryingMap< V > newTvm = this.clone();
+  public <VV> TimeVaryingMap< VV > dividedBy( Number n, Parameter< Long > fromKey,
+                                        Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_div_" + n, this, cls); 
+    TimeVaryingMap< VV > newTvm = clone(cls);
+    newTvm.setName( getName() + "_div_" + n );
     newTvm.divide( n, fromKey, toKey );
     return newTvm;
   }
@@ -1641,11 +2363,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public < VV extends Number > TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public < VV extends Number > TimeVaryingMap< V > dividedByOld( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.divide( tvm );
     return newTvm;
   }
+  
+  public <VV> TimeVaryingMap< V > dividedBy( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.DIVIDE );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Long > > keys =
+//        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter< Long> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.divide( v1, v2 );
+//      // Multiplying a number and null will return the number.
+//      // But this doesn't make sense when the interpolation is NONE.
+//      if ( v3 == null && interpolation != NONE ) {
+//        v3 = v1 != null ? v1 : v2;
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
+
 
   /**
    * Return the quotient of two maps. This achieves for all
@@ -1660,9 +2409,31 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > dividedBy( TimeVaryingMap< VV1 > tvm1,
+  public static < VV1, VV2 > TimeVaryingMap< VV1 > dividedBy( TimeVaryingMap< VV1 > tvm1,
                                                                              TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     return tvm1.dividedBy( tvm2 );
+  }
+
+
+  /**
+   * Return the quotient of two maps. This achieves for all
+   * {@code t} in {@code tvm1.keySet()} and {@code tvm2.keySet()},
+   * {@code newTvm.get(t) == tvm1.get(t) / tvm2.get(t)}.
+   *
+   * @param tvm1
+   * @param tvm1
+   * @return a copy of {@code tvm1} divided by {@code tvm2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public static < VV1 extends Number, VV2, VV3 > TimeVaryingMap< VV3 > dividedBy( VV1 o1,
+                                                                             TimeVaryingMap< VV2 > tvm2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( o1 == null ) return null;
+    TimeVaryingMap<VV3> tvm1 = (TimeVaryingMap< VV3 >)tvm2.emptyClone();
+    tvm1.setValue( new SimpleTimepoint( 0L ), (VV3)o1 );
+    return dividedBy(tvm1, tvm2);
   }
 
 
@@ -1684,14 +2455,56 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return plus( n, firstKey(), null );
   }
 
-  public boolean contains( Integer t ) {
+  /**
+   * @param n
+   * @return a copy of this map for which {@code n} is min'd with each value
+   */
+  public TimeVaryingMap<V> minClone( Number n ) {
+    if ( isEmpty() ) return this.clone();
+    return minClone( n, firstKey(), null );
+  }
+
+  /**
+   * @param n
+   * @return a copy of this map for which {@code n} is max'd with each value
+   */
+  public TimeVaryingMap<V> maxClone( Number n ) {
+    if ( isEmpty() ) return this.clone();
+    return maxClone( n, firstKey(), null );
+  }
+
+//  /**
+//   * @param n
+//   * @return a copy of this map for which {@code n} is lessThan'd with each value
+//   */
+//  public TimeVaryingMap<V> lessThanClone( Number n ) {
+//    if ( isEmpty() ) return this.clone();
+//    return lessThanClone( n, firstKey(), null );
+//  }
+//
+//  /**
+//   * @param n
+//   * @return a copy of this map for which {@code n} is lessThanOrEqual'd with each value
+//   */
+//  public TimeVaryingMap<V> lessThanOrEqualClone( Number n ) {
+//    if ( isEmpty() ) return this.clone();
+//    return lessThanOrEqualClone( n, firstKey(), null );
+//  }
+
+  public boolean contains( Long t ) {
     return getKey( t ) != null;
   }
-  public Parameter<Integer> getKey( Integer t ) {
+  
+  /**
+   * Gets the first key in the map equal the input.  
+   * @param t
+   * @return
+   */
+  public Parameter< Long> getKey( Long t ) {
     if ( isEmpty() ) return null;
-    Parameter< Integer > tt = makeTempTimepoint( t, false );
+    Parameter< Long > tt = makeTempTimepoint( t, false );
     return getKey( tt, true );
-//    Parameter< Integer > bk = ceilingKey(tt);
+//    Parameter< Long > bk = ceilingKey(tt);
 //    if ( bk != null  && bk.getValueNoPropagate().equals( t ) ) {
 //      return bk;
 //    }
@@ -1716,10 +2529,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * on an attempt to insert a key outside of its range, or to construct a
    * submap either of whose endpoints lie outside its range.
    *
-   * @param fromKey low endpoint of the keys in the returned map
+   * @param fromKey low endpoint of the keys in the returned map; null means the first key
    * @param fromInclusive {@code true} if the low endpoint
    *        is to be included in the returned view
-   * @param toKey high endpoint of the keys in the returned map
+   * @param toKey high endpoint of the keys in the returned map; null means the last key
    * @param toInclusive {@code true} if the high endpoint
    *        is to be included in the returned view
    * @return a view of the portion of this map whose keys range from
@@ -1731,45 +2544,83 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         exception if {@code fromKey} or {@code toKey}
    *         cannot be compared to keys currently in the map.
    */
-  public NavigableMap< Parameter< Integer >, V > subMap( Integer timeFrom,
+  public NavigableMap< Parameter< Long >, V > subMap( Long timeFrom,
                                                          boolean fromInclusive,
-                                                         Integer timeTo,
+                                                         Long timeTo,
                                                          boolean toInclusive ) {
     if ( isEmpty() ) return this;
-    Parameter<Integer> tpe = getTimepointEarlier( timeFrom );
-    Parameter< Integer > f = firstKey();
-    if ( tpe == null ) {
-      tpe = f;
-      fromInclusive = true;
-    }
-    Parameter<Integer> tpl = getTimepointLater( timeTo );
-    if ( tpl == null ) {
-      tpl = lastKey();
-      toInclusive = true;
-    }
-    int c = tpe.compareTo( tpl );
 
-    if ( c > 0 ) return this.subMap( f, false, f, false );
-    if ( c == 0 ) {
-      if ( tpe.valueEquals( timeFrom ) ) {
-        return subMap( f, true, f, true );
+    // Interpret null as the first and last key.
+    if ( timeFrom == null ) timeFrom = firstKey().getValue();
+    if ( timeTo == null ) timeTo = lastKey().getValue();
+
+    // Find keys (tpe and tpl) that can be passed into an equivalent call, subMap(tpe, true, tpl, true)
+    Parameter< Long> tpe = getKey( timeFrom );  // warning! This assumes getKey(timeFrom) gets the first key.
+    if ( tpe != null ) {
+      if ( !fromInclusive ) {
+        tpe = getTimepointLater( tpe );   // warning! This assumes getTimepointLater( tpe ) gets the first key.
       }
+    } else {
+      tpe = getTimepointAfter(timeFrom);
+    }
+
+    //Parameter< Long> tpl = toInclusive ? getTimepointLater( timeTo ) : getTimepointEarlier( timeTo );
+    Parameter< Long> tpl = null;
+    if ( toInclusive ) {
+      tpl = getTimepointLater( timeTo );  // warning! This assumes getTimepointLater( timeTo ) gets the first key.
+      if ( tpl != null ) {
+        tpl = getTimepointBefore( tpl );
+      } else {
+        tpl = lastKey();
+      }
+    } else {
+      tpl = getTimepointBefore( timeTo );
+    }
+
+    // Empty set and error cases.
+    if ( tpe == null || tpl == null || tpe.getValue() == null
+         || tpl.getValue() == null || tpe.getValue() > tpl.getValue() ) {  // assumes that tpe <= tpl if tpe.getValue() == tpl.getValue()
+      Parameter< Long > f = firstKey();
       return this.subMap( f, false, f, false );
     }
-    return subMap(tpe, fromInclusive, tpl, toInclusive);
-
-//    Parameter<Integer> fromKey, toKey;
-//    fromKey = getKey( timeFrom );
-//    toKey = getKey( nextTime );
-//    return this.subMap( fromKey, fromInclusive, toKey, toInclusive );
+    
+    return this.subMap( tpe, true, tpl, true );
   }
 
+  public NavigableMap< Parameter< Long >, V > subMapBad( Long timeFrom,
+                                                      boolean fromInclusive,
+                                                      Long timeTo,
+                                                      boolean toInclusive ) {
+ if ( isEmpty() ) return this;
+ Parameter< Long> tpe = getTimepointEarlier( timeFrom );
+ Parameter< Long > f = firstKey();
+ if ( tpe == null ) {
+   tpe = f;
+   fromInclusive = true;
+ }
+ Parameter< Long> tpl = getTimepointLater( timeTo );
+ if ( tpl == null ) {
+   tpl = lastKey();
+   toInclusive = true;
+ }
+ int c = compareTo( tpe, tpl );
+
+ if ( c > 0 ) return this.subMap( f, false, f, false );
+ if ( c == 0 ) {
+   if ( tpe.valueEquals( timeFrom ) ) {
+     return subMap( f, true, f, true );
+   }
+   return this.subMap( f, false, f, false );
+ }
+ return subMap(tpe, fromInclusive, tpl, toInclusive);
+}
+  
   /**
    * @param tt
    *          the timepoint to which a key is sought to match
    * @return all keys in the map that match the input timepoint {@code tt}.
    */
-  public Set< Parameter< Integer > > getKeys( Parameter<Integer> tt ) {
+  public Set< Parameter< Long > > getKeys( Parameter< Long> tt ) {
     return getKeys( tt.getValueNoPropagate() );
   }
   /**
@@ -1777,25 +2628,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the timepoint to which a key is sought to match
    * @return all keys in the map that match the input time value {@code t}.
    */
-  public Set< Parameter< Integer > > getKeys( Integer t ) {
+  public Set< Parameter< Long > > getKeys( Long t ) {
     return subMap( t, true, t, true ).keySet();
 /*
   if ( isEmpty() ) return Collections.emptySet();
-    Parameter<Integer> tpe = getTimepointEarlier( t );
+    Parameter< Long> tpe = getTimepointEarlier( t );
     boolean includeFrom = ( tpe == null );
     if ( includeFrom ) {
       tpe = firstKey();
     }
-    Parameter<Integer> tpl = getTimepointLater( t );
+    Parameter< Long> tpl = getTimepointLater( t );
     boolean includeTo = ( tpl == null );
     if ( includeTo ) {
       tpl = lastKey();
     }
-    int c = tpe.compareTo( tpl );
+    int c = compareTo( tpe, tpl );
     if ( c > 0 ) return Collections.emptySet();
     if ( c == 0 ) {
       if ( tpe.valueEquals( t ) ) {
-        Set< Parameter< Integer >> s = new HashSet< Parameter< Integer >>();
+        Set< Parameter< Long >> s = new HashSet< Parameter< Long >>();
         s.add( tpe );
         return s;
       }
@@ -1809,17 +2660,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the timepoint to which a key is sought to match
    * @param equalValuesOk
    *          specifies whether {@code key.equals(tt)} must be true for the
-   *          returned {@code key} or if matching {@code Integer} values are
+   *          returned {@code key} or if matching {@code Long} values are
    *          good enough.
    * @param firstOrLast if true, the first of the set of matching keys is returned; else, the last of the set is returned.
    * @return the key in the map that matches the input timepoint {@code tt}.
    */
-  public Parameter<Integer> getKey( Parameter< Integer > tt, boolean equalValuesOk,
+  public Parameter< Long> getKey( Parameter< Long > tt, boolean equalValuesOk,
                                     boolean firstOrLast ) {
-    Integer v = tt.getValue(false);
-    NavigableMap< Parameter< Integer >, V > m = subMap( v, true, v, true );
+    Long v = tt.getValue(false);
+    NavigableMap< Parameter< Long >, V > m = subMap( v, true, v, true );
     if ( m.isEmpty() ) return null;
-    Parameter< Integer > timepoint = firstOrLast ? m.firstKey() : m.lastKey();
+    Parameter< Long > timepoint = firstOrLast ? m.firstKey() : m.lastKey();
     return timepoint;
   }
   /**
@@ -1827,14 +2678,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *          the timepoint to which a key is sought to match
    * @param equalValuesOk
    *          specifies whether {@code key.equals(tt)} must be true for the
-   *          returned {@code key} or if matching {@code Integer} values are
+   *          returned {@code key} or if matching {@code Long} values are
    *          good enough.
    * @return the key in the map that matches the input timepoint {@code tt}.
    */
-  public Parameter<Integer> getKey( Parameter< Integer > tt, boolean equalValuesOk ) {
-    NavigableMap< Parameter< Integer >, V > m = headMap( tt, true );
+  public Parameter< Long> getKey( Parameter< Long > tt, boolean equalValuesOk ) {
+    if ( tt == null ) return null;
+    NavigableMap< Parameter< Long >, V > m = headMap( tt, true );
 
-    Parameter< Integer > k;
+    Parameter< Long > k;
     if ( !m.isEmpty() ) {
       k = m.lastKey();
       if ( k != null && k.getValue( false ) == null ) {
@@ -1847,8 +2699,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
 
     if ( !equalValuesOk ) return null;
-    Parameter< Integer > bk = getTimepointAfter(tt);
-    if ( bk != null && bk.valueEquals( tt ) ) {
+    Parameter< Long > bk = getTimepointAfter(tt);
+    if ( bk != null && bk.equals( tt ) ) {
       return bk;
     }
 //    bk = getTimepointBefore( tt );
@@ -1857,7 +2709,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 //    }
     return null;
 
-//    Parameter< Integer > bk = lowerKey(tt);
+//    Parameter< Long > bk = lowerKey(tt);
 //    if ( k == null )
 //    bk = ceilingKey(tt);
 //    if ( bk != null && bk.equals( tt ) ) {
@@ -1870,22 +2722,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * If not already in the map, insert the timepoint, {@code key} (or a clone of
    * {@code key} if owned by another object), along with the value of this map
    * at that timepoint. If {@code onlyIfDifferentValue} is true, then
-   * {@code key} is considered in the map if a key with the same {@code Integer}
+   * {@code key} is considered in the map if a key with the same {@code Long}
    * value exists.
    *
    * @param key
    * @param onlyIfDifferentValue
    * @return the inserted key or the existing key if already in the map
    */
-  public Parameter< Integer > putKey( Parameter< Integer > key,
+  public Parameter< Long > putKey( Parameter< Long > key,
                                       boolean onlyIfDifferentValue ) {
 
     if ( key == null ) return null;
-    Parameter< Integer > k = getKey( key, onlyIfDifferentValue );
+    Parameter< Long > k = getKey( key, onlyIfDifferentValue );
     if ( k != null ) return k;
 //    if ( key.getOwner() != this ) {
 //      if ( key.getOwner() != null ) {
-//        key = (Parameter< Integer >)key.clone();
+//        key = (Parameter< Long >)key.clone();
 //      }
 //      key.setOwner( this );
 //    }
@@ -1902,26 +2754,35 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after adding {@code n} to each value in the range [{@code fromKey},
    *         {@code toKey})
    */
-  public TimeVaryingMap< V > add1( Number n, Parameter< Integer > fromKey,
-                                   Parameter< Integer > toKey ) {
+  public TimeVaryingMap< V > add1( Number n, Parameter< Long > fromKey,
+                                   Parameter< Long > toKey ) {
 //    if ( fromKey.getValueNoPropagate() == 10 ) {
 //      Debug.outln("");
 //    }
     fromKey = putKey( fromKey, true );
     toKey = putKey( toKey, true );
-    Map< Parameter< Integer >, V > map = null;
+    Map< Parameter< Long >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       boolean same = toKey.equals(fromKey);  // include the key if same
       map = subMap( fromKey, true, toKey, same );
     }
-    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
       if ( e.getValue() instanceof Double ) {
         Double v = (Double)e.getValue();
         v = v + n.doubleValue();
+        try {
+          e.setValue( tryCastValue( v ) );
+        } catch ( Exception exc ) {
+          // ignore
+        }
+      } else if ( e.getValue() instanceof Long ) {
+        Long v = (Long)e.getValue();
+        // TODO -- handle Long?
+        v = (long)( v + n.doubleValue() );
         try {
           e.setValue( tryCastValue( v ) );
         } catch ( Exception exc ) {
@@ -1948,10 +2809,108 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after adding {@code n} to each value in the range [{@code fromKey},
    *         {@code toKey})
    */
-  public TimeVaryingMap< V > add( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > add( Number n, Parameter< Long > fromKey ) {
     return add( n, fromKey, null );
   }
 
+  public V integral(Parameter< Long > fromKey, Parameter< Long > toKey) {
+    TimeVaryingMap< V > tvm = integrate(fromKey, toKey, null);
+    if ( tvm == null || tvm.isEmpty() ) return tryCastValue( 0 );
+    return tvm.getValue( tvm.lastKey() );
+  }
+  
+  public TimeVaryingMap< V > integrate(Parameter< Long > fromKey,
+                                       Parameter< Long > toKey) {
+    return integrate( fromKey, toKey, null );
+  }
+  public TimeVaryingMap< V > integrate(Parameter< Long > fromKey,
+                                       Parameter< Long > toKey, TimeVaryingMap< V > tvm ) {
+    if ( tvm == null ) tvm = new TimeVaryingMap< V >( this.name + "Integral", this.type );
+    if ( this.interpolation.type == Interpolation.STEP ) {
+      tvm.interpolation.type = Interpolation.LINEAR;
+    } else {
+      Debug.error( true, "No support yet for quadratic interpolation as integral of linear function!" );
+    }
+    
+    boolean same = toKey == fromKey;  // include the key if same
+    Parameter< Long > insertedFromKey = null;
+    Parameter< Long > insertedToKey = null;
+    if ( !containsKey( fromKey ) ) {
+      fromKey = putKey( fromKey, false );
+      insertedFromKey = fromKey;
+    }
+    if ( same ) {
+      toKey = fromKey;
+    } else {
+      if ( !containsKey( toKey ) ) {
+        toKey = putKey( toKey, false );
+        insertedToKey = toKey;
+      }
+    }
+    Map< Parameter< Long >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      if ( before( toKey, fromKey) ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, same );
+    }
+    boolean succeededSomewhere = false;
+    Map.Entry< Parameter< Long >, V > ePrev = null;
+    V lastIntegralValue = tryCastValue( 0 );
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+      V integralValue = null;
+      Long timeDiff = 0L;
+      if ( ePrev != null && ePrev.getKey() != null ) {
+        Long v2 = e.getKey().getValueNoPropagate();
+        Long v1 = ePrev.getKey().getValueNoPropagate();
+        if ( v2 != null && v1 != null ) {
+          timeDiff = v2 - v1;
+        }
+      }
+      try {
+          if ( ePrev == null ) {
+            integralValue = tryCastValue( (Double)0.0 );
+          } else {
+            V endValue = ePrev.getValue();
+            if ( this.interpolation.isLinear() ) {
+              endValue = e.getValue();
+            }
+            if ( lastIntegralValue == null || endValue == null || ePrev.getValue() == null ) {
+              integralValue = null;
+            } else {
+              integralValue =
+                  tryCastValue( ( (Double)lastIntegralValue )
+                                + ( ( ( (Double)endValue ) + (Double)ePrev.getValue() ) / 2.0 )
+                                * timeDiff );
+            }
+            succeededSomewhere = integralValue != null;
+          }
+      } catch ( ClassCastException exc ) {
+        exc.printStackTrace();
+      }
+      if ( integralValue != null ) {
+        tvm.put( e.getKey(), integralValue );
+        lastIntegralValue = integralValue;
+      }
+      ePrev = e;
+    }
+    if ( insertedFromKey != null ) {
+      remove(insertedFromKey);
+    }
+    if ( insertedToKey != null ) {
+      remove(insertedToKey);
+    }
+    //if (succeededSomewhere) appliedSet.add(  )
+    return tvm;
+  }
+  
+  public TimeVaryingMap< V > integrate() {
+    return integrate(new SimpleTimepoint(0), new SimpleTimepoint(Timepoint.horizonDuration));
+  }
+    
+  
   /**
    * @param n
    * @param fromKey
@@ -1962,10 +2921,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return this map after adding {@code n} to each value in the range [{@code fromKey},
    *         {@code toKey})
    */
-  public TimeVaryingMap< V > add( Number n, Parameter< Integer > fromKey,
-                                  Parameter< Integer > toKey ) {
+  public TimeVaryingMap< V > add( Number n, Parameter< Long > fromKey,
+                                  Parameter< Long > toKey ) {
 
     //if ( n == null ) return; //REVIEW
+    if ( Debug.isOn() ) System.out.println( getQualifiedName(null) + ".add(" + n + ", " + fromKey + ", " + toKey + ")" );
     boolean same = toKey == fromKey;  // include the key if same
     fromKey = putKey( fromKey, false );
     if ( same ) {
@@ -1973,16 +2933,16 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     } else {
       toKey = putKey( toKey, false );
     }
-    Map< Parameter< Integer >, V > map = null;
+    Map< Parameter< Long >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( toKey.compareTo( fromKey ) < 0 ) toKey = fromKey;
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
       map = subMap( fromKey, true, toKey, true );
     } else {
       map = subMap( fromKey, true, toKey, same );
     }
     boolean succeededSomewhere = false;
-    for ( Map.Entry< Parameter< Integer >, V > e : map.entrySet() ) {
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
       if ( e.getValue() == null ) {
         try {
           e.setValue( tryCastValue( n ) );
@@ -2010,20 +2970,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
-      } else if ( e.getValue() instanceof Integer ) {
-        Integer v = (Integer)e.getValue();
+      } else if ( e.getValue() instanceof Long ) {
+        Long v = (Long)e.getValue();
         if ( n == null ) n = 0.0;
-        v = (int)( v + n.doubleValue() );
+        v = (long)( v + n.doubleValue() );
         try {
           e.setValue( tryCastValue( v ) );
           succeededSomewhere = true;
         } catch ( ClassCastException exc ) {
           exc.printStackTrace();
         }
-      } else if ( e.getValue() instanceof Long ) {
-        Long v = (Long)e.getValue();
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
         if ( n == null ) n = 0.0;
-        v = (long)( v + n.doubleValue() );
+        v = (int)( v + n.doubleValue() );
         try {
           e.setValue( tryCastValue( v ) );
           succeededSomewhere = true;
@@ -2037,6 +2997,355 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not min'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.  null values are
+   *          treated as zero when min'ing with a non-null.
+   * @return this map after min'ing {@code n} with each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > min( Number n, Parameter< Long > fromKey,
+                                  Parameter< Long > toKey ) {
+
+    //if ( n == null ) return; //REVIEW
+    boolean same = toKey == fromKey;  // include the key if same
+    fromKey = putKey( fromKey, false );
+    if ( same ) {
+      toKey = fromKey;
+    } else {
+      toKey = putKey( toKey, false );
+    }
+    Map< Parameter< Long >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      map = subMap( fromKey, true, toKey, same );
+    }
+    boolean succeededSomewhere = false;
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+      if ( e.getValue() == null ) {
+        try {
+          e.setValue( tryCastValue( n ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Double ) {
+        Double v = (Double)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.min(v, n.doubleValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Float ) {
+        Float v = (Float)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.min( v, n.floatValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Long ) {
+        Long v = (Long)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (long)( Math.min( v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (int)( Math.min(v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      }
+    }
+    //if (succeededSomewhere) appliedSet.add(  )
+    return this;
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} to be min'd with this {@code TimeVaryingMap}
+   * @return this {@code TimeVaryingMap} after min'ing {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > min( TimeVaryingMap< VV > tvm ) {
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Long > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n;
+      try {
+        n = Expression.evaluate( v, Number.class, false );
+        min( n, k, k );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    return removeDuplicates();
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not max'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.  null values are
+   *          treated as zero when maxing with a non-null.
+   * @return this map after maxing {@code n} with each value in the range [{@code fromKey},
+   *         {@code toKey})
+   */
+  public TimeVaryingMap< V > max( Number n, Parameter< Long > fromKey,
+                                  Parameter< Long > toKey ) {
+
+    //if ( n == null ) return; //REVIEW
+    boolean same = toKey == fromKey;  // include the key if same
+    fromKey = putKey( fromKey, false );
+    if ( same ) {
+      toKey = fromKey;
+    } else {
+      toKey = putKey( toKey, false );
+    }
+    Map< Parameter< Long >, V > map = null;
+    if ( toKey == null ) {
+      toKey = lastKey();
+      if ( before( toKey, fromKey ) ) toKey = fromKey;
+      map = subMap( fromKey, true, toKey, true );
+    } else {
+      map = subMap( fromKey, true, toKey, same );
+    }
+    boolean succeededSomewhere = false;
+    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+      if ( e.getValue() == null ) {
+        try {
+          e.setValue( tryCastValue( n ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Double ) {
+        Double v = (Double)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.max(v, n.doubleValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Float ) {
+        Float v = (Float)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = Math.max( v, n.floatValue() );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Long ) {
+        Long v = (Long)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (long)( Math.max( v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      } else if ( e.getValue() instanceof Integer ) {
+        Integer v = (Integer)e.getValue();
+        if ( n == null ) n = 0.0;
+        v = (int)( Math.max(v, n.doubleValue() ) );
+        try {
+          e.setValue( tryCastValue( v ) );
+          succeededSomewhere = true;
+        } catch ( ClassCastException exc ) {
+          exc.printStackTrace();
+        }
+      }
+    }
+    //if (succeededSomewhere) appliedSet.add(  )
+    return this;
+  }
+
+  /**
+   * @param tvm the {@code TimeVaryingMap} to be max'd to this {@code TimeVaryingMap}
+   * @return this {@code TimeVaryingMap} after maxing {@code tvm}
+   */
+  public <VV> TimeVaryingMap< V > max( TimeVaryingMap< VV > tvm ) {
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    keys.addAll( tvm.keySet() );
+    for ( Parameter< Long > k : keys ) {
+      VV v = tvm.getValue( k, false );
+      Number n;
+      try {
+        n = Expression.evaluate( v, Number.class, false );
+        max( n, k, k );
+      } catch ( ClassCastException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    return removeDuplicates();
+  }
+
+//  /**
+//   * @param n
+//   * @param fromKey
+//   * @param toKey
+//   *          the first key after {@code fromKey} to whose value is not max'd {@code n}. To
+//   *          include the last key, pass {@code null} for {@code toKey}.  null values are
+//   *          treated as zero when maxing with a non-null.
+//   * @return this map after maxing {@code n} with each value in the range [{@code fromKey},
+//   *         {@code toKey})
+//   */
+//  public TimeVaryingMap< Boolean > lessThan( Number n, Parameter< Long > fromKey,
+//                                             Parameter< Long > toKey ) {
+//
+//    //if ( n == null ) return; //REVIEW
+//    boolean same = toKey == fromKey;  // include the key if same
+//    fromKey = putKey( fromKey, false );
+//    if ( same ) {
+//      toKey = fromKey;
+//    } else {
+//      toKey = putKey( toKey, false );
+//    }
+//    Map< Parameter< Long >, V > map = null;
+//    if ( toKey == null ) {
+//      toKey = lastKey();
+//      if ( before( toKey, fromKey ) ) toKey = fromKey;
+//      map = subMap( fromKey, true, toKey, true );
+//    } else {
+//      map = subMap( fromKey, true, toKey, same );
+//    }
+//    boolean succeededSomewhere = false;
+//    for ( Map.Entry< Parameter< Long >, V > e : map.entrySet() ) {
+//      if ( e.getValue() == null ) {
+//        try {
+//          e.setValue( tryCastValue( n ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Double ) {
+//        Double v = (Double)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = Math.max(v, n.doubleValue() );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Float ) {
+//        Float v = (Float)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = Math.max( v, n.floatValue() );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Integer ) {
+//        Integer v = (Integer)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = (int)( Math.max(v, n.doubleValue() ) );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      } else if ( e.getValue() instanceof Long ) {
+//        Long v = (Long)e.getValue();
+//        if ( n == null ) n = 0.0;
+//        v = (long)( Math.max( v, n.doubleValue() ) );
+//        try {
+//          e.setValue( tryCastValue( v ) );
+//          succeededSomewhere = true;
+//        } catch ( ClassCastException exc ) {
+//          exc.printStackTrace();
+//        }
+//      }
+//    }
+//    //if (succeededSomewhere) appliedSet.add(  )
+//    return this;
+//  }
+//
+//  /**
+//   * @param tvm the {@code TimeVaryingMap} to be max'd to this {@code TimeVaryingMap}
+//   * @return this {@code TimeVaryingMap} after maxing {@code tvm}
+//   */
+//  public <VV> TimeVaryingMap< V > lessThan( TimeVaryingMap< VV > tvm ) {
+//    Set< Parameter< Long > > keys =
+//        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( tvm.keySet() );
+//    for ( Parameter< Long > k : keys ) {
+//      VV v = tvm.getValue( k, false );
+//      Number n;
+//      try {
+//        n = Expression.evaluate( v, Number.class, false );
+//        max( n, k, k );
+//      } catch ( ClassCastException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( IllegalAccessException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( InvocationTargetException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch ( InstantiationException e ) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      }
+//    }
+//    return removeDuplicates();
+//  }
+//
+
+  /**
    * @param tvm the {@code TimeVaryingMap} to be added to this {@code TimeVaryingMap}
    * @return this {@code TimeVaryingMap} after adding {@code tvm}
    * @throws InstantiationException 
@@ -2045,11 +3354,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws ClassCastException 
    */
   public <VV> TimeVaryingMap< V > add( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    Set< Parameter< Integer > > keys =
-        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
-    keys.addAll( this.keySet() );
-    keys.addAll( tvm.keySet() );
-    for ( Parameter< Integer > k : keys ) {
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    for ( Parameter< Long >  k : tvm.keySet() ) {
+      putKey( k, true );
+    }
+    for ( Parameter< Long > k : keySet() ) {
       VV v = tvm.getValue( k, false );
       Number n = Expression.evaluate( v, Number.class, false );
       add( n, k, k );
@@ -2079,7 +3389,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > subtract( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return subtract( n, fromKey, null );
   }
 
@@ -2095,8 +3405,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > subtract( Number n, Parameter< Integer > fromKey,
-                                       Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > subtract( Number n, Parameter< Long > fromKey,
+                                       Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return add( Functions.times(n, -1), fromKey, toKey );
   }
 
@@ -2112,12 +3422,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public <VV> TimeVaryingMap< V > subtract( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if ( tvm == null ) return null;
-    Set< Parameter< Integer > > keys =
-        new TreeSet< Parameter< Integer > >( Collections.reverseOrder() );
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
     keys.addAll( this.keySet() );
     keys.addAll( tvm.keySet() );
     //System.out.println( "this - tvm -> this\n" + this.toString( true, false, null ) + "\n + " + tvm.toString( true, false, null ) );
-    for ( Parameter< Integer > k : keys ) {
+    for ( Parameter< Long > k : keys ) {
       VV v = tvm.getValue( k, false );
       Number n = Expression.evaluate( v, Number.class, false );
       //if ( n != null ) {// n.doubleValue() != 0 ) {
@@ -2136,11 +3446,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    */
   public <VV> TimeVaryingMap< V > removeDuplicates() {
     if ( Debug.isOn() ) Debug.outln( "before removing duplicates " + this );
-    List<Parameter< Integer > > dups = new ArrayList< Parameter< Integer > >();
-    Parameter<Integer> lastKey = null;
+    List<Parameter< Long > > dups = new ArrayList< Parameter< Long > >();
+    Parameter< Long> lastKey = null;
     V lastValue = null;
-    for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
-      Parameter< Integer > key = e.getKey();
+    for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
+      Parameter< Long > key = e.getKey();
       V value = e.getValue();
       if ( Utils.valuesEqual( lastKey, key ) ) {
         dups.add( lastKey );
@@ -2151,14 +3461,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       lastKey = key;
       lastValue = value;
     }
-    for ( Parameter<Integer> k : dups ) {
+    for ( Parameter< Long> k : dups ) {
       remove( k );
     }
     if ( Debug.isOn() ) Debug.outln( " after removing duplicates " + this );
-    return this;
+     return this;
   }
 
-
+  
   /**
    * @param n
    * @param fromKey
@@ -2166,7 +3476,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return a copy of this map for which {@code n} is added to each value in the range
    *         [{@code fromKey}, {@code toKey})
    */
-  public TimeVaryingMap< V > plus( Number n, Parameter< Integer > fromKey ) {
+  public TimeVaryingMap< V > plus( Number n, Parameter< Long > fromKey ) {
     return plus( n, fromKey, null );
   }
   /**
@@ -2178,9 +3488,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return a copy of this map for which {@code n} is added to each value in the range
    *         [{@code fromKey}, {@code toKey})
    */
-  public TimeVaryingMap< V > plus( Number n, Parameter< Integer > fromKey,
-                                    Parameter< Integer > toKey ) {
-    TimeVaryingMap< V > newTvm = this.clone();
+  public <VV> TimeVaryingMap< VV > plus( Number n, Parameter< Long > fromKey,
+                                    Parameter< Long > toKey ) {
+    Class<VV> cls = (Class< VV >)ClassUtils.dominantTypeClass( getType(), n.getClass() );
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap<VV>(getName() + "_plus_" + n, this, cls);//this.clone();
+    TimeVaryingMap< VV > newTvm = clone(cls);
+    newTvm.setName( getName() + "_plus_" + n );
     newTvm.add( n, fromKey, toKey );
     return newTvm;
   }
@@ -2193,12 +3506,38 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws IllegalAccessException 
    * @throws ClassCastException 
    */
-  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public <VV extends Number> TimeVaryingMap< V > plusOld( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
     TimeVaryingMap< V > newTvm = this.clone();
     newTvm.add( map );
     return newTvm;
   }
 
+  public <VV extends Number> TimeVaryingMap< V > plus( TimeVaryingMap< VV > map ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( map, MathOperation.PLUS );
+//    TimeVaryingMap< V > newTvm = emptyClone();
+//    newTvm.clear();
+//    Set< Parameter< Long > > keys =
+//        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+//    keys.addAll( this.keySet() );
+//    keys.addAll( map.keySet() );
+//    for ( Parameter< Long> k : keys ) {
+//      V v1 = this.getValue( k );
+//      VV v2 = map.getValue( k );
+//      Object v3 = Functions.plus( v1, v2 );
+//      // Adding null to a number should return the number. This is important
+//      // when interpolation is NONE.
+//      if ( v3 == null ) {
+//        v3 = v1 != null ? v1 : v2; 
+//      }
+//      V v4 = tryCastValue( v3 );
+//      if ( v4 != null ) {
+//        newTvm.setValue( k, v4 );
+//      }
+//    }
+//    return newTvm;
+  }
+
+  
   /**
    * @param map1
    * @param map2
@@ -2263,7 +3602,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public TimeVaryingMap< V > minus( Number n, Parameter< Long > fromKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
     return minus( n, fromKey, null );
   }
   /**
@@ -2278,28 +3617,589 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-  public TimeVaryingMap< V > minus( Number n, Parameter< Integer > fromKey,
-                                    Parameter< Integer > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    TimeVaryingMap< V > newTvm = this.clone();
+  public <VV> TimeVaryingMap< VV > minus( Number n, Parameter< Long > fromKey,
+                                          Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    //TimeVaryingMap< V > newTvm = this.clone();
+    Class<VV> cls = (Class< VV >)ClassUtils.dominantTypeClass( getType(), n.getClass() );
+    TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_minus_" + n, this, cls);
     newTvm.subtract( n, fromKey, toKey );
     return newTvm;
   }
 
 
   /**
+   * @param n
+   * @param fromKey
+   *          the key from which {@code n} is min'd with all values.
+   * @return a copy of this map for which {@code n} is min'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > min( Number n, Parameter< Long > fromKey ) {
+    return min( n, fromKey, null );
+  }
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not min'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which {@code n} is min'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public <VV> TimeVaryingMap< VV > minClone( Number n, Parameter< Long > fromKey,
+                                             Parameter< Long > toKey ) {
+    Class<VV> cls = (Class< VV >)ClassUtils.dominantTypeClass( getType(), n.getClass() );
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.min( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  /**
+   * @param map
+   * @return a copy of this TimeVaryingMap with {@code map} min'd with it
+   */
+  public <VV extends Number> TimeVaryingMap< V > minCloneOld( TimeVaryingMap< VV > map ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.min( map );
+    return newTvm;
+  }
+
+  public <VV,VVV> TimeVaryingMap< VVV > minClone( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( tvm, MathOperation.MIN );
+  }
+
+
+  /**
+   * @param map1
+   * @param map2
+   * @return a new map that mins {@code map1} and {@code map2}
+   * @throws InstantiationException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws ClassCastException 
+   */
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > min( TimeVaryingMap< VV1 > map1,
+                                                                       TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return map1.minClone( map2 );
+  }
+
+  /**
+   * @param n
+   * @param fromKey
+   *          the key from which {@code n} is max'd with all values.
+   * @return a copy of this map for which {@code n} is max'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public TimeVaryingMap< V > max( Number n, Parameter< Long > fromKey ) {
+    return max( n, fromKey, null );
+  }
+  /**
+   * @param n
+   * @param fromKey
+   * @param toKey
+   *          the first key after {@code fromKey} to whose value is not max'd {@code n}. To
+   *          include the last key, pass {@code null} for {@code toKey}.
+   * @return a copy of this map for which {@code n} is max'd with each value in the range
+   *         [{@code fromKey}, {@code toKey})
+   */
+  public <VV> TimeVaryingMap< VV > maxClone( Number n, Parameter< Long > fromKey,
+                                       Parameter< Long > toKey ) {
+    Class<VV> cls = (Class< VV >)ClassUtils.dominantTypeClass( getType(), n.getClass() );
+    //TimeVaryingMap< VV > newTvm = this.clone(cls);
+    TimeVaryingMap< VV > newTvm = this.clone(cls);
+    newTvm.setName( "max_" + getName() + "_" + n );
+    //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >("max_" + getName() + "_" + n, this, cls); 
+    newTvm.max( n, fromKey, toKey );
+    return newTvm;
+  }
+
+  /**
+   * @param map
+   * @return a copy of this TimeVaryingMap with {@code map} max'd with it
+   */
+  public <VV> TimeVaryingMap< V > maxClone( TimeVaryingMap< VV > tvm ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return applyOperation( tvm, MathOperation.MAX );
+  }
+
+  public <VV extends Number> TimeVaryingMap< V > maxCloneOld( TimeVaryingMap< VV > map ) {
+    TimeVaryingMap< V > newTvm = this.clone();
+    newTvm.max( map );
+    return newTvm;
+  }
+
+  /**
+   * @param map1
+   * @param map2
+   * @return a new map that maxes {@code map1} and {@code map2}
+   * @throws InstantiationException 
+   * @throws IllegalAccessException 
+   * @throws InvocationTargetException 
+   * @throws ClassCastException 
+   */
+  public static < VV1, VV2 extends Number > TimeVaryingMap< VV1 > max( TimeVaryingMap< VV1 > map1,
+                                                                       TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return map1.maxClone( map2 );
+  }
+
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argmax( L l1, TimeVaryingMap< VV1 > map1,
+                                                            L l2, TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( l1, map1, l2, map2, false );
+  }
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argmin( L l1, TimeVaryingMap< VV1 > map1,
+                                                            L l2, TimeVaryingMap< VV2 > map2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( l1, map1, l2, map2, true );
+  }
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argminormax( L l1, TimeVaryingMap< VV1 > map1,
+                                                                 L l2, TimeVaryingMap< VV2 > map2,
+                                                                 boolean isMin ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    // Handle null and empty maps; if both null, return null; if both are empty,
+    // return an empty map; if one is empty, return a map with the other label
+    // starting at the start of the non-empty map.
+    if ( map1 == null && map2 == null ) return null;
+    TimeVaryingMap< L > newTvm = new TimeVaryingMap< L >();
+    boolean m1empty = Utils.isNullOrEmpty( map1 );
+    boolean m2empty = Utils.isNullOrEmpty( map2 );
+    if ( m1empty && m2empty ) { return newTvm; }
+    if ( m1empty ) {
+      L label = l2 instanceof TimeVaryingMap ? (L)((TimeVaryingMap<?>)l2).getValue( map2.firstKey() ) : l2;
+      newTvm.setValue( map2.firstKey(), label );
+      return newTvm;
+    }
+    if ( m2empty ) {
+      L label = l1 instanceof TimeVaryingMap ? (L)((TimeVaryingMap<?>)l1).getValue( map1.firstKey() ) : l1;
+      newTvm.setValue( map1.firstKey(), l1 );
+      return newTvm;
+    }
+
+    // Collect keys and compute entries for each.
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( map1.keySet() );
+    keys.addAll( map2.keySet() );
+    for ( Parameter< Long> k : keys ) {
+      VV1 v1 = map1.getValue( k );
+      VV2 v2 = map2.getValue( k );
+      L label = null;
+      if ( v2 == null ) label = l1;
+      else if ( v1 == null ) label = l2;
+      else {
+        int comp = CompareUtils.compare( v1, v2 );
+        label = (comp == (isMin ? 1 : -1)) ? l2 : l1;
+      }
+      if ( label instanceof TimeVaryingMap ) {
+        label = (L)((TimeVaryingMap<?>)label).getValue( k );
+      }
+      newTvm.setValue( k, label );
+    }
+    newTvm.removeDuplicates();
+    return newTvm;
+  }
+
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argminormax( L l1, TimeVaryingMap< VV1 > map1,
+                                                                 L l2, TimeVaryingMap< VV2 > map2,
+                                                                 L l3, TimeVaryingMap< VV2 > map3,
+                                                                 boolean isMin ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< L > newTvm = new TimeVaryingMap< L >();
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( map1.keySet() );
+    keys.addAll( map2.keySet() );
+    keys.addAll( map3.keySet() );
+    for ( Parameter< Long> k : keys ) {
+      VV1 v1 = map1.getValue( k );
+      VV2 v2 = map2.getValue( k );
+      VV2 v3 = map3.getValue( k );
+      L label = null;
+      Object vminormax = null;
+      int comp = 0;
+      if ( v2 == null ) {
+        label = l1;
+        vminormax = v1;
+      }
+      else if ( v1 == null ) {
+        label = l2;
+        vminormax = v2;
+      }
+      else {
+        comp = CompareUtils.compare( v1, v2 );
+        label = (comp == (isMin ? 1 : -1)) ? l2 : l1;
+        vminormax = (comp == (isMin ? 1 : -1)) ? v2 : v1;
+      }
+      if ( v3 != null ) {
+        comp = CompareUtils.compare( vminormax, v3 );
+        label = (comp == (isMin ? 1 : -1)) ? l3 : label;
+      }
+      if ( label instanceof TimeVaryingMap ) {
+        label = (L)((TimeVaryingMap<?>)label).getValue( k );
+      }
+      newTvm.setValue( k, label );
+    }
+    return newTvm;
+  }
+
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argmax( L l1, TimeVaryingMap< VV1 > map1,
+                                                            L l2, VV2 v2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( l1, map1, l2, v2, false );
+  }
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argmin( L l1, TimeVaryingMap< VV1 > map1,
+                                                            L l2, VV2 v2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return argminormax( l1, map1, l2, v2, true );
+  }
+  public static < L, VV1, VV2 > TimeVaryingMap< L > argminormax( L l1, TimeVaryingMap< VV1 > map1,
+                                                                 L l2, VV2 v2,
+                                                                 boolean isMin ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    TimeVaryingMap< L > newTvm = new TimeVaryingMap< L >();
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( map1.keySet() );
+    for ( Parameter< Long> k : keys ) {
+      VV1 v1 = map1.getValue( k );
+      int comp = CompareUtils.compare( v1, v2 );
+      L label = (comp == (isMin ? 1 : -1)) ? l2 : l1;
+      if ( label instanceof TimeVaryingMap ) {
+        label = (L)((TimeVaryingMap<?>)label).getValue( k );
+      }
+      newTvm.setValue( k, label );
+    }
+    return newTvm;
+  }
+
+  public static enum Inequality { EQ, NEQ, LT, LTE, GT, GTE }; 
+  public static enum BoolOp { AND, OR, XOR, NOT }; 
+
+  public static TimeVaryingMap<Boolean> equals(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.EQ);
+  }
+  public static TimeVaryingMap<Boolean> equals(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.EQ);
+  }
+  public static TimeVaryingMap<Boolean> equals(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.EQ);
+  }
+
+  public static TimeVaryingMap<Boolean> notEquals(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.NEQ);
+  }
+  public static TimeVaryingMap<Boolean> notEquals(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.NEQ);
+  }
+  public static TimeVaryingMap<Boolean> notEquals(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.NEQ);
+  }
+
+  public static TimeVaryingMap<Boolean> lessThan(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.LT);
+  }
+  public static TimeVaryingMap<Boolean> lessThan(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.LT);
+  }
+  public static TimeVaryingMap<Boolean> lessThan(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.LT);
+  }
+  public static TimeVaryingMap<Boolean> lessThanOrEqual(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.LTE);
+  }
+  public static TimeVaryingMap<Boolean> lessThanOrEqual(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.LTE);
+  }
+  public static TimeVaryingMap<Boolean> lessThanOrEqual(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.LTE);
+  }
+
+  public static TimeVaryingMap<Boolean> greaterThan(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.GT);
+  }
+  public static TimeVaryingMap<Boolean> greaterThan(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.GT);
+  }
+  public static TimeVaryingMap<Boolean> greaterThan(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.GT);
+  }
+  public static TimeVaryingMap<Boolean> greaterThanOrEqual(TimeVaryingMap<?> map, Number n) {
+    return compare(map, n, false, Inequality.GTE);
+  }
+  public static TimeVaryingMap<Boolean> greaterThanOrEqual(Number n, TimeVaryingMap<?> map) {
+    return compare(map, n, true, Inequality.GTE);
+  }
+  public static TimeVaryingMap<Boolean> greaterThanOrEqual(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return compare(map1, map2, Inequality.GTE);
+  }
+
+  
+  public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map, Number n, boolean reverse, Inequality i) {
+    if ( map == null || n == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+      Object mapVal = map.getValue( e.getKey() );
+      Boolean value = null;
+      if ( mapVal != null ) {
+        value = reverse ? doesInequalityHold( n, mapVal, i )
+                        : doesInequalityHold( mapVal, n, i );
+      }
+      result.setValue( e.getKey(), value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+  
+  public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map, Object o, boolean reverse, Inequality i) {
+    if ( map == null || o == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+      Object mapVal = map.getValue( e.getKey() );
+      Boolean value = null;
+      if ( mapVal != null ) {
+        value = reverse ? doesInequalityHold( o, mapVal, i )
+                        : doesInequalityHold( mapVal, o, i );
+      }
+      result.setValue( e.getKey(), value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+
+
+
+  public static TimeVaryingMap<Boolean> compare(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2, Inequality i) {
+    if ( map1 == null || map2 == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >(map1.keySet());
+    keys.addAll( map2.keySet() );
+    for ( Parameter< Long> t : keys ) {
+      Object v1 = map1.getValue(t);
+      Object v2 = map2.getValue(t);
+      Boolean value = null;
+      if ( v1 != null && v2 != null ) {
+        value = doesInequalityHold( v1, v2, i );
+      }
+      result.setValue( t, value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+  
+  public static boolean doesInequalityHold( Object v1, Object v2, Inequality i) {
+    boolean value = false;
+    int comp = CompareUtils.compare( v1, v2 );
+    switch (i) {
+      case EQ:
+        value = comp == 0;
+        break;
+      case NEQ:
+        value = comp != 0;
+        break;
+      case LT:
+        value = comp < 0;
+        break;
+      case LTE:
+        value = comp <= 0;
+        break;
+      case GT:
+        value = comp > 0;
+        break;
+      case GTE:
+        value = comp >= 0;
+        break;
+      default:
+        // TODO -- error
+    }
+    return value;
+  }
+  
+  public static TimeVaryingMap<Boolean> and(TimeVaryingMap<?> map, Boolean n) {
+    return applyBool(map, n, false, BoolOp.AND);
+  }
+  public static TimeVaryingMap<Boolean> and(Boolean n, TimeVaryingMap<?> map) {
+    return applyBool(map, n, true, BoolOp.AND);
+  }
+  public static TimeVaryingMap<Boolean> and(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return applyBool(map1, map2, BoolOp.AND);
+  }
+
+  public static TimeVaryingMap<Boolean> or(TimeVaryingMap<?> map, Boolean n) {
+    return applyBool(map, n, false, BoolOp.OR);
+  }
+  public static TimeVaryingMap<Boolean> or(Boolean n, TimeVaryingMap<?> map) {
+    return applyBool(map, n, true, BoolOp.OR);
+  }
+  public static TimeVaryingMap<Boolean> or(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return applyBool(map1, map2, BoolOp.OR);
+  }
+
+  public static TimeVaryingMap<Boolean> xor(TimeVaryingMap<?> map, Boolean n) {
+    return applyBool(map, n, false, BoolOp.XOR);
+  }
+  public static TimeVaryingMap<Boolean> xor(Boolean n, TimeVaryingMap<?> map) {
+    return applyBool(map, n, true, BoolOp.XOR);
+  }
+  public static TimeVaryingMap<Boolean> xor(TimeVaryingMap<?> map1, TimeVaryingMap<?> map2) {
+    return applyBool(map1, map2, BoolOp.XOR);
+  }
+
+  public static TimeVaryingMap<Boolean> not(TimeVaryingMap<?> map) {
+    return applyBool(map, null, false, BoolOp.NOT);
+  }
+
+  public static TimeVaryingMap< Boolean > applyBool( TimeVaryingMap< ? > map,
+                                                      Boolean n, boolean reverse,
+                                                      BoolOp boolOp ) {
+    if ( map == null || n == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+      Object mapVal = map.getValue( e.getKey() );
+      Boolean value = null;
+      if ( mapVal != null ) {
+        value = reverse ? applyOp( n, mapVal, boolOp )
+                        : applyOp( mapVal, n, boolOp );
+      }
+      result.setValue( e.getKey(), value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+
+  public static TimeVaryingMap< Boolean > applyBool( TimeVaryingMap< ? > map1,
+                                                      TimeVaryingMap< ? > map2,
+                                                      BoolOp boolOp ) {
+    if ( map1 == null || map2 == null ) return null;
+    TimeVaryingMap<Boolean> result = new TimeVaryingMap< Boolean >();  // REVIEW -- give it a name?
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >(map1.keySet());
+    keys.addAll( map2.keySet() );
+    for ( Parameter< Long> t : keys ) {
+      Object v1 = map1.getValue(t);
+      Object v2 = map2.getValue(t);
+      Boolean value = null;
+      if ( v1 != null && v2 != null ) {
+        value = applyOp( v1, v2, boolOp );
+      }
+      result.setValue( t, value );
+    }
+    result.removeDuplicates();
+    return result;
+  }
+  
+  public static Boolean applyOp( Object v1, Object v2, BoolOp boolOp ) {
+    Boolean b1 = Utils.isTrue( v1, true ); 
+    Boolean b2 = Utils.isTrue( v2, true );
+    if ( b1 == null && b2 == null ) return null;
+    boolean isOneNull = b1 == null || b2 == null;
+    boolean nonNullValue = b1 == null ? b2.booleanValue() : b1.booleanValue();
+    switch( boolOp ) {
+      case AND:
+        if ( isOneNull ) {
+          if ( !nonNullValue ) return false;
+          return null;
+        }
+        return b1 && b2;
+      case OR:
+        if ( isOneNull ) {
+          if ( nonNullValue ) return true;
+          return null;
+        }
+        return b1 || b2;
+      case XOR:
+        if ( isOneNull ) return null;
+        return b1 ^ b2;
+      case NOT:
+        return !b1;
+      default:
+        return null;
+    }
+  }
+  
+  public static Object getValueAtTime(Object object, Parameter< Long> t) {
+    if ( object instanceof TimeVarying ) {
+      return ((TimeVarying< Long, ?>)object).getValue( t );
+    }
+    return object;
+  }
+  
+  public Object ifThenElse( Object condition, Object thenObj, Object elseObj ) {
+    Pair< Boolean, TimeVaryingMap< ? > > p = Functions.booleanOrTimeline( condition );
+    if ( p.second != null ) {
+      TimeVaryingMap<Object> newTvm = getEmptyMap( thenObj, elseObj );
+      newTvm = p.second.ifThenElseToTarget( thenObj, elseObj, newTvm );
+      return newTvm;
+//      return p.second.ifThenElse( thenObj, elseObj );
+    }
+    Boolean b = Utils.isTrue( condition, false );
+    if ( b == null ) return null;
+    if ( b ) return thenObj;
+    return elseObj;
+  }
+  
+  protected static TimeVaryingMap<?> mapToClone( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<?> mapToClone = null;
+    if ( thenObj instanceof TimeVaryingMap ) {
+      if ( elseObj instanceof TimeVaryingMap ) {
+        Class<?> cls = ClassUtils.dominantObjectType( thenObj, elseObj );
+        if ( cls != null && cls.isInstance( thenObj ) ) {
+          mapToClone = (TimeVaryingMap<?>)thenObj;
+        } else if ( cls != null && cls.isInstance( elseObj ) ) {
+          mapToClone = (TimeVaryingMap<?>)elseObj;
+        }
+      } else {
+        mapToClone = (TimeVaryingMap<?>)thenObj;
+      }
+    } else if ( elseObj instanceof TimeVaryingMap ) {
+      mapToClone = (TimeVaryingMap<?>)elseObj;
+    }
+    return mapToClone;
+  }
+
+  protected TimeVaryingMap<Object> getEmptyMap( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<?> mapToClone = mapToClone(thenObj, elseObj);
+    TimeVaryingMap<Object> newTvm = (TimeVaryingMap< Object >)( mapToClone == null ? new TimeVaryingMap<Object>() : mapToClone.emptyClone() );
+    return newTvm;
+  }
+  
+  public TimeVaryingMap<Object> ifThenElse( Object thenObj, Object elseObj ) {
+    TimeVaryingMap<Object> newTvm = getEmptyMap( thenObj, elseObj );
+    newTvm = ifThenElseToTarget( thenObj, elseObj, newTvm );
+    return newTvm;
+  }
+  
+  public TimeVaryingMap<Object> ifThenElseToTarget( Object thenObj, Object elseObj, TimeVaryingMap<Object> newTvm ) {
+    Set< Parameter< Long > > keys =
+        new TreeSet< Parameter< Long > >( Collections.reverseOrder() );
+    keys.addAll( this.keySet() );
+    if ( thenObj instanceof TimeVaryingMap ) {
+      keys.addAll( ((TimeVaryingMap<?>)thenObj).keySet() );
+    }
+    if ( elseObj instanceof TimeVaryingMap ) {
+      keys.addAll( ((TimeVaryingMap<?>)elseObj).keySet() );
+    }
+    for ( Parameter< Long> k : keys ) {
+      Object v3 = null;
+      V v1 = this.getValue( k );
+      if ( Utils.isTrue( v1 ) == Boolean.TRUE ) {
+        v3 = getValueAtTime(thenObj, k);
+      } else {
+        v3 = getValueAtTime(elseObj, k);
+      }
+      newTvm.setValue( k, v3 );
+    }
+    if ( newTvm != null ) newTvm.removeDuplicates();
+    return newTvm;
+  }
+
+  
+  /**
    * Validate the consistency of the map for individual and adjacent entries.
    * @return whether or not the entries in the map make sense.
    */
   public boolean isConsistent() {
-    Parameter<Integer> lastTp = null;
-    int lastTime = -1;
+    Parameter< Long> lastTp = null;
+    long lastTime = -1;
     boolean ok = true;
     ArrayList<V> valuesAtSameTime = new ArrayList< V >();
-    ArrayList< Parameter< Integer > > timesAtSameTime =
-        new ArrayList< Parameter< Integer > >();
+    ArrayList< Parameter< Long > > timesAtSameTime =
+        new ArrayList< Parameter< Long > >();
     boolean firstEntry = true;
-    for ( Map.Entry< Parameter<Integer>, V >  entry : entrySet() ) {
-      Parameter<Integer> tp = entry.getKey();
+    for ( Map.Entry< Parameter< Long>, V >  entry : entrySet() ) {
+      Parameter< Long> tp = entry.getKey();
       V value = null;
       try {
         value = entry.getValue();
@@ -2319,9 +4219,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
         Debug.error( true, "Error! null key in TimeVaryingMap " + getName() );
         ok = false;
       } else if ( tp.getValueNoPropagate() == null ) {
-        // No null values for Parameter<Integer> key.
+        // No null values for Parameter< Long> key.
         Debug.errorOnNull( true,
-                           "Error! null param value for Parameter<Integer> "
+                           "Error! null param value for Parameter< Long> "
                                + MoreToString.Helper.toLongString( tp )
                                + " in TimeVaryingMap " + getName(),
                            tp.getValueNoPropagate() );
@@ -2348,7 +4248,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       duplicateValueAtTime = valuesAtSameTime.contains( value );
       if ( tp != null && tp == lastTp ) {
         // A key should have only one entry.
-        Debug.error( true, "Error! Parameter<Integer> has duplicate entry "
+        Debug.error( true, "Error! Parameter< Long> has duplicate entry "
                            + MoreToString.Helper.toLongString( entry )
                            + " in TimeVaryingMap " + getName() );
         ok = false;
@@ -2394,7 +4294,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   @Override
-  public V unsetValue( Parameter< Integer > t, V value ) {
+  public V unsetValue( Parameter< Long > t, V value ) {
     breakpoint();
     if ( t == null ) {
       if ( Debug.isOn() ) {
@@ -2402,7 +4302,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                      "Warning! unsetValue("
                          + MoreToString.Helper.toLongString( t ) + ", "
                          + MoreToString.Helper.toLongString( value )
-                         + "): Null Parameter<Integer> key for TimeVaryingMap "
+                         + "): Null Parameter< Long> key for TimeVaryingMap "
                          + MoreToString.Helper.toLongString( this ) );
       }
       return null;
@@ -2413,23 +4313,23 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                      "Warning! unsetValue("
                          + MoreToString.Helper.toLongString( t ) + ", "
                          + MoreToString.Helper.toLongString( value )
-                         + "): Null value for Parameter<Integer> key for TimeVaryingMap "
+                         + "): Null value for Parameter< Long> key for TimeVaryingMap "
                          + MoreToString.Helper.toLongString( this ) );
       }
       return null;
     }
     V oldValue = null;
-    Parameter<Integer> tpInMap = keyForValueAt( value, t );
+    Parameter< Long> tpInMap = keyForValueAt( value, t );
 // possible fix to a bug, but fixing it elsewhere
-//    Parameter<Integer> tI = tryCastTimepoint( t );
-//    Parameter<Integer> tpInMap = keyForValueAt( value, tI.getValueNoPropagate() );
+//    Parameter< Long> tI = tryCastTimepoint( t );
+//    Parameter< Long> tpInMap = keyForValueAt( value, tI.getValueNoPropagate() );
     if ( tpInMap != t ) {
       if ( Debug.isOn() ) {
         Debug.error( false,
                      "Warning! unsetValue("
                          + MoreToString.Helper.toLongString( t ) + ", "
                          + MoreToString.Helper.toLongString( value )
-                         + "): Parameter<Integer> key is not in the map for TimeVaryingMap "
+                         + "): Parameter< Long> key is not in the map for TimeVaryingMap "
                          + MoreToString.Helper.toLongString( this ) );
       }
       return null;
@@ -2462,20 +4362,72 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public void unapply( Effect effect ) {
     unapply( effect, true );
   }
-  public void unapply( Effect effect, boolean timeArgFirst ) {
-    if ( isArithmeticEffect( effect ) ) {
+  
+  public static boolean newChanges = true;
+  public Effect getUndoEffect( Effect effect, boolean timeArgFirst ) {
+    Pair< Parameter< Long >, V > p = null;
+    if ( isArithmeticEffect( effect ) && effect instanceof EffectFunction ) {
       Effect inverseEffect = getInverseEffect( effect );
-      if ( canBeApplied( inverseEffect ) ) {
-        inverseEffect.applyTo( this, true );
-        appliedSet.remove(effect);
+      if ( !newChanges ) {
+        return inverseEffect;
+      }
+
+      // correct the value argument since it might have changed since originally
+      // applied
+      p = getTimeAndValueOfEffect( effect, timeArgFirst );
+      if ( p != null ) {
+        Parameter< Long > t = p.first;
+        MathOperation op =
+            getOperationForMethod( ( (EffectFunction)effect ).getMethod() );
+        V val = getValueChangeAt( t, op );
+        if ( inverseEffect instanceof EffectFunction ) {
+          int pos = getIndexOfValueArgument( (EffectFunction)inverseEffect );
+          Vector< Object > args = ( (EffectFunction)inverseEffect ).arguments;
+          if ( args != null ) {
+            if ( pos >= 0 && pos < args.size() ) {
+              Object oldVal = args.get( pos );
+              if ( Debug.isOn() ) System.out.println( "MMMMMM   Replacing " + oldVal + " with "
+                                  + val + " in undoEffect: " + inverseEffect );
+              args.set( pos, val );
+            }
+          }
+        }
+      }
+
+      return inverseEffect;
+      
+    } else {
+      // if not arithmetic effect
+      // TODO
+    }
+    return null;
+  }
+  
+  public void unapply( Effect effect, boolean timeArgFirst ) {
+    Pair< Parameter< Long>, V > p = null;
+    if ( isArithmeticEffect( effect ) ) {
+      Effect undoEffect = getUndoEffect( effect, timeArgFirst );
+      
+      if ( Debug.isOn() ) {
+        Debug.outln( "unapply("
+                     + MoreToString.Helper.toString( effect, true, false, null )
+                     + ") : inverseEffect = "
+                     + MoreToString.Helper.toString( undoEffect, true, false,
+                                                     null ) );
+      }
+      if ( canBeApplied( undoEffect ) ) {
+        undoEffect.applyTo( this, true );
+        appliedSet.remove( effect );
+        appliedSet.remove( undoEffect );
       } else {
         Debug.error( true, "Error! Cannot unapply effect: "
                            + MoreToString.Helper.toLongString( effect ) );
       }
-      return;
+//      return;
     }
-    Pair< Parameter<Integer>, V > p =
-        getTimeAndValueOfEffect( effect, timeArgFirst );
+    if ( p == null ) {
+      p = getTimeAndValueOfEffect( effect, timeArgFirst );
+    }
     if ( p != null ) {
       unsetValue( p.first, p.second );
       appliedSet.remove(effect);
@@ -2509,7 +4461,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       remove( parameter );
     }
     Set<Parameter<?>> detachSet = new HashSet< Parameter<?> >();
-    for ( Entry< Parameter<Integer>, V > e : this.clone().entrySet() ) {
+    for ( Entry< Parameter< Long>, V > e : this.clone().entrySet() ) {
       if ( e.getValue() instanceof HasParameters ) {
         if ( ( (HasParameters)e.getValue() ).hasParameter( parameter, false,
                                                            null ) ) {
@@ -2539,7 +4491,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   public boolean equals( Object o ) {
     if ( this == o ) return true;
     if ( o instanceof TimeVarying ) {
-      return ( compareTo( (TimeVarying<V>)o, false ) == 0 );
+      return ( compareTo( (TimeVarying< Long, V>)o, false ) == 0 );
     }
     return false;
   }
@@ -2548,10 +4500,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   @Override
-  public int compareTo( TimeVarying< V > o ) {
+  public int compareTo( TimeVarying< Long, V > o ) {
     return compareTo( o, true );
   }
-  public int compareTo( TimeVarying< V > o, boolean checkId ) {
+  public int compareTo( TimeVarying< Long, V > o, boolean checkId ) {
     if ( o == null ) return 1;
     if ( checkId ) return CompareUtils.compare( getId(), o.getId() );
     int compare = 0;
@@ -2565,6 +4517,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( compare != 0 ) return compare;
     return compare;
   }
+
+  // TODO -- use getValue() to compare TimeVaryingMaps!!!
+  //public int compareValues
 
   public static Method getSetValueMethod() {
     return getSetValueWithParameterMethod();
@@ -2583,7 +4538,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   protected static void setArithmeticMethods() {
-    //Parameter<Integer> t = new Parameter< Integer >( null );
+    //Parameter< Long> t = new Parameter< Long >( null );
     Class< TimeVaryingMap > cls = TimeVaryingMap.class;
     if ( arithmeticMethods == null ) {
       arithmeticMethods = new TreeSet< Method >( methodComparator );
@@ -2773,16 +4728,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     }
     return inverseMethods;
   }
+  public static MathOperation getOperationForMethod(Method m) {
+    return getOperationForMethod().get( m );
+  }
+  public static Map< Method, MathOperation > getOperationForMethod() {
+    if ( operationForMethod == null ) {
+      initEffectMethods();
+    }
+    return operationForMethod;
+  }
   public static Comparator< Method > getMethodComparator() {
     return methodComparator;
   }
 
-  Parameter<Integer> getTimeOfEffect( EffectFunction effectFunction ) {
+  Parameter< Long> getTimeOfEffect( EffectFunction effectFunction ) {
     Integer i = getIndexOfTimepointArgument( effectFunction );
-    if ( i == null ) {
+    if ( i == null || i < 0 ) {
       i = getIndexOfFirstTimepointParameter( effectFunction );
     }
-    if ( i != null ) {
+    if ( i != null && i >= 0 ) {
       return tryEvaluateTimepoint( effectFunction.arguments.get( i ), false );
     }
     return null;
@@ -2796,7 +4760,42 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return i;
   }
 
-  public <TT> Pair< Parameter<Integer>, TT > getTimeAndValueOfEffect( Effect effect ) {
+  Object getValueOfEffect( EffectFunction effectFunction ) {
+    Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( effectFunction );
+    if ( p == null ) return null;
+    return p.second;
+  }
+
+  
+  public Integer getIndexOfValueArgument( EffectFunction effectFunction ) {
+    if ( effectFunction == null || effectFunction.getArguments() == null ) return null;
+    Integer tpi = getIndexOfTimepointArgument(effectFunction);
+    Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( effectFunction );
+    if ( p == null ) return -1;
+    Object val = p.second;
+    int pos = -1;
+    int posTypeOk = -1;
+    int i = 0;
+    while ( i < effectFunction.getArguments().size() ) {
+      if ( tpi == null || tpi != i ) {
+        pos = i;
+        Object arg = effectFunction.getArgument(i);
+        if ( val == arg ) {
+          return pos;
+        }
+        if ( posTypeOk == -1 && getType() != null && getType().isInstance( arg ) ) {
+          posTypeOk = i;
+        }
+      }
+      ++i;
+    }
+    if ( posTypeOk != -1 ) {
+      return posTypeOk;
+    }
+    return pos;
+  }
+
+  public <TT> Pair< Parameter< Long>, TT > getTimeAndValueOfEffect( Effect effect ) {
     return getTimeAndValueOfEffect( effect, null );
   }
 
@@ -2817,7 +4816,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    * @return the timepoint at which the effect takes place and the value applied
    *         in a Pair
    */
-  public < TT > Pair< Parameter< Integer >, TT >
+  public < TT > Pair< Parameter< Long >, TT >
       getTimeAndValueOfEffect( Effect effect, Boolean timeFirst ) {
     // REVIEW -- Why not use <T>? Can't enforce it?
     if ( !( effect instanceof EffectFunction ) ) {
@@ -2833,26 +4832,26 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       return null;
     }
     if ( effectFunction.getMethod().getParameterTypes().length < 2 ) {
-      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + MoreToString.Helper.toLongString( effect )
-                   + ") Error! Method takes "
-                   + effectFunction.getMethod().getParameterTypes().length
-                   + " parameters, but 2 are required." );
+//      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
+//                   + MoreToString.Helper.toLongString( effect )
+//                   + ") Error! Method takes "
+//                   + effectFunction.getMethod().getParameterTypes().length
+//                   + " parameters, but 2 are required." );
       return null;
     }
 
     if ( effectFunction.arguments == null || effectFunction.arguments.size() < 2 ) {
-      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
-                   + MoreToString.Helper.toLongString( effect )
-                   + ") Error! Method has "
-                   + effectFunction.getMethod().getParameterTypes().length
-                   + " arguments, but 2 are required." );
+//      Debug.error( getName() + ".getTimeAndValueOfEffect(Effect="
+//                   + MoreToString.Helper.toLongString( effect )
+//                   + ") Error! Method has "
+//                   + effectFunction.getMethod().getParameterTypes().length
+//                   + " arguments, but 2 are required." );
       return null;
     }
     boolean complainIfNotTimepoint = timeFirst != null;
 
     timeFirst = ( timeFirst == null ) || timeFirst;
-    Parameter< Integer > tp = null;
+    Parameter< Long > tp = null;
     TT value = null;
 
     Integer idx = getIndexOfTimepointArgument( effectFunction );
@@ -2871,10 +4870,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     value = (TT)tryEvaluateValue( arg2, true );
 
     if ( isTimepoint(tp) ) {
-      return new Pair< Parameter< Integer >, TT >( tp, value );
+      return new Pair< Parameter< Long >, TT >( tp, value );
     }
 
-    Pair< Object, Parameter< Integer >> p =
+    Pair< Object, Parameter< Long >> p =
         whichIsTheTimepoint( arg1, arg2, timeFirst && complainIfNotTimepoint,
                              !timeFirst && complainIfNotTimepoint, timeFirst );
     if ( p == null ) {
@@ -2884,11 +4883,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Object tpArg = ( p.first == arg1 ) ? arg1 : arg2;
     Object valueArg = ( p.first == arg1 ) ? arg2 : arg1;
     value = (TT)tryEvaluateValue( valueArg, true );
-    Pair< Parameter< Integer >, TT > pair =
-        new Pair< Parameter< Integer >, TT >( tp, value );
+    Pair< Parameter< Long >, TT > pair =
+        new Pair< Parameter< Long >, TT >( tp, value );
     if ( value == null ) {
       if ( valueArg != null ) {
-        Parameter< Integer > otp = tryEvaluateTimepoint( valueArg, true, true );
+        Parameter< Long > otp = tryEvaluateTimepoint( valueArg, true, true );
         if ( otp != null ) {
           TT ov = (TT)tryEvaluateValue( tpArg, true );
           if ( Debug.isOn() ) {
@@ -2940,8 +4939,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public static Integer getIndexOfFirstTimepointParameter( Method method ) {
-    Parameter<Integer> p = new Parameter< Integer >("objForCls", null, null );
-    Class< Parameter<Integer> > cls = (Class< Parameter< Integer >>)p.getClass();
+    Parameter< Long> p = new Parameter< Long >("objForCls", null, null );
+    Class< Parameter< Long> > cls = (Class< Parameter< Long >>)p.getClass();
     return getIndexOfFirstParameterOfType( method, cls );
 //    if ( method == null ) return null;
 //    Class< ? >[] pTypes = method.getParameterTypes();
@@ -2972,13 +4971,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( !debugWasOn ) Debug.turnOn();
 
     boolean succ = true;
-    TimeVaryingMap tvm = new TimeVaryingMap< Integer >("imap", null, 0, Integer.class);
+    TimeVaryingMap tvm = new TimeVaryingMap< Long >("imap", null, 0L, Long.class);
     EffectFunction f =
         new EffectFunction( tvm,
                             TimeVaryingMap.getSetValueMethod(),
-                            new Object[] { new Parameter< Integer >( "four",
+                            new Object[] { new Parameter< Long >( "four",
                                                                      null, tvm ),
-                                           new Integer( 14 ) } );
+                                           new Long( 14 ) } );
     assert ( 0 == tvm.getIndexOfFirstTimepointParameter( f ) );
     Method.setAccessible( TimeVaryingMap.class.getDeclaredMethods(), true );
     for ( Method method : TimeVaryingMap.class.getDeclaredMethods() ) {
@@ -3029,7 +5028,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     /**
      * conversion of object to timepoint
      */
-    protected Parameter<Integer> tp = null;
+    protected Parameter< Long> tp = null;
     /**
      * whether tp is actually a timepoint
      */
@@ -3065,7 +5064,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
      * @param inDomain
      *          whether the value of the timepoint is valid
      */
-    public CandidateTimepoint( Object o, Parameter< Integer > tp ) {
+    public CandidateTimepoint( Object o, Parameter< Long > tp ) {
       super();
       if ( tp == null ) {
         setObject(o);
@@ -3088,7 +5087,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     /**
      * @return the converted timepoint
      */
-    public Parameter< Integer > getTimepoint() {
+    public Parameter< Long > getTimepoint() {
       if ( tp == null && o != null ) {
         setTimepointToObject();
       }
@@ -3102,7 +5101,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       isATimepoint = null;//isTimepoint( o );
       inDomain = null;
     }
-    public void setTp( Parameter< Integer > tp) {
+    public void setTp( Parameter< Long > tp) {
       this.tp = tp;
       isATimepoint = null;//isTimepoint( tp );
       inDomain = null;
@@ -3235,7 +5234,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         Parameter ), or (5) A wins in the tie (o1WinsTie == (A==o1));
    *         otherwise, neither can be converted, and null is returned.
    */
-  public Pair< Object, Parameter< Integer > > whichIsTheTimepoint( Object o1,
+  public Pair< Object, Parameter< Long > > whichIsTheTimepoint( Object o1,
                                                                    Object o2,
                                                                    boolean o1ShouldBe,
                                                                    boolean o2ShouldBe,
@@ -3243,10 +5242,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     // check for null values
     if ( o1 == null && o2 == null ) return null;
     if ( o1 != null && o2 == null ) {
-      return new Pair< Object, Parameter< Integer >>(o1, tryEvaluateTimepoint( o1, true ));
+      return new Pair< Object, Parameter< Long >>(o1, tryEvaluateTimepoint( o1, true ));
     }
     if ( o1 == null && o2 != null ) {
-      return new Pair< Object, Parameter< Integer >>(o2, tryEvaluateTimepoint( o2, true ));
+      return new Pair< Object, Parameter< Long >>(o2, tryEvaluateTimepoint( o2, true ));
     }
     // make some convenient inferences
     boolean strongPreference = o1WinsTie ? o1ShouldBe : o2ShouldBe;
@@ -3268,7 +5267,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
     // Check if one is already a timepoint, and
     // see if one is not in the default time domain and the other is.
-    Pair< Object, Parameter< Integer > > p =
+    Pair< Object, Parameter< Long > > p =
         selectTimepoint(preferred, nonPreferred, strongPreference, true, true );
     if ( p != null ) return p;
 
@@ -3292,19 +5291,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( strongPreference ) {
       V valPref = tryEvaluateValue( nonPreferredObj, true );
       if ( valPref != null ) {
-        return new Pair< Object, Parameter< Integer > >( preferred.getObject(),
+        return new Pair< Object, Parameter< Long > >( preferred.getObject(),
                                                          preferred.getTimepoint() );
       }
     } else {
       V valNonPref = tryEvaluateValue( preferredObj, true );
       if ( valNonPref != null ) {
-        return new Pair< Object, Parameter< Integer > >( nonPreferred.getObject(),
+        return new Pair< Object, Parameter< Long > >( nonPreferred.getObject(),
                                                          nonPreferred.getTimepoint() );
       }
     }
 
     if ( preferred.isATimepoint() ) {
-      return new Pair< Object, Parameter< Integer > >( preferred.getObject(),
+      return new Pair< Object, Parameter< Long > >( preferred.getObject(),
                                                        preferred.getTimepoint() );
     }
     return null;
@@ -3324,7 +5323,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         non-preferred object and timepoint if the preferred isn't
    *         available, or null
    */
-  protected Pair< Object, Parameter< Integer > >
+  protected Pair< Object, Parameter< Long > >
       selectTimepoint( CandidateTimepoint pref, CandidateTimepoint nonPref,
                        boolean strongPreference ) {
     return selectTimepoint( pref, nonPref, strongPreference, true, false );
@@ -3346,39 +5345,39 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
    *         non-preferred object and timepoint if the preferred isn't
    *         available, or null
    */
-  protected Pair< Object, Parameter< Integer > >
+  protected Pair< Object, Parameter< Long > >
       selectTimepoint( CandidateTimepoint pref, CandidateTimepoint nonPref,
                        boolean strongPreference, boolean checkIfTimepoint,
                        boolean checkIfInDomain ) {
     if ( pref == null || nonPref == null ) return null;
-    // check whether the candidates are found to be timepoints (Parameter<Integer>)
+    // check whether the candidates are found to be timepoints (Parameter< Long>)
     if ( checkIfTimepoint ) {
       if ( pref.isATimepoint()
            && ( strongPreference || !nonPref.isATimepoint() ) ) {
-        return new Pair< Object, Parameter< Integer >>( pref.getObject(),
+        return new Pair< Object, Parameter< Long >>( pref.getObject(),
                                                         pref.getTimepoint() );
       }
       if ( !strongPreference && nonPref.isATimepoint() ) { // !isPrefTp
-        return new Pair< Object, Parameter< Integer >>( nonPref.getObject(),
+        return new Pair< Object, Parameter< Long >>( nonPref.getObject(),
                                                         nonPref.getTimepoint() );
       }
     }
     boolean bothAreTimepoints = pref.isATimepoint() && nonPref.isATimepoint();
     if ( bothAreTimepoints  ) {
-      // check if an actual Timepoint (as opposed to just Parameter<Integer>)
+      // check if an actual Timepoint (as opposed to just Parameter< Long>)
       if ( strongPreference && pref.getTimepoint() instanceof Timepoint
            && !( nonPref.getTimepoint() instanceof Timepoint ) ) {
-        return new Pair< Object, Parameter< Integer >>( pref.getObject(),
+        return new Pair< Object, Parameter< Long >>( pref.getObject(),
                                                         pref.getTimepoint() );
       }
       // check if value is a legal time value
       if ( checkIfInDomain ) {
         if ( pref.isInDomain() && ( strongPreference || !nonPref.isInDomain() ) ) {
-          return new Pair< Object, Parameter< Integer >>( pref.getObject(),
+          return new Pair< Object, Parameter< Long >>( pref.getObject(),
                                                           pref.getTimepoint() );
         }
         if ( !strongPreference && nonPref.isInDomain() ) { // !isPrefTp is known
-          return new Pair< Object, Parameter< Integer >>(
+          return new Pair< Object, Parameter< Long >>(
                                                           nonPref.getObject(),
                                                           nonPref.getTimepoint() );
         }
@@ -3393,7 +5392,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     boolean isParam = tp instanceof Parameter;
     if ( !isParam ) return false;
     Parameter<?> p = (Parameter<?>)tp;
-    boolean isIntParam = p.getValueNoPropagate() instanceof Integer;
+    boolean isIntParam = p.getValueNoPropagate() instanceof Long;
     return isIntParam;
   }
 
@@ -3425,16 +5424,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
                    // applied unless we keep track of all effects here!
     }
 
-    Pair< Parameter<Integer>, V > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
+    Pair< Parameter< Long>, V > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
     if ( p == null ) return false;
     Object t = p.first;
     V value = p.second;
 //    if ( value != null ) {
+    // FIXME!!! t is converted to a Parameter even if the time of the effect is
+    // an integer.
       if ( t instanceof Parameter
-           && ( (Parameter<?>)t ).getValueNoPropagate() instanceof Integer ) {
-        return hasValueAt( value, tryCastTimepoint( t ), true );
-      } if ( t instanceof Integer ) {
-        return hasValueAt( value, (Integer)t );
+           && ( (Parameter<?>)t ).getValueNoPropagate() instanceof Long ) {
+        return hasValueAt( value, tryCastTimepoint( t ), true );  
+      } if ( t instanceof Long ) {
+        return hasValueAt( value, (Long)t );
       }
 //    }
     return false;
@@ -3452,6 +5453,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       value = type.cast( Double.parseDouble( s ) );
     } else if ( type == Float.class || type == float.class ) {
       value = type.cast( Float.parseFloat( s ) );
+    } else if ( type == Long.class || type == long.class ) {
+      value = type.cast( Long.parseLong( s ) );
     } else if ( type == Integer.class || type == int.class ) {
       value = type.cast( Integer.parseInt( s ) );
     } else if ( type == Boolean.class || type == boolean.class ) {
@@ -3466,7 +5469,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       } catch (NumberFormatException e) {
       }
       try {
-        objs.add( Integer.parseInt( s ) );
+        objs.add( Long.parseLong( s ) );
       } catch (NumberFormatException e) {
       }
       objs.add( Boolean.parseBoolean( s ) );
@@ -3488,23 +5491,91 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return value;
   }
 
-  public void fromStringMap( Map<String,String> map, Class<V> cls ) {
+  public void fromStringMapWithJulianDates( Map<String,String> map, Class<V> cls ) {
     clear();
     for ( Entry<String, String> ss : map.entrySet() ) {
-      Integer key = null;
+      Long key = null;
       try {
-        key = Integer.parseInt( ss.getKey() );
-      } catch (Exception e) {
-        key = (int)Double.parseDouble( ss.getKey() );
+          Double dKey = Double.parseDouble( ss.getKey() );
+          key = Timepoint.julianToInteger( dKey );
+      } catch (NumberFormatException e) {
       }
-      Timepoint tp = new Timepoint( null, key, this );
-      V value = valueFromString( ss.getValue() );
-      setValue( tp, value );
+      if ( key != null && key >= 0 ) {
+        Timepoint tp = new Timepoint( null, key, this );
+        V value = valueFromString( ss.getValue() );
+        setValue( tp, value );
+      }
+    }    
+  }
+  
+  
+  public void fromStringMap( Map<String,String> map, Class<V> cls ) {
+    clear();
+    SimpleTimepoint pre_tp = null;
+    V pre_value = null;
+    TimeZone gmtZone = TimeZone.getTimeZone( "GMT" );
+
+    int ct = 0;
+    for ( Entry<String, String> ss : map.entrySet() ) {
+      Long key = null;
+      Date d = TimeUtils.dateFromTimestamp( ss.getKey(), gmtZone );
+      if ( d != null ) key = Timepoint.fromDateToInteger( d );
+      if ( key == null ) {
+        try {
+          key = Long.parseLong( ss.getKey() );
+        } catch (NumberFormatException e) {
+          try {
+            Double dKey = Double.parseDouble( ss.getKey() );
+            key = dKey.longValue();
+          } catch (NumberFormatException ee) {
+          }
+        }
+      }
+      if ( key != null ) {
+        
+        SimpleTimepoint tp = new SimpleTimepoint( null, key, this );
+        // add time-value pair if time is within the horizon.
+        Long t = tp.getValueNoPropagate();
+        if ( t != null ) 
+        {
+           if(t < 0 ) {
+             if ( pre_tp == null || tp.compareTo( pre_tp ) > 0 )
+             {
+               pre_tp = tp;
+               pre_value = valueFromString( ss.getValue() );
+             }
+           }
+           else if ( t < Timepoint.getHorizonDuration() ) {
+               V value = valueFromString( ss.getValue() );
+               setValue( tp, value );
+           } else {
+             //Debug.breakpoint();
+           }
+        }
+      }
+      ++ct;
+    }
+    if( pre_tp != null )
+    {
+      if( getValue(0L) == null && this.interpolation.type != Interpolation.NONE )
+      {
+        SimpleTimepoint zero_tp = new SimpleTimepoint( null, 0L, this );
+        if ( interpolation.isStep() ) {
+          setValue( zero_tp, pre_value );
+        } else if (interpolation.isLinear() ) {
+          Parameter<Long> t2 = firstKey();
+          V v2 = firstValue();
+          V v = interpolatedValue( pre_tp, zero_tp, t2, pre_value, v2 );
+          if ( v != null ) {
+            setValue( zero_tp, v );
+          }
+        }
+      }
     }
   }
 
   public void fromString( String s, Class<V> cls ) {
-    Map<String,String> map = new HashMap<String,String>();
+    Map<String,String> map = new TreeMap<String,String>();
     Pattern p = Pattern.compile( "([^{@]*)?([^{@]*)(@[^{]*)?" );
     Matcher matcher = p.matcher( s );
     int end = 0;
@@ -3525,38 +5596,123 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
 
   public void fromCsvString( String s, Class<V> cls ) {
-    Map<String,String> map = new HashMap<String,String>();
+    Map<String,String> map = new TreeMap<String,String>();
     MoreToString.Helper.fromString( map, s, "", "\\s*", "", "", "\\s*,\\s*", "" );
     fromStringMap( map, cls );
+  }
+  
+  protected static File findFileInResourcePaths(String fileName, String backupFileName) {
+    File f = null;
+    for ( String path : resourcePaths ) {
+      File pFile = new File(path);
+      if ( !pFile.exists() ) continue;
+      f = FileUtils.findFile( pFile, fileName );
+      if ( f == null && !Utils.isNullOrEmpty( backupFileName ) ) {
+        f = FileUtils.findFile( pFile, backupFileName );
+      }
+      if (f != null ) break;
+    }
+    return f;
+  }
+  protected static File findFileSimple(String fileName, String backupFileName) {
+      File f = FileUtils.findFile( fileName );
+      if ( f == null && !Utils.isNullOrEmpty( backupFileName ) ) {
+        f = FileUtils.findFile( backupFileName );
+      }
+      return f;
+  }
+  protected static File findFile(String fileName, String backupFileName) {
+    File f = findFileSimple(fileName, backupFileName);
+    if ( f != null ) return f;
+    f = findFileInResourcePaths( fileName, backupFileName);
+    return f;
   }
 
   public void fromCsvFile( String fileName ) {
     fromCsvFile( fileName, null );
   }
   public void fromCsvFile( String fileName, Class<V> cls ) {
-    if ( fileName == null ) return;
+    fromCsvFile( fileName, null, cls );
+  }
+  public void fromCsvFile( String fileName, String backupFileName, Class<V> cls ) {
+    String fName = fileName;
+    if ( fName == null && backupFileName == null ) return;
+    if ( fName == null ) fName = backupFileName;
     try {
-    File f = FileUtils.findFile( fileName );
-    String s = FileUtils.fileToString( f );
-    Map<String,String> map = new HashMap<String,String>();
-    MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
-    fromStringMap( map, cls );
-    if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n" + this.toString() );
-    } catch ( FileNotFoundException e ) {
+      File f = findFile( fName, backupFileName );
+      if (f != null ) System.out.println(f.toString());
+      ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
+      //String s = FileUtils.fileToString( f );
+      Map<String,String> map = new TreeMap<String,String>();
+      //MoreToString.Helper.fromString( map, s, "", "\\s+", "", "", "[ ]*,[ ]*", "" );
+      for ( ArrayList<String> line : lines ) {
+        if ( line.size() >= 2 ) {
+          map.put( line.get(0), line.get(1) );
+        }
+      }
+      fromStringMap( map, cls );
+      if ( Debug.isOn() ) Debug.outln( "read map from file, " + fName + ":\n" + this.toString() );
+    } catch ( IOException e ) {
       e.printStackTrace();
     }
   }
-  public void toCsvFile( String fileName ) {
-    String s = toCsvString();
+  public void toCsvFile( String fileName, String header, String format, Calendar cal ) {
+    String s = toCsvString(header, format, cal);
     if ( Debug.isOn() ) Debug.outln( "wrote map to file, " + fileName + ":\n" + s );
     FileUtils.stringToFile( s, fileName );
   }
 
+  public void toCsvFile( String fileName ) {
+    toCsvFile(fileName, null, null, null);
+  }
+
   public String toCsvString() {
+    return toCsvString( null, null, null );
+  }
+
+  protected String getTimeString( Parameter<Long> p, String dateFormat, Calendar cal ) {
+    String timeString = null;
+    if ( dateFormat != null  ) {
+      if ( cal == null ) cal = TimeUtils.gmtCal;
+      if ( p == null || p.getValueNoPropagate() == null ) {
+        return null;
+      }
+      long t = p.getValueNoPropagate();
+      timeString = Timepoint.toTimestamp( t, dateFormat, cal );
+    } else {
+      timeString = p.toShortString();
+    }
+    return timeString;
+  }
+  
+  protected String getCsvLine( Parameter< Long > p, V v, String dateFormat, Calendar cal ) {
+    String timeString = getTimeString( p, dateFormat, cal );
+    if ( Utils.isNullOrEmpty( timeString ) ) return null;
+    String line = timeString + "," + MoreToString.Helper.toShortString( v ) + "\n";
+    return line;
+  }
+  
+  public String toCsvString(String header, String dateFormat, Calendar cal ) {
     StringBuffer sb = new StringBuffer();
-    for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
-      sb.append( e.getKey().toShortString() + ","
-                 + MoreToString.Helper.toShortString( e.getValue() ) + "\n" );
+    if ( !Utils.isNullOrEmpty( header ) ) {
+      sb.append(header + "\n");
+    }
+    Parameter< Long > lastKey = null;
+    for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
+      String line = getCsvLine( e.getKey(), e.getValue(), dateFormat, cal );
+      if ( line == null ) continue;
+      sb.append( line );
+      lastKey = e.getKey();
+    }
+    // Add a final point in case the plotter does not render beyond last point
+    Timepoint h = Timepoint.getHorizonTimepoint();
+    if ( interpolation.type != Interpolation.NONE && lastKey != null
+         && before( lastKey, h ) ) {
+      V v = getValue(h);
+      if ( v != null ) {
+        String line = getCsvLine( h, v, dateFormat, cal );
+        if ( line != null ) sb.append( line );
+      }
     }
     return sb.toString();
   }
@@ -3583,8 +5739,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     sb.append( interpolation + " " );
     sb.append( this.getName() );
     if ( withHash ) sb.append( "@" + hashCode() );
-    sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
-                                             otherOptions, CURLY_BRACES, false ) );
+    //if ( deep ) {
+      sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
+                                               otherOptions, CURLY_BRACES, false ) );
+    //}
     return sb.toString();
   }
 
@@ -3688,18 +5846,47 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   @Override
   public void setValue( V value ) {
     if ( size() == 0 ) {
-      Parameter<Integer> t = new Parameter<Integer>(null, null, 0, this);
+      Parameter< Long> t = new Parameter< Long>(null, null, 0L, this);
       put( t, value );
     } else if ( size() > 0 ) {
       if ( size() > 1 ) {
         Debug.error(false, "Warning! Setting all values  to " + value + " in " + this );
       }
-      for ( java.util.Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+      for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
         e.setValue( value );
       }
     }
   }
 
+  /*  Getting the average is painful.  Should probably integrate.  TODO
+   * 
+  public Number zero() {
+    if ( getType() == null ) return null;
+    if (Number.class.isAssignableFrom( getType() )) {
+      return (Number)tryCast(0, getType());
+    }
+    return null;
+  }
+  public Number sum() {
+    Number sum = zero();
+    if ( sum == null ) return null;
+    Functions.plus( o1, o2 );
+     gov.nasa.jpl.ae.util.Math.plus()
+  }
+
+  public Number avg() {
+    Number sum = zero();
+    if ( sum == null ) return null;
+    Functions.plus( o1, o2 );
+     gov.nasa.jpl.ae.util.Math.plus()
+  }
+  */
+  public Number min() {
+    return getMinValue();
+  }
+  public Number max() {
+    return getMaxValue();
+  }
   public Number getMinValue() {
     return getMinOrMaxValue( true );
   }
@@ -3708,15 +5895,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
   }
   public Number getMinOrMaxValue( boolean isMin ) {
     if ( !ClassUtils.isNumber( getType() ) ) return null;
-    boolean isInt = ClassUtils.isInteger( getType() );
-    Integer minInt = Integer.MAX_VALUE;
+    boolean isInt = ClassUtils.isLong( getType() );
+    Long minInt = Long.MAX_VALUE;
     Double minDouble = Double.MAX_VALUE;
-    int mul = isMin ? 1 : -1;
+    long mul = isMin ? 1 : -1;
     for ( V v : values() ) {
       if ( v != null &&  v instanceof Number ) {
         if ( isInt ) {
-          Integer i = ((Number)v).intValue();
-          if ( mul * i.intValue() < mul * minInt.intValue() ) {
+          Long i = ((Number)v).longValue();
+          if ( mul * i.longValue() < mul * minInt.longValue() ) {
             minInt = i;
           }
         } else {
@@ -3773,9 +5960,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     StringBuffer sb = new StringBuffer();
     boolean isNum = ClassUtils.isNumber( getType() );
     int ctr = 0;
-    for ( Map.Entry< Parameter< Integer >, V > e : entrySet() ) {
+    for ( Map.Entry< Parameter< Long >, V > e : entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValue(false) == null ) continue;
-      int startTime = e.getKey().getValue(false).intValue();
+      long startTime = e.getKey().getValue(false).longValue();
       String q = isNum ? "" : "\"";
       Object value = null;
       try {
@@ -3810,6 +5997,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return sb.toString();
   }
 
+  public static Map< Method, Integer > effectMethodsMap() {
+    if ( effectMethods == null ) effectMethods = initEffectMethods();
+    return effectMethods;
+  }
   public Map< Method, Integer > getEffectMethodsMap() {
     if ( effectMethods == null ) effectMethods = initEffectMethods();
     return effectMethods;
@@ -3817,16 +6008,34 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
   @Override
   public Collection< Method > getEffectMethods() {
-    Map< Method, Integer > m = getEffectMethodsMap();
+    return effectMethods();
+  }
+
+  public static Collection< Method > effectMethods() {
+    Map< Method, Integer > m = effectMethodsMap();
     if ( m == null ) return null;
     return m.keySet();
   }
 
-  @Override
-  public boolean doesAffect( Method method ) {
-    return getEffectMethods().contains( method );
+  protected static LinkedHashSet< String > effectNames = null; 
+  public static Set< String > effectMethodNames() {
+    if ( effectNames == null ) {
+      effectNames = new LinkedHashSet< String >();
+      for ( Method m : effectMethods() ) {
+        effectNames.add( m.getName() );
+      }
+    }
+    return effectNames;
   }
 
+  @Override
+  public boolean doesAffect( Method method ) {
+    return affects(method);
+  }
+  public static boolean affects( Method method ) {
+    return effectMethods().contains( method );
+  }
+  
   protected static Map< Method, Integer > initEffectMethods() {
     methodComparator = new Comparator< Method >() {
 
@@ -3851,39 +6060,171 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     if ( inverseMethods == null ) {
       inverseMethods = new TreeMap< Method, Method >( methodComparator );
     }
+    if ( operationForMethod == null ) {
+      operationForMethod = new TreeMap< Method, MathOperation >( methodComparator );
+    }
+    operationForMethod.clear();
     inverseMethods.clear();
 
     Method m = getSetValueMethod();
     if ( m != null ) effectMethods.put( m, 0 );
     m = getAddNumberAtTimeMethod();
-    inverseMethods.put( m, getSubtractNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getSubtractNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.PLUS );
     m = getAddNumberForTimeRangeMethod();
-    inverseMethods.put( m, getSubtractNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getSubtractNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.PLUS );
     m = getSubtractNumberAtTimeMethod();
-    inverseMethods.put( m, getAddNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getAddNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.MINUS );
     m = getSubtractNumberForTimeRangeMethod();
-    inverseMethods.put( m, getAddNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getAddNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.MINUS );
     m = getMultiplyNumberAtTimeMethod();
-    inverseMethods.put( m, getDivideNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getDivideNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.TIMES );
     m = getMultiplyNumberForTimeRangeMethod();
-    inverseMethods.put( m, getDivideNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getDivideNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.TIMES );
     m = getDivideNumberAtTimeMethod();
-    inverseMethods.put( m, getMultiplyNumberAtTimeMethod() );
+    if ( m != null ) inverseMethods.put( m, getMultiplyNumberAtTimeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.DIVIDE );
     m = getDivideNumberForTimeRangeMethod();
-    inverseMethods.put( m, getMultiplyNumberForTimeRangeMethod() );
+    if ( m != null ) inverseMethods.put( m, getMultiplyNumberForTimeRangeMethod() );
     if ( m != null ) effectMethods.put( m, 1 );
+    if ( m != null ) operationForMethod.put( m, MathOperation.DIVIDE );
 
     //m = getSetValueMethod2();
     //m = TimeVaryingMap.class.getMethod("unsetValue");
     //m = TimeVaryingMap.class.getMethod("unapply");
     return effectMethods;
+  }
+  
+  protected V getValueChangeAt(Parameter<Long> t, MathOperation op) {
+    if ( t == null ) return null;
+    // First determine original value applied
+    Parameter<Long> k = getKey( t, true );
+    if ( k == null ) {
+      Debug.error(true, false, "WARNING!!! gettAddedValueAt(" + t + "): no entry found at time");
+      return null;
+    }
+    if ( k != t ) {
+      Debug.error(true, false, "WARNING!!! Unappyling effect with different time object: effect time = " + t.toString( true, false, null ) + "; found time = " + k.toString( true, false, null ));
+    }
+    V v = getValue(t);
+    V vb = getValueBefore( t );
+    V dv = v;
+    try {
+      //if ( vb == null ) dv = v;
+      switch( op ) {
+        case AND:  // vb and dv = v, so dv = v is fine
+          break;
+        case OR:  // vb or dv = v, so dv = v is fine
+          break;
+        case EQ: // vb == dv = v
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = vb;
+            } else {
+              dv = Functions.pickNotEqualToForward( new Expression<V>(dv), new Expression<V>(vb) );
+            }
+          }
+          break;
+        case GT:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickGreater( new Expression<V>(vb), false );
+            } else {
+              dv = Functions.pickLess( new Expression<V>(vb), true );
+            }
+          }
+          break;
+        case GTE:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickGreater( new Expression<V>(vb), true );
+            } else {
+              dv = Functions.pickLess( new Expression<V>(vb), false );
+            }
+          }
+          break;
+        case LT:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickLess( new Expression<V>(vb), false );
+            } else {
+              dv = Functions.pickGreater( new Expression<V>(vb), true );
+            }
+          }
+          break;
+        case LTE:
+          if ( v instanceof Boolean ) {
+            if ((Boolean)v) {
+              dv = Functions.pickLess( new Expression<V>(vb), true );
+            } else {
+              dv = Functions.pickGreater( new Expression<V>(vb), false );
+            }
+          }
+          break;
+        case NEQ:
+          // TODO
+          break;
+        case NOT:
+          Object o = Functions.not( v );
+          dv = tryCastValue( o );
+        case NEG:
+          dv = Functions.times(v, -1);
+          // N/A
+          break;
+        case DIVIDE:  // vb / dv = v, so dv = vb / v
+          dv = Functions.divide( vb, v );
+          break;
+        case LOG:  // log base dv of vb is v, so dv^v = vb and dv = vb^(1/v)
+          if ( vb instanceof Number && v instanceof Number ) {
+            Double d = Math.pow( ( (Number)vb ).doubleValue(), 1.0 / ( (Number)values() ).doubleValue() );
+            dv = tryCastValue( d );
+          }
+          break;
+        case MAX: // dv = v
+          break;
+        case MIN: // dv = v
+          break;
+        case MINUS: // v = vb - dv, so dv = vb - v
+          dv = Functions.minus( vb, v );
+          break;
+        case MOD:  // v = vb mod dv, so one answer is dv = vb - v;  the smallest number is the smallest factor of vb - v that is greater than v; so, it has to be in (v, vb-v].
+          dv = Functions.minus( vb, v );
+        case PLUS:
+          dv = Functions.minus( v, vb );
+          break;
+        case POW:  // vb^dv = v, so log base vb of v = dv
+          if ( vb instanceof Number && v instanceof Number ) {
+            Double d = Math.log( ( (Number)v ).doubleValue() ) / Math.log( ( (Number)vb ).doubleValue() );
+            dv = tryCastValue( d );
+          }
+          break;
+        case TIMES:  // vb * dv = v, so dv = v / vb
+          dv = Functions.divide( v, vb );
+          break;
+        default:
+      }
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return dv;
   }
 
   // TODO -- make this a JUnit
@@ -3894,11 +6235,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
 
     String fileName1 = "integerTimeline.csv";
     String fileName2 = "aggregateLoad.csv";
-    TimeVaryingMap< Integer > intMap1 =
-        new TimeVaryingMap< Integer >( "integer_map", fileName1, Integer.class );
+    
+    TimeVaryingMap< Integer > intMap1 = null;
+    TimeVaryingMap< Double > doubleMap2 =null;
+    TimeVaryingMap< Double > doubleMap3 = null;
+    TimeVaryingMap< Integer > intMap4 = null;
+    TimeVaryingMap< Integer > intMap5 = null;
+    TimeVaryingMap< Double > doubleMap6 = null;
+
+    intMap1 = new TimeVaryingMap< Integer >( "integer_map", fileName1, Integer.class );
     System.out.println( "map1 loaded from " + fileName1 + ":\n" + intMap1 );
-    TimeVaryingMap< Double > doubleMap2 =
-        new TimeVaryingMap< Double >( "double_map", fileName2, Double.class );
+    doubleMap2 = new TimeVaryingMap< Double >( "double_map", fileName2, Double.class );
 
     Assert.assertTrue( intMap1.isConsistent() );
     Assert.assertTrue( doubleMap2.isConsistent() );
@@ -3907,7 +6254,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     try {
       intMap1.multiply( 2, intMap1.firstKey(), null );
       System.out.println( "\nmap1 multiplied by 2:\n" + intMap1 );
-      TimeVaryingMap< Double > doubleMap3 = doubleMap2.plus( 12.12 );
+      doubleMap3 = doubleMap2.plus( 12.12 );
       System.out.println( "\nnew map3 = map2 plus 12.12:\n" + doubleMap3 );
       doubleMap3 = doubleMap2.times( 1111, doubleMap2.firstKey(), doubleMap2.lastKey() );
       System.out.println( "\nmap3 = map2 times 1111 (except for the last entry):\n" + doubleMap3 );
@@ -3934,14 +6281,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     Assert.assertTrue( doubleMap2.isConsistent() );
     Assert.assertTrue( doubleMap3.isConsistent() );
 
-    TimeVaryingMap< Integer > intMap4 = null;
     System.out.println( "map1:\n" + intMap1);
-    intMap4 = intMap1.dividedBy( 2.0 );
-    System.out.println( "\nmap4 = map1 / 2.0:\n" + intMap4);
+    doubleMap3 = intMap1.dividedBy( 2.0 );
+    System.out.println( "\nmap3 = map1 / 2.0:\n" + doubleMap3 );
 
     Assert.assertTrue( intMap1.isConsistent() );
     try {
-      Assert.assertTrue( intMap4.isConsistent() ); // TODO -- THIS CURRENTLY FAILS!
+      Assert.assertTrue( doubleMap3.isConsistent() ); // TODO -- THIS CURRENTLY FAILS!
     } catch ( AssertionFailedError e ) {
       System.err.println("Caught assertion failure and continuing.");
     }
@@ -3949,21 +6295,19 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     intMap1.clear();
     doubleMap2.clear();
     doubleMap3.clear();
-    intMap4.clear();
-    TimeVaryingMap< Integer > intMap5 = null;
-    TimeVaryingMap< Double > doubleMap6 = null;
+    intMap4 = new TimeVaryingMap< Integer >();
 
     // some timepoints to use
-    Timepoint zero = new Timepoint( "zero", 0, null );
-    Timepoint one = new Timepoint( "one", 1, null );
-    Timepoint two = new Timepoint( "two", 2, null );
-    Timepoint four = new Timepoint( "four", 4, null );
-    Timepoint eight = new Timepoint( "eight", 8, null );
-    Timepoint zero2 = new Timepoint( "zero", 0, null );
-    Timepoint one2 = new Timepoint( "one", 1, null );
-    Timepoint two2 = new Timepoint( "two", 2, null );
-    Timepoint four2 = new Timepoint( "four", 4, null );
-    Timepoint eight2 = new Timepoint( "eight", 8, null );
+    Timepoint zero = new Timepoint( "zero", 0L, null );
+    Timepoint one = new Timepoint( "one", 1L, null );
+    Timepoint two = new Timepoint( "two", 2L, null );
+    Timepoint four = new Timepoint( "four", 4L, null );
+    Timepoint eight = new Timepoint( "eight", 8L, null );
+    Timepoint zero2 = new Timepoint( "zero", 0L, null );
+    Timepoint one2 = new Timepoint( "one", 1L, null );
+    Timepoint two2 = new Timepoint( "two", 2L, null );
+    Timepoint four2 = new Timepoint( "four", 4L, null );
+    Timepoint eight2 = new Timepoint( "eight", 8L, null );
 
     intMap1.setValue( zero, 0 );
     intMap1.setValue( one, 2 );
@@ -4086,10 +6430,37 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     System.out.println( "\nmap6 = map3 - map2 = " + doubleMap3 + " - " + doubleMap2
                         + " = " + doubleMap6 );
 
+    HashMap< String, TimeVaryingMap<?> > tvmapMap = new HashMap< String, TimeVaryingMap<?> >();
+    tvmapMap.put( "map1", intMap1 );
+    tvmapMap.put( "map2", doubleMap2 );
+    tvmapMap.put( "map3", doubleMap3 );
+    tvmapMap.put( "map4", intMap4 );
+    tvmapMap.put( "map5", intMap5 );
+    tvmapMap.put( "map6", doubleMap6 );
+
+    System.out.println("\nargmin and argmax");
+
+    for ( Map.Entry< String, TimeVaryingMap< ? > > e1 : tvmapMap.entrySet() ) {
+      for ( Map.Entry< String, TimeVaryingMap< ? > > e2 : tvmapMap.entrySet() ) {
+        TimeVaryingMap<String> labelMap = argmax( e1.getKey(), e1.getValue(), e2.getKey(), e2.getValue() );
+        System.out.println( "\nlabelMap = argmax(" + e1.getKey() + ", " + e2.getKey() + ") = argmax(" + e1.getValue() + "," + e2.getValue() + ") = " + labelMap );
+        Assert.assertTrue( labelMap.isConsistent() );
+        labelMap = argmin( e1.getKey(), e1.getValue(), e2.getKey(), e2.getValue() );
+        System.out.println( "labelMap = argmin(" + e1.getKey() + ", " + e2.getKey() + ") = argmin(" + e1.getValue() + "," + e2.getValue() + ") = " + labelMap );
+        Assert.assertTrue( labelMap.isConsistent() );
+      }
+    }
+//    TimeVaryingMap<String> labelMapMax26 = argmax( "map2", doubleMap2, "map6", doubleMap6 );
+//    System.out.println( "\nlabelMap = argmax(map2, map6) = argmin(" + doubleMap2 + "," + doubleMap6 + ") = " + labelMapMax26 );
+//    
+//    TimeVaryingMap<String> labelMapMin36 = argmin( "map3", doubleMap3, "map6", doubleMap6 );
+//    System.out.println( "\nlabelMap = argmin(map3, map6) = argmin(" + doubleMap3 + "," + doubleMap6 + ") = " + labelMapMin36 );
+
     Assert.assertTrue( doubleMap2.isConsistent() );
     Assert.assertTrue( doubleMap3.isConsistent() );
     Assert.assertTrue( doubleMap6.isConsistent() );
 
+    testJavaPlot( null );
     } catch ( IllegalAccessException e1 ) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
@@ -4101,13 +6472,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
       e1.printStackTrace();
     }
   }
+  
+    public static void testJavaPlot(String[] args) {
+//        JavaPlot p = new JavaPlot();
+//        p.addPlot("sin(x)");
+//        p.plot();
+    }
 
   @Override
   public boolean canBeApplied( Effect effect ) {
+    if ( effect == null ) return false;
     // checks to see if the timepoint is valid
     if ( effect instanceof EffectFunction ) {
       EffectFunction effectFunction = (EffectFunction)effect;
-      Parameter< Integer > t = getTimeOfEffect( effectFunction );
+      Parameter< Long > t = getTimeOfEffect( effectFunction );
       return isTimepoint( t );
     }
     return true;
@@ -4127,5 +6505,137 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter<Integer>, V >
     return null;
   }
 
+  /**
+   * Create a new map that is a translation in time of this map as a function of
+   * time. For example, <code>g = f.translate(5)</code> is interpreted as
+   * <code>g(t) = f(t - 5)</code> and shifts values in <code>f</code> forward 5
+   * time units to get <code>g</code>.
+   * 
+   * @param timeDelta
+   *          the time by which the map is translated
+   * @return a new map translated by o in time.
+   */
+  public TimeVaryingMap<V> translate( Object timeDelta ) {
+    if ( timeDelta == null ) return null;
+    try {
+      Long t = Expression.evaluate( timeDelta, Long.class, true, false );
+      if ( t == null ) return null;
+      return translate( t );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  /**
+   * Create a new map that is a translation in time of this map as a function of
+   * time. For example, <code>g = f.translate(5)</code> is interpreted as
+   * <code>g(t) = f(t - 5)</code> and shifts values in <code>f</code> forward 5
+   * time units to get <code>g</code>.
+   * 
+   * @param timeDelta
+   *          the time by which the map is translated
+   * @return a new map translated by o in time.
+   */
+  public TimeVaryingMap<V> translate( Long timeDelta ) {
+    if ( timeDelta == null ) return null;
+    TimeVaryingMap<V> tvm = emptyClone();
+    Iterator< Entry<Parameter<Long>, V > > i = timeDelta < 0 ? entrySet().iterator() : descendingMap().entrySet().iterator();
+    
+    // Determine value at time zero
+    if ( timeDelta > 0 && interpolation != TimeVaryingMap.NONE && !isEmpty() ) {
+      Parameter< Long > zero = keySet().iterator().next();
+      if ( zero == null || zero.getValueNoPropagate() != 0L ) {
+        zero = new SimpleTimepoint( 0L );
+      }
+      V v = getValue( zero );
+      if ( v != null ) {
+        put( zero, v );
+      }
+    }
+    
+    while ( i.hasNext() ) {
+      Entry<Parameter<Long>, V > e = i.next();
+      Parameter<Long> oldTime = e.getKey();
+      Long newT = oldTime.getValue() + timeDelta;
+      if ( newT >= 0 ) {
+        SimpleTimepoint newTime = new SimpleTimepoint( newT );
+        tvm.put( newTime, e.getValue() );
+      }
+    }
+    return tvm;
+  }
+  
+  public TimeVaryingMap<V> shift( Long t ) {
+    return translate( t );
+  }
+  public TimeVaryingMap<V> shift( Object o ) {
+    return translate( o );
+  }
+  
+  public TimeVaryingMap<V> snapToMinuteIncrement( Long minutes, boolean earlier ) {
+    return snapToTimeIncrement( Timepoint.minutes( minutes ), earlier );
+  }
+
+  public TimeVaryingMap<V> snapToTimeIncrement( Long timeIncrement, boolean earlier ) {
+    if ( timeIncrement == null || timeIncrement == 0L ) return null;
+    TimeVaryingMap<V> tvm = emptyClone();
+    for ( Map.Entry< Parameter<Long>, V > e : entrySet() ) {
+      Long t = e.getKey().getValueNoPropagate();
+      Long offset = t % timeIncrement;
+      if ( offset > 0 ) {
+        if ( earlier ) {
+          t = t - offset;
+        } else {
+          t = t + timeIncrement - offset;
+        }
+      }
+      SimpleTimepoint k = new SimpleTimepoint( t );
+      tvm.put( k, e.getValue() );
+    }
+    return tvm;
+  }
+
+  /**
+   * @return a generated map of the changes in values from the previous point.
+   *         <p>
+   *         For example, the deltaMap of { 0=0.0, 3=4.4, 7=10.0 } is { 0=0.0,
+   *         3=4.4, 7=5.6 }. The map is fully computed on each call. For any
+   *         Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
+   *         change the entries in c.
+   *         
+   *         TODO -- REVIEW -- This is similar to differentiation.
+   */
+ public TimeVaryingMap< Double > getDeltaMap() {
+    TimeVaryingPlottableMap< Double > deltaMap =
+      new TimeVaryingPlottableMap< Double >( "delta_" + name );
+    Double lastValue = 0.0;
+    for ( Entry< Parameter< Long>, V > e : entrySet() ) {
+       Double thisValue = 0.0; // null value is interpreted as 0.0
+      if ( e.getValue() instanceof Number ) {
+        thisValue = ( (Number)e.getValue() ).doubleValue();
+      }
+      deltaMap.put( e.getKey(), thisValue - lastValue );
+      lastValue = thisValue;
+    }
+    deltaMap.interpolation = NONE;
+    return deltaMap;
+  }
+  @Override
+  public String getQualifiedName( Set< Object > seen ) {
+    String n = HasOwner.Helper.getQualifiedName( this, null );
+    return n;
+  }
+  @Override
+  public String getQualifiedId( Set< Object > seen ) {
+    String n = HasOwner.Helper.getQualifiedId( this, null );
+    return n;
+  }
 
 }

@@ -17,6 +17,7 @@ import gov.nasa.jpl.ae.event.Effect;
 import gov.nasa.jpl.ae.event.EffectFunction;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.HasParameters;
+import gov.nasa.jpl.ae.event.NestedTimeVaryingMap;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.Timepoint;
@@ -62,6 +63,23 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   public ObjectFlow( String name, Class< Obj > type ) {
     super( name, type );
   }
+  
+  public ObjectFlow( ObjectFlow<Obj> flow ) {
+    super(flow);
+  }
+
+  @Override
+  public ObjectFlow<Obj> clone() {
+    ObjectFlow<Obj> tvm = new ObjectFlow<Obj>(this);
+    return tvm;
+  }
+
+  @Override
+  public ObjectFlow<Obj> emptyClone() {
+    ObjectFlow<Obj> tvm = new ObjectFlow<Obj>(this.getName(), this.getType());
+    return tvm;
+  }
+
 
   protected void breakpoint() {
     if ( getName() != null && getName().contains( "14272" ) ) {
@@ -95,7 +113,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
 
   @Override
-  protected void floatEffects( Parameter<Integer> t ) {
+  protected void floatEffects( Parameter< Long > t ) {
     for ( ObjectFlow<Obj> of : getListeners() ) {
       of.floatEffects( t );
     }
@@ -111,19 +129,29 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > p ) {
+  public void handleDomainChangeEvent( Parameter< ? > param, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     for ( ObjectFlow<Obj> of : getListeners() ) {
-      of.handleDomainChangeEvent( p );
+      of.handleDomainChangeEvent( param, seen );
     }
-    super.handleDomainChangeEvent( p );
+    seen.remove( this );
+    super.handleDomainChangeEvent( param, seen );
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > p ) {
+  public void handleValueChangeEvent( Parameter< ? > param, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     for ( ObjectFlow<Obj> of : getListeners() ) {
-      of.handleValueChangeEvent( p );
+      of.handleValueChangeEvent( param, seen );
     }
-    super.handleValueChangeEvent( p );
+    seen.remove( this );
+    super.handleValueChangeEvent( param, seen );
   }
 
   @Override
@@ -194,7 +222,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   // REVIEW -- Should isStale() check listeners?  Well, staleness should at least
   // be checked in isConsistent() for listeners. TODO
 
-  public void sendIf( Obj o, Parameter< Integer > t, Boolean doSend ) {
+  public void sendIf( Obj o, Parameter< Long > t, Boolean doSend ) {
     if ( doSend == null ) return;
     if ( doSend.booleanValue() ) {
       send( o, t );
@@ -206,7 +234,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
   }
   
-  public void send( Obj o, Parameter< Integer > t ) {
+  public void send( Obj o, Parameter< Long > t ) {
     breakpoint();
     Obj thing;
     try {
@@ -249,7 +277,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
       EffectFunction effunc = (EffectFunction)effect;
       
       if (isAReceiveEffect(effunc)) {
-        Parameter<Integer> tp = tryEvaluateTimepoint(effunc.getArgument( 0 ),true);
+        Parameter< Long> tp = tryEvaluateTimepoint(effunc.getArgument( 0 ),true);
         unsetValue(tp,null);
         return;
       }
@@ -260,7 +288,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
         }
       }
 //      if ( needToUnapply  ) {
-//        Pair< Parameter<Integer>, Obj > p = 
+//        Pair< Parameter< Long>, Obj > p = 
 //          getTimeAndValueOfEffect( effect, !isASendEffect(effunc) );
 //        if ( p != null ) {
 //          unsetValue( p.first, p.second );
@@ -273,10 +301,10 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   
 
   
-  public Obj receive( Parameter<Integer> t ) {
+  public Obj receive( Parameter< Long> t ) {
     return receive( t, false, !receiveSetsEvenIfNull );
   }
-  protected Obj receive( Parameter<Integer> t, boolean noSetValue,
+  protected Obj receive( Parameter< Long> t, boolean noSetValue,
                          boolean noSetIfNull ) {
     breakpoint();
     if ( t == null ) return null;
@@ -291,7 +319,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     return o;
   }
  
-  public boolean isReceiveApplied( Parameter<Integer> t ) {
+  public boolean isReceiveApplied( Parameter< Long> t ) {
     if ( receive( t, true, true ) == null ) {
       if ( !receiveSetsEvenIfNull ) return true;
     }
@@ -306,36 +334,36 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 //    return o;
 //  }
   
-  public boolean hasStuff( Parameter<Integer> t ) {
+  public boolean hasStuff( Parameter< Long> t ) {
     breakpoint();
     if ( t == null ) return false;
     return getValue( t ) != null;
   }
 
-  public boolean hasStuff( Integer t ) {
+  public boolean hasStuff( Long t ) {
     breakpoint();
     if ( t == null ) return false;
     return getValue( t ) != null;
   }
 
-  public int nextTimeHasStuff( Integer t ) {
+  public long nextTimeHasStuff( Long t ) {
     breakpoint();
     if ( t == null ) {
       return Timepoint.getHorizonDuration();
     }
-    Parameter<Integer> tp = makeTempTimepoint( t, false );
+    Parameter< Long > tp = makeTempTimepoint( t, false );
     return nextTimeHasStuff( tp );
   }
 
-  public int nextTimeHasStuff( Parameter<Integer> t ) {
+  public long nextTimeHasStuff( Parameter< Long> t ) {
     breakpoint();
     if ( t == null || t.getValueNoPropagate() == null ) {
       return Timepoint.getHorizonDuration();
     }
     Obj v = getValue( t );
     if ( v != null ) return t.getValue( false );
-    SortedMap< Parameter<Integer>, Obj > map = tailMap( t, true );
-    for ( java.util.Map.Entry< Parameter<Integer>, Obj > e : map.entrySet() ) {
+    SortedMap< Parameter< Long >, Obj > map = tailMap( t, true );
+    for ( java.util.Map.Entry< Parameter< Long >, Obj > e : map.entrySet() ) {
       if ( e.getValue() != null ) {
         t = e.getKey();
         if ( t == null || t.getValueNoPropagate() == null ) {
@@ -399,7 +427,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
 
     // Is receive() applied
     if ( effectFunction.getMethod().getName().equals("receive") ) {
-      return isReceiveApplied( (Parameter<Integer>)effectFunction.getArgument( 0 ) );
+      return isReceiveApplied( (Parameter< Long>)effectFunction.getArgument( 0 ) );
     }
 
     // Is method (send()?) applied?
@@ -459,8 +487,8 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     if ( value != null ) {
       if ( timepoint instanceof Parameter ) {
         return hasValueAt( value, (Parameter)timepoint, true );
-      } if ( timepoint instanceof Integer ) {
-        return hasValueAt( value, (Integer)timepoint );
+      } if ( timepoint instanceof Long ) {
+        return hasValueAt( value, (long)timepoint );
       }
     }
     return false;
@@ -476,12 +504,12 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
     }
     if ( effectFunction.getArgumentArray() != null
          && effectFunction.getArgumentArray().length >= 2 ) {
-      Pair< Parameter<Integer>, Obj > p =
+      Pair< Parameter< Long >, Obj > p =
           getTimeAndValueOfEffect( effectFunction, !isASendEffect( effectFunction ) );
       if ( p == null ) return false;
       Object o = p.second;
       Object a1 = p.first;
-      Parameter< Integer > param = null;
+      Parameter< Long > param = null;
       param = tryCastTimepoint( a1 );
       if ( param == null ) {
         param = tryCastTimepoint( o );
@@ -491,7 +519,7 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
            //&& Integer.class.isAssignableFrom( param.getValue( false )
            //                                        .getClass() )
         ) {
-        Object t = (Parameter< Integer >)param;
+        Object t = (Parameter< Long >)param;
         return isSetValueApplied( o, t );
       }
     }

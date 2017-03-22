@@ -1,5 +1,7 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -21,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -421,6 +424,16 @@ public class FunctionCall extends Call {
     return returnType;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#calculateDomain(boolean, java.util.Set)
+   */
+  @Override
+  public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
+    // Must be overridden
+    Debug.error(true, true, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+    return null;
+  }
+  
   /**
    * A deep search looking for FunctionCalls
    */
@@ -431,7 +444,13 @@ public class FunctionCall extends Call {
       for ( Object arg : arguments ) {
         FunctionCall argCall = null;
         try {
-          argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+          if ( arg instanceof FunctionCall ) {
+            argCall = (FunctionCall)arg;
+          } else if ( arg instanceof Expression && ((Expression<?>)arg).expression instanceof FunctionCall ) {
+            argCall = (FunctionCall)((Expression<?>)arg).expression;
+          } else {
+            argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+          }
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           //e.printStackTrace();

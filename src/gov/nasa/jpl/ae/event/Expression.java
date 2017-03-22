@@ -1,10 +1,12 @@
 package gov.nasa.jpl.ae.event;
+import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
@@ -42,28 +44,28 @@ public class Expression< ResultType > extends HasIdImpl
                                                MoreToString, Wraps< ResultType > {//, Comparable< Expression< ? > > {
   public Object expression = null;
   public Form form = Form.None;
-	public Class<? extends ResultType> resultType = null;//Type.None;
+  public Class<? extends ResultType> resultType = null;//Type.None;
   // freeParameters if not null specifies which parameters can be reassigned
   // values for satisfy().
   protected Set< Parameter< ? > > freeParameters = null;
   protected boolean evaluationSucceeded = false;
 
 
-	public enum Form {
-		None(null), Value(Object.class),
-		Parameter(Parameter.class),
-		//Method(Method.class),
-		Function(FunctionCall.class),
+  public enum Form {
+    None(null), Value(Object.class),
+    Parameter(Parameter.class),
+    //Method(Method.class),
+    Function(FunctionCall.class),
     Constructor(ConstructorCall.class);
-		
-		private Class<?> myClass;
-		Form( Class<?> c ) {
-			myClass = c;
-		}
-		public Class<?> getFormClass() {
-			return myClass;
-		}
-	}
+    
+    private Class<?> myClass;
+    Form( Class<?> c ) {
+      myClass = c;
+    }
+    public Class<?> getFormClass() {
+      return myClass;
+    }
+  }
 
 
   /**
@@ -80,15 +82,15 @@ public class Expression< ResultType > extends HasIdImpl
     // REVIEW -- Should Expression be sub-classed for different languages?
   }
 
-	/**
-	 * @param object
-	 */
-	public Expression( Object object ) {
-	  this( object, null );
-	  if ( object != null && resultType == null ) {
-		resultType = (Class< ? extends ResultType >)object.getClass();
-	  }
-	}
+  /**
+   * @param object
+   */
+  public Expression( Object object ) {
+    this( object, null );
+    if ( object != null && resultType == null ) {
+    resultType = (Class< ? extends ResultType >)object.getClass();
+    }
+  }
 
   /**
    * @param value
@@ -121,12 +123,12 @@ public class Expression< ResultType > extends HasIdImpl
     form = Form.Value;
   }
 
-	/**
-	 * @param parameter
-	 */
-	public Expression( Parameter< ResultType > parameter, Class< ResultType > cls ) {
-	  // REVIEW -- why not use parameter.getType()????
-		this.expression = parameter;
+  /**
+   * @param parameter
+   */
+  public Expression( Parameter< ResultType > parameter, Class< ResultType > cls ) {
+    // REVIEW -- why not use parameter.getType()????
+    this.expression = parameter;
     ResultType value = ( parameter == null ? null : parameter.getValue() );
     if ( value != null && cls == null ) {
       try {
@@ -142,8 +144,8 @@ public class Expression< ResultType > extends HasIdImpl
                          + parameter + ", " + cls.getCanonicalName() );
       }
     }
-		form = Form.Parameter;
-	}
+    form = Form.Parameter;
+  }
 
   /**
    * @param parameter
@@ -155,10 +157,10 @@ public class Expression< ResultType > extends HasIdImpl
     }
   }
 
-	/**
-	 * @param function
-	 */
-	public Expression( FunctionCall function ) {
+  /**
+   * @param function
+   */
+  public Expression( FunctionCall function ) {
     init(function);
   }
   public Expression( FunctionCall function, Class<ResultType> resultType ) {
@@ -173,13 +175,13 @@ public class Expression< ResultType > extends HasIdImpl
     }
   }
   public void init( FunctionCall function ) {
-		this.expression = function;
-		if ( function != null && function.method != null ) {
-		  resultType = (Class< ? extends ResultType >)function.getReturnType();
-		}
-		form = Form.Function;
-	}
-	
+    this.expression = function;
+    if ( function != null && function.method != null ) {
+      resultType = (Class< ? extends ResultType >)function.getReturnType();
+    }
+    form = Form.Function;
+  }
+  
   /**
    * @param constructor
    */
@@ -208,10 +210,10 @@ public class Expression< ResultType > extends HasIdImpl
     }
   }
 
-	public Expression( Expression<ResultType> e, boolean deep ) {
-	  this( e.expression, e.form, e.resultType, e.freeParameters, e.evaluationSucceeded, deep );
-	}
-	
+  public Expression( Expression<ResultType> e, boolean deep ) {
+    this( e.expression, e.form, e.resultType, e.freeParameters, e.evaluationSucceeded, deep );
+  }
+  
 
   public Expression( Object expression, Form form,
                      Class< ? extends ResultType > resultType,
@@ -219,8 +221,8 @@ public class Expression< ResultType > extends HasIdImpl
                      boolean evaluationSucceeded ) {
     this( expression, form, resultType, freeParameters, evaluationSucceeded, false );
   }
-	
-	public Expression( Object expression, Form form,
+  
+  public Expression( Object expression, Form form,
                      Class< ? extends ResultType > resultType,
                      Set< Parameter< ? > > freeParameters,
                      boolean evaluationSucceeded,
@@ -308,33 +310,33 @@ public class Expression< ResultType > extends HasIdImpl
    * @throws InvocationTargetException 
    * @throws IllegalAccessException 
    */
-	public ResultType evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-	  evaluationSucceeded = false;
-	  if ( form == null || ( form != Form.None && expression == null ) ) {
-	    //System.out.print("\nevaluate(" + this + ") = ");
-	    //System.out.println("null (1)");
-	    return null;
-	  }
-		try {
-		switch (form) {
-		case None:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-	    //System.out.print("\nevaluate(" + this + ") = ");
+  public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException {//throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    evaluationSucceeded = false;
+    if ( form == null || ( form != Form.None && expression == null ) ) {
+      //System.out.print("\nevaluate(" + this + ") = ");
+      //System.out.println("null (1)");
+      return null;
+    }
+    try {
+    switch (form) {
+    case None:
+      try {
+        throw new IllegalAccessException();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+      //System.out.print("\nevaluate(" + this + ") = ");
       //System.out.println("null (2)");
-			return null; // TODO -- REVIEW -- exit?
-		case Value:
-	    //System.out.print("\nevaluate(" + this + ") = ");
+      return null; // TODO -- REVIEW -- exit?
+    case Value:
+      //System.out.print("\nevaluate(" + this + ") = ");
       //System.out.println("expression = " + expression);
-			return (ResultType)expression;
-		case Parameter:
+      return expression;
+    case Parameter:
           Parameter< ? > p = (Parameter< ? >)expression;
           while ( p != null ) {
             Object o = null;
-            ResultType r = null;
+            Object r = null;
             o = p.getValue( propagate );
             if ( o == null ) {
               //System.out.print("\nevaluate(" + this + ") = ");
@@ -347,14 +349,23 @@ public class Expression< ResultType > extends HasIdImpl
                   evaluationSucceeded = true;
                   //System.out.print("\nevaluate(" + this + ") = ");
                   //System.out.println("o1 = "+o);
-                  return (ResultType)o;
+                  return o;
+                } else if ( resultType.isInstance( p ) ) {
+                  evaluationSucceeded = true;
+                  return p;
                 } else {
                   if ( resultType == Integer.class && Double.class.isAssignableFrom(o.getClass()) ) {
                     Double d = (Double)o;
                     evaluationSucceeded = true;
                     //System.out.print("\nevaluate(" + this + ") = ");
                     //System.out.println("d1.intValue() = " + d.intValue());
-                    return (ResultType)(Integer)d.intValue();
+                    return (Integer)d.intValue();
+                  } else if ( resultType == Long.class && Double.class.isAssignableFrom(o.getClass()) ) {
+                    Double d = (Double)o;
+                    evaluationSucceeded = true;
+                    //System.out.print("\nevaluate(" + this + ") = ");
+                    //System.out.println("d1.intValue() = " + d.intValue());
+                    return (Long)d.longValue();
                   }
                   evaluationSucceeded = false;
                   throw new ClassCastException();
@@ -363,13 +374,13 @@ public class Expression< ResultType > extends HasIdImpl
               if ( o instanceof Parameter ) {
                 p = (Parameter< ? >)o;
               } else if ( o instanceof Expression ) {
-                ResultType rt = ( (Expression<ResultType>)o ).evaluate( propagate );
+                Object rt = ( (Expression<ResultType>)o ).evaluate( propagate );
                 evaluationSucceeded = ( (Expression<ResultType>)o ).didEvaluationSucceed();
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("rt1 = "+rt);
                 return rt;
               } else {
-                r = (ResultType)o;
+                r = o;
                 evaluationSucceeded = true;
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("r1 = "+r);
@@ -383,7 +394,7 @@ public class Expression< ResultType > extends HasIdImpl
                   evaluationSucceeded = true;
                   //System.out.print("\nevaluate(" + this + ") = ");
                   //System.out.println("d2.intValue() = "+d.intValue());
-                  return (ResultType)(Integer)d.intValue();
+                  return (Long)d.longValue();
                 }
               } catch ( Exception e ) {
                 evaluationSucceeded = false;
@@ -392,7 +403,7 @@ public class Expression< ResultType > extends HasIdImpl
               if ( o instanceof Parameter ) {
                 p = (Parameter< ? >)o;
               } else if ( o instanceof Expression ) {
-                ResultType rt = ( (Expression<ResultType>)o ).evaluate( propagate );
+                Object rt = ( (Expression<ResultType>)o ).evaluate( propagate );
                 evaluationSucceeded = ( (Expression<ResultType>)o ).didEvaluationSucceed();
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("rt2 = "+rt);
@@ -406,60 +417,60 @@ public class Expression< ResultType > extends HasIdImpl
                 evaluationSucceeded = false;
                 //System.out.print("\nevaluate(" + this + ") = ");
                 //System.out.println("(o2 = "+o);
-                return (ResultType)o;
+                return o;
               }
             }
           }
-		case Constructor:
+    case Constructor:
     case Function:
       //HERE!!!;
-			ResultType r = (ResultType)((Call)expression).evaluate( propagate );
-			evaluationSucceeded = ((Call)expression).didEvaluationSucceed();
+      Object r = ((Call)expression).evaluate( propagate );
+      evaluationSucceeded = ((Call)expression).didEvaluationSucceed();
       //System.out.print("\nevaluate(" + this + ") = ");
       //System.out.println("r3 = "+r);
-			return r;
-		default:
-		  evaluationSucceeded = false;
+      return r;
+    default:
+      evaluationSucceeded = false;
       //System.out.print("\nevaluate(" + this + ") = ");
       //System.out.println("null (4)");
-			return null;
-		}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		}
-		evaluationSucceeded = false;
+      return null;
+    }
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    }
+    evaluationSucceeded = false;
     //System.out.print("\nevaluate(" + this + ") = ");
     //System.out.println("null (5)");
-		return null;  // TODO -- REVIEW -- shouldn't get here -- die?
-	}
-	
-	@Override
+    return null;  // TODO -- REVIEW -- shouldn't get here -- die?
+  }
+  
+  @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen,
                           Map< String, Object > otherOptions ) {
     Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) deep = false;
     seen = pair.second;
-		switch (form) {
-		case None:
-			try {
-				throw new IllegalAccessException();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-			return null; // TODO -- REVIEW -- exit?
-		case Value:
-//			return ((ResultType)expression).toString();
-		case Parameter:
-//		case Method:
-		case Function:
+    switch (form) {
+    case None:
+      try {
+        throw new IllegalAccessException();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+      return null; // TODO -- REVIEW -- exit?
+    case Value:
+//      return ((ResultType)expression).toString();
+    case Parameter:
+//    case Method:
+    case Function:
     case Constructor:
       if ( expression == null ) return "null";
       return MoreToString.Helper.toString( expression, withHash, deep, seen,
                                            otherOptions );
-		default:
-			return null;
-		}
-	}
+    default:
+      return null;
+    }
+  }
 
   @Override
   public String toShortString() {
@@ -477,26 +488,26 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
   @Override
-	public boolean substitute( Parameter<?> p1, Parameter<?> p2, boolean deep,
-	                           Set<HasParameters> seen ) {
+  public boolean substitute( Parameter<?> p1, Parameter<?> p2, boolean deep,
+                             Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
-		boolean subbed = false;
-		if ( form == Form.Parameter ) {
-			if ( p1 == expression ) {
-				expression = p2;
-				subbed = true;
-			}
-		}
-		if ( !subbed && ( expression instanceof HasParameters ) ) {
-			HasParameters gotParameters = (HasParameters) expression;
-			assert( gotParameters != null );
-			subbed = gotParameters.substitute( p1, p2, deep, seen );
-		}
-		return subbed;
-	}
+    boolean subbed = false;
+    if ( form == Form.Parameter ) {
+      if ( p1 == expression ) {
+        expression = p2;
+        subbed = true;
+      }
+    }
+    if ( !subbed && ( expression instanceof HasParameters ) ) {
+      HasParameters gotParameters = (HasParameters) expression;
+      assert( gotParameters != null );
+      subbed = gotParameters.substitute( p1, p2, deep, seen );
+    }
+    return subbed;
+  }
 
   @Override
   public boolean substitute( Parameter<?> p1, Object p2, boolean deep,
@@ -561,33 +572,33 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
 
-	
-	@Override
-	public Set< Parameter<?> > getParameters( boolean deep,
-	                                          Set<HasParameters> seen ) {
+  
+  @Override
+  public Set< Parameter<?> > getParameters( boolean deep,
+                                            Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-		Set< Parameter<?> > set = new HashSet< Parameter<?> >();
-		if ( form == Form.Parameter ) {
-		  if ( expression != null ) {
-		    Parameter<?> p = (Parameter<?>) this.expression; 
-		    set.add( p );
-		    if ( deep ) {
-		      Object v = p.getValueNoPropagate(); 
-		      if ( v != null && v instanceof HasParameters ) {
-		        set = Utils.addAll( set, ((HasParameters)v).getParameters( deep, seen ) );
-		      }
-		    }
-		  }
-		} else if ( expression instanceof HasParameters ) {
-			HasParameters gotParameters = (HasParameters) expression;
-			set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
-		}
-		return set;
-	}
-	
+    Set< Parameter<?> > set = new HashSet< Parameter<?> >();
+    if ( form == Form.Parameter ) {
+      if ( expression != null ) {
+        Parameter<?> p = (Parameter<?>) this.expression; 
+        set.add( p );
+        if ( deep ) {
+          Object v = p.getValueNoPropagate(); 
+          if ( v != null && v instanceof HasParameters ) {
+            set = Utils.addAll( set, ((HasParameters)v).getParameters( deep, seen ) );
+          }
+        }
+      }
+    } else if ( expression instanceof HasParameters ) {
+      HasParameters gotParameters = (HasParameters) expression;
+      set = Utils.addAll( set, gotParameters.getParameters( deep, seen ) );
+    }
+    return set;
+  }
+  
   /**
    * @return the freeParameters
    */
@@ -614,13 +625,13 @@ public class Expression< ResultType > extends HasIdImpl
     this.freeParameters = freeParameters;
   }
 
-	public Set<Parameter<?>> getFreeParameters( boolean deep,
-	                                            Set<HasParameters> seen ) {
+  public Set<Parameter<?>> getFreeParameters( boolean deep,
+                                              Set<HasParameters> seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-	  return getFreeParameters();
-	}
+    return getFreeParameters();
+  }
 
   @Override
   public void setFreeParameters( Set< Parameter< ? > > freeParams, boolean deep,
@@ -628,7 +639,7 @@ public class Expression< ResultType > extends HasIdImpl
     setFreeParameters( freeParams );
   }
   
-	/**
+  /**
    * @return the expression
    */
   public Object getExpression() {
@@ -664,22 +675,23 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
   @Override
-	public boolean isGrounded(boolean deep, Set< Groundable > seen) {
-		if (expression instanceof Groundable) {
-			return ((Groundable)expression).isGrounded(deep, seen);
-		}
-//		if ( expression == null ) {
-//			return false;
-//		}
-		switch (form) {
-		case Value:
-//		case Method:
-			return true; // null should be ok, right?
-		case Parameter: // Groundable -- should not get here
-		case Function: // Groundable -- should not get here
+  public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+    if ( expression == null ) return false;
+    if (expression instanceof Groundable) {
+      return ((Groundable)expression).isGrounded(deep, seen);
+    }
+//    if ( expression == null ) {
+//      return false;
+//    }
+    switch (form) {
+    case Value:
+//    case Method:
+      return true; // null should be ok, right?
+    case Parameter: // Groundable -- should not get here
+    case Function: // Groundable -- should not get here
     case Constructor: // Groundable -- should not get here
-		case None:
-		default:
+    case None:
+    default:
       Debug.error(true, false, "Error! isGrounded(): Expression has invalid type: " + form );
       if ( Debug.isOn() ) { 
         try {
@@ -688,43 +700,36 @@ public class Expression< ResultType > extends HasIdImpl
           e.printStackTrace();
         }
       }
-			return false; // TODO -- REVIEW -- exit?
-		}
-	}
+      return false; // TODO -- REVIEW -- exit?
+    }
+  }
 
-	/* (non-Javadoc)
-	 * @see gov.nasa.jpl.ae.event.Groundable#ground(boolean, java.util.Set)
-	 */
-	@Override
-	public boolean ground(boolean deep, Set< Groundable > seen) {
-		if (expression instanceof Groundable) {
-			return ((Groundable)expression).ground(deep, seen);
-		}
-//		if ( expression == null ) {
-//			return false;
-//		}
-		switch (form) {
-		case Value:
-			return true; // null should be ok, right?
-		case Parameter: // Groundable -- should not get here
-		case Function: // Groundable -- should not get here
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Groundable#ground(boolean, java.util.Set)
+   */
+  @Override
+  public boolean ground(boolean deep, Set< Groundable > seen) {
+    if (expression instanceof Groundable) {
+      return ((Groundable)expression).ground(deep, seen);
+    }
+    if ( expression == null ) {
+      return true;  // added 2016-09-13, this doesn't seem right -- TODO -- FIXME
+    }
+    switch (form) {
+    case Value:
+      return true; // null should be ok, right?
+    case Parameter: // Groundable -- should not get here
+    case Function: // Groundable -- should not get here
     case Constructor: // Groundable -- should not get here
-		case None:
-		default:
-      Debug.error(true, false, "Error! ground(): Expression has invalid type: " + form );
-      if ( Debug.isOn() ) { 
-        try {
-          throw new IllegalAccessException();
-        } catch (IllegalAccessException e) {
-          e.printStackTrace();
-        }
-      }
-			return false; // TODO -- REVIEW -- exit?
-		}
-		//return grounded;
-	}
+    case None:
+    default:
+      Debug.error(true, false, "Error! ground(): Can't ground an Expression with null contents unless it's a value. Expression has invalid type: " + form );
+      return false; // TODO -- REVIEW -- exit?
+    }
+    //return grounded;
+  }
 
-	// NOTE: Don't use hashCode() unless overridden -- default may vary between runs!
+  // NOTE: Don't use hashCode() unless overridden -- default may vary between runs!
   //@Override
   public int compareTo( Expression< ? > o ) {
     if ( this == o ) return 0;
@@ -763,7 +768,8 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set<HasParameters> seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override
@@ -800,6 +806,10 @@ public class Expression< ResultType > extends HasIdImpl
     switch (form) {
     case Value:
 //    case Method:
+      AbstractRangeDomain<ResultType> d = (AbstractRangeDomain< ResultType >)DomainHelper.makeRangeDomainFromValue(expression);
+      if ( d != null ) {
+        return d;
+      }
       return new SingleValueDomain<ResultType>( (ResultType)expression ); // since expression is not null
     case Parameter:
       return ((Parameter<ResultType>)expression).getDomain( propagate, seen );
@@ -820,15 +830,83 @@ public class Expression< ResultType > extends HasIdImpl
     }
   }
 
+  // REVIEW -- Should Expression remember its domain?  No, if anything the FunctionCall (wrapped by the Expression) should remember.
   @Override
-  public Set< TimeVarying< ? >>
+  public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
+                                         Set< HasDomain > seen ) {
+    // check for bad input
+    if ( domain == null ) return null;
+    
+    // avoid infinite recursion
+    Pair< Boolean, Set< HasDomain > > pair = Utils.seen( this, propagate, seen );
+    if ( pair.first ) return null;
+    seen = pair.second;
+
+    // If the expression is null, check to see if null is in the domain.
+    if ( expression == null ) {
+      if ( domain.contains( null ) ) {
+        return new Pair(domain, false);  // REVIEW -- Does this make sense?
+      } else {
+        return null;
+      }
+    }
+
+    switch (form) {
+    case Value:
+      // If the expression is a value, then the value must be in the input domain.
+      Throwable throwable = null;
+      try {
+        if ( !domain.contains( (T)evaluate(expression, domain.getType(), true ) ) ) {
+          expression = null; // REVIEW -- Do we really want to set it to null?
+          return null;
+        }
+      } catch (ClassCastException e) {
+        throwable = e;
+      } catch ( IllegalAccessException e ) {
+        throwable = e;
+      } catch ( InvocationTargetException e ) {
+        throwable = e;
+      } catch ( InstantiationException e ) {
+        throwable = e;
+      } finally {
+        if ( throwable != null ) {
+          T t = domain.getValue( true );
+          if ( !valuesEqual( t, expression ) ) {
+            expression = null; // REVIEW -- Do we really want to set it to null?
+            return null;
+          }
+        }
+      }
+    case Parameter:
+      return (Pair<Domain< T >,Boolean>)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
+    case Function:
+    case Constructor:
+      return (Pair<Domain< T >,Boolean>)((FunctionCall)expression).restrictDomain( domain, propagate, seen );
+    case None:
+    default:
+      Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
+      if ( Debug.isOn() ) { 
+        try {
+          throw new IllegalAccessException();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
+      return null;
+    }
+  }
+
+
+  
+  @Override
+  public Set< TimeVarying< ?, ? >>
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
     // TODO -- use HasParameters.Helper!!
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying<?> > set = new HashSet< TimeVarying<?> >();
+    Set< TimeVarying<?,?> > set = new HashSet< TimeVarying<?,?> >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     // REVIEW -- We could make Call extend HasTimeVaryingObject, but it seems
     // like everybody has to know about everybody!
@@ -1048,7 +1126,8 @@ public class Expression< ResultType > extends HasIdImpl
     if ( this.resultType != null ) return this.resultType;
     ResultType r = null;
     try {
-      r = evaluate( false );
+      r = (ResultType)evaluate( false );
+    } catch ( ClassCastException e ) {
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       //e.printStackTrace();
@@ -1077,7 +1156,8 @@ public class Expression< ResultType > extends HasIdImpl
       c = ClassUtils.primitiveForClass( getType() );
       ResultType r = null;
       try {
-        r = evaluate( false );
+        r = (ResultType)evaluate( false );
+      } catch ( ClassCastException e ) {
       } catch ( IllegalAccessException e ) {
         // TODO Auto-generated catch block
         //e.printStackTrace();
@@ -1110,7 +1190,9 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public ResultType getValue( boolean propagate ) {
     try {
-      return evaluate( propagate );
+      return (ResultType)evaluate( propagate );
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -1139,16 +1221,26 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+
     if ( expression instanceof ParameterListener ) {
-      ( (ParameterListener)expression ).handleValueChangeEvent( parameter );
+      ( (ParameterListener)expression ).handleValueChangeEvent( parameter, seen );
     }
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+
     if ( expression instanceof ParameterListener ) {
-      ( (ParameterListener)expression ).handleDomainChangeEvent( parameter );
+      ( (ParameterListener)expression ).handleDomainChangeEvent( parameter, seen );
     }
   }
 

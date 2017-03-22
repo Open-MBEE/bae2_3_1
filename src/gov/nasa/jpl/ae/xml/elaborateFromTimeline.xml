@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="eventSchema.xsd">
+  <epoch>2026-04-19T00:00:00-00:00</epoch>
+  <horizon>PT30S</horizon>
+  <timeUnits>seconds</timeUnits>
+  <eventToBeExecuted>
+    <eventType>E1</eventType>
+    <!-- <eventName>e1</eventName> -->
+    <arguments>
+      <parameter><name>startTime</name><type>Long</type><value>0</value></parameter>
+      <parameter><name>duration</name><type>Long</type><value>10</value></parameter>
+    </arguments>
+  </eventToBeExecuted>
+  <events>
+    <event>
+       <class>
+         <name>E1</name>
+         <members>
+           <parameter>
+            <name>p1</name>
+            <type>TimeVaryingPlottableMap&lt; Double &gt;</type>
+            <value>new TimeVaryingPlottableMap&lt; Double &gt;( "p1", null, 0.0, Double.class )</value>
+           </parameter>
+           <parameter>
+            <name>p12</name>
+            <type>TimeVaryingPlottableMap&lt; Double &gt;</type>
+            <value>new TimeVaryingPlottableMap&lt; Double &gt;( "p12", null, 3.0, Double.class )</value>
+           </parameter>
+           <parameter><name>t1</name><type>Long</type></parameter>
+           <parameter><name>t2</name><type>Long</type></parameter>
+           <parameter><name>t3</name><type>Long</type></parameter>
+           <parameter><name>t4</name><type>Long</type></parameter>
+         </members>
+         <constraints></constraints>
+         <dependencies>
+            <dependency><name>t1</name><value>startTime + 3</value></dependency>
+            <dependency><name>t2</name><value>startTime + 5</value></dependency>
+            <dependency><name>t3</name><value>startTime + 7</value></dependency>
+            <dependency><name>t4</name><value>startTime + 8</value></dependency>
+         </dependencies>
+         <events>
+         </events>
+       </class>
+       <effects>
+        <effect>p1.setValue(t1, 1.0)</effect>
+        <effect>p1.setValue(t2, 0.0)</effect>
+        <effect>p1.setValue(t3, 1.0)</effect>
+        <effect>p1.setValue(t4, 0.0)</effect>
+       </effects>
+       <elaborations>
+         <elaboration>
+           <eventInvocation>
+             <enclosingInstance>this</enclosingInstance>
+             <eventType>E2</eventType>
+             <!-- <eventName>e2</eventName> -->
+             <arguments>
+                <parameter><name>p12</name><value>p12</value></parameter>
+                <parameter><name>p2</name><value>"value of p2"</value></parameter>
+             </arguments>
+             <fromTimeVarying>p1</fromTimeVarying>
+           </eventInvocation>
+           <condition>
+             <expression>true</expression>
+           </condition>
+         </elaboration>
+         <elaboration>
+           <eventInvocation>
+             <enclosingInstance>this</enclosingInstance>
+             <eventType>E1</eventType>
+             <!-- <eventName>ee1</eventName> -->
+             <arguments>
+                <parameter><name>startTime</name><type>Long</type><value>endTime</value></parameter>
+                <parameter><name>duration</name><type>Long</type><value>10</value></parameter>
+             </arguments>
+           </eventInvocation>
+           <condition>
+             <expression>endTime &lt; 20</expression>
+           </condition>
+         </elaboration>
+       </elaborations>
+    </event>
+    <event>
+       <class>
+         <name>E2</name>
+         <members>
+           <parameter>
+            <name>p12</name>
+            <type>TimeVaryingPlottableMap&lt; Double &gt;</type>
+           </parameter>
+           <parameter>
+            <name>p2</name>
+            <type>String</type>
+           </parameter>
+         </members>
+         <constraints></constraints>
+         <dependencies>
+         </dependencies>
+         <events>
+         </events>
+       </class>
+       <effects>
+        <effect>
+            p12.add(2.0, startTime)
+        </effect>
+        <effect>
+            p12.add(-2.0, endTime)
+        </effect>
+       </effects>
+       <elaborations>
+       </elaborations>
+    </event>
+  </events>
+  <classes>
+  </classes>
+</scenario>
+

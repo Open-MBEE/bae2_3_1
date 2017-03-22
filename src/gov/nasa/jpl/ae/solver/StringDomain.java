@@ -42,7 +42,7 @@ public class StringDomain extends AbstractRangeDomain<String> {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public int size() {
+	public long size() {
 	  // TODO?
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
@@ -153,5 +153,11 @@ public class StringDomain extends AbstractRangeDomain<String> {
   public Class< ? > getPrimitiveType() {
     return String.class;  // TODO -- REVIEW -- return null??
   }
+
+  @Override
+  public StringDomain make( String lowerBound, String upperBound ) {
+      return new StringDomain(lowerBound, upperBound);
+  }
+
 
 }

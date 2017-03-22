@@ -659,7 +659,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
     try {
       try {
         Collection< T > ct;
-        ct = super.evaluate( propagate );
+        ct = (Collection< T >)super.evaluate( propagate );
         // If it succeeded, we're done--don't bother with alternatives.
         if ( didEvaluationSucceed() ) {
           coll.addAll( ct );
@@ -758,7 +758,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
     try {
       try {
         Collection< T > ct;
-        ct = super.evaluate( propagate );
+        ct = (Collection< T >)super.evaluate( propagate );
         // If it succeeded, we're done--don't bother with alternatives.
         if ( didEvaluationSucceed() ) {
           return ct;

@@ -1,5 +1,6 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -69,7 +70,7 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = null;
     try {
-      sat = evaluate(false);
+      sat = (Boolean)evaluate(false);
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -114,7 +115,7 @@ public class ConstraintExpression extends Expression< Boolean >
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
         if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
-             && ( v.getDomain() == null || v.getDomain().size() != 1 ) ) {
+             && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
           pickParameterValue( v );  
         }
         if ( isSatisfied(deep, seen) ) break;
@@ -155,6 +156,17 @@ public class ConstraintExpression extends Expression< Boolean >
   
   @Override
   public < T > boolean restrictDomain( Variable< T > v ) {
+    switch ( form ) {
+      case Function:
+        FunctionCall f = (FunctionCall)expression;
+        if ( f instanceof SuggestiveFunctionCall ) {
+          //((SuggestiveFunctionCall)f).res
+        }
+      case Constructor:
+      case Parameter:
+      case Value:
+      case None:
+    }
     // TODO
     assert(false);
     return ParameterConstraint.Helper.restrictDomain( this, v );

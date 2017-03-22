@@ -11,7 +11,9 @@ import gov.nasa.jpl.mbee.util.Random;
  */
 public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 
-	public static BooleanDomain defaultDomain = new BooleanDomain();
+	public static final BooleanDomain trueDomain = new BooleanDomain(true, true);
+  public static final BooleanDomain falseDomain = new BooleanDomain(false, false);
+  public static BooleanDomain defaultDomain = new BooleanDomain();
 	
 //  protected boolean lowerBound = false;
 //  protected boolean upperBound = true;
@@ -46,7 +48,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public int size() {
+	public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
 	  if ( lowerBound == upperBound ) return 1;
 		return 2;
@@ -142,5 +144,10 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
     } else if ( domain instanceof RangeDomain ) {
       defaultDomain = new BooleanDomain((RangeDomain< Boolean >)domain);
     }
+  }
+
+  @Override
+  public BooleanDomain make( Boolean lowerBound, Boolean upperBound ) {
+    return new BooleanDomain(lowerBound, upperBound);
   }
 }

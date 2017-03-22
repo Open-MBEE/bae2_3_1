@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
@@ -15,6 +16,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Timer;
 import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,12 +30,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import junit.framework.Assert;
@@ -51,6 +57,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                            HasTimeVaryingObjects {
 
   // Static members
+
+  public static boolean doPlot = false;
 
   protected static int counter = 0;
 
@@ -92,8 +100,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( !DurativeEvent.this.startTime.isGrounded(deep, null) ) return false;
 
       // Don't elaborate outside the horizon.  Need startTime grounded to know.
-      Integer value = startTime.getValue(true);
-      if ( !startTime.isGrounded(deep, null) ) return false;
+      Long value = startTime.getValue(true);
+      //if ( !startTime.isGrounded(deep, null) ) return false;
       if ( value >= Timepoint.getHorizonDuration() ) {
         if ( Debug.isOn() ) Debug.outln( "satisfyElaborations(): No need to elaborate event outside the horizon: "
                      + getName() );
@@ -109,8 +117,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       for ( Pair< ElaborationRule, Vector< Event > > p : list ) {
         ElaborationRule r = p.first;
         Vector< Event > events = p.second;
-        if ( isElaborated( events ) != r.isConditionSatisfied() ) {
-          if ( r.attemptElaboration( events, true,
+        boolean sat = r.isConditionSatisfied();
+        if ( r.isStale() || (isElaborated( events ) != sat )) {
+          if ( r.attemptElaboration( DurativeEvent.this, events, true,
                                      tryToSatisfyOnElaboration,
                                      deepSatisfyOnElaboration ) ) {
             if ( !r.isConditionSatisfied() ) satisfied = false;
@@ -122,12 +131,25 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return satisfied;
     }
+    
+    @Override
+    public boolean isStale() {
+      for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
+        ElaborationRule r = er.getKey();
+        if ( r.isStale() ) {
+          return true;
+        }
+      }
+      if ( super.isStale() ) return true;
+      return false;
+    };
 
     @Override
     public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
       Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
       if ( pair.first ) return true;
       seen = pair.second;
+      if ( isStale() ) return false;
       for ( Entry< ElaborationRule, Vector< Event > > er : elaborations.entrySet() ) {
         if ( !startTime.isGrounded(deep, null) ) return false;
         if ( startTime.getValueNoPropagate() < Timepoint.getHorizonDuration() ) {
@@ -258,7 +280,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         		 return satisfyEffectsOnTimeVarying((Parameter<?>) value, effects,
         		                                    deep, seen);
         	  } else if (value instanceof TimeVarying) {
-        	    TimeVarying<?> tv = (TimeVarying<?>) value;
+        	    TimeVarying<?,?> tv = (TimeVarying<?,?>) value;
         	    if ( tv.canBeApplied( e ) ) {
         	      e.applyTo( tv, true );
         	    } else {
@@ -384,20 +406,20 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
     // create the dependency, endTime = startTime + duration
     // TODO -- REVIEW -- should this dependency just be a constraint instead?
-    Functions.Sum< Integer, Integer > sum =
-        new Functions.Sum< Integer, Integer >(
-            new Expression< Integer >( startTime ),
-            new Expression< Integer >( duration ) );
+    Functions.Sum< Long, Long > sum =
+        new Functions.Sum< Long, Long >(
+            new Expression< Long >( startTime ),
+            new Expression< Long >( duration ) );
     endTimeDependency  = addDependency( endTime, sum, false );
-    Functions.Sub< Integer, Integer > sub1 =
-        new Functions.Sub< Integer, Integer >(
-            new Expression< Integer >( endTime ),
-            new Expression< Integer >( duration ) );
+    Functions.Sub< Long, Long > sub1 =
+        new Functions.Sub< Long, Long >(
+            new Expression< Long >( endTime ),
+            new Expression< Long >( duration ) );
     startTimeDependency = addDependency( startTime, sub1, false );
-    Functions.Sub< Integer, Integer > sub2 =
-        new Functions.Sub< Integer, Integer >(
-            new Expression< Integer >( endTime ),
-            new Expression< Integer >( startTime ) );
+    Functions.Sub< Long, Long > sub2 =
+        new Functions.Sub< Long, Long >(
+            new Expression< Long >( endTime ),
+            new Expression< Long >( startTime ) );
     durationDependency = addDependency( duration, sub2, false );
   }
 
@@ -408,7 +430,421 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   public DurativeEvent(String name, ParameterListenerImpl listener) {
     super(name, listener);
   }
+  
+  public DurativeEvent( String name, Date start, Long duration ) {
+    this( name );
+    if ( start != null ) {
+      this.startTime.setValue( start );
+    }
+    if ( duration == null ) duration = new Long(1);
+    this.duration.setValue( duration.longValue(), true );
+  }
+  
+  public DurativeEvent( String name, Long start, Long duration ) {
+    this( name );
+    if ( start != null ) {
+      this.startTime.setValue( start );
+    }
+    if ( duration == null ) duration = new Long(1);
+    this.duration.setValue( duration.longValue(), true );
+  }
+  
+  public DurativeEvent( String name, String activitiesFileName ) {
+    this(name);
+    try {
+      fromCsvFile( activitiesFileName );
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
+  public DurativeEvent( String name, TimeVaryingMap< ? > tvm,
+                        Object enclosingInstance, String type,
+                        Expression[] arguments) {
+    this(name);
+    addElaborationFromTimeVarying( tvm, enclosingInstance, type, arguments );
+  }
+  
+  public DurativeEvent( String name, TimeVaryingMap< ? > tvm,
+                        Object enclosingInstance, Class<? extends Event> type,
+                        Expression[] arguments ) {
+    this(name);
+    addElaborationFromTimeVarying( tvm, enclosingInstance, type, arguments,
+                                   new Expression<Boolean>(true) );
+  }
+  
+  public void addElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                             Object enclosingInstance,
+                                             String type,
+                                             Expression[] arguments ) {
+    addElaborationFromTimeVarying( tvm, enclosingInstance, type,
+                                   arguments,
+                                   new Expression<Boolean>(true) );
+  }
+  public void addElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                             Object enclosingInstance,
+                                             String type,
+                                             Expression[] arguments,
+                                             Expression<Boolean> condition) {
+    Class<? extends Event> eventClass = eventClassFromName(type);
+    //Class
+    addElaborationFromTimeVarying( tvm, enclosingInstance, eventClass , arguments, condition );
+  }
+  
+  //publi
+  
+  protected Class< ? extends Event > eventClassFromName( String type ) {
+    Class<? extends Event> eventClass = DurativeEvent.class;
+    if ( type != null && !type.equals( "DurativeEvent" ) ) {
+      Class< ? > cls = null;
+      try {
+        cls = ClassUtils.classForName( type );
+      } catch ( ClassNotFoundException e1 ) {
+      }
+      if ( cls != null && Event.class.isAssignableFrom( cls ) ) {
+        eventClass = (Class<? extends Event>)cls;
+      }
+    }
+    return eventClass;
+  }
+  public boolean addElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                             Object enclosingInstance,
+                                             Class<? extends Event> eventClass,
+                                             Expression<?>[] arguments, 
+                                             Expression<Boolean> condition) {
+    Parameter< Long> lastStart = null;
+    Object lastValue = null;
+    boolean changed = false;
+    // Add an elaboration for every non-null value
+    for ( Entry< Parameter< Long >, ? > e : tvm.entrySet() ) {
+      // TODO!! What to do with the value?
+      if ( lastStart != null && lastStart.getValue() != null && lastValue != null
+           && !Utils.valuesEqual( lastValue, 0 )
+           && !Utils.valuesEqual( lastValue, "" )
+           && !e.getKey().valueEquals( lastStart ) ) {
+        ElaborationRule r = addElaborationRule( condition, enclosingInstance, eventClass, arguments, lastStart, e.getKey() );
+        if ( r != null ) changed = true;
+//        Long duration = new Long(e.getKey().getValue( true ) - lastStart.getValue( true ));
+//        String childName = String.format( "%s%06d", name, counter++ );
+//        Expression<?>[] augmentedArgs = new Expression<?>[arguments.length + 2];
+//        // Repackage arguments, passing in the start time and duration.
+//        for ( int i = 0; i < arguments.length; ++i ) {
+//          augmentedArgs[i] = arguments[i];
+//        }
+//        augmentedArgs[arguments.length] = new Expression< Long >( lastStart );
+//        augmentedArgs[arguments.length+1] = new Expression< Long >( duration.longValue() );
+//        addElaborationRule( condition, enclosingInstance,
+//                            eventClass, childName, augmentedArgs );
+      }
+      if ( !e.getKey().valueEquals( lastStart ) ) {
+        lastStart = e.getKey();
+        lastValue = e.getValue();
+      }
+    }
+    return changed;
+  }
+
+  private void debugToCsvFile( TimeVaryingMap< ? > tv, String fileName ) {
+    // write to file
+    String pathAndFile = EventSimulation.csvDir + File.separator + "debug"
+                         + File.separator + fileName;
+    String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";// TimeUtils.aspenTeeFormat;
+    Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
+    tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
+  }
+
+  public static int debugCt = 0;
+
+  private void debugElaborationsToCsvFile() {
+    Set< Event > events = new HashSet< Event >();
+    for ( Entry< ElaborationRule, Vector< Event > > e : elaborations.entrySet() ) {
+      events.addAll( e.getValue() );
+    }
+    EventSimulation.writeEvents( events, EventSimulation.csvDir + File.separator
+                                         + "debug",
+                                 "" + debugCt );
+  }
+
+  public boolean
+         repairElaborationFromTimeVarying( TimeVaryingMap< ? > tvm,
+                                           Object enclosingInstance,
+                                           //DurativeEvent parent, // shouldn't this be this?!
+                                           Class< ? extends Event > eventClass,
+                                           Expression< ? >[] arguments,
+                                           Expression<Boolean> condition ) {
+    //Class<? extends Event> eventClass = eventClassFromName(type);
+    boolean changed = false;
+    
+    if ( elaborations == null ) {
+      Debug.error( "Expected elaborations to be non-null!" );
+      return false;
+    }
+    
+    // FIXME -- put inside if (Debug.isOn())
+    System.out.println("~~~~  REPAIR START " + elaborations.size() + "  ~~~~");
+    int c = 0;
+    for ( Entry< Parameter< Long >, ? > e : tvm.entrySet()) {
+      if ( Expression.valuesEqual( e.getValue(), 1.0 ) ) c++;
+    }
+    System.out.println("~~~~~  " + c + " entries with value 1  ~~~~~");
+
+    TimeVaryingMap< ? > tvmCopy = tvm.clone();
+    Set<ElaborationRule> elaborationsToProcess = new LinkedHashSet<ElaborationRule>(elaborations.keySet());
+    Set<ElaborationRule> elaborationsToDelete = new HashSet< ElaborationRule >();
+//    Map< ElaborationRule, Vector< Event > > newElaborations = 
+//        new LinkedHashMap< ElaborationRule, Vector<Event> >();    
+    
+    ++debugCt;
+    debugToCsvFile( tvm, "dataRateAboveThreshold" + debugCt + ".csv" );
+    debugElaborationsToCsvFile();
+
+    ArrayList< ElaborationRule > rules;
+    boolean didChange = 
+        repairElaborations( tvm, enclosingInstance, eventClass, arguments, condition,
+                                            tvmCopy, elaborationsToProcess,
+                                            elaborationsToDelete, //newElaborations,
+                                            true );
+    if ( didChange ) changed = true;
+
+    didChange = 
+        repairElaborations( tvm, enclosingInstance, eventClass, arguments, condition,
+                                            tvmCopy, elaborationsToProcess,
+                                            elaborationsToDelete,//newElaborations,
+                                            false );
+    if ( didChange ) changed = true;
+    
+    elaborationsToDelete.addAll(elaborationsToProcess);
+    // FIXME -- put inside if (Debug.isOn())
+    System.out.println("~~~~~  " + elaborationsToDelete.size() + " elaborations to delete  ~~~~~");
+    for ( ElaborationRule rule : elaborationsToDelete ) {
+      Vector< Event > removedEvents = elaborations.remove(rule);
+      if ( !changed && removedEvents != null ) changed = true;
+      for ( Event event : removedEvents ) {
+        event.deconstruct();
+      }
+      rule.deconstruct();
+    }
+    
+    // Now create elaboration rules for the remaining unprocessed timepoints in
+    // tvmCopy.
+    boolean addedStuff =
+        addElaborationFromTimeVarying( tvmCopy, enclosingInstance, eventClass,
+                                       arguments, condition );
+    if ( addedStuff ) changed = true;
+    
+    // FIXME -- put inside if (Debug.isOn())
+    System.out.println("~~~~~  REPAIR END " + elaborations.size() + "  ~~~~~");
+
+    return changed;
+  }
+  
+  protected boolean repairElaborations( TimeVaryingMap< ? > tvm,
+                                        Object enclosingInstance,
+                                        Class< ? extends Event > eventClass,
+                                        Expression< ? >[] arguments,
+                                        Expression< Boolean > condition,
+                                        TimeVaryingMap< ? > tvmCopy,
+                                        Set< ElaborationRule > elaborationsToProcess,
+                                        Set< ElaborationRule > elaborationsToDelete,
+                                        //Map< ElaborationRule, Vector< Event > > newElaborations,
+                                        // DurativeEvent parent,
+                                        boolean onlyRepairExactMatches ) {
+    // Should events be replaced (re-elaborated ) or just corrected when they
+    // don't match intervals in tvm, the TimeVaryingMap.
+    boolean replace = false; 
+
+    boolean changed = false;
+    ArrayList< ElaborationRule > rules = new ArrayList<ElaborationRule>(elaborationsToProcess);
+    for ( ElaborationRule rule : rules ) {
+      Vector< Event > events = elaborations.get( rule );
+      if ( events.size() != 1 ) {
+        Debug.error( false, "ElaborationRule generated from TimeVaryingMap should have exactly one event" );
+        elaborationsToProcess.remove( rule );
+        continue;
+      }
+      Event event = events.get( 0 );
+      Timepoint start = event.getStartTime();
+      if ( start == null ) continue; // error??!!
+      // Find the closest match on second pass--it doesn't need to match exactly.
+      Entry< Parameter< Long >, ? > entry = tvmCopy.lowerEntry( start );
+      if ( entry == null ) {
+        if ( onlyRepairExactMatches ) continue;
+        entry = tvmCopy.higherEntry( start );
+      }
+      if ( entry == null ) continue;
+      
+      Parameter< Long > t = entry.getKey();
+      if ( !t.valueEquals( start.getValue() ) && onlyRepairExactMatches) continue;
+      
+      // In case there are multiple entries at the same time, find one with a
+      // non-zero value.
+      NavigableMap< Parameter< Long >, ? > mapToT = tvm.subMap(null, true, t.getValue(), true);
+      Parameter<Long> last = mapToT.lastKey();
+      if ( last.getValue() == t.getValue() ) {
+        t = last;
+      }
+      Object v = tvmCopy.get(t);
+      if ( Utils.valuesEqual( v, 0 ) || Utils.valuesEqual( v, "" ) ) continue;  // not a start time if 0
+            
+//      Set< Parameter< Long > > matchingTimepoints = tvmCopy.getKeys( t );
+//      // Get the 
+//      if (!Utils.isNullOrEmpty( matchingTimepoints )) {
+//        t = matchingTimepoints.
+//      }
+//      Object v = null;
+//      for ( Parameter<Long> tp : matchingTimepoints ) {
+//        v = tvmCopy.get(tp);
+//        if ( !Utils.valuesEqual( v, 0 ) && !Utils.valuesEqual( v, "" ) ) {
+//          t = tp;
+//          break;  // not a start time if 0
+//        }
+//      }
+//      if ( Utils.valuesEqual( v, 0 ) || Utils.valuesEqual( v, "" ) ) continue;  // not a start time if 0
+      
+      // Matched start time!
+      // Remove matched interval and rule from sets to process.
+      // First, remove the keys matching t with non-zero value in tvmCopy. No
+      // need to leave zero-valued entries since end times are matched against
+      // the original tvm map.
+      for ( Entry< Parameter< Long >, ? > subMapEntry : mapToT.descendingMap().entrySet() ) {//.navigableKeySet().descendingSet() ) {
+        Parameter<Long> tt = subMapEntry.getKey();
+        if ( !tt.equals( t ) ) break;
+//        v = subMapEntry.getValue();//tvmCopy.get(tt);
+//        if ( !Utils.valuesEqual( v, 0 ) && !Utils.valuesEqual( v, "" ) ) {
+          tvmCopy.remove( tt );
+//        }
+      }
+
+//      //Iterator< Parameter<Long> > i = matchingTimepoints.iterator();
+//      for ( Parameter<Long> tp : new ArrayList< Parameter<Long> >(matchingTimepoints) ) {
+//      //while ( i.hasNext() ) {
+//        //Parameter<Long> tp = i.next();
+//        v = tvmCopy.get(tp);
+//        if ( !Utils.valuesEqual( v, 0 ) && !Utils.valuesEqual( v, "" ) ) {
+//          tvmCopy.remove( tp ); // only leave 
+//        }
+//      }
+////      tvmCopy.remove( t ); // only leave 
+      elaborationsToProcess.remove( rule );
+      
+      // Now correct start end time if necessary.
+      Timepoint eventEnd = event.getEndTime();
+      if ( eventEnd == null ) continue;  // error??!!
+      Parameter< Long > intervalEnd = tvm.getTimepointLater( t );
+      if ( intervalEnd == null || intervalEnd.getValue() == null ) continue;
+      if ( !eventEnd.valueEquals( intervalEnd ) ) {
+        if ( replace || !( event instanceof DurativeEvent ) ) {
+          elaborationsToDelete.add( rule );
+          ElaborationRule r =
+              addElaborationRule( condition, enclosingInstance, eventClass,
+                                  arguments, t, intervalEnd );
+          if ( r != null ) {
+            changed = true;
+            //newElaborations.put(r, new Vector<Event>() );
+          }
+        } else {
+          // To fix, just substitute the new start and end times for the old
+          // ones in the dependency created by the EventInvocation.
+          // Also fix the EventInvocation's arguments and memberAssignments.
+          
+          // Fix the EventInvocation.
+          DurativeEvent dEvent = (DurativeEvent)event;
+          long dur = intervalEnd.getValue() - t.getValue();
+          Expression<Long> durationExpr = new Expression<Long>(dur);
+          Expression<Long> startExpr = new Expression<Long>(t);
+          
+          for ( EventInvocation ei : rule.eventInvocations ) {
+            Object[] args = ei.getArguments();
+            if ( args != null && args.length >= 2 ) {
+              Object oldStartExpr = args[args.length-2];
+              if ( !Expression.valuesEqual( oldStartExpr, startExpr ) ) {
+                // FIXME -- put inside if (Debug.isOn())
+                printFromToTime("startTime", oldStartExpr, startExpr);
+                // Swap in new argument.
+                args[args.length-2] = startExpr;
+                // Fix the dependency by replacing it.
+                dEvent.addDependency( dEvent.startTime, startExpr );
+                changed = true;
+              }
+              Object oldDurExpr = args[args.length-1];
+              if ( !Expression.valuesEqual( oldDurExpr, durationExpr ) ) {
+                // FIXME -- put inside if (Debug.isOn())
+                try {
+                  if ( Math.abs( ((Long)Expression.evaluate(oldDurExpr, Long.class, true )) - ((Long)Expression.evaluate(durationExpr, Long.class, true )) ) > 2 * 3600 * 1000 ) {
+                    Debug.breakpoint();
+                  }
+                } catch ( ClassCastException | IllegalAccessException
+                          | InvocationTargetException
+                          | InstantiationException e ) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+                }
+                printFromToTime("duration", oldDurExpr, durationExpr);
+                // Swap in new argument.
+                args[args.length-1] = durationExpr;
+                // Fix the dependency by replacing it.
+                dEvent.addDependency( dEvent.duration, durationExpr );
+                changed = true;
+              }
+            }
+            // TODO?
+            if ( !Utils.isNullOrEmpty( ei.getMemberAssignments() ) ) {
+              Debug.error(false, "Member assignments not fixed for repaired elaboration from TimeVaryingMap!!!");
+            }
+          }
+          
+        }
+      }
+    }
+    return changed;
+  }
+  
+  private void printFromToTime( String name, Object from, Expression<Long> to ) {
+    Long ot = null;
+    Long nt = null;
+    try {
+      ot = Expression.evaluate( from, Long.class, true );
+    } catch ( ClassCastException | IllegalAccessException
+              | InvocationTargetException
+              | InstantiationException e ) {
+    }
+    try {
+      nt = (Long)to.evaluate( true );
+    } catch ( ClassCastException | IllegalAccessException
+              | InvocationTargetException
+              | InstantiationException e ) {
+    }
+    try {
+    System.out.println( "Fixing " + name + ": "
+                        + (ot == null ? "null"
+                                     : Timepoint.toTimestamp( ot.longValue() ))
+                                       + " -> " + (ot == null ? "null" :
+                                       Timepoint.toTimestamp( nt.longValue() )) );
+    } catch ( Throwable t ) {
+      t.printStackTrace();
+    }
+  }
+  
+  protected ElaborationRule addElaborationRule( Expression< Boolean > condition,
+                                   Object enclosingInstance,
+                                   Class< ? extends Event > eventClass,
+                                   Expression< ? >[] arguments,
+                                   Parameter< Long > start,
+                                   Parameter< Long > end ) {
+    Long duration = new Long(end.getValue( true ) - start.getValue( true ));
+    String childName = String.format( "%s%06d", name, counter++ );
+    Expression<?>[] augmentedArgs = new Expression<?>[arguments.length + 2];
+    // Repackage arguments, passing in the start time and duration.
+    for ( int i = 0; i < arguments.length; ++i ) {
+      augmentedArgs[i] = arguments[i];
+    }
+    augmentedArgs[arguments.length] = new Expression< Long >( start );
+    augmentedArgs[arguments.length+1] = new Expression< Long >( duration.longValue() );
+    ElaborationRule r = addElaborationRule( condition, enclosingInstance,
+                        eventClass, childName, augmentedArgs );
+    return r;
+  }
+  
   public DurativeEvent( DurativeEvent durativeEvent ) {
     this( null, durativeEvent );
   }
@@ -457,6 +893,173 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // }
   }
 
+
+  /**
+   * Read a CSV file and create an event for each row that elaborates from this
+   * event. Assume that a row has the following fields:
+   * <ul>
+   * <li>start time as a date (in supported formats for {@link TimeUtils.dateFromTimestamp()}) or integer offset
+   * <li>duration as an integer offset (optional)
+   * <li>end time as a date or integer offset (optional and only if no duration)
+   * <li>name as a string (optional)
+   * </ul>
+   * Any lines that do not have at least a start time are ignored.
+   * <p>
+   * The first line is checked to see if it is a column header to specify which
+   * field is which. The following regular expression patterns (ignoring letter
+   * case) are matched to field names to disambiguate the fields:
+   * <ol>
+   * <li>name --&gt; name
+   * <li>duration --&gt; duration
+   * <li>end --&gt; end time
+   * <li>start|time --&gt; start time
+   * <li>activity  --&gt;  name
+   * <li>'[^a-zA-Z]id[^a-zA-Z]' --&gt;  name
+   * </ol>
+   * 
+   * @param fileName
+   * @throws IOException 
+   */
+  public void fromCsvFile( String fileName ) throws IOException {
+    if ( fileName == null ) return;
+    ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( fileName );
+    
+    if ( Utils.isNullOrEmpty( lines ) ) {
+      // TODO -- error?
+      return;
+    }
+
+    // A map to remember which field is which
+    HashMap<String, Integer> fieldMap = new HashMap<String, Integer>();
+    
+    // TODO -- Get the header if there is one to help determine fields by name.
+       
+    // process lines
+    boolean fieldMapInitialized = false;
+    //HashMap<Object, Integer> fieldMapI = new HashMap<Object, Integer>();
+    for ( ArrayList< String > fields : lines ) {
+      Date start = null;
+      Date end = null;
+      String name = null;
+      Double duration = null;
+      String type = null;
+      
+      fieldMapInitialized = fieldMapInitialized || !fieldMap.isEmpty();
+      
+      TimeZone gmtZone = TimeZone.getTimeZone( "GMT" );
+      
+      //for ( String field : fields ) {
+      for ( int i = 0; i < fields.size(); ++i ) {
+        String field = fields.get( i );
+        // Try to match start or end time
+        Date d = TimeUtils.dateFromTimestamp( field, gmtZone );
+        if ( d != null ) {
+          if ( ( fieldMapInitialized && fieldMap.get( "start" ) == i ) || 
+               ( !fieldMapInitialized && start == null ) ) {
+            start = d;
+            if ( !fieldMapInitialized ) {
+              fieldMap.put("start", i);
+            }
+          } else if ( ( fieldMapInitialized && fieldMap.get( "end" ) == i ) || 
+                      ( !fieldMapInitialized && end == null ) ) {
+            end = d;
+            if ( !fieldMapInitialized ) {
+              fieldMap.put("end", i);
+            }
+          }
+          continue;
+        }
+        
+        // Try to match duration
+        if ( ( fieldMapInitialized && fieldMap.get( "duration" ) == i ) || 
+             ( !fieldMapInitialized && duration == null ) ) {
+          duration = TimeUtils.toDurationInSeconds( field );
+          if ( !fieldMapInitialized ) {
+            fieldMap.put("duration", i);
+          }
+          if ( duration != null ) continue;
+        }
+        
+        // Try to match name
+        if ( ( fieldMapInitialized && fieldMap.get( "name" ) == i ) || 
+            ( !fieldMapInitialized &&
+              ( name == null || ( !name.matches( ".*[A-Za-z].*" ) &&
+                                  field.matches( ".*[A-Za-z].*" ) ) ) ) ) {
+          if ( !fieldMapInitialized ) {
+            fieldMap.put("name", i);
+          }
+          name = field;
+          if ( name != null ) continue;
+        }
+        
+        // Try to match type
+        if ( ( fieldMapInitialized && fieldMap.get( "type" ) == i ) || 
+            ( !fieldMapInitialized &&
+              ( type == null || ( !type.matches( ".*[A-Za-z].*" ) &&
+                                  field.matches( ".*[A-Za-z].*" ) ) ) &&
+              ClassUtils.getClassForName( field, (String)null, (String)null, false ) != null ) ) {
+          if ( !fieldMapInitialized ) {
+            fieldMap.put("type", i);
+          }
+          type = field;
+        }
+        
+        // Make sure start is before end.
+        if ( !fieldMapInitialized && end != null && end.before( start ) ) {
+          // swap start and end values
+          Date tmp = start;
+          start = end;
+          end = tmp;
+          // swap indices in field map
+          int tmpi = fieldMap.get("start");
+          fieldMap.put( "start", fieldMap.get( "end" ) );
+          fieldMap.put( "end", tmpi );
+        }
+
+        // Add elaboration
+        if ( start != null && (end == null || end.after( Timepoint.epoch ) ) &&
+             start.before( Timepoint.getHorizon() )) {
+          addElaborationRule( start, end, duration, type );
+        }
+        
+      } // end for field in fields
+    } // for line in lines
+    
+    if ( Debug.isOn() ) Debug.outln( "read map from file, " + fileName + ":\n"
+                                     + this.toString() );
+  }
+  
+  public boolean addElaborationRule(Date start, Date end, Double duration, String typeName ) {
+    if ( start == null ) return false;
+    // Compute duration if not given.
+    if ( duration == null && end != null ) {
+      duration = (end.getTime() - start.getTime()) / 1000.0;
+    }
+    Expression<String> nameExpr = new Expression<String>(name);
+    Expression< Long> startExpr = 
+        new Expression< Long>( new Timepoint( start ), Long.class );
+    //Duration dd = new Duration( name, durVal, durUnits, o );
+    Expression< Long> durationExpr =
+        new Expression< Long>( (new Double( duration == null ? 1 :
+                                   duration / Timepoint.conversionFactor( Units.seconds ) ) ).longValue(),
+                                 Long.class );
+    Class<?> cls = 
+        typeName == null ? DurativeEvent.class :
+        ClassUtils.getClassForName( typeName, (String)null, (String)null, false );
+    Class<? extends Event> eventClass = null;
+
+    if ( cls != null && Event.class.isAssignableFrom( eventClass ) ) {
+      eventClass = (Class<? extends Event>)cls;
+    } else {
+      eventClass = DurativeEvent.class;
+    }
+    this.addElaborationRule( new Expression< Boolean >(true), null,
+                             DurativeEvent.class, "",
+                             new Expression<?>[] { nameExpr, startExpr,
+                                                   durationExpr } );
+    return true;
+  }
+  
   public static boolean checkIfEffectVariableMatches( Parameter<?> variable,
                                                       Effect e ) {
     if ( e instanceof EffectFunction ) {
@@ -626,16 +1229,32 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     seen = pair.second;
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() + "::");
-    sb.append( getName() );
+    //sb.append( getName() );
+    sb.append( getQualifiedName() );
     if ( withHash ) sb.append( "@" + hashCode() );
     sb.append( "(" );
+    boolean first = true;
+    
+    if ( !Utils.isNullOrEmpty( getName() ) ) {
+      if ( first ) first = false;
+      else sb.append( ", " );
+      sb.append( "name=" + getName() );
+    }
+    
+    if ( first ) first = false;
+    else sb.append( ", " );
+    sb.append( "id=" + id );
+    
+    if ( first ) first = false;
+    else sb.append( ", " );
+    sb.append( "qualifiedId=" + getQualifiedId() );
+    
     Parameter<?> firstParams[] = { startTime, duration, endTime };  // Could use Arrays.sort() .search()
     List< Parameter< ? > > allParams =
         new ArrayList< Parameter< ? > >(Arrays.asList( firstParams ));
     Set< Parameter< ? > > restParams = getParameters( false, null );
     restParams.removeAll( allParams );
     allParams.addAll( restParams );
-    boolean first = true;
     for ( Object p : allParams ) {
       if ( first ) first = false;
       else sb.append( ", " );
@@ -681,7 +1300,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //      if ( Debug.isOn() ) Debug.outln( getName() + ".execute() called solve() --> " + satisfied );
 //    }
     timer.stop();
-    System.out.println( "\n" + getName() + ".execute(): Time to elaborate and resolve constraints:" );
+    System.out.println( "\n" + getName() + ".execute(): Time taken to elaborate and resolve constraints:" );
     System.out.println( timer );
     timer.start();
     Collection<Constraint> constraints = getConstraints( true, null );
@@ -713,7 +1332,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
     }
 
-    System.out.println( "\n" + getName() + ".execute(): Time to gather and write out constraints:" );
+    System.out.println( "\n" + getName() + ".execute(): Time taken to gather and write out constraints:" );
     System.out.println( timer );
 
     // HACK -- Sleeping to separate system.err from system.out.
@@ -729,17 +1348,42 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     Set< Event > events = getEvents( true, null );
     System.out.println("Simulating " + events.size() + " events.");
     EventSimulation sim = new EventSimulation( events, 1.0e12 );
+    sim.topEvent = this;
     sim.add( this );
     settingTimeVaryingMapOwners = true;
-    Set< TimeVarying< ? > > tvs = getTimeVaryingObjects( true, null );
+
+    Map<String, Object> paramsAndTvms = getTimeVaryingObjectMap( true, null );
+
     settingTimeVaryingMapOwners = false;
-    System.out.println("Simulating " + tvs.size() + " state variables.");
-    for ( TimeVarying< ? > tv : tvs ) {
+    System.out.println("Simulating " + paramsAndTvms.size() + " state variables.");
+    for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
+      Object tvo = entry.getValue();//e.getKey();
+      Parameter<?> p = null;
+      TimeVarying<?,?> tv = null;
+      String name = entry.getKey();
+      if ( tvo instanceof Parameter ) {
+        p = (Parameter<?>)tvo;
+        //name = p.getName();
+        if ( p.getValueNoPropagate() instanceof TimeVarying ) {
+          tv = (TimeVarying<?,?>)p.getValueNoPropagate();
+        }
+      } else if ( tvo instanceof TimeVarying ) {
+        tv = (TimeVarying<?,?>)tvo;
+      }
       if ( tv instanceof TimeVaryingMap ) {
         String category = "";
-        if ( tv.getOwner() instanceof ParameterListener ) {
-          category = ( (ParameterListener)tv.getOwner() ).getName();
+        if ( !Utils.isNullOrEmpty( name ) ) {
+          category = name;
+        } else {
+          if ( tv instanceof TimeVaryingPlottableMap ){
+            category = ((TimeVaryingPlottableMap<?>)tv).getName();
+  //          category = ((TimeVaryingPlottableMap<?>)tv).category.getValue();
+          }
         }
+        if ( Utils.isNullOrEmpty( category ) && tv.getOwner() instanceof ParameterListener ) {
+           category = ( (ParameterListener)tv.getOwner() ).getName();
+        }
+//        Debug.turnOn();
         sim.add( (TimeVaryingMap< ? >)tv, category );
       }
     }
@@ -751,7 +1395,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
 
   public void simulate( double timeScale, java.io.OutputStream os ) {
-    simulate( timeScale, os, true );
+    simulate( timeScale, os, doPlot );
   }
 
   public void simulate( double timeScale, java.io.OutputStream os, boolean runPlotter ) {
@@ -801,7 +1445,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       } catch ( IOException e1 ) {
         // ignore
       }
-      System.out.println( Calendar.getInstance().getTime().toString() );
+      System.out.println( TimeUtils.gmtCal.getTime().toString() );
       if ( writeSimulation( file ) ) {
         String fn = FileUtils.removeFileExtension( fileName );
         writeAspen( fn + ".mdl", fn + ".ini" );
@@ -860,7 +1504,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                           Parameter< ? > enclosingInstance,
                           Class< T > eventClass,
                           String eventName,
-                          Expression<?>[] arguments ) {
+                          Expression<?>[] arguments,
+                          Expression<TimeVaryingMap<?>> fromTimeVarying ) {
 
     // Now create the EventInvocation from the constructor and arguments.
     Vector<EventInvocation> invocation = new Vector<EventInvocation>();
@@ -868,6 +1513,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     newInvocation =
         new EventInvocation( eventClass, eventName,
                              enclosingInstance, arguments,
+                             fromTimeVarying,
                              (Map< String, Object >)null );
     invocation.add(newInvocation);
     Vector<Event> eventVector = new Vector<Event>();
@@ -882,12 +1528,28 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
                       Class< T > eventClass,
                       String eventName,
                       Expression<?>[] arguments ) {
+    Parameter<?> p = null;
+    if ( enclosingInstance instanceof Parameter ) {
+      p = (Parameter< ? >)enclosingInstance;
+    } else {//if ( enclosingInstance != null ) {
+      p = new Parameter< Object >( "", null, enclosingInstance, this );
+    }
+    return addElaborationRule( condition, p,
+                               eventClass, eventName, arguments, null );
+  }
+
+  public < T extends Event > ElaborationRule
+  addElaborationRule( Expression< Boolean > condition,
+                      Object enclosingInstance,
+                      Class< T > eventClass,
+                      String eventName,
+                      Expression<?>[] arguments,
+                      Expression<TimeVaryingMap<?>> fromTimeVarying) {
     return addElaborationRule( condition,
                                new Parameter< Object >( "", null,
                                                         enclosingInstance, this ),
-                               eventClass, eventName, arguments );
+                               eventClass, eventName, arguments, fromTimeVarying );
   }
-
   /* (non-Javadoc)
    * @see event.Event#addEffect(event.TimeVarying, java.lang.reflect.Method, java.util.Vector)
    */
@@ -1019,13 +1681,18 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#getTimeVaryingObjects(boolean, java.util.Set)
    */
   @Override
-  public Set< TimeVarying< ? > > getTimeVaryingObjects( boolean deep,
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
                                                         Set<HasTimeVaryingObjects> seen ) {
+    return getTimeVaryingObjects( deep, true, seen );
+  }
+  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
+                                                        boolean includeDependencies,
+                                                          Set<HasTimeVaryingObjects> seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     if ( seen != null ) seen.remove( this );
-    Set< TimeVarying< ? > > set = super.getTimeVaryingObjects( deep, seen );
+    Set< TimeVarying< ?, ? > > set = super.getTimeVaryingObjects( deep, includeDependencies, seen );
     //Set< TimeVarying< ? > > set = new TreeSet< TimeVarying< ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( effects, deep, seen ) );
     if ( deep ) {
@@ -1043,8 +1710,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   @Override
   public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
-                                                               Set< ParameterListenerImpl > seen ) {
-    Pair< Boolean, Set< ParameterListenerImpl > > pair =
+                                                               Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > pair =
         Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
@@ -1352,7 +2019,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
 
       Vector< Event > oldEvents = entry.getValue();
-      elaborated = entry.getKey().attemptElaboration( oldEvents, true );
+      elaborated = entry.getKey().attemptElaboration( this, oldEvents, true );
     }
     return elaborated;
   }
@@ -1387,13 +2054,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       }
       return;
     }
-    String msg = "Deconstructing event: " + this.toString( true, true, null );
+    String msg = "Deconstructing event: " + this.toString( true, false, null );
     if ( Debug.isOn() ) Debug.outln( msg );
     System.err.println( msg );
 
     // Get time varying objects to use later before potentially disconnecting
     // them.
-    Set< TimeVarying< ? > > timeVaryingObjs = getTimeVaryingObjects( true, null );
+    Set< TimeVarying< ?, ? > > timeVaryingObjs = getTimeVaryingObjects( true, null );
 
     // Detach elaborations.
     if ( elaborations != null ) {
@@ -1411,7 +2078,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     assert effects != null;
     for ( Pair< Parameter< ? >, Set< Effect > > p : effects ) {
       Parameter< ? > tvp = p.first;
-      TimeVarying< ? > tv = null;
+      TimeVarying< ?, ? > tv = null;
       if ( tvp != null ) {
         try {
           tv = Expression.evaluate( tvp, TimeVarying.class, false );
@@ -1428,7 +2095,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           // TODO Auto-generated catch block
           //e.printStackTrace();
         }
-        tvp.deconstruct();
+        //tvp.deconstruct();
       }
       Set< Effect > set = p.second;
       if ( set != null ) {
@@ -1436,9 +2103,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           if ( tv != null ) {
             e.unApplyTo( tv ); // should this happen in EffectFunction?
           }
-          if ( e instanceof EffectFunction ) {
-            ((EffectFunction)e).deconstruct();
-          }
+//          if ( e instanceof EffectFunction ) {
+//            ((EffectFunction)e).deconstruct();
+//          }
         }
       }
     }
@@ -1454,7 +2121,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
           continue;
         }
         if ( effectFunction.getObject() != null ) {
-          TimeVarying< ? > tv = null;
+          TimeVarying< ?, ? > tv = null;
           try {
             tv = Expression.evaluate( effectFunction.getObject(),
                                                      TimeVarying.class,
@@ -1482,12 +2149,13 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // Remove references to time parameters from TimeVaryingMaps.
     // TODO -- REVIEW -- Is this already being done by ParameterListenerImpl.detach()
     // and TimeVaryingMap.detach( parameter )?
-    Set<Timepoint> timepoints = getTimepoints( false, null );
-    for ( TimeVarying< ? > tv : timeVaryingObjs  ) {
+    Set< Parameter< Long > > timepoints = getTimepoints( false, null );
+    for ( TimeVarying< ?, ? > tv : timeVaryingObjs  ) {
       if ( tv instanceof TimeVaryingMap ) {
-        for ( Parameter<?> p : timepoints ) {
+        TimeVaryingMap<?> tvm = (TimeVaryingMap<?>)tv;
+        for ( Parameter<Long> p : timepoints ) {
           if ( Debug.isOn() ) Debug.out( "i" );
-          ( (TimeVaryingMap<?>)tv ).detach( p );
+          tvm.detach( p );
         }
 //        ( (TimeVaryingMap<?>)tv ).keySet().removeAll( timepoints );
 //        ( (TimeVaryingMap<?>)tv ).isConsistent();
@@ -1537,13 +2205,45 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     events.add( this );
     events = Utils.addAll( events, getEvents( true, null ) );
     for ( Event e : events ) {
-      sb.append( MoreToString.Helper.toString( e, false, true, null ) + "\n" );
+      sb.append( MoreToString.Helper.toString( e, true, false, null ) + "\n" );
     }
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( pl, false, true, null ) + "\n" );
+      sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( tv, false, true, null ) + "\n" );
+//    for ( TimeVarying<?> tv : getTimeVaryingObjects( true, null ) ) {
+//      sb.append( MoreToString.Helper.toString( tv, true, true, null ) + "\n" );
+//    }
+    Set<Object> seen = new HashSet<Object>();
+    for ( Object o : getTimeVaryingObjectMap(true, null).values() ) {
+      if ( o == null ) continue;
+      if ( seen.contains( o ) ) continue;
+      TimeVaryingMap<?> tvm = Functions.tryToGetTimelineQuick( o );
+      if ( seen.contains( tvm ) ) continue;
+      if ( tvm != null ) {
+        Object owner = tvm.getOwner();
+        if ( owner instanceof Parameter ) {
+          if ( seen.contains( owner ) ) continue;
+          seen.add( o );
+          seen.add( owner );
+          o = owner;
+        }
+        seen.add( tvm );
+      }
+//      Object value = o;
+//      if ( o instanceof Parameter ) {
+//        Object v = ( (Parameter)o ).getValueNoPropagate();
+//        if ( v instanceof HasOwner ) {
+//          Object owner = ( (HasOwner)v ).getOwner();
+//          if ( owner instanceof Parameter ) 
+//        }
+//      }
+////      TimeVarying<?> tv = null;
+////      if ( o instanceof TimeVarying ) {
+////        tv = (TimeVarying<?>)o;
+////      } else if (o instanceof Parameter && ) {
+////        tv =
+////      }
+      sb.append( MoreToString.Helper.toString( o, true, true, null ) + "\n" );
     }
     return sb.toString();
   }
@@ -1648,8 +2348,8 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     }
 
     // write timelines
-    Set< TimeVarying< ? > > states = getTimeVaryingObjects( true, null );
-    for ( TimeVarying< ? > state : states ) {
+    Set< TimeVarying< ?, ? > > states = getTimeVaryingObjects( true, null );
+    for ( TimeVarying< ?, ? > state : states ) {
       String tlName = "";
       if ( state instanceof TimeVaryingMap ) {
         tlName = ( (TimeVaryingMap< ? >)state ).getName();
@@ -1788,6 +2488,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return compare;
   }
 
+  private static boolean newChanges = true; 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.ParameterListenerImpl#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    *
@@ -1800,17 +2501,66 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
    * effects, and elaborations for the changed parameter.
    */
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // REVIEW -- Should we be passing in a set of parameters? Find review/todo
     // note on staleness table.
 
+    // Update effects before other things since they're probably going to be
+    // handled more than once, and we want to handle it carefully at first.
+    if ( newChanges )
+    for ( Pair< Parameter< ? >, Set< Effect > > effectPair : effects ) {
+      if (effectPair == null) continue;
+      Parameter< ? > par = effectPair.first;
+      TimeVaryingMap<?> tvm = null;
+      Object pv = par.getValue();
+      if ( pv instanceof TimeVaryingMap ) {
+        tvm = (TimeVaryingMap<?>)pv;
+      }
+      if ( par != null && parameter.equals( par ) ) {
+        // TODO??
+      }
+      Set< Effect > effectSet = effectPair.second;
+      for ( Effect effect : effectSet ) {
+        if ( effect instanceof EffectFunction ) {
+          EffectFunction efff = (EffectFunction)effect;
+          TimeVaryingMap<?> tv = Functions.tryToGetTimelineQuick( efff.getObject() );
+          if ( tv != null ) tvm = tv;
+          if ( tvm == null ) continue;
+          Pair< Parameter< Long >, Object > timeVal = tvm.getTimeAndValueOfEffect( efff );
+          
+          //Object v = tvm.getValueOfEffect( efff );
+          int pos = tvm.getIndexOfValueArgument(  efff );
+          Object arg = pos >= 0 && pos < efff.getArguments().size() ? efff.getArgument( pos ) : null;
+
+          if ( HasParameters.Helper.hasParameter( arg, parameter, true, null, true ) ) {
+            // unapply and reapply effect
+            Object owner = tvm.getOwner();
+            if ( owner instanceof Parameter ) {
+              Parameter<?> tvParam = (Parameter<?>)owner;
+              if ( efff.isApplied( tvParam ) ) {
+                tvm.unapply( efff );
+                if ( tvm.canBeApplied( efff ) ) {
+                  efff.applyTo( tvm, true );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     // The super class updates the dependencies.
-    super.handleValueChangeEvent( parameter );
+    seen.remove( this );
+    super.handleValueChangeEvent( parameter, seen );
 
     // Update other events
     for ( Event e : getEvents( false, null ) ) {
       if ( e instanceof ParameterListener ) {
-        ((ParameterListener)e).handleValueChangeEvent( parameter );
+        ((ParameterListener)e).handleValueChangeEvent( parameter, seen );
       }
     }
   }
@@ -1918,6 +2668,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         ((ParameterListener)e).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
+    
+    for ( ElaborationRule e : getElaborations().keySet() ) {
+      e.setStaleAnyReferenceTo( changedParameter, seen );
+    }
   }
   public static void doEditCommandFile(DurativeEvent d) throws IOException {
     Runtime.getRuntime().exec( "xterm -e 'vi commandFile'" );
@@ -1943,7 +2697,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 ////
 ////  }
 
-  public <V> Constraint addObservation( Parameter<Integer> timeSampled,
+  public <V> Constraint addObservation( Parameter< Long> timeSampled,
                                         Parameter< V > systemVariable,
                                         V value ) {
 //    String exprString =
@@ -1967,7 +2721,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     constraintExpressions.add( c );
     return c;
   }
-//  public <V> Constraint addObservation( Parameter<Integer> timeSampled,
+//  public <V> Constraint addObservation( Parameter< Long> timeSampled,
 //                                        Parameter<V> systemVariable,
 //                                        V value ) {
 //    return null;

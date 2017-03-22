@@ -108,8 +108,8 @@ public class OperatingLimits extends DurativeEvent {
     ramp = new Expression< Double >( rampMagnitude );
     rampDuration = new Expression< Double >( rampDur );
     initLimits();
-    addDependency( startTime, new Expression< Integer >( 0 ), true );
-    addDependency( duration, new Expression< Integer >( 10 ), true );
+    addDependency( startTime, new Expression< Long >( 0 ), true );
+    addDependency( duration, new Expression< Long >( 10 ), true );
   }
 
   private void initLimits() {

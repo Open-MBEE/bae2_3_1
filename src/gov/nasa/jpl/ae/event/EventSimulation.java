@@ -7,10 +7,12 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.ae.util.SimulatedTime;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.FileUtils;
+import gov.nasa.jpl.mbee.util.HasId;
+import gov.nasa.jpl.mbee.util.HasName;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.SocketClient;
 import gov.nasa.jpl.mbee.util.TimeUtils;
-import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.io.ByteArrayOutputStream;
@@ -22,14 +24,19 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -39,25 +46,21 @@ import junit.framework.Assert;
 /**
  *
  */
-public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Object, Object > > > {
+public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object, Object > > > {
 
   // Constants & Types
 
   private static final long serialVersionUID = 7629618647715394322L;
-  //private static final String enthoughtPythonPath = "/Applications/OpsRevMD1702-20120818/plugins/com.nomagic.magicdraw.jpython/scripts/magicdrawPlugin:/Library/Frameworks/Python.framework/Versions/7.3/lib";
-  //private static final String enthoughtPython = "/Library/Frameworks/Python.framework/Versions/7.3/bin/Python";
-  //private static final String enthoughtPythonPath = "/usr/local/epd_free-7.3-2-rh5-x86_64/";
-  //private static final String enthoughtPython = "/usr/local/epd_free-7.3-2-rh5-x86_64/bin/python";
-  public static final String homeDir = "/home/bclement";
-  public static final String gitDir = homeDir + "/git";
-  public static final String enthoughtDir = "/opt/Canopy/appdata/canopy-1.0.3.1262.rh5-x86_64";
-  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin;" + enthoughtDir + "/lib";
-  //private static final String enthoughtPythonPath = "C:\\Users\\bclement\\git\\bae\\src\\gov\\nasa\\jpl\\ae\\magicdrawPlugin;C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\Lib;C:\\Program Files\\Enthought\\Canopy\\App\\Lib";
-  public static final String enthoughtPython = enthoughtDir + "/bin/python";
-  //private static final String enthoughtPython = "C:\\Program Files\\Enthought\\Canopy\\App\\appdata\\canopy-1.0.3.1262.win-x86_64\\python.exe";
-  //private static final String enthoughtPython = "c:\\Python27\\python.exe";
-  public static final String enthoughtTempDir = "/tmp";
-  //private static final String enthoughtTempDir = "c:\\temp";
+
+  public static final String homeDir = System.getProperty("user.home");
+  public static final String gitDir = homeDir + File.separator + "git";
+  public static final String enthoughtDir = homeDir + File.separator + "canopy";
+  public static final String enthoughtPythonPath = gitDir + "/bae/src/gov/nasa/jpl/ae/magicdrawPlugin".replaceAll( "/", File.separator ) + File.pathSeparator + enthoughtDir + File.separator + "lib";
+  public static final String enthoughtPython = enthoughtDir + "/bin/python".replaceAll( "/", File.separator );
+  public static final String enthoughtTempDir = File.separator + "tmp";
+
+  private static boolean writingTimelinesToFile = true;
+  public static String csvDir = "output" + File.separator + "output" + (new Date()).getTime();
 
   public static double maxSecondsToNextEvent = 43200;
   
@@ -66,20 +69,28 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   // Members: properties for plotting
   
   /**
+   * Whether the simulation text and file output will identify variables with
+   * fully qualified names.
+   */
+  boolean showQualifiedName = false; 
+
+  /**
    * Whether or not the external plotter should be launched and connected to by
    * socket.
    */
-  public boolean tryToPlot = true;
+  public boolean tryToPlot = true; // see DurativeEvent.doPlot that overrides this variable.
   
   /**
    * Whether to limit the simulation to the horizon bounds and include an event
    * for the horizon.
    */
-  public boolean simulatingHorizon = false;
+  public boolean simulatingHorizon = true;
 
   TimeUtils.Units plotAxisTimeUnits = TimeUtils.Units.seconds;
   public boolean usingSamplePeriod = true;
-  public double plotSamplePeriod = 15.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // 15 min
+
+  public double plotSamplePeriod = 
+      60.0 / Timepoint.conversionFactor( TimeUtils.Units.minutes ); // convert to minutes
   protected String hostOfPlotter = "127.0.0.1";
   // Trying to pick a port that would not have been used by another running instance. 
   protected int port = 
@@ -87,9 +98,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   protected Thread readStdoutPlotThread = null;
   protected Thread readStderrPlotThread = null;
   
+  protected DurativeEvent topEvent = null;
+  
   //  protected static java.util.Random portRandomNumberGenerator =
 //      new java.util.Random( System.currentTimeMillis() );
-//  protected Pair<Integer, Integer > portRange = new Pair( 65000, 66000 );
+//  protected Pair< Long, Integer > portRange = new Pair( 65000, 66000 );
 
   public enum EventType {
     start,
@@ -134,6 +147,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   double timeScale;
   
+  Set<Event> events = new LinkedHashSet<Event>();
   Map< Object, Object > currentPlottableValues =
       new TreeMap< Object, Object >( new CompareUtils.GenericComparator< Object >() );
   Map< Object, String > categories = new HashMap< Object, String >();
@@ -154,7 +168,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     this.timeScale = timeScale;
   }
 
-  protected boolean put( Integer time, Object variable, Object value ) {
+  protected boolean put( Long time, Object variable, Object value ) {
     Set< Pair< Object, Object > > m = get( time );
     if ( m == null ) {
       //m = new TreeMap< Object, Object >( new ObjectComparator() );
@@ -173,6 +187,177 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   
   // Methods
   
+  /**
+   * Write the Events out to CSV files.
+   */
+  public void writeEvents() {
+    writeEvents(events, csvDir, null);
+  }
+  public static void writeEvents(Set<Event> events, String filePath, String suffix) {
+    Map< String, Set< Event > > eventCategories =
+        new LinkedHashMap< String, Set< Event > >();
+    for ( Event event : events ) {
+      if ( event == null ) continue;
+      String name = event.getClass().getSimpleName();
+      Utils.add( eventCategories, name, event );
+    }
+    
+    // get the path where the output will be stored
+    String path = Utils.isNullOrEmpty( filePath ) ? "." : filePath ;
+    File p = new File(path);
+    if ( !p.exists() ) {
+      boolean succ = p.mkdirs();
+      if (!succ) path = ".";
+    }
+    
+    if ( suffix == null ) suffix = "";
+
+    // write to file
+    String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSS";//TimeUtils.aspenTeeFormat;
+    Calendar cal = TimeUtils.gmtCal;
+    for ( String name : eventCategories.keySet() ) {
+      String fileName = name + ".activities" + suffix + ".csv";
+      String pathAndFile = path + File.separator + fileName;
+      StringBuffer sb = new StringBuffer();
+      sb.append("Tstart Assigned,Activity Name,Tend Assigned,,,,,,,,,,");
+      for ( Event event : eventCategories.get( name ) ) {
+        String eventName = event.getName();
+        if ( Utils.isNullOrEmpty( eventName ) ) {
+          eventName = event.getClass().getSimpleName();
+        }
+        Timepoint startTime = event.getStartTime();
+        if ( startTime == null || startTime.getValueNoPropagate() == null ) continue;
+        String startDate = startTime.toTimestamp( dateFormat, cal );
+        if ( startDate == null ) continue;
+        Timepoint endTime = event.getEndTime();
+        if ( endTime == null || endTime.getValueNoPropagate() == null ) continue;
+        String endDate = endTime.toTimestamp( dateFormat, cal );
+        if ( endDate == null ) continue;
+        // Don't want to end the file with a newline because of a bug in TMS/MPSWeb.
+        sb.append("\n" + startDate + "," + name + "," + endDate + ",,,,,,,,,,");
+      }
+      FileUtils.stringToFile( sb.toString(), pathAndFile );
+    }
+    
+  }
+  
+  /**
+   * Write the plottable timelines out to CSV files.
+   */
+  public void writeTimelines() {
+    Set<String> fileNames = new HashSet<String>();
+    Set<String> cats = new HashSet<String>();
+
+//    // Use category names for file names if they are unique.
+    boolean areCategoriesUnique = false; //true
+//    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+//      Object o = e.getKey();
+//      String cat = categories.get( o );
+//      if ( cat != null ) {
+//        if ( cats.contains( cat ) ) {
+//          areCategoriesUnique = false;
+//          break;
+//        }
+//        cats.add( cat );
+//      }
+//    }
+    
+    Map<String, Object> paramsAndTvms = topEvent.getTimeVaryingObjectMap( true, null );
+
+    
+    // Find a unique file name for each plottable timeline and write out to file.
+    int ct = 0;
+//    for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
+    //Map.Entry<String, TimeVarying<?>> obj;
+    for ( Map.Entry<String, Object> entry : paramsAndTvms.entrySet() ) {
+      List<Object> result = getCsvFileName( entry, areCategoriesUnique, fileNames, ct );
+      if ( result == null || result.size() != 3 ) continue;
+      String fileName = (String)result.get( 0 );
+      TimeVaryingMap<?> tv = (TimeVaryingMap<?>)result.get(1);
+      ct = (Integer)result.get( 2 );
+
+      if ( Utils.isNullOrEmpty( fileName ) ) continue;
+
+      // get the path where the output will be stored
+      String path = Utils.isNullOrEmpty( csvDir ) ? "." : csvDir;
+      File p = new File( path );
+      if ( !p.exists() ) {
+        boolean succ = p.mkdirs();
+        if ( !succ ) path = ".";
+      }
+      String pathAndFile = path + File.separator + fileName;
+
+      // write to file
+      String dateFormat = "yyyy-DDD'T'HH:mm:ss.SSSZ";// TimeUtils.aspenTeeFormat;
+      Calendar cal = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
+      tv.toCsvFile( pathAndFile, "Data Timestamp,Data Value", dateFormat, cal );
+    }
+  }
+  
+  protected List< Object >
+            getCsvFileName( java.util.Map.Entry< String, Object > entry,
+                            boolean areCategoriesUnique,
+                            Set< String > fileNames, int ct ) {
+    Object o = entry.getValue();
+    // unwrap the timeline if stuffed in a parameter
+    String name = getVariableName( o );
+    if ( Utils.isNullOrEmpty( name )
+         || ( !( o instanceof Parameter ) && !( o instanceof HasOwner ) ) ) {
+      name = entry.getKey();
+    }
+    if ( o instanceof Parameter ) {
+      o = ( (Parameter< ? >)o ).getValueNoPropagate();
+    }
+    String fileName = null;
+    TimeVaryingMap< ? > tv = null;
+    if ( o instanceof TimeVaryingMap ) {
+      tv = (TimeVaryingMap< ? >)o;
+
+      // get the name if not already gotten from the parameter
+      boolean gotName = !Utils.isNullOrEmpty( name );
+      if ( !gotName ) {
+        name = tv.getName();
+        gotName = !Utils.isNullOrEmpty( name );
+      }
+
+      // use the category if unique
+      String cat = categories.get( o );
+      boolean gotCat = false;
+      if ( areCategoriesUnique && gotCat ) {
+        fileName = cat + ".csv";
+      } else {
+        // if the categories are not unique, use the timeline name appended to
+        // the category.
+        if ( gotName ) fileName = name + ".csv";
+        if ( !gotName || fileNames.contains( fileName ) ) {
+          fileName =
+              ( gotCat ? cat + "_" : "" ) + ( gotName ? name : "" ) + ".csv";
+        }
+        if ( !gotCat && !gotName ) {
+          fileName = "TL_" + o.hashCode() + ".csv";
+        }
+      }
+      // If the file name is somehow not unique, number it.
+      if ( fileNames.contains( fileName ) ) {
+        String suffix =
+            "_" + ( ( o instanceof HasId ) ? ( (HasId< ? >)o ).getId()
+                                           : String.format( "%03d", ct++ ) );
+        fileName = fileName.replaceFirst( ".csv$", suffix + ".csv" );
+        // If the file name is still somehow not unique, throw an error, give
+        // up, and move on to the next.
+        if ( fileNames.contains( fileName ) ) {
+          Debug.error( true, false,
+                       "Duplicate output timeline csv file name! " + fileName );
+          fileName = null;
+          // continue;
+        }
+      }
+      // remember the name
+      if ( fileName != null ) fileNames.add( fileName );
+    }
+    return Utils.newList( (Object)fileName, tv, ct );
+  }
+
   // Returns whether the event was added properly. If the event was not added or
   // its start or stop were already added, the function returns false.
   public boolean add( Event event ) {
@@ -184,6 +369,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       return false;
     }
     
+    events.add( event );
+    
     boolean ungroundedTiming =
         ( event.getStartTime() == null
           || event.getStartTime().getValueNoPropagate() == null
@@ -193,8 +380,8 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //    }
 
     // Get start and end times if they exist.
-    Integer startTime = event.getStartTime().getValueOrMin();
-    Integer endTime = event.getEndTime().getValueOrMax();
+    Long startTime = event.getStartTime().getValueOrMin();
+    Long endTime = event.getEndTime().getValueOrMax();
     if ( startTime == null || endTime == null ) {
       if ( Debug.isOn() ) {
         Debug.outln( "Warning: can't add event with no time information: "
@@ -228,7 +415,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Assert.fail("Trying to add null event to simulation.");
       return false;
     }
-    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation: " + tv.getName() );
+    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation category " + category + ": " + tv.getName() );
     
     categories.put( tv, category );
     
@@ -240,10 +427,11 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     boolean existingEntry = false;
 //    Object lastValue = null;
 //    boolean first = true;
-    for ( Map.Entry< Parameter<Integer>, V > e : tv.entrySet() ) {
+    for ( Map.Entry< Parameter< Long>, V > e : tv.entrySet() ) {
       if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
-        System.err.println( "Warning: adding time varying map entry with null time key "
-                            + " to simulation " + e );
+        System.err.println( "Warning: adding entry, " + e
+                            + ", of time varying map, " + tv.getName()
+                            + ", with null time key to simulation!" );
         continue;
       }
 //      if ( first ) first = false;
@@ -258,12 +446,50 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     if ( currentPlottableValues != null && !tv.isEmpty() && 
          tv instanceof Plottable ) {
 //        ( tv.firstEntry().getValue() instanceof Double ||
-//            tv.firstEntry().getValue() instanceof Integer ) ) {
+//            tv.firstEntry().getValue() instanceof Long ) ) {
       currentPlottableValues.put( tv,  tv.firstEntry().getValue() );
     }
     return !existingEntry;
   }
   
+  public < V > boolean add( Parameter< TimeVaryingMap< V > > tv, String category ) {
+    if ( tv == null ) {
+      Assert.fail("Trying to add null event to simulation.");
+      return false;
+    }
+    TimeVaryingMap<V> tvm = tv.getValueNoPropagate();
+    if ( tvm == null ) { 
+      Assert.fail("Trying to add null event to simulation.");
+      return false;
+    }
+    if ( Debug.isOn() ) Debug.outln( "Adding TimeVaryingMap to simulation category " + category + ": " + tv.getName() );
+    
+    categories.put( tv, category );
+    
+    if ( isProjectedPlottable( tvm ) ) {
+      boolean alreadyAdded = projections.add((Plottable)tvm);
+      return alreadyAdded;
+    }
+    
+    boolean existingEntry = false;
+    for ( Map.Entry< Parameter< Long>, V > e : tvm.entrySet() ) {
+      if ( e.getKey() == null || e.getKey().getValueNoPropagate() == null ) {
+        System.err.println( "Warning: adding time varying map entry with null time key "
+                            + " to simulation " + e );
+        continue;
+      }
+      if ( !put( e.getKey().getValueNoPropagate(), tv, e.getValue() ) ) {
+        existingEntry = true;
+      }
+    }
+    if ( currentPlottableValues != null && !tvm.isEmpty() && 
+         tvm instanceof Plottable ) {
+      currentPlottableValues.put( tv,  tvm.firstEntry().getValue() );
+    }
+    return !existingEntry;
+  }
+  
+
   public void add( Executor exec ) {
     executors.add( exec );
   }
@@ -281,13 +507,19 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   }
   
   public void simulate( double scale, java.io.OutputStream os ) {
+    if ( writingTimelinesToFile) {
+      writeEvents();
+      writeTimelines();
+    }
+    
+    
     this.timeScale = scale;
     PrintWriter w = new PrintWriter( os, true );
     //long startClock = -1;
-    int lastT = -1;
+    long lastT = -1;
     SimulatedTime simTimer = new SimulatedTime( timeScale );
     double lastSampleSimTime = Timepoint.getEpochTimepoint().getValue(false) - 1.0;
-    double nextSampleSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Integer.MAX_VALUE;
+    double nextSampleSimTime = (tryToPlot && usingSamplePeriod)  ? simTimer.simStart : Long.MAX_VALUE;
     
     if ( tryToPlot ) {
       //Debug.turnOn();
@@ -296,29 +528,35 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     }
     boolean firstLoop = true;
     w.println("--- simulation start, timeScale = " + timeScale + " ---");
-    for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e1 : entrySet() ) {
+    boolean doneOnce = false;
+    for ( Map.Entry< Long, Set< Pair< Object, Object > > > e1 : entrySet() ) {
+      long nextEventSimTime = e1.getKey();
       for ( Pair< Object, Object > p : e1.getValue() ) {//.entrySet() ) {
         
         // Delay between events
-        int nextEventSimTime = e1.getKey();
         if (firstLoop) {
           firstLoop = false;
           simTimer.reset();
         } else {
           try {
             while ( true ) {
-              int simTimeToSleepUntil =
-                  (int)Math.min( nextEventSimTime, nextSampleSimTime );
+              long simTimeToSleepUntil =
+                  (long)Math.min( nextEventSimTime, nextSampleSimTime );
+              if (Debug.isOn()) Debug.out("nextEventSimTime="+ nextEventSimTime);
+              if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
+              if (Debug.isOn()) Debug.out("simTimeToSleepUntil="+ simTimeToSleepUntil);
               simTimer.sleepUntilSimTime( simTimeToSleepUntil );
-              int simTime = simTimer.getSimTimePassed();
+              long simTime = simTimer.getSimTimePassed();
+              if (Debug.isOn()) Debug.out("simTime="+ simTime);
+              
               // Update the plot based on the sample period.
-              boolean doneOnce = false;
-              while ( tryToPlot && (!doneOnce || usingSamplePeriod
+              while ( tryToPlot && (!doneOnce || ( usingSamplePeriod
                       && nextSampleSimTime <= simTime
                       && nextSampleSimTime <= nextEventSimTime
-                      && (!simulatingHorizon || nextSampleSimTime <= Timepoint.getHorizonDuration())) 
+                      && (!simulatingHorizon || nextSampleSimTime <= Timepoint.getHorizonDuration()))) 
                       //&& nextPlotSimTime <= 500.0
-                      ) {
+                    ) {
+                if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
                 doneOnce = true;
                 plotValues( lastSampleSimTime, nextSampleSimTime );
                 lastSampleSimTime = nextSampleSimTime;
@@ -327,10 +565,12 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
                 assert this.plotSamplePeriod > 0.0;
                 nextSampleSimTime += this.plotSamplePeriod;
               }
-              if ( nextEventSimTime <= simTime) break;
-              if ( simulatingHorizon && simTimer.passedHorizon() ) {
-                break;
-              }
+              
+              if ( nextSampleSimTime > nextEventSimTime ) break;
+//              if ( nextEventSimTime <= simTime) break;
+//              if ( simulatingHorizon && simTimer.passedHorizon() ) {
+//                break;
+//              }
             }
           } catch ( InterruptedException e ) {
             System.err.println("Simulation sleep interrupted unexpectedly.");
@@ -338,21 +578,22 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         }
         
         // the event & value(s)
-        int t = e1.getKey().intValue();
+        if ( simulatingHorizon && nextEventSimTime >= Timepoint.getHorizonDuration() ) break;
+        long t = e1.getKey().longValue();
         Object variable = p.first; //e2.getKey();
         Object value = p.second; //e2.getValue();
         Object originalValue = value; //e2.getValue();
         // the names of the event
-        String name;
+        String name = null;
         String longClassName = variable.getClass().getName();
         String shortClassName = variable.getClass().getSimpleName();
         String classNames = shortClassName + " ==> " + longClassName;
-        if ( variable instanceof ParameterListener ) {
-          name = ((ParameterListener)variable).getName();
-        } else {
-          name = variable.getClass().getSimpleName();
+        name = getVariableName( variable );
+        String nameAndId = name;
+        if ( variable instanceof HasId ) {
+          nameAndId = name + "@" + ((HasId<?>)variable).getId();
         }
-        
+
         // get String for Double
         if ( value instanceof Double ) {
           value = String.format( "%.2f", value );
@@ -389,7 +630,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         if ( t == lastT ) {
           String padding = Utils.spaces( 47 );
           formatString = "%s%-60s   %s\n";
-          w.printf( formatString, padding, name + " -> " +
+          w.printf( formatString, padding, nameAndId + " -> " +
                     ( value == null ? "null" : value.toString() ), classNames );
         } else {
           if ( tryToPlot && !usingSamplePeriod ) {
@@ -402,17 +643,58 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           w.printf( formatString,
                     ( new Duration( t, null ) ).toStringWithUnits( false, false ),
                     Timepoint.toTimestamp( t ),
-                    name + " -> " + ( value == null ? "null" : value.toString() ),
+                    nameAndId + " -> " + ( value == null ? "null" : value.toString() ),
                     classNames );
         }
         lastT = t;
-        if ( simulatingHorizon && simTimer.passedHorizon() ) break;
+        //if ( simulatingHorizon && simTimer.passedHorizon() ) break;
       }
-      if ( simulatingHorizon && simTimer.passedHorizon() ) break;
+      if ( simulatingHorizon && e1.getKey() >= Timepoint.getHorizonDuration() ) break;
+      //if ( simulatingHorizon && simTimer.passedHorizon() ) break;
+    }
+    if ( simTimer.passedHorizon() ) {
+      Debug.outln( "Passed horizon: getSimTimePassed()="
+                   + simTimer.getSimTimePassed()
+                   + " > Timepoint.getHorizonDuration()="
+                   + Timepoint.getHorizonDuration() );
     }
     w.println("--- simulation end ---");
     closePlotSocket();
     joinIoThreads();
+  }
+
+  protected String getVariableName( Object variable ) {
+    String name = null;
+    Parameter<?> parameter = null;
+    Object owner = null;
+    if ( variable instanceof HasOwner ) {
+      owner = ((HasOwner)variable).getOwner();
+    }
+    if ( variable instanceof Parameter ) {
+      parameter = (Parameter<?>)variable;
+    } else if ( owner instanceof Parameter ) {
+      parameter = (Parameter<?>)owner;
+    }
+    if ( owner != null ) {
+      if ( parameter != null && !Utils.isNullOrEmpty( parameter.getName() ) ) {
+        if ( showQualifiedName ) {
+          name = parameter.getQualifiedName( null );
+        } else {
+          name = parameter.getName();
+        }
+      } else {
+        if ( showQualifiedName ) {
+          name = ((HasOwner)variable).getQualifiedName( null );
+        }
+      }
+    }
+    if ( Utils.isNullOrEmpty( name ) && variable instanceof HasName ) {
+      name = "" + ((HasName<?>)variable).getName();
+    }
+    if ( Utils.isNullOrEmpty( name ) ) {
+      name = variable.getClass().getSimpleName();
+    }
+    return name;
   }
 
   protected void getPlotProcessOutput() {
@@ -603,7 +885,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         for ( java.util.Map.Entry< Object, Object > e : currentPlottableValues.entrySet() ) {
           Object o = e.getKey();
           String nn = "?";
-          if (o instanceof TimeVaryingMap) {
+          if (o instanceof Parameter) {
+            nn = ((Parameter<?>)o).getName();
+            o = ((Parameter<?>)o).getValueNoPropagate();
+          } else if (o instanceof TimeVaryingMap) {
             nn = ((TimeVaryingMap<?>)o).getName();
           } else {
             nn = "..." + o.toString().split( "@" )[0];
@@ -650,10 +935,16 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
    * @return whether {@code o} is a projection of data (for visualization purposes)
    */
   protected boolean isProjectedPlottable( Object o ) {
-    return (!(o instanceof gov.nasa.jpl.ae.fuml.ObjectFlow)) && 
-           ( o instanceof Plottable && ( (Plottable)o ).isProjection()  ); //||
+    if ( (!(o instanceof gov.nasa.jpl.ae.fuml.ObjectFlow)) && 
+             ( o instanceof Plottable && ( (Plottable)o ).isProjection() ) ) {//||
            //( o instanceof TimeVaryingMap && !( (TimeVaryingMap<?>)o ).isEmpty() &&
            // ( (TimeVaryingMap<?>)o ).firstEntry().getValue() instanceof TimeVarying ));
+      return true;
+    }
+    if ( o instanceof Parameter ) {
+      return isProjectedPlottable( ( (Parameter<?>)o ).getValueNoPropagate() );
+    }
+    return false;
   }
 
   public void plotProjectionsThatChangeAtTime( double time ) {
@@ -663,10 +954,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     for ( Plottable plottable : projections ) {
       if ( plottable instanceof TimeVaryingMap ) {
         TimeVaryingMap< ? > map = (TimeVaryingMap< ? >)plottable;
-        NavigableMap< Parameter< Integer >, ? > m = map.subMap( (int)lastTime, false, (int)time, true );
-        //if ( map.contains( (int)time ) ) {
+        NavigableMap< Parameter< Long >, ? > m = map.subMap( (long)lastTime, false, (long)time, true );
+        //if ( map.contains( (long)time ) ) {
         if ( !m.isEmpty() ) {
-          plotProjection( map, (int)time );
+          plotProjection( map, (long)time );
         }
       }
     }
@@ -682,10 +973,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 
   protected void plotProjection( TimeVaryingMap< ? > plottable ) {
     // TODO Auto-generated method stub
-    plotProjection( plottable, 0 );
+    plotProjection( plottable, 0L );
   }
 
-  public void plotProjection( TimeVaryingMap< ? > map, Integer t) {
+  public void plotProjection( TimeVaryingMap< ? > map, Long t) {
     if ( map == null || plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
@@ -697,10 +988,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       plotSocket.send( map.getName() );
       plotSocket.send( getCategory( map ) );
       //doubleVector.add( new Double(map.hashCode()) );
-      int lastTime = Integer.MIN_VALUE;
+      long lastTime = Long.MIN_VALUE;
       if ( !map.isEmpty() &&
            TimeVarying.class.isAssignableFrom( map.getType() ) ) {
-        TimeVarying<?> tv = (TimeVarying< ? >)map.getValue( t );
+        TimeVarying<?,?> tv = (TimeVarying< ?, ? >)map.getValue( t );
         if ( tv != null && tv instanceof TimeVaryingMap ) {
           map = (TimeVaryingMap< ? >)tv;
         } else {
@@ -712,10 +1003,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
         throw new IllegalArgumentException( "Projection to plot is null or empty " + map );
       }
       if ( Debug.isOn() ) Debug.outln( "plotting projection: " + map );
-      for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
-        Integer timeInteger = e.getKey().getValue();
+      for ( Map.Entry< Parameter< Long >, ? > e : map.entrySet() ) {
+        Long timeInteger = e.getKey().getValue();
         if ( timeInteger <= lastTime ) continue;
-        lastTime = timeInteger.intValue();
+        lastTime = timeInteger.longValue();
         Double time =
             Timepoint.conversionFactor( this.plotAxisTimeUnits )
                 * timeInteger.doubleValue();
@@ -735,7 +1026,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           // TODO Auto-generated catch block
           //e1.printStackTrace();
         }
-        assert v instanceof Double || v instanceof Integer || v instanceof Float
+        assert v instanceof Double || v instanceof Integer || v instanceof Long ||v instanceof Float
                || v instanceof Parameter;
         while ( v instanceof Parameter ) {
           v = ( (Parameter< ? >)v ).getValue( false );
@@ -812,10 +1103,13 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       Object o = e.getKey();
       Object v = e.getValue();
       // TODO -- Support different sampling periods for different Plottables.
+      if ( o instanceof Parameter ) {
+        o = ((Parameter<?>)o).getValueNoPropagate();
+      }
       if ( this.usingSamplePeriod && o instanceof TimeVarying && o instanceof Plottable ) {
         if( ((Plottable)o).okToSample() ) {
           try {
-            v = Expression.evaluate( ((TimeVarying<?>)o).getValue( (int)time ), null, false );
+            v = Expression.evaluate( ((TimeVarying< Long,?>)o).getValue( (Long)((Double)time).longValue() ), null, false );
           } catch ( ClassCastException e1 ) {
             // TODO Auto-generated catch block
             //e1.printStackTrace();
@@ -832,18 +1126,14 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
           if ( Debug.isOn() ) Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }
-      assert v == null || v instanceof Double || v instanceof Integer|| v instanceof Float
+      assert v == null || v instanceof Double || v instanceof Integer || v instanceof Long || v instanceof Float
               || v instanceof Boolean || v instanceof Parameter;
       while ( v instanceof Parameter ) {
         v = ( (Parameter<?>)v ).getValue(false);
       }
-      if ( v instanceof Integer ) {
-        v = ( (Integer)v ).doubleValue();
-      }
-      if ( v instanceof Float ) {
-          v = ( (Float)v ).doubleValue();
-      }
-      if ( v instanceof Boolean ) {
+      if ( v instanceof Number ) {
+        v = ( (Number)v ).doubleValue();
+      } else if ( v instanceof Boolean ) {
         v = ( (Boolean)v ) ? 1.0 : 0.0;
       }
       if ( v == null ) v = 0.0;
@@ -890,21 +1180,21 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   /**
    * @param comparator
    */
-  public EventSimulation( Comparator< ? super Integer > comparator ) {
+  public EventSimulation( Comparator< ? super Long > comparator ) {
     super( comparator );
     if ( simulatingHorizon ) addHorizonEvent();
   }
 
   private void addHorizonEvent() {
     DurativeEvent event = new DurativeEvent( "horizon" );
-    event.startTime.setValue( 0 );
+    event.startTime.setValue( 0L );
     event.duration.setValue( Timepoint.getHorizonDuration() );
     add( event );
   }
 
   public int numEvents() {
     int sum = 0;
-    for ( Map.Entry< Integer, Set< Pair< Object, Object > > > e : entrySet() ) {
+    for ( Map.Entry< Long, Set< Pair< Object, Object > > > e : entrySet() ) {
       if ( e.getValue() != null ) sum += e.getValue().size();
     }
     return sum;
@@ -913,7 +1203,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //  /**
 //   * @param m
 //   */
-//  public EventSimulation( Map< ? extends Integer, ? extends Map< Object, Object > > m ) {
+//  public EventSimulation( Map< ? extends Long, ? extends Map< Object, Object > > m ) {
 //    super( m );
 //    // TODO Auto-generated constructor stub
 //  }
@@ -921,7 +1211,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
 //  /**
 //   * @param m
 //   */
-//  public EventSimulation( SortedMap< Integer, ? extends Map< Object, Object > > m ) {
+//  public EventSimulation( SortedMap< Long, ? extends Map< Object, Object > > m ) {
 //    super( m );
 //    // TODO Auto-generated constructor stub
 //  }

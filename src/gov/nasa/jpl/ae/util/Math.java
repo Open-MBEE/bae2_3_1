@@ -169,7 +169,7 @@ public class Math {
       long ad1 = java.lang.Math.abs( rd1 );
       long ad2 = java.lang.Math.abs( rd2 ); //if they're the same sign, take abs...
       if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Long.MAX_VALUE / ad1 <= ad2 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
+        if ( Long.MAX_VALUE / ad1 <= ad2 && Long.MAX_VALUE / ad2 <= ad1 ) result = Long.MAX_VALUE * ( signsEqual? 1 : -1);
         else result = rd1 * rd2;
       }
       else  result = rd1 * rd2;
@@ -183,10 +183,27 @@ public class Math {
       int ad1 = java.lang.Math.abs( rd1 );
       int ad2 = java.lang.Math.abs( rd2 ); //if they're the same sign, take abs...
       if ( rd1 != 0 && rd2 != 0){ //REVIEW - zeroes?
-        if ( Integer.MAX_VALUE / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
+        if ( ((double)Integer.MAX_VALUE) / ad1 <= ad2 ) result = Integer.MAX_VALUE * ( signsEqual? 1 : -1);
         else result = rd1 * rd2;
       }
       else  result = rd1 * rd2;
       return result;
+    }
+    
+    public static int compare( double rd1, double rd2 ) {
+      double diff = minus( rd2, rd1 );
+      // See if they are close enough.
+      if ( java.lang.Math.abs(diff) < java.lang.Math.abs(rd1) * 1.0e-14 ) {
+        return 0;
+      }
+      return ((Double)rd1).compareTo(rd2);
+    }
+    public static int compare( float rd1, float rd2 ) {
+      double diff = minus( rd2, rd1 );
+      // See if they are close enough.
+      if ( java.lang.Math.abs(diff) < java.lang.Math.abs(rd1) * 1.0e-5 ) {
+        return 0;
+      }
+      return ((Float)rd1).compareTo(rd2);
     }
 }

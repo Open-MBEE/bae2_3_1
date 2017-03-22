@@ -9,10 +9,10 @@ public class SimulatedTime {
     public double simToActualConversionFactor = 1.0;
     public long actualStartMillis = -1;
     public long systemMillis;
-    public int simStart = 0;
+    public long simStart = 0;
     public long actualMillisPassed = 0;
     public long actualDelta = 0;
-    public int simTimePassed = 0;
+    public long simTimePassed = 0;
     public double simDelta = 0;
     public TimeUtils.Units units = Timepoint.getUnits();
     
@@ -48,14 +48,16 @@ public class SimulatedTime {
       systemMillis = tmp;
       actualMillisPassed += actualDelta;
       simDelta  = actualDelta / simToActualConversionFactor;
+//      if (Debug.isOn()) Debug.out("simDelta = actualDelta("+actualDelta+") / simToActualConversionFactor("+simToActualConversionFactor+")=" + simDelta);
       simTimePassed += simDelta;
+//      if (Debug.isOn()) Debug.out("simTimePassed = "+simTimePassed);
 ////  if ( Debug.isOn() ) Debug.outln("timePassed = " + timePassed );
 ////  if ( Debug.isOn() ) Debug.outln("nextEventTime = " + nextEventTime );
 ////  if ( Debug.isOn() ) Debug.outln("nextEventTimeScaled = " + nextEventTimeScaled );
 ////  if ( Debug.isOn() ) Debug.outln("waitMillis = " + waitMillis );
     }
     
-    public void sleepUntilSimTime( int simTime ) throws InterruptedException {
+    public void sleepUntilSimTime( long simTime ) throws InterruptedException {
       if ( simTime <= 0 ) return;
       updateTime();
       long actualMillisToSleep = convertSimToActualTimePassed( simTime ) - actualMillisPassed;
@@ -80,7 +82,7 @@ public class SimulatedTime {
       simToActualConversionFactor = Timepoint.conversionFactor( TimeUtils.Units.milliseconds ) / timeScale;
     }
 
-    public long convertSimToActualDuration( int simDuration ) {
+    public long convertSimToActualDuration( long simDuration ) {
       return (long)( simDuration * simToActualConversionFactor );
     }
 
@@ -94,16 +96,16 @@ public class SimulatedTime {
      * @param simTime
      * @return
      */
-    public long convertSimToActualTimePassed( int simTime ) {
+    public long convertSimToActualTimePassed( long simTime ) {
       // NOTE: No need to call update() here.
       if ( simTime < simStart + simTimePassed ) {
 //        Debug.errln("Warning: If time scale changed, past sim time may be incorrectly translated to actual.");
       }
-      int simDeltaToFutureTime = simTime - ( simStart + simTimePassed );
+      long simDeltaToFutureTime = simTime - ( simStart + simTimePassed );
       return actualMillisPassed + convertSimToActualDuration( simDeltaToFutureTime );
     }
 
-    public int getSimTimePassed() {
+    public long getSimTimePassed() {
       updateTime();
       return simTimePassed;
     }

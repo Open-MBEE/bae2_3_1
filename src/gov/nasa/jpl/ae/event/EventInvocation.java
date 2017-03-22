@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
@@ -34,6 +35,8 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   protected Constructor< ? extends Event > constructor = null;
   //protected Class< ? >[] constructorParameterTypes = null;
   protected Parameter< ? > enclosingInstance = null;
+  protected Expression< TimeVaryingMap< ? > > fromTimeVarying = null;
+  protected boolean stale = false;
 
   public EventInvocation( Class< ? extends Event > eventClass,
                           String eventName,
@@ -49,22 +52,30 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
                                             //Constructor< T > constructor,
                                             Parameter< ? > enclosingInstance,
                                             Object[] arguments,
+                                            Expression< TimeVaryingMap<?> > fromTimeVarying,
                                             Map< String, Object > memberAssignments ) {
     this.eventClass = eventClass;
     this.eventName = eventName;
     this.enclosingInstance  = enclosingInstance;
     this.arguments = arguments;
+    this.fromTimeVarying  = fromTimeVarying;
     this.memberAssignments = memberAssignments;
     this.constructor = null;
     //this.constructorParameterTypes  = constructorParameterTypes;
     //this.constructor = constructor;
   }
 
+  boolean simpleDeconstruct = true;
+  protected Event event = null;
+  
   @Override
   public void deconstruct() {
     this.eventClass = null;
     this.eventName = null;
     this.enclosingInstance  = null;
+    this.fromTimeVarying = null;
+    
+    if (!simpleDeconstruct) {
     if ( this.arguments != null ) {
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
@@ -77,6 +88,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
       }
       //arguments = null;
     }
+    }
     if ( memberAssignments != null ) {
       this.memberAssignments.clear();
       //memberAssignments = null;
@@ -85,17 +97,62 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   
   public Event invoke() {
     if ( Debug.isOn() ) Debug.outln( "invoke(): " + this );
-    Event event = constructEvent();
+    if ( fromTimeVarying == null ) {
+      this.event = invoke(null, null);
+      return event;
+    }
+    TimeVaryingMap< ? > tvm = null;
+    //try {
+      tvm = Functions.getTimeline( fromTimeVarying );
+//    } catch ( IllegalAccessException e ) {
+//      e.printStackTrace();
+//    } catch ( InvocationTargetException e ) {
+//      e.printStackTrace();
+//    } catch ( InstantiationException e ) {
+//      e.printStackTrace();
+//    }
+    if ( tvm == null ) return null;
+    Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
+    DurativeEvent parent = new DurativeEvent(eventName, tvm, enclosingInstance, eventClass, exprArguments );
+    parent.addDependency( parent.startTime,  new Expression< Long>(0) );
+    parent.addDependency( parent.duration,  new Expression< Long>(1) );
+    parent.elaborate( false );
+    setStale( false );
+    this.event = parent;
+    return event;
+  }
+  
+  public boolean repairFromTimeVarying(DurativeEvent parent, Expression<Boolean> condition) {
+    if ( fromTimeVarying == null ) return false;
+    if ( parent == null ) return false;
+    if ( getDurativeEvent() == null ) {
+      Debug.error(false, "repairFromTimeVarying(): getDurativeEvent() is null!" );
+      return false;
+    }
+    TimeVaryingMap< ? > tvm = Functions.getTimeline( fromTimeVarying );
+    Expression<?>[] exprArguments = Utils.toArrayOfType( arguments, Expression.class );
+    boolean changed = getDurativeEvent().repairElaborationFromTimeVarying( tvm, enclosingInstance, eventClass, exprArguments, condition );//( tvm, eventClass, exprArguments );
+    return changed;
+  }
+
+  
+  public Event invoke(Parameter< Long> start, Parameter< Long> end) {
+    Event event = constructEvent(start, end);
     
     if ( event != null ) {
       event.setName( eventName );
       assignMembers( event );
     }
 
+    setStale( false );
     return event;
   }
 
   private Event constructEvent() {
+    return constructEvent(null, null);
+    
+  }
+  private Event constructEvent(Parameter< Long> start, Parameter< Long> end) {
     Event event = null;
     Pair< Constructor< ? >, Object[] > ctorAndArgs =
         // makeConstructor();
@@ -106,6 +163,13 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( ctorAndArgs == null || constructor == null ) {
         try {
           event = eventClass.newInstance();
+          if ( start != null ) {
+            // REVIEW -- Should this be a dependency instead?
+            event.getStartTime().setValue(start.getValue());
+          }
+          if ( end != null ) {
+            event.getEndTime().setValue(end.getValue());
+          }
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -332,6 +396,20 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     this.constructor = constructor;
   }  
 
+  public DurativeEvent getDurativeEvent() {
+    if ( event instanceof DurativeEvent ) return (DurativeEvent)event;
+    return null;
+  }
+
+  public Event getEvent() {
+    return event;
+  }
+
+  public void setEvent( Event event ) {
+    this.event  = event;
+  }
+
+  
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
                                               Set< HasParameters > seen ) {
@@ -339,7 +417,26 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    return HasParameters.Helper.getParameters( getArguments(), deep, seen );
+    Set< Parameter< ? > > params = 
+        HasParameters.Helper.getParameters( getArguments(), deep, seen );
+    if ( fromTimeVarying != null ) {
+      if ( fromTimeVarying.form == Form.Parameter ) {
+        params.add( (Parameter< ? >)fromTimeVarying.expression );
+      } else {
+        Object v = null;
+        try {
+          v = Expression.evaluate( fromTimeVarying, Parameter.class, false );
+        } catch ( ClassCastException e ) {
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+        if ( v instanceof Parameter ) {
+          params.add( (Parameter< ? >)v );
+        }
+      } 
+    }
+    return params;
   }
 
   @Override
@@ -379,21 +476,42 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     return HasParameters.Helper.substitute( getArguments(), p1, p2, deep, seen );
   }
 
-  @Override
-  public boolean isStale() {
-    return HasParameters.Helper.isStale( getArguments(), false, null );
+  public boolean isStaleNoPropagate() {
+    return stale;
   }
 
   @Override
+  public boolean isStale() {
+    if ( stale ) return true;
+//    if ( HasParameters.Helper.isStale( getArguments(), false, null ) ) {
+//      setStale( true );
+//    }
+    if ( !stale && isTimeVaryingStale() ) {
+      setStale( true );
+    }
+    return stale;
+  }
+  
+  public boolean isTimeVaryingStale() {
+    boolean s = fromTimeVarying != null && fromTimeVarying.isStale();
+    return s;
+  }
+
+
+
+  @Override
   public void setStale( boolean staleness ) {
-    // TODO -- REVIEW -- Need anything here?
-    assert false;
+    if ( !stale && staleness ) {
+      System.out.println( "event invocation stale: " + this );
+    }
+    stale = staleness;
   }
 
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set< HasParameters > seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override
@@ -420,6 +538,54 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
     return 0;
+  }
+
+  public boolean setStaleAnyReferenceTo( Parameter< ? > p, Set< HasParameters > seen ) {
+    if ( p == null ) return false;
+    //if ( p != null ) return false; // short circuiting
+    if ( fromTimeVarying == null ) return false;
+
+    Pair< Boolean, Set< HasParameters > > sp = Utils.seen( this, true, seen );
+    if (sp.first) return false;
+    seen = sp.second;
+//    Set<Parameter<?> > params = getParameters( false, null );
+//    if ( params.contains( p ) ) {
+//      setStale( true );
+//      return true;
+//    }
+    // Sometimes the effect?Var has a timeline that matches the input parameter.
+    TimeVaryingMap< ? > tvm1 = Functions.tryToGetTimelineQuick( fromTimeVarying );
+    if ( tvm1 == null ) {
+      try {
+        tvm1 = Expression.evaluate( fromTimeVarying, TimeVaryingMap.class, true );
+      } catch ( ClassCastException e ) {
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        e.printStackTrace();
+      }
+    }
+    TimeVaryingMap< ? > tvm2 = Functions.tryToGetTimelineQuick( p );
+    if ( tvm1 == tvm2 ) {
+      setStale(true);
+      return true;
+    }
+//    if ( p.getValueNoPropagate() instanceof TimeVaryingMap ) {
+//      TimeVaryingMap<?> tvm = (TimeVaryingMap< ? >)p.getValueNoPropagate();
+//      TimeVaryingMap<?> tvm2 = Functions.tryToGetTimelineQuick( o );
+//      for ( Parameter<?> pp : params ) {
+//        Object o = pp.getValueNoPropagate();
+//        TimeVaryingMap<?> tvm2 = Functions.tryToGetTimelineQuick( o ); 
+//        if ( tvm.equals( tvm2 ) ) {
+//          setStale(true);
+//          return true;
+//        }
+//      }
+//    }
+    return false;
   }
 
 }

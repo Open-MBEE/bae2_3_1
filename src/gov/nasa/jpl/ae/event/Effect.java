@@ -12,8 +12,8 @@ public interface Effect {
 //		throw new UnsupportedOperationException();
 //	}
 //	public abstract TimeVarying<?> applyTo(TimeVarying<?> tv, Timepoint t, Duration d);
-	public < T > TimeVarying< T > applyTo( TimeVarying< T > tv, boolean propagate );//, Timepoint t, Duration d );
-  public < T > TimeVarying< T > unApplyTo( TimeVarying< T > tv );//, Timepoint t, Duration d );
+	public < T, V > TimeVarying< T, V > applyTo( TimeVarying< T, V > tv, boolean propagate );//, Timepoint t, Duration d );
+  public < T, V > TimeVarying< T, V > unApplyTo( TimeVarying< T, V > tv );//, Timepoint t, Duration d );
 	
 	public Effect clone() throws CloneNotSupportedException;
   public boolean isApplied( Parameter< ? > variable );

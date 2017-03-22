@@ -27,6 +27,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
@@ -36,7 +37,7 @@ import gov.nasa.jpl.mbee.util.Wraps;
  */
 public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                             Comparable< Parameter< ? > >, Satisfiable, Node,
-                            Variable< T >, LazyUpdate, HasConstraints,
+                            Variable< T >, LazyUpdate, HasConstraints, HasOwner,
                             MoreToString, Deconstructable {
   public static final Set< Parameter< ? > > emptySet =
       new TreeSet< Parameter< ? > >();
@@ -79,6 +80,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 //      domain = new SingleValueDomain< T >(v);
 //    }
     value = v;
+    setValueOwner(value);
     owner = o;
     stale = !isGrounded( true, null );
   }
@@ -91,6 +93,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( fc != null ) {
       try {
         value = (T)fc.evaluate( propagate );
+        setValueOwner(value);
       } catch ( IllegalAccessException e ) {
         // TODO Auto-generated catch block
         //e.printStackTrace();
@@ -113,6 +116,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public Parameter( Parameter< T > parameter ) {
     name = parameter.name;
     value = parameter.value;
+    setValueOwner(value);
     domain = parameter.domain;
     owner = parameter.owner;
     stale = !isGrounded( true, null );
@@ -176,6 +180,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     return false;
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.mbee.util.HasName#getName()
+   */
+  @Override
   public String getName() {
     return name;
   }
@@ -184,6 +192,24 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     this.name = name;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasOwner#getQualifiedName(java.util.Set)
+   */
+  @Override
+  public String getQualifiedName(java.util.Set<Object> seen) {
+    String n = HasOwner.Helper.getQualifiedName( this, seen );
+    return n;
+  };
+  
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.HasOwner#getQualifiedId(java.util.Set)
+   */
+  @Override
+  public String getQualifiedId(java.util.Set<Object> seen) {
+    String i = HasOwner.Helper.getQualifiedId( this, seen );
+    return i;
+  };
+  
   /**
    * @return the domain
    */
@@ -209,7 +235,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     this.domain = domain;
     if ( propagate && owner != null ) {
       //owner.setStaleAnyReferencesTo( this );
-      owner.handleDomainChangeEvent( this );
+      owner.handleDomainChangeEvent( this, null );
     }
   }
 
@@ -307,9 +333,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   // setValue( value, true ) is proactive updating
   protected void setValue( T val, boolean propagateChange ) {
     String valString = null;
+    //Debug.turnOn();
     if ( Debug.isOn() ) {
-      valString = MoreToString.Helper.toLongString( val );
-      Debug.outln( "Parameter.setValue(" + valString + ") start: " + this.toString( true, true, null ) );
+      valString = MoreToString.Helper.toShortString( val );
+      Debug.outln( "Parameter.setValue(" + valString + ") start: " + this.toString( true, false, null ) );
     }
     assert !propagateChange || mayPropagate;
     assert mayChange;
@@ -335,12 +362,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( val != null && owner != null ) {
       Object newVal = owner.translate(this, val, getType());
       if ( Debug.isOn() ) {
-        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
       }
       if ( newVal != null ) val = (T)newVal;
     } else {
       if ( Debug.isOn() ) {
-        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
+        //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
       }
     }
     boolean changing = !valueEquals( val );
@@ -351,34 +378,62 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): setStaleAnyReferencesTo("
                                          + this.toString( true, false, null ) + ")" );
+        setValueOwner(val);
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this, null );
+        if (val instanceof TimeVaryingMap && ((TimeVaryingMap)val).getOwner() instanceof Parameter && "dataRateAboveThreshold".equals(((Parameter)((TimeVaryingMap)val).getOwner()).getName())) {
+          //CompareUtils.XXXX = true;
+          CompareUtils.compare( value, val );
+          //CompareUtils.XXXX = false;
+        }
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
       }
       if ( Debug.isOn() ) {
-        if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
-            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
-            Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
-        }
+        //if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
+            //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+            //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        //}
       }
       if ( Debug.isOn() ) {
-        Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
+        //Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
+//      String vvv = null;
+//      if ( val instanceof HasId ) {
+//        vvv = "@" + ( (HasId)val ).getId();
+//      } else if ( ClassUtils.isPrimitive( val ) ) {
+//        vvv = "" + val;
+//      } else if ( val != null ) {
+//        vvv = "@" + val.hashCode();
+//      }
+//      System.out.println( "Parameter " + getName() + "@" + getId() + " setValue(" + vvv
+//                          + "): value set!" );
       constraintList.clear();
       if ( owner != null ) {// && propagateChange ) {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): handleValueChangeEvent("
                                          + this.toString( true, false, null ) + ")" );
-        owner.handleValueChangeEvent( this );
+        owner.handleValueChangeEvent( this, null );
       }
     }
     setStale( false );
-    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString + ") finish: " + this.toString( true, true, null ) );
+    if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString + ") finish: " + this.toString( true, false, null ) );
+    Debug.turnOff();
+  }
+
+  protected boolean setValueOwner( T val ) {
+    if ( val instanceof HasOwner ) {
+      HasOwner ho = (HasOwner)val;
+      if ( ho.getOwner() == null ) {
+        ho.setOwner(this);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -440,7 +495,12 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( domain == null ) {
       return null;
     }
-    T newValue = domain.pickRandomValue();
+    T newValue = null;
+    try {
+      newValue = (T)domain.pickRandomValue();
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    }
     String ownerStr = (owner == null) ? "?" : owner.getName(); 
     if ( Debug.isOn() ) Debug.outln( "Picking random value for " + ownerStr + "."
                         + this.name + " from " + this.domain + " --> "
@@ -476,7 +536,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
    */
   @Override
   public int compareTo( Parameter< ? > o ) {
-    return compareTo( o, true );
+    return compareTo( o, false );
   }
   public int compareTo( Parameter< ? > o, boolean checkId ) {
     if ( this == o ) return 0;
@@ -514,6 +574,9 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 //      }
 //      if ( compare != 0 ) return compare;
 //    }
+    compare = CompareUtils.compare( getValue(), o.getValue(), true );
+    if ( compare != 0 ) return compare;
+
     compare = CompareUtils.compare( name, o.name, true );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( getClass().getName(), o.getClass().getName(), true );
@@ -525,8 +588,6 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     compare = CompareUtils.compare( getOwner(), o.getOwner(), true );
     if ( compare != 0 ) return compare;
 //    Debug.errln("Parameter.compareTo() potentially accessing value information");
-    compare = CompareUtils.compare( getValue(), o.getValue(), true );
-    if ( compare != 0 ) return compare;
 //    compare = CompareUtils.compareTo( this, o, false );
 //    if ( compare != 0 ) return compare;
 
@@ -553,7 +614,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public boolean inDomain() {
     boolean inDom = false;
     try {
-      inDom = domain == null || domain.size() == 0
+      inDom = domain == null || domain.magnitude() == 0
               || ( value != null && domain.contains( value ) );
     } catch ( ClassCastException e ) {
       if ( Debug.isOn() ) Debug.errln( "Warning! Parameter value and domain types do not match! " + this );
@@ -573,7 +634,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     //if ( owner == null ) return false;
     boolean nullDomain = domain == null;
     if ( nullDomain ) return true;
-    boolean emptyDomain = domain.size() == 0;
+    boolean emptyDomain = domain.magnitude() == 0;
     if ( emptyDomain ) return true;
     boolean grounded = isGrounded(deep, null);
     boolean stale = isStale();
@@ -661,6 +722,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     if ( !deep ) {
       sb.append( value == null ? "null" : MoreToString.Helper.toShortString( value ) );
+      // TODO -- It seems like toShortString() should take a withHash argument.
+      // Maybe add an additional call to the interface for this.
+      if ( value != null && withHash && !ClassUtils.isPrimitive( value.getClass() ) ) {
+        sb.append("@" + value.hashCode());
+      }
     } else if ( isGrounded( false, null ) ) {
       T value = getValueNoPropagate();
       String valueString = null;
@@ -776,11 +842,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public void setStale( boolean staleness ) {
-    if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
-                                                  + toShortString() );
-    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
-    if ( name.contains( "effect65Var" ) ) {
-      Debug.out( "" );
+    if ( Debug.isOn() ) {
+      if ( stale != staleness ) Debug.outln( "setStale(" + staleness + "): "
+                                                    + toShortString() );
+      Debug.outln( "setStale(" + staleness + ") to " + this );
     }
     stale = staleness;
   }
@@ -892,6 +957,23 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   @Override
   public String getTypeNameForClassName( String className ) {
     return ClassUtils.parameterPartOfName( className, false );
+  }
+
+  @Override
+  public < TT > Pair<Domain<TT>, Boolean> restrictDomain( Domain< TT > domain,
+                                           boolean propagate,
+                                           Set< HasDomain > seen ) {
+    boolean changed = this.domain.restrictTo( domain );
+    return new Pair(this.domain, changed);
+  }
+
+  @Override
+  public void setOwner( Object owner ) {
+    if ( owner == null || owner instanceof ParameterListener ) {
+      setOwner((ParameterListener)owner);
+    } else {
+      Debug.error( "A Parameter's owner must be a ParameterListener!  Trying to set to " + owner );
+    }
   }
 
 }

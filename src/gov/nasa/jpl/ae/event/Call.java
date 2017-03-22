@@ -1,3 +1,4 @@
+
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Domain;
@@ -42,6 +43,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   /**
    * A function call on the result of this function call.
    */
+  protected Domain<?> domain = null;
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
   protected Class<?> returnType = null;
@@ -98,6 +100,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return getMember().getDeclaringClass();
   }
   
+  static boolean simpleDeconstruct = true;
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Deconstructable#deconstruct()
    */
@@ -112,6 +115,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //nestedCall = null;
     }
     if ( this.arguments != null ) {
+      if ( !simpleDeconstruct ) {
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
           ((Expression<?>)a).deconstruct();
@@ -120,6 +124,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
             ( (Parameter<?>)a ).deconstruct();
           }
         }
+      }
       }
       this.arguments.clear();
       //arguments = null;
@@ -610,7 +615,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Debug.error( true, "\nArgument " + result +
                          ( result == null ?
                            "" : " of type " + result.getClass().getCanonicalName() )
-                         + " is not an instance of " + c.getSimpleName() );
+                         + " is not an instance of " + c.getSimpleName() + " for call to " + this.getMember() );
     }
     return result;
   }
@@ -794,7 +799,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
+    if ( object instanceof Parameter ) set.add( (Parameter<?> )object );
+    if ( deep ) {
+      set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
+    }
     set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
     //if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
@@ -856,7 +864,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
     }
     if ( paramTypes.length > ecLength 
-         && ( arguments == null || arguments.size() - ecLength != paramTypes.length ) ) {
+         && ( arguments == null || (!isVarArgs() && arguments.size() - ecLength != paramTypes.length ) ) ) {
       
       return false;
     }
@@ -986,6 +994,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( object != null ) {
       if ( object instanceof DurativeEvent ) {
         sb.append( ((DurativeEvent)object).getName() + "." );
+      } else if ( object instanceof Class ) {
+          sb.append( ClassUtils.toString( (Class<?>)object ) + "." );
       } else {
         sb.append( object.toString() + "." );
       }
@@ -1011,7 +1021,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
 
   protected static boolean possiblyStale( Object obj ) {
-    if ( obj == null || obj instanceof TimeVarying ) return true;
+    //if ( obj == null || obj instanceof TimeVarying ) return true;
+    if ( obj == null ) return true;
     if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
     if ( obj instanceof Variable ) {
       Object v = ((Variable<?>)obj).getValue( false );
@@ -1064,7 +1075,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         return true;
       }
     }
-    if ( possiblyStale( returnValue ) ) return true;
+    if ( possiblyStale( returnValue ) )
+      return true;
     return false;
   }
 
@@ -1087,7 +1099,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set<HasParameters> seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    if ( parameter == null ) return false;
+    Object val = parameter.getValueNoPropagate();
+    Set< Parameter< ? > > parameters = getParameters( deep, seen );
+    if ( val instanceof HasOwner ) {
+      for ( Parameter<?> p : parameters ) {
+        if ( val.equals( p.getValueNoPropagate() ) ) {
+          return true;
+        }
+      }
+    }
+    boolean b = parameters.contains( parameter );
+    return b;
   }
 
   @Override
@@ -1238,16 +1261,30 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
   }
 
-  
+
+  abstract public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen );
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.HasDomain#getDomain(boolean, java.util.Set)
    */
   @Override
   public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-    // TODO Auto-generated method stub
-    return null;
+    if ( domain == null || isStale() ) {
+      domain = calculateDomain(propagate, seen);
+    }
+    return domain;
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasDomain#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
+   */
+  @Override
+  public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
+                                         Set< HasDomain > seen ) {
+    boolean changed = this.getDomain(propagate, seen).restrictTo(domain);
+    return new Pair<Domain<T>, Boolean>((Domain<T>)this.domain, changed);
+  }
+
   // The following code was re-factored from MethodCall:
   /**
    * @param objects
@@ -1544,27 +1581,31 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).handleValueChangeEvent( parameter );
+        ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
       }
     }
     if ( object instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
     }
     if ( evaluatedArguments != null ) {
       for ( Object o : evaluatedArguments ) {
         if ( o instanceof ParameterListener ) {
-          ((ParameterListener)o).handleValueChangeEvent( parameter );
+          ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
         }
       }
     }
     if ( returnValue instanceof ParameterListener ) {
-      ((ParameterListener)returnValue).handleValueChangeEvent( parameter );
+      ((ParameterListener)returnValue).handleValueChangeEvent( parameter, seen );
     }
     
     boolean hasParam = false;
@@ -1594,10 +1635,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#handleDomainChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).handleDomainChangeEvent( parameter );
+        ((ParameterListener)o).handleDomainChangeEvent( parameter, seen );
       }
     }
     // TODO -- do for object, nestedCall, returnValue, and evaluatedArguments.
@@ -1614,7 +1659,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if (p.first) return;
     seen = p.second;
     if ( changedParameter == null ) return;
-    if ( hasParameter( changedParameter, true, null ) ) {
+    if ( hasParameter( changedParameter, false, null ) ) {
       setStale(true);
     }
     // TODO -- make a helper for ParameterListener since this should be applied

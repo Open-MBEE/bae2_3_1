@@ -42,19 +42,22 @@ import gov.nasa.jpl.mbee.util.Utils;
 // TODO -- REVIEW -- Should this class be removed and have dependencies captured
 // as time-invariant effects? Or should effects be TimeVarying Dependencies?
 
-// TODO -- REVIEW -- How about constructing a constraint from a dependency
-// ( parameter == expression )
-
 // TODO -- REVIEW -- Should dependencies be applicable to a time period, like
 // constraints (& effects)?
 public class Dependency< T > extends HasIdImpl
              implements HasParameters, ParameterListener, Constraint,
                         LazyUpdate, HasConstraints, HasTimeVaryingObjects {
 
+  public boolean debug = false;
   protected Parameter< T > parameter;
   protected Expression< ? > expression;
   private ConstraintExpression constraint = null;
-  protected boolean refreshing = false; // to prevent propagation cycles
+  /**
+   * Should the dependency recompute the value of the target parameter when a
+   * variable in the expression changes (handleChangeEvent())
+   */
+  public boolean propagate = true;
+  protected boolean refreshing = false; // to prevent propagation cycles in refresh()
 
   public <T2> Dependency( Parameter< T > p, Expression< T2 > e ) {
     parameter = p;
@@ -165,6 +168,11 @@ public class Dependency< T > extends HasIdImpl
     }
     if ( parameter.isStale() || value != parameter.getValueNoPropagate() ) {
       if ( Debug.isOn() ) Debug.outln( "Setting the dependent parameter to the evaluation of expression = " + value );
+      if ( debug ) {
+        System.out.println("****");
+        System.out.println("setting dependency on " + parameter + " to value " + value );
+        System.out.println("****");
+      }
       parameter.setValue( value, propagate );
       return true;
     }
@@ -180,7 +188,7 @@ public class Dependency< T > extends HasIdImpl
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    boolean sat;
+    boolean sat = false;
     // REVIEW -- The criteria for being satisfied should be reviewed since some
     // of these are short-circuited with false.
     if ( constraint != null ) {
@@ -207,7 +215,16 @@ public class Dependency< T > extends HasIdImpl
       sat = false;
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " );// + this );
     } else {
-      sat = Expression.valuesEqual( parameter, expression, getType() );
+      // Check to see if values are equal. In this case of a constructor, just
+      // make sure that the value is an instance of the constructed type. Actually,
+      // since the constructor could be constructing another ConstructorCall, just
+      // make sure the value is non-null.
+      if ( expression != null && expression.form == Form.Constructor ) {
+        sat = parameter.getValueNoPropagate() != null;
+      } else {
+        // Check for equality.
+        sat = Expression.valuesEqual( parameter, expression, getType() );
+      }
       if ( !sat ) {
         parameter.setStale( true );
         if ( Debug.isOn() && parameter != null && expression != null) {
@@ -460,7 +477,7 @@ public class Dependency< T > extends HasIdImpl
       if ( getConstraintExpression() == null) return false;
       getConstraintExpression().restrictDomain( v );
     }
-    return v.getDomain() != null && v.getDomain().size() > 0; 
+    return v.getDomain() != null && v.getDomain().magnitude() > 0; 
   }
 
   /* (non-Javadoc)
@@ -526,15 +543,22 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( hasParameter( parameter, true, null )
-         && this.parameter != parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+    if ( propagate && this.parameter != parameter && hasParameter( parameter, false, null ) ) {
       apply( true );
     }
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // TODO -- REVIEW -- Anything to do?
   }
 
@@ -636,7 +660,7 @@ public class Dependency< T > extends HasIdImpl
     if (p.first) return;
     seen = p.second;
     
-    if ( expression.hasParameter( changedParameter, true, null ) ) {
+    if ( expression.hasParameter( changedParameter, false, null ) ) {
       expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
     }
@@ -650,7 +674,9 @@ public class Dependency< T > extends HasIdImpl
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
-    return getParameters( deep, seen ).contains( parameter );
+    
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override
@@ -701,13 +727,13 @@ public class Dependency< T > extends HasIdImpl
   }
       
   @Override
-  public Set< TimeVarying< ? > >
+  public Set< TimeVarying< ?, ? > >
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+    Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     return set;
