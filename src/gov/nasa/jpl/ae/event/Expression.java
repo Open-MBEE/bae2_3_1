@@ -11,6 +11,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
@@ -41,7 +42,7 @@ public class Expression< ResultType > extends HasIdImpl
                                     implements Cloneable, HasParameters, ParameterListener, Groundable,
                                                LazyUpdate, Satisfiable,
                                                HasDomain, HasTimeVaryingObjects,
-                                               MoreToString, Wraps< ResultType > {//, Comparable< Expression< ? > > {
+                                               MoreToString, Wraps< ResultType >, Evaluatable {//, Comparable< Expression< ? > > {
   public Object expression = null;
   public Form form = Form.None;
   public Class<? extends ResultType> resultType = null;//Type.None;
@@ -296,6 +297,28 @@ public class Expression< ResultType > extends HasIdImpl
     return true;
   }
   
+  
+  @Override
+  public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
+    if ( cls == null || cls.isAssignableFrom( resultType ) ) {
+      Object o = null;
+      try {
+        o = evaluate( propagate );
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        e.printStackTrace();
+      }
+      if ( o != null && cls.isInstance( o ) ) {
+        return (TT)o;
+      }
+    }
+    TT tt = Evaluatable.Helper.evaluate( expression, cls, true, propagate, true, null );
+    return tt;
+  }
+
   // REVIEW -- What if resultType == Expression.class?
   /**
    * Evaluate the expression and return the resulting value. For example, if the
@@ -367,6 +390,9 @@ public class Expression< ResultType > extends HasIdImpl
                     //System.out.println("d1.intValue() = " + d.intValue());
                     return (Long)d.longValue();
                   }
+                  if ( o != null ) return o;
+                  o = p.evaluate( resultType, propagate );
+                  if ( o != null ) return o;
                   evaluationSucceeded = false;
                   throw new ClassCastException();
                 }
@@ -958,13 +984,19 @@ public class Expression< ResultType > extends HasIdImpl
       }
       try {
         result = evaluateDeep( object, cls, propagate, allowWrapping );
-        if ( result != null && cls.isInstance( result ) ) return result;
+        if ( result != null && (cls == null || cls.isInstance( result ) ) ) return result;
+        result = Evaluatable.Helper.evaluate( object, cls, propagate, true );
+        if ( result != null ) return result;
         return (TT)object;
       } catch (ClassCastException e) {
       }
       return null;
     }
-    return evaluateDeep( object, cls, propagate, allowWrapping );
+    Object result = evaluateDeep( object, cls, propagate, allowWrapping );
+    if ( result != null && (cls == null || cls.isInstance( result ) ) ) return (TT)result;
+    Object result2 = Evaluatable.Helper.evaluate( object, cls, propagate, true );
+    if ( result2 != null ) return (TT)result2;
+    return (TT)result;
   }
   
   public static <TT> TT evaluateDeep( Object object, Class< TT > cls,

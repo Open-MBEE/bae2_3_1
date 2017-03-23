@@ -21,6 +21,7 @@ import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -763,5 +764,14 @@ public class Dependency< T > extends HasIdImpl
     return null;
   }
 
+  @Override
+  public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
+    TT tt = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( tt != null ) return tt;
+    tt = Evaluatable.Helper.evaluate( parameter, cls, true, propagate, true, null );
+    if ( tt != null ) return tt;
+    tt = Evaluatable.Helper.evaluate( expression, cls, true, propagate, true, null );
+    return tt;
+  }
 
 }

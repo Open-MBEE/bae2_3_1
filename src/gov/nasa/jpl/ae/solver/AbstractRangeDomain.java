@@ -18,6 +18,7 @@ import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Random;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 /**
@@ -662,4 +663,30 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     nullInDomain = b;
   }
 
+  @Override
+  public < V > V evaluate( Class< V > cls, boolean propagate ) {
+    V v = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( v != null ) return v;
+    
+    if ( size() == 1 ) {
+      T t = null;
+      if ( cls == null || getType() == null || cls.isAssignableFrom( getType() ) ) {
+        t = getValue( propagate );
+        if ( cls == null || cls.isInstance( t ) ) {
+          return (V)t;
+        }
+      }
+      v = Evaluatable.Helper.evaluate( t, cls, true, propagate, true, null );
+      if (v != null) {
+        return v;
+      }
+    }
+    if ( cls == null || cls.equals( Object.class ) ) {
+      return (V)this;
+    }
+    return null;
+  }
+
+  
+  
 }

@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.solver;
 
 import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 /**
@@ -196,6 +197,23 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public < V > V evaluate( Class< V > cls, boolean propagate ) {
+    V v = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( v != null ) return v;
+
+    T t = getValue( propagate );
+    if ( cls == null || cls.isInstance( t ) ) {
+      @SuppressWarnings( "unchecked" )
+      V vv = (V)t;
+      return vv;
+    }
+    
+    v = Evaluatable.Helper.evaluate( this, cls, true, propagate, true, null );
+    
+    return v;
   }
 
 }

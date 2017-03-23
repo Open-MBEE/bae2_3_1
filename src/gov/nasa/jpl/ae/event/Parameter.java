@@ -27,6 +27,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -975,5 +976,16 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       Debug.error( "A Parameter's owner must be a ParameterListener!  Trying to set to " + owner );
     }
   }
+  
+  @Override
+  public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
+    TT tt = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( tt != null ) return tt;
+    T t = getValue(propagate);
+    tt = Evaluatable.Helper.evaluate( t, cls, true, propagate, true, null );
+    return tt;
+  }
+
+
 
 }

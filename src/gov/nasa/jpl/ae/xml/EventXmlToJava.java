@@ -1766,7 +1766,7 @@ public class EventXmlToJava {
       return createConstraintField( name, expression, applicableStartTime,
                                     applicableEndTime );
     }
-    if ( name == null ) {
+    if ( name == null || name.trim().length() == 0 ) {
       name = new String( "constraint" + counter++ );
     }
     String constructorArgs = null;

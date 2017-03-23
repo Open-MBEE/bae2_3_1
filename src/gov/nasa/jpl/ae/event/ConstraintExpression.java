@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -70,7 +71,8 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = null;
     try {
-      sat = (Boolean)evaluate(false);
+      sat = (Boolean)evaluate( this, Boolean.class, false );
+      //sat = (Boolean)evaluate(false);
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -239,5 +241,16 @@ public class ConstraintExpression extends Expression< Boolean >
 //    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
 //    ParameterConstraint.Helper.setStale( this, staleness );
 //  }
-  
+
+  @Override
+  public < T > T evaluate( Class< T > cls, boolean propagate ) {
+    T t = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( t != null ) return t;
+    if ( cls != null && cls.isAssignableFrom( Boolean.class ) ) {
+      Boolean b = isSatisfied( false, null );
+      return (T)b;
+    }
+    return null;
+  }
+
 }
