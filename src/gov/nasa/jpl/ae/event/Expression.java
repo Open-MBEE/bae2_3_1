@@ -300,7 +300,8 @@ public class Expression< ResultType > extends HasIdImpl
   
   @Override
   public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
-    if ( cls == null || cls.isAssignableFrom( resultType ) ) {
+    
+    if ( cls == null || resultType == null || cls.isAssignableFrom( resultType ) ) {
       Object o = null;
       try {
         o = evaluate( propagate );
