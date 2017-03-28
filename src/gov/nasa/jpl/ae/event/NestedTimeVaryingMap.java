@@ -87,7 +87,7 @@ public class NestedTimeVaryingMap< V > extends
     TimeVaryingMap< V > newMap = getValue( t1 );
     if ( newMap == null ) {
       Class<?> cls = ( value == null ? null : value.getClass() );
-      newMap = new TimeVaryingMap< V >( name, null, null, null );
+      newMap = new TimeVaryingMap< V >( name, (String)null, (V)null, (Class<V>)null );
     }
     newMap.setValue( t2, value );
     super.setValue( t1, newMap );

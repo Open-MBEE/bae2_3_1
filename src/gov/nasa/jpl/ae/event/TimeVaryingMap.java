@@ -20,7 +20,9 @@ import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
@@ -595,6 +597,255 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
+
+  
+  /**
+   * Create a {@link TimeVaryingMap} and initialize it with the given {@link Method} and
+   * arguments, assuming that one or more of the arguments and the object from
+   * which the method is called are {@link TimeVaryingMap}s whose values should be used
+   * in the invocation instead of the map itself.
+   * <p>
+   * For example, if {@code s1} and {@code s2} are
+   * {@link TimeVaryingMap}&lt;String&gt;s, then for
+   * {@code b = s1.contains(s2)}, {@code b} would be a
+   * {@link TimeVaryingMap}&lt;Boolean&gt; where
+   * {@code b.getValue(t) == s1.getValue(t).contains(s2.getValue(t))}.  This map
+   * would be created with the following code invoking this constructor:<p>
+   * {@code Method method = ClassUtils.getMethodForArgTypes(String.class, "contains", new Class[]{ CharacterSequence.class });}<br>
+   * {@link TimeVaryingMap}&lt;Boolean&gt;("myMap", Boolean.class, s1, method, new Object[]{ s2 }, Interpolation.STEP)} .
+   * 
+   * @param name
+   *          the name of the map to create
+   * @param valueType
+   *          the value type of the map
+   * @param obj
+   *          the instance from which the method is called
+   * @param method
+   *          the function to be called
+   * @param args
+   *          the arguments to the function
+   * @param interpolation
+   *          how to interpolate between map entries in the created map
+   */
+  public TimeVaryingMap( String name, Class<V> valueType, Object obj, Method method, Object[] args, Interpolation interpolation ) {
+    //this(name, (String)null, (V)null, valueType, interpolation);
+    this( name, valueType, new FunctionCall( obj, method, args, (Call)null, valueType ), interpolation );
+
+    // TODO -- unless the above isn't good, delete the code below.
+    if ( "a".contains( "b" ) ) { // This is always false.  Ha ha, stupid compiler! 
+
+    // gather timepoints and interpret which objects/arguments will be treated as TVMs
+    TreeSet< Parameter< Long > > timePoints =
+        new TreeSet< Parameter< Long > >( TimeComparator.instance );
+    // Process the object of the method.
+    TimeVaryingMap<?> objectMap = null;
+    if ( obj != null && !ClassUtils.isStatic( method ) && obj instanceof TimeVaryingMap ) {
+      Class<?> methodClass = method.getDeclaringClass();
+      objectMap = (TimeVaryingMap<?>)obj;
+      // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+      if ( ( objectMap.getType() != null && methodClass.isAssignableFrom( objectMap.getType() ) ) ||
+          (objectMap.getType() == null && !methodClass.isInstance( obj ) ) ) {
+        timePoints.addAll( objectMap.keySet() );
+      } else {
+        // Hide the fact that the object is a TVM since we're not using it's values.  Interpret a non-null objectMap as an indication that it's values should be used.
+        objectMap = null; 
+      }
+    }
+    // Process the arguments.
+    ArrayList< TimeVaryingMap< ? > > argMaps =
+        new ArrayList< TimeVaryingMap< ? > >();
+    Class< ? >[] paramTypes = method.getParameterTypes();
+    int i = 0;
+    Class<?> pType = null;
+    for ( Object arg : args ) {
+      if ( arg instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tv = (TimeVaryingMap<?>)arg;
+        if ( i < paramTypes.length ) { // helps with variable arguments
+          pType = paramTypes[i];
+        }
+        // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+        if ( arg != null && pType != null && ( ( tv.getType() != null && pType.isAssignableFrom( tv.getType() ) ) ||
+            (tv.getType() == null && !pType.isInstance( obj ) ) ) ) {
+          argMaps.add( tv );
+          timePoints.addAll( tv.keySet() );
+        } else {
+          argMaps.add( null );
+        }
+      } else {
+        argMaps.add( null );
+      }
+      ++i;
+    }
+
+    // Now run for each timepoint.
+    for ( Parameter<Long> t : timePoints ) {
+      // Get the object.
+      Object object = obj;
+      if ( objectMap != null ) {
+        object = objectMap.getValue( t );
+      }
+
+      // Get the arguments.
+      Object[] argsForTime = new Object[args.length];
+      i = 0;
+      for ( Object arg : args ) {
+        Object argForTime = arg;
+        if ( argMaps.get( i ) != null ) {
+          argForTime = argMaps.get( i ).getValue( t );
+        }
+        argsForTime[i] = argForTime; 
+        ++i;
+      }
+      
+      // Run for timepoint!
+      Object result = null;
+      try {
+        result = ClassUtils.runMethod( obj, method, argsForTime );
+        V v = tryCastValue( result );
+        if ( v != null ) {
+          setValue(t, v);
+        }
+      } catch ( IllegalArgumentException e ) {
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      }      
+      
+    }
+    if ( Debug.isOn() || checkConsistency ) isConsistent();
+    }
+  }
+
+  /**
+   * Create a {@link TimeVaryingMap} and initialize it with the given
+   * {@link Call} and arguments, assuming that one or more of the arguments and
+   * the object from which the Call is invoked are {@link TimeVaryingMap}s whose
+   * values should be used in the invocation instead of the map itself.
+   * <p>
+   * For example, if {@code s1} and {@code s2} are
+   * {@link TimeVaryingMap}&lt;String&gt;s, then for
+   * {@code b = s1.contains(s2)}, {@code b} would be a
+   * {@link TimeVaryingMap}&lt;Boolean&gt; where
+   * {@code b.getValue(t) == s1.getValue(t).contains(s2.getValue(t))}. This map
+   * would be created with the following code:<br>
+   * {@code FunctionCall f = new FunctionCall(s1, String.class, "contains", new Object[]{ s2 }, Boolean.class)}<br> 
+   * {@code {@link TimeVaryingMap}&lt;Boolean&gt; b = new
+   * {@link TimeVaryingMap}&lt;Boolean&gt;("myMap", Boolean.class, f, Interpolation.STEP)} .
+   * 
+   * @param name
+   *          the name of the map to create
+   * @param cls
+   *          the value type of the map
+   * @param obj
+   *          the instance from which the method is called
+   * @param method
+   *          the function to be called
+   * @param args
+   *          the arguments to the function
+   * @param interpolation
+   *          how to interpolate between map entries in the created map
+   */
+  public TimeVaryingMap( String name, Class<V> cls, Call call, Interpolation interpolation ) {
+    this(name, (String)null, (V)null, cls, interpolation);
+
+    // gather timepoints and interpret which objects/arguments will be treated as TVMs
+    TreeSet< Parameter< Long > > timePoints = 
+        new TreeSet< Parameter< Long > >( TimeComparator.instance );
+    // Process the object of the method.
+    TimeVaryingMap<?> objectMap = null;
+    Object obj = call.getObject();
+    Member member = call.getMember();
+    if ( obj != null && !call.isStatic() && obj instanceof TimeVaryingMap ) {
+      Class<?> methodClass = member.getDeclaringClass();
+      objectMap = (TimeVaryingMap<?>)obj;
+      // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+      if ( ( objectMap.getType() != null && methodClass.isAssignableFrom( objectMap.getType() ) ) ||
+          (objectMap.getType() == null && !methodClass.isInstance( obj ) ) ) {
+        timePoints.addAll( objectMap.keySet() );
+      } else {
+        // Hide the fact that the object is a TVM since we're not using it's values.  Interpret a non-null objectMap as an indication that it's values should be used.
+        objectMap = null; 
+      }
+    }
+    // Process the arguments.
+    ArrayList< TimeVaryingMap< ? > > argMaps =
+        new ArrayList< TimeVaryingMap< ? > >();
+    Class< ? >[] paramTypes = call.getParameterTypes();
+    Object[] args = call.getArgumentArray();
+    int i = 0;
+    Class<?> pType = null;
+    for ( Object arg : args ) {
+      if ( arg instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tv = (TimeVaryingMap<?>)arg;
+        if ( i < paramTypes.length ) {  // helps with variable arguments
+          pType = paramTypes[i];
+        }
+        // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+        if ( arg != null && pType != null && ( ( tv.getType() != null && pType.isAssignableFrom( tv.getType() ) ) ||
+            (tv.getType() == null && !pType.isInstance( obj ) ) ) ) {
+          argMaps.add( tv );
+          timePoints.addAll( tv.keySet() );
+        } else {
+          argMaps.add( null );
+        }
+      } else {
+        argMaps.add( null );
+      }
+      ++i;
+    }
+
+    // Now run for each timepoint.
+    for ( Parameter<Long> t : timePoints ) {
+      // Get the object.
+      Object object = obj;
+      if ( objectMap != null ) {
+        object = objectMap.getValue( t );
+      }
+  
+      // Get the arguments.
+      Object[] argsForTime = new Object[args.length];
+      i = 0;
+      for ( Object arg : args ) {
+        Object argForTime = arg;
+        if ( argMaps.get( i ) != null ) {
+          argForTime = argMaps.get( i ).getValue( t );
+        }
+        argsForTime[i] = argForTime; 
+        ++i;
+      }
+      
+      // Run for timepoint!
+      Object result = null;
+      Call newCall = null;
+      try {
+        if ( member instanceof Method ) {
+          newCall = new FunctionCall( object, (Method)member, argsForTime, (Call)null, call.getReturnType() );
+        } else {
+          newCall = new ConstructorCall( object, (Constructor<?>)member, argsForTime, (ConstructorCall)null, call.getReturnType() );
+        }
+        result = newCall.evaluate( true );
+        V v = tryCastValue( result );
+        if ( v != null ) {
+          setValue(t, v);
+        }
+      } catch ( IllegalArgumentException e ) {
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        e.printStackTrace();
+      }      
+      
+    }
+  
+    if ( Debug.isOn() || checkConsistency ) isConsistent();
+  }
+
+  
 
   public TimeVaryingMap( String name, TimeVaryingMap<V> tvm ) {
     this( name, null, null, tvm.type );
@@ -6227,9 +6478,23 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return dv;
   }
 
+  public static void testMapCallConstructor() {
+    TimeVaryingMap<String> s1 = new TimeVaryingMap<>( "s1", String.class );
+    s1.setValue( new SimpleTimepoint( 0 ), "hello" );
+    s1.setValue( new SimpleTimepoint( 4 ), "world" );
+    TimeVaryingMap<String> s2 = new TimeVaryingMap<>( "s1", String.class );
+    s2.setValue( new SimpleTimepoint( 2 ), "hell" );
+    s2.setValue( new SimpleTimepoint( 6 ), "o" );
+    FunctionCall f = new FunctionCall( s1, String.class, "contains", new Object[]{ s2 }, Boolean.class );
+    TimeVaryingMap<Boolean> b = new TimeVaryingMap<>( "s1_contains_s2", Boolean.class, f, STEP );
+    System.out.println( "b = " + b );
+  }
+  
   // TODO -- make this a JUnit
   public static void main( String[] args ) {
 
+    testMapCallConstructor();
+    
     boolean succ = testGetFirstTimepointParameter();
     Assert.assertTrue( succ );
 
