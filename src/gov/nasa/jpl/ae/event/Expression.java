@@ -995,8 +995,10 @@ public class Expression< ResultType > extends HasIdImpl
     }
     Object result = evaluateDeep( object, cls, propagate, allowWrapping );
     if ( result != null && (cls == null || cls.isInstance( result ) ) ) return (TT)result;
-    Object result2 = Evaluatable.Helper.evaluate( object, cls, propagate, true );
-    if ( result2 != null ) return (TT)result2;
+    if ( result != null && result != object ) {
+      Object result2 = Evaluatable.Helper.evaluate( result, cls, propagate, true );
+      if ( result2 != null ) return (TT)result2;
+    }
     return (TT)result;
   }
   

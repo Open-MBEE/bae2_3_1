@@ -29,6 +29,8 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
   public BooleanDomain( boolean lowerBound, boolean upperBound ) {
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
+    includeLowerBound();
+    includeUpperBound();
     //assert( lowerBound < upperBound );  // < not supported for boolean
     assert( lowerBound == false || upperBound == true || lowerBound == upperBound );
   }
@@ -50,7 +52,9 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	@Override
 	public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
+    if ( !isLowerBoundIncluded() && !isUpperBoundIncluded() ) return 0;
 	  if ( lowerBound == upperBound ) return 1;
+    if ( !isLowerBoundIncluded() || !isUpperBoundIncluded() ) return 1;
 		return 2;
 	}
 
@@ -70,7 +74,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	// REVIEW -- Sometimes ranges don't include upperBound, just the limit to it.
 	@Override
   public boolean contains( Boolean t ) {
-    return ( t != null && ( lowerBound.equals( t ) || upperBound.equals( t ) ) );
+    return ( t != null && ( (isLowerBoundIncluded() && lowerBound.equals( t )) || (isUpperBoundIncluded() && upperBound.equals( t )) ) );
   }
 
   @Override

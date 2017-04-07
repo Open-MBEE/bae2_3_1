@@ -482,7 +482,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         }
         return cls.cast( obj );
       } catch ( ClassCastException e ) {
-        // ignore
+        try {
+          return (T)obj; // may work for primitive cls where cast() does not.
+        } catch( ClassCastException e1 ) {
+          // ignore
+        }
       }
     }
     return null;
@@ -747,9 +751,47 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    * @param interpolation
    *          how to interpolate between map entries in the created map
    */
-  public TimeVaryingMap( String name, Class<V> cls, Call call, Interpolation interpolation ) {
+  public TimeVaryingMap( String name, Class<V> cls, Call call, Interpolation interpolation,
+                         boolean newStufffffffffffffffffffffffffffffffffffff ) {
     this(name, (String)null, (V)null, cls, interpolation);
+    
+    // Initialize the transformation of the input call into a call that returns a TimeVaryingMap.
+    //object and arguments to potentially be transformed.
+    Call newCall = null;
+    boolean callIsConstructor = false;
+    if ( call instanceof FunctionCall ) {
+      callIsConstructor = false;
+      newCall = new TimeVaryingFunctionCall( (FunctionCall)call );
+    } else if ( call instanceof ConstructorCall ) {
+      callIsConstructor = true;
+    } else {
+      // TODO -- ERROR
+      callIsConstructor = false;
+    }
+    Object newObject = call.getObject();
+    Object[] newArgs = new Object[call.getArguments().size()];
+    int i = 0;
+    for ( Object arg : call.getArguments() ) {
+      newArgs[i] = arg;
+      ++i;
+    }
+    
+    // gather timepoints and interpret which objects/arguments will be treated as TVMs
+    TreeSet< Parameter< Long > > timePoints = 
+        new TreeSet< Parameter< Long > >( TimeComparator.instance );
 
+    
+    // Process the object of the method.
+    TimeVaryingMap<?> objectMap = TimeVaryingFunctionCall.evaluateAsTimeVaryingMap( call.getObject(), true, null );
+    if ( objectMap != null ) {
+      newObject = objectMap;
+    }
+
+  }
+  
+  
+  public TimeVaryingMap( String name, Class<V> cls, Call call, Interpolation interpolation ) {
+      this(name, (String)null, (V)null, cls, interpolation);
     // gather timepoints and interpret which objects/arguments will be treated as TVMs
     TreeSet< Parameter< Long > > timePoints = 
         new TreeSet< Parameter< Long > >( TimeComparator.instance );
@@ -757,6 +799,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     TimeVaryingMap<?> objectMap = null;
     Object obj = call.getObject();
     Member member = call.getMember();
+    if ( call instanceof TimeVaryingFunctionCall ) {
+      Object oo = null;
+      try {
+        oo = call.evaluateObject( true );
+      } catch (Throwable e ) {
+      }
+      if ( oo != null ) obj = oo;
+      if ( obj instanceof TimeVaryingMap ) {
+        objectMap = (TimeVaryingMap< ? >)obj;
+      }
+    }
     if ( obj != null && !call.isStatic() && obj instanceof TimeVaryingMap ) {
       Class<?> methodClass = member.getDeclaringClass();
       objectMap = (TimeVaryingMap<?>)obj;
@@ -777,14 +830,26 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     int i = 0;
     Class<?> pType = null;
     for ( Object arg : args ) {
-      if ( arg instanceof TimeVaryingMap ) {
-        TimeVaryingMap<?> tv = (TimeVaryingMap<?>)arg;
-        if ( i < paramTypes.length ) {  // helps with variable arguments
-          pType = paramTypes[i];
+      Object a = arg;
+      if ( i < paramTypes.length ) {  // helps with variable arguments
+        pType = paramTypes[i];
+      }
+      if ( call instanceof TimeVaryingFunctionCall ) {
+        Object oo = null;
+        try {
+          oo = call.evaluateArg( a, pType, true );
+        } catch (Throwable e ) {
         }
+        if ( oo != null ) a = oo;
+//        if ( a instanceof TimeVaryingMap ) {
+//          objectMap = (TimeVaryingMap< ? >)obj;
+//        }
+      }
+      if ( a instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tv = (TimeVaryingMap<?>)a;
         // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
-        if ( arg != null && pType != null && ( ( tv.getType() != null && pType.isAssignableFrom( tv.getType() ) ) ||
-            (tv.getType() == null && !pType.isInstance( obj ) ) ) ) {
+        if ( pType != null && ( ( tv.getType() != null && pType.isAssignableFrom( tv.getType() ) ) ||
+            (tv.getType() == null && !pType.isInstance( a ) ) ) ) {
           argMaps.add( tv );
           timePoints.addAll( tv.keySet() );
         } else {
@@ -892,7 +957,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public TimeVaryingMap( String name, String fileName, V defaultValue,
                          Class< V > cls, Interpolation interpolation ) {
     this( name, defaultValue, cls );
-    this.interpolation = interpolation;
+    if (interpolation != null ) this.interpolation = interpolation;
     fromCsvFile( fileName, type );
   }
   
@@ -5957,7 +6022,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
     // Add a final point in case the plotter does not render beyond last point
     Timepoint h = Timepoint.getHorizonTimepoint();
-    if ( interpolation.type != Interpolation.NONE && lastKey != null
+    if ( (interpolation == null || interpolation.type != Interpolation.NONE) && lastKey != null
          && before( lastKey, h ) ) {
       V v = getValue(h);
       if ( v != null ) {

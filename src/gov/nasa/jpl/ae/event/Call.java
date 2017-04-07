@@ -471,25 +471,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     
     evaluatedArgs = Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
-    // evaluate the object, whose method will be invoked from a nested call
-    if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
-      // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
-      // making this a dependency.  Cached newObject of constructor is similar.
-//    if ( propagate || object == null ) {
-      object = Expression.evaluate( nestedCall.getValue( propagate ), null,
-                                    propagate, false );
-      //      }
-    }
-    Object evaluatedObj = object;
+    
     try {
-      if ( Debug.isOn() ) Debug.outln( "About to invoke a "
-                                       + getClass().getSimpleName() + ": "
-                                       + this );
-      // Make sure we have the right object from which to invoke the member.
-      Member m = getMember();
-      Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
-      evaluatedObj = Expression.evaluate( object, cls, propagate, true );
       
+      Object evaluatedObj = evaluateObject(propagate);
+
       evaluatedArgs = fixArgsForVarArgs( evaluatedArgs, false );
       
       returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
@@ -497,6 +483,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       // No longer stale after invoked with updated arguments and result is cached.
       if ( evaluationSucceeded ) setStale( false );
       
+    } catch ( ClassCastException e ) {
+      evaluationSucceeded = false;
+      //e.printStackTrace();
+      throw e;
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
       //e.printStackTrace();
@@ -522,6 +512,31 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return returnValue;
   }
 
+  public Object evaluateObject( boolean propagate ) throws ClassCastException,
+                                                    IllegalAccessException,
+                                                    InvocationTargetException,
+                                                    InstantiationException {
+    // evaluate the object, whose method will be invoked from a nested call
+    if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
+      // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
+      // making this a dependency.  Cached newObject of constructor is similar.
+//    if ( propagate || object == null ) {
+      object = Expression.evaluate( nestedCall.getValue( propagate ), null,
+                                    propagate, false );
+      //      }
+    }
+    if ( Debug.isOn() ) Debug.outln( "About to invoke a "
+        + getClass().getSimpleName() + ": "
+        + this );
+    // Make sure we have the right object from which to invoke the member.
+    Member m = getMember();
+    Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
+    Object evaluatedObj = Expression.evaluate( object, cls, propagate, true );
+
+    return evaluatedObj;
+  }
+
+  
   /**
    * Wrap the variable args in an array as a single arg to the vararg.
    * 
@@ -610,7 +625,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
          && unevaluatedArg instanceof Wraps ) {
       c = ((Wraps)unevaluatedArg).getType();
     }
-    Object result = Expression.evaluate( unevaluatedArg, c, propagate, true );
+    //Object result = Expression.evaluate( unevaluatedArg, c, propagate, true );
+    Object result = evaluateArg( unevaluatedArg, c, propagate);
     if ( complainIfError && !( result == null || c == null || c.isInstance( result ) )) {
       Debug.error( true, "\nArgument " + result +
                          ( result == null ?
@@ -620,6 +636,16 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return result;
   }
 
+  public Object evaluateArg( Object unevaluatedArg, Class< ? > c,
+                             boolean propagate ) throws ClassCastException,
+                                                 IllegalAccessException,
+                                                 InvocationTargetException,
+                                                 InstantiationException {
+    return Expression.evaluate( unevaluatedArg, c, propagate, true );
+  }
+  //public Object evaluate( unevaluatedArg, c, propagate, true ) {
+    
+  //}
   
   // Try to match arguments to parameters by evaluating or creating expressions.
   public Object[] evaluateArgs( boolean propagate,

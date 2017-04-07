@@ -30,9 +30,9 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    * 
    */
   public DoubleDomain() {
-    super();
-    lowerBound = ((Double)getTypeMinValue()).doubleValue();
-    upperBound = ((Double)getTypeMaxValue()).doubleValue();
+    super(typeMinValue, typeMaxValue);
+//    lowerBound = ((Double)getTypeMinValue()).doubleValue();
+//    upperBound = ((Double)getTypeMaxValue()).doubleValue();
   }
 
   /**

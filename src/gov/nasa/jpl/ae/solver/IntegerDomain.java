@@ -21,13 +21,11 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   public static IntegerDomain defaultDomain = new IntegerDomain();  // REVIEW -- make this final?
 
 	public IntegerDomain() {
-	  lowerBound = typeMinValue;
-	  upperBound = typeMaxValue;
+    super(typeMinValue, typeMaxValue);
 	}
 	
 	public IntegerDomain(int minValue, int maxValue) {
-		this.lowerBound = minValue;
-		this.upperBound = maxValue;
+    super(minValue, maxValue);
 	}
 
 	public IntegerDomain( RangeDomain< Integer > domain ) {

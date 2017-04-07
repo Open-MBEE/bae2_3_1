@@ -429,8 +429,20 @@ public class FunctionCall extends Call {
    */
   @Override
   public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
-    // Must be overridden
-    Debug.error(true, true, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+    // Should be overridden
+    Debug.error(true, false, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+    // Try to do something anyway.
+    // TODO
+    // See if arguments have a single-value domain.
+    // TODO
+    // Add an interface where the object of the function could calculate the
+    // domain or give some methods that would enable the calculation. Maybe, like 
+    // TimeVaryingMap.calculateDomain(Method method, Object[] arguments)
+    // TimeVaryingMap.calculateDomain(Effect effect)
+    // TimeVaryingMap.restrictedDomainOfArguments(Method method, Object[] arguments)
+    // TimeVaryingMap.validIntervals(Effect effect)
+    // TimeVaryingMap.getValueDomain()
+    // TimeVaryingMap.getValueDomain(Effect effect)
     return null;
   }
   

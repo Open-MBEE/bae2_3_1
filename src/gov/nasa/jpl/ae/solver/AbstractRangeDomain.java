@@ -63,11 +63,13 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   }
   
   public AbstractRangeDomain(T lowerBound, T upperBound ) {
+    lowerIncluded = true;
+    upperIncluded = true;
     setBounds( lowerBound, upperBound );
   }
 
   public AbstractRangeDomain(T lowerBound, T upperBound, boolean nullInDomain ) {
-    setBounds( lowerBound, upperBound );
+    this(lowerBound, upperBound);
     this.nullInDomain = nullInDomain;
   }
 

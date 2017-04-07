@@ -331,7 +331,9 @@ public class Functions {
         Pair< Domain<?>, Boolean > p = hd1.restrictDomain( d1, propagate, seen );
         if ( p != null && p.second == Boolean.TRUE ) changed = true;
         if ( p != null && p.first != null && p.first.isEmpty() ) {
-          if (this.domain.clearValues()) changed = true;
+          if ( this.domain != null ) {
+            if (this.domain.clearValues()) changed = true;
+          }
           return new Pair( this.domain, changed );
         }
         Domain d2 = inverseDomain( domain, o2 );
@@ -4306,6 +4308,7 @@ public class Functions {
     // pick a value for the chosen argument    
     T1 t1 = null;
     try {
+      chosenPickCall.setStale( true );
       t1 = (T1)chosenPickCall.evaluate( false );
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
@@ -4331,29 +4334,53 @@ public class Functions {
     // If the argument is a FunctionCall, try to invert the call with the target
     // value, t1, to solve for the variable.
     SuggestiveFunctionCall fCall = getSuggestiveFunctionCall( arg.expression );
-    if ( fCall != null ) { //arg.expression instanceof SuggestiveFunctionCall ) {
-      // fCall=Plus(x,y)
-      //SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
-      ArrayList< Object > argsWithVar = getArgumentsWithVariable( fCall, variable );
-      if ( Utils.isNullOrEmpty( argsWithVar ) || argsWithVar.size() > 1 ) {
-        // TODO -- solve for variable! or simplify expression!
-        return null;
+    if ( fCall == null ) { //arg.expression instanceof SuggestiveFunctionCall ) {
+      return t1;
+    }
+    // fCall=Plus(x,y)
+    //SuggestiveFunctionCall fCall = (SuggestiveFunctionCall)arg.expression;
+    ArrayList< Object > argsWithVar = getArgumentsWithVariable( fCall, variable );
+    if ( Utils.isNullOrEmpty( argsWithVar ) || argsWithVar.size() > 1 ) {
+      // TODO -- solve for variable! or simplify expression!
+      return null;
+    }
+    Object subExprArg = argsWithVar.get( 0 );
+    if ( !( subExprArg instanceof Expression ) ) {
+      return null;
+    }
+    // inverseCall = inverse of Plus(x,y)
+    // inverseCall(x) = t1 - y
+    // inverseCall(y) = t1 - x
+    FunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1), (Expression< ? >)subExprArg);
+    if ( inverseCall instanceof SuggestiveFunctionCall ) {
+      T1 t11 = ((SuggestiveFunctionCall)inverseCall).pickValue( variable );
+      return t11;
+    } else if ( inverseCall != null ) {
+      Object result = null;
+      try {
+        result = inverseCall.evaluate( true );
+      } catch ( IllegalAccessException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
-      Object subExprArg = argsWithVar.get( 0 );
-      if ( !( subExprArg instanceof Expression ) ) {
-        return null;
-      }
-      // inverseCall = inverse of Plus(x,y)
-      // inverseCall(x) = t1 - y
-      // inverseCall(y) = t1 - x
-      FunctionCall inverseCall = fCall.inverse(new Expression<T1>(t1), (Expression< ? >)subExprArg);
-      if ( inverseCall instanceof SuggestiveFunctionCall ) {
-        T1 t11 = ((SuggestiveFunctionCall)inverseCall).pickValue( variable );
+      if ( result instanceof Collection ) {
+        Collection<T1> coll = (Collection<T1>)result;
+        T1 t11 = get( coll, Random.global.nextInt( coll.size() ) );
         return t11;
-      } else if ( inverseCall != null ) {
-        Object result = null;
+      } else {
+        Class<T1> cls = (Class< T1 >)variable.getClass();
         try {
-          result = inverseCall.evaluate( true );
+          T1 t11 = Expression.evaluate( result, cls, true );
+          return t11;
+        } catch ( ClassCastException e ) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -4363,29 +4390,6 @@ public class Functions {
         } catch ( InstantiationException e ) {
           // TODO Auto-generated catch block
           e.printStackTrace();
-        }
-        if ( result instanceof Collection ) {
-          Collection<T1> coll = (Collection<T1>)result;
-          T1 t11 = get( coll, Random.global.nextInt( coll.size() ) );
-          return t11;
-        } else {
-          Class<T1> cls = (Class< T1 >)variable.getClass();
-          try {
-            T1 t11 = Expression.evaluate( result, cls, true );
-            return t11;
-          } catch ( ClassCastException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch ( IllegalAccessException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch ( InvocationTargetException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch ( InstantiationException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
         }
       }
     }

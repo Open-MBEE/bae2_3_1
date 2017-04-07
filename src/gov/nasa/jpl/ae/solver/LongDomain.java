@@ -21,13 +21,11 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
   public static LongDomain defaultDomain = new LongDomain();  // REVIEW -- make this final?
 
 	public LongDomain() {
-	  lowerBound = typeMinValue;
-	  upperBound = typeMaxValue;
+    super(typeMinValue, typeMaxValue);
 	}
 	
 	public LongDomain(long minValue, long maxValue) {
-		this.lowerBound = minValue;
-		this.upperBound = maxValue;
+	  super(minValue, maxValue);
 	}
 
 	public LongDomain( RangeDomain< Long > domain ) {

@@ -2727,4 +2727,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //    return null;
 //  }
 
+  // TODO -- This is not finished. Need to get deep dependents.
+  @Override
+  public Set< Parameter< ? > > getDependentParameters( boolean deep,
+                                                       Set<HasParameters> seen ) {
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+    ArrayList< Dependency< ? > > s = new ArrayList< Dependency<?> >(dependencies);
+    if ( startTimeDependency != null ) s.remove( startTimeDependency );
+    if ( endTimeDependency != null ) s.remove( endTimeDependency );
+    if ( durationDependency != null ) s.remove( durationDependency );
+    for ( Dependency< ? > d : s ) {
+      set.add( d.parameter );
+    }
+    return set;
+  }
+
+
+  
 }
