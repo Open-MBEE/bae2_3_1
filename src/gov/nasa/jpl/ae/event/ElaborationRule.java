@@ -121,7 +121,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
         Event event = ei.invoke();
         if ( event != null ) {
           elaboratedEvents.add( event );
-          System.err.println( "elaborated "
+          Debug.getInstance().logForce( "elaborated "
                               + MoreToString.Helper.toString( event, true,
                                                               false, null ) );
           if ( satisfyOnElaboration ) {

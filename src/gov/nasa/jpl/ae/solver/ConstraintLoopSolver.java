@@ -34,7 +34,7 @@ public class ConstraintLoopSolver implements Solver {
     //double startTime = System.currentTimeMillis();
     unsatisfiedConstraints.clear();
     
-    unsatisfiedConstraints.addAll( constraints );
+    unsatisfiedConstraints.addAll( Utils.scramble( constraints ) );
     if ( Debug.isOn() ) Debug.outln( "ConstraintLoopSolver.solve(" + constraints
                  + ") unsatisfiedConstraints=" + unsatisfiedConstraints );
     int numAllConstrs = constraints.size();

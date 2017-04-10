@@ -142,11 +142,16 @@ public class ObjectFlow< Obj > extends TimeVaryingMap< Obj > {
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     for ( ObjectFlow<Obj> of : getListeners() ) {
-      of.setStaleAnyReferencesTo( changedParameter );
+      of.setStaleAnyReferencesTo( changedParameter, seen );
     }
-    super.setStaleAnyReferencesTo( changedParameter );
+    seen.remove(this);
+    super.setStaleAnyReferencesTo( changedParameter, seen );
   }
 
   @Override

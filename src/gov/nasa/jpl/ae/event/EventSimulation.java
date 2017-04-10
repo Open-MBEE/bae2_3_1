@@ -196,8 +196,10 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     Integer startTime = event.getStartTime().getValueOrMin();
     Integer endTime = event.getEndTime().getValueOrMax();
     if ( startTime == null || endTime == null ) {
-      Debug.outln( "Warning: can't add event with no time information: "
-                   + event.getName() );
+      if ( Debug.isOn() ) {
+        Debug.outln( "Warning: can't add event with no time information: "
+                     + event.getName() );
+      }
       return false;
     } else if ( ungroundedTiming ) {
       if ( Debug.isOn() ) {
@@ -687,7 +689,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
     if ( map == null || plotSocket == null || !plotSocket.isConnected() ) {
       return;
     }
-    Debug.outln( "Attempting to plot projection at time t=" + t + " from " + map );
+    if ( Debug.isOn() ) Debug.outln( "Attempting to plot projection at time t=" + t + " from " + map );
     // The array will contain the map's hash code followed by key-value pairs.
     Vector<Double> doubleVector = new Vector< Double >();
     try {
@@ -709,7 +711,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( map == null || map.isEmpty() ) {
         throw new IllegalArgumentException( "Projection to plot is null or empty " + map );
       }
-      Debug.outln( "plotting projection: " + map );
+      if ( Debug.isOn() ) Debug.outln( "plotting projection: " + map );
       for ( Map.Entry< Parameter< Integer >, ? > e : map.entrySet() ) {
         Integer timeInteger = e.getKey().getValue();
         if ( timeInteger <= lastTime ) continue;
@@ -796,7 +798,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
   }
 
   protected void plotValues( double lastTime, double time ) {
-    Debug.outln("called plotvalues @ " + time);
+    if ( Debug.isOn() ) Debug.outln("called plotvalues @ " + time);
     plotProjectionsThatChangeAtTime( time );
     if ( currentPlottableValues == null || 
          plotSocket == null || !plotSocket.isConnected() ) {
@@ -827,7 +829,7 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
             // TODO Auto-generated catch block
             //e1.printStackTrace();
           }
-          Debug.outln("plotting " + o.toString() + " = "+ v);
+          if ( Debug.isOn() ) Debug.outln("plotting " + o.toString() + " = "+ v);
         }
       }
       assert v == null || v instanceof Double || v instanceof Integer|| v instanceof Float
@@ -847,14 +849,15 @@ public class EventSimulation extends java.util.TreeMap< Integer, Set< Pair< Obje
       if ( v == null ) v = 0.0;
       
       if ( Double.class.isInstance( v ) ) {
-        Debug.outln( "appending " + o.toString() + " at index " + cnt + " = "
+        if ( Debug.isOn() ) Debug.outln( "appending " + o.toString() + " at index " + cnt + " = "
                      + v );
         doubleArray[ cnt++ ] = ( (Double)v ).doubleValue();
       } else {
-        Debug.error( "should have a double value for " + o.toString() + ": "
-                     + v );
-        Debug.outln( "no value found! appending 0.0 for " + o.toString()
-                     + " at index " + cnt + ", bad value: " + v );
+        Debug.error( "should have a double value for " + o.toString() + ": " + v );
+        if ( Debug.isOn() ) {
+          Debug.outln( "no value found! appending 0.0 for " + o.toString()
+                       + " at index " + cnt + ", bad value: " + v );
+        }
         doubleArray[ cnt++ ] = 0.0;
       }
     }

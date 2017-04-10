@@ -4,8 +4,6 @@
 package gov.nasa.jpl.ae.sysml;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -14,13 +12,14 @@ import java.util.Vector;
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.ae.event.ParameterListener;
+import gov.nasa.jpl.ae.event.HasParameters;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.util.ClassData;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
@@ -152,18 +151,77 @@ public class TranslatedCallHelper<P> {
     
     translatedCall.setEvaluatedArguments( translatedCall.evaluateArgs( false ) );
     
-    for ( int i = 0; i < originalArguments.size(); ++i ) {
-      Object originalArg = originalArguments.get( i );
-      Object evaluatedArg = translatedCall.getEvaluatedArguments()[ i ];
-      //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
-      Class< ? > parameterType =
-          translatedCall.getParameterTypes()[ Math.min( i, translatedCall.getParameterTypes().length - 1 ) ];
-
-      Object newEvaluatedArg = parameterizeArgument( originalArg, evaluatedArg, parameterType );
-      if ( newEvaluatedArg != null ) translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;      
+    if ( translatedCall.getEvaluatedArguments() != null && originalArguments != null ) {
+      for ( int i = 0; i < Math.min( originalArguments.size(),
+                                     translatedCall.getEvaluatedArguments().length ); ++i ) {
+        Object originalArg = originalArguments.get( i );
+        Object evaluatedArg = translatedCall.getEvaluatedArguments()[ i ];
+        //boolean isVarArg = i >= getParameterTypes().length-1 && isVarArgs();
+        Class< ? > parameterType =
+            translatedCall.getParameterTypes()[ Math.min( i, translatedCall.getParameterTypes().length - 1 ) ];
+  
+        Object newEvaluatedArg = parameterizeArgument( originalArg, evaluatedArg, parameterType );
+        if ( newEvaluatedArg != null ) translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;      
+      }
     }
   }
+  
+  
+  protected boolean reverseArgs() throws ClassCastException,
+                                 IllegalAccessException,
+                                 InvocationTargetException,
+                                 InstantiationException {
+    boolean changed = false;
+    if ( translatedCall.getParameterTypes() == null
+        || !Utils.contains( translatedCall.getParameterTypes(), Object.class ) ) {
+      return false;
+    }
+    if ( translatedCall.getEvaluatedArguments() == null ) return false;
+    changed = replaceArgs(translatedCall.getEvaluatedArguments());
+    if ( !changed
+         && translatedCall.getArguments() != null
+         && translatedCall.getEvaluatedArguments().length == translatedCall.getArguments()
+                                                                           .size() ) {
+      changed = replaceArgs(translatedCall.getArguments().toArray());      
+    }
+    return changed;
+  }
 
+  protected boolean replaceArgs(Object[] args) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    boolean changed = false;
+    for ( int i = 0; i < args.length; ++i ) {
+      Object arg = args[ i ];
+      Parameter<?> parameter = null;
+      Expression<?> paramExpression = null;
+      
+      if ( arg instanceof Parameter ) {
+        parameter = (Parameter<?>)arg;
+        paramExpression = new Expression< Object >( parameter );
+      } else if ( arg instanceof Expression &&
+                  ((Expression<?>)arg).expression instanceof Parameter ) {
+        parameter = (Parameter< ? >)((Expression<?>)arg).expression;
+        paramExpression = (Expression<?>)arg;
+      }
+      
+      if ( parameter != null ) {
+        P sourceObject = 
+            systemModelToAeExpression.getElementForAeParameter( paramExpression );
+        if ( sourceObject != null ) {
+          translatedCall.getEvaluatedArguments()[i] = sourceObject;
+          changed = true;
+        }
+      } else {
+        Object newEvaluatedArg = parameterizeArgument( arg, arg, systemModelToAeExpression.model.getPropertyClass() );
+        if ( newEvaluatedArg != null && newEvaluatedArg != arg ) {
+          translatedCall.getEvaluatedArguments()[ i ] = newEvaluatedArg;
+          changed = true;
+        }
+      }
+      
+    }
+    return changed;
+  }
+  
   protected void replaceCall(Expression<?> expr) {
     if ( !on ) return;
     Call c = null;
@@ -495,26 +553,109 @@ public class TranslatedCallHelper<P> {
     return isParam;
   }
   
+ 
+  
   /**
    * This checks to see if any argument is the element corresponding to this Parameter.  
    * @param changedParameter
    */
   public <T> void setStaleAnyReferencesTo( Parameter< T > changedParameter ) {
     if ( !on ) return;
+    Call call = (Call)translatedCall;
+
+    if ( Debug.isOn() ) Debug.outln( "@@ setStaleAnyReferencesTo() called from " + translatedCall );
+    
+    if ( call.isStaleNoPropagate() ) return;
 
     // get element for parameter if it exists
     P sourceObject =
         systemModelToAeExpression.getElementForAeParameter( new Expression<T>( changedParameter ) );
 
+    if ( Debug.isOn() ) Debug.outln( "@@ element for " + changedParameter + " <-- is --> " + sourceObject );
+    
     if ( sourceObject == null ) return;
     
     Vector< Object > args = translatedCall.getArguments();
     for ( Object arg : args ) {
-      if ( sourceObject.equals( arg ) ) {
-        ((Call)translatedCall).setStale( true );
+      if ( Debug.isOn() ) Debug.outln( "@@ checking arg " + arg );
+      if ( Expression.valuesEqual( sourceObject, arg ) ) {
+        call.setStale( true );
+        return;
       }
     }
+    
+    if ( Debug.isOn() ) Debug.outln( "@@ checking returnValue " + call.returnValue );
+    if ( Expression.valuesEqual( sourceObject, call.returnValue ) ) {
+      call.setStale(true);
+      return;
+    }
+    
+//    
+//    //if ( call.returnValue instanceof ParameterListener ) 
+//    if ( call.returnValue != null ) {
+//      if ( call.returnValue.equals( changedParameter ) ) {
+//        call.setStale(true);
+//      }
+//      args.add( ((Call)translatedCall).returnValue );
+//    }
+    if ( call.getEvaluatedArguments() != null ) {
+      for ( Object o : call.getEvaluatedArguments() ) {
+        if ( Debug.isOn() ) Debug.outln( "@@ checking evaluatedArg " + o );
+        if ( Expression.valuesEqual( sourceObject, o ) ) {
+          call.setStale(true);
+          return;
+        }        
+      }
+    }
+    
+    
   }
+
+  public Set< Parameter< ? > > getTranslatedParameters( boolean deep,
+                                                        Set< HasParameters > seen ) {
+    Call call = (Call)translatedCall;
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( call, deep, seen );
+    if ( pair.first == true ) return null;
+    
+    Set<Parameter<?>> parameters = new LinkedHashSet< Parameter<?> >();
+    Parameter< ? > param = null;
+    for ( Object arg : call.getArguments() ) {
+      param = propertyToParameter( arg );
+      if ( param != null ) parameters.add( param );
+    }
+    param = propertyToParameter( call.getObject() );
+    if ( param != null ) parameters.add( param );
+    param = propertyToParameter( call.getNestedCall() );
+    if ( param != null ) parameters.add( param );
+    param = propertyToParameter( call.returnValue );
+    if ( param != null ) parameters.add( param );
+    param = propertyToParameter( call.returnValue );
+    if ( param != null ) parameters.add( param );
+    if ( call.getEvaluatedArguments() != null ) {
+      for ( Object arg : call.getEvaluatedArguments() ) {
+        param = propertyToParameter( arg );
+        if ( param != null ) parameters.add( param );
+      }
+    }
+    return parameters;
+  };
+  
+
+  public Parameter< ? > propertyToParameter( Object arg ) {
+    if ( systemModelToAeExpression.model.getPropertyClass().isInstance( arg ) ) {
+      P p = systemModelToAeExpression.model.asProperty( arg );
+      Expression< ? > e = p == null ? null : 
+          systemModelToAeExpression.elementArgumentToAeExpression( p,
+                                                                   (Class<?>)null,
+                                                                   false );
+      if ( e != null && e.form == Form.Parameter ) {
+        Parameter<?> param = (Parameter< ? >)e.expression;
+        return param;
+      }
+    }
+    return null;
+  }
+  
 
   private Set< P > getProperties() {
     Set< P > properties = new LinkedHashSet< P >();

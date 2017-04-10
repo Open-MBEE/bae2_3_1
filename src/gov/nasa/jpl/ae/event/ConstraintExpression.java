@@ -60,7 +60,7 @@ public class ConstraintExpression extends Expression< Boolean >
     super( functionCall );
   }
 
-  /*
+  /**
    * (non-Javadoc)
    * 
    * @see event.Constraint#isSatisfied()
@@ -88,7 +88,7 @@ public class ConstraintExpression extends Expression< Boolean >
     return sat;
   }
 
-  /*
+  /**
    * (non-Javadoc)
    * 
    * @see event.Constraint#satisfy()
@@ -110,7 +110,7 @@ public class ConstraintExpression extends Expression< Boolean >
       Set< Variable< ? > > vars = getVariables();
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
-System.out.println("////////////////////   Picking values for " + vars + " in " + this);
+      if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
         if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
@@ -131,27 +131,22 @@ System.out.println("////////////////////   Picking values for " + vars + " in " 
   @Override
   public Set< Variable< ? > > getVariables() {
     return ParameterConstraint.Helper.getVariables( this, false, null );
-//    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
-//    s.addAll( getParameters( true ) );
-//    return s;
   }
 
   @Override
   public < T > boolean pickParameterValue( Variable< T > v ) {
-//    if ( type.equals( Type.Function ) ) {
-      if ( expression instanceof Suggester ) {
-        T newValue = ((Suggester)expression).pickValue( v );
-        if ( newValue != null ) {
-System.out.println("////////////////////   picking " + newValue + " for " + v + " in " + this);
-          setValue( v, newValue );
-          return true;
-        }
+    if ( expression instanceof Suggester ) {
+      T newValue = ((Suggester)expression).pickValue( v );
+      if ( newValue != null ) {
+        //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        setValue( v, newValue );
+        return true;
       }
-//    }
+    }
     // TODO
-//    Set< Variable< ? > > vars = getVariables();
-System.out.println("////////////////////   not picking value for " + v + " in " + this);
-    return false;//ParameterConstraint.Helper.pickValue( this, v );
+    if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    return false;
   }
 
   protected < T > void setValue( Variable<T> v, T newValue ) {
@@ -168,16 +163,11 @@ System.out.println("////////////////////   not picking value for " + v + " in " 
   @Override
   public < T > boolean isFree( Variable< T > v ) {
     return ParameterConstraint.Helper.isFree( this, v, false, null );
-//    if ( v instanceof Parameter<?> ) {
-//      return freeParameters.contains( v );
-//    }
-//    return true; // REVIEW -- Is true ok for "don't know" case?
   }
 
   @Override
   public < T > boolean isDependent( Variable< T > v ) {
     return ParameterConstraint.Helper.isDependent( this, v, false, null );
-//    return false;
   }
 
   @Override

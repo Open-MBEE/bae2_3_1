@@ -754,6 +754,8 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public void setStale( boolean staleness ) {
+    Debug.errln( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+                   + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     // TODO -- REVIEW -- Do nothing?
   }
@@ -978,9 +980,9 @@ public class Expression< ResultType > extends HasIdImpl
                                      boolean allowWrapping ) throws ClassCastException {
     if ( o1 == o2 ) return true;
     if ( o1 == null || o2 == null ) return false;
-    if ( (o1 instanceof Float && o2 instanceof Double ) || (o2 instanceof Float && o1 instanceof Double ) ) {
-      Debug.out( "" );
-    }
+//    if ( (o1 instanceof Float && o2 instanceof Double ) || (o2 instanceof Float && o1 instanceof Double ) ) {
+//      Debug.out( "" );
+//    }
     Object v1 = null;
     Object v2 = null;
     try {
@@ -1151,9 +1153,14 @@ public class Expression< ResultType > extends HasIdImpl
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    if ( Debug.isOn() ) Debug.outln( "@@ setStaleAnyReferencesTo() called from " + this.toShortString() );
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     if ( expression instanceof ParameterListener ) {
-      ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)expression ).setStaleAnyReferencesTo( changedParameter, seen );
     }
   }
 

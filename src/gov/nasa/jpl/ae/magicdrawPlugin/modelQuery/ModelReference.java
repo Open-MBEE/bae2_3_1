@@ -670,7 +670,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
         if ( didEvaluationSucceed() ) {
           Debug.error( false, "Error! " + msg );
         } else {
-          Debug.errln( "Warning! " + msg );
+          if ( Debug.isOn() ) Debug.errln( "Warning! " + msg );
         }
       }
       evaluationSucceeded = false;
@@ -756,7 +756,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
         if ( didEvaluationSucceed() ) {
           Debug.error( false, "Error! " + msg );
         } else {
-          Debug.errln( "Warning! " + msg );
+          if ( Debug.isOn() ) Debug.errln( "Warning! " + msg );
         }
       }
       evaluationSucceeded = false;
@@ -1990,7 +1990,7 @@ public class ModelReference< T, SM extends SystemModel< ?, ?, ?, ?, ?, ?, ?, ?, 
   }
   
   public List< Reference< ? extends T, SM >> getAlternatives() {
-    List< Reference< ? extends T, SM >> castedAlternatives = Utils.newList( );//asList(alternatives);
+    List< Reference< ? extends T, SM >> castedAlternatives = Utils.newEmptyList();//asList(alternatives);
     for ( ModelReference mr : alternatives ) {
       castedAlternatives.add( mr );
     }
