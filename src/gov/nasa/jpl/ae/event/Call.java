@@ -53,7 +53,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   protected boolean stale = true;
   protected boolean alwaysStale = false;
 
-  protected Object returnValue = null;  // a cached value
+  public Object returnValue = null;  // a cached value
   
   protected boolean proactiveEvaluation = false;
   
@@ -330,7 +330,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     compare = CompareUtils.compare( getClass().getName(), o.getClass().getName() );
     if ( compare != 0 ) return compare;
     // TODO -- would like to skip this since it changes.
-    Debug.errln( "Call.compareTo comparing value information." );
+    if ( Debug.isOn() ) Debug.errln( "Call.compareTo comparing value information." );
     compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( object, o.object, true );
@@ -341,7 +341,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-    if ( returnValue != null && !isStale() && isGrounded( propagate, null ) ) {
+    if ( returnValue != null && !isStale() ) {// && isGrounded( propagate, null ) ) {
       evaluationSucceeded = true;
       return returnValue;
     }
@@ -362,7 +362,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     
     //result = evaluate( propagate, doEvalArgs, true );
-    //System.out.println("\n####  ####  evaluating Call: " + this);
+//    Debug.getInstance().logForce("\n####  ####  evaluating Call: " + this);
     if ( Debug.isOn() ) {
       Debug.outln("\n####  ####  evaluating Call: " + this);
     }
@@ -375,7 +375,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     } catch (  InstantiationException e ) {
         throw e;
     } finally {
-//      System.out.println( "####  ####  Call "
+//      Debug.getInstance().logForce( "####  ####  Call "
 //          + ( didEvaluationSucceed() ? "succeeded" : "failed" )
 //          + ": " + this + "\n" + "####  ####  #### result ---> "
 //          + result + "\n" );
@@ -428,7 +428,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return result;
   }
   
-  public synchronized Object evaluateWithSetArguments( boolean propagate, boolean doEvalArgs ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
+  public synchronized Object evaluateWithSetArguments( boolean propagate,
+                                                       boolean doEvalArgs )
+                                                                       throws IllegalAccessException,
+                                                                       InvocationTargetException,
+                                                                       InstantiationException,
+                                                                       IllegalArgumentException {
     evaluationSucceeded = false;
     // IllegalAccessException, InvocationTargetException {
     if ( getMember() == null ) {
@@ -480,12 +485,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
       evaluatedObj = Expression.evaluate( object, cls, propagate, true );
       
-      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs );
+      evaluatedArgs = fixArgsForVarArgs( evaluatedArgs, false );
       
       returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
       // No longer stale after invoked with updated arguments and result is cached.
-      setStale( false );
+      if ( evaluationSucceeded ) setStale( false );
       
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
@@ -507,8 +512,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       evaluatedArguments = null;
     }
 
-    if ( Debug.isOn() ) 
-      Debug.outln( "evaluate() returning " + returnValue );
+    if ( Debug.isOn() ) Debug.outln( "evaluate() returning " + returnValue );
     
     return returnValue;
   }
@@ -519,7 +523,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @param evaluatedArgs
    * @return
    */
-  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs ) {
+  protected Object[] fixArgsForVarArgs( Object[] evaluatedArgs, boolean complain ) {
     if ( !isVarArgs() || evaluatedArgs == null ) return evaluatedArgs;
     int paramSize = getParameterTypes().length;
     if ( evaluatedArgs.length < paramSize - 1 ) {
@@ -538,7 +542,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       newArgs[ paramSize - 1 ] = varArgArray;
       return newArgs;
     } catch ( Throwable t ) {
-      t.printStackTrace();
+      if (complain) t.printStackTrace();
       return evaluatedArgs;
     }
   }
@@ -822,6 +826,19 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Assert.assertTrue( "This method is not supported!", false );
   }
   
+  public synchronized boolean areArgumentsGrounded( boolean deep,
+                                                    Set< Groundable > seen ) {
+    // Check if arguments are grounded if groundable.  Ok for arguments to be null.
+    if ( arguments != null ) {
+      for ( Object o : arguments ) {
+        if ( o != null && o instanceof Groundable
+             && !( (Groundable)o ).isGrounded( deep, seen ) ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   @Override
   public synchronized boolean isGrounded( boolean deep, Set< Groundable > seen ) {
@@ -843,14 +860,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       
       return false;
     }
-    // Check if arguments are grounded if groundable.  Ok for arguments to be null.
-    if ( arguments != null ) {
-      for ( Object o : arguments ) {
-        if ( o != null && o instanceof Groundable
-             && !( (Groundable)o ).isGrounded( deep, seen ) ) {
-          return false;
-        }
-      }
+    if ( !areArgumentsGrounded( deep, seen ) ) {
+      return false;
     }
     if ( nestedCall == null ) {
 //      if ( !Modifier.isStatic( getMember().getModifiers() ) &&
@@ -1009,9 +1020,32 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return false;
   }
   
+  public boolean isStaleNoPropagate() {
+    return stale;
+  }
   @Override
   public boolean isStale() {
     if ( stale ) return true;
+    if ( evaluatedArguments != null ) {
+      for ( Object arg : evaluatedArguments ) {
+        if ( arg instanceof LazyUpdate )  {
+          if ( ( (LazyUpdate)arg ).isStale() ) {
+            setStale( true );
+            return true;
+          }
+        }
+      }
+    }
+    if ( arguments != null ) {
+      for ( Object arg : arguments ) {
+        if ( arg instanceof LazyUpdate )  {
+          if ( ( (LazyUpdate)arg ).isStale() ) {
+            setStale( true );
+            return true;
+          }
+        }
+      }
+    }
     for ( Parameter< ? > p : getParameters( false, null ) ) {
       if ( p.isStale() ) {
         setStale( true );
@@ -1041,6 +1075,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   @Override
   public void setStale( boolean staleness ) {
+    if ( stale != staleness && Debug.isOn() ) Debug.outln( "setStale(" + staleness + "): "
+                                                    + toShortString() );
+
     if ( staleness ) {
       clearCache();
     }
@@ -1240,7 +1277,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                        int indexOfObjectArgument ) {
       Collection< Object > coll = new ArrayList<Object>();
       try {
-        for ( Object o : objects ) {
+        if ( objects != null ) for ( Object o : objects ) {
             sub( indexOfObjectArgument, o );
             Object result = null;
             result = evaluate(true);
@@ -1285,7 +1322,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
       else {
         if ( indexOfArg > arguments.size() ) {
-          Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
+          if ( Debug.isOn() ) Debug.err( "bad index " + indexOfArg + "; only " + arguments.size() + " arguments!  Adding null argument placeholders!" );
           if ( indexOfArg > 100 ) {
             Debug.error( "bad index " + indexOfArg + "; greater than 100" );
           } else {
@@ -1572,7 +1609,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    if ( changedParameter == null ) return;
     if ( hasParameter( changedParameter, true, null ) ) {
       setStale(true);
     }
@@ -1581,22 +1622,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // TODO -- This could produce infinite recursion!  Make a helper!
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+        ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
     if ( object instanceof ParameterListener ) {
-      ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
-      ( (ParameterListener)nestedCall ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)nestedCall ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( returnValue instanceof ParameterListener ) {
-      ( (ParameterListener)returnValue ).setStaleAnyReferencesTo( changedParameter );
+      ( (ParameterListener)returnValue ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( getEvaluatedArguments() != null ) {
       for ( Object o : getEvaluatedArguments() ) {
         if ( o instanceof ParameterListener ) {
-          ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter );
+          ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
         }
       }
     }

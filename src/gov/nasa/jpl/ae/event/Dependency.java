@@ -112,12 +112,32 @@ public class Dependency< T > extends HasIdImpl
     if ( Debug.isOn() ) Debug.outln( "Not setting parameter to result value because either the value didn't change, or the parameter is not stale." );
     return false;
   }
-
+  
+  Boolean amApplying = false;
+  
   /**
    * @param propagate
    * @return whether the value was set to the evaluated expression
    */
   public boolean apply( boolean propagate ) {
+    synchronized(amApplying) {
+      if ( amApplying ) return false;
+      amApplying = true;
+    }
+    boolean b = false;
+    try {
+      b = reallyApply(propagate);
+    } finally {
+      amApplying = false;
+    }
+    return b;
+  }
+
+  /**
+   * @param propagate
+   * @return whether the value was set to the evaluated expression
+   */
+  public boolean reallyApply( boolean propagate ) {
     // TODO -- REVIEW -- if ( isStale() ) ??
     if ( Debug.isOn() ) Debug.outln( "calling apply(" + propagate + ") on dependency " + this );
     Object val = null;
@@ -610,10 +630,14 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
     if ( expression == null ) return;
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     if ( expression.hasParameter( changedParameter, true, null ) ) {
-      expression.setStaleAnyReferencesTo( changedParameter );
+      expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
     }
   }

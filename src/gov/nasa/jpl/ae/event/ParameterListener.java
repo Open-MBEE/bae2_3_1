@@ -3,6 +3,8 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.util.Set;
+
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.HasName;
 
@@ -40,8 +42,9 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * corrupted.
    * 
    * @param changedParameter the parameter whose value is about to change
+   * @param seen TODO
    */
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter );
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen );
 
   /**
    * Remove any references to the parameter.  

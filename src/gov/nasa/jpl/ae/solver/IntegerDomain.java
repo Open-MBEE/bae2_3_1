@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.ae.util.Math;
 import gov.nasa.jpl.mbee.util.Random;
 
 /**
@@ -48,7 +49,7 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 	public int size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
-		return ((int)getUpperBound()) - ((int)getLowerBound());
+    return Math.plus( (int)upperBound, (int)-lowerBound );
 	}
 
 	/* (non-Javadoc)
@@ -103,7 +104,8 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 	private Integer getMiddleValue() {
     // TODO -- should interpret null as zero 
     if ( lowerBound == null || upperBound == null ) return 0;
-    return (int)(lowerBound + size()/2); // this is a floor
+    
+    return (int)(lowerBound + upperBound/2 - lowerBound/2); // this is a floor
   }
 
   @Override

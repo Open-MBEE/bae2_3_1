@@ -507,10 +507,6 @@ public class ClassData {
     String type = "Parameter";
     String parameterTypes = paramTypeName;
 
-    if ( paramType != null && paramTypeName.equals( "Generation" ) ) {
-      Debug.out( "" );
-    }
-
     // parameterTypes = getFullyQualifiedName( parameterTypes, true );
     parameterTypes = getClassNameWithScope( parameterTypes, true );
     String castType = parameterTypes;

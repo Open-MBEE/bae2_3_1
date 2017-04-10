@@ -472,7 +472,7 @@ public class JavaForFunctionCall {
   }
   
   public Call toNewFunctionCall() {
-    Debug.outln( "JavaForFunctionCall.toNewFunctionCall() --> " + getCall() );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewFunctionCall() --> " + getCall() );
     return getCall();
   }
 
@@ -506,12 +506,12 @@ public class JavaForFunctionCall {
         fcnCallStr = "(" + fcnCallStr + ").evaluate(true)";
       }
     }
-    Debug.outln( "JavaForFunctionCall.toNewFunctionCallString() --> " + fcnCallStr );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewFunctionCallString() --> " + fcnCallStr );
     return fcnCallStr;
   }
   public String toNewExpressionString() {
     String s = "new Expression( " + toNewFunctionCallString() + " )";
-    Debug.outln( "JavaForFunctionCall.toNewExpressionString() --> " + s );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewExpressionString() --> " + s );
     return s;
   }
   
@@ -523,7 +523,7 @@ public class JavaForFunctionCall {
   public <T> gov.nasa.jpl.ae.event.Expression< T > toNewExpression() {
     gov.nasa.jpl.ae.event.Expression< T > r =
         new gov.nasa.jpl.ae.event.Expression< T >( toNewFunctionCall() );
-    Debug.outln( "JavaForFunctionCall.toNewExpression() --> " + r );
+    if ( Debug.isOn() ) Debug.outln( "JavaForFunctionCall.toNewExpression() --> " + r );
     return r;
   }
 
@@ -640,7 +640,7 @@ public class JavaForFunctionCall {
         if ( tmp != null ) {
           setObjectExpr(new gov.nasa.jpl.ae.event.Expression<Object>( tmp ) );
         } else {
-          Debug.errln( "Warning!  JavaToFunctionCall.getCall() is having to parse the object text, \""
+          if ( Debug.isOn() ) Debug.errln( "Warning!  JavaToFunctionCall.getCall() is having to parse the object text, \""
                        + getObject()
                        + "\" to create the expression of the caller!" );
           setObjectExpr( exprXlator.javaToAeExpression( getObject(),
