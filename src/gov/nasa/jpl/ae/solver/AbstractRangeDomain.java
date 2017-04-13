@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +19,7 @@ import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Random;
+import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Wraps;
 
@@ -424,14 +426,16 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   
 	@Override
 	public String toString() {
-	  if ( getLowerBound() == null || getUpperBound() == null ) {
-	    return "[]";
-	  } 
+    if ( getLowerBound() == null || getUpperBound() == null || isEmpty() ) {
+      return "[]";
+    }
 	  // REVIEW -- Is this okay or should we just have [lb,ub] for this case?
 	  if ( getLowerBound() == getUpperBound() ) {
 	    return "[" + getLowerBound() + "]";
 	  }
-		return "[" + getLowerBound() + ", " + getUpperBound() + "]";
+    String lc = isLowerBoundIncluded() ? "[" : "(";
+    String uc = isUpperBoundIncluded() ? "]" : ")";
+		return lc + getLowerBound() + ", " + getUpperBound() + uc;
 	}
 
   //public abstract RangeDomain() fromString(String);
@@ -515,6 +519,122 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
     }
     return changed;
+  }
+  
+  public boolean subtract( Object o ) {
+    if ( o == null ) return false;
+    if ( o instanceof Domain ) {
+      return subtract((Domain<?>)o);
+    }
+    Class<?> cls = getType();
+    Object t = null;
+    if ( cls != null ) {
+      t = ClassUtils.evaluate( o, cls, false );
+    }
+    if ( t == null ) t = o;
+    boolean changed = false;
+    if ( lowerBound != null && isLowerBoundIncluded() && lowerBound.equals( t ) ) {
+      excludeLowerBound();
+      changed = true;
+    }
+    if ( upperBound != null && isUpperBoundIncluded() && upperBound.equals( t ) ) {
+      excludeUpperBound();
+      changed = true;
+    }
+    try {
+      if (!changed && lowerBound != null && upperBound != null && getType() != null && getType().isInstance( t ) && less( lowerBound, (T)t ) && less((T)t, upperBound)) {
+        System.err.println( "Warning!  Can't subtract " + t + " from the middle of " + this );
+      }
+    } catch (ClassCastException e) {
+      // ignore
+    }
+    return changed;
+  }
+
+  @Override
+  public < TT > boolean subtract( Domain< TT > domain ) {
+    boolean changed = false;
+    if ( domain instanceof AbstractRangeDomain ) {
+      changed = subtract( (AbstractRangeDomain< T >)domain );
+    } else if ( domain instanceof SingleValueDomain ) {
+      changed = this.subtract( ((SingleValueDomain< T >)domain).value );
+    } else {
+      // TODO???
+      Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
+    }
+    return changed;
+  }
+  
+  public boolean subtract( AbstractRangeDomain<T> o ) {
+    // check input
+    if ( o == null || lowerBound == null || upperBound == null || o.lowerBound == null || o.upperBound == null ) {
+      System.err.println( "Error! AbstractRangeDomain.subtract() called with a null in the bounds." );
+      return false;
+    }
+    AbstractRangeDomain<T> original = clone();
+    if ( lessEquals( o.lowerBound, lowerBound ) && lessEquals( lowerBound, o.upperBound) ) {
+      lowerBound = o.upperBound;
+      if ( o.isUpperBoundIncluded() ) excludeLowerBound();
+      //else if ( equals( lowerBound, o.lowerBound ) && includeLowerBound()
+    }
+    if ( lessEquals( upperBound, o.upperBound ) && lessEquals( o.lowerBound, upperBound) ) {
+      upperBound = o.lowerBound;
+      if ( o.isLowerBoundIncluded() ) excludeUpperBound();
+      //else if ( equals( lowerBound, o.lowerBound ) && includeLowerBound()
+    }
+    return !this.equals(original);
+  }
+
+  public static < T1 > Set< AbstractRangeDomain< T1 > >
+         subtract( AbstractRangeDomain< T1 > d1,
+                   AbstractRangeDomain< T1 > d2 ) {
+    // check input
+    if ( d1 == null || d2 == null || d1.lowerBound == null || d1.upperBound == null || d2.lowerBound == null || d2.upperBound == null ) {
+      System.err.println( "Error! AbstractRangeDomain.subtract(d1,d2) called with a null in the bounds." );
+      return null;
+    }
+    
+    Set< AbstractRangeDomain< T1 > > result =
+        new LinkedHashSet< AbstractRangeDomain< T1 > >();
+
+    // check for easy cases
+    if ( d2.isEmpty() || d1.isEmpty() ) {
+      AbstractRangeDomain< T1 > r = d1.clone();
+      result.add( r );
+      return result;
+    }
+    
+    // The only case where two domains are returned instead of one is when d1
+    // contains d2. Otherwise, the normal subtract works.
+    boolean d1ContainsD2 = d1.lessEquals( d1.lowerBound, d2.lowerBound )
+                           && d1.lessEquals( d2.upperBound, d1.upperBound )
+                           && ( !d1.lowerBound.equals( d2.lowerBound )
+                                || !d1.isLowerBoundIncluded() || d2.isLowerBoundIncluded() )
+                           && ( !d1.upperBound.equals( d2.upperBound )
+                                || !d1.isUpperBoundIncluded() || d2.isUpperBoundIncluded() );
+
+    AbstractRangeDomain< T1 > r;
+
+    if ( !d1ContainsD2 ) {
+      r = d1.clone();
+      r.subtract( d2 );
+      result.add( r );
+      return result;
+    }
+    
+    // Get first piece
+    r = d1.clone();
+    r.upperBound = d2.lowerBound;
+    r.upperIncluded = !d2.lowerIncluded; 
+    result.add( r );
+    
+    // Get second piece
+    r = d1.clone();
+    r.lowerBound = d2.upperBound;
+    r.lowerIncluded = !d2.upperIncluded;
+    result.add( r );
+
+    return result;
   }
 
   @Override

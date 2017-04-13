@@ -71,10 +71,10 @@ public class Consistency {
   
   public static void main( String[] args ) {
 //    Parameter<Double> z = new Parameter<Double>( "z", (Domain<Double>)(new DoubleDomain( 0.0, 10.0 )), 10.0, null );
-    Parameter<Integer> z = new Parameter<Integer>( "z", new IntegerDomain( 10, 15 ), 2, null );
-    Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 1, 5 ), 1, null );
-    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 4, 8 ), 1, null );
-    Parameter<Double> w = new Parameter<Double>( "w", new DoubleDomain( 0.0, 10.0 ), 2.0, null );
+    Parameter<Integer> z = new IntegerParameter( "z", new IntegerDomain( 10, 15 ), 2, null );
+    Parameter<Integer> y = new IntegerParameter( "y", new IntegerDomain( 1, 5 ), 1, null );
+    Parameter<Integer> x = new IntegerParameter( "x", new IntegerDomain( 4, 8 ), 1, null );
+    Parameter<Double> w = new DoubleParameter( "w", new DoubleDomain( 0.0, 10.0 ), 2.0, null );
  
     // test for inverse functions
     System.out.println( "x = " + x + "; domain = " + x.getDomain() );
@@ -140,8 +140,28 @@ public class Consistency {
     System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
     System.out.println( "should be  z domain = []\n" );
     
-    
-    
+//    Parameter<Integer> z = new Parameter<Integer>( "z", new IntegerDomain( 10, 15 ), 2, null );
+    ((IntegerDomain)z.getDomain()).setBounds( 10, 15 );
+//    Parameter<Integer> y = new Parameter<Integer>( "y", new IntegerDomain( 1, 5 ), 1, null );
+    ((IntegerDomain)y.getDomain()).setBounds( 1, 5 );
+//    Parameter<Integer> x = new Parameter<Integer>( "x", new IntegerDomain( 4, 8 ), 1, null );
+    ((IntegerDomain)x.getDomain()).setBounds( 4, 8 );
+//    Parameter<Double> w = new Parameter<Double>( "w", new DoubleDomain( 0.0, 10.0 ), 2.0, null );
+    Functions.LT<Integer> lt = new Functions.LT< Integer >(XplusY, z);
+    s = new ConstraintExpression( lt );
+
+    System.out.println( "ConstraintExpression: " + s );
+
+    list1.clear();
+    list1.add(s);
+    arcConsistency( list1 );
+    System.out.println();
+    System.out.println( "x = " + x + "; new domain = " + x.getDomain() );
+    System.out.println( "should be  x domain = []\n" );
+    System.out.println( "y = " + y + "; new domain = " + y.getDomain() );
+    System.out.println( "should be  y domain = []\n" );
+    System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
+    System.out.println( "should be  z domain = []\n" );
     
     }
 }

@@ -107,11 +107,6 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   }
 
   @Override
-	public String toString() {
-		return "[" + getLowerBound() + " " + getUpperBound() + "]";
-	}
-
-  @Override
   public boolean contains( Integer t ) {
     if ( t == null && 
          ( lowerBound != null  || upperBound != null ) ) return false;

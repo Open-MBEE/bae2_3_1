@@ -58,4 +58,13 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T >, Eval
    * @return whether the domain of any object changed as a result of this call
    */
   public <TT> boolean restrictTo( Domain< TT > domain );
+  
+  /**
+   * Exclude elements in the input domain from this domain.
+   * 
+   * @param domain
+   * @return whether the domain of any object changed as a result of this call
+   */
+  public <TT> boolean subtract( Domain< TT > domain );
+  
 }

@@ -299,6 +299,9 @@ public class Functions {
     
     protected void addInverseToList(Object returnValue, Object argument, Collection<Object> listOfInverseResults) {
       FunctionCall inverse = inverse(returnValue, argument );
+      if ( inverse == null ) {
+        return;
+      }
       Object cObj = null;
       try {
         cObj = inverse.evaluate( false, true );
@@ -2099,8 +2102,12 @@ public class Functions {
           public Domain< ? > getDomain( boolean propagate,
                                         Set< HasDomain > seen ) {
             if( otherArg instanceof HasDomain ) {
-              if ( eqReturnValue )
-              return ((HasDomain)otherArg).getDomain(propagate, seen);
+              Domain< ? > otherDomain = ((HasDomain)otherArg).getDomain(propagate, seen);
+              if ( eqReturnValue || otherDomain.magnitude() > 1) {
+                return otherDomain;
+              }
+              // need to return the arg.getDomain() excluding the single value
+              if 
               return null;
             }
             return null;
@@ -2301,6 +2308,28 @@ public class Functions {
       // functionCall.
       setMonotonic( true );
     }
+
+    @Override
+    public FunctionCall inverse( Object returnValue, Object arg ) {
+      return super.inverse( returnValue, arg );
+    }
+    
+//    @Override
+//    public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+//      if ( arguments == null || arguments.size() != 2 ) return null;
+//      Object otherArg = ( arg == arguments.get( 1 ) ? arguments.get( 0 ) : arguments.get( 1 ) );
+//      boolean firstArg = otherArg != arguments.get( 0 );  // thus arg is the first
+//      if ( returnValue == null || otherArg == null ) return null; // arg can be null!
+//      if ( firstArg ) {
+//        // Make a copy of the domain
+//        AbstractRangeDomain range = null;
+//        if ( otherArg instanceof HasDomain )  {
+//           if
+//        }
+//        return new Conditional( returnValue,  );
+//      }
+//      return new Divide<T,T>( otherArg, returnValue );
+//    }
   }
 
   public static class Less< T > extends LT< T > {
