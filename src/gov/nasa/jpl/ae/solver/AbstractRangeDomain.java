@@ -551,13 +551,36 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return changed;
   }
 
+  public static <TT,TTT> Domain<TT> domainFromSet(Set<AbstractRangeDomain<TTT>> arDomains, Class<Domain<TT>> cls) {
+    Set< Domain< TT > > domains = Utils.asSet( arDomains, cls );
+    if ( domains == null ) return null;
+    if ( domains.size() == 1 ) {
+      return domains.iterator().next();
+    }
+    MultiDomain<TT> md = new MultiDomain<TT>( domains, (Set< Domain< TT > >)null );
+    return md;
+  }
+  
   @Override
-  public < TT > boolean subtract( Domain< TT > domain ) {
+  public < TT > Domain<TT> subtract( Domain< TT > domain ) {
+    if ( domain == null ) return null;
     boolean changed = false;
     if ( domain instanceof AbstractRangeDomain ) {
-      changed = subtract( (AbstractRangeDomain< T >)domain );
+      Set< AbstractRangeDomain< TT > > arDomains = AbstractRangeDomain.subtract( (AbstractRangeDomain< TT >)this, (AbstractRangeDomain< TT >)domain );
+      Domain<TT> d = domainFromSet(arDomains,  (Class< Domain< TT > >)domain.getClass() );
+      if ( d == null ) {
+        // TODO
+      }
+      return d;
+      //changed = subtract( (AbstractRangeDomain< T >)domain );
     } else if ( domain instanceof SingleValueDomain ) {
-      changed = this.subtract( ((SingleValueDomain< T >)domain).value );
+      SingleValueDomain< T > svd = (SingleValueDomain< T >)domain;
+      Domain<T> d = clone();
+      d.restrictToValue( svd.value );
+      Domain< T > arDomains = this.subtract( d );
+      Domain<TT> dd = domainFromSet( arDomains, (Class< Domain< TT > >)domain.getClass()  );
+      return dd;
+      //changed = this.subtract( svd.value );
     } else {
       // TODO???
       Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
