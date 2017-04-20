@@ -763,6 +763,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       callIsConstructor = false;
       newCall = new TimeVaryingFunctionCall( (FunctionCall)call );
     } else if ( call instanceof ConstructorCall ) {
+      newCall = new TimeVaryingConstructorCall( (ConstructorCall)call );
       callIsConstructor = true;
     } else {
       // TODO -- ERROR
@@ -6957,6 +6958,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     deltaMap.interpolation = NONE;
     return deltaMap;
   }
+ 
+ 
+ public TimeVaryingMap< Boolean > validTime(Call call, int argIndexOfValue, Object[] otherArgs) {
+   // TODO!!! -- HERE!!!
+   Collection< Object > x = call.map( this.values(), argIndexOfValue );
+   return null;
+ }
+
+ 
   @Override
   public String getQualifiedName( Set< Object > seen ) {
     String n = HasOwner.Helper.getQualifiedName( this, null );

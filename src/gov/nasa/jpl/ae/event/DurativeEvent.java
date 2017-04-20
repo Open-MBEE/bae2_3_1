@@ -517,31 +517,41 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     boolean changed = false;
     // Add an elaboration for every non-null value
     for ( Entry< Parameter< Long >, ? > e : tvm.entrySet() ) {
-      // TODO!! What to do with the value?
-      if ( lastStart != null && lastStart.getValue() != null && lastValue != null
-           && !Utils.valuesEqual( lastValue, 0 )
-           && !Utils.valuesEqual( lastValue, "" )
-           && !e.getKey().valueEquals( lastStart ) ) {
-        ElaborationRule r = addElaborationRule( condition, enclosingInstance, eventClass, arguments, lastStart, e.getKey() );
-        if ( r != null ) changed = true;
-//        Long duration = new Long(e.getKey().getValue( true ) - lastStart.getValue( true ));
-//        String childName = String.format( "%s%06d", name, counter++ );
-//        Expression<?>[] augmentedArgs = new Expression<?>[arguments.length + 2];
-//        // Repackage arguments, passing in the start time and duration.
-//        for ( int i = 0; i < arguments.length; ++i ) {
-//          augmentedArgs[i] = arguments[i];
-//        }
-//        augmentedArgs[arguments.length] = new Expression< Long >( lastStart );
-//        augmentedArgs[arguments.length+1] = new Expression< Long >( duration.longValue() );
-//        addElaborationRule( condition, enclosingInstance,
-//                            eventClass, childName, augmentedArgs );
-      }
+      boolean c =
+          tryToAddElaboration( enclosingInstance, eventClass, arguments,
+                               condition, lastStart, e.getKey(), lastValue );
+      if ( c ) changed = true;
       if ( !e.getKey().valueEquals( lastStart ) ) {
         lastStart = e.getKey();
         lastValue = e.getValue();
       }
     }
+    // Add for the last value of the timeline. 
+    boolean c =
+        tryToAddElaboration( enclosingInstance, eventClass, arguments,
+                             condition, lastStart,
+                             Timepoint.getHorizonTimepoint(), lastValue );
+    if ( c ) changed = true;
+    
     return changed;
+  }
+  
+  public boolean tryToAddElaboration( Object enclosingInstance,
+                                      Class< ? extends Event > eventClass,
+                                      Expression< ? >[] arguments,
+                                      Expression< Boolean > condition,
+                                      Parameter< Long > start,
+                                      Parameter< Long > end,
+                                      Object value ) {
+    if ( start != null && start.getValue() != null && value != null
+         && !Utils.valuesEqual( value, 0 ) && !Utils.valuesEqual( value, "" )
+         && !Utils.isFalse( value, false ) && !end.valueEquals( start ) ) {
+      ElaborationRule r =
+          addElaborationRule( condition, enclosingInstance, eventClass,
+                              arguments, start, end );
+      if ( r != null ) return true;
+    }
+    return false;
   }
 
   private void debugToCsvFile( TimeVaryingMap< ? > tv, String fileName ) {

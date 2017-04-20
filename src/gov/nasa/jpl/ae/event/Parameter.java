@@ -690,7 +690,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public String toShortString() {
-    return MoreToString.Helper.toShortString( value );
+    return toString(false, false, false, null, null);
+    //return MoreToString.Helper.toShortString( value );
   }
 
   @Override
@@ -712,13 +713,16 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         sb.append( getOwner().getName() + ":");
       }
     }
-    if ( withOwner || deep || withHash ) {
-      sb.append( getName() );
+    if ( !Utils.isNullOrEmpty( getName() ) || withOwner || deep || withHash ) {
+      if ( Utils.isNullOrEmpty( getName() ) ) 
+        sb.append( "_" );
+      else
+        sb.append( getName() );
     }
     if ( withHash ) {
       sb.append("@" + hashCode() );
     }
-    if ( withOwner || deep || withHash ) {
+    if ( !Utils.isNullOrEmpty( getName() ) || withOwner || deep || withHash ) {
       sb.append( "=" );
     }
     if ( !deep ) {
