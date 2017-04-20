@@ -113,8 +113,8 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#clone()
    */
   @Override
-  public Domain< T > clone() {
-    Domain<T> d = new ObjectDomain< T >( this );
+  public ObjectDomain< T > clone() {
+    ObjectDomain<T> d = new ObjectDomain< T >( this );
     return d;
   }
 
@@ -264,6 +264,21 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
       return (V)this;
     }
     return null;
+  }
+
+  @Override
+  public < TT > Domain< TT > subtract( Domain< TT > domain ) {
+    ObjectDomain<T> clone = clone();
+    java.util.Iterator<T> i = clone.iterator();
+    while ( i.hasNext() ) {
+      T t = i.next();
+      try {
+        if ( domain.contains( (TT)t ) ) {
+          i.remove();
+        }
+      } catch (ClassCastException e) {}
+    }
+    return (Domain< TT >)clone;
   }
 
 

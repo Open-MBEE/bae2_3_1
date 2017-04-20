@@ -451,13 +451,101 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean notEquals( T t1, T t2 ) {
     return !equals( t1, t2 );
   }
-	
+
+  public boolean less( T t1 ) {
+    if ( t1 == null || upperBound == null ) return false;
+    return greater(t1, upperBound) || (!isUpperBoundIncluded() && equals(t1, upperBound));
+  }
+  // WARNING! This fails for finite domains, where if upper is not included
+  // and t1 is is the previous value to upper, then this should return true,
+  // but it will return false;
+  public boolean lessEquals( T t1 ) {
+    if ( t1 == null || upperBound == null ) return false;
+    return greaterEquals(t1, upperBound);
+  }
+  public boolean greater( T t1 ) {
+    if ( t1 == null || lowerBound == null ) return false;
+    return less(t1, lowerBound) || (!isLowerBoundIncluded() && equals(t1, lowerBound));
+  }
+  // WARNING! This fails for finite domains, where if lower is not included
+  // and t1 is is the next value after lower, then this should return true,
+  // but it will return false;
+  public boolean greaterEquals( T t1 ) {
+    if ( t1 == null || lowerBound == null ) return false;
+    return lessEquals(t1, lowerBound);
+  }
+
+  public boolean less( AbstractRangeDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return less(t1.lowerBound) || t1.greater(upperBound);
+  }
+  public boolean lessEquals( AbstractRangeDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return lessEquals(t1.lowerBound) || t1.greaterEquals(upperBound);
+  }
+  public boolean greater( AbstractRangeDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return greater(t1.upperBound) || t1.less(lowerBound);
+  }
+  public boolean greaterEquals( AbstractRangeDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return greaterEquals(t1.upperBound) || t1.lessEquals(lowerBound);
+  }  
+  
+  public static <TT> boolean less( AbstractRangeDomain<TT> t1, TT t2 ) {
+    return t1.less( t2 );
+  }
+  public static <TT> boolean lessEquals( AbstractRangeDomain<TT> t1, TT t2 ) {
+    return t1.lessEquals( t2 );
+  }
+  public static <TT> boolean greater( AbstractRangeDomain<TT> t1, TT t2 ) {
+    return t1.greater( t2 );
+  }
+  public static <TT> boolean greaterEquals( AbstractRangeDomain<TT> t1, TT t2 ) {
+    return t1.greaterEquals( t2 );
+  }
+
+  public static <TT> boolean less( TT t1, AbstractRangeDomain<TT> t2 ) {
+    if ( t1 == null || t2 == null || t2.lowerBound == null ) return false;
+    return t2.greaterEquals( t1 );
+  }
+  public static <TT> boolean lessEquals( TT t1, AbstractRangeDomain<TT> t2 ) {
+    if ( t1 == null || t2 == null || t2.lowerBound == null ) return false;
+    return t2.less( t1 );
+  }
+  public boolean greater( T t1, AbstractRangeDomain<T> t2 ) {
+    if ( t1 == null || t2 == null || t2.upperBound == null ) return false;
+    return t2.lessEquals( t1 );
+  }
+  public boolean greaterEquals( T t1, AbstractRangeDomain<T> t2 ) {
+    if ( t1 == null || t2 == null || t2.upperBound == null ) return false;
+    return t2.less( t1 );
+  }
+
+  
 	@Override
   public boolean contains( T t ) {
 	  if ( t == null ) return lowerBound == null && upperBound == null;
+	  if ( magnitude() == 0 ) return false;
+	  if ( t == lowerBound ) return isLowerBoundIncluded();
+    if ( t == upperBound ) return isUpperBoundIncluded();
     return lessEquals( lowerBound, t ) && greaterEquals( upperBound, t );
   }
 
+  public boolean contains( T t, boolean strictly ) {
+    boolean containsNotStrict = contains( t );
+    if ( !containsNotStrict ) {
+      return false;
+    }
+    if ( !strictly ) {
+      return true;
+    }
+    if ( t == lowerBound ) return false;
+    if ( t == upperBound ) return false;
+    return true;
+  }
+
+	
   @Override
   public abstract AbstractRangeDomain< T > clone();
 // Redefine as
@@ -521,35 +609,35 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return changed;
   }
   
-  public boolean subtract( Object o ) {
-    if ( o == null ) return false;
-    if ( o instanceof Domain ) {
-      return subtract((Domain<?>)o);
-    }
-    Class<?> cls = getType();
-    Object t = null;
-    if ( cls != null ) {
-      t = ClassUtils.evaluate( o, cls, false );
-    }
-    if ( t == null ) t = o;
-    boolean changed = false;
-    if ( lowerBound != null && isLowerBoundIncluded() && lowerBound.equals( t ) ) {
-      excludeLowerBound();
-      changed = true;
-    }
-    if ( upperBound != null && isUpperBoundIncluded() && upperBound.equals( t ) ) {
-      excludeUpperBound();
-      changed = true;
-    }
-    try {
-      if (!changed && lowerBound != null && upperBound != null && getType() != null && getType().isInstance( t ) && less( lowerBound, (T)t ) && less((T)t, upperBound)) {
-        System.err.println( "Warning!  Can't subtract " + t + " from the middle of " + this );
-      }
-    } catch (ClassCastException e) {
-      // ignore
-    }
-    return changed;
-  }
+//  public boolean subtract( Object o ) {
+//    if ( o == null ) return false;  // REVIEW -- return this.clone() instead of null?
+//    if ( o instanceof Domain ) {
+//      return subtract((Domain<?>)o);
+//    }
+//    Class<?> cls = getType();
+//    Object t = null;
+//    if ( cls != null ) {
+//      t = ClassUtils.evaluate( o, cls, false );
+//    }
+//    if ( t == null ) t = o;
+//    boolean changed = false;
+//    if ( lowerBound != null && isLowerBoundIncluded() && lowerBound.equals( t ) ) {
+//      excludeLowerBound();
+//      changed = true;
+//    }
+//    if ( upperBound != null && isUpperBoundIncluded() && upperBound.equals( t ) ) {
+//      excludeUpperBound();
+//      changed = true;
+//    }
+//    try {
+//      if (!changed && lowerBound != null && upperBound != null && getType() != null && getType().isInstance( t ) && less( lowerBound, (T)t ) && less((T)t, upperBound)) {
+//        System.err.println( "Warning!  Can't subtract " + t + " from the middle of " + this );
+//      }
+//    } catch (ClassCastException e) {
+//      // ignore
+//    }
+//    return changed;
+//  }
 
   public static <TT,TTT> Domain<TT> domainFromSet(Set<AbstractRangeDomain<TTT>> arDomains, Class<Domain<TT>> cls) {
     Set< Domain< TT > > domains = Utils.asSet( arDomains, cls );
@@ -563,8 +651,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   
   @Override
   public < TT > Domain<TT> subtract( Domain< TT > domain ) {
-    if ( domain == null ) return null;
-    boolean changed = false;
+    if ( domain == null ) return null;  // REVIEW -- return this.clone() instead of null?
     if ( domain instanceof AbstractRangeDomain ) {
       Set< AbstractRangeDomain< TT > > arDomains = AbstractRangeDomain.subtract( (AbstractRangeDomain< TT >)this, (AbstractRangeDomain< TT >)domain );
       Domain<TT> d = domainFromSet(arDomains,  (Class< Domain< TT > >)domain.getClass() );
@@ -577,23 +664,58 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       SingleValueDomain< T > svd = (SingleValueDomain< T >)domain;
       Domain<T> d = clone();
       d.restrictToValue( svd.value );
-      Domain< T > arDomains = this.subtract( d );
-      Domain<TT> dd = domainFromSet( arDomains, (Class< Domain< TT > >)domain.getClass()  );
-      return dd;
-      //changed = this.subtract( svd.value );
+      Domain< T > tsd = this.subtract( d );
+      if ( tsd instanceof AbstractRangeDomain ) {
+        return (Domain< TT >)tsd;
+      }
+       // arDomains;
+      if ( tsd instanceof MultiDomain ) {
+        MultiDomain<T> md = (MultiDomain<T>)tsd;
+        Set< ? extends AbstractRangeDomain > arDomains = Utils.asSet( md.includeSet, this.getClass() );
+        Domain<TT> dd = domainFromSet( (Set< AbstractRangeDomain< T > >)arDomains, (Class< Domain< TT > >)domain.getClass()  );
+        return dd;
+      } else {
+        // TODO ???
+        Debug.error("Unexpected return value, " + tsd + " from subtracting " + d + " from " + this);
+      }
     } else {
       // TODO???
       Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
     }
-    return changed;
+    return null;
   }
   
+  public boolean contains( AbstractRangeDomain<T> o, boolean strictly ) {
+    // check input
+    if ( o == null || lowerBound == null || upperBound == null || o.lowerBound == null || o.upperBound == null ) {
+      System.err.println( "Error! AbstractRangeDomain.subtract() called with a null in the bounds." );
+      return false;
+    }
+    if ( !this.contains( o.lowerBound ) ) return false;
+    if ( !this.contains( o.upperBound ) ) return false;
+    if ( !strictly ) return true;
+    if (!contains(o.lowerBound, true) ) return false;
+    if (!contains(o.upperBound, true) ) return false;
+    return true;
+  }
+  
+  /**
+   * Remove the values in the input from those of this domain.  Warning, if the
+   * input domain is strictly 
+   * @param o
+   * @return whether this domain changed as a result
+   */
   public boolean subtract( AbstractRangeDomain<T> o ) {
     // check input
     if ( o == null || lowerBound == null || upperBound == null || o.lowerBound == null || o.upperBound == null ) {
       System.err.println( "Error! AbstractRangeDomain.subtract() called with a null in the bounds." );
       return false;
     }
+    if ( this.contains( o, true ) ) {
+      Debug.error( "Cannot subtract " + o + " out of the middle of " + this + ".  No change.");
+      return false;
+    }
+    // TODO -- Copying the original below is not as efficient as detecting changes directly.
     AbstractRangeDomain<T> original = clone();
     if ( lessEquals( o.lowerBound, lowerBound ) && lessEquals( lowerBound, o.upperBound) ) {
       lowerBound = o.upperBound;
@@ -640,7 +762,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
     if ( !d1ContainsD2 ) {
       r = d1.clone();
-      r.subtract( d2 );
+      boolean c = r.subtract( d2 );
       result.add( r );
       return result;
     }

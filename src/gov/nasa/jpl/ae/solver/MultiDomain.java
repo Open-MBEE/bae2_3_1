@@ -302,7 +302,7 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     }
     if (!flattenedSet.isEmpty()) {
       // We should never get here, but just in case . . .
-      Domain< T > d = Utils.asList( flattenedSet ).get( flattenedSet.size() - 1);
+      Domain< T > d = (Domain<T>)Utils.asList( flattenedSet ).get( flattenedSet.size() - 1);
       return d.pickRandomValue();
     }
     
@@ -397,7 +397,7 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     includeSet.add( found );
 
     if ( excludeSet != null ) {
-      for ( Domain< T > d : Utils.asList( excludeSet ) ) {
+      for ( Domain< T > d : (List<Domain>)Utils.asList( excludeSet, Domain.class ) ) {
         if ( d.contains( v ) ) {
           Set< Domain< T > > s = new TreeSet< Domain< T > >();
           s.add( new SingleValueDomain< T >( v ) );
@@ -434,20 +434,22 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
   }
 
   @Override
-  public < TT > boolean subtract( Domain< TT > domain ) {
+  public < TT > Domain<TT> subtract( Domain< TT > domain ) {
+    MultiDomain<T> clone = (MultiDomain< T >)this.clone();
     if ( getType() != null && domain.getType() != null && getType().isAssignableFrom( domain.getType() ) ) {
       @SuppressWarnings( "unchecked" )
       Domain<T> copy = (Domain<T>)domain.clone();
-      excludeSet.add( copy );
-      return true;  // Lazy--we don't know if the domain was effectively changed.
+      clone.excludeSet.add( copy );
+      return (Domain< TT >)clone;
     }
-    //excludeSet.add( domain.clone() ); -- can't do this because domain has a different type.
-    boolean changed = false;
-    for ( Domain< T > d : includeSet ) {
-        boolean didChange = d.subtract( domain );
-        changed = changed || didChange;
+    //MultiDomain<TT> md = new MultiDomain<TT>( (Class<TT>)domain.getType(), (Set<Domain<TT>>)null, (LinkedHashSet<Domain<TT>>)clone((Set<Domain<TT>>)excludeSet) )
+    LinkedHashSet<Domain<T>> newInclude = new LinkedHashSet<Domain<T>>();
+    for ( Domain< T > d : clone.includeSet ) {
+        Domain<TT> dd = d.subtract( domain );
+        newInclude.add( (Domain<T>)dd );
     }
-    return changed;
+    clone.includeSet = newInclude;
+    return (Domain< TT >)clone;
   }
 
   protected static String toString(Collection<?> coll) {

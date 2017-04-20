@@ -4,14 +4,11 @@
 package gov.nasa.jpl.ae.util;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.LinkedBlockingDeque;
-
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
@@ -36,16 +33,16 @@ public class DomainHelper {
 
   public static <T> AbstractRangeDomain<T> getDomainForClass( Class<T> cls ) {
     if ( cls == null ) return null;
-    if ( cls.equals( Boolean.class ) ) {
+    if ( cls.equals( Boolean.class ) || cls.equals( boolean.class )) {
       return (AbstractRangeDomain< T >)new BooleanDomain();
     }
-    if ( cls.equals( Integer.class ) ) {
+    if ( cls.equals( Integer.class ) || cls.equals(int.class)) {
       return (AbstractRangeDomain< T >)new IntegerDomain();
     }
-//    if ( cls.equals( Long.class ) ) {
-//      return (Domain< T >)new LongDomain();
+//    if ( cls.equals( Long.class ) || cls.equals( long.class ) ) {
+//      return new LongDomain();
 //    }
-    if ( cls.equals( Double.class ) ) {
+    if ( cls.equals( Double.class ) || cls.equals( double.class ) ) {
       return (AbstractRangeDomain< T >)new DoubleDomain();
     }
     if ( cls.equals( String.class ) ) {
@@ -63,6 +60,35 @@ public class DomainHelper {
     return d;
   }
 
+  public static < T > AbstractRangeDomain< T >
+         createSubDomainBelow( Object o, boolean include, boolean propagate ) {
+    Domain< ? > d = DomainHelper.getDomain( o );
+    if ( d instanceof AbstractRangeDomain ) {
+      AbstractRangeDomain< T > rd = ( (AbstractRangeDomain< T >)d ).clone();
+      try {
+        T t = (T)ClassUtils.evaluate( o, rd.getType(), propagate );
+        AbstractRangeDomain< T > subDomain =
+            rd.createSubDomainBelow( t, include );
+        return subDomain;
+      } catch ( Throwable e ) {}
+    }
+    return null;
+  }  
+
+  public static < T > AbstractRangeDomain< T >
+         createSubDomainAbove( Object o, boolean include, boolean propagate ) {
+    Domain< ? > d = DomainHelper.getDomain( o );
+    if ( d instanceof AbstractRangeDomain ) {
+      AbstractRangeDomain< T > rd = ( (AbstractRangeDomain< T >)d ).clone();
+      try {
+        T t = (T)ClassUtils.evaluate( o, rd.getType(), propagate );
+        AbstractRangeDomain< T > subDomain =
+            rd.createSubDomainAbove( t, include );
+        return subDomain;
+      } catch ( Throwable e ) {}
+    }
+    return null;
+  }
 
   protected static void runOnArgs(Collection<Object> results, Call fCall, Object...args) {
     List<Object> list = Arrays.asList( args );
@@ -120,6 +146,7 @@ public class DomainHelper {
    */
   public static RangeDomain<?> combineDomains( List< Object > objects,
                                                FunctionCall fCall ) {
+    // TODO! -- See if MultiDomain can help here.
     // get the dominant Class of the arguments; e.g., Double dominates Integer
     Class<?> dominantType = getDominantDomainType( objects );
     //ArrayList< Domain< ? > > domains = new ArrayList< Domain< ? > >();

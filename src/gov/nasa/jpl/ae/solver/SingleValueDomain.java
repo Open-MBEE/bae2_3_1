@@ -216,4 +216,15 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
     return v;
   }
 
+  @Override
+  public < TT > Domain< TT > subtract( Domain< TT > domain ) {
+    SingleValueDomain< T > clone = clone();
+    try {
+      if ( domain.contains( (TT)clone.value ) ) {
+        clone.value = null;
+      }
+    } catch ( ClassCastException e ) {}
+    return (Domain< TT >)clone;
+  }
+
 }
