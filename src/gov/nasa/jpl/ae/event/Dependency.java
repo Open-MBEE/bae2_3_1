@@ -1,13 +1,14 @@
 
 package gov.nasa.jpl.ae.event;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import junit.framework.Assert;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.CollectionTree;
@@ -375,7 +376,7 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public void setFreeParameters( Set< Parameter< ? >> freeParams, boolean deep,
                                  Set< HasParameters > seen ) {
-    Assert.assertTrue( "This method is not supported!", false );
+    Debug.error( true, false, "This method is not supported!" );
     // TODO Auto-generated method stub
   }
   
@@ -391,6 +392,9 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean pickParameterValue( Variable< T1 > variable ) {
+    boolean wasOn = Debug.isOn();
+    try{
+      //Debug.turnOn();
     if ( variable == null || !Parameter.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
@@ -427,6 +431,10 @@ public class Dependency< T > extends HasIdImpl
     }
     // TODO Auto-generated method stub
     return false;
+    } finally {
+      if (!wasOn) Debug.turnOff();
+    }
+
   }
 
   protected Variable< ? > pickRandomVariable() {
@@ -456,14 +464,19 @@ public class Dependency< T > extends HasIdImpl
   public < T1 > boolean restrictDomain( Variable< T1 > v ) {
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
+    boolean restricted = false;
     if ( v == parameter ) {
       Object ov = null;
       try {
         ov = expression.evaluate(true);
         T val = Expression.evaluate( ov, getType(), false, true );
-        Domain<T1> d = v.getDomain().clone();
-        d.restrictToValue( (T1)val );
-        v.setDomain( d );
+        Domain< T1 > vd = v.getDomain();
+        if ( vd != null ) {
+          Domain<T1> d = vd.clone();
+          boolean r = d.restrictToValue( (T1)val );
+          v.setDomain( d );
+          restricted = restricted || r;
+        }
       } catch ( IllegalAccessException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -476,9 +489,10 @@ public class Dependency< T > extends HasIdImpl
       }
     } else {
       if ( getConstraintExpression() == null) return false;
-      getConstraintExpression().restrictDomain( v );
+      boolean r = getConstraintExpression().restrictDomain( v );
+      restricted = restricted || r;
     }
-    return v.getDomain() != null && v.getDomain().magnitude() > 0; 
+    return restricted;//v.getDomain() != null && v.getDomain().magnitude() > 0; 
   }
 
   /* (non-Javadoc)
@@ -504,8 +518,11 @@ public class Dependency< T > extends HasIdImpl
   public Set< Variable< ? > > getFreeVariables() {
     if ( getConstraintExpression() == null ) return Utils.getEmptySet();
     Set< Variable< ? > > set = getConstraintExpression().getFreeVariables();
-    set.remove( parameter ); 
-    return set;
+    if (set != null ) {
+      set.remove( parameter ); 
+      return set;
+    }
+    return Utils.getEmptySet();
   }
 
   @Override
@@ -773,5 +790,18 @@ public class Dependency< T > extends HasIdImpl
     tt = Evaluatable.Helper.evaluate( expression, cls, true, propagate, true, null );
     return tt;
   }
+  
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Set< Variable< ? > > vars = getVariables();
+    if ( vars.contains( variable ) ) {
+      ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >( vars );
+      varList.remove( variable );
+      return varList;
+    }
+    return null;
+  }
+
 
 }

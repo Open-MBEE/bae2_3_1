@@ -52,6 +52,7 @@ public class DomainHelper {
   }
 
   public static <T> AbstractRangeDomain<T> makeRangeDomainFromValue( T t ) {
+    if ( t instanceof AbstractRangeDomain) return (AbstractRangeDomain<T>)t;
     AbstractRangeDomain<T> d = (AbstractRangeDomain< T >)getDomainForClass( t.getClass() );
     if ( d != null ) {
       d.setLowerBound( t );
@@ -128,6 +129,12 @@ public class DomainHelper {
   
   public static <T> Domain<T> getDomain( T o ) {
     if ( o == null ) return null;
+    if ( o instanceof Domain ) return (Domain< T >)o;
+    if ( o instanceof Wraps ) {
+      Object oo = ((Wraps)o).getValue( false );
+      Domain<?> d = getDomain(oo);
+      if ( d != null ) return (Domain< T >)d;
+    }
     if ( o instanceof HasDomain ) {
       return (Domain<T>)((HasDomain)o).getDomain( false, null );
     }

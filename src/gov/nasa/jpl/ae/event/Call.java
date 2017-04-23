@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -1307,8 +1308,13 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
                                          Set< HasDomain > seen ) {
-    boolean changed = this.getDomain(propagate, seen).restrictTo(domain);
-    return new Pair<Domain<T>, Boolean>((Domain<T>)this.domain, changed);
+    boolean changed = false;
+    Domain< ? > thisDomain = this.getDomain(propagate, seen);
+    if ( thisDomain != null ) {
+      changed = thisDomain.restrictTo(domain);
+    }
+    thisDomain = this.getDomain(propagate, seen);
+    return new Pair<Domain<T>, Boolean>((Domain<T>)thisDomain, changed);
   }
 
   // The following code was re-factored from MethodCall:
@@ -1807,5 +1813,13 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public <T> T translate( Variable<T> v , Object o , Class< ? > type  ) {
     return null;
   }
+  
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Debug.error( "This function is not implemented and should not be called." );
+    return null;
+  }
+
 
 }

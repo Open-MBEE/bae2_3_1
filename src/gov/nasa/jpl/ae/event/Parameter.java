@@ -169,11 +169,20 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public boolean equals( Object val ) {
+    if ( val instanceof Parameter) {
+      return compareTo((Parameter)val) == 0;
+    }
+    return false;
+  }
+
+  // THis used to be equals until problems occurred because it was not
+  // consistent with compareTo().
+  public boolean valEquals( Object val ) {
     if ( this == val ) return true;
     if ( value == val ) return true;
     if ( value == null ) return false;
     if ( val == null ) return false;
-    if ( val instanceof Parameter && ( (Parameter)val ).valueEquals( value ) ) {
+    if ( val instanceof Parameter && ( (Parameter<?>)val ).valueEquals( value ) ) {
       return true;
     }
     //if ( val instanceof Parameter ) return ( compareTo( (Parameter<?>)val ) == 0 );
@@ -988,6 +997,18 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     T t = getValue(propagate);
     tt = Evaluatable.Helper.evaluate( t, cls, true, propagate, true, null );
     return tt;
+  }
+
+  public List< Variable< ? > > getIndependentVariables() {
+    ArrayList<Variable<?>> independentVars = new ArrayList< Variable<?> >();
+    if ( getOwner() == null ) return null;
+    List<Variable<?>> vars = getOwner().getVariablesOnWhichDepends(this);
+    for ( Variable<?> v : vars ) {
+      if (v instanceof Parameter && !((Parameter<?>)v).isDependent() ) {
+        independentVars.add( (Parameter<?>)v );
+      }
+    }
+    return independentVars;
   }
 
 

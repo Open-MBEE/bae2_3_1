@@ -13,6 +13,7 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.MultiDomain;
 import gov.nasa.jpl.ae.solver.ObjectDomain;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
@@ -233,6 +234,10 @@ public class Functions {
       this( forceExpression( o1 ), forceExpression( o2 ), functionMethod );
     }
 
+    public Binary( Binary< T, R > b ) {
+      super(b);
+    }
+
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
      */
@@ -280,8 +285,11 @@ public class Functions {
       LinkedHashSet<Object> possibleValues = new LinkedHashSet< Object >();
       if ( returnValue instanceof AbstractRangeDomain ) {
         if ( isMonotonic() ) {
-          addInverseToList( ((AbstractRangeDomain)returnValue).getLowerBound(), argument, possibleValues );
-          addInverseToList( ((AbstractRangeDomain)returnValue).getUpperBound(), argument, possibleValues );
+          AbstractRangeDomain ard = (AbstractRangeDomain)returnValue;
+          addInverseToList( ard.getLowerBound(), argument, possibleValues );
+          if ( ard.getLowerBound() != ard.getUpperBound() ) {
+            addInverseToList( ard.getUpperBound(), argument, possibleValues );
+          }
         } else {
           // not monotonic, such as Equals
           if ( !returnValue.isInfinite() ) {
@@ -293,7 +301,7 @@ public class Functions {
         }
       }
       // TODO -- Handle the million other cases
-      theCombineDomain = DomainHelper.combineDomains( Utils.asList( possibleValues ), new Identity( null ) );
+      theCombineDomain = DomainHelper.combineDomains( Utils.asList( possibleValues ), new Identity<T>( (Expression<T>)null ) );
       return theCombineDomain;
     }
     
@@ -315,8 +323,8 @@ public class Functions {
       if ( cObj instanceof Collection ) {
         Collection<?> c = (Collection<?>)cObj;
         listOfInverseResults.addAll( c );
-      } else if ( cObj instanceof Domain ) {
-        
+//      } else if ( cObj instanceof Domain ) {
+//        
       } else {
         listOfInverseResults.add( cObj );
       }
@@ -368,6 +376,10 @@ public class Functions {
                           String functionMethod,
                           String pickFunctionMethod1, String pickFunctionMethod2 ) {
       super( o1, o2, functionMethod, pickFunctionMethod1, pickFunctionMethod2 );
+    }
+    
+    public BooleanBinary( BooleanBinary<T> bb) {
+      super(bb);
     }
     
 //    /* (non-Javadoc)
@@ -446,7 +458,14 @@ public class Functions {
     public Unary( Object o1, String functionMethod ) {
       this( forceExpression( o1 ), functionMethod );
     }
-  
+
+    public Unary( Unary m) {
+      super(m);
+    }
+    public Unary clone() {
+      return new Unary(this);
+    }
+
     private static Method getFunctionMethod( String functionMethod ) {
       Method m = null;
       try {
@@ -483,6 +502,13 @@ public class Functions {
       super( null, getIfThenElseMethod(), new Object[] {condition, thenExpr, elseExpr} );
     }
     
+    public Conditional(Conditional<T> c) {
+      super(c);
+    }
+    public Conditional<T> clone() {
+      return new Conditional(this);
+    }
+    
     @Override
     public boolean isMonotonic() {
       // TODO Auto-generated method stub
@@ -504,6 +530,38 @@ public class Functions {
         e.printStackTrace();
       }
       return m;
+    }
+    
+    @Override
+    public Domain< ? > calculateDomain( boolean propagate,
+                                        Set< HasDomain > seen ) {
+      if ( arguments == null || arguments.size() != 3 ) {
+        // TODO -- ERROR
+        return null;
+      }
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      Object o3 = this.arguments.get( 2 );
+      
+      Domain<?> d1 = o1 == null ? null : DomainHelper.getDomain( o1 );
+      Domain<?> d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
+      Domain<?> d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
+      AbstractRangeDomain<T> ard2 = o2 instanceof AbstractRangeDomain ? (AbstractRangeDomain<T>)d2 : null;
+      AbstractRangeDomain<T> ard3 = o3 instanceof AbstractRangeDomain ? (AbstractRangeDomain<T>)d3 : null;
+      Domain<Boolean> condo = d1 instanceof Domain ? (Domain<Boolean>)d1 : null;
+      
+      // Return combination of domains if the condition is not restricted to
+      // exactly one of {true, false}.
+      if ( condo == null || condo.isEmpty()
+           || ( condo.contains( true ) && condo.contains( false ) ) ) {
+        MultiDomain<T> md = new MultiDomain<T>((Class<T>)getType(), (Set<Domain<T>>)Utils.newSet( (Domain<T>)ard2, ard3 ), null ); 
+        return md;
+      }
+      
+      if (condo.contains( true )) {
+        return ard2;
+      }
+      return ard3;
     }
     
     @Override
@@ -599,7 +657,7 @@ public class Functions {
         this.domain = dcb;
         changed = changedB;
       } else {
-        Domain newDomain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( null ) );
+        Domain newDomain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( (Expression<T>)null ) );
         changed = Utils.valuesEqual(this.domain, newDomain);
       }
 
@@ -702,6 +760,14 @@ public class Functions {
       super( null, getVarArgMinMethod(), keysAndValues );
     }
     
+    public ArgMin( ArgMin<R, T> a) {
+      super(a);
+    }
+    
+    public ArgMin<R,T> clone() {
+      return new ArgMin<R,T>(this);
+    }
+    
     @Override
     public boolean isMonotonic() {
       // TODO Auto-generated method stub
@@ -743,6 +809,15 @@ public class Functions {
     public ArgMax( Expression< ? >...keysAndValues ) {
       super( null, getVarArgMaxMethod(), keysAndValues );
     }
+    
+    public ArgMax( ArgMax<R, T> a) {
+      super(a);
+    }
+    
+    public ArgMax<R,T> clone() {
+      return new ArgMax<R,T>(this);
+    }
+    
     
     @Override
     public boolean isMonotonic() {
@@ -790,7 +865,15 @@ public class Functions {
       super( o1, c, "min", "pickValueForward", "pickValueReverse" );
       setMonotonic( true );
     }
-
+    
+    public Min( Functions.Min<T, R> m) {
+      super(m);
+    }
+    
+    public Min<T,R> clone() {
+      return new Min<T,R>(this);
+    }
+    
     @Override
     public //< T1  extends Comparable< ? super T1 > >
     FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
@@ -838,6 +921,16 @@ public class Functions {
       setMonotonic( true );
     }
 
+    public Max( Functions.Max<T, R> m) {
+      super(m);
+    }
+    
+    public Max<T,R> clone() {
+      return new Max<T,R>(this);
+    }
+    
+
+    
     @Override
     public //< T1  extends Comparable< ? super T1 > > 
     FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
@@ -884,6 +977,15 @@ public class Functions {
       super( o1, c, "add", "pickValueForward", "pickValueReverse" );
       setMonotonic( true );
     }
+    
+    public Sum( Functions.Sum<T, R> m) {
+      super(m);
+    }
+    
+    public Sum<T,R> clone() {
+      return new Sum<T,R>(this);
+    }
+    
 
     @Override
     public //< T1  extends Comparable< ? super T1 > > 
@@ -927,6 +1029,16 @@ public class Functions {
       //functionCall.
       setMonotonic( true );
     }
+    
+    public Sub( Functions.Sub<T, R> m) {
+      super(m);
+    }
+    
+    public Sub<T,R> clone() {
+      return new Sub<T,R>(this);
+    }
+
+    
     @Override
     public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
       if ( arguments == null || arguments.size() != 2 ) return null;
@@ -964,6 +1076,14 @@ public class Functions {
       setMonotonic( true );
     }
     
+    public Times( Functions.Times<T, R> m) {
+      super(m);
+    }
+    
+    public Times<T,R> clone() {
+      return new Times<T,R>(this);
+    }
+
     @Override
     public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
       if ( arguments == null || arguments.size() != 2 ) return null;
@@ -998,6 +1118,15 @@ public class Functions {
       //functionCall.
       setMonotonic( true );
     }
+    
+    public Divide( Functions.Divide<T, R> m) {
+      super(m);
+    }
+    
+    public Divide<T,R> clone() {
+      return new Divide<T,R>(this);
+    }
+
     @Override
     public FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
       if ( arguments == null || arguments.size() != 2 ) return null;
@@ -1031,6 +1160,12 @@ public class Functions {
     public Pow( Object o1, Object c ) {
       super( o1, c, "pow", "log", "log" );
       setMonotonic( true );
+    }
+    public Pow( Functions.Pow<T, R> m) {
+      super(m);
+    }
+    public Pow<T,R> clone() {
+      return new Pow<T,R>(this);
     }
   }
 
@@ -1956,7 +2091,13 @@ public class Functions {
       super( o, "identity" );
       setMonotonic( true );
     }
-    
+    public Identity( Identity<T> m) {
+      super(m);
+    }
+    public Identity<T> clone() {
+      return new Identity<T>(this);
+    }
+
     @Override
     public < T > T pickValue( Variable< T > variable ) {
       return variable.getValue( false );
@@ -1976,6 +2117,12 @@ public class Functions {
       super( o, "negative" );
       //functionCall.
       setMonotonic( true );
+    }
+    public Negative( Negative<T> m) {
+      super(m);
+    }
+    public Negative<T> clone() {
+      return new Negative<T>(this);
     }
     
     // TODO -- handle cast errors
@@ -2072,6 +2219,12 @@ public class Functions {
     }
     public EQ( Object o1, Object o2 ) {
       super( o1, o2, "equals", "pickEqualToForward", "pickEqualToForward");
+    }
+    public EQ( EQ<T> m) {
+      super(m);
+    }
+    public EQ<T> clone() {
+      return new EQ<T>(this);
     }
     
 //    @Override
@@ -2273,6 +2426,12 @@ public class Functions {
     public NEQ( Object o1, Object o2 ) {
       super( o1, o2, "notEquals", "pickNotEqualToForward", "pickNotEqualToForward");
     }
+    public NEQ( NEQ<T> m) {
+      super(m);
+    }
+    public NEQ<T> clone() {
+      return new NEQ<T>(this);
+    }
 
 //    @Override
 //    public < T1 > T1 pickValue( Variable< T1 > variable ) {
@@ -2332,6 +2491,20 @@ public class Functions {
     }
   }
 
+  public static void excludeUpperBound( RangeDomain r ) {
+    r.excludeUpperBound();
+    if ( r instanceof AbstractFiniteRangeDomain ) {
+      ( (AbstractFiniteRangeDomain)r ).fixToIncludeBounds();
+    }
+  }
+
+  public static void excludeLowerBound( RangeDomain r ) {
+    r.excludeLowerBound();
+    if ( r instanceof AbstractFiniteRangeDomain ) {
+      ( (AbstractFiniteRangeDomain)r ).fixToIncludeBounds();
+    }
+  }
+  
   public static class LT< T > extends BooleanBinary< T > {
     public LT( Expression< T > o1, Expression< T > o2 ) {
       super( o1, o2, "lessThan", "pickLessThan", "pickGreaterThanOrEqual" );
@@ -2343,6 +2516,13 @@ public class Functions {
       super( o1, o2, "lessThan", "pickLessThan", "pickGreaterThanOrEqual" );
       // functionCall.
       setMonotonic( true );
+    }
+    
+    public LT( LT<T> m) {
+      super(m);
+    }
+    public LT<T> clone() {
+      return new LT<T>(this);
     }
 
     @Override
@@ -2439,6 +2619,8 @@ public class Functions {
       return new Pair( this.domain, changed );// || thisChanged);
     }
 
+    
+    
     // REVIEW -- This seems out of place.  Does something else do this?
     public boolean restrictDomains( boolean targetResult ) {
       if ( arguments.size() < 2 ) return false;
@@ -2450,24 +2632,40 @@ public class Functions {
       if ( d1 instanceof AbstractRangeDomain && d2 instanceof AbstractRangeDomain ) {
         AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
         AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
+        ard1 = ard1.clone();
+        ard2 = ard2.clone();
         if ( targetResult == true ) {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), false ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), false ) );
-          changed = changed || c1 || c2;
-//          if ( ard1.greaterEquals( ard1.getUpperBound(), ard2.getUpperBound() ) ) {
-//            ard1.setUpperBound( ard2.getUpperBound() );
-//            ard1.excludeUpperBound();
-//            changed = true;
-//          }
-//          if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
-//            ard2.setLowerBound( ard1.getLowerBound() );
-//            ard2.excludeLowerBound();
-//            changed = true;
-//          }
+//          boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), false ) );
+//          boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), false ) );
+//          changed = changed || c1 || c2;
+          if ( ard1.greaterEquals( ard1.getUpperBound(), ard2.getUpperBound() ) ) {
+            ard1.setUpperBound( ard2.getUpperBound() );
+            excludeUpperBound( ard1 );
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
+            ard2.setLowerBound( ard1.getLowerBound() );
+            excludeLowerBound( ard2 );
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         } else {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), ard2.isLowerBoundIncluded() ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), ard1.isUpperBoundIncluded() ) );
-          changed = changed || c1 || c2;
+//          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), ard2.isLowerBoundIncluded() ) );
+//          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), ard1.isUpperBoundIncluded() ) );
+//          changed = changed || c1 || c2;
+          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+            ard1.setLowerBound( ard2.getLowerBound() );
+            if ( !ard2.isLowerBoundIncluded() ) excludeLowerBound( ard1 );
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.greaterEquals( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+            ard2.setUpperBound( ard1.getUpperBound() );
+            if ( !ard1.isUpperBoundIncluded() ) excludeUpperBound( ard2 );
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         }
       }
       return changed;
@@ -2504,6 +2702,13 @@ public class Functions {
       setMonotonic( true );
     }
     
+    public LTE( LTE<T> m) {
+      super(m);
+    }
+    public LTE<T> clone() {
+      return new LTE<T>(this);
+    }
+
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {
       return super.inverse( returnValue, arg );
@@ -2545,12 +2750,12 @@ public class Functions {
       AbstractRangeDomain<?> subDomainAbove =
           DomainHelper.createSubDomainAbove( otherArg, true, false );
       if ( firstArg ) {
-        subDomainAbove.excludeLowerBound();
+        excludeLowerBound(subDomainAbove);
         return new Conditional( new Expression< Boolean >( returnValue, Boolean.class ),
                                 new Expression< Object >( subDomainBelow ),
                                 new Expression< Object >( subDomainAbove ) );
       }
-      subDomainBelow.excludeUpperBound();
+      excludeUpperBound(subDomainBelow);
       return new Conditional( new Expression< Boolean >( returnValue, Boolean.class ),
                               new Expression< Object >( subDomainAbove ),
                               new Expression< Object >( subDomainBelow ) );
@@ -2596,23 +2801,37 @@ public class Functions {
         AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
         AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
         if ( targetResult == true ) {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), ard2.isUpperBoundIncluded() ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), ard2.isUpperBoundIncluded() ) );
-          changed = changed || c1 || c2;
-//          if ( ard1.greaterEquals( ard1.getUpperBound(), ard2.getUpperBound() ) ) {
-//            ard1.setUpperBound( ard2.getUpperBound() );
-//            if (!ard2.isUpperBoundIncluded()) ard1.excludeUpperBound();
-//            changed = true;
-//          }
-//          if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
-//            ard2.setLowerBound( ard1.getLowerBound() );
-//            if (!ard1.isLowerBoundIncluded()) ard2.excludeLowerBound();
-//            changed = true;
-//          }
+//          boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), ard2.isUpperBoundIncluded() ) );
+//          boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), ard2.isUpperBoundIncluded() ) );
+//          changed = changed || c1 || c2;
+          if ( ard1.greaterEquals( ard1.getUpperBound(), ard2.getUpperBound() ) ) {
+            ard1.setUpperBound( ard2.getUpperBound() );
+            if (!ard2.isUpperBoundIncluded()) excludeUpperBound(ard1);
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
+            ard2.setLowerBound( ard1.getLowerBound() );
+            if (!ard1.isLowerBoundIncluded()) excludeLowerBound(ard2);
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         } else {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), false ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), false ) );
-          changed = changed || c1 || c2;
+//        boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), false ) );
+//        boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), false ) );
+//        changed = changed || c1 || c2;
+          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+            ard1.setLowerBound( ard2.getLowerBound() );
+            excludeLowerBound(ard1);
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.greaterEquals( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+            ard2.setUpperBound( ard1.getUpperBound() );
+            excludeUpperBound(ard2);
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         }
       }
       return changed;
@@ -2649,6 +2868,13 @@ public class Functions {
       setMonotonic( true );
     }
     
+    public GT( GT<T> m) {
+      super(m);
+    }
+    public GT<T> clone() {
+      return new GT<T>(this);
+    }
+
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {
       return super.inverse( returnValue, arg );
@@ -2736,23 +2962,37 @@ public class Functions {
         AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
         AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
         if ( targetResult == true ) {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), false ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), false ) );
-          changed = changed || c1 || c2;
-//          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
-//            ard1.setLowerBound( ard2.getLowerBound() );
-//            ard1.excludeLowerBound();
-//            changed = true;
-//          }
-//          if ( ard2.greaterEquals( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
-//            ard2.setUpperBound( ard1.getUpperBound() );
-//            ard2.excludeUpperBound();
-//            changed = true;
-//          }
+//          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), false ) );
+//          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), false ) );
+//          changed = changed || c1 || c2;
+          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+            ard1.setLowerBound( ard2.getLowerBound() );
+            excludeLowerBound(ard1);
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.greaterEquals( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+            ard2.setUpperBound( ard1.getUpperBound() );
+            excludeUpperBound(ard2);
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         } else {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), ard2.isUpperBoundIncluded() ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), ard2.isUpperBoundIncluded() ) );
-          changed = changed || c1 || c2;
+//        boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), ard2.isUpperBoundIncluded() ) );
+//        boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), ard2.isUpperBoundIncluded() ) );
+//        changed = changed || c1 || c2;
+          if ( ard1.greaterEquals( ard1.getUpperBound(), ard2.getUpperBound() ) ) {
+            ard1.setUpperBound( ard2.getUpperBound() );
+            if (!ard2.isUpperBoundIncluded()) excludeUpperBound(ard1);
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
+            ard2.setLowerBound( ard1.getLowerBound() );
+            if (!ard1.isLowerBoundIncluded()) excludeLowerBound(ard2);
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         }
       }
       return changed;
@@ -2787,6 +3027,13 @@ public class Functions {
       setMonotonic( true );
     }
 
+    public GTE( GTE<T> m) {
+      super(m);
+    }
+    public GTE<T> clone() {
+      return new GTE<T>(this);
+    }
+
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {
       return super.inverse( returnValue, arg );
@@ -2803,12 +3050,12 @@ public class Functions {
       AbstractRangeDomain<?> subDomainAbove =
           DomainHelper.createSubDomainAbove( otherArg, true, false );
       if ( firstArg ) {
-        subDomainBelow.excludeUpperBound();
+        excludeUpperBound(subDomainBelow);
         return new Conditional( new Expression< Boolean >( returnValue, Boolean.class ),
                                 new Expression< Object >( subDomainAbove ),
                                 new Expression< Object >( subDomainBelow ) );
       }
-      subDomainAbove.excludeLowerBound();
+      excludeLowerBound(subDomainAbove);
       return new Conditional( new Expression< Boolean >( returnValue, Boolean.class ),
                               new Expression< Object >( subDomainBelow ),
                               new Expression< Object >( subDomainAbove ) );
@@ -2873,23 +3120,37 @@ public class Functions {
         AbstractRangeDomain< T > ard1 = (AbstractRangeDomain< T >)d1;
         AbstractRangeDomain< T > ard2 = (AbstractRangeDomain< T >)d2;
         if ( targetResult == true ) {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), ard2.isLowerBoundIncluded() ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), ard1.isUpperBoundIncluded() ) );
-          changed = changed || c1 || c2;
-//          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
-//            ard1.setLowerBound( ard2.getLowerBound() );
-//            if ( !ard2.isLowerBoundIncluded() ) ard1.excludeLowerBound();
-//            changed = true;
-//          }
-//          if ( ard2.greaterEquals( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
-//            ard2.setUpperBound( ard1.getUpperBound() );
-//            if ( !ard1.isUpperBoundIncluded() ) ard2.excludeUpperBound();
-//            changed = true;
-//          }
+//          boolean c1 = ard1.restrictTo( ard2.createSubDomainAbove( ard2.getLowerBound(), ard2.isLowerBoundIncluded() ) );
+//          boolean c2 = ard2.restrictTo( ard1.createSubDomainBelow( ard1.getUpperBound(), ard1.isUpperBoundIncluded() ) );
+//          changed = changed || c1 || c2;
+          if ( ard1.lessEquals( ard1.getLowerBound(), ard2.getLowerBound() ) ) {
+            ard1.setLowerBound( ard2.getLowerBound() );
+            if ( !ard2.isLowerBoundIncluded() ) excludeLowerBound(ard1);
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.greaterEquals( ard2.getUpperBound(), ard1.getUpperBound() ) ) {
+            ard2.setUpperBound( ard1.getUpperBound() );
+            if ( !ard1.isUpperBoundIncluded() ) excludeUpperBound(ard2);
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         } else {
-          boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), false ) );
-          boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), false ) );
-          changed = changed || c1 || c2;
+//        boolean c1 = ard1.restrictTo( ard2.createSubDomainBelow( ard2.getUpperBound(), false ) );
+//        boolean c2 = ard2.restrictTo( ard1.createSubDomainAbove( ard1.getLowerBound(), false ) );
+//        changed = changed || c1 || c2;
+          if ( ard1.greaterEquals( ard1.getUpperBound(), ard2.getUpperBound() ) ) {
+            ard1.setUpperBound( ard2.getUpperBound() );
+            excludeUpperBound(ard1);
+            e1.restrictDomain( ard1, true, null );
+            changed = true;
+          }
+          if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
+            ard2.setLowerBound( ard1.getLowerBound() );
+            excludeLowerBound(ard2);
+            e2.restrictDomain( ard2, true, null );
+            changed = true;
+          }
         }
       }
       return changed;
@@ -2929,6 +3190,12 @@ public class Functions {
       super( new Parameter< T >( "", new ObjectDomain< T >( valueSet ), null ),
              o, "forAll" ); // TODO -- pickFunctions?
       setMonotonic( Functions.isMonotonic( o ) );
+    }
+    public DoesThereExist( DoesThereExist<T> m) {
+      super(m);
+    }
+    public DoesThereExist<T> clone() {
+      return new DoesThereExist<T>(this);
     }
   }  
 
@@ -2990,6 +3257,13 @@ public class Functions {
       super( new Parameter<T>("", new ObjectDomain<T>(valueSet), null), o, "forAll" ); // TODO -- pickFunctions?
       setMonotonic( Functions.isMonotonic( o ) );
     }
+    public ForAll( ForAll<T> m) {
+      super(m);
+    }
+    public ForAll<T> clone() {
+      return new ForAll<T>(this);
+    }
+
   }
 
   public static <T extends Comparable<T>> Boolean thereExists( Variable<T> variable,
@@ -3904,7 +4178,12 @@ public class Functions {
       super( o1, o2, "and", "pickTrue", "pickTrue" );
       setMonotonic( true );
     }
-    
+    public And( And a ) {
+      super(a);
+    }
+    public And clone() {
+      return new And(this);
+    }
     /**
      * The inverse for And must evaluate the argument to the specified
      * returnValue, so we want the argument to be the same as the returnValue.
@@ -3984,6 +4263,12 @@ public class Functions {
     public Or( Expression< Boolean > o1, FunctionCall o2 ) {
       super( o1, o2, "or", "pickTrue", "pickTrue" );
       setMonotonic( true );
+    }
+    public Or( Or a ) {
+      super(a);
+    }
+    public Or clone() {
+      return new Or(this);
     }
     /* (non-Javadoc)
      * @see gov.nasa.jpl.ae.event.Expression#isGrounded(boolean, java.util.Set)
@@ -4084,6 +4369,13 @@ public class Functions {
     public Xor( Expression< Boolean > o1, FunctionCall o2 ) {
       super( o1, o2, "xor" );
     }
+    public Xor( Xor a ) {
+      super(a);
+    }
+    public Xor clone() {
+      return new Xor(this);
+    }
+
   }
 //  public static Boolean
 //      xor( Expression< Boolean > o1, Expression< Boolean > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -4150,6 +4442,12 @@ public class Functions {
     public Not( Expression< Boolean > o ) {
       super( o, "not" );
       setMonotonic( true );
+    }
+    public Not( Not a ) {
+      super(a);
+    }
+    public Not clone() {
+      return new Not(this);
     }
 
     @Override
@@ -4726,7 +5024,7 @@ public class Functions {
     boolean inSecond = isSecond || ( o2 != null && o2.hasParameter( variableParam, true, null ) );
 
     if ( !inFirst && !inSecond ) {
-      Debug.error( false, "Error! pickValueBF2(variable=" + variable
+      Debug.error( true, false, "Error! pickValueBF2(variable=" + variable
                           + ", pickFunction=" + pickFunctionCall
                           + ", reversePickFunctionCall="
                           + reversePickFunctionCall

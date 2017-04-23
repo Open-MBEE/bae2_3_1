@@ -904,6 +904,7 @@ public class Expression< ResultType > extends HasIdImpl
           }
         }
       }
+      return new Pair(domain, false);
     case Parameter:
       return (Pair<Domain< T >,Boolean>)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
     case Function:
@@ -1324,6 +1325,13 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Debug.error( "This function is not implemented and should not be called." );
     return null;
   }
 

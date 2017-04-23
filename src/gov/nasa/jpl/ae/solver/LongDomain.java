@@ -115,7 +115,9 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
   public boolean contains( Long t ) {
     if ( t == null && 
          ( lowerBound != null  || upperBound != null ) ) return false;
-    return lowerBound <= t && upperBound >= t;
+    if ( t == null ) return nullInDomain;
+    if ( lowerBound == null && upperBound == null ) return false;
+    return (lowerBound == null || lowerBound <= t) && (upperBound == null || upperBound >= t);
   }
 
   // counts from zero!!!
@@ -206,5 +208,18 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
   public LongDomain make( Long lowerBound, Long upperBound ) {
     return new LongDomain(lowerBound, upperBound);
   }
+
+  @Override
+  public Long getNextGreaterValue( Long t ) {
+    if (t == null || t == getTypeMaxValue() ) return null;
+    return t + 1;
+  }
+
+  @Override
+  public Long getPreviousLesserValue( Long t ) {
+    if (t == null || t == getTypeMinValue() ) return null;
+    return t - 1;
+  }
+
 
 }

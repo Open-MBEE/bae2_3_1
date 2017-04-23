@@ -83,9 +83,15 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
 	@Override
   public boolean restrictToValue( T v ) {
-    if ( !contains( v ) ) return false;
-    setBounds( v, v );
-    return true;
+    if ( !contains( v ) ) {
+      if ( magnitude() > 0 ) {
+        clearValues();
+        return true;
+      }
+      return false;
+    }
+    boolean restricted = setBounds( v, v );
+    return restricted;
   }
 
 	
@@ -154,7 +160,6 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   @Override
   public void setValue( T value ) {
     setBounds( value, value );
-    lowerIncluded = true;
   }
 
   /*
@@ -440,13 +445,13 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
   //public abstract RangeDomain() fromString(String);
 
-	public abstract boolean greater( T t1, T t2 ); 
+	public abstract boolean greater( T t1, T t2 );
   public abstract boolean less( T t1, T t2 );
   public boolean equals( T t1, T t2 ) {
     return t1.equals( t2 );
   }
   //public abstract boolean equals( T t1, T t2 ); 
-  public abstract boolean greaterEquals( T t1, T t2 ); 
+  public abstract boolean greaterEquals( T t1, T t2 );
   public abstract boolean lessEquals( T t1, T t2 );
   public boolean notEquals( T t1, T t2 ) {
     return !equals( t1, t2 );
@@ -490,7 +495,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean greaterEquals( AbstractRangeDomain<T> t1 ) {
     if ( t1 == null ) return false;
     return greaterEquals(t1.upperBound) || t1.lessEquals(lowerBound);
-  }  
+  }
   
   public static <TT> boolean less( AbstractRangeDomain<TT> t1, TT t2 ) {
     return t1.less( t2 );
@@ -833,6 +838,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean setLowerBound( T lowerBound ) {
     if ( lessEquals(lowerBound, this.upperBound ) ) {
       this.lowerBound = lowerBound;
+      //lowerIncluded = true;
       return true;
     }
     return false;
@@ -842,15 +848,23 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean setUpperBound( T upperBound ) {
     if ( lessEquals( this.lowerBound, upperBound ) ) {
       this.upperBound = upperBound;
+      //upperIncluded = true;
       return true;
     }
     return false;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.RangeDomain#setBounds(java.lang.Object, java.lang.Object)
+   */
   public boolean setBounds( T lowerBound, T upperBound ) {
-    if ( lessEquals( lowerBound, upperBound ) ) {
+    if ( lessEquals( lowerBound, upperBound )
+         && ( lowerBound != this.lowerBound || upperBound != this.upperBound
+              || !this.lowerIncluded || !this.upperIncluded ) ) {
       this.lowerBound = lowerBound;
       this.upperBound = upperBound;
+      lowerIncluded = true;
+      upperIncluded = true;
       return true;
     }
     return false;

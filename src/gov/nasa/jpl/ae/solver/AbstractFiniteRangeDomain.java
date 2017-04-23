@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Random;
 
 /**
@@ -57,10 +58,48 @@ public abstract class AbstractFiniteRangeDomain< T extends Comparable< T > >
     super( lowerBound, upperBound );
   }
 
-	public AbstractFiniteRangeDomain( RangeDomain<T> domain ) {
-	  super( domain );
+  public AbstractFiniteRangeDomain( RangeDomain<T> domain ) {
+    super(domain);
+    fixToIncludeBounds();
   }
-
+  	
+  public AbstractFiniteRangeDomain( T lowerBound, T upperBound,
+                              boolean includeLowerBound,
+                              boolean includeUpperBound,
+                              boolean nullInDomain ) {
+    super( lowerBound, upperBound, includeLowerBound, includeUpperBound,
+           nullInDomain );
+    fixToIncludeBounds();
+  }
+  
+  /**
+   * Set the bounds such that they are included if possible without changing the
+   * the represented range. This helps get avoid special cases where inherited
+   * functions would otherwise fail. It also makes it easier to read. For
+   * example, (2,4] becomes [3,4], and [5,6) becomes [5].
+   * 
+   * @return whether the bounds were changed
+   */
+  public boolean fixToIncludeBounds() {
+    boolean changed = false;
+    if (!lowerIncluded) {
+      T t = getNextGreaterValue( lowerBound );
+      if ( t != null ) {
+        lowerBound = t;
+        lowerIncluded = true;
+        changed = true;
+      }
+    }
+    if (!upperIncluded) {
+      T t = getPreviousLesserValue( upperBound );
+      if ( t != null ) {
+        upperBound = t;
+        upperIncluded = true;
+        changed = true;
+      }
+    }
+    return changed;
+  }
 	
 	
   /* (non-Javadoc)
@@ -71,6 +110,74 @@ public abstract class AbstractFiniteRangeDomain< T extends Comparable< T > >
 	  return false;
 	}
 
+  @Override
+  public AbstractFiniteRangeDomain<T> createSubDomainAbove( T t, boolean include ) {
+    AbstractRangeDomain<T> ard = super.createSubDomainAbove( t, include );
+    if ( ard instanceof AbstractFiniteRangeDomain ) {
+      AbstractFiniteRangeDomain<T> afrd = (AbstractFiniteRangeDomain<T>)ard;
+      afrd.fixToIncludeBounds();
+      return afrd;
+    }
+    Debug.error( true, true, "ERROR! createSubDomainAbove() failed to cast to AbstractFiniteRangeDomain!");
+    return null;
+  }
+	
+  @Override
+  public AbstractFiniteRangeDomain<T> createSubDomainBelow( T t, boolean include ) {
+    AbstractRangeDomain<T> ard = super.createSubDomainBelow( t, include );
+    if ( ard instanceof AbstractFiniteRangeDomain ) {
+      AbstractFiniteRangeDomain<T> afrd = (AbstractFiniteRangeDomain<T>)ard;
+      afrd.fixToIncludeBounds();
+      return afrd;
+    }
+    Debug.error( true, true, "ERROR! createSubDomainBelow() failed to cast to AbstractFiniteRangeDomain!");
+    return null;
+  }
+  
+  @Override
+  public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
+    boolean r = super.intersectRestrict( o );
+    fixToIncludeBounds();
+    return r;
+  }
+  
+  @Override
+  public < TT > boolean restrictTo( Domain< TT > domain ) {
+    boolean r = super.restrictTo( domain );
+    fixToIncludeBounds();
+    return r;
+  }
+  
+  @Override
+  public < TT > Domain<TT> subtract( Domain< TT > domain ) {
+    Domain<TT> dd = super.subtract( domain );
+    if ( dd instanceof AbstractFiniteRangeDomain ) {
+      AbstractFiniteRangeDomain<?> afrd = (AbstractFiniteRangeDomain<?>)dd;
+      afrd.fixToIncludeBounds();
+    }
+    return dd;
+  }
+  
+  @Override
+  public boolean subtract( AbstractRangeDomain<T> o ) {
+    boolean changed = super.subtract( o );
+    fixToIncludeBounds();
+    return changed;
+  }
+	
+  @Override
+  public boolean lessEquals( T t1 ) {
+    fixToIncludeBounds();
+    return super.lessEquals( t1 );
+  }
+
+  @Override
+  public boolean greaterEquals( T t1 ) {
+    fixToIncludeBounds();
+    return super.greaterEquals( t1 );
+  }
+
+  
 //	/* (non-Javadoc)
 //	 * @see event.Domain#size()
 //	 */
@@ -95,6 +202,24 @@ public abstract class AbstractFiniteRangeDomain< T extends Comparable< T > >
 
 	// count from zero!!!
 	public abstract T getNthValue( long n );
+	
+  /**
+   * Return the smallest value greater than the input value. Neither value is
+   * required to be in the domain.
+   * 
+   * @param t
+   * @return the next greater value or null if there is no such value
+   */
+	public abstract T getNextGreaterValue( T t );
+	
+  /**
+   * Return the greatest value less than the input value. Neither value is
+   * required to be in the domain.
+   * 
+   * @param t
+   * @return the previous lesser value or null if there is no such value
+   */
+  public abstract T getPreviousLesserValue( T t );
 	
 	/* (non-Javadoc)
 	 * @see event.Domain#pickRandomValue()

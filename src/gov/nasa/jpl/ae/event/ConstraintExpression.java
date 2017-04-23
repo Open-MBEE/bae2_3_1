@@ -10,6 +10,9 @@ import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -91,6 +94,7 @@ public class ConstraintExpression extends Expression< Boolean >
     return sat;
   }
 
+  private static boolean pickDeep = false;
   /**
    * (non-Javadoc)
    * 
@@ -110,15 +114,35 @@ public class ConstraintExpression extends Expression< Boolean >
     
     // Now try choosing new values for the variables to meet this constraint.
     if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
-      Set< Variable< ? > > vars = getVariables();
+      Set< Variable< ? > > vars = new LinkedHashSet<Variable<?>>(getVariables());
+      if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
+
+      if ( pickDeep ) {
+        // add indepedent vars for dependent vars
+        ArrayList<Variable<?>> copy = new ArrayList<Variable<?>>(vars);
+        for ( Variable< ? > v : copy ) {
+          if ( v instanceof Parameter ) {
+            List<Variable<?>> iVars = ((Parameter<?>)v).getIndependentVariables();
+            if ( !Utils.isNullOrEmpty( iVars ) ) {
+              if (((Parameter<?>)v).isDependent()) {
+                vars.remove( v );
+              }
+              vars.addAll( iVars );
+            }
+          }
+        }
+
+      }
+
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
-      if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
-        if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
-             && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
-          pickParameterValue( v );  
+          if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
+                  && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
+          if (!pickParameterValue( v )) {
+            v.pickValue();
+          }
         }
         if ( isSatisfied(deep, seen) ) break;
       }
@@ -142,13 +166,19 @@ public class ConstraintExpression extends Expression< Boolean >
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
-        if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        //Debug.turnOn();
+        //if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        System.out.println( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+       // Debug.turnOff();
         setValue( v, newValue );
         return true;
       }
     }
     // TODO
-    if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    //Debug.turnOn();
+    //if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    System.out.println( "////////////////////   not picking value for " + v + " in " + this );
+    //Debug.turnOff();
     return false;
   }
 
@@ -186,12 +216,14 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    // TODO
-    assert(false);
-    return null;
-//    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
-//    s.addAll( getFreeParameters( true ) );
-//    return s;
+    Set< Variable< ? > > vars = getVariables();
+    Set< Variable< ? > > freeVars = new LinkedHashSet< Variable<?> >();
+    for ( Variable<?> v : vars) {
+      if ( v instanceof Parameter && !((Parameter<?>)v).isDependent()) {
+        freeVars.add( v );
+      }
+    }
+    return freeVars;
   }
 
   @Override
@@ -253,4 +285,17 @@ public class ConstraintExpression extends Expression< Boolean >
     return null;
   }
 
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Set< Variable< ? > > vars = getVariables();
+    if ( vars.contains( variable ) ) {
+      ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >( vars );
+      varList.remove( variable );
+      return varList;
+    }
+    return null;
+  }
+
+  
 }

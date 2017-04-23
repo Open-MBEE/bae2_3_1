@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -695,7 +696,11 @@ public class ParameterListenerImpl extends HasIdImpl
                           + allConstraints.size() + " constraints" );
     }
     // REVIEW -- why not call satisfy() here and solve elsewhere??
+    Consistency ac = new Consistency();
+    ac.constraints = allConstraints;
+    ac.arcConsistency( false );
     boolean satisfied = solver.solve( allConstraints );
+    ac.restoreDomains();
     if ( Debug.isOn() || amTopEventToSimulate ) {
         Timer t = new Timer();
         t.start();
@@ -1512,5 +1517,29 @@ public class ParameterListenerImpl extends HasIdImpl
   public void setOwner( Object owner ) {
     this.owner = owner;
   }
+
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >();
+    Set<Variable<?>> varSet = new LinkedHashSet< Variable<?> >();
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      List<Variable<?>>  vars = c.getVariablesOnWhichDepends( variable );
+      if ( !Utils.isNullOrEmpty( vars )) {
+        varSet.addAll( vars );
+      }
+    }
+    for ( Dependency d : getDependencies() ) {
+      List<Variable<?>>  vars = d.getVariablesOnWhichDepends( variable );
+      if ( !Utils.isNullOrEmpty( vars )) {
+        varSet.addAll( vars );
+      }
+    }
+    // TODO -- need to recurse into other objects
+    varList.addAll( varSet );
+    return varList;
+  }
+
+  
   
 }

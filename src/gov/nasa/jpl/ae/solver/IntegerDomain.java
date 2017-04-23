@@ -109,8 +109,10 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   @Override
   public boolean contains( Integer t ) {
     if ( t == null && 
-         ( lowerBound != null  || upperBound != null ) ) return false;
-    return lowerBound <= t && upperBound >= t;
+        ( lowerBound != null  || upperBound != null ) ) return false;
+   if ( t == null ) return nullInDomain;
+   if ( lowerBound == null && upperBound == null ) return false;
+   return (lowerBound == null || lowerBound <= t) && (upperBound == null || upperBound >= t);
   }
 
   // counts from zero!!!
@@ -200,6 +202,18 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   @Override
   public IntegerDomain make( Integer lowerBound, Integer upperBound ) {
     return new IntegerDomain(lowerBound, upperBound);
+  }
+
+  @Override
+  public Integer getNextGreaterValue( Integer t ) {
+    if (t == null || t == getTypeMaxValue() ) return null;
+    return t + 1;
+  }
+
+  @Override
+  public Integer getPreviousLesserValue( Integer t ) {
+    if (t == null || t == getTypeMinValue() ) return null;
+    return t - 1;
   }
 
 }

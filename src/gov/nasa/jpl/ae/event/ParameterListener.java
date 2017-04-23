@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.util.List;
 import java.util.Set;
 
 import gov.nasa.jpl.ae.solver.Variable;
@@ -89,5 +90,13 @@ public interface ParameterListener extends HasParameters, HasName< String > {
    * @return the new value to use instead of the object passed in
    */
   public <T> T translate( Variable<T> v, Object o, Class< ? > type  );  // HACK -- remove this if possible
+
+  /**
+   * Find the variables on which the input variable depends.
+   * @param variable the dependent variable
+   * @return a list of variables
+   */
+  public List<Variable<?>> getVariablesOnWhichDepends( Variable<?> variable );
+  // TODO -- need to add "deep" and "seen" parameters to method for recursing into contained objects.
 
 }

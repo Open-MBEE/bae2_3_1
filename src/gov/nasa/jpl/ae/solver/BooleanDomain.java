@@ -154,4 +154,16 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
   public BooleanDomain make( Boolean lowerBound, Boolean upperBound ) {
     return new BooleanDomain(lowerBound, upperBound);
   }
+
+  @Override
+  public Boolean getNextGreaterValue( Boolean t ) {
+    if ( t != Boolean.FALSE ) return null;
+    return true;
+  }
+
+  @Override
+  public Boolean getPreviousLesserValue( Boolean t ) {
+    if ( t != Boolean.TRUE ) return null;
+    return false;
+  }
 }

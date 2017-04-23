@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -2752,6 +2753,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return set;
   }
 
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    // TODO!  Need to check effects and elaborations
+    return super.getVariablesOnWhichDepends( variable );
+  }
 
   
 }

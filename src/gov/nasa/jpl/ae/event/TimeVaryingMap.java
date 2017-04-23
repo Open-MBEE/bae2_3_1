@@ -3758,7 +3758,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   /**
-   * @return this map after removing all but one entry from each set of adjacent
+   * @return this map after removing all but the first entry from each set of adjacent
    *         entries with the same values.
    */
   public <VV> TimeVaryingMap< V > removeDuplicates() {
@@ -5284,8 +5284,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   public static boolean testGetFirstTimepointParameter() {
-    boolean debugWasOn = Debug.isOn();
-    if ( !debugWasOn ) Debug.turnOn();
+//    boolean debugWasOn = Debug.isOn();
+//    if ( !debugWasOn ) Debug.turnOn();
 
     boolean succ = true;
     TimeVaryingMap tvm = new TimeVaryingMap< Long >("imap", null, 0L, Long.class);
@@ -5326,7 +5326,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
 
 
-    if ( !debugWasOn ) Debug.turnOff();
+//    if ( !debugWasOn ) Debug.turnOff();
     return succ;
   }
 
@@ -6978,4 +6978,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return n;
   }
 
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    // TODO?!
+    Debug.error( "This function is not yet implemented and should not be called." );
+    return null;
+  }
+
+  
 }
