@@ -32,7 +32,7 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
       new LinkedHashSet< Domain< T > >();
   public Set< Domain< T > > excludeSet =
       new LinkedHashSet< Domain< T > >();
-  public Domain<T> defaultDomain = null;
+  public MultiDomain<T> defaultDomain = null;
 
   /**
    * A single set computed from subtracting/restricting the excluded set from
@@ -365,17 +365,17 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
   }
 
   @Override
-  public Domain< T > getDefaultDomain() {
+  public MultiDomain< T > getDefaultDomain() {
     if ( defaultDomain == null ) {
       defaultDomain = new MultiDomain<T>();
     }
     return defaultDomain;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< T > domain ) {
-    defaultDomain = domain;
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< T > domain ) {
+//    defaultDomain = domain;
+//  }
 
   @Override
   public boolean restrictToValue( T v ) {

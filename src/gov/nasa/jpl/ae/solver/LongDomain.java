@@ -15,10 +15,10 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
   public static final long typeMaxValue = Long.MAX_VALUE;
   public static final long typeMinValue = Long.MIN_VALUE;
 
-  public static LongDomain domain = new LongDomain();  // REVIEW -- why is this not defaultDomain?
-	public static LongDomain positiveDomain =
+  //public static LongDomain domain = new LongDomain();  // REVIEW -- why is this not defaultDomain?
+	public static final LongDomain positiveDomain =
 			new LongDomain(0, typeMaxValue);
-  public static LongDomain defaultDomain = new LongDomain();  // REVIEW -- make this final?
+  public static final LongDomain defaultDomain = new LongDomain();  // REVIEW -- make this final?
 
 	public LongDomain() {
     super(typeMinValue, typeMaxValue);
@@ -195,14 +195,14 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
     return defaultDomain ;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< Long > domain ) {
-    if ( domain instanceof LongDomain ) {
-      defaultDomain = (LongDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new LongDomain((RangeDomain< Long >)domain);
-    }
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< Long > domain ) {
+//    if ( domain instanceof LongDomain ) {
+//      defaultDomain = (LongDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new LongDomain((RangeDomain< Long >)domain);
+//    }
+//  }
   
   @Override
   public LongDomain make( Long lowerBound, Long upperBound ) {

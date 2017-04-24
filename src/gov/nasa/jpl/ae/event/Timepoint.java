@@ -45,7 +45,7 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
   private final static Timepoint epochTimepoint = new Timepoint( "", 0L, null );
   private static Timepoint horizonTimepoint = null;
   
-  protected static LongDomain defaultDomain = LongDomain.positiveDomain;
+  protected static final LongDomain defaultDomain = LongDomain.positiveDomain;
                                                //= TimeDomain.horizonDomain;
   
   public long timeSinceMidnight() {

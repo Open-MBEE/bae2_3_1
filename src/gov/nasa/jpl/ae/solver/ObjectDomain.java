@@ -202,14 +202,6 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     return new ObjectDomain< T >( type );
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Domain#setDefaultDomain(gov.nasa.jpl.ae.solver.Domain)
-   */
-  @Override
-  public void setDefaultDomain( Domain< T > domain ) {
-    // TODO Auto-generated method stub
-
-  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)

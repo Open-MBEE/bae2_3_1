@@ -17,7 +17,7 @@ public class LongParameter extends Parameter<Long> {
 	 * @param o 
 	 */
 	public LongParameter(String n, ParameterListener o) {
-		super(n, LongDomain.domain, o);
+		super(n, LongDomain.defaultDomain, o);
 	}
 
 	/**
@@ -35,7 +35,7 @@ public class LongParameter extends Parameter<Long> {
 	 * @param o 
 	 */
 	public LongParameter(String n, Long v, ParameterListener o) {
-		super(n, LongDomain.domain, v, o);
+		super(n, LongDomain.defaultDomain, v, o);
 	}
 
 	/**

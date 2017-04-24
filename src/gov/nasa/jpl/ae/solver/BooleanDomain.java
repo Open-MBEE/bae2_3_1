@@ -13,7 +13,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 
 	public static final BooleanDomain trueDomain = new BooleanDomain(true, true);
   public static final BooleanDomain falseDomain = new BooleanDomain(false, false);
-  public static BooleanDomain defaultDomain = new BooleanDomain();
+  public static final BooleanDomain defaultDomain = new BooleanDomain();
 	
 //  protected boolean lowerBound = false;
 //  protected boolean upperBound = true;
@@ -141,14 +141,14 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
     return defaultDomain;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< Boolean > domain ) {
-    if ( domain instanceof BooleanDomain ) {
-      defaultDomain = (BooleanDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new BooleanDomain((RangeDomain< Boolean >)domain);
-    }
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< Boolean > domain ) {
+//    if ( domain instanceof BooleanDomain ) {
+//      defaultDomain = (BooleanDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new BooleanDomain((RangeDomain< Boolean >)domain);
+//    }
+//  }
 
   @Override
   public BooleanDomain make( Boolean lowerBound, Boolean upperBound ) {

@@ -4,6 +4,7 @@
 package gov.nasa.jpl.ae.util;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -18,11 +19,14 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.DoubleDomain;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.LongDomain;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 
@@ -39,12 +43,15 @@ public class DomainHelper {
     if ( cls.equals( Integer.class ) || cls.equals(int.class)) {
       return (AbstractRangeDomain< T >)new IntegerDomain();
     }
-//    if ( cls.equals( Long.class ) || cls.equals( long.class ) ) {
-//      return new LongDomain();
-//    }
+    if ( cls.equals( Long.class ) || cls.equals( long.class ) ) {
+      return (AbstractRangeDomain< T >)new LongDomain();
+    }
     if ( cls.equals( Double.class ) || cls.equals( double.class ) ) {
       return (AbstractRangeDomain< T >)new DoubleDomain();
     }
+//    if ( cls.equals( Float.class ) || cls.equals( float.class ) ) {
+//      return (AbstractRangeDomain< T >)new FloatDomain();
+//    }
     if ( cls.equals( String.class ) ) {
       return (AbstractRangeDomain< T >)new StringDomain();
     }
@@ -112,17 +119,20 @@ public class DomainHelper {
     for ( Object obj : objects ) {
       Domain<?> objDomain = null;
       Class<?> objDomainType = null;
-      if ( obj instanceof HasDomain ) {
+      if ( objDomainType == null && obj instanceof Wraps ) {
+        objDomainType = ((Wraps<?>)obj).getType();
+      }
+      if ( objDomainType == null && obj instanceof HasDomain ) {
         objDomain = ((HasDomain)obj).getDomain( false, null );
         //domains.add( objDomain );
         if ( objDomain != null ) {
           objDomainType = objDomain.getType();
         }
-      } else if (obj instanceof Wraps) {
-        objDomainType = ((Wraps<?>)obj).getType();
       }
-      if ( dominantType == null ) dominantType = objDomainType;
-      else dominantType = ClassUtils.dominantTypeClass( dominantType, objDomainType );
+      if ( objDomainType != null ) {
+        if ( dominantType == null ) dominantType = objDomainType;
+        else dominantType = ClassUtils.dominantTypeClass( dominantType, objDomainType );
+      }
     }
     return dominantType;
   }
@@ -147,41 +157,103 @@ public class DomainHelper {
   }
   
   /**
+   * Compute the range of values for the function call based on the domains of
+   * the objects as arguments. If there are more objects than arguments, then
+   * the outputs are folded back as inputs, such as for adding a list of
+   * numbers. The method can fail if it cannot determine the type of the
+   * arguments and result.
+   * 
    * @param objects
    * @param fCall
    * @return
    */
-  public static RangeDomain<?> combineDomains( List< Object > objects,
+  public static Domain<?> combineDomains( List< Object > objects,
                                                FunctionCall fCall ) {
+    if ( fCall == null || fCall.getMethod() == null ) return null;
     // TODO! -- See if MultiDomain can help here.
-    // get the dominant Class of the arguments; e.g., Double dominates Integer
-    Class<?> dominantType = getDominantDomainType( objects );
-    //ArrayList< Domain< ? > > domains = new ArrayList< Domain< ? > >();
+//    // get the dominant Class of the arguments; e.g., Double dominates Integer
+//    Class<?> dominantType = getDominantDomainType( objects );
+//    //ArrayList< Domain< ? > > domains = new ArrayList< Domain< ? > >();
     
-    AbstractRangeDomain domain = 
-        dominantType == null ? null : DomainHelper.getDomainForClass( dominantType );
-    if ( domain == null ) {
-      Debug.error( "Could not create a RangeDomain in DomainHelper.combineDomains("
-                   + objects + ", " + fCall + ")" );
+    Class<?> domainType = fCall.getType();
+    if ( domainType == null ) {
+      domainType = fCall.getMethod().getReturnType();
+    }
+    if ( domainType == null ) {
       return null;
     }
+    
+    AbstractRangeDomain domain = 
+        domainType == null ? null : DomainHelper.getDomainForClass( domainType );
+//    if ( domain == null ) {
+//      Debug.error( "Could not create a RangeDomain in DomainHelper.combineDomains("
+//                   + objects + ", " + fCall + ")" );
+//      return null;
+//    }
 
+    LinkedHashSet< Object > results = new LinkedHashSet< Object >(); 
+    
+    if ( fCall.getParameterTypes().length == 0 ) {
+      Object o = null;
+      try {
+        o = fCall.evaluate( true );
+        if ( o == null ) {
+          return null;
+        }
+        if ( domain == null ) {
+          SingleValueDomain d = new SingleValueDomain( o );
+          return d;
+        }
+        domain.setValue( o );
+        return domain;
+      } catch ( IllegalAccessException e ) {
+      } catch ( InvocationTargetException e ) {
+      } catch ( InstantiationException e ) {
+      }
+    } else if ( fCall.getParameterTypes().length > 2 ) {
+      Debug.error( "Could not create a Domain in DomainHelper.combineDomains("
+          + objects + ", " + fCall + ") for a function of more than two arguments" );
+      return null;
+    }
+    
     Object lb = null;
     Object ub = null;          
     Object lbPrev = null;
-    Object ubPrev = null;          
+    Object ubPrev = null;
+    Object odlb = null;
+    Object odub = null;
     for ( Object obj : objects ) {
       Domain<?> objDomain = null;
       if ( obj instanceof HasDomain ) {
         objDomain = ((HasDomain)obj).getDomain( false, null );
-        if ( objDomain instanceof RangeDomain ) {
-          Object odlb = ( (RangeDomain< ? >)objDomain ).getLowerBound();
-          Object odub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
-          LinkedHashSet< Object > results = new LinkedHashSet< Object >(); 
+      }
+      if ( objDomain instanceof RangeDomain ) {
+          odlb = ( (RangeDomain< ? >)objDomain ).getLowerBound();
+          odub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
+      } else {
+        odlb = obj;
+        odub = obj;
+      }
+//      if (!( obj instanceof HasDomain )) {
+//        odlb = obj;
+//        odub = obj;
+//      } else {
+//        objDomain = ((HasDomain)obj).getDomain( false, null );
+//        if (!( objDomain instanceof RangeDomain )) {
+//          odlb = obj;
+//          odub = obj;
+//        } else {
+//          odlb = ( (RangeDomain< ? >)objDomain ).getLowerBound();
+//          odub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
+//        }
+//      }
+          results = new LinkedHashSet< Object >(); 
           if ( fCall.getParameterTypes().length == 1 ) {
             runOnArgs( results, fCall, odlb );
-            runOnArgs( results, fCall, odub );
-          } else {
+            if ( odlb != odub ) {
+              runOnArgs( results, fCall, odub );
+            }
+          } else { // assumes there are only two args
             if ( lbPrev == null && ubPrev == null ) {
               lbPrev = odlb;
               ubPrev = odub;
@@ -193,8 +265,19 @@ public class DomainHelper {
             }
             runOnArgs( results, fCall, lbPrev, odlb );
             runOnArgs( results, fCall, ubPrev, odlb );
-            runOnArgs( results, fCall, lbPrev, odub );
-            runOnArgs( results, fCall, ubPrev, odub );
+            if ( odlb != odub ) {
+              runOnArgs( results, fCall, lbPrev, odub );
+              runOnArgs( results, fCall, ubPrev, odub );
+            }
+          }
+          
+          if ( domain == null && !Utils.isNullOrEmpty( results )) {
+            Class< ? > dominantType =
+                getDominantDomainType( new ArrayList< Object >( results ) );
+            if ( dominantType != null ) {
+              domain = DomainHelper.getDomainForClass( dominantType );
+              if ( domain != null ) domainType = dominantType;
+            }
           }
           // get new lb and ub out of results
           if ( !results.isEmpty() ) {
@@ -202,7 +285,7 @@ public class DomainHelper {
             for ( Object r : results ) {
               Object rr = null;
               try {
-                rr = Expression.evaluate( r, dominantType, true, true );
+                rr = Expression.evaluate( r, domainType, true, true );
               } catch ( ClassCastException e1 ) {
               } catch ( IllegalAccessException e1 ) {
               } catch ( InvocationTargetException e1 ) {
@@ -212,32 +295,49 @@ public class DomainHelper {
                 Debug.error( true, false,
                              "combineDomains intermediate value " + r
                                           + " could not be comverted to type "
-                                          + dominantType.getSimpleName() );
+                                          + domainType.getSimpleName() );
                 continue;
               }
               try {
-                if ( lb == null || domain.less(rr, lb) ) {
+                if ( lb == null || ( domain != null && domain.less( rr, lb ) )
+                     || ( domain == null
+                          && CompareUtils.compare( rr, lb ) < 0 ) ) {
                   lb = rr;
                 }
-                if ( ub == null || domain.less(ub, rr) ) {
+                if ( ub == null || ( domain != null && domain.less( ub, rr ) )
+                     || ( domain == null
+                          && CompareUtils.compare( ub, rr ) < 0 ) ) {
                   ub = rr;
                 }
               } catch ( ClassCastException e ) {
                 Debug.error( true, false,
                              "combineDomains unexpected ClassCastException " + r
                                           + " could not be comverted to type "
-                                          + dominantType.getSimpleName() );
+                                          + domainType.getSimpleName() );
               }
             }
           }
-        } else {
-          // TODO !(objDomain instanceof RangeDomain)
-        }
-      } else {
-        // TODO !(obj instanceof HasDomain)
+//        } else {
+//          // TODO !(objDomain instanceof RangeDomain)
+//          Debug.error( true, false,
+//                       "combineDomains unexpected ClassCastException " + r
+//                                    + " could not be comverted to type "
+//                                    + domainType.getSimpleName() );
+//        }
+//      } else {
+//        // TODO !(obj instanceof HasDomain)
+//      }
+    }
+    if ( domain == null ) {
+      Class< ? > dominantType =
+          getDominantDomainType( new ArrayList< Object >( results ) );
+      if ( dominantType != null ) {
+        domain = DomainHelper.getDomainForClass( dominantType );
+        if ( domain != null ) domainType = dominantType;
       }
     }
-    if ( lb != null && ub != null ) {
+
+    if ( lb != null && ub != null && domain != null) {
       domain.setBounds( lb, ub );
     } else {
       domain = null;

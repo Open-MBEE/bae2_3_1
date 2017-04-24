@@ -36,7 +36,7 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T >, Eval
   public boolean isNullInDomain();
 
   public Domain< T > getDefaultDomain();
-  public void setDefaultDomain( Domain< T > domain );
+  //public void setDefaultDomain( Domain< T > domain );
 
   /**
    * Restrict the object's domain to only include the input value or an empty

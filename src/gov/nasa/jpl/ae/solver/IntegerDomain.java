@@ -15,10 +15,10 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   public static final int typeMaxValue = Integer.MAX_VALUE;
   public static final int typeMinValue = Integer.MIN_VALUE;
 
-  public static IntegerDomain domain = new IntegerDomain();  // REVIEW -- why is this not defaultDomain?
+  //public static IntegerDomain domain = new IntegerDomain();  // REVIEW -- why is this not defaultDomain?
 	public static IntegerDomain positiveDomain =
 			new IntegerDomain(0, typeMaxValue);
-  public static IntegerDomain defaultDomain = new IntegerDomain();  // REVIEW -- make this final?
+  public static final IntegerDomain defaultDomain = new IntegerDomain();  // REVIEW -- make this final?
 
 	public IntegerDomain() {
     super(typeMinValue, typeMaxValue);
@@ -190,14 +190,14 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
     return defaultDomain ;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< Integer > domain ) {
-    if ( domain instanceof IntegerDomain ) {
-      defaultDomain = (IntegerDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new IntegerDomain((RangeDomain< Integer >)domain);
-    }
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< Integer > domain ) {
+//    if ( domain instanceof IntegerDomain ) {
+//      defaultDomain = (IntegerDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new IntegerDomain((RangeDomain< Integer >)domain);
+//    }
+//  }
   
   @Override
   public IntegerDomain make( Integer lowerBound, Integer upperBound ) {

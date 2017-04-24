@@ -15,10 +15,13 @@ import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -462,35 +465,45 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean restrictDomain( Variable< T1 > v ) {
+    if ( v == null ) return false;
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
     boolean restricted = false;
     if ( v == parameter ) {
-      Object ov = null;
-      try {
-        ov = expression.evaluate(true);
-        T val = Expression.evaluate( ov, getType(), false, true );
-        Domain< T1 > vd = v.getDomain();
-        if ( vd != null ) {
-          Domain<T1> d = vd.clone();
-          boolean r = d.restrictToValue( (T1)val );
-          v.setDomain( d );
-          restricted = restricted || r;
+      if ( this.expression == null ) return false;
+      Domain< ? > d = expression.getDomain( true, null );
+      if ( d == null ) {
+        try {
+          Object ov = expression.evaluate(true);
+          d = DomainHelper.getDomain( ov );
+          if ( d == null ) {
+            T val = Expression.evaluate( ov, getType(), false, true );
+            d = DomainHelper.getDomain( val );
+            if ( d == null && val != null ) {
+              d = new SingleValueDomain<T>( val );
+            }
+          }
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
         }
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+      }
+      if ( d != null ) {
+        Pair< ?, Boolean > p = parameter.restrictDomain( d, true, null );
+        restricted = p.second == Boolean.TRUE;
       }
     } else {
-      if ( getConstraintExpression() == null) return false;
-      boolean r = getConstraintExpression().restrictDomain( v );
-      restricted = restricted || r;
+      boolean skip = false;
+      if ( v instanceof Parameter ) {
+        if ( !expression.hasParameter( (Parameter<T1>)v, false, null ) ) {
+          skip = true;
+        }
+      }
+      // Warning!  This ignores the variable.
+      if ( !skip ) {
+        Pair< ?, Boolean > p = expression.restrictDomain( parameter.getDomain(), true, null );
+        restricted = p.second == Boolean.TRUE;
+      }
     }
     return restricted;//v.getDomain() != null && v.getDomain().magnitude() > 0; 
   }

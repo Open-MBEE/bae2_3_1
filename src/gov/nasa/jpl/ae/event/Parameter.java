@@ -977,7 +977,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public < TT > Pair<Domain<TT>, Boolean> restrictDomain( Domain< TT > domain,
                                            boolean propagate,
                                            Set< HasDomain > seen ) {
+    Domain<?> d = this.domain == null ? null : this.domain.clone();
     boolean changed = this.domain.restrictTo( domain );
+    if ( changed ) {
+      System.out.println( "Changed domain of " + MoreToString.Helper.toLongString( this ) + " from " + d + " to " + this.domain );
+    }
     return new Pair(this.domain, changed);
   }
 

@@ -12,12 +12,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
+import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Random;
@@ -26,6 +28,7 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -42,6 +45,7 @@ public class ParameterListenerImpl extends HasIdImpl
                                               HasTimeVaryingObjects,
                                               HasOwner,
                                               Comparable< ParameterListenerImpl > {
+  public static boolean usingArcConsistency = true;
   // Constants
   
   protected double timeoutSeconds = 900.0;
@@ -696,11 +700,23 @@ public class ParameterListenerImpl extends HasIdImpl
                           + allConstraints.size() + " constraints" );
     }
     // REVIEW -- why not call satisfy() here and solve elsewhere??
-    Consistency ac = new Consistency();
-    ac.constraints = allConstraints;
-    ac.arcConsistency( false );
+    
+    Consistency ac = null;
+    if ( usingArcConsistency ) {
+      ac = new Consistency();
+      ac.constraints = allConstraints;
+      ac.arcConsistency( false );
+      // restore domains of things that are not simple variables
+      for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
+        if ( !isSimpleVar(e.getKey()) ) {
+          e.getKey().setDomain( (Domain)e.getValue() );
+        }
+      }
+    }
     boolean satisfied = solver.solve( allConstraints );
-    ac.restoreDomains();
+    if ( usingArcConsistency ) {
+      ac.restoreDomains();
+    }
     if ( Debug.isOn() || amTopEventToSimulate ) {
         Timer t = new Timer();
         t.start();
@@ -738,6 +754,15 @@ public class ParameterListenerImpl extends HasIdImpl
     return satisfied;
   }
 
+protected boolean isSimpleVar( Variable< ? > key ) {
+  Object v = key.getValue( false );
+  if ( v != null ) {
+    if ( ClassUtils.isPrimitive( v ) ) {
+      return true;
+    }
+  }
+  return false;
+}
 //  @Override
 //  public Collection< Constraint > getConstraints() {
 //    return getConstraints( false, null );

@@ -23,6 +23,8 @@ import gov.nasa.jpl.mbee.util.Utils;
 
 public class Consistency {
   
+  boolean debug = true;
+  
   public Collection<Constraint> constraints = null;
   
   /**
@@ -31,6 +33,8 @@ public class Consistency {
   public Map< Variable< ? >, Domain< ? > > savedDomains =
       new LinkedHashMap< Variable< ? >, Domain< ? > >();
 
+  
+  
   public Set<Variable<?>> getVariables() {
     LinkedHashSet<Variable<?>> vars = new LinkedHashSet< Variable<?> >();
     if ( constraints == null ) {
@@ -53,7 +57,7 @@ public class Consistency {
     StringBuffer sb = new StringBuffer();
     Set< Variable< ? > > vars = getVariables();
     for ( Variable<?> v : vars ) {
-      sb.append( v.getName() + " domain = " + v.getDomain() + "\n");//"; value = " + v.getValue( false ) + "\n" );
+      sb.append( MoreToString.Helper.toLongString( v ) + " domain = " + v.getDomain() + "\n");//"; value = " + v.getValue( false ) + "\n" );
     }
     return sb.toString();
   }
@@ -62,9 +66,11 @@ public class Consistency {
     savedDomains = new LinkedHashMap< Variable< ? >, Domain< ? > >();
     Set< Variable< ? > > vars = getVariables();
     for (Variable<?> v : vars) {
-      if ( v.getDomain() != null ) {
-        Domain< ? > copy = v.getDomain().clone();
-        savedDomains.put( v, copy );
+      Domain< ? > d = v.getDomain();
+      if ( d != null ) {
+        Domain< ? > copy = d.clone();
+        v.setDomain( (Domain)copy );
+        savedDomains.put( v, d );
       }
     }
     System.out.println( "saved: " + MoreToString.Helper.toLongString( savedDomains ) );
@@ -127,12 +133,20 @@ public class Consistency {
         if ( c instanceof ConstraintExpression ) {
           ConstraintExpression cx = (ConstraintExpression)c;
           Pair<Domain<Boolean>,Boolean> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
-          restrictedSomething = restrictedSomething || p.second; 
+          if ( p.second == Boolean.TRUE ) {
+            System.out.println( "Restricted constraint " + MoreToString.Helper.toLongString( cx ) + " to domain " + p.first );
+          }
+          restrictedSomething = restrictedSomething || (p.second == Boolean.TRUE); 
         } else {
           Set< Variable< ? > > vars = c.getVariables();
           for ( Variable< ? > v : vars ) {
-            boolean b = c.restrictDomain( v );
-            restrictedSomething = restrictedSomething || b;
+            if ( v.getDomain() != null ) {
+              boolean b = c.restrictDomain( v );
+              if ( b ) {
+                System.out.println( "Restricted domain of " + MoreToString.Helper.toLongString( v ) + " to " + v.getDomain() + " in constraint " + c  );
+              }
+              restrictedSomething = restrictedSomething || b;
+            }
           }
         }
       }

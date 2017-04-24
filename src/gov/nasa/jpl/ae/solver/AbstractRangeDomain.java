@@ -17,6 +17,7 @@ import gov.nasa.jpl.ae.event.FunctionCall;
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -54,10 +55,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
                               boolean includeLowerBound,
                               boolean includeUpperBound,
                               boolean nullInDomain ) {
-    setBounds( lowerBound, upperBound );
+    this.lowerBound = lowerBound;
+    this.upperBound = upperBound;
     this.lowerIncluded = includeLowerBound;
     this.upperIncluded = includeUpperBound;
-    setNullInDomain(nullInDomain);
+    this.nullInDomain = nullInDomain;
   }
 
   public AbstractRangeDomain() {
@@ -563,8 +565,10 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     if (this == obj) return true;
     if ( obj instanceof RangeDomain ) {
       RangeDomain r = (RangeDomain)obj;
-      if ( !getLowerBound().equals( r.getLowerBound() ) ) return false;
-      if ( !getUpperBound().equals( r.getUpperBound() ) ) return false;
+      int comp = CompareUtils.compare( getLowerBound(), r.getLowerBound() );
+      if ( comp != 0 ) return false;
+      comp = CompareUtils.compare( getUpperBound(), r.getUpperBound() );
+      if ( comp != 0 ) return false;
       if ( isLowerBoundIncluded() != r.isLowerBoundIncluded() ) return false;
       if ( isUpperBoundIncluded() != r.isUpperBoundIncluded() ) return false;
       if ( isInfinite() != r.isInfinite() ) return false;
@@ -576,14 +580,23 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return true;
   }
   
+  /**
+   * Restrict this domain to its intersection with the input domain.
+   * 
+   * @param o
+   * @return true iff there is an intersection, in which case this domain is not
+   *         empty.
+   */
   public boolean intersectRestrict( AbstractRangeDomain<T> o ) {
-    if ( lessEquals( lowerBound, o.lowerBound) ) {
-      lowerBound = o.lowerBound;
+    T lb = (T)ClassUtils.evaluate( o.lowerBound, getType(), true );
+    if ( lessEquals( lowerBound, lb) ) {
+      lowerBound = lb;
       if ( !o.isLowerBoundIncluded() ) excludeLowerBound();
       //else if ( equals( lowerBound, o.lowerBound ) && includeLowerBound()
     }
-    if ( greaterEquals( upperBound, o.upperBound) ) {
-      upperBound = o.upperBound;
+    T ub = (T)ClassUtils.evaluate( o.upperBound, getType(), true );
+    if ( greaterEquals( upperBound, ub) ) {
+      upperBound = ub;
       if ( !o.isUpperBoundIncluded() ) excludeUpperBound();
     }
     return this.size() != 0;
@@ -604,9 +617,15 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public < TT > boolean restrictTo( Domain< TT > domain ) {
     boolean changed = false;
     if ( domain instanceof AbstractRangeDomain ) {
-      changed = intersectRestrict( (AbstractRangeDomain< T >)domain );
+      AbstractRangeDomain< T > originalDomain = clone();
+      intersectRestrict( (AbstractRangeDomain< T >)domain );
+      changed = !this.equals( originalDomain );
     } else if ( domain instanceof SingleValueDomain ) {
-      changed = this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+      Object v = domain.getValue( true );
+      T t = (T)ClassUtils.evaluate( v, getType(), true );
+      if ( t != null ) {
+        changed = this.restrictToValue( t );
+      }
     } else {
       // TODO???
       Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
@@ -827,11 +846,11 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   @Override
   public abstract RangeDomain<T> getDefaultDomain();
 
-  /**
-   * @param domain the domain to set
-   */
-  @Override
-  public abstract void setDefaultDomain( Domain< T > domain );
+//  /**
+//   * @param domain the domain to set
+//   */
+//  @Override
+//  public abstract void setDefaultDomain( Domain< T > domain );
 
   
   @Override

@@ -87,17 +87,6 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   }
 
   /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Domain#setDefaultDomain(gov.nasa.jpl.ae.solver.Domain)
-   */
-  @Override
-  public void setDefaultDomain( Domain< T > domain ) {
-    // REVIEW -- make this class, get/setDefaultDomain(), and get[Primitive]Type
-    // abstract?
-    assert false;
-    //defaultDomain = domain;
-  }
-
-  /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#getType()
    */
   @Override
@@ -175,6 +164,17 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   @Override
   public <TT> boolean restrictTo( Domain< TT > domain ) {
     try {
+      if ( domain == null ) return false;
+      if ( domain.getType() != null ) {
+        TT tt = (TT)ClassUtils.evaluate( value, domain.getType(), true );
+        if ( domain.contains( tt ) ) {
+          return false;
+        }
+      } else if ( domain.magnitude() == 1 ) {
+        if ( ClassUtils.valuesEqual( value, domain.getValue( false ) ) ) {
+          return false;
+        }
+      }
       if ( !domain.contains( (TT)value ) ) {
         if ( value != null ) {
           value = null;  // REVIEW -- Do we want to do this??!!

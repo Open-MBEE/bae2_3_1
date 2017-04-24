@@ -908,8 +908,9 @@ public class Expression< ResultType > extends HasIdImpl
     case Parameter:
       return (Pair<Domain< T >,Boolean>)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
     case Function:
-    case Constructor:
       return (Pair<Domain< T >,Boolean>)((FunctionCall)expression).restrictDomain( domain, propagate, seen );
+    case Constructor:
+      return (Pair<Domain< T >,Boolean>)((ConstructorCall)expression).restrictDomain( domain, propagate, seen );
     case None:
     default:
       Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
