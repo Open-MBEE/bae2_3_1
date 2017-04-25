@@ -206,13 +206,13 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 
   @Override
   public Integer getNextGreaterValue( Integer t ) {
-    if (t == null || t == getTypeMaxValue() ) return null;
+    if (t == null || equals(t, getTypeMaxValue()) ) return null;
     return t + 1;
   }
 
   @Override
   public Integer getPreviousLesserValue( Integer t ) {
-    if (t == null || t == getTypeMinValue() ) return null;
+    if (t == null || equals(t, getTypeMinValue()) ) return null;
     return t - 1;
   }
 

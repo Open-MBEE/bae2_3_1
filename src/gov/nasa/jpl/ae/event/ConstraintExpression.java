@@ -4,6 +4,7 @@ import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Evaluatable;
@@ -160,9 +161,29 @@ public class ConstraintExpression extends Expression< Boolean >
     return ParameterConstraint.Helper.getVariables( this, false, null );
   }
 
+  protected static boolean variableHasPrimitiveValue( Variable<?> v ) {
+    if ( v == null ) return false;
+    if ( v.getType() != null && !ClassUtils.isPrimitive( v.getType() ) ) {
+      return false;
+    }
+    Object o = v.getValue( false );
+    if ( o == null ) return true;
+    if ( o != null && ClassUtils.isPrimitive( o ) ) {
+      return true;
+    }
+    // Not sure about support for the Expression case below.
+    if ( o instanceof Expression && ClassUtils.isPrimitive( ((Expression<?>)o).expression) ) {
+      return true;
+    }
+    return false;
+  }
+  
   @Override
   public < T > boolean pickParameterValue( Variable< T > v ) {
-    if ( expression instanceof Suggester ) {
+    // Currently do not support picking values for non-primitives (like TimeVaryingMap).
+    boolean isPrimitive = variableHasPrimitiveValue( v );
+    boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
+    if ( expression instanceof Suggester && isPrimitive && hasChoices) {
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
@@ -177,7 +198,13 @@ public class ConstraintExpression extends Expression< Boolean >
     // TODO
     //Debug.turnOn();
     //if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
-    System.out.println( "////////////////////   not picking value for " + v + " in " + this );
+    if ( !isPrimitive ) {
+      System.out.println( "////////////////////   not picking value for nonPrimitive " + v + " in " + this );
+    } else if ( !hasChoices ) {
+      System.out.println( "////////////////////   not picking value for empty domain for " + v + " in " + this );
+    } else {
+      System.out.println( "////////////////////   not picking value for " + v + " in " + this );
+    }
     //Debug.turnOff();
     return false;
   }

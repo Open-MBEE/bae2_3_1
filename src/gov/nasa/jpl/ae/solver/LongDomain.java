@@ -211,13 +211,13 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
 
   @Override
   public Long getNextGreaterValue( Long t ) {
-    if (t == null || t == getTypeMaxValue() ) return null;
+    if (t == null || equals(t, getTypeMaxValue()) ) return null;
     return t + 1;
   }
 
   @Override
   public Long getPreviousLesserValue( Long t ) {
-    if (t == null || t == getTypeMinValue() ) return null;
+    if (t == null || equals(t, getTypeMinValue()) ) return null;
     return t - 1;
   }
 

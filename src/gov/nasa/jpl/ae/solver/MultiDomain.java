@@ -78,8 +78,10 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
 
   protected LinkedHashSet< Domain< T > > clone( Set< Domain< T > > set ) {
     LinkedHashSet< Domain< T > > copy = new LinkedHashSet< Domain< T > >();
-    for ( Domain< T > d : set ) {
-      copy.add( d.clone() );
+    if ( set != null ) {
+      for ( Domain< T > d : set ) {
+        copy.add( d.clone() );
+      }
     }
     return copy;
   }
@@ -120,17 +122,40 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     
     // Subtract excluded domains
     for ( Domain< T > d : flattenedList ) {
-      for ( Domain< T > ed : excludeSet ) {
-        d.subtract( ed );
-        //flattenedList.add( c );
+      if ( excludeSet != null ) {
+        for ( Domain< T > ed : excludeSet ) {
+          d.subtract( ed );
+          //flattenedList.add( c );
+        }
       }
       if ( bailIfNotEmpty && d.magnitude() > 0 ) {
         return 1;
       }
     }
+
+    // merge domains that overlap.
+    Iterator< Domain< T > > i = flattenedList.iterator();
+    while ( i.hasNext() ) {
+      Domain< T > d1 = i.next();
+      if ( !( d1 instanceof AbstractRangeDomain ) ) continue;
+      AbstractRangeDomain<T> rd1 = (AbstractRangeDomain<T>)d1;
+
+      Iterator< Domain< T > > j = flattenedList.iterator();
+      while ( j.hasNext() ) {
+        Domain< T > d2 = j.next();
+        if ( d1 == d2 ) continue;
+        if ( !( d2 instanceof AbstractRangeDomain ) ) continue;
+        AbstractRangeDomain<T> rd2 = (AbstractRangeDomain<T>)d2;
+        if ( rd1.union( rd2 ) ) {
+          j.remove();
+        }
+      }
+      
+    }
+
     
     // Subtract overlap with preceding domains in the list.
-    Iterator< Domain< T > > i = flattenedList.iterator();
+    i = flattenedList.iterator();
     // clear before we modify the elements
     while ( i.hasNext() ) {
       Domain< T > d1 = i.next();
@@ -143,9 +168,6 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
       long d1mag = d1.magnitude(); 
       mag = Math.plus( mag, d1mag );
     }
-    
-    // TODO - need to merge domains that overlap.
-    
     
     flattenedSet = new LinkedHashSet< Domain< T > >( flattenedList );
 

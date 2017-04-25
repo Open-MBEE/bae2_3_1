@@ -32,7 +32,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
     includeLowerBound();
     includeUpperBound();
     //assert( lowerBound < upperBound );  // < not supported for boolean
-    assert( lowerBound == false || upperBound == true || lowerBound == upperBound );
+    assert( lowerBound == false || upperBound == true || equals(lowerBound, upperBound) );
   }
   public BooleanDomain( RangeDomain< Boolean > domain ) {
     super( domain );
@@ -53,7 +53,7 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 	public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( !isLowerBoundIncluded() && !isUpperBoundIncluded() ) return 0;
-	  if ( lowerBound == upperBound ) return 1;
+	  if ( equals(lowerBound, upperBound) ) return 1;
     if ( !isLowerBoundIncluded() || !isUpperBoundIncluded() ) return 1;
 		return 2;
 	}
@@ -157,13 +157,13 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
 
   @Override
   public Boolean getNextGreaterValue( Boolean t ) {
-    if ( t != Boolean.FALSE ) return null;
+    if ( t == null || t.booleanValue() ) return null;
     return true;
   }
 
   @Override
   public Boolean getPreviousLesserValue( Boolean t ) {
-    if ( t != Boolean.TRUE ) return null;
+    if ( t == null || !t.booleanValue() ) return null;
     return false;
   }
 }

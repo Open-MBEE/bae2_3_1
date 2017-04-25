@@ -550,15 +550,21 @@ public class Functions {
       Domain<?> d1 = o1 == null ? null : DomainHelper.getDomain( o1 );
       Domain<?> d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
       Domain<?> d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
-      AbstractRangeDomain<T> ard2 = o2 instanceof AbstractRangeDomain ? (AbstractRangeDomain<T>)d2 : null;
-      AbstractRangeDomain<T> ard3 = o3 instanceof AbstractRangeDomain ? (AbstractRangeDomain<T>)d3 : null;
+      AbstractRangeDomain<T> ard2 = d2 instanceof AbstractRangeDomain ? (AbstractRangeDomain<T>)d2 : null;
+      AbstractRangeDomain<T> ard3 = d3 instanceof AbstractRangeDomain ? (AbstractRangeDomain<T>)d3 : null;
       Domain<Boolean> condo = d1 instanceof Domain ? (Domain<Boolean>)d1 : null;
       
       // Return combination of domains if the condition is not restricted to
       // exactly one of {true, false}.
       if ( condo == null || condo.isEmpty()
            || ( condo.contains( true ) && condo.contains( false ) ) ) {
-        MultiDomain<T> md = new MultiDomain<T>((Class<T>)getType(), (Set<Domain<T>>)Utils.newSet( (Domain<T>)ard2, ard3 ), null ); 
+        if ( ard2 == null ) return ard3;
+        if ( ard3 == null ) return ard2;
+        MultiDomain<T> md = new MultiDomain<T>((Class<T>)getType(), (Set<Domain<T>>)Utils.newSet( (Domain<T>)ard2, ard3 ), null );
+        Set< Domain< T > > s = md.computeFlattenedSet();
+        if ( s != null && s.size() == 1 ) {
+          return s.iterator().next();
+        }
         return md;
       }
       
@@ -585,8 +591,8 @@ public class Functions {
       Domain d1 = o1 == null ? null : DomainHelper.getDomain( o1 );
       Domain d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
       Domain d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
-      AbstractRangeDomain ard2 = o2 instanceof AbstractRangeDomain ? (AbstractRangeDomain)d2 : null;
-      AbstractRangeDomain ard3 = o3 instanceof AbstractRangeDomain ? (AbstractRangeDomain)d3 : null;
+      AbstractRangeDomain ard2 = d2 instanceof AbstractRangeDomain ? (AbstractRangeDomain)d2 : null;
+      AbstractRangeDomain ard3 = d3 instanceof AbstractRangeDomain ? (AbstractRangeDomain)d3 : null;
       BooleanDomain condo = d1 instanceof BooleanDomain ? (BooleanDomain)d1 : null;
       
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

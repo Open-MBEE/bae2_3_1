@@ -27,6 +27,11 @@ import gov.nasa.jpl.mbee.util.Wraps;
 /**
  *
  */
+/**
+ * @author bclement
+ *
+ * @param <T>
+ */
 public abstract class AbstractRangeDomain< T > extends HasIdImpl
                         implements RangeDomain< T > {
 
@@ -82,6 +87,22 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 	        domain.isLowerBoundIncluded(), domain.isUpperBoundIncluded(),
 	        domain.isNullInDomain() );
   }
+	
+  /**
+   * Copy the attributes of the input domain.
+   * 
+   * @param domain
+   * @return true iff any change was made
+   */
+	public boolean copy( AbstractRangeDomain< T > domain ) {
+	  if ( equals(domain) ) return false;
+    this.lowerBound = domain.lowerBound;
+    this.upperBound = domain.upperBound;
+    this.lowerIncluded = domain.lowerIncluded;
+    this.upperIncluded = domain.lowerIncluded;
+    this.nullInDomain = domain.nullInDomain;
+    return true;
+	}
 
 	@Override
   public boolean restrictToValue( T v ) {
@@ -437,7 +458,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       return "[]";
     }
 	  // REVIEW -- Is this okay or should we just have [lb,ub] for this case?
-	  if ( getLowerBound() == getUpperBound() ) {
+	  if ( equals(getLowerBound(), getUpperBound()) ) {
 	    return "[" + getLowerBound() + "]";
 	  }
     String lc = isLowerBoundIncluded() ? "[" : "(";
@@ -534,8 +555,8 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean contains( T t ) {
 	  if ( t == null ) return lowerBound == null && upperBound == null;
 	  if ( magnitude() == 0 ) return false;
-	  if ( t == lowerBound ) return isLowerBoundIncluded();
-    if ( t == upperBound ) return isUpperBoundIncluded();
+	  if ( equals(t, lowerBound) ) return isLowerBoundIncluded();
+    if ( equals(t, upperBound) ) return isUpperBoundIncluded();
     return lessEquals( lowerBound, t ) && greaterEquals( upperBound, t );
   }
 
@@ -547,8 +568,8 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     if ( !strictly ) {
       return true;
     }
-    if ( t == lowerBound ) return false;
-    if ( t == upperBound ) return false;
+    if ( equals(t, lowerBound) ) return false;
+    if ( equals(t, upperBound) ) return false;
     return true;
   }
 
@@ -580,6 +601,66 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return true;
   }
   
+  
+  /**
+   * 
+   * @param ard
+   * @return true iff the end of this range meets the beginning of the input
+   *         range with overlap of no more than one point, and the meeting point
+   *         must be included by at least one of the two domains.
+   */
+  public boolean meets( AbstractRangeDomain< T > ard ) {
+    if ( getUpperBound() == null || ard.getLowerBound() == null ) return false;
+    if ( equals( getUpperBound(), ard.getLowerBound() )
+         && ( isUpperBoundIncluded() || ard.isLowerBoundIncluded() ) ) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * Modify this domain to be the union of it and the input domain iff they
+   * overlap or meet.
+   * 
+   * @param ard
+   * @return
+   */
+  public boolean union( AbstractRangeDomain<T> ard ) {
+    if ( ard == null ) return false;
+    if ( contains(ard, false) ) return false;
+    if ( !overlaps( ard ) && !meets(ard) && !ard.meets(this) ) return false;
+    T lb = getLowerBound();
+    T ub = getUpperBound();
+    T olb = ard.getLowerBound();
+    T oub = ard.getUpperBound();
+    if ( lb == null || ub == null || olb == null || oub == null ) return false;
+    if ( lessEquals( olb, lb ) ) {
+      setLowerBound( olb );
+      if ( ard.isLowerBoundIncluded() ) {
+        includeLowerBound();
+      }
+    }
+    if ( greaterEquals( oub, ub ) ) {
+      setUpperBound( oub );
+      if ( ard.isUpperBoundIncluded() ) {
+        includeUpperBound();
+      }
+    }
+    return true;
+  }
+
+  public static <TT> Domain<TT> union( AbstractRangeDomain<TT> ard1, AbstractRangeDomain<TT> ard2 ) {
+    AbstractRangeDomain<TT> ardUnion = ard1.clone();
+    boolean changed = ardUnion.union( ard2 );
+    if ( changed ) return ardUnion;
+    MultiDomain< TT > md =
+        new MultiDomain< TT >( (Class< TT >)ard1.getType(),
+                               Utils.newSet( (Domain< TT >)ardUnion,
+                                             (Domain< TT >)ard2.clone() ),
+                               null );
+    return md;
+  }
+  
   /**
    * Restrict this domain to its intersection with the input domain.
    * 
@@ -609,7 +690,68 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean overlaps( AbstractRangeDomain<T> ard2 ) {
     return intersects( ard2 );
   }
-  
+
+  public < TT > boolean restrictTo( AbstractRangeDomain< TT > domain ) {
+    AbstractRangeDomain< T > originalDomain = clone();
+    intersectRestrict( (AbstractRangeDomain< T >)domain );
+    boolean changed = !this.equals( originalDomain );
+    return changed;
+  }
+
+  public < TT > boolean restrictTo( SingleValueDomain< TT > domain ) {
+    Object v = domain.getValue( true );
+    T t = (T)ClassUtils.evaluate( v, getType(), true );
+    boolean changed = false;
+    if ( t != null ) {
+      changed = this.restrictToValue( t );
+    }
+    return changed;
+  }
+
+  public < TT > boolean restrictTo( MultiDomain< TT > domain ) {
+    boolean changed = false;
+    // The restricted set is the union of restrictions with each domain in the
+    // flattened set.
+    Set< Domain< TT > > s = domain.getFlattenedSet();
+    Set< Domain< T > > newSet = new LinkedHashSet< Domain< T > >();
+    for ( Domain< TT > d : s ) {
+      AbstractRangeDomain< T > copy = this.clone();
+      if ( copy.restrictTo( d ) ) {
+        if ( !copy.isEmpty() ) {
+          newSet.add( copy );
+        }
+      } else {
+        // It was not restricted at all by part of the flattened set
+        return false;
+      }
+    }
+    MultiDomain< T > md =
+        new MultiDomain< T >( (Class< T >)getType(), (Set< Domain< T > >)newSet,
+                              (Set< Domain< T > >)null );
+    newSet = md.getFlattenedSet();
+    if ( newSet.size() == 0 ) {
+      if ( !isEmpty() ) {
+        this.clearValues();
+        changed = true;
+      }
+    } else { // newSet.size() > 0
+      AbstractRangeDomain< T > merge = null;
+      // Just get the min and max of the bounds
+      for ( Domain< T > dd : newSet ) {
+        if ( dd instanceof AbstractRangeDomain ) {
+          AbstractRangeDomain< T > ard = (AbstractRangeDomain< T >)dd;
+          if ( merge == null ) merge = ard;
+          else merge.extend( ard );
+        }
+      }
+      if ( !this.equals( merge ) ) {
+        this.copy( (AbstractRangeDomain< T >)merge );
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#restrictTo(gov.nasa.jpl.ae.solver.Domain)
    */
@@ -617,20 +759,41 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public < TT > boolean restrictTo( Domain< TT > domain ) {
     boolean changed = false;
     if ( domain instanceof AbstractRangeDomain ) {
-      AbstractRangeDomain< T > originalDomain = clone();
-      intersectRestrict( (AbstractRangeDomain< T >)domain );
-      changed = !this.equals( originalDomain );
-    } else if ( domain instanceof SingleValueDomain ) {
-      Object v = domain.getValue( true );
-      T t = (T)ClassUtils.evaluate( v, getType(), true );
-      if ( t != null ) {
-        changed = this.restrictToValue( t );
-      }
-    } else {
-      // TODO???
-      Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
+      return restrictTo((AbstractRangeDomain< TT >)domain);
     }
+    if ( domain instanceof SingleValueDomain ) {
+      return restrictTo((SingleValueDomain< TT >)domain);
+    }
+    if ( domain instanceof MultiDomain ) {
+      return restrictTo((MultiDomain< TT >)domain);
+    }
+    // TODO - other cases???
+    Debug.error( "Cannot restrict " + this + " to domain " + domain
+                 + " of type " + domain.getClass().getCanonicalName() );
     return changed;
+  }
+  
+  public boolean extend( AbstractRangeDomain<T> ard ) {
+    if ( ard == null ) return false;
+    if ( contains(ard, false) ) return false;
+    T lb = getLowerBound();
+    T ub = getUpperBound();
+    T olb = ard.getLowerBound();
+    T oub = ard.getUpperBound();
+    if ( lb == null || ub == null || olb == null || oub == null ) return false;
+    if ( lessEquals( olb, lb ) ) {
+      setLowerBound( olb );
+      if ( ard.isLowerBoundIncluded() ) {
+        includeLowerBound();
+      }
+    }
+    if ( greaterEquals( oub, ub ) ) {
+      setUpperBound( oub );
+      if ( ard.isUpperBoundIncluded() ) {
+        includeUpperBound();
+      }
+    }
+    return true;
   }
   
 //  public boolean subtract( Object o ) {
@@ -878,7 +1041,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
    */
   public boolean setBounds( T lowerBound, T upperBound ) {
     if ( lessEquals( lowerBound, upperBound )
-         && ( lowerBound != this.lowerBound || upperBound != this.upperBound
+         && ( !equals(lowerBound, this.lowerBound) || !equals(upperBound, this.upperBound)
               || !this.lowerIncluded || !this.upperIncluded ) ) {
       this.lowerBound = lowerBound;
       this.upperBound = upperBound;

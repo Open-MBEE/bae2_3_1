@@ -100,13 +100,16 @@ public class DomainHelper {
 
   protected static void runOnArgs(Collection<Object> results, Call fCall, Object...args) {
     List<Object> list = Arrays.asList( args );
-    fCall.setArguments( new Vector< Object >( list ) );
+    Vector< Object > originalArgs = fCall.getArguments();
     Object r = null;
     try {
+      fCall.setArguments( new Vector< Object >( list ) );
       r = fCall.evaluate( true );
     } catch ( IllegalAccessException e ) {
     } catch ( InvocationTargetException e ) {
     } catch ( InstantiationException e ) {
+    } finally {
+      fCall.setArguments( originalArgs );
     }
     if ( r != null ) {
       results.add( r );
@@ -140,13 +143,13 @@ public class DomainHelper {
   public static <T> Domain<T> getDomain( T o ) {
     if ( o == null ) return null;
     if ( o instanceof Domain ) return (Domain< T >)o;
+    if ( o instanceof HasDomain ) {
+      return (Domain<T>)((HasDomain)o).getDomain( false, null );
+    }
     if ( o instanceof Wraps ) {
       Object oo = ((Wraps)o).getValue( false );
       Domain<?> d = getDomain(oo);
       if ( d != null ) return (Domain< T >)d;
-    }
-    if ( o instanceof HasDomain ) {
-      return (Domain<T>)((HasDomain)o).getDomain( false, null );
     }
     AbstractRangeDomain<T> ard = (AbstractRangeDomain<T>)getDomainForClass( o.getClass() );
     if ( ard != null ) {
@@ -273,7 +276,7 @@ public class DomainHelper {
           
           if ( domain == null && !Utils.isNullOrEmpty( results )) {
             Class< ? > dominantType =
-                getDominantDomainType( new ArrayList< Object >( results ) );
+                ClassUtils.dominantObjectType( new ArrayList< Object >( results ) );
             if ( dominantType != null ) {
               domain = DomainHelper.getDomainForClass( dominantType );
               if ( domain != null ) domainType = dominantType;
@@ -338,7 +341,14 @@ public class DomainHelper {
     }
 
     if ( lb != null && ub != null && domain != null) {
-      domain.setBounds( lb, ub );
+      Object lbt = ClassUtils.evaluate( lb, domain.getType(), true );
+      Object ubt = ClassUtils.evaluate( ub, domain.getType(), true );
+      if ( lbt == null || ubt == null ) {
+        Debug.error( true, true,
+                     "Error!  Trying to set upper and lower bound to null in combineDomains()." );
+      } else {
+        domain.setBounds( lbt, ubt );
+      }
     } else {
       domain = null;
     }
