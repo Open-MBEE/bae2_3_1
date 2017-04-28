@@ -463,8 +463,11 @@ public class FunctionCall extends Call {
             return d;
         }
     }
-    Domain<?> d = DomainHelper.combineDomains( arguments, this );
-    return d;
+    if ( this.isMonotonic() ) {
+      Domain<?> d = DomainHelper.combineDomains( arguments, this );
+      return d;
+    }
+    return null;
     // TODO
     // Add an interface where the object of the function could calculate the
     // domain or give some methods that would enable the calculation. Maybe, like 

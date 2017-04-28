@@ -73,11 +73,11 @@ public class Consistency {
         savedDomains.put( v, d );
       }
     }
-    System.out.println( "saved: " + MoreToString.Helper.toLongString( savedDomains ) );
+    //System.out.println( "saved: " + MoreToString.Helper.toLongString( savedDomains ) );
   }
 
   public void restoreDomains() {
-    System.out.println( "restoring from : " + MoreToString.Helper.toLongString( savedDomains ) );
+    //System.out.println( "restoring from : " + MoreToString.Helper.toLongString( savedDomains ) );
     for (  Entry< Variable< ? >, Domain< ? > > e : savedDomains.entrySet() ) {
       Variable v = e.getKey();
       v.setDomain( e.getValue() );
@@ -103,31 +103,14 @@ public class Consistency {
 
   public boolean arcConsistency(boolean quiet) {
     saveDomains();
-//    LinkedHashSet< Variable< ? > > variables =
-//        new LinkedHashSet< Variable< ? > >();
-//    LinkedHashMap< Variable< ? >, Set< Constraint > > constraintsForVariables =
-//        new LinkedHashMap< Variable< ? >, Set< Constraint > >();
-//    for ( Constraint c : constraints ) {
-//      Set< Variable< ? > > vars = c.getVariables();
-//      variables.addAll( vars );
-//      for ( Variable< ? > var : vars ) {
-//        Utils.add( constraintsForVariables, var, c );
-//      }
-//    }
-//    
-//    for ( Variable< ? > v1 : variables ) {
-//      for ( Constraint c : constraintsForVariables.get( v1 ) ) {
-//        c.restrictDomain( v1 );
-//      }
-//    }
     if ( !quiet ) {
       System.out.println( "Arc consistency problem:\n" + toString() );
     }
 
     long ct = 0;
     boolean succeeded = false;
-    long maxCount = constraints.size() * constraints.size();
-    while ( ct < maxCount ) {
+    long maxCount = constraints.size() * constraints.size() + 1;
+    while ( ct < maxCount && ct < 100 ) {
       boolean restrictedSomething = false;
       for ( Constraint c : constraints ) {
         if ( c instanceof ConstraintExpression ) {
@@ -161,9 +144,9 @@ public class Consistency {
     if ( !quiet ) {
       System.out.println();
       if ( succeeded ) {
-        System.out.println( "Arc consistency completed:" );
+        System.out.println( "Arc consistency completed after " + ct + " passes at the constraints:" );
       } else {
-        System.out.println( "Arc consistency failed to complete:" );
+        System.out.println( "Arc consistency failed to complete after " + ct + " passes at the constraints:" );
       }
       System.out.println();
       System.out.println( variablesToString() );
@@ -349,7 +332,72 @@ public class Consistency {
     c.constraints.add( new ConstraintExpression( sumGtr ) );
     
     c.arcConsistency( false );
+
+    System.out.println();
+    System.out.println( "x = " + x + "; new domain = " + x.getDomain() );
+    System.out.println( "should be  x domain = [6, 8]\n" );
+    System.out.println( "y = " + y + "; new domain = " + y.getDomain() );
+    System.out.println( "should be  y domain = [3, 5]\n" );
+    System.out.println( "z = " + z + "; new domain = " + z.getDomain() );
+    System.out.println( "should be  z domain = [6, 8]\n" );
+
+    System.out.println("\n\n==================== PROBLEM " + probCount++ + " ====================\n");
     
+    //Parameter<Integer> aa = new IntegerParameter( "aa", new IntegerDomain( 0, 10 ), 0, null );
+    Parameter<Integer> aa = new IntegerParameter( "aa", null );
+    Parameter<Integer> bb = new IntegerParameter( "bb", null );
+    Parameter<Integer> cc = new IntegerParameter( "cc", null );
+    Parameter<Integer> dd = new IntegerParameter( "dd", null );
+    //Parameter<Double> dub = new DoubleParameter( "dub", new DoubleDomain( 0.0, 10.0 ), 2.0, null );
+    ConstraintExpression ca = CE( GT( aa, 0 ) );
+    ConstraintExpression cba1 = CE( GTE( bb, Plus( aa, 5 ) ) );
+    ConstraintExpression cba2 = CE( LTE( bb, Plus( aa, 10 ) ) );
+    ConstraintExpression ccb1 = CE( GTE( cc, Plus( bb, 5 ) ) );
+    ConstraintExpression ccb2 = CE( LTE( cc, Plus( bb, 10 ) ) );
+    ConstraintExpression cdc1 = CE( GTE( dd, Plus( cc, 5 ) ) );
+    ConstraintExpression cdc2 = CE( LTE( dd, Plus( cc, 10 ) ) );
+    ConstraintExpression cd = CE( LT( dd, 25 ) );
+    
+    list1.clear();
+    list1.add(ca);
+    list1.add(cba1);
+    list1.add(cba2);
+    list1.add(ccb1);
+    list1.add(ccb2);
+    list1.add(cdc1);
+    list1.add(cdc2);
+    list1.add(cd);
+    c.constraints = list1;
+    c.arcConsistency( false );
+    
+    System.out.println();
+    System.out.println( "aa = " + aa + ";   new domain = " + aa.getDomain() );
+    System.out.println( "should be          aa domain = [1, 9]\n" );
+    System.out.println( "bb = " + bb + ";  new domain = " + bb.getDomain() );
+    System.out.println( "should be          bb domain = [6, 14]\n" );
+    System.out.println( "cc = " + cc + "; new domain = " + cc.getDomain() );
+    System.out.println( "should be          cc domain = [11, 19]\n" );
+    System.out.println( "dd = " + dd + "; new domain = " + dd.getDomain() );
+    System.out.println( "should be          dd domain = [16, 24]\n" );
+  
   }
 
+  private static <TT> Functions.LT<TT> LT(Object o1, Object o2) {
+    return new Functions.LT<TT>( o1, o2 );
+  }
+  private static <TT> Functions.LTE<TT> LTE(Object o1, Object o2) {
+    return new Functions.LTE<TT>( o1, o2 );
+  }
+  private static <TT extends Comparable<? super TT>> Functions.GT<TT> GT(Object o1, Object o2) {
+    return new Functions.GT<TT>( o1, o2 );
+  }
+  private static <TT extends Comparable<? super TT>> Functions.GTE<TT> GTE(Object o1, Object o2) {
+    return new Functions.GTE<TT>( o1, o2 );
+  }
+  private static <T1,T2> Functions.Plus<T1,T2> Plus(Object o1, Object o2) {
+    return new Functions.Plus<T1,T2>( o1, o2 );
+  }
+  private static ConstraintExpression CE(FunctionCall f) {
+    return new ConstraintExpression( f );
+  }
 }

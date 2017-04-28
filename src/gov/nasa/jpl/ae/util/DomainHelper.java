@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Vector;
+
+import org.hamcrest.Description.NullDescription;
+
 import gov.nasa.jpl.ae.event.Call;
 import gov.nasa.jpl.ae.event.Expression;
 import gov.nasa.jpl.ae.event.FunctionCall;
@@ -229,6 +232,13 @@ public class DomainHelper {
       Domain<?> objDomain = null;
       if ( obj instanceof HasDomain ) {
         objDomain = ((HasDomain)obj).getDomain( false, null );
+        if ( objDomain.isEmpty() ) {
+          if ( domain != null ) {
+            domain.clearValues();
+            return domain;
+          }
+          return DomainHelper.emptyDomain();
+        }
       }
       if ( objDomain instanceof RangeDomain ) {
           odlb = ( (RangeDomain< ? >)objDomain ).getLowerBound();
@@ -353,5 +363,10 @@ public class DomainHelper {
       domain = null;
     }
     return domain;
+  }
+
+  public static <T> Domain< T > emptyDomain() {
+    SingleValueDomain< T > d = new SingleValueDomain<T>();
+    return d;
   }
 }

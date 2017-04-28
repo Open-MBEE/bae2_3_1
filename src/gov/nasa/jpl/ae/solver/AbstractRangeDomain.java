@@ -586,6 +586,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     if (this == obj) return true;
     if ( obj instanceof RangeDomain ) {
       RangeDomain r = (RangeDomain)obj;
+      if ( this.isEmpty() && r.isEmpty() ) return true;
       int comp = CompareUtils.compare( getLowerBound(), r.getLowerBound() );
       if ( comp != 0 ) return false;
       comp = CompareUtils.compare( getUpperBound(), r.getUpperBound() );
@@ -683,10 +684,30 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return this.size() != 0;
   }
 
+  /**
+   * Determines whether this domain intersects with another without modifying
+   * either.  This is equivalent to {@link #overlaps(AbstractRangeDomain)}.
+   * 
+   * @param ard2
+   * @return true iff this domain and the input domain have one or more common
+   *         values.
+   */
   public boolean intersects( AbstractRangeDomain<T> ard2 ) {
     AbstractRangeDomain< T > ard1 = clone();
     return ard1.intersectRestrict( ard2 );
   }
+  
+  /**
+   * Determines whether this domain's bounds overlap with another's without modifying
+   * either.  There are no constraints on which bounds are part of the overlap.
+   * This is not the Allen overlaps relation.  In terms of Allen relations,
+   * this returns true iff the Allen relation is not before, after, meets,
+   * or imeets.  This is equivalent to {@link #intersects(AbstractRangeDomain)}.
+   * 
+   * @param ard2
+   * @return true iff this domain and the input domain have one or more common
+   *         values.
+   */
   public boolean overlaps( AbstractRangeDomain<T> ard2 ) {
     return intersects( ard2 );
   }

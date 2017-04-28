@@ -345,7 +345,7 @@ public class Functions {
         if ( p != null && p.second == Boolean.TRUE ) changed = true;
         if ( p != null && p.first != null && p.first.isEmpty() ) {
           if ( this.domain != null ) {
-            if (this.domain.clearValues()) changed = true;
+            this.domain.clearValues();
           }
 //          return new Pair( this.domain, changed );
         } else {
@@ -602,45 +602,83 @@ public class Functions {
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       
-      if ( condo == null || condo.isEmpty() ) {
-        // TODO -- ERROR
-        if ( d2 != null ) {
-          Domain d2c = d2.clone();
-          if ( d2c instanceof AbstractRangeDomain ) ((AbstractRangeDomain)d2c).makeEmpty();
-          else d2c.setValue( null );
-          boolean changed = Utils.valuesEqual( this.domain, d2c );
-          return new Pair(d2c, changed);
-        }
-        return null;
-      }
+//      if ( condo == null || condo.isEmpty() ) {
+//        // TODO -- ERROR
+//        if ( d2 != null ) {
+//          Domain d2c = d2.clone();
+//          if ( d2c instanceof AbstractRangeDomain ) ((AbstractRangeDomain)d2c).makeEmpty();
+//          else d2c.setValue( null );
+//          boolean changed = Utils.valuesEqual( this.domain, d2c );
+//          return new Pair(d2c, changed);
+//        }
+//        return null;
+//      }
+      Domain< ? > oldDomain = getDomain(propagate, null);
+      this.domain = oldDomain;
       
-      if ( condo.size() > 1 ) {
+      boolean changed = false;
+      if ( condo == null || condo.isEmpty()
+          || ( condo.contains( true ) && condo.contains( false ) ) ) {
         // Can't tell whether to restrict the domain for true case (ard2) or the false (ard3).
-      } else {
+        // If only one of the choices overlaps with the input domain, then the condition
+        // is restricted to that one!
+        if ( ard2 != null && ard3 != null && domain instanceof AbstractRangeDomain ) {
+          AbstractRangeDomain<T> ard = (AbstractRangeDomain<T>)domain;
+          boolean overlaps2 = ard2.overlaps( ard );
+          boolean overlaps3 = ard3.overlaps( ard );
+          if ( overlaps2 && !overlaps3 ) {
+            condo = BooleanDomain.trueDomain;
+            if (o1 instanceof HasDomain) {
+              Pair< Domain< Boolean >, Boolean > p = ((HasDomain)o1).restrictDomain( condo, propagate, seen );
+              changed = changed || (p != null && p.second);
+            }
+          } else if ( !overlaps2 && overlaps3 ) {
+            condo = BooleanDomain.falseDomain;
+            if (o1 instanceof HasDomain) {
+              Pair< Domain< Boolean >, Boolean > p = ((HasDomain)o1).restrictDomain( condo, propagate, seen );
+              changed = changed || (p != null && p.second);
+            }
+          } else if (!overlaps2 && !overlaps3) {
+            changed = oldDomain.clearValues();
+            this.domain = oldDomain;
+            return new Pair(this.domain, changed);
+          }
+
+        }
+      }
+      if ( condo == null || condo.isEmpty()
+          || ( condo.contains( true ) && condo.contains( false ) ) ) {
+        return new Pair(this.domain, changed);
+      } else if ( condo.size() == 1) {
         if ( condo.contains(Boolean.TRUE) ) { 
           if ( ard2 != null && !ard2.isEmpty() ) {
-            ard2.restrictTo( domain );
+            if (o2 instanceof HasDomain) {
+              Pair< Domain< TT >, Boolean > p = ((HasDomain)o2).restrictDomain( domain, propagate, seen );
+              if ( p != null ) {
+                changed = changed || (p.second != null && p.second);
+                this.domain = ((HasDomain)o2).getDomain( propagate, null );
+              }
+            } else {
+              ard2.restrictTo( domain );
+            }
           }
-          Domain<TT> newDomain = ard2 == null ? null : ard2.clone();
-          boolean changed = Utils.valuesEqual( this.domain, newDomain );
-          if ( changed ) {
-            this.domain = newDomain;
-          }
-          return new Pair(this.domain, changed);
         } else if ( condo.contains(Boolean.FALSE) ) {
           if ( ard3 != null && !ard3.isEmpty() ) {
-            ard3.restrictTo( domain );
+              if (o3 instanceof HasDomain) {
+                Pair< Domain< TT >, Boolean > p = ((HasDomain)o3).restrictDomain( domain, propagate, seen );
+                if ( p != null ) {
+                  changed = changed || (p.second != null && p.second);
+                  this.domain = ((HasDomain)o3).getDomain( propagate, null );
+                }
+              } else {
+                ard3.restrictTo( domain );
+              }
           }
-          Domain<TT> newDomain = ard3 == null ? null : ard3.clone();
-          boolean changed = Utils.valuesEqual( this.domain, newDomain );
-          if ( changed ) {
-            this.domain = newDomain;
-          }
-          return new Pair(this.domain, changed);
         } else {
           // This case is not possible since we check for condo.isEmpty() above.
           return null;
         }
+        return new Pair(this.domain, changed);
       }
       
       // condo must contain both true and false at this point.
@@ -648,7 +686,6 @@ public class Functions {
       // check to see if neither or only one of d2 and d3 intersect with domain.
       Domain dca = domain.clone();
       Domain dcb = domain.clone();
-      boolean changed = false;
       boolean changedA = dca.restrictTo( d2 );
       boolean changedB = dcb.restrictTo( d3 );
       if ( dca.isEmpty() && dcb.isEmpty() ) {
@@ -2619,7 +2656,11 @@ public class Functions {
       } else if ( domain.magnitude() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
+          String oldDom = this.getDomain( propagate, null ).toString();
           changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          if ( changed ) {
+            System.out.println("Restricted " + getName() + " from " + oldDom + " to " + getDomain(propagate, null) );
+          }
         }
       }
       // Domain oldDomain = this.domain.clone();
@@ -2809,7 +2850,11 @@ public class Functions {
       } else if ( domain.magnitude() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
+          String oldDom = this.getDomain( propagate, null ).toString();
           changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          if ( changed ) {
+            System.out.println("Restricted " + getName() + " from " + oldDom + " to " + getDomain(propagate, null) );
+          }
         }
       }
       // Domain oldDomain = this.domain.clone();
@@ -2994,7 +3039,11 @@ public class Functions {
       } else if ( domain.magnitude() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
-          changed = restrictDomains(((Boolean)v) == Boolean.TRUE);
+          String oldDom = this.getDomain( propagate, null ).toString();
+          changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          if ( changed ) {
+            System.out.println("Restricted " + getName() + " from " + oldDom + " to " + getDomain(propagate, null) );
+          }
         }
       }
       return new Pair(this.domain, changed);// || thisChanged);
@@ -3172,7 +3221,11 @@ public class Functions {
       } else if ( domain.magnitude() == 1 ) {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
-          changed = restrictDomains(((Boolean)v) == Boolean.TRUE);
+          String oldDom = this.getDomain( propagate, null ).toString();
+          changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          if ( changed ) {
+            System.out.println("Restricted " + getName() + " from " + oldDom + " to " + getDomain(propagate, null) );
+          }
         }
       }
       return new Pair(this.domain, changed);// || thisChanged);

@@ -8,6 +8,7 @@ import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Evaluatable;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -118,7 +119,7 @@ public class ConstraintExpression extends Expression< Boolean >
       Set< Variable< ? > > vars = new LinkedHashSet<Variable<?>>(getVariables());
       if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
 
-      if ( pickDeep ) {
+      if ( pickDeep && Random.global.nextDouble() < 0.1) {
         // add indepedent vars for dependent vars
         ArrayList<Variable<?>> copy = new ArrayList<Variable<?>>(vars);
         for ( Variable< ? > v : copy ) {
@@ -139,7 +140,7 @@ public class ConstraintExpression extends Expression< Boolean >
       vars.toArray( a );
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
-          if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
+          if ( ( !( v instanceof Parameter ) || (!( (Parameter)v ).isDependent() || Random.global.nextDouble() < 0.1) )
                   && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
           if (!pickParameterValue( v )) {
             v.pickValue();

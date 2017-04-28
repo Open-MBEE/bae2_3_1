@@ -705,7 +705,7 @@ public class ParameterListenerImpl extends HasIdImpl
     if ( usingArcConsistency ) {
       ac = new Consistency();
       ac.constraints = allConstraints;
-      ac.arcConsistency( false );
+      ac.arcConsistency( true );
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
         if ( !isSimpleVar(e.getKey()) ) {

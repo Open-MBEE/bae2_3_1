@@ -494,8 +494,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     T value = pickRandomValue();
     if ( value != null ) {
-      setValue( value );
-      return true;
+      if ( !valueEquals( getValue(false) ) ) {
+        System.out.println( "////////////////////   picking " + value + " for " + this );
+        setValue( value );
+        return true;
+      }
     }
     return false;
   }

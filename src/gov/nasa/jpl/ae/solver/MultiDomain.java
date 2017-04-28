@@ -5,6 +5,7 @@ package gov.nasa.jpl.ae.solver;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -134,32 +135,40 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     }
 
     // merge domains that overlap.
-    Iterator< Domain< T > > i = flattenedList.iterator();
-    while ( i.hasNext() ) {
-      Domain< T > d1 = i.next();
+    boolean removed[] = new boolean[ flattenedList.size() ];
+    for ( int i = 0; i < flattenedList.size(); ++i ) {
+      removed[ i ] = false;
+    }
+    for ( int i = 0; i < flattenedList.size(); ++i ) {
+      if ( removed[ i ] ) continue;
+      Domain< T > d1 = flattenedList.get( i );
       if ( !( d1 instanceof AbstractRangeDomain ) ) continue;
-      AbstractRangeDomain<T> rd1 = (AbstractRangeDomain<T>)d1;
+      AbstractRangeDomain< T > rd1 = (AbstractRangeDomain< T >)d1;
 
-      Iterator< Domain< T > > j = flattenedList.iterator();
-      while ( j.hasNext() ) {
-        Domain< T > d2 = j.next();
-        if ( d1 == d2 ) continue;
+      for ( int j = 0; j < flattenedList.size(); ++j ) {
+        if ( i == j ) continue;
+        if ( removed[ j ] ) continue;
+        Domain< T > d2 = flattenedList.get( j );
         if ( !( d2 instanceof AbstractRangeDomain ) ) continue;
-        AbstractRangeDomain<T> rd2 = (AbstractRangeDomain<T>)d2;
+        AbstractRangeDomain< T > rd2 = (AbstractRangeDomain< T >)d2;
         if ( rd1.union( rd2 ) ) {
-          j.remove();
+          removed[ j ] = true;
         }
       }
-      
     }
-
+    for ( int i = removed.length - 1; i >= 0; --i ) {
+      if ( removed[ i ] ) {
+        flattenedList.remove( i );
+      }
+    }
     
-    // Subtract overlap with preceding domains in the list.
-    i = flattenedList.iterator();
+    // Subtract overlap with preceding domains in the list.  There may still be
+    // overlap for domains that are not AbstractRangeDomains.
+    Iterator<Domain<T>> iter = flattenedList.iterator();
     // clear before we modify the elements
-    while ( i.hasNext() ) {
-      Domain< T > d1 = i.next();
-      Iterator< Domain< T > > j = i;
+    while ( iter.hasNext() ) {
+      Domain< T > d1 = iter.next();
+      Iterator< Domain< T > > j = iter;
       while ( j.hasNext() ) {
         Domain< T > d2 = j.next();
         d2.subtract( d1 );
