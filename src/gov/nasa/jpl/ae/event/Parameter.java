@@ -983,6 +983,9 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Domain<?> d = this.domain == null ? null : this.domain.clone();
     boolean changed = this.domain.restrictTo( domain );
     if ( changed ) {
+      if ( owner != null ) {
+        owner.handleDomainChangeEvent( this, null );
+      }
       System.out.println( "Changed domain of " + MoreToString.Helper.toLongString( this ) + " from " + d + " to " + this.domain );
     }
     return new Pair(this.domain, changed);

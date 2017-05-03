@@ -1296,9 +1296,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    */
   @Override
   public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-    if ( domain == null || isStale() ) {
+//    if ( domain == null || domainIsStale() ) {
       domain = calculateDomain(propagate, seen);
-    }
+//    }
     return domain;
   }
   
