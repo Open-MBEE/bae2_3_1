@@ -1294,7 +1294,12 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     for ( Dependency<?> d : getDependencies() ) {
       if ( d.pickParameterValue( variable ) ) return true;
     }
-    if ( variable instanceof Parameter && Random.global.nextBoolean() ) {
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      if ( c.pickParameterValue( variable ) ) return true;
+    }
+    if ( variable instanceof Parameter
+         && ( (Parameter<?>)variable ).getOwner() != this
+         && Random.global.nextBoolean() ) {
       return ((Parameter<?>)variable).ownerPickValue();
     }
     T value = null;
