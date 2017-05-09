@@ -232,17 +232,23 @@ public class DomainHelper {
       Domain<?> objDomain = null;
       if ( obj instanceof HasDomain ) {
         objDomain = ((HasDomain)obj).getDomain( false, null );
-        if ( objDomain.isEmpty() ) {
-          if ( domain != null ) {
-            domain.clearValues();
-            return domain;
-          }
-          return DomainHelper.emptyDomain();
-        }
+      } else if ( obj instanceof Domain ) {
+        objDomain = (Domain<?>)obj;
       }
+      if ( objDomain != null && objDomain.isEmpty() ) {
+        if ( domain != null ) {
+          domain.clearValues();
+          return domain;
+        }
+        return DomainHelper.emptyDomain();
+      }
+
       if ( objDomain instanceof RangeDomain ) {
           odlb = ( (RangeDomain< ? >)objDomain ).getLowerBound();
           odub = ( (RangeDomain< ? >)objDomain ).getUpperBound();
+      } else if ( objDomain instanceof SingleValueDomain ) {
+        odlb = objDomain.getValue( false );
+        odub = odlb;
       } else {
         odlb = obj;
         odub = obj;

@@ -319,6 +319,20 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     return tv;
   }
   
+  /**
+   * Determine if the effect is applied to a timeline.
+   * 
+   * @return whether the effect is applied to the intended timeline or null if
+   *         it cannot find the timeline.
+   */
+  public Boolean isApplied() {
+    Pair< Parameter< ? >, ParameterListener > p = getTimeVaryingMapOwners();
+    if ( p.first != null ) {
+      return isApplied( p.first );
+    }
+    return null;
+  }
+  
   @Override
   public boolean isApplied( Parameter< ? > variable ) {
     if ( variable == null ) return false;
