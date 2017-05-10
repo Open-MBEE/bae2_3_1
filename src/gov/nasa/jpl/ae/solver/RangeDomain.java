@@ -1,6 +1,6 @@
 package gov.nasa.jpl.ae.solver;
 
-public interface RangeDomain< T > extends Domain< T > {
+public interface RangeDomain< T > extends ComparableDomain< T > {
   public RangeDomain<T> make(T lowerBound, T upperBound);
 
   public T getLowerBound();

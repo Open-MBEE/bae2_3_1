@@ -1171,6 +1171,25 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return null;
   }
 
-  
+  @Override
+  public boolean less( ComparableDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return less(t1.getLowerBound()) || t1.greater(upperBound);
+  }
+  @Override
+  public boolean lessEquals( ComparableDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return lessEquals(t1.getLowerBound()) || t1.greaterEquals(upperBound);
+  }
+  @Override
+  public boolean greater( ComparableDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return greater(t1.getUpperBound()) || t1.less(lowerBound);
+  }
+  @Override
+  public boolean greaterEquals( ComparableDomain<T> t1 ) {
+    if ( t1 == null ) return false;
+    return greaterEquals(t1.getUpperBound()) || t1.lessEquals(lowerBound);
+  }
   
 }
