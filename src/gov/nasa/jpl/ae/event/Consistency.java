@@ -110,7 +110,9 @@ public class Consistency {
     long ct = 0;
     boolean succeeded = false;
     long maxCount = constraints.size() * constraints.size() + 1;
+    System.out.println("arc consistency max rounds = " + maxCount);
     while ( ct < maxCount && ct < 100 ) {
+      System.out.println("arc consistency round " + (ct+1));
       boolean restrictedSomething = false;
       for ( Constraint c : constraints ) {
         if ( c instanceof ConstraintExpression ) {

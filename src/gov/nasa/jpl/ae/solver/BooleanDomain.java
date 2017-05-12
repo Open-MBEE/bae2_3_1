@@ -166,4 +166,10 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
     if ( t == null || !t.booleanValue() ) return null;
     return false;
   }
+
+  @Override
+  public int compareTo( Domain< Boolean > o ) {
+    return super.compare( o );
+  }
+
 }

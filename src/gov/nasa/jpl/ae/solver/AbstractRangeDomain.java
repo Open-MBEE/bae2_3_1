@@ -583,26 +583,57 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
 
   @Override
   public boolean equals( Object obj ) {
-    if (this == obj) return true;
-    if ( obj instanceof RangeDomain ) {
-      RangeDomain r = (RangeDomain)obj;
-      if ( this.isEmpty() && r.isEmpty() ) return true;
-      int comp = CompareUtils.compare( getLowerBound(), r.getLowerBound() );
-      if ( comp != 0 ) return false;
-      comp = CompareUtils.compare( getUpperBound(), r.getUpperBound() );
-      if ( comp != 0 ) return false;
-      if ( isLowerBoundIncluded() != r.isLowerBoundIncluded() ) return false;
-      if ( isUpperBoundIncluded() != r.isUpperBoundIncluded() ) return false;
-      if ( isInfinite() != r.isInfinite() ) return false;
-      if ( size() != r.size() ) return false;
-      // REVIEW -- consider checking r.getType() -- one Class just needs to be assignable to the other, maybe? 
-    } else {
-      return false;
+    if ( obj == null ) {
+      throw new NullPointerException( "Error! Cannot check equality on a null domain.");
     }
-    return true;
+    if (this == obj) return true;
+    int comp = compare(obj);
+    return comp == 0;
   }
   
-  
+  public int compare( Object obj ) {
+    if ( obj == null ) {
+      throw new NullPointerException( "Error! Cannot compare against a null.");
+    }
+    if ( this == obj ) return 0;
+    if ( obj instanceof ComparableDomain ) {
+      ComparableDomain<?> r = (ComparableDomain<?>)obj;
+      int comp = this.compare( r );
+      return comp;
+    }
+    int comp = CompareUtils.compare( this, obj );
+    return comp;
+  }
+
+  public int compare( ComparableDomain< ? > r ) {
+    if ( r == null ) {
+      throw new NullPointerException( "Error! Cannot compare against a null domain.");
+    }
+    if (this == r) return 0;
+    //if ( this.equals( r ) ) return 0;
+    if ( this.isEmpty() && r.isEmpty() ) return 0;
+    if ( this.isEmpty()  ) return -1;
+    if ( r.isEmpty() ) return 1;
+    int comp = CompareUtils.compare( getLowerBound(), r.getLowerBound() );
+    if ( comp != 0 ) return comp;
+    if ( !isLowerBoundIncluded() && r.isLowerBoundIncluded() ) return -1;
+    if ( isLowerBoundIncluded() && !r.isLowerBoundIncluded() ) return 1;
+    comp = CompareUtils.compare( getUpperBound(), r.getUpperBound() );
+    if ( comp != 0 ) return comp;
+    if ( !isUpperBoundIncluded() && r.isUpperBoundIncluded() ) return -1;
+    if ( isUpperBoundIncluded() && !r.isUpperBoundIncluded() ) return 1;
+    if ( !isInfinite() && r.isInfinite() ) return -1;
+    if ( isInfinite() && !r.isInfinite() ) return 1;
+    comp = CompareUtils.compare( magnitude(), r.magnitude() );
+    if ( comp != 0 ) return comp;
+    return 0;
+  }
+
+  @Override
+  public int compareTo( ComparableDomain< T > r ) {
+    return compare( r );
+  }
+
   /**
    * 
    * @param ard

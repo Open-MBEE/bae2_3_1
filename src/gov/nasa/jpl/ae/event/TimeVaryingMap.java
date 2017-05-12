@@ -7021,198 +7021,330 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    return null;
  }
 
- public TimeVaryingMap< Boolean > validTime(Effect e, boolean basedOnDomainsAndNotValues) {
-   if ( domain == null ) {
-     return new TimeVaryingMap<Boolean>("", true, Boolean.class);
-   }
-   if ( !( e instanceof EffectFunction ) ) {
-     Debug.error( "validTime() expects an EffectFunction." );
+ public TimeVaryingMap< Boolean >
+ validTimeForSetValue( EffectFunction ef, boolean basedOnDomainsAndNotValues ) {
+   try {
+     if ( !basedOnDomainsAndNotValues ) {
+       V v = (V)getValueOfEffect( ef );
+       Boolean b = domain.contains( v );
+       return new TimeVaryingMap< Boolean >( "", b, Boolean.class );
+     } else {
+       Domain< V > d = domainOfEffectValueArgument( ef );
+       Boolean b = !mutuallyExclusive( domain, d );
+       return new TimeVaryingMap< Boolean >( "", b, Boolean.class );
+     }
+   } catch ( Throwable t ) {
+     t.printStackTrace();
      return null;
    }
-   EffectFunction ef = (EffectFunction)e; 
-   if ( ef.getMethod() != null && ef.getMethod().getName().contains("setValue") ) {
+ }
+
+ /**
+  * Get the time intervals where the effect could be moved.
+  *  If looking at just the currently assigned values and not the domains,
+  *  then we just need to walk through the timepoints where the effect
+  *  could occur and see if it's outside the domain.
+  * @param ef the effect to move
+  * @return a Boolean TimeVaryingMap specifying the valid time intervals.
+  */
+ public TimeVaryingMap< Boolean > validTime( EffectFunction ef ) {
+   TimeVaryingMap< Boolean > tvm =
+       new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+
+   // The time of the effect is already restricted by its own domain.
+   Parameter< Long > t = this.getTimeOfEffect( ef );
+   if ( t == null ) return null;
+   Domain< Long > timepointDomain = t.getDomain();
+   if ( timepointDomain.isEmpty() ) {
+     return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+   }
+
+   MathOperation op = getOperationForMethod( ef.getMethod() );
+   if ( op == null ) {
+     return null;
+   }
+   V v = (V)getValueOfEffect( ef );
+
+   Class< V > resultType =
+       (Class< V >)ClassUtils.dominantTypeClass( getType(),
+                                                 domain.getType() );
+   RangeDomain< Long > trd = (RangeDomain)timepointDomain;
+   Long timeLowerBound = trd.getLowerBound();
+   Long timeUpperBound = trd.getUpperBound();
+   Parameter< Long > tb = getTimepointBefore( timeLowerBound );
+   if ( tb == null ) tb = firstKey();
+   NavigableMap< Parameter< Long >, V > m =
+       subMap( tb, true, lastKey(), true );
+   for ( Entry< Parameter< Long >, V > entry : m.entrySet() ) {
+     if ( entry.getKey().getValueNoPropagate() > timeUpperBound ) {
+       tvm.setValue( entry.getKey(), false );
+       break;
+     }
+     V val = entry.getValue();
+     V newVal = null;
      try {
-       if ( !basedOnDomainsAndNotValues ) {
-         V v = (V)getValueOfEffect( ef );
-         Boolean b = domain.contains( v );
-         return new TimeVaryingMap<Boolean>("", b, Boolean.class);
-       } else {
-         Domain<V> d = domainOfEffectValueArgument( ef );
-         Boolean b = !mutuallyExclusive( domain, d );
-//         Domain< V > copy = domain.clone();
-//         if ( !domain.equals( copy ) ) {
-//           Debug.error( "Error! Expected domain to be equal to its clone!" );
-//           return null;
-//         }
-//         Domain<V> d = domainOfEffectValueArgument( ef );
-//         Domain< V > x = copy.subtract( d );
-//         // If the copy domain did not change after subtracting, then the
-//         // effect's value cannot be in the domain.
-//         Boolean b = !domain.equals( copy );
-         return new TimeVaryingMap<Boolean>("", b, Boolean.class);
-       }
-     } catch( Throwable t ) {
-       t.printStackTrace();
-       return null;
+       Object r = applyOperation( val, v, op );
+       newVal = tryCastValue( r );
+       Boolean b = domain.contains( newVal );
+       tvm.setValue( entry.getKey(), b );
+     } catch ( ClassCastException e1 ) {
+       e1.printStackTrace();
+     } catch ( IllegalAccessException e1 ) {
+       e1.printStackTrace();
+     } catch ( InvocationTargetException e1 ) {
+       e1.printStackTrace();
+     } catch ( InstantiationException e1 ) {
+       e1.printStackTrace();
      }
    }
-   if ( appliedSet.contains( ef ) || ef.isApplied() == Boolean.TRUE ) {
-     // We might quickly determine that the effect is always bad.
-     Domain< V > d = domainForEffect( ef, basedOnDomainsAndNotValues );
-     Boolean alwaysBad = mutuallyExclusive( domain, d );
-     if ( alwaysBad ) {
-       return new TimeVaryingMap<Boolean>("", false, Boolean.class);
-     }
-     
-     // See if there are times when the effect must be bad.
-     // This would be when other effects' times are constrained to certain 
-     // ranges such that, in combination with this effect, yield values that are
-     // all outside the domain.
-     
-     // The time of the effect is already restricted by its own domain.
-     Parameter< Long > t = this.getTimeOfEffect( ef );
-     if ( t == null ) return null;
-     Domain< Long > timepointDomain = t.getDomain();
-     if ( timepointDomain.isEmpty() ) {
-       return new TimeVaryingMap<Boolean>("", false, Boolean.class);
-     }
+   return tvm;
 
-     V v = (V)getValueOfEffect( ef );
+ }
 
-     if ( !basedOnDomainsAndNotValues ) {
-       // If looking at just the currently assigned values and not the domains,
-       // then we just need to walk through the timepoints where the effect
-       // could occur and see if it's outside the domain.
-       if ( timepointDomain instanceof RangeDomain ) {
-         MathOperation op = getOperationForMethod( ef.getMethod() );
-         if ( op == null ) {
-           return null;
-         }
-         Class< V > resultType =
-             (Class< V >)ClassUtils.dominantTypeClass( getType(),
-                                                       domain.getType() );
-         TimeVaryingMap< Boolean > tvm = new TimeVaryingMap<Boolean>("", false, Boolean.class);
-         RangeDomain<Long> trd = (RangeDomain)timepointDomain;
-         Long timeLowerBound = trd.getLowerBound();
-         Long timeUpperBound = trd.getUpperBound();
-         Parameter< Long > tb = getTimepointBefore( timeLowerBound );
-         if ( tb == null ) tb = firstKey();
-         NavigableMap< Parameter< Long >, V > m = subMap(tb, true, lastKey(), true);//!Functions.lessThan( tb.getValue(), timeLowerBound ), 
-         for ( Entry< Parameter< Long >, V > entry : m.entrySet() ) {
-           if ( entry.getKey().getValueNoPropagate() > timeUpperBound ) {
-             tvm.setValue( entry.getKey(), false );
-             break;
-           }
-           V val = entry.getValue();
-           V newVal = null;
-          try {
-            Object r = applyOperation( val, v, op );
-            newVal = tryCastValue( r );
-            Boolean b = domain.contains( newVal );
-            tvm.setValue( entry.getKey(), b );
-          } catch ( ClassCastException e1 ) {
-            e1.printStackTrace();
-          } catch ( IllegalAccessException e1 ) {
-            e1.printStackTrace();
-          } catch ( InvocationTargetException e1 ) {
-            e1.printStackTrace();
-          } catch ( InstantiationException e1 ) {
-            e1.printStackTrace();
-          }
-         }
-         return tvm;
-       }
-     }
+ 
+ /**
+  * Get the time intervals where the effect could be moved.
+  * 
+  * @param ef the effect to move
+  * @param basedOnDomainsAndNotValues
+  * @return a Boolean TimeVaryingMap specifying the valid time intervals.
+  */
+  public TimeVaryingMap< Boolean >
+         validTime( Effect e, boolean basedOnDomainsAndNotValues ) {
+    if ( domain == null ) {
+      return new TimeVaryingMap< Boolean >( "", true, Boolean.class );
+    }
+    if ( !( e instanceof EffectFunction ) ) {
+      Debug.error( "validTime() expects an EffectFunction." );
+      return null;
+    }
+    EffectFunction ef = (EffectFunction)e;
+    if ( ef.getMethod() != null
+         && ef.getMethod().getName().contains( "setValue" ) ) {
+      return validTimeForSetValue( ef, basedOnDomainsAndNotValues );
+    }
 
-     // Now see if there are other effects that must overlap in time with t's
-     // domain. For add(amount, time), any timepoint on the timeline that is
-     // always before this one will contribute to this effect.
-     //
-     // If zero is in the domain of the time of this effect, then nothing is
-     // definitely before this one, and we can assume there is no restriction.
-     
-     if ( timepointDomain == null || timepointDomain.contains( 0L ) ) {
-       return new TimeVaryingMap<Boolean>("", true, Boolean.class);
-     }
-//     if ( timepointDomain.magnitude() == 1 ) {
-//     }
-     
-      Set< Parameter< Long > > mustBeBefore = new LinkedHashSet< Parameter< Long > >();
-      Set< Parameter< Long > > mayBeBefore = new LinkedHashSet< Parameter< Long > >();
-      
-      for ( Parameter<Long> tp : keySet() ) {
-        if ( tp == null ) continue;
-        Domain<Long> tDomain = tp.getDomain();
-        if ( tDomain == null ) continue;
-        if ( tDomain instanceof ComparableDomain && timepointDomain instanceof ComparableDomain ) {
-          if ( ( (ComparableDomain< Long >)tDomain ).less( (ComparableDomain< Long >)timepointDomain ) ) {
+    // We might quickly determine that the effect is always bad.
+    Domain< V > d = domainForEffect( ef, basedOnDomainsAndNotValues );
+    Boolean alwaysBad = mutuallyExclusive( domain, d );
+    if ( alwaysBad ) {
+      return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+    }
+
+    // See if there are times when the effect must be bad.
+    // This would be when other effects' times are constrained to certain
+    // ranges such that, in combination with this effect, yield values that are
+    // all outside the domain.
+
+    // The time of the effect is already restricted by its own domain.
+    Parameter< Long > t = this.getTimeOfEffect( ef );
+    if ( t == null ) return null;
+    Domain< Long > timepointDomain = t.getDomain();
+    if ( timepointDomain.isEmpty() ) {
+      return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+    }
+
+    if ( !basedOnDomainsAndNotValues ) {
+      return validTime(ef);
+    }
+    return validTimeForDomains( ef );  
+  }
+
+  public void dontWantToDelete(ComparableDomain<Long> timepointDomain) {
+    Set< Parameter< Long > > mustBeBefore = new LinkedHashSet< Parameter< Long > >();
+    Set< Parameter< Long > > mayBeBefore = new LinkedHashSet< Parameter< Long > >();
+    
+    for ( Parameter<Long> tp : keySet() ) {
+      if ( tp == null ) continue;
+      Domain<Long> tDomain = tp.getDomain();
+      if ( tDomain == null ) continue;
+      if ( tDomain instanceof ComparableDomain && timepointDomain instanceof ComparableDomain ) {
+        if ( ( (ComparableDomain< Long >)tDomain ).less( (ComparableDomain< Long >)timepointDomain ) ) {
+          mustBeBefore.add( tp );
+        } else if ( !( (ComparableDomain< Long >)tDomain ).greater( (ComparableDomain< Long >)timepointDomain ) ) {
+          mayBeBefore.add( tp );
+        }
+      } else if ( timepointDomain.magnitude() == 1 && tDomain instanceof ComparableDomain ) {
+        Long tpt = timepointDomain.getValue( true );
+        if ( ( (ComparableDomain< Long >)tDomain ).less( tpt ) ) {
+          mustBeBefore.add( tp );
+        } else if ( !( (ComparableDomain< Long >)tDomain ).greater( tpt ) ) {
+          mayBeBefore.add( tp );
+        }
+      } else if ( tDomain.magnitude() == 1 && timepointDomain.magnitude() == 1 ) {
+        Long tpt = timepointDomain.getValue( true );
+        Long td = tDomain.getValue( true );
+        try {
+          if ( Functions.lessThan( td, tpt ) == Boolean.TRUE ) {
             mustBeBefore.add( tp );
-          } else if ( !( (ComparableDomain< Long >)tDomain ).greater( (ComparableDomain< Long >)timepointDomain ) ) {
+          } else if (Functions.greaterThan( td, tpt ) == Boolean.FALSE ) {
             mayBeBefore.add( tp );
           }
-        } else if ( timepointDomain.magnitude() == 1 && tDomain instanceof ComparableDomain ) {
-          Long tpt = timepointDomain.getValue( true );
-          if ( ( (ComparableDomain< Long >)tDomain ).less( tpt ) ) {
-            mustBeBefore.add( tp );
-          } else if ( !( (ComparableDomain< Long >)tDomain ).greater( tpt ) ) {
-            mayBeBefore.add( tp );
+        } catch ( IllegalAccessException e1 ) {
+          e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          e1.printStackTrace();
+        }
+      }
+    }
+    
+  }
+  
+  /**
+   * Get the time intervals where the effect could be moved based on the domains
+   * of the timepoints and values of the effects on this timeline,
+   * 
+   * Determine if there are other effects that must overlap in time with domain
+   * of the time of the effect. For add(amount, time), any timepoint on the
+   * timeline that is always before this one will contribute to this effect.
+   * 
+  * @param ef the effect to move
+  * @return a Boolean TimeVaryingMap specifying the valid time intervals.
+   */
+  public TimeVaryingMap< Boolean > validTimeForDomains( EffectFunction ef ) {
+
+    Parameter< Long > t = this.getTimeOfEffect( ef );
+    if ( t == null ) return null;
+    Domain< Long > timepointDomain = t.getDomain();
+    if ( timepointDomain.isEmpty() ) {
+      return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+    }
+
+    TimeVaryingMap< Boolean > tvm =
+        new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+
+    // If zero is in the domain of the time of this effect, then nothing is
+    // definitely before this one, and we can assume there is no restriction.
+    if ( timepointDomain == null || timepointDomain.contains( 0L ) ) {
+      return new TimeVaryingMap< Boolean >( "", true, Boolean.class );
+    }
+
+    TimeVaryingMap< Effect > effectMap = new TimeVaryingMap< Effect >();
+    for ( Effect eff : appliedSet ) {
+      Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( eff );
+      if ( p != null && p.first != null ) {
+        effectMap.setValue( p.first, eff );
+      }
+    }
+
+    Domain< V > mustEffectDomain = null;
+    MultiDomain< V > mayEffectDomain = new MultiDomain< V >();
+
+    TreeMap< Long, Set< Parameter< Long > > > domainTimepoints =
+        new TreeMap< Long, Set< Parameter< Long > > >();
+
+    // Gather endpoints of domain.
+    for ( Parameter< Long > tp : keySet() ) {
+      if ( tp == null ) continue;
+      Domain< Long > tDomain = tp.getDomain();
+      if ( tDomain == null ) continue;
+
+      if ( tDomain instanceof ComparableDomain && !tDomain.isEmpty() ) {
+        Long lb = ( (ComparableDomain< Long >)tDomain ).getLowerBound();
+        if ( lb != null ) {
+          Utils.add( domainTimepoints, lb, tp );
+          // domainTimepoints.put( lb, tDomain );
+        }
+        Long ub = ( (ComparableDomain< Long >)tDomain ).getUpperBound();
+        if ( ub != null ) {
+          Utils.add( domainTimepoints, ub, tp );
+        }
+      }
+    }
+
+    // For each domain timepoint determine whether the effect will drive the
+    // timeline value outside its domain and set the valid timeline, tvm, to
+    // true or false for that timepoint.
+    MathOperation op = getOperationForMethod( ef.getMethod() );
+    if ( op == null ) {
+      return null;
+    }
+
+    for ( Entry< Long, Set< Parameter< Long > > > ntry : domainTimepoints.entrySet() ) {
+      Long dtp = ntry.getKey();
+
+      // Anything outside the domain of the effect is invalid.
+      if ( timepointDomain != null && !timepointDomain.contains( dtp ) ) {
+        tvm.setValue( new SimpleTimepoint( dtp ), false );
+        continue;
+      }
+
+      // TODO -- this might be faster if not iterating through every for every
+      // for the time domain endpoints of every entry. If we build the set of
+      // entries associated with each domainTimepoint, and we kept a set of
+      // pastEffects and potentialEffects updated for the entries at each
+      // domainTimepoint,
+      // then we could many times reuse the previous domain calculations and
+      // avoid the O(n^2) complexity below. The computation after the inner loop
+      // would need to allocate a different mayEffectDomain so that it can be
+      // reused.
+      mustEffectDomain = null;
+      mayEffectDomain.includeSet = null;
+      for ( Entry< Parameter< Long >, V > entry : entrySet() ) {
+        Parameter< Long > tp = entry.getKey();
+
+        Domain< Long > tDom = tp.getDomain();
+        if ( tDom == null || tDom instanceof SingleValueDomain ) {
+          tDom = new LongDomain( tp.getValue(), tp.getValue() );
+        }
+
+        // Find out if this entry must have happened before or by dtp.
+        Long latestTimeOfEntry = tp.getValue();
+        if ( tDom instanceof ComparableDomain ) {
+          latestTimeOfEntry = ((ComparableDomain< Long >)tDom).getUpperBound();
+        }
+        boolean pastEffect = latestTimeOfEntry != null && latestTimeOfEntry <= dtp;
+
+        Effect eff = effectMap.get( tp );
+        if ( eff == null || !( eff instanceof EffectFunction ) ) {
+          // Treat this like a setValue effect--no math operation.
+          V val = get( tp );
+          if ( val == null ) {
+            Debug.error( "Error! No value for timepoint!" );
+            continue;
           }
-        } else if ( tDomain.magnitude() == 1 && timepointDomain.magnitude() == 1 ) {
-          Long tpt = timepointDomain.getValue( true );
-          Long td = tDomain.getValue( true );
-          try {
-            if ( Functions.lessThan( td, tpt ) == Boolean.TRUE ) {
-              mustBeBefore.add( tp );
-            } else if (Functions.greaterThan( td, tpt ) == Boolean.FALSE ) {
-              mayBeBefore.add( tp );
+          Domain< V > valDomain = DomainHelper.getDomain( val );
+          if ( valDomain != null ) {
+            if ( pastEffect ) {
+              mustEffectDomain = valDomain;
+            } else {
+              mayEffectDomain.include( valDomain );
             }
-          } catch ( IllegalAccessException e1 ) {
-            e1.printStackTrace();
-          } catch ( InvocationTargetException e1 ) {
-            e1.printStackTrace();
-          } catch ( InstantiationException e1 ) {
-            e1.printStackTrace();
+          }
+        } else {
+          EffectFunction efff = (EffectFunction)eff;
+          if ( pastEffect ) {
+            if ( mustEffectDomain == null ) {
+              mustEffectDomain = domainForEffect( efff, true );
+            } else {
+              mustEffectDomain =
+                  domainForEffect( efff, mustEffectDomain, true );
+            }
+          } else {
+            if ( Utils.isNullOrEmpty( mayEffectDomain.includeSet ) ) {
+              Domain< V > aloneDomain = domainForEffect( efff, true );
+              mayEffectDomain.include( aloneDomain );
+            } else {
+              Domain< V > combinedDomain =
+                  domainForEffect( efff, mayEffectDomain, true );
+              mayEffectDomain.include( combinedDomain );
+            }
           }
         }
       }
-     
-      V minV = null;
-      V maxV = null;
-      
-      for ( Parameter< Long > tp : mustBeBefore ) {
-        // HERE!!!
-      }
-      for ( Parameter< Long > tp : mustBeBefore ) {
-        HERE!!;
-      }
-      
-     // thing that must occur before the
-     // 
-     // We could walk through each of the
-     // Check if any timepoints of any effects 
-     /*
-     for ( Effect e : appliedSet ) 
-       Boolean b = domain.contains( v );
-       //return new TimeVaryingMap<Boolean>("", b, Boolean.class);
 
-     if ( t != null ) {
-       floatEffects( t );
-       try {
-         // Now determine for which times the effect is within the domain
-         // of the timeline.
-         if ( ef.getMethod().getName().contains("add") ) {
-             
-         }
-       } catch( Throwable ex ) {
-         ex.printStackTrace();
-       } finally {
-         unfloatEffects( t );
-       }
-     }
-   */
-   }
-   return null;
- }
+      Domain< V > combinedDomain =
+          domainForOperation( op, mustEffectDomain, mayEffectDomain );
+      mayEffectDomain.include( mustEffectDomain );
+      mayEffectDomain.include( combinedDomain );
+      Domain< V > effectDomain = domainForEffect( ef, mayEffectDomain, true );
+      boolean mayBeValid = !mutuallyExclusive( domain, effectDomain );
+      tvm.setValue( new SimpleTimepoint( dtp ), mayBeValid );
+    }
+    return tvm;
+  }
 
   public boolean mutuallyExclusive( Domain< V > d1, Domain< V > d2 ) {
 
@@ -7258,6 +7390,25 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
   }
   
+  public Domain<V> domainForOperation( MathOperation op, Domain<V> d1, Domain<V> d2 ) {
+    OpRunner< V, V > opr = new OpRunner< V, V >( op, getType() );
+    V v = d1.getValue( false );
+    FunctionCall fc =
+        new FunctionCall( opr, OpRunner.class, "apply",
+                          new Object[] { v, v }, getType() );
+//    if ( copy instanceof RangeDomain
+//         || copy instanceof SingleValueDomain ) {
+//      if ( vd instanceof RangeDomain || vd instanceof SingleValueDomain ) {
+        Domain< V > ddd =
+            (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)d1,
+                                                                     (Object)d2 ),
+                                                      fc );
+        return ddd;
+//      }
+//    }
+
+  }
+  
   public Domain< V > domainForEffect( EffectFunction ef,
                                       Domain< V > inputDomain,
                                       boolean basedOnDomainsAndNotValues ) {
@@ -7281,22 +7432,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         // domain.
       } else if ( vd instanceof RangeDomain ) {
         RangeDomain< V > rv = (RangeDomain< V >)vd;
-        // Domain< V > d1 = domainForEffect
-        OpRunner< V, V > opr = new OpRunner< V, V >( op, resultClass );
-        FunctionCall fc =
-            new FunctionCall( opr, OpRunner.class, "apply",
-                              new Object[] { v, v }, resultClass );
-        if ( copy instanceof RangeDomain
-             || copy instanceof SingleValueDomain ) {
-          if ( vd instanceof RangeDomain || vd instanceof SingleValueDomain ) {
-            Domain< V > ddd =
-                (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)copy,
-                                                                         (Object)vd ),
-                                                          fc );
+
+        Domain< V > ddd = domainForOperation(op, copy, rv);
+//        // Domain< V > d1 = domainForEffect
+//        OpRunner< V, V > opr = new OpRunner< V, V >( op, resultClass );
+//        FunctionCall fc =
+//            new FunctionCall( opr, OpRunner.class, "apply",
+//                              new Object[] { v, v }, resultClass );
+//        if ( copy instanceof RangeDomain
+//             || copy instanceof SingleValueDomain ) {
+//          if ( vd instanceof RangeDomain || vd instanceof SingleValueDomain ) {
+//            Domain< V > ddd =
+//                (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)copy,
+//                                                                         (Object)vd ),
+//                                                          fc );
             return ddd;
-          }
-        }
-        return null;
+//          }
+//        }
+//        return null;
       } else {
         return null;
       }

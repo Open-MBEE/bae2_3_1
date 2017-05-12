@@ -221,4 +221,9 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
     return new DoubleDomain(lowerBound, upperBound);
   }
 
+  @Override
+  public int compareTo( Domain< Double > o ) {
+    return super.compare( o );
+  }
+
 }

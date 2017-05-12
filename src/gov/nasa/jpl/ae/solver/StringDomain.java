@@ -159,5 +159,10 @@ public class StringDomain extends AbstractRangeDomain<String> {
       return new StringDomain(lowerBound, upperBound);
   }
 
+  @Override
+  public int compareTo( Domain< String > o ) {
+    return super.compare( o );
+  }
+
 
 }

@@ -425,6 +425,8 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   public void setStale( boolean staleness ) {
     stale = staleness;
     if ( staleness == true ) {
+      System.out.println( "////////////   setting stale=true: " + this );
+
       //Debug.error("Setting an elaboration rule stale is not supported!");
       return;
     }

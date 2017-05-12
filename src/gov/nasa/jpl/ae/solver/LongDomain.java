@@ -221,5 +221,10 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
     return t - 1;
   }
 
+  @Override
+  public int compareTo( Domain< Long > o ) {
+    return super.compare( o );
+  }
+
 
 }

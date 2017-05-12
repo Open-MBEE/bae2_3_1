@@ -216,4 +216,9 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
     return t - 1;
   }
 
+  @Override
+  public int compareTo( Domain< Integer > o ) {
+    return super.compare( o );
+  }
+
 }

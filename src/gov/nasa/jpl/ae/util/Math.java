@@ -5,7 +5,9 @@ import java.math.BigDecimal;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 
 public class Math {
-    
+  
+  static float epsilon = Float.MIN_NORMAL;
+  
     Math() {}
 
     public static double dividedBy( double rd1, double rd2 ) {

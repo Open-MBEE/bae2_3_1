@@ -87,6 +87,22 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     return copy;
   }
   
+  public boolean include(Domain<T> d) {
+    if ( includeSet == null ) {
+      includeSet = new LinkedHashSet< Domain< T > >();
+    }
+    boolean changed = includeSet.add( d );
+    return changed;
+  }
+  
+  public boolean exclude(Domain<T> d) {
+    if ( excludeSet == null ) {
+      excludeSet = new LinkedHashSet< Domain< T > >();
+    }
+    boolean changed = excludeSet.add( d );
+    return changed;
+  }
+  
   /**
    * Returns a single set computed from subtracting the excluded set
    * from the included set and trying to eliminate overlap among the domains in

@@ -6,7 +6,7 @@ package gov.nasa.jpl.ae.solver;
 /**
  * A domain whose elements may be compared with =, !=, <, <=, >, and >=.
  */
-public interface ComparableDomain< T > extends Domain< T > {
+public interface ComparableDomain< T > extends Domain< T >, Comparable<Domain<T>> {
   public boolean greater( T t1, T t2 );
   public boolean less( T t1, T t2 );
   public boolean equals( T t1, T t2 );
@@ -21,6 +21,8 @@ public interface ComparableDomain< T > extends Domain< T > {
   public boolean lessEquals( ComparableDomain<T> t1 );
   public boolean greater( ComparableDomain<T> t1 );
   public boolean greaterEquals( ComparableDomain<T> t1 );
+  
+  public int compareTo( ComparableDomain<T> domain );
   
   public T getLowerBound();
   public T getUpperBound();
