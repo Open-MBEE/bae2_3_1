@@ -2760,5 +2760,62 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     return super.getVariablesOnWhichDepends( variable );
   }
 
+  public Long pickStartInValidInterval() {
+    TimeVaryingMap<Boolean> overallValidTimes = null;
+    for ( Pair< Parameter< ? >, Set< Effect > > p : getEffects() ) {
+      if ( p == null || p.first == null || p.first.getValue() == null || p.second == null ) continue;
+      Object tvmo = p.first.getValue();
+      if ( tvmo instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tvm = (TimeVaryingMap<?>)tvmo;
+        for ( Effect effect : p.second ) {
+          Pair< Parameter< Long >, Object > tv = tvm.getTimeAndValueOfEffect( effect );
+          if ( tv == null || tv.first == null || !tv.first.equals( startTime ) ) continue;
+          TimeVaryingMap<Boolean> validTimes = tvm.validTime( effect, false );
+          if ( validTimes != null ) {
+            if ( overallValidTimes == null ) {
+              if ( validTimes.totalDurationWithValue( true ) > 0L ) { 
+                overallValidTimes = validTimes;
+              } else {
+                Debug.error( false, "No valid start times for " + getName() );
+              }
+            } else {
+              TimeVaryingMap<Boolean> anded = TimeVaryingMap.and( overallValidTimes, validTimes );
+              if ( anded.totalDurationWithValue( true ) > 0L ) {
+                overallValidTimes = anded;
+              } else {
+                Debug.error( false, "No valid start times for " +  getName() );
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    if ( overallValidTimes == null || overallValidTimes.isEmpty()
+         || overallValidTimes.totalDurationWithValue( true ) <= 0 ) {
+      Debug.error( false, "Returning no valid start times for " +  getName() );
+      return null;
+    }
+    Long pickedTime = overallValidTimes.pickRandomTimeWithValue( true );
+    System.out.println( "Picked startTime = " + pickedTime
+                        + " in valid intervals for " + getName() );
+    return pickedTime;
+  }
+  
+  
+  @Override
+  public <T> boolean pickParameterValue( Variable< T > variable ) {
+    if ( variable == null ) return false;
+    if ( variable.equals( startTime ) ) {
+      Long newStartTime = pickStartInValidInterval();
+      if ( newStartTime != startTime.getValue() ) {
+        variable.setValue( (T)newStartTime );
+        return true;
+      }
+    }
+    return false;
+    //return super.timeWhenFractionOfTotalDurationWithValue( variable,  );
+  }
+
   
 }

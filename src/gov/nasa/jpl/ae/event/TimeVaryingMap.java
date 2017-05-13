@@ -22,6 +22,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
@@ -55,6 +56,8 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.python.google.common.primitives.Bytes;
 
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
@@ -7581,5 +7584,161 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return p;
   }
 
+  public int compare( V v1,  V v2 ) {
+    int comp = CompareUtils.compare( (Number)v1, (Number)v2 );
+    return comp;
+  }
+
+  public boolean less( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp < 0;
+  }
+  public boolean lessEquals( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp <= 0;
+  }
+  public boolean greater( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp > 0;
+  }
+  public boolean greaterEquals( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp >= 0;
+  }
   
-}
+  public boolean equals( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp == 0;
+  }
+  
+  public Long pickRandomTimeWithValue(V value) {
+    double fraction = Random.global.nextDouble();
+    Long time = timeWhenFractionOfTotalDurationWithValue( value, fraction );
+    return time;
+  }
+  
+  public Long timeWhenFractionOfTotalDurationWithValue(V value, double fraction ) {
+    if ( fraction < 0.0 || fraction > 1.0 ) {
+      Debug.error( "timeWhenFractionOfTotalDurationWithValue() expects fraction between 0 and 1 but got " + fraction );
+      return null;
+    }
+    
+    Long totalDur = totalDurationWithValue(value);
+    Long durationTarget = (new Double(((double)totalDur) * fraction)).longValue(); 
+    Long totalSoFar = 0L;
+    Long prevTime = 0L;
+    V prevVal = getValue( 0L );
+    for ( Entry<Parameter<Long>, V> e : entrySet() ) {
+      Long prevTotalSoFar = totalSoFar;
+      if ( e == null ) continue;
+      Parameter<Long> tp = e.getKey();
+      if ( tp == null ) continue;
+      V val = e.getValue();
+      if ( interpolation == LINEAR ) {
+        if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
+          if ( equals(prevVal, value ) && equals(val, value) ) {
+            totalSoFar += tp.getValue() - prevTime;
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+            long prevValLong = ((Number)prevVal).longValue();
+            long valLong = ((Number)val).longValue();
+            if ( prevValLong == valLong ) {
+              Debug.error( "HUH??????!!!!!!" );
+              totalSoFar += tp.getValue() - prevTime;
+            } else {
+              Long timeEqual = (tp.getValue() - prevTime) / Math.abs(prevValLong - valLong);
+              totalSoFar += timeEqual;
+            }
+          } else if ( getType() == Double.class || getType() == Float.class ) {
+            totalSoFar += 1;
+          } else {
+            Debug.error( "Linear interpolation with unexpected type: " + getType() );
+            totalSoFar += 1;
+          }
+        }
+      } else {
+        if ( Utils.valuesEqual( prevVal, value ) ) {
+          if ( interpolation == NONE ) {
+            totalSoFar += 1;
+          }
+          totalSoFar += tp.getValue() - prevTime;
+        } else {
+        }
+      }
+      prevVal = val;
+      prevTime = tp.getValue();
+      if ( totalSoFar >= durationTarget ) {
+        prevTime -= ( totalSoFar - durationTarget );
+        break;
+      }
+    }
+    if ( Utils.valuesEqual( prevVal, value ) && prevTime < Timepoint.getHorizonDuration() ) {
+      if ( totalSoFar < durationTarget ) {
+        if ( interpolation == NONE ) {
+          totalSoFar += 1;
+        } else {
+          totalSoFar += Timepoint.getHorizonDuration() - prevTime;
+        }
+        prevTime = Timepoint.getHorizonDuration();
+        if ( totalSoFar >= durationTarget ) {
+          prevTime -= ( totalSoFar - durationTarget );
+        }
+      }
+    }
+    return prevTime;
+  }
+  
+  
+  public Long totalDurationWithValue(V value) {
+    Long total = 0L;
+    Long prevTime = 0L;
+    V prevVal = getValue( 0L );
+    for ( Entry<Parameter<Long>, V> e : entrySet() ) {
+      if ( e == null ) continue;
+      Parameter<Long> tp = e.getKey();
+      if ( tp == null ) continue;
+      V val = e.getValue();
+      if ( interpolation == LINEAR ) {
+        if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
+          if ( equals(prevVal, value ) && equals(val, value) ) {
+            total += tp.getValue() - prevTime;
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+            long prevValLong = ((Number)prevVal).longValue();
+            long valLong = ((Number)val).longValue();
+            if ( prevValLong == valLong ) {
+              Debug.error( "HUH????!!!" );
+              total += tp.getValue() - prevTime;
+            } else {
+              Long timeEqual = (tp.getValue() - prevTime) / Math.abs(prevValLong - valLong);
+              total += timeEqual;
+            }
+          } else if ( getType() == Double.class || getType() == Float.class ) {
+            total += 1;
+          } else {
+            Debug.error( "Linear interpolation with unexpected type: " + getType() );
+            total += 1;
+          }
+        }
+      } else {
+        if ( Utils.valuesEqual( prevVal, value ) ) {
+          if ( interpolation == NONE ) {
+            total += 1;
+          }
+          total += tp.getValue() - prevTime;
+        } else {
+        }
+      }
+      prevVal = val;
+      prevTime = tp.getValue();
+    }
+    if ( Utils.valuesEqual( prevVal, value ) && prevTime < Timepoint.getHorizonDuration() ) {
+      if ( interpolation == NONE ) {
+        total += 1;
+      } else {
+        total += Timepoint.getHorizonDuration() - prevTime;
+      }
+    }
+    return total;
+  }
+  
+  
+}  // end of TimeVaryingMap class
