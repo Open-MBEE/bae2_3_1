@@ -464,7 +464,7 @@ public class FunctionCall extends Call {
         }
     }
     if ( this.isMonotonic() ) {
-      Domain<?> d = DomainHelper.combineDomains( arguments, this );
+      Domain<?> d = DomainHelper.combineDomains( arguments, this, true );
       return d;
     }
     return null;

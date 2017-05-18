@@ -7402,12 +7402,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
 //    if ( copy instanceof RangeDomain
 //         || copy instanceof SingleValueDomain ) {
 //      if ( vd instanceof RangeDomain || vd instanceof SingleValueDomain ) {
-        Domain< V > ddd =
-            (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)d1,
-                                                                     (Object)d2 ),
-                                                      fc );
-        return ddd;
-//      }
+    Domain< V > ddd = (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)d1,
+                                                                               (Object)d2 ),
+                                                                fc, true );
+    return ddd;
+    //      }
 //    }
 
   }

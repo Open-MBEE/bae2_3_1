@@ -494,7 +494,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     T value = pickRandomValue();
     if ( value != null ) {
-      if ( !valueEquals( getValue(false) ) ) {
+      if ( !valueEquals( value ) ) {
         System.out.println( "////////////////////   picking " + value + " for " + this );
         setValue( value );
         return true;
@@ -986,7 +986,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       if ( owner != null ) {
         owner.handleDomainChangeEvent( this, null );
       }
-      System.out.println( "Changed domain of " + MoreToString.Helper.toLongString( this ) + " from " + d + " to " + this.domain );
+      if ( Debug.isOn() ) {
+        System.out.println( "Changed domain of "
+                            + MoreToString.Helper.toLongString( this )
+                            + " from " + d + " to " + this.domain );
+      }
     }
     return new Pair(this.domain, changed);
   }

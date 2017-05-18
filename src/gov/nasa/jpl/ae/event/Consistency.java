@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import gov.nasa.jpl.ae.event.Functions.EQ;
 import gov.nasa.jpl.ae.event.Functions.Plus;
@@ -33,6 +34,19 @@ public class Consistency {
   public Map< Variable< ? >, Domain< ? > > savedDomains =
       new LinkedHashMap< Variable< ? >, Domain< ? > >();
 
+  /**
+   * The last set of constraints and the corresponding solution are remembered
+   * in case the same problem is requested to be solved again.
+   */
+  protected Set< Constraint > lastConstraintSet = null;
+
+  /**
+   * The last set of solution is remembered in case the same problem is
+   * requested to be solved again.
+   */
+  protected Map< Variable< ? >, Domain< ? > > lastArcConsistencySolution = null;
+  
+  protected boolean lastSucceeded = false;
   
   
   public Set<Variable<?>> getVariables() {
@@ -62,26 +76,35 @@ public class Consistency {
     return sb.toString();
   }
 
-  public void saveDomains() {
-    savedDomains = new LinkedHashMap< Variable< ? >, Domain< ? > >();
+  public Map< Variable< ? >, Domain< ? > > getDomainState() {
+    LinkedHashMap< Variable< ? >, Domain< ? > > domains = new LinkedHashMap< Variable< ? >, Domain< ? > >();
     Set< Variable< ? > > vars = getVariables();
     for (Variable<?> v : vars) {
       Domain< ? > d = v.getDomain();
       if ( d != null ) {
         Domain< ? > copy = d.clone();
         v.setDomain( (Domain)copy );
-        savedDomains.put( v, d );
+        domains.put( v, d );
       }
     }
-    //System.out.println( "saved: " + MoreToString.Helper.toLongString( savedDomains ) );
+    return domains;
+    //System.out.println( "saved: " + MoreToString.Helper.toLongString( savedDomains ) );    
+  }
+  
+  public void saveDomains() {
+    savedDomains = getDomainState();
   }
 
-  public void restoreDomains() {
+  public void restoreDomains( Map< Variable< ? >, Domain< ? > > domains ) {
     //System.out.println( "restoring from : " + MoreToString.Helper.toLongString( savedDomains ) );
-    for (  Entry< Variable< ? >, Domain< ? > > e : savedDomains.entrySet() ) {
+    for (  Entry< Variable< ? >, Domain< ? > > e : domains.entrySet() ) {
       Variable v = e.getKey();
       v.setDomain( e.getValue() );
     }
+  }
+  
+  public void restoreDomains() {
+    restoreDomains(savedDomains);
   }
 
 
@@ -94,6 +117,39 @@ public class Consistency {
     return sb.toString();
   }
 
+  private boolean setsEqual(Set<?> s1, Set<?> s2 ) {
+    if ( s1 == s2 ) {
+      return true;
+    }
+    if ( s1 == null || s2 == null ) {
+      return false;
+    }
+    if ( s1.size() != s2.size() ) {
+      return false;
+    }
+    TreeMap<Integer, Object> m1 = new TreeMap< Integer, Object >();
+    TreeMap<Integer, Object> m2 = new TreeMap< Integer, Object >();
+    
+    for ( Object o : s1 ) {
+      m1.put( o.hashCode(), o );
+    }
+    for ( Object o : s2 ) {
+      m2.put( o.hashCode(), o );
+    }
+
+    for ( Object o : s1 ) {
+      if ( !s2.contains( o ) ) {
+        
+//        System.out.println( "s1: " + m1 );
+//        System.out.println( "s2: " + m2 );
+////        System.out.println( "s1: " + MoreToString.Helper.toLongString( s1 ) );
+////        System.out.println( "s2: " + MoreToString.Helper.toLongString( s2 ) );
+        return false;
+      }
+    }
+    return true;
+  }
+  
   public static boolean arcConsistency( Collection<Constraint> constraints, boolean quiet ) {
     Consistency c = new Consistency();
     c.constraints = constraints;
@@ -101,8 +157,22 @@ public class Consistency {
     return succ;
   }
 
-  public boolean arcConsistency(boolean quiet) {
+  public boolean arcConsistency( boolean quiet ) {
     saveDomains();
+    if ( lastConstraintSet != null && lastArcConsistencySolution != null
+         && constraints instanceof Set
+         && setsEqual( lastConstraintSet, (Set< Constraint >)constraints ) ) {// lastConstraintSet.equals( allConstraints ) ) {
+      System.out.println( "Constraints have not changed; using previous solution to arc consistency." );
+      restoreDomains( lastArcConsistencySolution );
+    } else {
+      lastSucceeded = arcConsistencySolve( quiet );
+      lastArcConsistencySolution = getDomainState();
+      lastConstraintSet = new LinkedHashSet< Constraint >( constraints );
+    }
+    return lastSucceeded;
+  }  
+  
+  public boolean arcConsistencySolve(boolean quiet) {
     if ( !quiet ) {
       System.out.println( "Arc consistency problem:\n" + toString() );
     }
@@ -114,27 +184,33 @@ public class Consistency {
     while ( ct < maxCount && ct < 100 ) {
       System.out.println("arc consistency round " + (ct+1));
       boolean restrictedSomething = false;
+      int cct = 0;
       for ( Constraint c : constraints ) {
+        //System.out.println( "arc consistency constraint #" + (++cct) + ": " + c);
         if ( c instanceof ConstraintExpression ) {
           ConstraintExpression cx = (ConstraintExpression)c;
           Pair<Domain<Boolean>,Boolean> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
-          if ( p.second == Boolean.TRUE ) {
+          if ( !quiet && p.second == Boolean.TRUE ) {
             System.out.println( "Restricted constraint " + MoreToString.Helper.toLongString( cx ) + " to domain " + p.first );
           }
+          cct += (p.second == Boolean.TRUE) ? 1 : 0;
+
           restrictedSomething = restrictedSomething || (p.second == Boolean.TRUE); 
         } else {
           Set< Variable< ? > > vars = c.getVariables();
           for ( Variable< ? > v : vars ) {
             if ( v.getDomain() != null ) {
               boolean b = c.restrictDomain( v );
-              if ( b ) {
+              if ( !quiet && b ) {
                 System.out.println( "Restricted domain of " + MoreToString.Helper.toLongString( v ) + " to " + v.getDomain() + " in constraint " + c  );
               }
+              cct += b ? 1 : 0;
               restrictedSomething = restrictedSomething || b;
             }
           }
         }
       }
+      System.out.println("At least " + cct + " domain changes.");
       if ( !restrictedSomething ) {
         succeeded = true;
         break;
@@ -143,15 +219,16 @@ public class Consistency {
       ++ct;
     }
     
+    System.out.println();
+    if ( succeeded ) {
+      System.out.println( "Arc consistency completed after " + ct + " passes at the constraints:" );
+    } else {
+      System.out.println( "Arc consistency failed to complete after " + ct + " passes at the constraints:" );
+    }
+    System.out.println();
     if ( !quiet ) {
-      System.out.println();
-      if ( succeeded ) {
-        System.out.println( "Arc consistency completed after " + ct + " passes at the constraints:" );
-      } else {
-        System.out.println( "Arc consistency failed to complete after " + ct + " passes at the constraints:" );
-      }
-      System.out.println();
       System.out.println( variablesToString() );
+      System.out.println();
     }
 
     return succeeded;

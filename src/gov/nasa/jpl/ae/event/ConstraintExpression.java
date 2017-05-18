@@ -96,7 +96,7 @@ public class ConstraintExpression extends Expression< Boolean >
     return sat;
   }
 
-  private static boolean pickDeep = false;
+  private static boolean pickDeep = true;
   /**
    * (non-Javadoc)
    * 
@@ -119,9 +119,10 @@ public class ConstraintExpression extends Expression< Boolean >
       Set< Variable< ? > > vars = new LinkedHashSet<Variable<?>>(getVariables());
       if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
 
+      ArrayList<Variable<?>> copy = new ArrayList<Variable<?>>(vars);
+      boolean pickingDeep = false;
       if ( pickDeep && Random.global.nextDouble() < 0.1) {
         // add indepedent vars for dependent vars
-        ArrayList<Variable<?>> copy = new ArrayList<Variable<?>>(vars);
         for ( Variable< ? > v : copy ) {
           if ( v instanceof Parameter ) {
             List<Variable<?>> iVars = ((Parameter<?>)v).getIndependentVariables();
@@ -130,6 +131,7 @@ public class ConstraintExpression extends Expression< Boolean >
                 vars.remove( v );
               }
               vars.addAll( iVars );
+              pickingDeep = true;
             }
           }
         }
@@ -142,7 +144,7 @@ public class ConstraintExpression extends Expression< Boolean >
         // Make sure the variable is not dependent and not locked.
           if ( ( !( v instanceof Parameter ) || (!( (Parameter)v ).isDependent() || Random.global.nextDouble() < 0.1) )
                   && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
-          if (!pickParameterValue( v )) {
+          if ( (pickingDeep && !copy.contains( v )) || !pickParameterValue( v )) {
             v.pickValue();
           }
         }

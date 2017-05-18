@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.CollectionTree;
@@ -31,6 +32,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
 /**
@@ -278,7 +280,10 @@ public class ParameterListenerImpl extends HasIdImpl
 //      }
 //    }
     dependencies.add( d );
-    if (fire) d.apply();
+    if ( fire && d.getExpression() != null
+         && d.getExpression().isGrounded( false, null ) ) {
+      d.apply();
+    }
     return d;
   }
 
@@ -689,6 +694,8 @@ public class ParameterListenerImpl extends HasIdImpl
     }
     return satisfied;
   }
+  
+
   protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
     ground(deep, null);
     if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
@@ -701,11 +708,14 @@ public class ParameterListenerImpl extends HasIdImpl
     }
     // REVIEW -- why not call satisfy() here and solve elsewhere??
     
+    // Restrict the domains of the variables using arc consistency on the
+    // constraints.
     Consistency ac = null;
     if ( usingArcConsistency ) {
       ac = new Consistency();
       ac.constraints = allConstraints;
       ac.arcConsistency( true );
+      
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
         if ( !isSimpleVar(e.getKey()) ) {
@@ -713,6 +723,8 @@ public class ParameterListenerImpl extends HasIdImpl
         }
       }
     }
+    
+    // Now assign values to variables within their domains to satisfy constraints.
     boolean satisfied = solver.solve( allConstraints );
     if ( usingArcConsistency ) {
       ac.restoreDomains();

@@ -878,6 +878,7 @@ public class Expression< ResultType > extends HasIdImpl
       }
     }
 
+    Pair< Domain< T >, Boolean > result = null;
     switch (form) {
     case Value:
       // If the expression is a value, then the value must be in the input domain.
@@ -904,13 +905,17 @@ public class Expression< ResultType > extends HasIdImpl
           }
         }
       }
-      return new Pair(domain, false);
+      result = new Pair(domain, false);
+      break;
     case Parameter:
-      return (Pair<Domain< T >,Boolean>)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
+      result = (Pair<Domain< T >,Boolean>)((Parameter<ResultType>)expression).restrictDomain( domain, propagate, seen );
+      break;
     case Function:
-      return (Pair<Domain< T >,Boolean>)((FunctionCall)expression).restrictDomain( domain, propagate, seen );
+      result = (Pair<Domain< T >,Boolean>)((FunctionCall)expression).restrictDomain( domain, propagate, seen );
+      break;
     case Constructor:
-      return (Pair<Domain< T >,Boolean>)((ConstructorCall)expression).restrictDomain( domain, propagate, seen );
+      result = (Pair<Domain< T >,Boolean>)((ConstructorCall)expression).restrictDomain( domain, propagate, seen );
+      break;
     case None:
     default:
       Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );
@@ -923,6 +928,7 @@ public class Expression< ResultType > extends HasIdImpl
       }
       return null;
     }
+    return result;
   }
 
 

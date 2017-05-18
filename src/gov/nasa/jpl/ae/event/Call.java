@@ -678,9 +678,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       boolean isVarArg = i >= paramTypes.length-1 && isVarArgs;
       argObjects[i] = evaluateArg(propagate, c, unevaluatedArg, isVarArg, complainIfError);
       //Expression.evaluate( unevaluatedArg, c, propagate, true );
-      if ( complainIfError && Debug.isOn() &&
-          !( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
-        Debug.error( false, "\nArgument " +argObjects[ i ] +
+      if ( complainIfError && Debug.isOn()
+           && !( argObjects[ i ] == null
+                 || c == null
+                 || c.isInstance( argObjects[ i ] )
+                 || ( isVarArg && c.isArray()
+                      && c.getComponentType()
+                          .isInstance( argObjects[ i ] ) ) ) ) {
+        Debug.error( true, false, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
                              "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
                            + " is not an instance of " + c.getSimpleName() +
@@ -1308,12 +1313,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
                                          Set< HasDomain > seen ) {
+    // This should be overridden
     boolean changed = false;
     Domain< ? > thisDomain = this.getDomain(propagate, seen);
-    if ( thisDomain != null ) {
-      changed = thisDomain.restrictTo(domain);
-    }
-    thisDomain = this.getDomain(propagate, seen);
+    // Commenting out below since the domain is not really changed, and the
+    // restriction is not passed on to the arguments.
+//    if ( thisDomain != null ) {
+//      changed = thisDomain.restrictTo(domain);
+//    }
+//    thisDomain = this.getDomain(propagate, seen);
     return new Pair<Domain<T>, Boolean>((Domain<T>)thisDomain, changed);
   }
 

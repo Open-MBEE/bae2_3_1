@@ -112,7 +112,7 @@ public class Functions {
         return null;
       }
       SuggestiveFunctionCall fc = this.clone();
-      Domain<?> d = DomainHelper.combineDomains( arguments, fc );
+      Domain<?> d = DomainHelper.combineDomains( arguments, fc, true );
       return d;
     }
     /**
@@ -301,7 +301,9 @@ public class Functions {
         }
       }
       // TODO -- Handle the million other cases
-      theCombineDomain = DomainHelper.combineDomains( Utils.asList( possibleValues ), new Identity<T>( (Expression<T>)null ) );
+      theCombineDomain = DomainHelper.combineDomains( Utils.asList( possibleValues ),
+                                                      new Identity<T>( (Expression<T>)null ),
+                                                      true );
       return theCombineDomain;
     }
     
@@ -704,7 +706,9 @@ public class Functions {
         this.domain = dcb;
         changed = changedB;
       } else {
-        Domain newDomain = DomainHelper.combineDomains( Utils.newList(o2, o3), new Identity<T>( (Expression<T>)null ) );
+        Domain newDomain = DomainHelper.combineDomains( Utils.newList(o2, o3),
+                                                        new Identity<T>( (Expression<T>)null ),
+                                                        true );
         changed = Utils.valuesEqual(this.domain, newDomain);
       }
 
@@ -939,7 +943,8 @@ public class Functions {
       
       Domain<?> rd =
           DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
-                                       new Min<T,R>( null, null ) );
+                                       new Min<T,R>( null, null ),
+                                       true );
       return rd;
     }
     
@@ -996,7 +1001,8 @@ public class Functions {
       
       Domain<?> rd =
           DomainHelper.combineDomains( new ArrayList< Object >( getArgumentExpressions() ),
-                                       new Max<T,R>( null, null ) );
+                                       new Max<T,R>( null, null ),
+                                       true);
       return rd;
     }
     

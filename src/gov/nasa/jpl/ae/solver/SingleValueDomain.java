@@ -18,6 +18,7 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   }
   
   protected T value = null;
+  protected boolean nullInDomain = false;
   
   // REVIEW -- this won't work; two different types would share the same default.
   // REVIEW -- make this class and get/setDefaultDomain() abstract?
@@ -27,14 +28,19 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    * 
    */
   public SingleValueDomain() {
+    nullInDomain = false;
   }
 
   public SingleValueDomain( SingleValueDomain< T > singleValueDomain ) {
     value = singleValueDomain.value;
+    nullInDomain = singleValueDomain.nullInDomain;
   }
 
   public SingleValueDomain( T singleValue ) {
     value = singleValue;
+    if ( value == null ) {
+      nullInDomain = true;
+    }
   }
 
   @Override
@@ -47,11 +53,11 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    */
   @Override
   public long magnitude() {
-    return 1;
+    return isEmpty() ? 0 : 1;
   }
 
   public long size() {
-    return 1;
+    return magnitude();
   }
 
   /* (non-Javadoc)
@@ -59,7 +65,8 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    */
   @Override
   public boolean contains( T t ) {
-    return t.equals( value );
+    return ( t == null && value == null && isNullInDomain() )
+           || ( t != null && t.equals( value ) );
   }
 
   /* (non-Javadoc)
@@ -129,7 +136,7 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
    */
   @Override
   public boolean restrictToValue( T v ) {
-    if ( value != v && (value == null || !value.equals( v ) ) ) {
+    if ( value != v && ( value == null || !value.equals( v ) ) ) {
       value = v;
       return true;
     }
@@ -138,7 +145,7 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
 
   @Override
   public boolean isEmpty() {
-    return false;
+    return value == null && !nullInDomain;
   }
 
   @Override
@@ -148,7 +155,7 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
 
   @Override
   public boolean isNullInDomain() {
-    return value == null;
+    return value == null && nullInDomain;
   }
 
   @Override
@@ -159,6 +166,9 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
   @Override
   public void setValue( T value ) {
     this.value = value;
+    if ( value == null ) {
+      nullInDomain = true;
+    }
   }
 
   @Override
@@ -176,24 +186,19 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
         }
       }
       if ( !domain.contains( (TT)value ) ) {
-        if ( value != null ) {
-          value = null;  // REVIEW -- Do we want to do this??!!
-          return true;
-        }
+        return clearValues();
       }
     } catch ( ClassCastException e ) {
-      if ( value != null ) {
-        value = null;  // REVIEW -- Do we want to do this??!!
-        return true;
-      }
+      return clearValues();
     }
     return false;
   }
 
   @Override
   public boolean clearValues() {
-    if ( value != null ) {
-      value = null;  // REVIEW -- Do we want to do this??!!
+    if ( value != null || nullInDomain ) {
+      value = null;
+      nullInDomain = false;
       return true;
     }
     return false;
@@ -227,4 +232,9 @@ public class SingleValueDomain< T > extends HasIdImpl implements Domain< T > {
     return (Domain< TT >)clone;
   }
 
+  @Override
+  public String toString() {
+    return "SingleValueDomain(" + value + ")";
+  }
+  
 }

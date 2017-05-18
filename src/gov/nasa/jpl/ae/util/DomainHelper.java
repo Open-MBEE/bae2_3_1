@@ -147,7 +147,7 @@ public class DomainHelper {
     }
     return dominantType;
   }
-  
+
   public static <T> ComparableDomain<T> getComparableDomain( Object o ) {
     if ( o == null ) return null;
     Domain<T> d = null;
@@ -159,6 +159,9 @@ public class DomainHelper {
       Object oo = ((Wraps)o).getValue( false );
       ComparableDomain<T> cd = getComparableDomain(oo);
       return cd;
+    }
+    if ( o instanceof Collection ) {
+      return getComparableDomain((Collection<?>)o);
     }
     Object oo = null;
     if ( d != null ) {
@@ -258,7 +261,8 @@ public class DomainHelper {
    * @return
    */
   public static Domain<?> combineDomains( List< Object > objects,
-                                               FunctionCall fCall ) {
+                                               FunctionCall fCall,
+                                               boolean makeASingleRange ) {
     
     if ( fCall != null && fCall.getMethod() == null ) return null;
     List<Domain<?>> domains = new ArrayList< Domain<?> >();
@@ -273,7 +277,7 @@ public class DomainHelper {
         domains.add( objDomain );
       }
     }
-    return combineTheDomains( domains, fCall );
+    return combineTheDomains( domains, fCall, makeASingleRange );
   }
 
   public static < T > ComparableDomain< T > combineHybridDomains( ComparableDomain< ? > cd1,
@@ -288,8 +292,8 @@ public class DomainHelper {
                                                            ComparableDomain<T> cd2,
                                                            FunctionCall fCall ) {
     LinkedHashSet< Object > results = new LinkedHashSet< Object >(); 
-    Object lbPrev = cd1.getLowerBound();
-    Object ubPrev = cd1.getUpperBound();
+    Object lbPrev = cd1 == null ? null : cd1.getLowerBound();
+    Object ubPrev = cd1 == null ? null : cd1.getUpperBound();
     Object odlb = cd2.getLowerBound();
     Object odub = cd2.getUpperBound();
     
@@ -317,12 +321,12 @@ public class DomainHelper {
       boolean b = cd.less( t1, t2 );
       return b;
     } else {
-      int comp = CompareUtils.compare( o1, o2 );
+      int comp = CompareUtils.compare( o1, o2, true, false );
       return comp < 0;
     }
   }
   
-  public static <T> ComparableDomain<T> getComparableDomain( Set<Object> results ) {
+  public static <T> ComparableDomain<T> getComparableDomain( Collection<?> results ) {
     RangeDomain<T> domain = null;
     Class<T> domainType = null;
     if ( domain == null && !Utils.isNullOrEmpty( results )) {
@@ -333,6 +337,25 @@ public class DomainHelper {
         if ( domain != null ) domainType = dominantType;
       }
     }
+    
+    // If these are domains, get their representative values.
+    if ( !results.isEmpty() ) {
+      LinkedHashSet<Object> newResults = new LinkedHashSet< Object >();
+      for ( Object r : results ) {
+        if ( r instanceof Domain<?> ) {
+          List< Object > vals = getRepresentativeValues( (Domain< ? >)r, null );
+          if ( vals != null ) {
+            newResults.addAll( vals );
+          }
+        } else {
+          newResults.add( r );
+        }
+      }
+      if ( !newResults.isEmpty() ) {
+        results = newResults;
+      }
+    }    
+
     // get lb and ub out of results
     Object lb = null;
     Object ub = null;
@@ -400,7 +423,8 @@ public class DomainHelper {
   }
 
   public static Domain<?> combineTheDomains( List< Domain<?> > domains,
-                                             FunctionCall fCall ) {
+                                             FunctionCall fCall,
+                                             boolean makeASingleRange ) {
     if ( Utils.isNullOrEmpty( domains ) ) return null;
     if ( fCall != null && fCall.getMethod() == null ) return null;
     if ( fCall == null ) {
@@ -427,7 +451,7 @@ public class DomainHelper {
 //      return null;
 //    }
 
-    LinkedHashSet< Object > results = new LinkedHashSet< Object >(); 
+    LinkedHashSet< Domain<?> > results = new LinkedHashSet< Domain<?> >(); 
     
     if ( fCall.getParameterTypes().length == 0 ) {
       Object o = null;
@@ -477,10 +501,18 @@ public class DomainHelper {
         return DomainHelper.emptyDomain();
       }
       
-      if ( priorRepresentativeValues == null ) {
+      if ( fCall.getParameterTypes().length > 1 && priorRepresentativeValues == null ) {
         priorRepresentativeValues = representativeDomains;
       } else {
         LinkedHashSet<ComparableDomain<?>> ranges = new LinkedHashSet<ComparableDomain<?>>();
+        if ( priorRepresentativeValues == null ) {
+          for ( ComparableDomain<?> cd2 : representativeDomains ) {
+            ComparableDomain< ? > d = combineHybridDomains( null, cd2, fCall );
+            if ( d != null && !d.isEmpty() ) {
+              ranges.add( d );
+            }
+          }
+        } else {
         for ( ComparableDomain< ? > cd1 : priorRepresentativeValues ) {
           for ( ComparableDomain<?> cd2 : representativeDomains ) {
             ComparableDomain< ? > d = combineHybridDomains( cd1, cd2, fCall );
@@ -489,17 +521,25 @@ public class DomainHelper {
             }
           }
         }
+        }
         priorRepresentativeValues = ranges;
+        results.addAll( ranges );
       }
     }
-    if ( priorRepresentativeValues.size() == 1 ) {
-      return priorRepresentativeValues.iterator().next();
+    if ( results.size() == 1 ) {
+      return results.iterator().next();
     }
-    if ( priorRepresentativeValues.size() == 0 ) {
+    if ( results.size() == 0 ) {
       return DomainHelper.emptyDomain();
     }
-    if ( priorRepresentativeValues.size() > 1 ) {
-      MultiDomain<?> md = new MultiDomain(priorRepresentativeValues, null);
+    if ( results.size() > 1 ) {
+      if ( makeASingleRange ) {
+        ComparableDomain< Object > cd = getComparableDomain( results );
+        if ( cd != null && ( !cd.isEmpty() || allEmpty(results) ) ) {
+          return cd;
+        }
+      }
+      MultiDomain<?> md = new MultiDomain(results, null);
       return md;
     }
     return null;
@@ -655,6 +695,17 @@ public class DomainHelper {
   }
 
   
+  public static boolean allEmpty( Collection<Domain<?>> domains ) {
+    if ( domains == null ) return false;
+    for ( Domain<?> d : domains ) {
+      if ( d == null ) continue;
+      if ( !d.isEmpty() ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static LinkedHashSet< ComparableDomain< ? > >
       getRepresentativeComparableDomains(Domain<?> domain, MathOperation op ) {
     
