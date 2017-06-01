@@ -6,6 +6,7 @@ package gov.nasa.jpl.ae.solver;
 import gov.nasa.jpl.ae.event.Functions;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Random;
 
 import java.util.Collection;
@@ -112,8 +113,8 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#clone()
    */
   @Override
-  public Domain< T > clone() {
-    Domain<T> d = new ObjectDomain< T >( this );
+  public ObjectDomain< T > clone() {
+    ObjectDomain<T> d = new ObjectDomain< T >( this );
     return d;
   }
 
@@ -201,14 +202,6 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     return new ObjectDomain< T >( type );
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Domain#setDefaultDomain(gov.nasa.jpl.ae.solver.Domain)
-   */
-  @Override
-  public void setDefaultDomain( Domain< T > domain ) {
-    // TODO Auto-generated method stub
-
-  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)
@@ -240,5 +233,45 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     }
     return false;
   }
+  
+  @Override
+  public < V > V evaluate( Class< V > cls, boolean propagate ) {
+    V v = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( v != null ) return v;
+    
+    if ( size() == 1 ) {
+      T t = null;
+      if ( cls == null || getType() == null || cls.isAssignableFrom( getType() ) ) {
+        t = getValue( propagate );
+        if ( cls == null || cls.isInstance( t ) ) {
+          return (V)t;
+        }
+      }
+      v = Evaluatable.Helper.evaluate( t, cls, true, propagate, true, null );
+      if (v != null) {
+        return v;
+      }
+    }
+    if ( cls == null || cls.equals( Object.class ) ) {
+      return (V)this;
+    }
+    return null;
+  }
+
+  @Override
+  public < TT > Domain< TT > subtract( Domain< TT > domain ) {
+    ObjectDomain<T> clone = clone();
+    java.util.Iterator<T> i = clone.iterator();
+    while ( i.hasNext() ) {
+      T t = i.next();
+      try {
+        if ( domain.contains( (TT)t ) ) {
+          i.remove();
+        }
+      } catch (ClassCastException e) {}
+    }
+    return (Domain< TT >)clone;
+  }
+
 
 }

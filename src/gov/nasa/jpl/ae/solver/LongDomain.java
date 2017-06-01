@@ -15,19 +15,17 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
   public static final long typeMaxValue = Long.MAX_VALUE;
   public static final long typeMinValue = Long.MIN_VALUE;
 
-  public static LongDomain domain = new LongDomain();  // REVIEW -- why is this not defaultDomain?
-	public static LongDomain positiveDomain =
+  //public static LongDomain domain = new LongDomain();  // REVIEW -- why is this not defaultDomain?
+	public static final LongDomain positiveDomain =
 			new LongDomain(0, typeMaxValue);
-  public static LongDomain defaultDomain = new LongDomain();  // REVIEW -- make this final?
+  public static final LongDomain defaultDomain = new LongDomain();  // REVIEW -- make this final?
 
 	public LongDomain() {
-	  lowerBound = typeMinValue;
-	  upperBound = typeMaxValue;
+    super(typeMinValue, typeMaxValue);
 	}
 	
 	public LongDomain(long minValue, long maxValue) {
-		this.lowerBound = minValue;
-		this.upperBound = maxValue;
+	  super(minValue, maxValue);
 	}
 
 	public LongDomain( RangeDomain< Long > domain ) {
@@ -117,7 +115,9 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
   public boolean contains( Long t ) {
     if ( t == null && 
          ( lowerBound != null  || upperBound != null ) ) return false;
-    return lowerBound <= t && upperBound >= t;
+    if ( t == null ) return nullInDomain;
+    if ( lowerBound == null && upperBound == null ) return false;
+    return (lowerBound == null || lowerBound <= t) && (upperBound == null || upperBound >= t);
   }
 
   // counts from zero!!!
@@ -195,18 +195,36 @@ public class LongDomain extends AbstractFiniteRangeDomain< Long > {
     return defaultDomain ;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< Long > domain ) {
-    if ( domain instanceof LongDomain ) {
-      defaultDomain = (LongDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new LongDomain((RangeDomain< Long >)domain);
-    }
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< Long > domain ) {
+//    if ( domain instanceof LongDomain ) {
+//      defaultDomain = (LongDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new LongDomain((RangeDomain< Long >)domain);
+//    }
+//  }
   
   @Override
   public LongDomain make( Long lowerBound, Long upperBound ) {
     return new LongDomain(lowerBound, upperBound);
   }
+
+  @Override
+  public Long getNextGreaterValue( Long t ) {
+    if (t == null || equals(t, getTypeMaxValue()) ) return null;
+    return t + 1;
+  }
+
+  @Override
+  public Long getPreviousLesserValue( Long t ) {
+    if (t == null || equals(t, getTypeMinValue()) ) return null;
+    return t - 1;
+  }
+
+  @Override
+  public int compareTo( Domain< Long > o ) {
+    return super.compare( o );
+  }
+
 
 }

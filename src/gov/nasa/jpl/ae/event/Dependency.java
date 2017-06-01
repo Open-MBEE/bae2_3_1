@@ -1,26 +1,31 @@
 
 package gov.nasa.jpl.ae.event;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import junit.framework.Assert;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -374,7 +379,7 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public void setFreeParameters( Set< Parameter< ? >> freeParams, boolean deep,
                                  Set< HasParameters > seen ) {
-    Assert.assertTrue( "This method is not supported!", false );
+    Debug.error( true, false, "This method is not supported!" );
     // TODO Auto-generated method stub
   }
   
@@ -390,6 +395,9 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean pickParameterValue( Variable< T1 > variable ) {
+    boolean wasOn = Debug.isOn();
+    try{
+      //Debug.turnOn();
     if ( variable == null || !Parameter.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
@@ -426,6 +434,10 @@ public class Dependency< T > extends HasIdImpl
     }
     // TODO Auto-generated method stub
     return false;
+    } finally {
+      if (!wasOn) Debug.turnOff();
+    }
+
   }
 
   protected Variable< ? > pickRandomVariable() {
@@ -453,31 +465,47 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean restrictDomain( Variable< T1 > v ) {
+    if ( v == null ) return false;
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
+    boolean restricted = false;
     if ( v == parameter ) {
-      Object ov = null;
-      try {
-        ov = expression.evaluate(true);
-        T val = Expression.evaluate( ov, getType(), false, true );
-        Domain<T1> d = v.getDomain().clone();
-        d.restrictToValue( (T1)val );
-        v.setDomain( d );
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+      if ( this.expression == null ) return false;
+      Domain< ? > d = expression.getDomain( true, null );
+      if ( d == null ) {
+        try {
+          Object ov = expression.evaluate(true);
+          d = DomainHelper.getDomain( ov );
+          if ( d == null ) {
+            T val = Expression.evaluate( ov, getType(), false, true );
+            d = DomainHelper.getDomain( val );
+            if ( d == null && val != null ) {
+              d = new SingleValueDomain<T>( val );
+            }
+          }
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+      }
+      if ( d != null ) {
+        Pair< ?, Boolean > p = parameter.restrictDomain( d, true, null );
+        restricted = p != null && p.second == Boolean.TRUE;
       }
     } else {
-      if ( getConstraintExpression() == null) return false;
-      getConstraintExpression().restrictDomain( v );
+      boolean skip = false;
+      if ( v instanceof Parameter ) {
+        if ( !expression.hasParameter( (Parameter<T1>)v, false, null ) ) {
+          skip = true;
+        }
+      }
+      // Warning!  This ignores the variable.
+      if ( !skip ) {
+        Pair< ?, Boolean > p = expression.restrictDomain( parameter.getDomain(), true, null );
+        restricted = p != null && p.second == Boolean.TRUE;
+      }
     }
-    return v.getDomain() != null && v.getDomain().magnitude() > 0; 
+    return restricted;//v.getDomain() != null && v.getDomain().magnitude() > 0; 
   }
 
   /* (non-Javadoc)
@@ -503,8 +531,11 @@ public class Dependency< T > extends HasIdImpl
   public Set< Variable< ? > > getFreeVariables() {
     if ( getConstraintExpression() == null ) return Utils.getEmptySet();
     Set< Variable< ? > > set = getConstraintExpression().getFreeVariables();
-    set.remove( parameter ); 
-    return set;
+    if (set != null ) {
+      set.remove( parameter ); 
+      return set;
+    }
+    return Utils.getEmptySet();
   }
 
   @Override
@@ -760,6 +791,28 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+
+  @Override
+  public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
+    TT tt = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( tt != null ) return tt;
+    tt = Evaluatable.Helper.evaluate( parameter, cls, true, propagate, true, null );
+    if ( tt != null ) return tt;
+    tt = Evaluatable.Helper.evaluate( expression, cls, true, propagate, true, null );
+    return tt;
+  }
+  
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Set< Variable< ? > > vars = getVariables();
+    if ( vars.contains( variable ) ) {
+      ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >( vars );
+      varList.remove( variable );
+      return varList;
+    }
     return null;
   }
 

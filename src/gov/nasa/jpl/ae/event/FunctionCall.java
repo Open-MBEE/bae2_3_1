@@ -2,6 +2,9 @@ package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.RangeDomain;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -429,9 +432,52 @@ public class FunctionCall extends Call {
    */
   @Override
   public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
-    // Must be overridden
-    Debug.error(true, true, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+    // Should be overridden
+
+    //Debug.error(true, false, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+    // Try to do something anyway.
+    // TODO
+    // See if arguments have a single-value domain.
+    boolean areAllArgsSingleValueDomains = true;
+    for ( Object arg : arguments ) {
+        Domain<?> d = DomainHelper.getDomain( arg );
+      if ( d != null
+           && ( d.magnitude() > 1
+                || ( d.magnitude() < 0 && !d.isEmpty() && d.isInfinite() )
+                || ( d instanceof RangeDomain
+                     && ( (RangeDomain< ? >)d ).size() > 1 ) ) ) {
+          areAllArgsSingleValueDomains = false;
+          break;
+        }
+    }
+    if ( areAllArgsSingleValueDomains ) {
+        Object v = null;
+        try {
+          v = evaluate( propagate );
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+        if ( evaluationSucceeded ) {
+            Domain<?> d = new SingleValueDomain< Object >( v );
+            return d;
+        }
+    }
+    if ( this.isMonotonic() ) {
+      Domain<?> d = DomainHelper.combineDomains( arguments, this, true );
+      return d;
+    }
     return null;
+    // TODO
+    // Add an interface where the object of the function could calculate the
+    // domain or give some methods that would enable the calculation. Maybe, like 
+    // TimeVaryingMap.calculateDomain(Method method, Object[] arguments)
+    // TimeVaryingMap.calculateDomain(Effect effect)
+    // TimeVaryingMap.restrictedDomainOfArguments(Method method, Object[] arguments)
+    // TimeVaryingMap.validIntervals(Effect effect)
+    // TimeVaryingMap.getValueDomain()
+    // TimeVaryingMap.getValueDomain(Effect effect)
+    //return null;
   }
   
   /**

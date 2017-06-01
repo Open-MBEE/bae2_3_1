@@ -4,11 +4,17 @@ import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -70,7 +76,8 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = null;
     try {
-      sat = (Boolean)evaluate(false);
+      sat = (Boolean)evaluate( this, Boolean.class, false );
+      //sat = (Boolean)evaluate(false);
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -89,6 +96,7 @@ public class ConstraintExpression extends Expression< Boolean >
     return sat;
   }
 
+  private static boolean pickDeep = true;
   /**
    * (non-Javadoc)
    * 
@@ -108,15 +116,37 @@ public class ConstraintExpression extends Expression< Boolean >
     
     // Now try choosing new values for the variables to meet this constraint.
     if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
-      Set< Variable< ? > > vars = getVariables();
+      Set< Variable< ? > > vars = new LinkedHashSet<Variable<?>>(getVariables());
+      if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
+
+      ArrayList<Variable<?>> copy = new ArrayList<Variable<?>>(vars);
+      boolean pickingDeep = false;
+      if ( pickDeep && Random.global.nextDouble() < 0.1) {
+        // add indepedent vars for dependent vars
+        for ( Variable< ? > v : copy ) {
+          if ( v instanceof Parameter ) {
+            List<Variable<?>> iVars = ((Parameter<?>)v).getIndependentVariables();
+            if ( !Utils.isNullOrEmpty( iVars ) ) {
+              if (((Parameter<?>)v).isDependent()) {
+                vars.remove( v );
+              }
+              vars.addAll( iVars );
+              pickingDeep = true;
+            }
+          }
+        }
+
+      }
+
       Variable<?>[] a = new Variable<?>[vars.size()];
       vars.toArray( a );
-      if ( Debug.isOn() ) Debug.outln("ConstraintExpression.isSatisfied()   Picking values for " + vars + " in " + this);
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
-        if ( ( !( v instanceof Parameter ) || !( (Parameter)v ).isDependent() )
-             && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
-          pickParameterValue( v );  
+          if ( ( !( v instanceof Parameter ) || (!( (Parameter)v ).isDependent() || Random.global.nextDouble() < 0.1) )
+                  && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
+          if ( (pickingDeep && !copy.contains( v )) || !pickParameterValue( v )) {
+            v.pickValue();
+          }
         }
         if ( isSatisfied(deep, seen) ) break;
       }
@@ -134,19 +164,51 @@ public class ConstraintExpression extends Expression< Boolean >
     return ParameterConstraint.Helper.getVariables( this, false, null );
   }
 
+  protected static boolean variableHasPrimitiveValue( Variable<?> v ) {
+    if ( v == null ) return false;
+    if ( v.getType() != null && !ClassUtils.isPrimitive( v.getType() ) ) {
+      return false;
+    }
+    Object o = v.getValue( false );
+    if ( o == null ) return true;
+    if ( o != null && ClassUtils.isPrimitive( o ) ) {
+      return true;
+    }
+    // Not sure about support for the Expression case below.
+    if ( o instanceof Expression && ClassUtils.isPrimitive( ((Expression<?>)o).expression) ) {
+      return true;
+    }
+    return false;
+  }
+  
   @Override
   public < T > boolean pickParameterValue( Variable< T > v ) {
-    if ( expression instanceof Suggester ) {
+    // Currently do not support picking values for non-primitives (like TimeVaryingMap).
+    boolean isPrimitive = variableHasPrimitiveValue( v );
+    boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
+    if ( expression instanceof Suggester && isPrimitive && hasChoices) {
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
-        if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        //Debug.turnOn();
+        //if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+        System.out.println( "////////////////////   picking " + newValue + " for " + v + " in " + this );
+       // Debug.turnOff();
         setValue( v, newValue );
         return true;
       }
     }
     // TODO
-    if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    //Debug.turnOn();
+    //if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    if ( !isPrimitive ) {
+      System.out.println( "////////////////////   not picking value for nonPrimitive " + v + " in " + this );
+    } else if ( !hasChoices ) {
+      System.out.println( "////////////////////   not picking value for empty domain for " + v + " in " + this );
+    } else {
+      System.out.println( "////////////////////   not picking value for " + v + " in " + this );
+    }
+    //Debug.turnOff();
     return false;
   }
 
@@ -184,12 +246,14 @@ public class ConstraintExpression extends Expression< Boolean >
 
   @Override
   public Set< Variable< ? > > getFreeVariables() {
-    // TODO
-    assert(false);
-    return null;
-//    Set< Variable< ? > > s = new TreeSet< Variable< ? > >();
-//    s.addAll( getFreeParameters( true ) );
-//    return s;
+    Set< Variable< ? > > vars = getVariables();
+    Set< Variable< ? > > freeVars = new LinkedHashSet< Variable<?> >();
+    for ( Variable<?> v : vars) {
+      if ( v instanceof Parameter && !((Parameter<?>)v).isDependent()) {
+        freeVars.add( v );
+      }
+    }
+    return freeVars;
   }
 
   @Override
@@ -239,5 +303,29 @@ public class ConstraintExpression extends Expression< Boolean >
 //    if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
 //    ParameterConstraint.Helper.setStale( this, staleness );
 //  }
+
+  @Override
+  public < T > T evaluate( Class< T > cls, boolean propagate ) {
+    T t = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( t != null ) return t;
+    if ( cls != null && cls.isAssignableFrom( Boolean.class ) ) {
+      Boolean b = isSatisfied( false, null );
+      return (T)b;
+    }
+    return null;
+  }
+
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Set< Variable< ? > > vars = getVariables();
+    if ( vars.contains( variable ) ) {
+      ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >( vars );
+      varList.remove( variable );
+      return varList;
+    }
+    return null;
+  }
+
   
 }

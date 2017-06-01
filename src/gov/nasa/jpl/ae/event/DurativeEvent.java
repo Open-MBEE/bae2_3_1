@@ -6,6 +6,7 @@ import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -517,31 +518,41 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     boolean changed = false;
     // Add an elaboration for every non-null value
     for ( Entry< Parameter< Long >, ? > e : tvm.entrySet() ) {
-      // TODO!! What to do with the value?
-      if ( lastStart != null && lastStart.getValue() != null && lastValue != null
-           && !Utils.valuesEqual( lastValue, 0 )
-           && !Utils.valuesEqual( lastValue, "" )
-           && !e.getKey().valueEquals( lastStart ) ) {
-        ElaborationRule r = addElaborationRule( condition, enclosingInstance, eventClass, arguments, lastStart, e.getKey() );
-        if ( r != null ) changed = true;
-//        Long duration = new Long(e.getKey().getValue( true ) - lastStart.getValue( true ));
-//        String childName = String.format( "%s%06d", name, counter++ );
-//        Expression<?>[] augmentedArgs = new Expression<?>[arguments.length + 2];
-//        // Repackage arguments, passing in the start time and duration.
-//        for ( int i = 0; i < arguments.length; ++i ) {
-//          augmentedArgs[i] = arguments[i];
-//        }
-//        augmentedArgs[arguments.length] = new Expression< Long >( lastStart );
-//        augmentedArgs[arguments.length+1] = new Expression< Long >( duration.longValue() );
-//        addElaborationRule( condition, enclosingInstance,
-//                            eventClass, childName, augmentedArgs );
-      }
+      boolean c =
+          tryToAddElaboration( enclosingInstance, eventClass, arguments,
+                               condition, lastStart, e.getKey(), lastValue );
+      if ( c ) changed = true;
       if ( !e.getKey().valueEquals( lastStart ) ) {
         lastStart = e.getKey();
         lastValue = e.getValue();
       }
     }
+    // Add for the last value of the timeline. 
+    boolean c =
+        tryToAddElaboration( enclosingInstance, eventClass, arguments,
+                             condition, lastStart,
+                             Timepoint.getHorizonTimepoint(), lastValue );
+    if ( c ) changed = true;
+    
     return changed;
+  }
+  
+  public boolean tryToAddElaboration( Object enclosingInstance,
+                                      Class< ? extends Event > eventClass,
+                                      Expression< ? >[] arguments,
+                                      Expression< Boolean > condition,
+                                      Parameter< Long > start,
+                                      Parameter< Long > end,
+                                      Object value ) {
+    if ( start != null && start.getValue() != null && value != null
+         && !Utils.valuesEqual( value, 0 ) && !Utils.valuesEqual( value, "" )
+         && !Utils.isFalse( value, false ) && !end.valueEquals( start ) ) {
+      ElaborationRule r =
+          addElaborationRule( condition, enclosingInstance, eventClass,
+                              arguments, start, end );
+      if ( r != null ) return true;
+    }
+    return false;
   }
 
   private void debugToCsvFile( TimeVaryingMap< ? > tv, String fileName ) {
@@ -2727,4 +2738,84 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 //    return null;
 //  }
 
+  // TODO -- This is not finished. Need to get deep dependents.
+  @Override
+  public Set< Parameter< ? > > getDependentParameters( boolean deep,
+                                                       Set<HasParameters> seen ) {
+    Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
+    ArrayList< Dependency< ? > > s = new ArrayList< Dependency<?> >(dependencies);
+    if ( startTimeDependency != null ) s.remove( startTimeDependency );
+    if ( endTimeDependency != null ) s.remove( endTimeDependency );
+    if ( durationDependency != null ) s.remove( durationDependency );
+    for ( Dependency< ? > d : s ) {
+      set.add( d.parameter );
+    }
+    return set;
+  }
+
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    // TODO!  Need to check effects and elaborations
+    return super.getVariablesOnWhichDepends( variable );
+  }
+
+  public Long pickStartInValidInterval() {
+    TimeVaryingMap<Boolean> overallValidTimes = null;
+    for ( Pair< Parameter< ? >, Set< Effect > > p : getEffects() ) {
+      if ( p == null || p.first == null || p.first.getValue() == null || p.second == null ) continue;
+      Object tvmo = p.first.getValue();
+      if ( tvmo instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tvm = (TimeVaryingMap<?>)tvmo;
+        for ( Effect effect : p.second ) {
+          Pair< Parameter< Long >, Object > tv = tvm.getTimeAndValueOfEffect( effect );
+          if ( tv == null || tv.first == null || !tv.first.equals( startTime ) ) continue;
+          TimeVaryingMap<Boolean> validTimes = tvm.validTime( effect, false );
+          if ( validTimes != null ) {
+            if ( overallValidTimes == null ) {
+              if ( validTimes.totalDurationWithValue( true ) > 0L ) { 
+                overallValidTimes = validTimes;
+              } else {
+                Debug.error( false, "No valid start times for " + getName() );
+              }
+            } else {
+              TimeVaryingMap<Boolean> anded = TimeVaryingMap.and( overallValidTimes, validTimes );
+              if ( anded.totalDurationWithValue( true ) > 0L ) {
+                overallValidTimes = anded;
+              } else {
+                Debug.error( false, "No valid start times for " +  getName() );
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    if ( overallValidTimes == null || overallValidTimes.isEmpty()
+         || overallValidTimes.totalDurationWithValue( true ) <= 0 ) {
+      Debug.error( false, "Returning no valid start times for " +  getName() );
+      return null;
+    }
+    Long pickedTime = overallValidTimes.pickRandomTimeWithValue( true );
+    System.out.println( "Picked startTime = " + pickedTime
+                        + " in valid intervals for " + getName() );
+    return pickedTime;
+  }
+  
+  
+  @Override
+  public <T> boolean pickParameterValue( Variable< T > variable ) {
+    if ( variable == null ) return false;
+    if ( variable.equals( startTime ) ) {
+      Long newStartTime = pickStartInValidInterval();
+      if ( newStartTime != startTime.getValue() ) {
+        variable.setValue( (T)newStartTime );
+        return true;
+      }
+    }
+    return false;
+    //return super.timeWhenFractionOfTotalDurationWithValue( variable,  );
+  }
+
+  
 }

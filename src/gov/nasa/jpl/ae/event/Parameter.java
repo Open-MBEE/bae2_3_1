@@ -27,6 +27,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
@@ -168,11 +169,20 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public boolean equals( Object val ) {
+    if ( val instanceof Parameter) {
+      return compareTo((Parameter)val) == 0;
+    }
+    return false;
+  }
+
+  // THis used to be equals until problems occurred because it was not
+  // consistent with compareTo().
+  public boolean valEquals( Object val ) {
     if ( this == val ) return true;
     if ( value == val ) return true;
     if ( value == null ) return false;
     if ( val == null ) return false;
-    if ( val instanceof Parameter && ( (Parameter)val ).valueEquals( value ) ) {
+    if ( val instanceof Parameter && ( (Parameter<?>)val ).valueEquals( value ) ) {
       return true;
     }
     //if ( val instanceof Parameter ) return ( compareTo( (Parameter<?>)val ) == 0 );
@@ -484,8 +494,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     T value = pickRandomValue();
     if ( value != null ) {
-      setValue( value );
-      return true;
+      if ( !valueEquals( value ) ) {
+        System.out.println( "////////////////////   picking " + value + " for " + this );
+        setValue( value );
+        return true;
+      }
     }
     return false;
   }
@@ -689,7 +702,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 
   @Override
   public String toShortString() {
-    return MoreToString.Helper.toShortString( value );
+    return toString(false, false, false, null, null);
+    //return MoreToString.Helper.toShortString( value );
   }
 
   @Override
@@ -711,13 +725,16 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         sb.append( getOwner().getName() + ":");
       }
     }
-    if ( withOwner || deep || withHash ) {
-      sb.append( getName() );
+    if ( !Utils.isNullOrEmpty( getName() ) || withOwner || deep || withHash ) {
+      if ( Utils.isNullOrEmpty( getName() ) ) 
+        sb.append( "_" );
+      else
+        sb.append( getName() );
     }
     if ( withHash ) {
       sb.append("@" + hashCode() );
     }
-    if ( withOwner || deep || withHash ) {
+    if ( !Utils.isNullOrEmpty( getName() ) || withOwner || deep || withHash ) {
       sb.append( "=" );
     }
     if ( !deep ) {
@@ -963,7 +980,18 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public < TT > Pair<Domain<TT>, Boolean> restrictDomain( Domain< TT > domain,
                                            boolean propagate,
                                            Set< HasDomain > seen ) {
+    Domain<?> d = this.domain == null ? null : this.domain.clone();
     boolean changed = this.domain.restrictTo( domain );
+    if ( changed ) {
+      if ( owner != null ) {
+        owner.handleDomainChangeEvent( this, null );
+      }
+      if ( Debug.isOn() ) {
+        System.out.println( "Changed domain of "
+                            + MoreToString.Helper.toLongString( this )
+                            + " from " + d + " to " + this.domain );
+      }
+    }
     return new Pair(this.domain, changed);
   }
 
@@ -975,5 +1003,28 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       Debug.error( "A Parameter's owner must be a ParameterListener!  Trying to set to " + owner );
     }
   }
+  
+  @Override
+  public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
+    TT tt = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( tt != null ) return tt;
+    T t = getValue(propagate);
+    tt = Evaluatable.Helper.evaluate( t, cls, true, propagate, true, null );
+    return tt;
+  }
+
+  public List< Variable< ? > > getIndependentVariables() {
+    ArrayList<Variable<?>> independentVars = new ArrayList< Variable<?> >();
+    if ( getOwner() == null ) return null;
+    List<Variable<?>> vars = getOwner().getVariablesOnWhichDepends(this);
+    for ( Variable<?> v : vars ) {
+      if (v instanceof Parameter && !((Parameter<?>)v).isDependent() ) {
+        independentVars.add( (Parameter<?>)v );
+      }
+    }
+    return independentVars;
+  }
+
+
 
 }

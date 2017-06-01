@@ -3,24 +3,35 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
+import gov.nasa.jpl.ae.solver.ComparableDomain;
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.LongDomain;
+import gov.nasa.jpl.ae.solver.MultiDomain;
+import gov.nasa.jpl.ae.solver.RangeDomain;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.StringDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
@@ -46,6 +57,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.python.google.common.primitives.Bytes;
+
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
@@ -67,7 +80,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                                             Affectable,
                                             ParameterListener,
                                             HasOwner,
-                                            AspenTimelineWritable {
+                                            AspenTimelineWritable,
+                                            HasDomain {
 
   protected static boolean checkConsistency = false;
 
@@ -154,6 +168,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
 
   protected Object owner = null;
 
+  protected Domain<V> domain = null;
+  
 
   /**
    * For the convenience of referring to the effect method.
@@ -401,17 +417,26 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
   public TimeVaryingMap( String name, String fileName ) {
     this(name);
-        fromCsvFile( fileName, type );
+    fromCsvFile( fileName, type );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
   }
 
 
   public TimeVaryingMap( String name, Class<V> type ) {
     this(name);
     this.type = type;
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
   }
   protected TimeVaryingMap( String name, String fileName, Class<V> type ) {
     this(name, type);
-        fromCsvFile( fileName, type );
+    fromCsvFile( fileName, type );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
   }
 
   protected TimeVaryingMap( String name, V defaultValue, Class<V> type ) {
@@ -443,6 +468,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     Parameter< Long> t = new Parameter< Long>(null, null, 0L, this);
     Debug.errorOnNull(true,"this should neeeever be null", t.getValue(false) );
     put( t, valueToInsert );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
@@ -450,12 +478,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
                          V defaultValue, Class<V> type ) {
     this( name, defaultValue, type );
     fromCsvFile( fileName, backupFileName, type );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
   }
   public TimeVaryingMap( String name, String fileName,
                          V defaultValue, Class<V> type ) {
     this( name, defaultValue, type );
-        fromCsvFile( fileName, type );
-      }
+    fromCsvFile( fileName, type );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
+  }
 
 //  public TimeVaryingMap( String name, V defaultValue ) {
 //    this(name, defaultValue, null);
@@ -464,6 +498,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public TimeVaryingMap( String name, String fileName, V defaultValue ) {
     this(name, defaultValue, null);
     fromCsvFile( fileName, type );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
   }
 
   /**
@@ -480,7 +517,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         }
         return cls.cast( obj );
       } catch ( ClassCastException e ) {
-        // ignore
+        try {
+          return (T)obj; // may work for primitive cls where cast() does not.
+        } catch( ClassCastException e1 ) {
+          // ignore
+        }
       }
     }
     return null;
@@ -596,6 +637,317 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
+  
+  /**
+   * Create a {@link TimeVaryingMap} and initialize it with the given {@link Method} and
+   * arguments, assuming that one or more of the arguments and the object from
+   * which the method is called are {@link TimeVaryingMap}s whose values should be used
+   * in the invocation instead of the map itself.
+   * <p>
+   * For example, if {@code s1} and {@code s2} are
+   * {@link TimeVaryingMap}&lt;String&gt;s, then for
+   * {@code b = s1.contains(s2)}, {@code b} would be a
+   * {@link TimeVaryingMap}&lt;Boolean&gt; where
+   * {@code b.getValue(t) == s1.getValue(t).contains(s2.getValue(t))}.  This map
+   * would be created with the following code invoking this constructor:<p>
+   * {@code Method method = ClassUtils.getMethodForArgTypes(String.class, "contains", new Class[]{ CharacterSequence.class });}<br>
+   * {@link TimeVaryingMap}&lt;Boolean&gt;("myMap", Boolean.class, s1, method, new Object[]{ s2 }, Interpolation.STEP)} .
+   * 
+   * @param name
+   *          the name of the map to create
+   * @param valueType
+   *          the value type of the map
+   * @param obj
+   *          the instance from which the method is called
+   * @param method
+   *          the function to be called
+   * @param args
+   *          the arguments to the function
+   * @param interpolation
+   *          how to interpolate between map entries in the created map
+   */
+  public TimeVaryingMap( String name, Class<V> valueType, Object obj, Method method, Object[] args, Interpolation interpolation ) {
+    //this(name, (String)null, (V)null, valueType, interpolation);
+    this( name, valueType, new FunctionCall( obj, method, args, (Call)null, valueType ), interpolation );
+
+    // TODO -- unless the above isn't good, delete the code below.
+    if ( "a".contains( "b" ) ) { // This is always false.  Ha ha, stupid compiler! 
+
+    // gather timepoints and interpret which objects/arguments will be treated as TVMs
+    TreeSet< Parameter< Long > > timePoints =
+        new TreeSet< Parameter< Long > >( TimeComparator.instance );
+    // Process the object of the method.
+    TimeVaryingMap<?> objectMap = null;
+    if ( obj != null && !ClassUtils.isStatic( method ) && obj instanceof TimeVaryingMap ) {
+      Class<?> methodClass = method.getDeclaringClass();
+      objectMap = (TimeVaryingMap<?>)obj;
+      // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+      if ( ( objectMap.getType() != null && methodClass.isAssignableFrom( objectMap.getType() ) ) ||
+          (objectMap.getType() == null && !methodClass.isInstance( obj ) ) ) {
+        timePoints.addAll( objectMap.keySet() );
+      } else {
+        // Hide the fact that the object is a TVM since we're not using it's values.  Interpret a non-null objectMap as an indication that it's values should be used.
+        objectMap = null; 
+      }
+    }
+    // Process the arguments.
+    ArrayList< TimeVaryingMap< ? > > argMaps =
+        new ArrayList< TimeVaryingMap< ? > >();
+    Class< ? >[] paramTypes = method.getParameterTypes();
+    int i = 0;
+    Class<?> pType = null;
+    for ( Object arg : args ) {
+      if ( arg instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tv = (TimeVaryingMap<?>)arg;
+        if ( i < paramTypes.length ) { // helps with variable arguments
+          pType = paramTypes[i];
+        }
+        // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+        if ( arg != null && pType != null && ( ( tv.getType() != null && pType.isAssignableFrom( tv.getType() ) ) ||
+            (tv.getType() == null && !pType.isInstance( obj ) ) ) ) {
+          argMaps.add( tv );
+          timePoints.addAll( tv.keySet() );
+        } else {
+          argMaps.add( null );
+        }
+      } else {
+        argMaps.add( null );
+      }
+      ++i;
+    }
+
+    // Now run for each timepoint.
+    for ( Parameter<Long> t : timePoints ) {
+      // Get the object.
+      Object object = obj;
+      if ( objectMap != null ) {
+        object = objectMap.getValue( t );
+      }
+
+      // Get the arguments.
+      Object[] argsForTime = new Object[args.length];
+      i = 0;
+      for ( Object arg : args ) {
+        Object argForTime = arg;
+        if ( argMaps.get( i ) != null ) {
+          argForTime = argMaps.get( i ).getValue( t );
+        }
+        argsForTime[i] = argForTime; 
+        ++i;
+      }
+      
+      // Run for timepoint!
+      Object result = null;
+      try {
+        result = ClassUtils.runMethod( obj, method, argsForTime );
+        V v = tryCastValue( result );
+        if ( v != null ) {
+          setValue(t, v);
+        }
+      } catch ( IllegalArgumentException e ) {
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      }      
+      
+    }
+    if ( Debug.isOn() || checkConsistency ) isConsistent();
+    }
+  }
+
+  /**
+   * Create a {@link TimeVaryingMap} and initialize it with the given
+   * {@link Call} and arguments, assuming that one or more of the arguments and
+   * the object from which the Call is invoked are {@link TimeVaryingMap}s whose
+   * values should be used in the invocation instead of the map itself.
+   * <p>
+   * For example, if {@code s1} and {@code s2} are
+   * {@link TimeVaryingMap}&lt;String&gt;s, then for
+   * {@code b = s1.contains(s2)}, {@code b} would be a
+   * {@link TimeVaryingMap}&lt;Boolean&gt; where
+   * {@code b.getValue(t) == s1.getValue(t).contains(s2.getValue(t))}. This map
+   * would be created with the following code:<br>
+   * {@code FunctionCall f = new FunctionCall(s1, String.class, "contains", new Object[]{ s2 }, Boolean.class)}<br> 
+   * {@code {@link TimeVaryingMap}&lt;Boolean&gt; b = new
+   * {@link TimeVaryingMap}&lt;Boolean&gt;("myMap", Boolean.class, f, Interpolation.STEP)} .
+   * 
+   * @param name
+   *          the name of the map to create
+   * @param cls
+   *          the value type of the map
+   * @param obj
+   *          the instance from which the method is called
+   * @param method
+   *          the function to be called
+   * @param args
+   *          the arguments to the function
+   * @param interpolation
+   *          how to interpolate between map entries in the created map
+   */
+  public TimeVaryingMap( String name, Class<V> cls, Call call, Interpolation interpolation,
+                         boolean newStufffffffffffffffffffffffffffffffffffff ) {
+    this(name, (String)null, (V)null, cls, interpolation);
+    
+    // Initialize the transformation of the input call into a call that returns a TimeVaryingMap.
+    //object and arguments to potentially be transformed.
+    Call newCall = null;
+    boolean callIsConstructor = false;
+    if ( call instanceof FunctionCall ) {
+      callIsConstructor = false;
+      newCall = new TimeVaryingFunctionCall( (FunctionCall)call );
+    } else if ( call instanceof ConstructorCall ) {
+      newCall = new TimeVaryingConstructorCall( (ConstructorCall)call );
+      callIsConstructor = true;
+    } else {
+      // TODO -- ERROR
+      callIsConstructor = false;
+    }
+    Object newObject = call.getObject();
+    Object[] newArgs = new Object[call.getArguments().size()];
+    int i = 0;
+    for ( Object arg : call.getArguments() ) {
+      newArgs[i] = arg;
+      ++i;
+    }
+    
+    // gather timepoints and interpret which objects/arguments will be treated as TVMs
+    TreeSet< Parameter< Long > > timePoints = 
+        new TreeSet< Parameter< Long > >( TimeComparator.instance );
+
+    
+    // Process the object of the method.
+    TimeVaryingMap<?> objectMap = TimeVaryingFunctionCall.evaluateAsTimeVaryingMap( call.getObject(), true, null );
+    if ( objectMap != null ) {
+      newObject = objectMap;
+    }
+
+  }
+  
+  
+  public TimeVaryingMap( String name, Class<V> cls, Call call, Interpolation interpolation ) {
+      this(name, (String)null, (V)null, cls, interpolation);
+    // gather timepoints and interpret which objects/arguments will be treated as TVMs
+    TreeSet< Parameter< Long > > timePoints = 
+        new TreeSet< Parameter< Long > >( TimeComparator.instance );
+    // Process the object of the method.
+    TimeVaryingMap<?> objectMap = null;
+    Object obj = call.getObject();
+    Member member = call.getMember();
+    if ( call instanceof TimeVaryingFunctionCall ) {
+      Object oo = null;
+      try {
+        oo = call.evaluateObject( true );
+      } catch (Throwable e ) {
+      }
+      if ( oo != null ) obj = oo;
+      if ( obj instanceof TimeVaryingMap ) {
+        objectMap = (TimeVaryingMap< ? >)obj;
+      }
+    }
+    if ( obj != null && !call.isStatic() && obj instanceof TimeVaryingMap ) {
+      Class<?> methodClass = member.getDeclaringClass();
+      objectMap = (TimeVaryingMap<?>)obj;
+      // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+      if ( ( objectMap.getType() != null && methodClass.isAssignableFrom( objectMap.getType() ) ) ||
+          (objectMap.getType() == null && !methodClass.isInstance( obj ) ) ) {
+        timePoints.addAll( objectMap.keySet() );
+      } else {
+        // Hide the fact that the object is a TVM since we're not using it's values.  Interpret a non-null objectMap as an indication that it's values should be used.
+        objectMap = null; 
+      }
+    }
+    // Process the arguments.
+    ArrayList< TimeVaryingMap< ? > > argMaps =
+        new ArrayList< TimeVaryingMap< ? > >();
+    Class< ? >[] paramTypes = call.getParameterTypes();
+    Object[] args = call.getArgumentArray();
+    int i = 0;
+    Class<?> pType = null;
+    for ( Object arg : args ) {
+      Object a = arg;
+      if ( i < paramTypes.length ) {  // helps with variable arguments
+        pType = paramTypes[i];
+      }
+      if ( call instanceof TimeVaryingFunctionCall ) {
+        Object oo = null;
+        try {
+          oo = call.evaluateArg( a, pType, true );
+        } catch (Throwable e ) {
+        }
+        if ( oo != null ) a = oo;
+//        if ( a instanceof TimeVaryingMap ) {
+//          objectMap = (TimeVaryingMap< ? >)obj;
+//        }
+      }
+      if ( a instanceof TimeVaryingMap ) {
+        TimeVaryingMap<?> tv = (TimeVaryingMap<?>)a;
+        // If the TVM values are compatible with the method's class or, in the case that the TVM value type is not known, and the TVM itself is not compatible with the method's class, then assume that the TVM values are meant to be the instance of the call.
+        if ( pType != null && ( ( tv.getType() != null && pType.isAssignableFrom( tv.getType() ) ) ||
+            (tv.getType() == null && !pType.isInstance( a ) ) ) ) {
+          argMaps.add( tv );
+          timePoints.addAll( tv.keySet() );
+        } else {
+          argMaps.add( null );
+        }
+      } else {
+        argMaps.add( null );
+      }
+      ++i;
+    }
+
+    // Now run for each timepoint.
+    for ( Parameter<Long> t : timePoints ) {
+      // Get the object.
+      Object object = obj;
+      if ( objectMap != null ) {
+        object = objectMap.getValue( t );
+      }
+  
+      // Get the arguments.
+      Object[] argsForTime = new Object[args.length];
+      i = 0;
+      for ( Object arg : args ) {
+        Object argForTime = arg;
+        if ( argMaps.get( i ) != null ) {
+          argForTime = argMaps.get( i ).getValue( t );
+        }
+        argsForTime[i] = argForTime; 
+        ++i;
+      }
+      
+      // Run for timepoint!
+      Object result = null;
+      Call newCall = null;
+      try {
+        if ( member instanceof Method ) {
+          newCall = new FunctionCall( object, (Method)member, argsForTime, (Call)null, call.getReturnType() );
+        } else {
+          newCall = new ConstructorCall( object, (Constructor<?>)member, argsForTime, (ConstructorCall)null, call.getReturnType() );
+        }
+        result = newCall.evaluate( true );
+        V v = tryCastValue( result );
+        if ( v != null ) {
+          setValue(t, v);
+        }
+      } catch ( IllegalArgumentException e ) {
+        e.printStackTrace();
+      } catch ( IllegalAccessException e ) {
+        e.printStackTrace();
+      } catch ( InvocationTargetException e ) {
+        e.printStackTrace();
+      } catch ( InstantiationException e ) {
+        e.printStackTrace();
+      }      
+      
+    }
+  
+    if ( Debug.isOn() || checkConsistency ) isConsistent();
+  }
+
+  
+
   public TimeVaryingMap( String name, TimeVaryingMap<V> tvm ) {
     this( name, null, null, tvm.type );
     owner = tvm.owner;
@@ -641,7 +993,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public TimeVaryingMap( String name, String fileName, V defaultValue,
                          Class< V > cls, Interpolation interpolation ) {
     this( name, defaultValue, cls );
-    this.interpolation = interpolation;
+    if (interpolation != null ) this.interpolation = interpolation;
     fromCsvFile( fileName, type );
   }
   
@@ -2104,86 +2456,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     for ( Parameter< Long> k : keys ) {
       V v1 = this.getValue( k );
       VV v2 = map == null ? null : map.getValue( k );
-      Object v3 = null;
-      switch ( op ) {
-        case DIVIDE:
-          v3 = Functions.divide( v1, v2 );
-          break;
-        case LOG:
-          //v3 = Functions.log( v1, v2 );
-          throw new IllegalArgumentException("log(TimeVaryingMap) not yet supported!");
-          //break;
-        case MAX:
-          v3 = Functions.max( v1, v2 );
-          break;
-        case MIN:
-          v3 = Functions.min( v1, v2 );
-          break;
-        case MINUS:
-          v3 = Functions.minus( v1, v2 );
-          break;
-        case MOD:
-          //v3 = Functions.mod( v1, v2 );
-          throw new IllegalArgumentException("mod(TimeVaryingMap) not yet supported!");
-          //break;
-        case PLUS:
-          v3 = Functions.plus( v1, v2 );
-          break;
-        case POW:
-          v3 = Functions.pow( v1, v2 );
-          break;
-        case TIMES: 
-          v3 = Functions.times( v1, v2 );
-          break;
-        case NEG: 
-          v3 = Functions.negative( v1 );
-          break;
-        case AND:
-          v3 = Functions.and( v1, v2 );
-          break;
-        case OR:
-          throw new IllegalArgumentException( "or(V1,V1) not yet implemented!" );
-          //v3 = Functions.or( v1, v2 );
-          //break;
-        case NOT:
-          throw new IllegalArgumentException( "not(V1,V1) not yet implemented!" );
-          //v3 = Functions.not( v1 );
-          //break;
-        case LT:
-          v3 = Functions.lessThan( v1, v2 );
-          break;
-        case LTE:
-          v3 = Functions.lessThanOrEqual( v1, v2 );
-          break;
-        case GT:
-          throw new IllegalArgumentException( "greaterThan(V1,V1) not yet implemented!" );
-          //v3 = Functions.greaterThan( v1, v2 );
-          //break;
-        case GTE:
-          throw new IllegalArgumentException( "greaterThanOrEqual(V1,V1) not yet implemented!" );
-          //v3 = Functions.greaterThanOrEqual( v1, v2 );
-          //break;
-        case EQ:
-          throw new IllegalArgumentException( "equals(V1,V1) not yet implemented!" );
-          //v3 = Functions.equals( v1, v2 );
-          //break;
-        case NEQ:
-          throw new IllegalArgumentException( "notEquals(V1,V1) not yet implemented!" );
-          //v3 = Functions.notEquals( v1, v2 );
-          //break;
-        default:
-          throw new IllegalArgumentException("Unknown MathOperation " + op + "!");
-      };
-      // Applying the operation to a number and null (in that order) will return
-      // the number. If the order of the operands is (null, number), then the
-      // number is used only if the operation is symmetric. This behavior may be
-      // interpreted as not modifying the existing timeline if the other operand
-      // does not exist.
-      // But this doesn't make sense when the interpolation is NONE, so nothing
-      // is set in that case.
-      if ( v3 == null && (interpolation != NONE || map.interpolation != NONE || op != MathOperation.TIMES ) ) {
-        v3 = v1 != null ? v1 : (symmetric(op) ? v2 : null);
-      }
+      Object v3 = applyOperation( v1, v2, op );
       VVV v4 = newTvm.tryCastValue( v3 );
       if ( v4 != null ) {
         newTvm.setValue( k, v4 );
@@ -2192,7 +2465,93 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return newTvm;
   }
   
-
+  
+  public < VV, VVV > Object applyOperation( V v1, VV v2, MathOperation op ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    Object v3 = null;
+    switch ( op ) {
+      case DIVIDE:
+        v3 = Functions.divide( v1, v2 );
+        break;
+      case LOG:
+        //v3 = Functions.log( v1, v2 );
+        throw new IllegalArgumentException("log(TimeVaryingMap) not yet supported!");
+        //break;
+      case MAX:
+        v3 = Functions.max( v1, v2 );
+        break;
+      case MIN:
+        v3 = Functions.min( v1, v2 );
+        break;
+      case MINUS:
+        v3 = Functions.minus( v1, v2 );
+        break;
+      case MOD:
+        //v3 = Functions.mod( v1, v2 );
+        throw new IllegalArgumentException("mod(TimeVaryingMap) not yet supported!");
+        //break;
+      case PLUS:
+        v3 = Functions.plus( v1, v2 );
+        break;
+      case POW:
+        v3 = Functions.pow( v1, v2 );
+        break;
+      case TIMES: 
+        v3 = Functions.times( v1, v2 );
+        break;
+      case NEG: 
+        v3 = Functions.negative( v1 );
+        break;
+      case AND:
+        v3 = Functions.and( v1, v2 );
+        break;
+      case OR:
+        throw new IllegalArgumentException( "or(V1,V1) not yet implemented!" );
+        //v3 = Functions.or( v1, v2 );
+        //break;
+      case NOT:
+        throw new IllegalArgumentException( "not(V1,V1) not yet implemented!" );
+        //v3 = Functions.not( v1 );
+        //break;
+      case LT:
+        v3 = Functions.lessThan( v1, v2 );
+        break;
+      case LTE:
+        v3 = Functions.lessThanOrEqual( v1, v2 );
+        break;
+      case GT:
+        throw new IllegalArgumentException( "greaterThan(V1,V1) not yet implemented!" );
+        //v3 = Functions.greaterThan( v1, v2 );
+        //break;
+      case GTE:
+        throw new IllegalArgumentException( "greaterThanOrEqual(V1,V1) not yet implemented!" );
+        //v3 = Functions.greaterThanOrEqual( v1, v2 );
+        //break;
+      case EQ:
+        throw new IllegalArgumentException( "equals(V1,V1) not yet implemented!" );
+        //v3 = Functions.equals( v1, v2 );
+        //break;
+      case NEQ:
+        throw new IllegalArgumentException( "notEquals(V1,V1) not yet implemented!" );
+        //v3 = Functions.notEquals( v1, v2 );
+        //break;
+      default:
+        throw new IllegalArgumentException("Unknown MathOperation " + op + "!");
+    };
+    // Applying the operation to a number and null (in that order) will return
+    // the number. If the order of the operands is (null, number), then the
+    // number is used only if the operation is symmetric. This behavior may be
+    // interpreted as not modifying the existing timeline if the other operand
+    // does not exist.
+    // But this doesn't make sense when the interpolation is NONE, so nothing
+    // is set in that case.
+    if ( v3 == null && (interpolation != NONE || interpolation != NONE || op != MathOperation.TIMES ) ) {
+      v3 = v1 != null ? v1 : (symmetric(op) ? v2 : null);
+    }
+    return v3;
+//    VVV v4 = (VVV)(resultType == null ? v3 : resultType.cast( v3 ) );
+//    return v4;
+}
+  
   /**
    * @param n the number by which this map is divided
    * @return this map after dividing each value by {@code n}
@@ -3441,7 +3800,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   /**
-   * @return this map after removing all but one entry from each set of adjacent
+   * @return this map after removing all but the first entry from each set of adjacent
    *         entries with the same values.
    */
   public <VV> TimeVaryingMap< V > removeDuplicates() {
@@ -4967,8 +5326,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   }
 
   public static boolean testGetFirstTimepointParameter() {
-    boolean debugWasOn = Debug.isOn();
-    if ( !debugWasOn ) Debug.turnOn();
+//    boolean debugWasOn = Debug.isOn();
+//    if ( !debugWasOn ) Debug.turnOn();
 
     boolean succ = true;
     TimeVaryingMap tvm = new TimeVaryingMap< Long >("imap", null, 0L, Long.class);
@@ -5009,7 +5368,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
 
 
-    if ( !debugWasOn ) Debug.turnOff();
+//    if ( !debugWasOn ) Debug.turnOff();
     return succ;
   }
 
@@ -5572,6 +5931,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         }
       }
     }
+    if ( type == null ) {
+      Class<?> c = ClassUtils.dominantObjectType( values() );
+      if ( cls != null && cls.isAssignableFrom( c ) ) {
+        c = cls;
+      }
+      setType( c );
+    }
   }
 
   public void fromString( String s, Class<V> cls ) {
@@ -5706,7 +6072,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     }
     // Add a final point in case the plotter does not render beyond last point
     Timepoint h = Timepoint.getHorizonTimepoint();
-    if ( interpolation.type != Interpolation.NONE && lastKey != null
+    if ( (interpolation == null || interpolation.type != Interpolation.NONE) && lastKey != null
          && before( lastKey, h ) ) {
       V v = getValue(h);
       if ( v != null ) {
@@ -5791,6 +6157,15 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         // ignore
       }
       type = type.getSuperclass();
+    }
+    if ( this.type != oldType && this.type != null
+         && ( domain == null
+              || ( domain.getType() != null
+                   && !this.type.isAssignableFrom( domain.getType() ) ) ) ) {
+      Domain<V> d = DomainHelper.getDomainForClass( this.type );
+      if ( d != null ) {
+        domain = d;
+      }
     }
   }
 
@@ -6227,9 +6602,23 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return dv;
   }
 
+  public static void testMapCallConstructor() {
+    TimeVaryingMap<String> s1 = new TimeVaryingMap<>( "s1", String.class );
+    s1.setValue( new SimpleTimepoint( 0 ), "hello" );
+    s1.setValue( new SimpleTimepoint( 4 ), "world" );
+    TimeVaryingMap<String> s2 = new TimeVaryingMap<>( "s1", String.class );
+    s2.setValue( new SimpleTimepoint( 2 ), "hell" );
+    s2.setValue( new SimpleTimepoint( 6 ), "o" );
+    FunctionCall f = new FunctionCall( s1, String.class, "contains", new Object[]{ s2 }, Boolean.class );
+    TimeVaryingMap<Boolean> b = new TimeVaryingMap<>( "s1_contains_s2", Boolean.class, f, STEP );
+    System.out.println( "b = " + b );
+  }
+  
   // TODO -- make this a JUnit
   public static void main( String[] args ) {
 
+    testMapCallConstructor();
+    
     boolean succ = testGetFirstTimepointParameter();
     Assert.assertTrue( succ );
 
@@ -6627,6 +7016,520 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     deltaMap.interpolation = NONE;
     return deltaMap;
   }
+ 
+ 
+ public TimeVaryingMap< Boolean > validTime(Call call, int argIndexOfValue, Object[] otherArgs) {
+   // TODO!!! -- HERE!!!
+   Collection< Object > x = call.map( this.values(), argIndexOfValue );
+   return null;
+ }
+
+ public TimeVaryingMap< Boolean >
+ validTimeForSetValue( EffectFunction ef, boolean basedOnDomainsAndNotValues ) {
+   try {
+     if ( !basedOnDomainsAndNotValues ) {
+       V v = (V)getValueOfEffect( ef );
+       Boolean b = domain.contains( v );
+       return new TimeVaryingMap< Boolean >( "", b, Boolean.class );
+     } else {
+       Domain< V > d = domainOfEffectValueArgument( ef );
+       Boolean b = !mutuallyExclusive( domain, d );
+       return new TimeVaryingMap< Boolean >( "", b, Boolean.class );
+     }
+   } catch ( Throwable t ) {
+     t.printStackTrace();
+     return null;
+   }
+ }
+
+ /**
+  * Get the time intervals where the effect could be moved.
+  *  If looking at just the currently assigned values and not the domains,
+  *  then we just need to walk through the timepoints where the effect
+  *  could occur and see if it's outside the domain.
+  * @param ef the effect to move
+  * @return a Boolean TimeVaryingMap specifying the valid time intervals.
+  */
+ public TimeVaryingMap< Boolean > validTime( EffectFunction ef ) {
+   TimeVaryingMap< Boolean > tvm =
+       new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+
+   // The time of the effect is already restricted by its own domain.
+   Parameter< Long > t = this.getTimeOfEffect( ef );
+   if ( t == null ) return null;
+   Domain< Long > timepointDomain = t.getDomain();
+   if ( timepointDomain.isEmpty() ) {
+     return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+   }
+
+   MathOperation op = getOperationForMethod( ef.getMethod() );
+   if ( op == null ) {
+     return null;
+   }
+   V v = (V)getValueOfEffect( ef );
+
+   Class< V > resultType =
+       (Class< V >)ClassUtils.dominantTypeClass( getType(),
+                                                 domain.getType() );
+   RangeDomain< Long > trd = (RangeDomain)timepointDomain;
+   Long timeLowerBound = trd.getLowerBound();
+   Long timeUpperBound = trd.getUpperBound();
+   Parameter< Long > tb = getTimepointBefore( timeLowerBound );
+   if ( tb == null ) tb = firstKey();
+   NavigableMap< Parameter< Long >, V > m =
+       subMap( tb, true, lastKey(), true );
+   for ( Entry< Parameter< Long >, V > entry : m.entrySet() ) {
+     if ( entry.getKey().getValueNoPropagate() > timeUpperBound ) {
+       tvm.setValue( entry.getKey(), false );
+       break;
+     }
+     V val = entry.getValue();
+     V newVal = null;
+     try {
+       Object r = applyOperation( val, v, op );
+       newVal = tryCastValue( r );
+       Boolean b = domain.contains( newVal );
+       tvm.setValue( entry.getKey(), b );
+     } catch ( ClassCastException e1 ) {
+       e1.printStackTrace();
+     } catch ( IllegalAccessException e1 ) {
+       e1.printStackTrace();
+     } catch ( InvocationTargetException e1 ) {
+       e1.printStackTrace();
+     } catch ( InstantiationException e1 ) {
+       e1.printStackTrace();
+     }
+   }
+   return tvm;
+
+ }
+
+ 
+ /**
+  * Get the time intervals where the effect could be moved.
+  * 
+  * @param ef the effect to move
+  * @param basedOnDomainsAndNotValues
+  * @return a Boolean TimeVaryingMap specifying the valid time intervals.
+  */
+  public TimeVaryingMap< Boolean >
+         validTime( Effect e, boolean basedOnDomainsAndNotValues ) {
+    if ( domain == null ) {
+      return new TimeVaryingMap< Boolean >( "", true, Boolean.class );
+    }
+    if ( !( e instanceof EffectFunction ) ) {
+      Debug.error( "validTime() expects an EffectFunction." );
+      return null;
+    }
+    EffectFunction ef = (EffectFunction)e;
+    if ( ef.getMethod() != null
+         && ef.getMethod().getName().contains( "setValue" ) ) {
+      return validTimeForSetValue( ef, basedOnDomainsAndNotValues );
+    }
+
+    // We might quickly determine that the effect is always bad.
+    Domain< V > d = domainForEffect( ef, basedOnDomainsAndNotValues );
+    Boolean alwaysBad = mutuallyExclusive( domain, d );
+    if ( alwaysBad ) {
+      return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+    }
+
+    // See if there are times when the effect must be bad.
+    // This would be when other effects' times are constrained to certain
+    // ranges such that, in combination with this effect, yield values that are
+    // all outside the domain.
+
+    // The time of the effect is already restricted by its own domain.
+    Parameter< Long > t = this.getTimeOfEffect( ef );
+    if ( t == null ) return null;
+    Domain< Long > timepointDomain = t.getDomain();
+    if ( timepointDomain.isEmpty() ) {
+      return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+    }
+
+    if ( !basedOnDomainsAndNotValues ) {
+      return validTime(ef);
+    }
+    return validTimeForDomains( ef );  
+  }
+
+  public void dontWantToDelete(ComparableDomain<Long> timepointDomain) {
+    Set< Parameter< Long > > mustBeBefore = new LinkedHashSet< Parameter< Long > >();
+    Set< Parameter< Long > > mayBeBefore = new LinkedHashSet< Parameter< Long > >();
+    
+    for ( Parameter<Long> tp : keySet() ) {
+      if ( tp == null ) continue;
+      Domain<Long> tDomain = tp.getDomain();
+      if ( tDomain == null ) continue;
+      if ( tDomain instanceof ComparableDomain && timepointDomain instanceof ComparableDomain ) {
+        if ( ( (ComparableDomain< Long >)tDomain ).less( (ComparableDomain< Long >)timepointDomain ) ) {
+          mustBeBefore.add( tp );
+        } else if ( !( (ComparableDomain< Long >)tDomain ).greater( (ComparableDomain< Long >)timepointDomain ) ) {
+          mayBeBefore.add( tp );
+        }
+      } else if ( timepointDomain.magnitude() == 1 && tDomain instanceof ComparableDomain ) {
+        Long tpt = timepointDomain.getValue( true );
+        if ( ( (ComparableDomain< Long >)tDomain ).less( tpt ) ) {
+          mustBeBefore.add( tp );
+        } else if ( !( (ComparableDomain< Long >)tDomain ).greater( tpt ) ) {
+          mayBeBefore.add( tp );
+        }
+      } else if ( tDomain.magnitude() == 1 && timepointDomain.magnitude() == 1 ) {
+        Long tpt = timepointDomain.getValue( true );
+        Long td = tDomain.getValue( true );
+        try {
+          if ( Functions.lessThan( td, tpt ) == Boolean.TRUE ) {
+            mustBeBefore.add( tp );
+          } else if (Functions.greaterThan( td, tpt ) == Boolean.FALSE ) {
+            mayBeBefore.add( tp );
+          }
+        } catch ( IllegalAccessException e1 ) {
+          e1.printStackTrace();
+        } catch ( InvocationTargetException e1 ) {
+          e1.printStackTrace();
+        } catch ( InstantiationException e1 ) {
+          e1.printStackTrace();
+        }
+      }
+    }
+    
+  }
+  
+  /**
+   * Get the time intervals where the effect could be moved based on the domains
+   * of the timepoints and values of the effects on this timeline,
+   * 
+   * Determine if there are other effects that must overlap in time with domain
+   * of the time of the effect. For add(amount, time), any timepoint on the
+   * timeline that is always before this one will contribute to this effect.
+   * 
+  * @param ef the effect to move
+  * @return a Boolean TimeVaryingMap specifying the valid time intervals.
+   */
+  public TimeVaryingMap< Boolean > validTimeForDomains( EffectFunction ef ) {
+
+    Parameter< Long > t = this.getTimeOfEffect( ef );
+    if ( t == null ) return null;
+    Domain< Long > timepointDomain = t.getDomain();
+    if ( timepointDomain.isEmpty() ) {
+      return new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+    }
+
+    TimeVaryingMap< Boolean > tvm =
+        new TimeVaryingMap< Boolean >( "", false, Boolean.class );
+
+    // If zero is in the domain of the time of this effect, then nothing is
+    // definitely before this one, and we can assume there is no restriction.
+    if ( timepointDomain == null || timepointDomain.contains( 0L ) ) {
+      return new TimeVaryingMap< Boolean >( "", true, Boolean.class );
+    }
+
+    TimeVaryingMap< Effect > effectMap = new TimeVaryingMap< Effect >();
+    for ( Effect eff : appliedSet ) {
+      Pair< Parameter< Long >, Object > p = getTimeAndValueOfEffect( eff );
+      if ( p != null && p.first != null ) {
+        effectMap.setValue( p.first, eff );
+      }
+    }
+
+    Domain< V > mustEffectDomain = null;
+    MultiDomain< V > mayEffectDomain = new MultiDomain< V >();
+
+    TreeMap< Long, Set< Parameter< Long > > > domainTimepoints =
+        new TreeMap< Long, Set< Parameter< Long > > >();
+
+    // Gather endpoints of domain.
+    for ( Parameter< Long > tp : keySet() ) {
+      if ( tp == null ) continue;
+      Domain< Long > tDomain = tp.getDomain();
+      if ( tDomain == null ) continue;
+
+      if ( tDomain instanceof ComparableDomain && !tDomain.isEmpty() ) {
+        Long lb = ( (ComparableDomain< Long >)tDomain ).getLowerBound();
+        if ( lb != null ) {
+          Utils.add( domainTimepoints, lb, tp );
+          // domainTimepoints.put( lb, tDomain );
+        }
+        Long ub = ( (ComparableDomain< Long >)tDomain ).getUpperBound();
+        if ( ub != null ) {
+          Utils.add( domainTimepoints, ub, tp );
+        }
+      }
+    }
+
+    // For each domain timepoint determine whether the effect will drive the
+    // timeline value outside its domain and set the valid timeline, tvm, to
+    // true or false for that timepoint.
+    MathOperation op = getOperationForMethod( ef.getMethod() );
+    if ( op == null ) {
+      return null;
+    }
+
+    for ( Entry< Long, Set< Parameter< Long > > > ntry : domainTimepoints.entrySet() ) {
+      Long dtp = ntry.getKey();
+
+      // Anything outside the domain of the effect is invalid.
+      if ( timepointDomain != null && !timepointDomain.contains( dtp ) ) {
+        tvm.setValue( new SimpleTimepoint( dtp ), false );
+        continue;
+      }
+
+      // TODO -- this might be faster if not iterating through every for every
+      // for the time domain endpoints of every entry. If we build the set of
+      // entries associated with each domainTimepoint, and we kept a set of
+      // pastEffects and potentialEffects updated for the entries at each
+      // domainTimepoint,
+      // then we could many times reuse the previous domain calculations and
+      // avoid the O(n^2) complexity below. The computation after the inner loop
+      // would need to allocate a different mayEffectDomain so that it can be
+      // reused.
+      mustEffectDomain = null;
+      mayEffectDomain.includeSet = null;
+      for ( Entry< Parameter< Long >, V > entry : entrySet() ) {
+        Parameter< Long > tp = entry.getKey();
+
+        Domain< Long > tDom = tp.getDomain();
+        if ( tDom == null || tDom instanceof SingleValueDomain ) {
+          tDom = new LongDomain( tp.getValue(), tp.getValue() );
+        }
+
+        // Find out if this entry must have happened before or by dtp.
+        Long latestTimeOfEntry = tp.getValue();
+        if ( tDom instanceof ComparableDomain ) {
+          latestTimeOfEntry = ((ComparableDomain< Long >)tDom).getUpperBound();
+        }
+        boolean pastEffect = latestTimeOfEntry != null && latestTimeOfEntry <= dtp;
+
+        Effect eff = effectMap.get( tp );
+        if ( eff == null || !( eff instanceof EffectFunction ) ) {
+          // Treat this like a setValue effect--no math operation.
+          V val = get( tp );
+          if ( val == null ) {
+            Debug.error( "Error! No value for timepoint!" );
+            continue;
+          }
+          Domain< V > valDomain = DomainHelper.getDomain( val );
+          if ( valDomain != null ) {
+            if ( pastEffect ) {
+              mustEffectDomain = valDomain;
+            } else {
+              mayEffectDomain.include( valDomain );
+            }
+          }
+        } else {
+          EffectFunction efff = (EffectFunction)eff;
+          if ( pastEffect ) {
+            if ( mustEffectDomain == null ) {
+              mustEffectDomain = domainForEffect( efff, true );
+            } else {
+              mustEffectDomain =
+                  domainForEffect( efff, mustEffectDomain, true );
+            }
+          } else {
+            if ( Utils.isNullOrEmpty( mayEffectDomain.includeSet ) ) {
+              Domain< V > aloneDomain = domainForEffect( efff, true );
+              mayEffectDomain.include( aloneDomain );
+            } else {
+              Domain< V > combinedDomain =
+                  domainForEffect( efff, mayEffectDomain, true );
+              mayEffectDomain.include( combinedDomain );
+            }
+          }
+        }
+      }
+
+      Domain< V > combinedDomain =
+          domainForOperation( op, mustEffectDomain, mayEffectDomain );
+      mayEffectDomain.include( mustEffectDomain );
+      mayEffectDomain.include( combinedDomain );
+      Domain< V > effectDomain = domainForEffect( ef, mayEffectDomain, true );
+      boolean mayBeValid = !mutuallyExclusive( domain, effectDomain );
+      tvm.setValue( new SimpleTimepoint( dtp ), mayBeValid );
+    }
+    return tvm;
+  }
+
+  public boolean mutuallyExclusive( Domain< V > d1, Domain< V > d2 ) {
+
+    Domain< V > copy = d1.clone();
+    if ( !d1.equals( copy ) ) {
+      Debug.error( "Error! Expected domain to be equal to its clone!" );
+    }
+    Domain< V > x = copy.subtract( d2 );
+    // If the copy domain did not change after subtracting, then the
+    // domains do not intersect.
+    Boolean b = d1.equals( copy );
+    return b;
+  }
+ 
+  public Domain< V > domainOfEffectValueArgument( EffectFunction ef ) {
+    int i = getIndexOfValueArgument( ef );
+    Object valueArg = ef.getArgument( i );
+    Domain< V > d = (Domain< V >)DomainHelper.getDomain( valueArg );
+    if ( d == null ) {
+      d = new SingleValueDomain( getValueOfEffect( ef ) );
+    }
+    return d;
+  }
+ 
+  public Domain< V > domainForEffect( EffectFunction ef,
+                                      boolean basedOnDomainsAndNotValues ) {
+    Domain< V > inputDomain = getDomain( false, null );
+    return domainForEffect( ef, inputDomain, basedOnDomainsAndNotValues );
+  }
+
+  private class OpRunner<VV, VVV> {
+    MathOperation op;
+    Class<VVV> resultClass;
+    public OpRunner( MathOperation op, Class<VVV> resultClass ) {
+      this.op = op;
+      this.resultClass = resultClass;
+    }
+    public VVV apply( V v1, VV v2 ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+      Object o = applyOperation( v1, v2, op );
+      if ( resultClass == null ) return (VVV)o;
+      VVV vvv = Expression.evaluate( o, resultClass, true );
+      return (VVV)o;
+    }
+  }
+  
+  public Domain<V> domainForOperation( MathOperation op, Domain<V> d1, Domain<V> d2 ) {
+    OpRunner< V, V > opr = new OpRunner< V, V >( op, getType() );
+    V v = d1.getValue( false );
+    FunctionCall fc =
+        new FunctionCall( opr, OpRunner.class, "apply",
+                          new Object[] { v, v }, getType() );
+//    if ( copy instanceof RangeDomain
+//         || copy instanceof SingleValueDomain ) {
+//      if ( vd instanceof RangeDomain || vd instanceof SingleValueDomain ) {
+    Domain< V > ddd = (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)d1,
+                                                                               (Object)d2 ),
+                                                                fc, true );
+    return ddd;
+    //      }
+//    }
+
+  }
+  
+  public Domain< V > domainForEffect( EffectFunction ef,
+                                      Domain< V > inputDomain,
+                                      boolean basedOnDomainsAndNotValues ) {
+      Domain< V > d = inputDomain;
+      if ( d == null ) return null;
+      Domain< V > copy = d.clone();
+      if ( d.isEmpty() ) return copy;
+      V v = (V)getValueOfEffect( ef );
+      MathOperation op = getOperationForMethod( ef.getMethod() );
+      if ( op == null ) {
+        return null;
+      }
+      Class< V > resultClass =
+          (Class< V >)ClassUtils.dominantTypeClass( getType(),
+                                                    domain.getType() );
+
+    if ( basedOnDomainsAndNotValues ) {
+      Domain< V > vd = domainOfEffectValueArgument( ef );
+      if ( vd instanceof SingleValueDomain ) {
+        // Do nothing -- we can evaluate based on the value instead of the
+        // domain.
+      } else if ( vd instanceof RangeDomain ) {
+        RangeDomain< V > rv = (RangeDomain< V >)vd;
+
+        Domain< V > ddd = domainForOperation(op, copy, rv);
+//        // Domain< V > d1 = domainForEffect
+//        OpRunner< V, V > opr = new OpRunner< V, V >( op, resultClass );
+//        FunctionCall fc =
+//            new FunctionCall( opr, OpRunner.class, "apply",
+//                              new Object[] { v, v }, resultClass );
+//        if ( copy instanceof RangeDomain
+//             || copy instanceof SingleValueDomain ) {
+//          if ( vd instanceof RangeDomain || vd instanceof SingleValueDomain ) {
+//            Domain< V > ddd =
+//                (Domain< V >)DomainHelper.combineDomains( Utils.newList( (Object)copy,
+//                                                                         (Object)vd ),
+//                                                          fc );
+            return ddd;
+//          }
+//        }
+//        return null;
+      } else {
+        return null;
+      }
+    }
+      
+    try {
+      if ( copy instanceof SingleValueDomain ) {
+        Object o = applyOperation( copy.getValue( false ), v, op );
+        V v1 = tryCastValue( o );
+        copy.setValue( v1 );
+        return copy;
+      } else if ( copy instanceof MultiDomain ) {
+        MultiDomain< V > md = (MultiDomain< V >)copy;
+        Set< Domain< V > > fd = md.getFlattenedSet();
+        if ( fd == null ) {
+          fd = md.includeSet;
+        }
+        Set< Domain< V > > newSet = new LinkedHashSet< Domain< V > >();
+        for ( Domain< V > dd : fd ) {
+          Domain< V > nd =
+              domainForEffect( ef, dd, basedOnDomainsAndNotValues );
+          if ( nd != null && !nd.isEmpty() ) {
+            newSet.add( nd );
+          }
+        }
+        if ( newSet.isEmpty() ) {
+          copy.clearValues();
+          return copy;
+        }
+        if ( newSet.size() == 1 ) {
+          return newSet.iterator().next();
+        }
+        return new MultiDomain< V >( resultClass, newSet, null );
+      } else if ( copy instanceof AbstractRangeDomain ) {
+        AbstractRangeDomain< V > ard = (AbstractRangeDomain< V >)copy;
+        V v1 = applyOperation( ard.getLowerBound(), v, op, resultClass );
+        V v2 = applyOperation( ard.getUpperBound(), v, op, resultClass );
+        if ( ard.less( v2, v1 ) ) {
+          ard.setBounds( v2, v1 );
+        } else {
+          ard.setBounds( v1, v2 );
+        }
+        return ard;
+      }
+    } catch ( ClassCastException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+ 
+  private < VV, VVV > VVV
+          applyOperation( V v1, VV v2, MathOperation op,
+                          Class< VVV > resultClass ) throws ClassCastException,
+                                                     IllegalAccessException,
+                                                     InvocationTargetException,
+                                                     InstantiationException {
+    Object o = applyOperation( v1, v2, op );
+    if ( resultClass == getType() ) {
+      V v = tryCastValue( o );
+      return (VVV)v;
+    }
+    VVV v = Expression.evaluate( o, resultClass, true );
+    return v;
+  }
+ 
+  
+// public V effectResult( EffectFunction ef, V inputValue) {
+//   V ev = (V)getValueOfEffect( ef );
+//   Object r = this.applyOp( inputValue, ev, boolOp );
+//   return null;
+// }
+   
   @Override
   public String getQualifiedName( Set< Object > seen ) {
     String n = HasOwner.Helper.getQualifiedName( this, null );
@@ -6638,4 +7541,203 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return n;
   }
 
-}
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    // TODO?!
+    Debug.error( "This function is not yet implemented and should not be called." );
+    return null;
+  }
+  
+  @Override
+  public Domain< V > getDomain( boolean propagate, Set< HasDomain > seen ) {
+    return domain;
+  }
+  
+  @Override
+  public < T > Pair< Domain< T >, Boolean >
+         restrictDomain( Domain< T > domain, boolean propagate,
+                         Set< HasDomain > seen ) {
+    boolean changed = this.domain.restrictTo( domain );
+    for ( Effect e : appliedSet ) {
+      if (e instanceof EffectFunction) {
+        EffectFunction ef = (EffectFunction)e;
+        Pair< Domain< T >, Boolean > p = ef.restrictDomain( domain, propagate, seen );
+        if ( p != null && p.second != null ) {
+          changed = changed || p.second;
+        }
+      }
+    }
+    for ( V v : values() ) {
+      if ( v instanceof HasDomain ) {
+        Pair< Domain< T >, Boolean > p =
+            ( (HasDomain)v ).restrictDomain( domain, propagate, seen );
+        if ( p != null && p.second != null ) {
+          changed = changed || p.second;
+        }
+      }
+    }
+    Pair< Domain< T >, Boolean > p =
+        new Pair< Domain< T >, Boolean >( (Domain< T >)getDomain( propagate, seen ),
+                                          changed );
+    return p;
+  }
+
+  public int compare( V v1,  V v2 ) {
+    int comp = CompareUtils.compare( (Number)v1, (Number)v2 );
+    return comp;
+  }
+
+  public boolean less( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp < 0;
+  }
+  public boolean lessEquals( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp <= 0;
+  }
+  public boolean greater( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp > 0;
+  }
+  public boolean greaterEquals( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp >= 0;
+  }
+  
+  public boolean equals( V v1,  V v2 ) {
+    int comp = compare( v1, v2 );
+    return comp == 0;
+  }
+  
+  public Long pickRandomTimeWithValue(V value) {
+    double fraction = Random.global.nextDouble();
+    Long time = timeWhenFractionOfTotalDurationWithValue( value, fraction );
+    return time;
+  }
+  
+  public Long timeWhenFractionOfTotalDurationWithValue(V value, double fraction ) {
+    if ( fraction < 0.0 || fraction > 1.0 ) {
+      Debug.error( "timeWhenFractionOfTotalDurationWithValue() expects fraction between 0 and 1 but got " + fraction );
+      return null;
+    }
+    
+    Long totalDur = totalDurationWithValue(value);
+    Long durationTarget = (new Double(((double)totalDur) * fraction)).longValue(); 
+    Long totalSoFar = 0L;
+    Long prevTime = 0L;
+    V prevVal = getValue( 0L );
+    for ( Entry<Parameter<Long>, V> e : entrySet() ) {
+      Long prevTotalSoFar = totalSoFar;
+      if ( e == null ) continue;
+      Parameter<Long> tp = e.getKey();
+      if ( tp == null ) continue;
+      V val = e.getValue();
+      if ( interpolation == LINEAR ) {
+        if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
+          if ( equals(prevVal, value ) && equals(val, value) ) {
+            totalSoFar += tp.getValue() - prevTime;
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+            long prevValLong = ((Number)prevVal).longValue();
+            long valLong = ((Number)val).longValue();
+            if ( prevValLong == valLong ) {
+              Debug.error( "HUH??????!!!!!!" );
+              totalSoFar += tp.getValue() - prevTime;
+            } else {
+              Long timeEqual = (tp.getValue() - prevTime) / Math.abs(prevValLong - valLong);
+              totalSoFar += timeEqual;
+            }
+          } else if ( getType() == Double.class || getType() == Float.class ) {
+            totalSoFar += 1;
+          } else {
+            Debug.error( "Linear interpolation with unexpected type: " + getType() );
+            totalSoFar += 1;
+          }
+        }
+      } else {
+        if ( Utils.valuesEqual( prevVal, value ) ) {
+          if ( interpolation == NONE ) {
+            totalSoFar += 1;
+          }
+          totalSoFar += tp.getValue() - prevTime;
+        } else {
+        }
+      }
+      prevVal = val;
+      prevTime = tp.getValue();
+      if ( totalSoFar >= durationTarget ) {
+        prevTime -= ( totalSoFar - durationTarget );
+        break;
+      }
+    }
+    if ( Utils.valuesEqual( prevVal, value ) && prevTime < Timepoint.getHorizonDuration() ) {
+      if ( totalSoFar < durationTarget ) {
+        if ( interpolation == NONE ) {
+          totalSoFar += 1;
+        } else {
+          totalSoFar += Timepoint.getHorizonDuration() - prevTime;
+        }
+        prevTime = Timepoint.getHorizonDuration();
+        if ( totalSoFar >= durationTarget ) {
+          prevTime -= ( totalSoFar - durationTarget );
+        }
+      }
+    }
+    return prevTime;
+  }
+  
+  
+  public Long totalDurationWithValue(V value) {
+    Long total = 0L;
+    Long prevTime = 0L;
+    V prevVal = getValue( 0L );
+    for ( Entry<Parameter<Long>, V> e : entrySet() ) {
+      if ( e == null ) continue;
+      Parameter<Long> tp = e.getKey();
+      if ( tp == null ) continue;
+      V val = e.getValue();
+      if ( interpolation == LINEAR ) {
+        if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
+          if ( equals(prevVal, value ) && equals(val, value) ) {
+            total += tp.getValue() - prevTime;
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+            long prevValLong = ((Number)prevVal).longValue();
+            long valLong = ((Number)val).longValue();
+            if ( prevValLong == valLong ) {
+              Debug.error( "HUH????!!!" );
+              total += tp.getValue() - prevTime;
+            } else {
+              Long timeEqual = (tp.getValue() - prevTime) / Math.abs(prevValLong - valLong);
+              total += timeEqual;
+            }
+          } else if ( getType() == Double.class || getType() == Float.class ) {
+            total += 1;
+          } else {
+            Debug.error( "Linear interpolation with unexpected type: " + getType() );
+            total += 1;
+          }
+        }
+      } else {
+        if ( Utils.valuesEqual( prevVal, value ) ) {
+          if ( interpolation == NONE ) {
+            total += 1;
+          }
+          total += tp.getValue() - prevTime;
+        } else {
+        }
+      }
+      prevVal = val;
+      prevTime = tp.getValue();
+    }
+    if ( Utils.valuesEqual( prevVal, value ) && prevTime < Timepoint.getHorizonDuration() ) {
+      if ( interpolation == NONE ) {
+        total += 1;
+      } else {
+        total += Timepoint.getHorizonDuration() - prevTime;
+      }
+    }
+    return total;
+  }
+  
+  
+}  // end of TimeVaryingMap class

@@ -17,7 +17,7 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
   protected static final Double typeMinValue = -Double.MAX_VALUE;
   protected static final Double typeMaxValue = Double.MAX_VALUE;
 
-  public static DoubleDomain defaultDomain = new DoubleDomain();
+  public static final DoubleDomain defaultDomain = new DoubleDomain();
   protected static final DoubleDomain positiveDomain =
       new DoubleDomain( 0.0, typeMaxValue );
   protected static final DoubleDomain negativeDomain =
@@ -30,9 +30,9 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
    * 
    */
   public DoubleDomain() {
-    super();
-    lowerBound = ((Double)getTypeMinValue()).doubleValue();
-    upperBound = ((Double)getTypeMaxValue()).doubleValue();
+    super(typeMinValue, typeMaxValue);
+//    lowerBound = ((Double)getTypeMinValue()).doubleValue();
+//    upperBound = ((Double)getTypeMaxValue()).doubleValue();
   }
 
   /**
@@ -207,18 +207,23 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
     return defaultDomain;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< Double > domain ) {
-    if ( domain instanceof DoubleDomain ) {
-      defaultDomain = (DoubleDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new DoubleDomain((RangeDomain< Double >)domain);
-    }
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< Double > domain ) {
+//    if ( domain instanceof DoubleDomain ) {
+//      defaultDomain = (DoubleDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new DoubleDomain((RangeDomain< Double >)domain);
+//    }
+//  }
 
   @Override
   public DoubleDomain make( Double lowerBound, Double upperBound ) {
     return new DoubleDomain(lowerBound, upperBound);
+  }
+
+  @Override
+  public int compareTo( Domain< Double > o ) {
+    return super.compare( o );
   }
 
 }

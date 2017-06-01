@@ -1,9 +1,10 @@
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.Wraps;
 
-public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
+public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T >, Evaluatable {
 
   public Domain< T > clone();
 
@@ -35,7 +36,7 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
   public boolean isNullInDomain();
 
   public Domain< T > getDefaultDomain();
-  public void setDefaultDomain( Domain< T > domain );
+  //public void setDefaultDomain( Domain< T > domain );
 
   /**
    * Restrict the object's domain to only include the input value or an empty
@@ -57,4 +58,13 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T > {
    * @return whether the domain of any object changed as a result of this call
    */
   public <TT> boolean restrictTo( Domain< TT > domain );
+  
+  /**
+   * Exclude elements in the input domain from this domain.
+   * 
+   * @param domain
+   * @return whether the domain of any object changed as a result of this call
+   */
+  public <TT> Domain< TT > subtract( Domain< TT > domain );
+  
 }

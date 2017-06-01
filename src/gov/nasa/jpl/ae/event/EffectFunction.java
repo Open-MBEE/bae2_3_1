@@ -204,51 +204,17 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
 		return tv;
 	}
 	
-  // FIXME -- remove method below
-	private boolean isMyDebugCase() {
-    Object o = Functions.getTimeline( getObject() );
-    if ( o instanceof TimeVaryingMap ) {
-      Pair< Parameter<Long>, ?> p = ( (TimeVaryingMap<?>)o ).getTimeAndValueOfEffect( this );
-      if ( p != null && p.first != null ) {
-        if ( p.first.getValue() == 12050959643L ) {
-           return true;
-        }
-      }
-    }
-    return false;
-	}
-	
 	@Override
   public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-//    if ( !isMyDebugCase() ) {
-//      System.out.println("Effect: " + this);
-//    }
     if ( returnValue != null && !isStale() ) {// && isGrounded( propagate, null ) ) {
       evaluationSucceeded = true;
       
-      // FIXME -- remove debug code below
-      if ( isMyDebugCase() ) {
-        System.out.println("Effect (" + this + ") evaluation is just returning cached value: " + returnValue);
-      }
-        
       return returnValue;
     }
     Object oldValue = returnValue;
     returnValue = null;
     setStaleAnyReferencesToTimeVarying();
     Object result =  evaluate(propagate, true);
-    
-    // FIXME -- remove debug code below
-    if ( isMyDebugCase() ) {
-      System.out.println("Effect (" + this + ") evaluated with returnValue: " + result);
-      Object o = Functions.getTimeline( getObject() );
-      if ( o instanceof TimeVaryingMap ) {
-        TimeVaryingMap<?> tv = (TimeVaryingMap< ? >)o;
-        Object val = tv.getValue( 12050959643L );
-        System.out.println("timeline value at 12050959643: " + val);
-      }
-    }
-
     
     if ( returnValue != null && !returnValue.equals( oldValue ) ) {
       handleChangeToTimeVaryingMap();
@@ -351,6 +317,20 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
       assert false;
     }
     return tv;
+  }
+  
+  /**
+   * Determine if the effect is applied to a timeline.
+   * 
+   * @return whether the effect is applied to the intended timeline or null if
+   *         it cannot find the timeline.
+   */
+  public Boolean isApplied() {
+    Pair< Parameter< ? >, ParameterListener > p = getTimeVaryingMapOwners();
+    if ( p.first != null ) {
+      return isApplied( p.first );
+    }
+    return null;
   }
   
   @Override

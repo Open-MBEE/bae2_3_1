@@ -9,14 +9,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
+import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Random;
@@ -25,8 +29,10 @@ import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Solver;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.Pair;
+import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
 /**
@@ -41,6 +47,7 @@ public class ParameterListenerImpl extends HasIdImpl
                                               HasTimeVaryingObjects,
                                               HasOwner,
                                               Comparable< ParameterListenerImpl > {
+  public static boolean usingArcConsistency = true;
   // Constants
   
   protected double timeoutSeconds = 900.0;
@@ -273,7 +280,10 @@ public class ParameterListenerImpl extends HasIdImpl
 //      }
 //    }
     dependencies.add( d );
-    if (fire) d.apply();
+    if ( fire && d.getExpression() != null
+         && d.getExpression().isGrounded( false, null ) ) {
+      d.apply();
+    }
     return d;
   }
 
@@ -684,6 +694,8 @@ public class ParameterListenerImpl extends HasIdImpl
     }
     return satisfied;
   }
+  
+
   protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
     ground(deep, null);
     if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
@@ -695,7 +707,28 @@ public class ParameterListenerImpl extends HasIdImpl
                           + allConstraints.size() + " constraints" );
     }
     // REVIEW -- why not call satisfy() here and solve elsewhere??
+    
+    // Restrict the domains of the variables using arc consistency on the
+    // constraints.
+    Consistency ac = null;
+    if ( usingArcConsistency ) {
+      ac = new Consistency();
+      ac.constraints = allConstraints;
+      ac.arcConsistency( true );
+      
+      // restore domains of things that are not simple variables
+      for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
+        if ( !isSimpleVar(e.getKey()) ) {
+          e.getKey().setDomain( (Domain)e.getValue() );
+        }
+      }
+    }
+    
+    // Now assign values to variables within their domains to satisfy constraints.
     boolean satisfied = solver.solve( allConstraints );
+    if ( usingArcConsistency ) {
+      ac.restoreDomains();
+    }
     if ( Debug.isOn() || amTopEventToSimulate ) {
         Timer t = new Timer();
         t.start();
@@ -733,6 +766,15 @@ public class ParameterListenerImpl extends HasIdImpl
     return satisfied;
   }
 
+protected boolean isSimpleVar( Variable< ? > key ) {
+  Object v = key.getValue( false );
+  if ( v != null ) {
+    if ( ClassUtils.isPrimitive( v ) ) {
+      return true;
+    }
+  }
+  return false;
+}
 //  @Override
 //  public Collection< Constraint > getConstraints() {
 //    return getConstraints( false, null );
@@ -1264,7 +1306,12 @@ public class ParameterListenerImpl extends HasIdImpl
     for ( Dependency<?> d : getDependencies() ) {
       if ( d.pickParameterValue( variable ) ) return true;
     }
-    if ( variable instanceof Parameter && Random.global.nextBoolean() ) {
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      if ( c.pickParameterValue( variable ) ) return true;
+    }
+    if ( variable instanceof Parameter
+         && ( (Parameter<?>)variable ).getOwner() != this
+         && Random.global.nextBoolean() ) {
       return ((Parameter<?>)variable).ownerPickValue();
     }
     T value = null;
@@ -1512,5 +1559,29 @@ public class ParameterListenerImpl extends HasIdImpl
   public void setOwner( Object owner ) {
     this.owner = owner;
   }
+
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >();
+    Set<Variable<?>> varSet = new LinkedHashSet< Variable<?> >();
+    for ( ConstraintExpression c : getConstraintExpressions() ) {
+      List<Variable<?>>  vars = c.getVariablesOnWhichDepends( variable );
+      if ( !Utils.isNullOrEmpty( vars )) {
+        varSet.addAll( vars );
+      }
+    }
+    for ( Dependency d : getDependencies() ) {
+      List<Variable<?>>  vars = d.getVariablesOnWhichDepends( variable );
+      if ( !Utils.isNullOrEmpty( vars )) {
+        varSet.addAll( vars );
+      }
+    }
+    // TODO -- need to recurse into other objects
+    varList.addAll( varSet );
+    return varList;
+  }
+
+  
   
 }
