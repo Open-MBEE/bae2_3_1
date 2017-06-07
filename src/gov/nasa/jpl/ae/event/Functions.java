@@ -2139,6 +2139,15 @@ public class Functions {
     return divide(r1, r2);
   }
 
+  public static < T, TT > T pow( Expression< T > o1,
+                                 Expression< TT > o2 ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( o1 == null || o2 == null ) return null;
+    T r1 = (T)o1.evaluate( false );
+    TT r2 = (TT)o2.evaluate( false );
+    if ( r1 == null || r2 == null ) return null;
+    return pow(r1, r2);
+  }
+
   public static class Identity<T> extends Unary< T, T > {
     public Identity( Expression< T > o ) {
       super( o, "identity" );
