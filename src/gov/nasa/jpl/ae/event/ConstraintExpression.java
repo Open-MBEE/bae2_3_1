@@ -145,10 +145,10 @@ public class ConstraintExpression extends Expression< Boolean >
           if ( ( !( v instanceof Parameter ) || (!( (Parameter)v ).isDependent() || Random.global.nextDouble() < 0.1) )
                   && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
           if ( (pickingDeep && !copy.contains( v )) || !pickParameterValue( v )) {
-            v.pickValue();
+            boolean picked = v.pickValue();
+            if ( picked && isSatisfied(deep, seen) ) break;
           }
         }
-        if ( isSatisfied(deep, seen) ) break;
       }
     }
     satisfied = isSatisfied(deep, seen);

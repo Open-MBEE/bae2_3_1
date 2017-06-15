@@ -2233,10 +2233,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       if ( tvm != null ) {
         Object owner = tvm.getOwner();
         if ( owner instanceof Parameter ) {
-          if ( seen.contains( owner ) ) continue;
-          seen.add( o );
-          seen.add( owner );
-          o = owner;
+          //if ( seen.contains( owner ) ) continue;
+          if ( !seen.contains( owner ) ) {
+            seen.add( o );
+            seen.add( owner );
+            o = owner;
+          }
         }
         seen.add( tvm );
       }

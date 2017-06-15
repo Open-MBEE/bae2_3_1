@@ -47,7 +47,7 @@ public class ParameterListenerImpl extends HasIdImpl
                                               HasTimeVaryingObjects,
                                               HasOwner,
                                               Comparable< ParameterListenerImpl > {
-  public static boolean usingArcConsistency = true;
+  public static boolean usingArcConsistency = false;
   // Constants
   
   protected double timeoutSeconds = 900.0;

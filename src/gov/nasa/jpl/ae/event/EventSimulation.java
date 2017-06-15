@@ -274,6 +274,7 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
       if ( result == null || result.size() != 3 ) continue;
       String fileName = (String)result.get( 0 );
       TimeVaryingMap<?> tv = (TimeVaryingMap<?>)result.get(1);
+      tv = tv.clone().removeDuplicates();
       ct = (Integer)result.get( 2 );
 
       if ( Utils.isNullOrEmpty( fileName ) ) continue;

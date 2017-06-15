@@ -308,6 +308,14 @@ public class TimeVaryingFunctionCall extends FunctionCall {
     // TODO Auto-generated method stub
     //return super.hasTypeErrors();
   }
+
+  @Override
+  public Object[] evaluateArgs( boolean propagate ) throws ClassCastException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( getMember() == null ) return null;
+    Class< ? >[] paramTypes = getParameterTypes();
+    return evaluateArgs( propagate, paramTypes, arguments, isVarArgs(), false );
+  }
+
   
   @Override
   public Object evaluateArg( Object unevaluatedArg, Class< ? > c,
@@ -323,7 +331,15 @@ public class TimeVaryingFunctionCall extends FunctionCall {
     Object o = null;
     
     try {
-      o = super.evaluateArg( unevaluatedArg, c, propagate );
+      if ( c == null || !TimeVaryingMap.class.isAssignableFrom( c ) ) {
+        TimeVaryingMap< ? > tvm = Functions.tryToGetTimelineQuick( unevaluatedArg );
+        if ( tvm != null ) {
+          o = tvm;
+        }
+      }
+      if ( o == null ) {
+        o = super.evaluateArg( unevaluatedArg, c, propagate );
+      }
     } catch ( ClassCastException e ) {
       e1 = e;
       t = e;
@@ -338,7 +354,9 @@ public class TimeVaryingFunctionCall extends FunctionCall {
       t = e;
     }
     
-    if ( o == null ) o = object;
+    if ( o == null && !Expression.valuesEqual( unevaluatedArg, null ) ) {
+      o = unevaluatedArg;
+    }
     TimeVaryingMap<?> map = evaluateAsTimeVaryingMap( o, true, null );
     if ( map != null ) o = map;
     
