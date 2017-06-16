@@ -2230,6 +2230,9 @@ public class EventXmlToJava {
     List< Node > mNodeList = XmlUtils.getChildNodes( methodsNode, "function" );
     for ( Node mNode : mNodeList ) {
       String methodString = expressionTranslator.fixValue( mNode.getTextContent() );
+      System.out.println(  "HIIIIIIII" );
+      System.out.println(  mNode.getTextContent() );
+      System.out.println(  "hiiiiiiiiiiiii" );
       MethodDeclaration methodDecl = parseMethodDeclaration( methodString );
       if ( methodDecl != null ) {
         if ( !ModifierSet.isPrivate( methodDecl.getModifiers() )

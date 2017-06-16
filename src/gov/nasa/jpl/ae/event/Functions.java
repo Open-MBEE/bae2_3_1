@@ -2260,6 +2260,105 @@ public class Functions {
     }
     return null;
   }
+  
+  
+  
+  public static class Neg<T> extends Unary< T, T > {
+    public Neg( Expression< T > o ) {
+      super( o, "neg" );
+      //functionCall.
+      setMonotonic( true );
+    }
+    public Neg( Neg<T> m) {
+      super(m);
+    }
+    public Neg<T> clone() {
+      return new Neg<T>(this);
+    }
+    
+    // TODO -- handle cast errors
+    @Override
+    public < T > T pickValue( Variable< T > variable ) {
+      Object arg = this.getArgument( 0 );//((FunctionCall)this.expression).getArgument( 0 );
+      if ( arg == variable ) {
+        return (T)negative( variable );
+      }
+      return pickValueE( variable, arg );
+//      else if ( arg instanceof Suggester ) {
+//        return (T)(negative(((Number)((Suggester)arg).pickValue( variable ))));
+//      } else if ( arg instanceof Expression && ((Expression)arg).expression instanceof Suggester ) {
+//        return (T)(negative((Number)((Suggester)((Expression)arg).expression).pickValue( variable )));
+//      }
+//      return null;
+    }
+  }
+
+  public static <T> java.lang.Number neg( T v ) {
+    if ( v instanceof Number ) {
+      return neg((Number)v);
+    }
+    if ( v instanceof Variable ) {
+      return neg((Variable<T>)v);
+    }
+    if ( v instanceof String ) {
+      return neg((Number)v);
+    }
+    return null;
+  }
+
+  public static <T> java.lang.Number neg( Variable< T > v ) {
+    T r = v.getValue( false );
+    return neg( r );
+//    if ( r instanceof Number ) {
+//      return negative( (Number)r );
+//    }
+//    return null;
+  }
+
+  public static java.lang.Number neg( String v ) {
+    Long i = Utils.toLong( v );
+    Double n = Utils.toDouble( v );
+    if ( i == null && n == null ) {
+      // TODO -- ERROR!
+      return null;
+    }
+    if ( i != null && n != null && i.doubleValue() == n.doubleValue() ) {
+      i = -i;
+      return i;
+    }
+    if ( n != null ) {
+      n = -n;
+      return n;
+    }
+    i = -i;
+    return i;
+  }
+
+  public static Number neg( Number n ) {
+    if ( n == null ) return null;
+    Number result = null;
+    if ( n.getClass().isAssignableFrom( java.lang.Double.class ) ) {
+      result = ((Double)n) * -1.0;
+    } else if ( n.getClass().isAssignableFrom( java.lang.Integer.class ) ) {
+      result = ((Integer)n) * -1;
+    }
+    return result;
+  }
+  
+  public static <T> java.lang.Number neg( Expression< T > o ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    if ( o == null ) return null;
+    T r = null;
+    try {
+      r = (T)o.evaluate( false );
+    } catch (ClassCastException e) {
+      e.printStackTrace();
+    }
+    if ( r instanceof Number ) {
+      return neg( (Number)r );
+    }
+    return null;
+  }
+
 
 
   // Inequality functions
