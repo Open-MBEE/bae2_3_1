@@ -28,7 +28,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   protected Expression< Boolean > condition = null;
   protected Vector< EventInvocation > eventInvocations = null;
 //  protected Vector< ConstraintInvocation > constraintsToAdd = null;
-  private boolean tryToSatisfyOnElaboration = false;
+  private boolean tryToSatisfyOnElaboration = true;
   protected boolean satisfyDeepOnElaboration = false;
   protected boolean stale = false;
   
@@ -138,13 +138,15 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       // TODO -- REVIEW -- Is this called by anyone keeping constraints and
       // parameters of the lost sub-events?  Do we need ElaborationListeners?
       if ( gotFromTimeVarying && elaborated && conditionSatisfied && !conditionStale && wasStale ) {
-        repairElaboratedEventsFromTimeVarying( parent, elaboratedEvents, elaborateIfCan, satisfyOnElaboration, satisfyDeep );
+        boolean didChange = repairElaboratedEventsFromTimeVarying( parent, elaboratedEvents, elaborateIfCan, satisfyOnElaboration, satisfyDeep );
+        if ( didChange ) tryToSatisfyOnElaboration = false;
         return !elaboratedEvents.isEmpty();
       }
       for ( Event event : elaboratedEvents ) {
         event.deconstruct();
         //System.err.println("detatched " + event);
       }
+      if ( !elaboratedEvents.isEmpty() ) tryToSatisfyOnElaboration = false;
       elaboratedEvents.clear();
       elaborated = false;
     }
@@ -425,7 +427,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   public void setStale( boolean staleness ) {
     stale = staleness;
     if ( staleness == true ) {
-      System.out.println( "////////////   setting stale=true: " + this );
+      //System.out.println( "////////////   setting stale=true: " + this );
 
       //Debug.error("Setting an elaboration rule stale is not supported!");
       return;

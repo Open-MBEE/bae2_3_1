@@ -47,11 +47,11 @@ public class ParameterListenerImpl extends HasIdImpl
                                               HasTimeVaryingObjects,
                                               HasOwner,
                                               Comparable< ParameterListenerImpl > {
-  public static boolean usingArcConsistency = false;
+  public static boolean usingArcConsistency = true;
   // Constants
   
   protected double timeoutSeconds = 900.0;
-  protected int maxLoopsWithNoProgress = 100;
+  protected int maxLoopsWithNoProgress = 50;
   protected long maxPassesAtConstraints = 10000;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
@@ -507,7 +507,7 @@ public class ParameterListenerImpl extends HasIdImpl
     long mostResolvedConstraints = 0;
     double highestFractionResolvedConstraint = 0;
     int numLoopsWithNoProgress = 0;
-    long numberOfConstraints = 0;
+    long numberOfConstraints = getNumberOfConstraints( true, null );
     
     boolean satisfied = false;
     long millisPassed = (long)( System.currentTimeMillis() - clockStart );

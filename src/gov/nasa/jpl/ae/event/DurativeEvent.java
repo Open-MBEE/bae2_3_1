@@ -66,6 +66,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   // Other Members
 
   public static boolean writeConstraintsOut = false;
+  
+  protected boolean tryToSatisfyOnElaboration = true;
+  protected boolean deepSatisfyOnElaboration = false;
 
   public Timepoint startTime = new Timepoint( "startTime", this );
   public Duration duration = new Duration( this );
@@ -89,8 +92,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
       new AbstractParameterConstraint() {
 
     protected final int id = HasIdImpl.getNext();
-    private boolean tryToSatisfyOnElaboration = false;
-    protected boolean deepSatisfyOnElaboration = false;
 
     @Override
     public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
@@ -2761,31 +2762,33 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     // TODO!  Need to check effects and elaborations
     return super.getVariablesOnWhichDepends( variable );
   }
-
-  public Long pickStartInValidInterval() {
+  
+  public TimeVaryingMap<Boolean> validStartIntervals() {
     TimeVaryingMap<Boolean> overallValidTimes = null;
-    for ( Pair< Parameter< ? >, Set< Effect > > p : getEffects() ) {
+    boolean hasRelevantEffects = false;
+    List< Pair< Parameter< ? >, Set< Effect > > > fects = getEffects();
+    for ( Pair< Parameter< ? >, Set< Effect > > p : fects ) {
       if ( p == null || p.first == null || p.first.getValue() == null || p.second == null ) continue;
       Object tvmo = p.first.getValue();
       if ( tvmo instanceof TimeVaryingMap ) {
         TimeVaryingMap<?> tvm = (TimeVaryingMap<?>)tvmo;
         for ( Effect effect : p.second ) {
           Pair< Parameter< Long >, Object > tv = tvm.getTimeAndValueOfEffect( effect );
-          if ( tv == null || tv.first == null || !tv.first.equals( startTime ) ) continue;
+          if ( tv == null || tv.first == null ) continue; //|| !tv.first.equals( startTime ) ) continue;
           TimeVaryingMap<Boolean> validTimes = tvm.validTime( effect, false );
           if ( validTimes != null ) {
             if ( overallValidTimes == null ) {
-              if ( validTimes.totalDurationWithValue( true ) > 0L ) { 
+              if ( validTimes.totalDurationWithValue( true ) > 0L ) {
                 overallValidTimes = validTimes;
               } else {
-                Debug.error( false, "No valid start times for " + getName() );
+                Debug.error( true, false, "No valid start times for " + getName() );
               }
             } else {
               TimeVaryingMap<Boolean> anded = TimeVaryingMap.and( overallValidTimes, validTimes );
               if ( anded.totalDurationWithValue( true ) > 0L ) {
                 overallValidTimes = anded;
               } else {
-                Debug.error( false, "No valid start times for " +  getName() );
+                Debug.error( true, false, "No valid start times for " +  getName() );
                 break;
               }
             }
@@ -2793,9 +2796,14 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
         }
       }
     }
+    return overallValidTimes;
+  }
+
+  public Long pickStartInValidInterval() {
+    TimeVaryingMap<Boolean> overallValidTimes = validStartIntervals();
     if ( overallValidTimes == null || overallValidTimes.isEmpty()
          || overallValidTimes.totalDurationWithValue( true ) <= 0 ) {
-      Debug.error( false, "Returning no valid start times for " +  getName() );
+      Debug.error( true, false, "Returning no valid start times for " +  getName() );
       return null;
     }
     Long pickedTime = overallValidTimes.pickRandomTimeWithValue( true );
@@ -2810,7 +2818,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
     if ( variable == null ) return false;
     if ( variable.equals( startTime ) ) {
       Long newStartTime = pickStartInValidInterval();
-      if ( newStartTime != startTime.getValue() ) {
+      if ( newStartTime != null && newStartTime != startTime.getValue() ) {
         variable.setValue( (T)newStartTime );
         return true;
       }

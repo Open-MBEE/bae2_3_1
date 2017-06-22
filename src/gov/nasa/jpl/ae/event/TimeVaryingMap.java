@@ -1687,7 +1687,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     Parameter< Long> tp = keyForValueAt( value, t );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
     if ( tp != null && tp != t ) {
-      remove( tp );
+      //remove( tp );
     }
     if ( getType() != null && value != null && !(getType().isAssignableFrom( value.getClass() ) ) ) {
       V valueBefore = value;
