@@ -92,9 +92,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     String superClass = super.getClass().getName();
     List< String > paramStrings = new ArrayList<String>();
     for (Parameter<?> p : parameters) {
-      String pString = p.getName() + " : " + p.getType().getName()
+      String pString = p.getName() + " : " + p.getType().getName();
       paramStrings.add( pString );
-      System.out.println( pString );;
+      System.out.println( pString );
     }
     
     List< String > constraintStrings = new ArrayList<String>();
