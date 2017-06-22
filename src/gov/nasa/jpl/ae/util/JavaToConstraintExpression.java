@@ -1783,16 +1783,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     } else {
       aeString = parentString + "." + fieldAccessExpr.getField();
     }
-    if ( getParameterValue ) {
-      if ( wrapInFunction ) {
-        // nesting function calls
-        aeString =
-            "new FunctionCall(null, Parameter.class, \"getValue\", "
-                + "new Object[]{ true }, " + aeString + ")";
-      } else {
-        aeString += ".getValue(" + propagate + ")";
-      }
-    }
+    //MAYBE UNCOMMENT THIS IDK WHAT IT'S DOING
+//    if ( getParameterValue ) {
+//      if ( wrapInFunction ) {
+//        // nesting function calls
+//        aeString =
+//            "new FunctionCall(null, Parameter.class, \"getValue\", "
+//                + "new Object[]{ true }, " + aeString + ")";
+//      } else {
+//        aeString += ".getValue(" + propagate + ")";
+//      }
+//    }
     if ( wrapInFunction && evaluateCall ) {
       aeString = "(" + aeString + ").evaluate(" + propagate + ")";
     }
