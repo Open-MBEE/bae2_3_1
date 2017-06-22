@@ -28,7 +28,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   protected Expression< Boolean > condition = null;
   protected Vector< EventInvocation > eventInvocations = null;
 //  protected Vector< ConstraintInvocation > constraintsToAdd = null;
-  private boolean tryToSatisfyOnElaboration = true;
+  private boolean tryToSatisfyOnElaboration = false;
   protected boolean satisfyDeepOnElaboration = false;
   protected boolean stale = false;
   
