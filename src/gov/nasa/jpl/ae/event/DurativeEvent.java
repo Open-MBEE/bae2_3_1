@@ -67,7 +67,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
 
   public static boolean writeConstraintsOut = false;
   
-  protected boolean tryToSatisfyOnElaboration = true;
+  protected boolean tryToSatisfyOnElaboration = false;
   protected boolean deepSatisfyOnElaboration = false;
 
   public Timepoint startTime = new Timepoint( "startTime", this );
