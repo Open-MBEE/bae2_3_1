@@ -3210,12 +3210,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     Map< Parameter< Long >, V > map = null;
     if ( toKey == null ) {
       toKey = lastKey();
-      if ( before( toKey, fromKey ) ) toKey = fromKey;
-      map = subMap( fromKey, true, toKey, true );
-    } else {
-      if ( before( toKey, fromKey) ) toKey = fromKey;
-      map = subMap( fromKey, true, toKey, same );
     }
+    if ( before( toKey, fromKey ) ) toKey = fromKey;
+    map = subMap( fromKey, true, toKey, true );
     boolean succeededSomewhere = false;
     Map.Entry< Parameter< Long >, V > ePrev = null;
     V lastIntegralValue = tryCastValue( 0 );
@@ -3820,14 +3817,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     List<Parameter< Long > > dups = new ArrayList< Parameter< Long > >();
     Parameter< Long> lastKey = null;
     V lastValue = null;
+    // Need to keep first and last--remove only ones in between, so use a
+    // counter to skip adding the first.
+    int ct = 0;  
     for ( java.util.Map.Entry< Parameter< Long >, V > e : entrySet() ) {
       Parameter< Long > key = e.getKey();
       V value = e.getValue();
       if ( Utils.valuesEqual( lastKey, key ) ) {
         dups.add( lastKey );
       } else if ( Utils.valuesEqual( lastValue, value ) ) {
-        dups.add( key );
-        key = lastKey;
+        if ( ct > 0 ) {
+          dups.add( key );
+          key = lastKey;
+        }
+        ++ct;
+      } else {
+        ct = 0;
       }
       lastKey = key;
       lastValue = value;

@@ -216,7 +216,8 @@ public class EffectFunction extends FunctionCall implements Effect, HasTimeVaryi
     setStaleAnyReferencesToTimeVarying();
     Object result =  evaluate(propagate, true);
     
-    if ( returnValue != null && !returnValue.equals( oldValue ) ) {
+    if ( evaluationSucceeded
+         && ( returnValue == null || !returnValue.equals( oldValue ) ) ) {
       handleChangeToTimeVaryingMap();
     }
     return result;
