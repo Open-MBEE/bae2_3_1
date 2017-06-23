@@ -3176,9 +3176,13 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public V integral(Parameter< Long > fromKey, Parameter< Long > toKey) {
     TimeVaryingMap< V > tvm = integrate(fromKey, toKey, null);
     if ( tvm == null || tvm.isEmpty() ) return tryCastValue( 0 );
-    return tvm.getValue( tvm.lastKey() );
+    return tvm.lastValue();
   }
   
+  private V lastValue() {
+    return getValue( lastKey() );
+  }
+ 
   public TimeVaryingMap< V > integrate(Parameter< Long > fromKey,
                                        Parameter< Long > toKey) {
     return integrate( fromKey, toKey, null );
