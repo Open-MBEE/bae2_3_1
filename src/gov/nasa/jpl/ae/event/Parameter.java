@@ -588,7 +588,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 //      }
 //      if ( compare != 0 ) return compare;
 //    }
-    compare = CompareUtils.compare( getValue(), o.getValue(), true );
+    compare = CompareUtils.compare( getValueNoPropagate(), o.getValueNoPropagate(), true );
     if ( compare != 0 ) return compare;
 
     compare = CompareUtils.compare( name, o.name, true );

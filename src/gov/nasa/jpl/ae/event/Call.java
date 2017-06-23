@@ -832,9 +832,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     seen = pair.second;
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
     if ( object instanceof Parameter ) set.add( (Parameter<?> )object );
-    if ( deep ) {
+    //if ( deep ) {
       set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
-    }
+    //}
     set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
     //if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
