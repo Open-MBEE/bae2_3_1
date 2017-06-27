@@ -850,6 +850,31 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     return object.toString();
   }
+  
+  
+  public String toKString() {
+    String name = this.getName();
+    Class<?> cls = this.getType();
+    String classString;
+   
+    if (cls.equals( Integer.class )) {
+      classString = "Int";
+    } 
+    else if (cls.equals(Boolean.class)) {
+      classString = "Bool";
+    }
+    else if (cls.equals(Double.class)) {
+      classString = "Real";
+    }
+    else if (cls.equals(String.class)) {
+      classString = "String";
+    }
+    else {      
+      classString = cls.getSimpleName();
+    }
+    
+    return name + " : " + classString;
+  }
 
 
   @Override
