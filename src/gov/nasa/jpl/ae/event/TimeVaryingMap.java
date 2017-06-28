@@ -3179,7 +3179,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return tvm.lastValue();
   }
   
-  private V lastValue() {
+  public V lastValue() {
     return getValue( lastKey() );
   }
  
