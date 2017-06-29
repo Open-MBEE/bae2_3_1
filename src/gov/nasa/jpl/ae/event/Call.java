@@ -1632,7 +1632,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
     }
     if ( object instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
+      ((ParameterListener)object).handleValueChangeEvent( parameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
       ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
