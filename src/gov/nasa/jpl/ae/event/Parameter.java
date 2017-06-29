@@ -391,6 +391,16 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         setValueOwner(val);
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this, null );
+        // set isGrounded constraint stale
+        if ( constraintList != null ) {
+          for ( Constraint c : constraintList ) {
+            if (c instanceof ConstraintExpression
+                && ( (ConstraintExpression)c ).expression instanceof Call ) {
+              ((Call)((ConstraintExpression)c).expression).setStale(true);
+            //.setStale( true );
+            }
+          }
+        }
         if (val instanceof TimeVaryingMap && ((TimeVaryingMap)val).getOwner() instanceof Parameter && "dataRateAboveThreshold".equals(((Parameter)((TimeVaryingMap)val).getOwner()).getName())) {
           //CompareUtils.XXXX = true;
           CompareUtils.compare( value, val );

@@ -610,8 +610,11 @@ public class JavaForFunctionCall {
     if ( Utils.isNullOrEmpty( object ) ) {
       object = ( (JavaToConstraintExpression)this.exprXlator ).getObjectFromScope( getScope() );
       if ( Utils.isNullOrEmpty( object ) ) {
+//        if ( isMethodOrConstructor() ||
+//            exprXlator.getClassData().isInnerClass( getObjectTypeName() ) ) {
         if ( isMethodOrConstructor() ||
-            exprXlator.getClassData().isInnerClass( getObjectTypeName() ) ) {
+            exprXlator.getClassData().isInnerClass( getObjectCreationExpr().getType()
+                                                    .toString() ) ) {
           setObject( "this" );
         } else {
           setObject( "null" );
