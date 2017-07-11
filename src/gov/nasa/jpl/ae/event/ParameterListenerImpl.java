@@ -251,7 +251,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       if ( first ) first = false;
       else sb.append( ", " );
       if ( deep && p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
-        sb.append( p.toString( false, withHash, false, seen, otherOptions ) );
+        sb.append( ((ParameterListenerImpl)p.getValueNoPropagate()).toString( withHash, true, seen ) );
       } else {
         sb.append( p.toString( false, withHash, deep, seen, otherOptions ) );
       }
@@ -260,6 +260,16 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
+  
+  public String executionString()  {
+    StringBuffer sb = new StringBuffer();
+    sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
+    for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
+      sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
+    }
+    return sb.toString();
+  }
+  
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
     return toString( withHash, deep, seen, null );
