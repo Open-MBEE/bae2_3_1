@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package gov.nasa.jpl.ae.event;
 
@@ -48,7 +48,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   // Constants
 
   protected double timeoutSeconds = 900.0;
-  protected int maxLoopsWithNoProgress = 100;
+  protected int maxLoopsWithNoProgress = 50;
   protected long maxPassesAtConstraints = 10000;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
@@ -86,8 +86,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
-  
-  
+
+
   public String toKString() {
     String superClass = super.getClass().getName();
     List< String > paramStrings = new ArrayList<String>();
@@ -97,7 +97,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       System.out.println( pString );
     }
 
-    
+
     List< String > constraintStrings = new ArrayList<String>();
     for (ConstraintExpression c : constraintExpressions) {
       System.out.println( c.toString() );
@@ -184,7 +184,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#clone()
    */
   @Override
@@ -201,7 +201,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#toString()
    */
   @Override
@@ -260,7 +260,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
-  
+
   public String executionString()  {
     StringBuffer sb = new StringBuffer();
     sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
@@ -269,7 +269,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     }
     return sb.toString();
   }
-  
+
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
     return toString( withHash, deep, seen, null );
@@ -449,7 +449,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   // Gather any parameter instances contained by this event.
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean,
    * java.util.Set)
    */
@@ -541,7 +541,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy(boolean, java.util.Set)
    */
   @Override
@@ -557,8 +557,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     long mostResolvedConstraints = 0;
     double highestFractionResolvedConstraint = 0;
     int numLoopsWithNoProgress = 0;
-    long numberOfConstraints = 0;
-
+    long numberOfConstraints = getNumberOfConstraints( true, null );
     boolean satisfied = false;
     long millisPassed = (long)( System.currentTimeMillis() - clockStart );
     double curTimeLeft = ( timeoutSeconds * 1000.0 - ( millisPassed ) );
@@ -649,7 +648,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy(boolean, java.util.Set)
    */
   // @Override
@@ -945,7 +944,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
    */
@@ -1021,7 +1020,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /**
    * Get non-event ParameterListenerImpls, behavior classes.
-   * 
+   *
    * @param deep
    * @param seen
    * @return
@@ -1260,7 +1259,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.event.ParameterListener#detach(gov.nasa.jpl.ae.event.
    * Parameter)
    */
@@ -1338,7 +1337,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.
    * jpl.ae.event.Parameter)
@@ -1616,7 +1615,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfResolvedConstraints(boolean,
    * java.util.Set)
@@ -1639,7 +1638,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfUnresolvedConstraints(
    * boolean, java.util.Set)
    */
@@ -1661,7 +1660,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfConstraints(boolean,
    * java.util.Set)
    */
@@ -1681,7 +1680,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * gov.nasa.jpl.ae.event.ParameterListener#translate(gov.nasa.jpl.ae.solver.
    * Variable, java.lang.Object, java.lang.Class)
