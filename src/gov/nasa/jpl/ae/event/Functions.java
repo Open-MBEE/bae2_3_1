@@ -156,23 +156,11 @@ public class Functions {
                                                                     // ) {
       FunctionCall singleValueFcn = inverseSingleValue( returnValue, arg );
       if ( singleValueFcn == null ) return null;
-      try {
-        return new FunctionCall( null,
-                                 ClassUtils.getMethodsForName( Utils.class,
-                                                               "newList" )[ 0 ],
-                                 new Object[] { singleValueFcn.evaluate( true ) },
-                                 (Class< ? >)null );
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-      return null;
+      return new FunctionCall( null,
+                               ClassUtils.getMethodsForName( Utils.class,
+                                                             "newList" )[ 0 ],
+                               new Object[] { singleValueFcn },
+                               (Class< ? >)null );
     }
 
     /**
@@ -4814,6 +4802,13 @@ public class Functions {
     }
 
     @Override
+    public < TT > Pair< Domain< TT >, Boolean >
+           restrictDomain( Domain< TT > domain, boolean propagate,
+                           Set< HasDomain > seen ) {
+      return super.restrictDomain( domain, propagate, seen );
+    }
+    
+    @Override
     public Domain< ? > calculateDomain( boolean propagate,
                                         Set< HasDomain > seen ) {
       return super.calculateDomain( propagate, seen );
@@ -4836,8 +4831,7 @@ public class Functions {
       // arguments.get( 1 ) );
       if ( returnValue == null // || otherArg == null
       ) return null; // arg can be null!
-      return new Equals< Boolean >( forceExpression( returnValue ),
-                                    forceExpression( arg ) );
+      return new Conditional(forceExpression(returnValue), forceExpression( new BooleanDomain(true, true) ), forceExpression( new BooleanDomain() ) );
     }
 
   }

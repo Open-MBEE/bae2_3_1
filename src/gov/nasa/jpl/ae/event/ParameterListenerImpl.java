@@ -44,7 +44,10 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
                                    HasConstraints, HasTimeVaryingObjects,
                                    HasOwner,
                                    Comparable< ParameterListenerImpl > {
+
+  public static boolean arcConsistencyQuiet = true;
   public static boolean usingArcConsistency = true;
+
   // Constants
 
   protected double timeoutSeconds = 900.0;
@@ -775,8 +778,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     if ( usingArcConsistency ) {
       ac = new Consistency();
       ac.constraints = allConstraints;
-//      ac.arcConsistency( true );
-      ac.arcConsistency( false );
+      ac.arcConsistency( arcConsistencyQuiet );
 
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
@@ -864,7 +866,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       if ( seen != null ) seen.remove( this );
       return getConstraintCollection( deep, seen );
     }
-    Set< Constraint > set = new HashSet< Constraint >();
+    Set< Constraint > set = new LinkedHashSet< Constraint >();
     set = Utils.addAll( set,
                         HasConstraints.Helper.getConstraints( getParameters( false,
                                                                              null ),
