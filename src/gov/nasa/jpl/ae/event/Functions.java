@@ -2221,9 +2221,13 @@ public class Functions {
     if ( v instanceof Variable ) {
       return negative((Variable<T>)v);
     }
+    
+    // If the string is a number just toggle a minus in front of the string.
     if ( v instanceof String ) {
-      return negative((Number)v);
+      String s = (String)v;
+      return negative( s );
     }
+    
     if ( v instanceof TimeVaryingMap ) {
       return ((TimeVaryingMap)v).negative();
     }
@@ -2244,7 +2248,7 @@ public class Functions {
     Long i = Utils.toLong( v );
     Double n = Utils.toDouble( v );
     if ( i == null && n == null ) {
-      // TODO -- ERROR!
+      Debug.error( true, false, "Tried to apply negative() to a string that is not a number: " + v );
       return null;
     }
     if ( i != null && n != null && i.doubleValue() == n.doubleValue() ) {
