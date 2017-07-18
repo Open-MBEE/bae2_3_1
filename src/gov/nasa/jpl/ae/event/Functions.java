@@ -2961,7 +2961,7 @@ public class Functions {
       AbstractRangeDomain< ? > subDomainBelow =
           DomainHelper.createSubDomainBelow( otherArg, false, false );
       AbstractRangeDomain< ? > subDomainAbove =
-          DomainHelper.createSubDomainAbove( otherArg, false, false );
+          DomainHelper.createSubDomainAbove( otherArg, false, false ); //I think this should have include = true ?
       Boolean b = null;
       try {
         b = Expression.evaluate( returnValue, Boolean.class, true );
@@ -4924,8 +4924,7 @@ public class Functions {
       // arguments.get( 1 ) );
       if ( returnValue == null // || otherArg == null
       ) return null; // arg can be null!
-      return new Equals< Boolean >( forceExpression( returnValue ),
-                                    forceExpression( arg ) );
+      return new Conditional(forceExpression(returnValue), forceExpression( new BooleanDomain() ), forceExpression( new BooleanDomain(false, false) ) );
     }
 
   }
@@ -5811,12 +5810,12 @@ public class Functions {
       if ( result instanceof Collection ) {
         Collection< T1 > coll = (Collection< T1 >)result;
         T1 t11 = get( coll, Random.global.nextInt( coll.size() ) );
-        if ( t11 instanceof Domain ) {
-          if ( !( Domain.class.isAssignableFrom( arg.getType() ) ) ) {
-            return (T1)( (Domain)t11 ).getValue( true );
-          }
-
-        }
+//        if ( t11 instanceof Domain ) {
+//          if ( !( Domain.class.isAssignableFrom( arg.getType() ) ) ) {
+//            return (T1)( (Domain)t11 ).getValue( true );
+//          }
+//
+//        }
         return t11;
       } else {
         Class< T1 > cls = (Class< T1 >)variable.getClass();
