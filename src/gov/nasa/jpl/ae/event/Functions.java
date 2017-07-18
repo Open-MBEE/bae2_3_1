@@ -5811,12 +5811,12 @@ public class Functions {
       if ( result instanceof Collection ) {
         Collection< T1 > coll = (Collection< T1 >)result;
         T1 t11 = get( coll, Random.global.nextInt( coll.size() ) );
-        if ( t11 instanceof Domain ) {
-          if ( !( Domain.class.isAssignableFrom( arg.getType() ) ) ) {
-            return (T1)( (Domain)t11 ).getValue( true );
-          }
-
-        }
+//        if ( t11 instanceof Domain ) {
+//          if ( !( Domain.class.isAssignableFrom( arg.getType() ) ) ) {
+//            return (T1)( (Domain)t11 ).getValue( true );
+//          }
+//
+//        }
         return t11;
       } else {
         Class< T1 > cls = (Class< T1 >)variable.getClass();
