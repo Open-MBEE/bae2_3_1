@@ -2961,7 +2961,7 @@ public class Functions {
       AbstractRangeDomain< ? > subDomainBelow =
           DomainHelper.createSubDomainBelow( otherArg, false, false );
       AbstractRangeDomain< ? > subDomainAbove =
-          DomainHelper.createSubDomainAbove( otherArg, false, false );
+          DomainHelper.createSubDomainAbove( otherArg, false, false ); //I think this should have include = true ?
       Boolean b = null;
       try {
         b = Expression.evaluate( returnValue, Boolean.class, true );
@@ -4924,8 +4924,7 @@ public class Functions {
       // arguments.get( 1 ) );
       if ( returnValue == null // || otherArg == null
       ) return null; // arg can be null!
-      return new Equals< Boolean >( forceExpression( returnValue ),
-                                    forceExpression( arg ) );
+      return new Conditional(forceExpression(returnValue), forceExpression( new BooleanDomain() ), forceExpression( new BooleanDomain(false, false) ) );
     }
 
   }

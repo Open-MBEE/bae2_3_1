@@ -270,7 +270,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    return sb.toString();
+    return sb.toString() + solver.getUnsatisfiedConstraints();
   }
 
   @Override
@@ -782,8 +782,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
-        if ( !isSimpleVar( e.getKey() ) ) {
-          e.getKey().setDomain( (Domain)e.getValue() );
+        if ( isSimpleVar( e.getKey() ) == Boolean.FALSE ) {
+          e.getKey().setDomain( (Domain)e.getValue() );  
         }
       }
     }
@@ -791,6 +791,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // Now assign values to variables within their domains to satisfy
     // constraints.
     boolean satisfied = solver.solve( allConstraints );
+    System.out.println( allConstraints );
     if ( usingArcConsistency ) {
       ac.restoreDomains();
     }
@@ -833,14 +834,24 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return satisfied;
   }
 
-  protected boolean isSimpleVar( Variable< ? > key ) {
+  protected Boolean isSimpleVar( Variable< ? > key ) {
     Object v = key.getValue( false );
     if ( v != null ) {
       if ( ClassUtils.isPrimitive( v ) ) {
-        return true;
+        return Boolean.TRUE;
       }
+    } else {
+      v = key.getType();
+      if (v != null) {
+        if (ClassUtils.isPrimitive( v )) {
+          return Boolean.TRUE;
+        }
+      } else {
+        return null;
+      }
+      
     }
-    return false;
+    return Boolean.FALSE;
   }
   // @Override
   // public Collection< Constraint > getConstraints() {
