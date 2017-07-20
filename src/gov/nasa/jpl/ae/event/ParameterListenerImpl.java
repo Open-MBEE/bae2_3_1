@@ -270,7 +270,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    return sb.toString() + getUnsatisfiedConstraints();
+    return sb.toString() + "\nUnsatisfied constraints: " + getUnsatisfiedConstraints();
   }
 
   @Override
@@ -786,7 +786,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
         if ( isSimpleVar( e.getKey() ) == Boolean.FALSE ) {
-          e.getKey().setDomain( (Domain)e.getValue() );  
+          e.getKey().setDomain( (Domain)e.getValue() );
         }
       }
     }
@@ -852,7 +852,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       } else {
         return null;
       }
-      
+
     }
     return Boolean.FALSE;
   }
@@ -1341,7 +1341,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( Dependency< ? > d : getDependencies() ) {
       if ( d.parameter == parameter ) {
         triedRefreshing = true;
-        if ( d.refresh( parameter ) ) didRefresh = true;   
+        if ( d.refresh( parameter ) ) didRefresh = true;
       }
     }
 
