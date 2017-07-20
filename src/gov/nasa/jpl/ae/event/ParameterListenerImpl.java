@@ -270,7 +270,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    return sb.toString() + solver.getUnsatisfiedConstraints();
+    return sb.toString() + "\nUnsatisfied constraints: " + solver.getUnsatisfiedConstraints();
   }
 
   @Override
