@@ -70,7 +70,7 @@ public class ConstraintExpression extends Expression< Boolean >
   /**
    * (non-Javadoc)
    * 
-   * @see event.Constraint#isSatisfied()
+   * @see gov.nasa.jpl.ae.solver.Constraint#isSatisfied(boolean, Set)
    */
   @Override
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
@@ -100,7 +100,7 @@ public class ConstraintExpression extends Expression< Boolean >
   /**
    * (non-Javadoc)
    * 
-   * @see event.Constraint#satisfy()
+   * @see gov.nasa.jpl.ae.solver.Constraint#satisfy(boolean, Set)
    */
   @Override
   public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
@@ -142,12 +142,17 @@ public class ConstraintExpression extends Expression< Boolean >
       vars.toArray( a );
       for ( Variable< ? > v : Utils.scramble(a) ) {
         // Make sure the variable is not dependent and not locked.
-          if ( ( !( v instanceof Parameter ) || (!( (Parameter)v ).isDependent() || Random.global.nextDouble() < 0.1) )
+        if ( ( !( v instanceof Parameter ) || (!( (Parameter)v ).isDependent() || Random.global.nextDouble() < 0.1) )
                   && ( v.getDomain() == null || v.getDomain().magnitude() != 1 ) ) {
-          if ( (pickingDeep && !copy.contains( v )) || !pickParameterValue( v )) {
-            boolean picked = v.pickValue();
-            if ( picked && isSatisfied(deep, seen) ) break;
+          boolean picked = false;
+          boolean p = pickingDeep && !copy.contains( v );
+          if ( !p ) {
+            picked = pickParameterValue( v );
           }
+          if ( p || !picked ) {
+            picked = v.pickValue();
+          }
+          if (picked && isSatisfied(deep, seen)) break;
         }
       }
     }
