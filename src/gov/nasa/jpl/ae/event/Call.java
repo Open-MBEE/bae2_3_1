@@ -447,11 +447,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       return null;
     }
 
-    if ( propagate ) {
-      if ( !ground( propagate, null ) ) {
-        //return null;
-      }
-    } 
+//    if ( propagate ) {
+//      if ( !ground( propagate, null ) ) {
+//      }
+//    } 
     //else {
     //  if ( !isGrounded( false, null ) ) {
       //  return null;

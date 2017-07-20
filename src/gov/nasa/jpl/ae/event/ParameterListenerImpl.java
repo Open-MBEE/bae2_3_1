@@ -45,7 +45,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
                                    HasOwner,
                                    Comparable< ParameterListenerImpl > {
 
-  public static boolean arcConsistencyQuiet = true;
+  public static boolean arcConsistencyQuiet = false;
   public static boolean usingArcConsistency = true;
 
   // Constants
@@ -1338,7 +1338,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( Dependency< ? > d : getDependencies() ) {
       if ( d.parameter == parameter ) {
         triedRefreshing = true;
-        if ( d.refresh( parameter ) ) didRefresh = true;
+        if ( d.refresh( parameter ) ) didRefresh = true;   
       }
     }
 

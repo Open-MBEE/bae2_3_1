@@ -410,7 +410,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     AbstractRangeDomain<T> d = this.clone();
     boolean aboveUb = greater( t, getUpperBound() );
     boolean eqUb = t.equals( getUpperBound() );
-    if ( !aboveUb || eqUb ) {
+    if ( !aboveUb || eqUb ) { //what should be here?
       d.upperIncluded = true; // temporary to make sure setUpperBound() works
     }
     if ( aboveUb || eqUb || d.setUpperBound( t ) ) {
