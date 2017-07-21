@@ -303,7 +303,9 @@ public class Functions {
           if ( !returnValue.isInfinite() ) {
             for ( long i = 0; i < returnValue.magnitude(); ++i ) {
               Object rv = ( (AbstractRangeDomain)returnValue ).getNthValue( i );
-              addInverseToList( rv, argument, possibleValues );
+              if (rv != null) {
+                addInverseToList( rv, argument, possibleValues );
+              }
             }
           }
         }

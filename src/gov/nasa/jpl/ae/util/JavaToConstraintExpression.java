@@ -2117,10 +2117,19 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     return expr;
   }
+  
+  public String getDomainString(String type) {
+    if (!type.equals( "Integer" ) && !type.equals("Boolean") &&!type.equals( "Double" ) && !type.equals( "String" )) {
+      return "new ObjectDomain<" + type + ">(" + type + ".class, " + getClassData().getEnclosingClassName(type) + ".this)";
+    }
+    return "null";
+  }
+  
 
   public String[] convertToEventParameterTypeAndConstructorArgs( ClassData.Param p ) {
     return convertToEventParameterTypeAndConstructorArgs( p, getCurrentClass() );
   }
+  
 
   /**
    * Determines the AE translated parameter type, generic parameter types, and arguments.  
@@ -2153,12 +2162,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     // do not include p.value?
     String valueArg = javaToAeExpr( p.value, p.type, false, true );
     String typePlaceholder = "!TYPE!";
+    String domain = getDomainString(p.type);
     // if ( valueArg.equals( "null" )
     // || ( valueArg.startsWith( "new Expression" ) &&
     // valueArg.endsWith( "(null)" ) ) ) {
     valueArg = "(" + typePlaceholder + ")" + valueArg; // replacing !TYPE! later
     // }
-    String args = "\"" + p.name + "\", null, " + valueArg + ", this";
+    String args = "\"" + p.name + "\"," + domain + ", " + valueArg + ", this";
     String parameterClass =
         ClassData.typeToParameterType( p.type );
     if ( Utils.isNullOrEmpty( p.type ) ) {
