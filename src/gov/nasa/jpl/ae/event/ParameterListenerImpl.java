@@ -16,6 +16,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
@@ -45,7 +48,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
                                    HasOwner,
                                    Comparable< ParameterListenerImpl > {
 
-  public static boolean arcConsistencyQuiet = false;
+  public static boolean arcConsistencyQuiet = true;
   public static boolean usingArcConsistency = true;
 
   // Constants
@@ -61,6 +64,11 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   protected int loopsPerSnapshot = 20; // set to 1 to take snapshot every time
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
+  
+  protected boolean redirectStdOut = false;
+  protected PrintStream oldOut = System.out;
+  protected PrintStream oldErr = System.err;
+
 
   // Static members
 
@@ -262,15 +270,25 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     sb.append( ")" );
     return sb.toString();
   }
+  
+  public String solutionConstraintsString() {
+    return "";
+  }
 
 
-  public String executionString()  {
+  public String simpleString()  {
     StringBuffer sb = new StringBuffer();
-    sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
-    for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
+    if (isSatisfied(true, null)) {
+     sb.append( "Satisfied:\n ");
+     sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
+     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
+       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
+     }
+    } else {
+      sb.append("Unsatisfied Constraints:\n" + getUnsatisfiedConstraints());
     }
-    return sb.toString() + "\nUnsatisfied constraints: " + getUnsatisfiedConstraints();
+    return sb.toString();
+    
   }
 
   @Override
@@ -552,6 +570,12 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
    */
   @Override
   public boolean satisfy( boolean deep, Set< Satisfiable > seen ) {
+    if (redirectStdOut) {
+      ByteArrayOutputStream baosOut = new ByteArrayOutputStream();
+      ByteArrayOutputStream baosErr = new ByteArrayOutputStream();
+      System.setOut(new PrintStream(baosOut));
+      System.setErr(new PrintStream(baosErr));
+    }
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -649,6 +673,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
     }
+    System.setErr( oldErr );
+    System.setOut( oldOut );
     return satisfied;
   }
 
