@@ -43,6 +43,9 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import junit.framework.Assert;
 
 /**
@@ -1287,17 +1290,47 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
   public Object clone() {
     return new DurativeEvent( this );
   }
+  
+  
+  
+  public JSONArray kSolutionJSONArr() {
+    JSONArray value = new JSONArray();
+    Parameter< ? > dontNeedParams[] = { startTime, duration, endTime }; 
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    allParams.removeAll( Arrays.asList( dontNeedParams ) );
+    for ( Parameter< ? > p : allParams ) {
+      JSONObject param = new JSONObject();
+      if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pLI =
+            ( (ParameterListenerImpl)p.getValueNoPropagate() );
+        param.put( "name", p.getName() );
+        param.put( "type", "class" );
+        JSONArray val = pLI.kSolutionJSONArr();
+        param.put( "value", val );
+        
+      } else {
+        param.put( "name", p.getName() );
+        param.put( "type", "primitive" );
+        param.put( "value", p.getValue().toString()) ;
+      }
+      value.put( param );
+    }
+    return value;
+
+    
+  }
 
   
 
   public String kSolutionString( int indent ) {
 
     StringBuffer sb = new StringBuffer();
-    Parameter< ? > dontNeedParams[] = { startTime, duration, endTime }; 
     String indentString = "";
     for (int i = 0 ; i < indent; i++) {
       indentString += "   ";
     }
+    Parameter< ? > dontNeedParams[] = { startTime, duration, endTime }; 
+
     Set< Parameter< ? > > allParams = getParameters( false, null );
     allParams.removeAll( Arrays.asList( dontNeedParams ) );
     for ( Parameter< ? > p : allParams ) {
@@ -1312,7 +1345,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
         sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\r\n" );
       }
     
+
   }
+
     return sb.toString();
   }
 

@@ -38,6 +38,9 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * A class that manages Parameters, Dependencies, and Constraints.
  *
@@ -272,14 +275,71 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   public String kSolutionString() {
     Boolean sat = isSatisfied(true, null);
     StringBuffer sb = new StringBuffer();
-    sb.append((sat? "Satisfied" : "Unsatisfied") + ":\n");
+    sb.append((sat? "Satisfied" : "Unsatisfied") + "\n");
+    sb.append( "Solution:\n" );
     sb.append(kSolutionString(0));
+    sb.append( "Requirements:\n" );
+    sb.append( solutionRequirements() );
+        
     if (!sat) {
       sb.append( "Unsatisfied Constraints: "  + getUnsatisfiedConstraints());
+    }
+    
+    return sb.toString();
+  }
+  
+  
+  public String solutionRequirements() {
+    List<String> reqs = JSONArrToReqs(kSolutionJSONArr());
+    StringBuffer sb = new StringBuffer();
+    for (String s : reqs) {
+      sb.append( "req " + s + "\n" );
     }
     return sb.toString();
   }
   
+  public JSONArray kSolutionJSONArr() {
+    JSONArray value = new JSONArray();
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter< ? > p : allParams ) {
+      JSONObject param = new JSONObject();
+      if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pLI =
+            ( (ParameterListenerImpl)p.getValueNoPropagate() );
+        param.put( "name", p.getName() );
+        param.put( "type", "class" );
+        JSONArray val = pLI.kSolutionJSONArr();
+        param.put( "value", val );
+        
+      } else {
+        param.put( "name", p.getName() );
+        param.put( "type", "primitive" );
+        param.put( "value", p.getValue().toString()) ;
+      }
+      value.put( param );
+    }
+    return value;
+    
+  }
+  
+  
+  public static List<String> JSONArrToReqs(JSONArray JSONArr) {
+    List<String> strings = new ArrayList<String>();
+    int length = JSONArr.length();
+    for (int i = 0; i < length; i++ ) {
+      JSONObject obj = JSONArr.getJSONObject( i );
+      if (obj.get( "type" ).equals("primitive")) {
+        strings.add( obj.get("name") + " = " + obj.get( "value" )) ;
+      } else {
+        List<String> paramStrings = JSONArrToReqs((JSONArray)obj.get("value"));
+        String name = obj.getString( "name" );
+        for (String s : paramStrings) {
+          strings.add( name + "." + s );
+        }
+      }
+    }
+    return strings;
+  }
   
   public String kSolutionString( int indent ) {
 
