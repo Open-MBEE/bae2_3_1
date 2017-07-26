@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import gov.nasa.jpl.ae.solver.AbstractRangeDomain;
 import gov.nasa.jpl.ae.solver.CollectionTree;
@@ -19,6 +20,7 @@ import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
+import gov.nasa.jpl.ae.solver.ObjectDomain;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Satisfiable;
@@ -419,7 +421,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       if ( Debug.isOn() ) {
         //Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
-      //System.out.println(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
+      System.out.println(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
@@ -552,6 +554,15 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( deep && value instanceof Groundable ) {
       ((Groundable)value).ground(deep, seen);
     }
+    
+    
+    if (domain instanceof ObjectDomain) {
+     Object o = ((ObjectDomain)domain).constructObject();
+     if (o != null) {
+       setValue((T)o);
+     }
+    }
+    
     return isGrounded(deep, null);
   }
 

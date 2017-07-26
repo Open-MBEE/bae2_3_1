@@ -447,11 +447,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       return null;
     }
 
-    if ( propagate ) {
-      if ( !ground( propagate, null ) ) {
-        //return null;
-      }
-    } 
+//    if ( propagate ) {
+//      if ( !ground( propagate, null ) ) {
+//      }
+//    } 
     //else {
     //  if ( !isGrounded( false, null ) ) {
       //  return null;
@@ -647,6 +646,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                  IllegalAccessException,
                                                  InvocationTargetException,
                                                  InstantiationException {
+    if ( c == Object.class ) {
+      c = null;
+    }
     return Expression.evaluate( unevaluatedArg, c, propagate, true );
   }
   //public Object evaluate( unevaluatedArg, c, propagate, true ) {

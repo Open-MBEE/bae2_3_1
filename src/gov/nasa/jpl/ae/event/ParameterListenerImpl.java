@@ -16,6 +16,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import junit.framework.Assert;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
@@ -62,6 +65,10 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
 
+  protected boolean redirectStdOut = false;
+  protected PrintStream oldOut = System.out;
+  protected PrintStream oldErr = System.err;
+
   // Static members
 
   protected static int counter = 0;
@@ -90,19 +97,17 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
 
-
   public String toKString() {
     String superClass = super.getClass().getName();
-    List< String > paramStrings = new ArrayList<String>();
-    for (Parameter<?> p : parameters) {
+    List< String > paramStrings = new ArrayList< String >();
+    for ( Parameter< ? > p : parameters ) {
       String pString = p.toKString();
       paramStrings.add( pString );
       System.out.println( pString );
     }
 
-
-    List< String > constraintStrings = new ArrayList<String>();
-    for (ConstraintExpression c : constraintExpressions) {
+    List< String > constraintStrings = new ArrayList< String >();
+    for ( ConstraintExpression c : constraintExpressions ) {
       System.out.println( c.toString() );
     }
     return null;
@@ -200,8 +205,6 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return getName();
   }
 
-
-
   /*
    * (non-Javadoc)
    *
@@ -254,7 +257,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       if ( first ) first = false;
       else sb.append( ", " );
       if ( deep && p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
-        sb.append( ((ParameterListenerImpl)p.getValueNoPropagate()).toString( withHash, true, seen ) );
+        sb.append( ( (ParameterListenerImpl)p.getValueNoPropagate() ).toString( withHash,
+                                                                                true,
+                                                                                seen ) );
       } else {
         sb.append( p.toString( false, withHash, deep, seen, otherOptions ) );
       }
@@ -263,14 +268,30 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
+  public String kSolutionString() {
+    return "";
+  }
 
-  public String executionString()  {
+  public String simpleString() {
     StringBuffer sb = new StringBuffer();
+    Boolean sat = isSatisfied(true, null);
+    if ( sat) {
+      sb.append( "Satisfied:\n " );
+    } else {
+      sb.append( "Unsatisfied: \n" );
+
+    }
     sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    return sb.toString() + solver.getUnsatisfiedConstraints();
+    if (!sat) {
+      sb.append( "Unsatisfied Constraints:\n" + getUnsatisfiedConstraints() );
+      
+    }
+
+    return sb.toString();
+
   }
 
   @Override
@@ -431,6 +452,10 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
   public List< ConstraintExpression > getUnsatisfiedConstraints() {
     List< ConstraintExpression > list = new ArrayList< ConstraintExpression >();
+    if ( constraintExpressions != null || constraintExpressions.size() == 0 ) {
+      constraintExpressions = Utils.asList( getConstraints( true, null ),
+                                            ConstraintExpression.class );
+    }
     for ( ConstraintExpression c : constraintExpressions ) {
       if ( !c.isSatisfied( false, null ) ) {
         list.add( c );
@@ -549,6 +574,12 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
    */
   @Override
   public boolean satisfy( boolean deep, Set< Satisfiable > seen ) {
+    if ( redirectStdOut ) {
+      ByteArrayOutputStream baosOut = new ByteArrayOutputStream();
+      ByteArrayOutputStream baosErr = new ByteArrayOutputStream();
+      System.setOut( new PrintStream( baosOut ) );
+      System.setErr( new PrintStream( baosErr ) );
+    }
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -646,6 +677,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
     }
+    System.setErr( oldErr );
+    System.setOut( oldOut );
     return satisfied;
   }
 
@@ -783,7 +816,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
         if ( isSimpleVar( e.getKey() ) == Boolean.FALSE ) {
-          e.getKey().setDomain( (Domain)e.getValue() );  
+          e.getKey().setDomain( (Domain)e.getValue() );
         }
       }
     }
@@ -842,14 +875,14 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       }
     } else {
       v = key.getType();
-      if (v != null) {
-        if (ClassUtils.isPrimitive( v )) {
+      if ( v != null ) {
+        if ( ClassUtils.isPrimitive( v ) ) {
           return Boolean.TRUE;
         }
       } else {
         return null;
       }
-      
+
     }
     return Boolean.FALSE;
   }

@@ -335,6 +335,9 @@ public class Dependency< T > extends HasIdImpl
     if ( expression.substitute( t1, t2, deep, seen ) ) {
       subbed = true;
     }
+    if ( constraint != null && constraint.substitute( t1, t2, deep, seen ) ) {
+      subbed = true;
+    }
     return subbed;
   }
 
@@ -694,6 +697,9 @@ public class Dependency< T > extends HasIdImpl
     if ( expression.hasParameter( changedParameter, false, null ) ) {
       expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
+    }
+    if ( constraint != null && constraint.hasParameter( changedParameter, false, null ) ) {
+      constraint.setStaleAnyReferencesTo( changedParameter, seen );
     }
   }
 

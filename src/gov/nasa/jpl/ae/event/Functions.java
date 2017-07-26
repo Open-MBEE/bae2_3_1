@@ -307,7 +307,9 @@ public class Functions {
           if ( !returnValue.isInfinite() ) {
             for ( long i = 0; i < returnValue.magnitude(); ++i ) {
               Object rv = ( (AbstractRangeDomain)returnValue ).getNthValue( i );
-              addInverseToList( rv, argument, possibleValues );
+              if (rv != null) {
+                addInverseToList( rv, argument, possibleValues );
+              }
             }
           }
         }
@@ -3508,7 +3510,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e2.restrictDomain( ard2, true, null );
-              changed = changed || p.second;
+              changed = changed || (p!= null && p.second);
             }
           }
         } else {
@@ -3527,7 +3529,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e1.restrictDomain( ard1, true, null );
-              changed = changed || p.second;
+              changed = changed || (p != null && p.second);
             }
           }
           if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
@@ -3539,7 +3541,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e2.restrictDomain( ard2, true, null );
-              changed = changed || p.second;
+              changed = changed || (p != null && p.second);
             }
           }
         }
