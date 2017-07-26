@@ -268,14 +268,48 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
+  
   public String kSolutionString() {
-    return "";
+    Boolean sat = isSatisfied(true, null);
+    StringBuffer sb = new StringBuffer();
+    sb.append((sat? "Satisfied" : "Unsatisfied") + ":\n");
+    sb.append(kSolutionString(0));
+    if (!sat) {
+      sb.append( "Unsatisfied Constraints: "  + getUnsatisfiedConstraints());
+    }
+    return sb.toString();
+  }
+  
+  
+  public String kSolutionString( int indent ) {
+
+    String indentString = "";
+    for (int i = 0 ; i < indent; i++) {
+      indentString += "   ";
+    }
+    StringBuffer sb = new StringBuffer();
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter< ? > p : allParams ) {
+        if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+          ParameterListenerImpl pLI =
+              ( (ParameterListenerImpl)p.getValueNoPropagate() );
+          sb.append( indentString + p.getName() + " = " + pLI.getClass().getSimpleName()
+                     + " {\n" );
+          sb.append(  pLI.kSolutionString( indent + 1 ) );
+          sb.append( indentString + "}\n" );
+        } else {
+          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\r\n" );
+        }
+      
+    }
+
+    return sb.toString();
   }
 
   public String simpleString() {
     StringBuffer sb = new StringBuffer();
-    Boolean sat = isSatisfied(true, null);
-    if ( sat) {
+    Boolean sat = isSatisfied( true, null );
+    if ( sat ) {
       sb.append( "Satisfied:\n " );
     } else {
       sb.append( "Unsatisfied: \n" );
@@ -285,9 +319,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    if (!sat) {
+    if ( !sat ) {
       sb.append( "Unsatisfied Constraints:\n" + getUnsatisfiedConstraints() );
-      
+
     }
 
     return sb.toString();
