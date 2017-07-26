@@ -176,7 +176,7 @@ public class TestEventXmlToJava {
     System.out.println("Started TestEventXmlToJava " + Utils.toString( args, false ) + ": starting timer");
     Timer timer = new Timer();
     // Try to find the XML file to read in.
-    String xmlFileName = "exampleDRScenario.xml";
+    String xmlFileName = "iLessThanFive.xml";
     
     if ( args.length >= 1 ) {
       xmlFileName = args[0];

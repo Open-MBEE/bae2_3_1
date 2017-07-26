@@ -479,7 +479,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
       evaluatedArgs = fixArgsForVarArgs( evaluatedArgs, false );
       
-      returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
+      try {
+        returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
+
+      } catch (Exception e) {
+        System.out.println( "something went wrong with evaluating " + this );
+      }
 
       // No longer stale after invoked with updated arguments and result is cached.
       if ( evaluationSucceeded ) setStale( false );
@@ -1632,7 +1637,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
     }
     if ( object instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
+      ((ParameterListener)object).handleValueChangeEvent( parameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
       ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );

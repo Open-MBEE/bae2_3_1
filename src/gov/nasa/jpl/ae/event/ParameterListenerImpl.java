@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package gov.nasa.jpl.ae.event;
 
@@ -39,32 +39,31 @@ import gov.nasa.jpl.mbee.util.Utils;
  * A class that manages Parameters, Dependencies, and Constraints.
  *
  */
-public class ParameterListenerImpl extends HasIdImpl
-                                   implements Cloneable, Groundable,
-                                              Satisfiable,
-                                              ParameterListener,
-                                              HasConstraints,
-                                              HasTimeVaryingObjects,
-                                              HasOwner,
-                                              Comparable< ParameterListenerImpl > {
-  public static boolean usingArcConsistency = false;
+public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
+                                   Groundable, Satisfiable, ParameterListener,
+                                   HasConstraints, HasTimeVaryingObjects,
+                                   HasOwner,
+                                   Comparable< ParameterListenerImpl > {
+
+  public static boolean arcConsistencyQuiet = true;
+  public static boolean usingArcConsistency = true;
+
   // Constants
-  
+
   protected double timeoutSeconds = 900.0;
-  protected int maxLoopsWithNoProgress = 100;
+  protected int maxLoopsWithNoProgress = 50;
   protected long maxPassesAtConstraints = 10000;
   protected boolean usingTimeLimit = false;
   protected boolean usingLoopLimit = true;
 
   protected boolean snapshotSimulationDuringSolve = false;
   protected boolean snapshotToSameFile = true;
-  protected int loopsPerSnapshot = 20;  // set to 1 to take snapshot every time
+  protected int loopsPerSnapshot = 20; // set to 1 to take snapshot every time
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
-  
 
   // Static members
-  
+
   protected static int counter = 0;
   public static boolean settingTimeVaryingMapOwners = false;
 
@@ -75,7 +74,7 @@ public class ParameterListenerImpl extends HasIdImpl
       new ArrayList< Parameter< ? > >();
   protected List< ConstraintExpression > constraintExpressions =
       new ArrayList< ConstraintExpression >();
-  protected CollectionTree<Constraint> constraintCollection = null;
+  protected CollectionTree< Constraint > constraintCollection = null;
   // TODO -- REVIEW -- should dependencies these be folded in with effects?
   protected ArrayList< Dependency< ? > > dependencies =
       new ArrayList< Dependency< ? > >();
@@ -90,17 +89,38 @@ public class ParameterListenerImpl extends HasIdImpl
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
-  
-  
-  public ParameterListenerImpl() {
-    this((String)null);
+
+
+  public String toKString() {
+    String superClass = super.getClass().getName();
+    List< String > paramStrings = new ArrayList<String>();
+    for (Parameter<?> p : parameters) {
+      String pString = p.toKString();
+      paramStrings.add( pString );
+      System.out.println( pString );
+    }
+
+
+    List< String > constraintStrings = new ArrayList<String>();
+    for (ConstraintExpression c : constraintExpressions) {
+      System.out.println( c.toString() );
+    }
+    return null;
+
   }
+
+  public ParameterListenerImpl() {
+    this( (String)null );
+  }
+
   public ParameterListenerImpl( String name ) {
     setName( name );
   }
+
   public ParameterListenerImpl( ParameterListenerImpl parameterListenerImpl ) {
     this( null, parameterListenerImpl );
   }
+
   public ParameterListenerImpl( String name,
                                 ParameterListenerImpl parameterListenerImpl ) {
     setName( name );
@@ -127,25 +147,23 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   @Override
-  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2,
-                             boolean deep,
-                             Set<HasParameters> seen ) {
+  public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
+                             Set< HasParameters > seen ) {
     return substitute( p1, (Object)p2, deep, seen );
   }
+
   @Override
-  public boolean substitute( Parameter< ? > p1, Object p2,
-                             boolean deep,
-                             Set<HasParameters> seen ) {
+  public boolean substitute( Parameter< ? > p1, Object p2, boolean deep,
+                             Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return false;
+    // if ( Utils.seen( this, deep, seen ) ) return false;
     boolean subbed = false;
     boolean s = HasParameters.Helper.substitute( constraintExpressions, p1, p2,
                                                  deep, seen );
     subbed = subbed || s;
-    s = HasParameters.Helper.substitute( dependencies, p1, p2,
-                                         deep, seen );
+    s = HasParameters.Helper.substitute( dependencies, p1, p2, deep, seen );
     subbed = subbed || s;
     return subbed;
   }
@@ -154,11 +172,12 @@ public class ParameterListenerImpl extends HasIdImpl
   // corresponding ones in another event. Subclasses may need to override this
   // to add their own parameters.
   protected List< Pair< Parameter< ? >, Parameter< ? > > >
-      buildSubstitutionList( ParameterListener parameterListener ) {
+            buildSubstitutionList( ParameterListener parameterListener ) {
     ArrayList< Pair< Parameter< ? >, Parameter< ? > > > subList =
         new ArrayList< Pair< Parameter< ? >, Parameter< ? > > >();
     Iterator< Parameter< ? > > i1 = parameters.iterator();
-    Iterator< Parameter< ? > > i2 = parameterListener.getParameters(false, null).iterator();
+    Iterator< Parameter< ? > > i2 =
+        parameterListener.getParameters( false, null ).iterator();
     while ( i1.hasNext() ) {
       subList.add( new Pair< Parameter< ? >, Parameter< ? > >( i1.next(),
                                                                i2.next() ) );
@@ -168,7 +187,7 @@ public class ParameterListenerImpl extends HasIdImpl
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#clone()
    */
   @Override
@@ -181,15 +200,18 @@ public class ParameterListenerImpl extends HasIdImpl
     return getName();
   }
 
+
+
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#toString()
    */
   @Override
   public String toString() {
     return toString( Debug.isOn(), false, null );
   }
+
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen,
                           Map< String, Object > otherOptions ) {
@@ -199,39 +221,40 @@ public class ParameterListenerImpl extends HasIdImpl
     StringBuffer sb = new StringBuffer();
     sb.append( getClass().getName() ); // super.toString() adds hash code
     if ( withHash ) {
-      sb.append("@" + this.hashCode() );
+      sb.append( "@" + this.hashCode() );
     }
-    // TODO -- REVIEW -- Can this just call MoreToString.Helper.toString(params)?
+    // TODO -- REVIEW -- Can this just call
+    // MoreToString.Helper.toString(params)?
     sb.append( "(" );
     boolean first = true;
-    
+
     if ( !Utils.isNullOrEmpty( getName() ) ) {
       if ( first ) first = false;
       else sb.append( ", " );
       sb.append( "name=" + getName() );
     }
-    
+
     String qName = getQualifiedName();
     if ( !Utils.isNullOrEmpty( qName ) ) {
       if ( first ) first = false;
       else sb.append( ", " );
       sb.append( "qualifiedName=" + qName );
     }
-    
+
     if ( first ) first = false;
     else sb.append( ", " );
     sb.append( "id=" + id );
-    
+
     if ( first ) first = false;
     else sb.append( ", " );
     sb.append( "qualifiedId=" + getQualifiedId() );
-    
+
     Set< Parameter< ? > > allParams = getParameters( false, null );
-    for ( Parameter<?> p : allParams ) {
+    for ( Parameter< ? > p : allParams ) {
       if ( first ) first = false;
       else sb.append( ", " );
       if ( deep && p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
-        sb.append( p.toString( false, withHash, false, seen, otherOptions ) );
+        sb.append( ((ParameterListenerImpl)p.getValueNoPropagate()).toString( withHash, true, seen ) );
       } else {
         sb.append( p.toString( false, withHash, deep, seen, otherOptions ) );
       }
@@ -240,45 +263,62 @@ public class ParameterListenerImpl extends HasIdImpl
     return sb.toString();
   }
 
+
+  public String executionString()  {
+    StringBuffer sb = new StringBuffer();
+    sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
+    for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
+      sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
+    }
+    return sb.toString() + solver.getUnsatisfiedConstraints();
+  }
+
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
     return toString( withHash, deep, seen, null );
   }
 
-  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Call e, boolean fire ) {
-    return addDependency( p, new Expression<T2>(e), fire );
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Call e,
+                                                   boolean fire ) {
+    return addDependency( p, new Expression< T2 >( e ), fire );
   }
 
   // TODO -- separate this method and removeDependency from Event to
   // HasDependencies?
-  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Expression< T2 > e, boolean fire ) {
-  //public < T > Dependency< ? > addDependency( Parameter< T > p, Expression< T > e, boolean fire ) {
+  public < T1, T2 > Dependency< ? >
+         addDependency( Parameter< T1 > p, Expression< T2 > e, boolean fire ) {
+    // public < T > Dependency< ? > addDependency( Parameter< T > p, Expression<
+    // T > e, boolean fire ) {
     Debug.errorOnNull( "try to add a dependency on null", p );
     if ( p == null ) return null;
- 
-    // Check if p is in enclosing class and call the enclosing class's addDependency() 
+
+    // Check if p is in enclosing class and call the enclosing class's
+    // addDependency()
     if ( p.getOwner() != null && p.getOwner() != this ) {
       if ( p.getOwner() instanceof ParameterListenerImpl ) {
         ParameterListenerImpl pli = (ParameterListenerImpl)p.getOwner();
-        Dependency<?> d = pli.addDependency( p, e );
+        Dependency< ? > d = pli.addDependency( p, e );
         externalDependencies.add( d );
         return d;
       }
-      Debug.error(true, false, getName() + " adding a dependency on a parameter it doesn't own.");
+      Debug.error( true,
+                   false, getName()
+                          + " adding a dependency on a parameter it doesn't own." );
     }
     removeDependenciesForParameter( p );
     Dependency< ? > d = new Dependency< T1 >( p, e );
-// Default domains are shared.  The domains need to be cloned before intersecting them.
-//    if ( e.type == Expression.Type.Parameter ) {
-//      Parameter< T > ep = (Parameter< T >)e.expression;
-//      if ( ep.getDomain() instanceof AbstractRangeDomain &&
-//          p.getDomain() instanceof AbstractRangeDomain ) {
-//        AbstractRangeDomain< T > ard = (AbstractRangeDomain< T >)p.getDomain();
-//        AbstractRangeDomain< T > eard = (AbstractRangeDomain< T >)ep.getDomain();
-//        eard.intersectRestrict( ard );
-//        ard.intersectRestrict( eard );
-//      }
-//    }
+    // Default domains are shared. The domains need to be cloned before
+    // intersecting them.
+    // if ( e.type == Expression.Type.Parameter ) {
+    // Parameter< T > ep = (Parameter< T >)e.expression;
+    // if ( ep.getDomain() instanceof AbstractRangeDomain &&
+    // p.getDomain() instanceof AbstractRangeDomain ) {
+    // AbstractRangeDomain< T > ard = (AbstractRangeDomain< T >)p.getDomain();
+    // AbstractRangeDomain< T > eard = (AbstractRangeDomain< T >)ep.getDomain();
+    // eard.intersectRestrict( ard );
+    // ard.intersectRestrict( eard );
+    // }
+    // }
     dependencies.add( d );
     if ( fire && d.getExpression() != null
          && d.getExpression().isGrounded( false, null ) ) {
@@ -287,24 +327,26 @@ public class ParameterListenerImpl extends HasIdImpl
     return d;
   }
 
-  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Parameter< T2 > source ) {
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p,
+                                                   Parameter< T2 > source ) {
     return addDependency( p, new Expression< T2 >( source ) );
   }
-  
-  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p, Expression< T2 > e ) {
-//  public < T > Dependency< ? > addDependency(  Parameter< T > p, Expression< T > e ) {
+
+  public < T1, T2 > Dependency< ? > addDependency( Parameter< T1 > p,
+                                                   Expression< T2 > e ) {
+    // public < T > Dependency< ? > addDependency( Parameter< T > p, Expression<
+    // T > e ) {
     return addDependency( p, e, true );
   }
 
-  public < T > boolean
-      removeDependenciesForParameter( Parameter< T > p ) {
-    //assert p.getOwner() == null || p.getOwner() == this;
+  public < T > boolean removeDependenciesForParameter( Parameter< T > p ) {
+    // assert p.getOwner() == null || p.getOwner() == this;
     boolean removed = false;
     int ct = dependencies.size() - 1;
     while ( ct >= 0 ) {
       Dependency< ? > d = dependencies.get( ct );
-      if ( //d != null && 
-           d.parameter == p ) {
+      if ( // d != null &&
+      d.parameter == p ) {
         dependencies.remove( ct );
         removed = true;
       }
@@ -312,26 +354,26 @@ public class ParameterListenerImpl extends HasIdImpl
     }
     return removed;
   }
-  
-//  public void deleteme() {
-//    dependencies.remove( 0 );
-//    dependencies.remove( new Dependency(null) );
-//    dependencies.iterator();
-//    dependencies.listIterator();
-//    dependencies.listIterator(2);
-//    dependencies.removeAll( dependencies );
-//    dependencies.retainAll( dependencies );
-//    dependencies.set( 0, null );
-//    dependencies.toArray( null );
-//  }
-  
+
+  // public void deleteme() {
+  // dependencies.remove( 0 );
+  // dependencies.remove( new Dependency(null) );
+  // dependencies.iterator();
+  // dependencies.listIterator();
+  // dependencies.listIterator(2);
+  // dependencies.removeAll( dependencies );
+  // dependencies.retainAll( dependencies );
+  // dependencies.set( 0, null );
+  // dependencies.toArray( null );
+  // }
+
   public < T > Dependency< ? > getDependency( Parameter< T > p ) {
-//    Iterator< Dependency< ? > > i = dependencies.iterator();
-//    while ( i.hasNext() ) {
-      for ( Dependency< ? > d : dependencies ) {
-//      Dependency< ? > d = i.next();
-      if ( //d != null && 
-           d.parameter == p ) {
+    // Iterator< Dependency< ? > > i = dependencies.iterator();
+    // while ( i.hasNext() ) {
+    for ( Dependency< ? > d : dependencies ) {
+      // Dependency< ? > d = i.next();
+      if ( // d != null &&
+      d.parameter == p ) {
         return d;
       }
     }
@@ -339,45 +381,46 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   @Override
-  public boolean isGrounded(boolean deep, Set< Groundable > seen) {
+  public boolean isGrounded( boolean deep, Set< Groundable > seen ) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
     for ( Parameter< ? > p : parameters ) {
-      if ( p != null && !p.isGrounded(deep, seen) ) return false;
+      if ( p != null && !p.isGrounded( deep, seen ) ) return false;
     }
     return true;
   }
 
   @Override
-  public boolean ground(boolean deep, Set< Groundable > seen) {
+  public boolean ground( boolean deep, Set< Groundable > seen ) {
     Pair< Boolean, Set< Groundable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    //final double timeoutMilliseconds = 50.0;
-    //double startTime = System.currentTimeMillis();
-    //double curTime = startTime;
+    // final double timeoutMilliseconds = 50.0;
+    // double startTime = System.currentTimeMillis();
+    // double curTime = startTime;
     long numLoops = 0;
-    
+
     boolean satisfied = false;
     boolean first = true;
     while ( first && numLoops < this.maxPassesAtConstraints ) {
-//            || ( !satisfied && ( ( curTime = System.currentTimeMillis() )
-//                                 - startTime < timeoutMilliseconds ) ) ) {
+      // || ( !satisfied && ( ( curTime = System.currentTimeMillis() )
+      // - startTime < timeoutMilliseconds ) ) ) {
       ++numLoops;
       satisfied = true;
       first = false;
-      Collection< Parameter< ? > > freeParams = getFreeParameters( false, null );
+      Collection< Parameter< ? > > freeParams =
+          getFreeParameters( false, null );
       for ( Parameter< ? > p : freeParams ) {
-        if ( !p.isGrounded(deep, null) ) {
-          if ( !p.ground(deep, seen) ) {
+        if ( !p.isGrounded( deep, null ) ) {
+          if ( !p.ground( deep, seen ) ) {
             satisfied = false;
           }
         }
       }
       for ( Dependency< ? > d : getDependencies() ) {
-        if ( !d.isSatisfied(true, null) ) {
-          if ( !d.satisfy(true, null) ) {
+        if ( !d.isSatisfied( true, null ) ) {
+          if ( !d.satisfy( true, null ) ) {
             satisfied = false;
           }
         }
@@ -389,7 +432,7 @@ public class ParameterListenerImpl extends HasIdImpl
   public List< ConstraintExpression > getUnsatisfiedConstraints() {
     List< ConstraintExpression > list = new ArrayList< ConstraintExpression >();
     for ( ConstraintExpression c : constraintExpressions ) {
-      if ( !c.isSatisfied(false, null) ) {
+      if ( !c.isSatisfied( false, null ) ) {
         list.add( c );
       }
     }
@@ -397,8 +440,8 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   // TODO -- This is not finished. Need to get deep dependents.
-  public Set< Parameter< ? > > getDependentParameters( boolean deep,
-                                                       Set<HasParameters> seen ) {
+  public Set< Parameter< ? > >
+         getDependentParameters( boolean deep, Set< HasParameters > seen ) {
     Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
     for ( Dependency< ? > d : dependencies ) {
       set.add( d.parameter );
@@ -407,36 +450,43 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   // Gather any parameter instances contained by this event.
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean, java.util.Set)
+  /*
+   * (non-Javadoc)
+   *
+   * @see gov.nasa.jpl.ae.event.HasParameters#getParameters(boolean,
+   * java.util.Set)
    */
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
-                                              Set<HasParameters> seen ) {
+                                              Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    // if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-//    set.addAll( getParameters() );
-//    if ( deep ) {
-//      for ( Parameter<?> p : getParameters() ) {
-//        if ( p.getValueNoPropagate() != null && 
-//             p.getValueNoPropagate() instanceof HasParameters ) {
-//          set = Utils.addAll( set, ( (HasParameters)p.getValueNoPropagate() ).getParameters( deep, seen ) );
-//        }
-//      }
-//    }
+    // set.addAll( getParameters() );
+    // if ( deep ) {
+    // for ( Parameter<?> p : getParameters() ) {
+    // if ( p.getValueNoPropagate() != null &&
+    // p.getValueNoPropagate() instanceof HasParameters ) {
+    // set = Utils.addAll( set, ( (HasParameters)p.getValueNoPropagate()
+    // ).getParameters( deep, seen ) );
+    // }
+    // }
+    // }
     set = Utils.addAll( set,
                         HasParameters.Helper.getParameters( getParameters(),
-                                                            deep, seen, true ) );
+                                                            deep, seen,
+                                                            true ) );
     if ( deep ) {
       set = Utils.addAll( set,
                           HasParameters.Helper.getParameters( getDependencies(),
-                                                              deep, seen, true ) );
+                                                              deep, seen,
+                                                              true ) );
       set = Utils.addAll( set,
                           HasParameters.Helper.getParameters( getConstraintExpressions(),
-                                                              deep, seen, true ) );
+                                                              deep, seen,
+                                                              true ) );
     }
     return set;
   }
@@ -448,25 +498,25 @@ public class ParameterListenerImpl extends HasIdImpl
    * @return parameters that are Timepoints
    */
   public Set< Parameter< Long > > getTimepoints( boolean deep,
-                                         Set<HasParameters> seen ) {
-   Set< Parameter< Long > > set = new HashSet< Parameter< Long > >();
-   for ( Parameter<?> p : getParameters( deep, seen ) ) {
-     if ( p instanceof Timepoint || p.getValueNoPropagate() instanceof Long ) {
-       set.add((Parameter<Long>)p);
-     }
-   }
-   return set;
- }
+                                                 Set< HasParameters > seen ) {
+    Set< Parameter< Long > > set = new HashSet< Parameter< Long > >();
+    for ( Parameter< ? > p : getParameters( deep, seen ) ) {
+      if ( p instanceof Timepoint || p.getValueNoPropagate() instanceof Long ) {
+        set.add( (Parameter< Long >)p );
+      }
+    }
+    return set;
+  }
 
- // TODO -- This is not finished. Need to get deep dependents.
+  // TODO -- This is not finished. Need to get deep dependents.
   @Override
   public Set< Parameter< ? > > getFreeParameters( boolean deep,
-                                                  Set<HasParameters> seen ) {
+                                                  Set< HasParameters > seen ) {
     Assert.assertFalse( "This method does not yet support deep=true!", deep );
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    // if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< Parameter< ? > > set = getParameters( deep, seen );
     Set< Parameter< ? > > dependents = getDependentParameters( deep, seen );
     set.removeAll( dependents );
@@ -474,48 +524,48 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   @Override
-  public void setFreeParameters( Set< Parameter< ? > > freeParams,
-                                 boolean deep,
-                                 Set<HasParameters> seen ) {
+  public void setFreeParameters( Set< Parameter< ? > > freeParams, boolean deep,
+                                 Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
 
   @Override
-  public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
-    for ( Constraint c : getConstraints( true, null ) ) { // REVIEW -- why is true passed in?
-      if ( Debug.isOn() ) Debug.outln( "ParameterListenerImpl.isSatisfied(): checking " + c );
-      if ( !c.isSatisfied(deep, seen) ) {
+  public boolean isSatisfied( boolean deep, Set< Satisfiable > seen ) {
+    for ( Constraint c : getConstraints( true, null ) ) { // REVIEW -- why is
+                                                          // true passed in?
+      if ( Debug.isOn() ) Debug.outln( "ParameterListenerImpl.isSatisfied(): checking "
+                                       + c );
+      if ( !c.isSatisfied( deep, seen ) ) {
         return false;
       }
     }
     return true;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   *
    * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy(boolean, java.util.Set)
    */
   @Override
-  public boolean satisfy(boolean deep, Set< Satisfiable > seen) {
+  public boolean satisfy( boolean deep, Set< Satisfiable > seen ) {
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    
-    if ( isSatisfied(deep, null) ) return true;
+
+    if ( isSatisfied( deep, null ) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
     long mostConstraints = 0;
     long mostResolvedConstraints = 0;
     double highestFractionResolvedConstraint = 0;
     int numLoopsWithNoProgress = 0;
-    long numberOfConstraints = 0;
-    
+    long numberOfConstraints = getNumberOfConstraints( true, null );
     boolean satisfied = false;
     long millisPassed = (long)( System.currentTimeMillis() - clockStart );
-    double curTimeLeft =
-        ( timeoutSeconds * 1000.0 - ( millisPassed ) );
-    
-    while ( !satisfied
-            && numLoopsWithNoProgress < maxLoopsWithNoProgress
+    double curTimeLeft = ( timeoutSeconds * 1000.0 - ( millisPassed ) );
+
+    while ( !satisfied && numLoopsWithNoProgress < maxLoopsWithNoProgress
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
             && ( !usingLoopLimit || numLoops < maxPassesAtConstraints ) ) {
       if ( Debug.isOn() || this.amTopEventToSimulate ) {
@@ -524,57 +574,64 @@ public class ParameterListenerImpl extends HasIdImpl
                               + Duration.toFormattedString( (long)curTimeLeft )
                               + " time left" );
         } else {
-          System.out.println( this.getClass().getName()
-                              + " satisfy loop after "
+          System.out.println( this.getClass().getName() + " satisfy loop after "
                               + Duration.toShortFormattedStringForIdentifier( millisPassed ) );
         }
         if ( Debug.isOn() || this.amTopEventToSimulate ) {
-          System.out.println( this.getClass().getName()
-                              + " satisfy loop round " + ( numLoops + 1 )
-                              + " out of " + maxPassesAtConstraints );
+          System.out.println( this.getClass().getName() + " satisfy loop round "
+                              + ( numLoops + 1 ) + " out of "
+                              + maxPassesAtConstraints );
         } else {
-          System.out.println( this.getClass().getName()
-                              + " satisfy loop round " + ( numLoops + 1 ) );
+          System.out.println( this.getClass().getName() + " satisfy loop round "
+                              + ( numLoops + 1 ) );
         }
         Debug.out( "" );
       }
       if ( amTopEventToSimulate ) {
-        DurativeEvent.newMode = false; //numLoops % 2 == 0;
+        DurativeEvent.newMode = false; // numLoops % 2 == 0;
       }
-      satisfied = tryToSatisfy(deep, null);
+      satisfied = tryToSatisfy( deep, null );
 
-      //numberOfConstraints = this.getNumberOfConstraints( true, null );
-      long numResolvedConstraints = this.getNumberOfResolvedConstraints( true, null );//solver.getNumberOfResolvedConstraints();
-      double fractionResolved = numberOfConstraints == 0 ? 0 : ((double)numResolvedConstraints) / numberOfConstraints;
-      
-      boolean improved = numResolvedConstraints > mostResolvedConstraints || fractionResolved > highestFractionResolvedConstraint;
-      
-      
-      // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
+      // numberOfConstraints = this.getNumberOfConstraints( true, null );
+      long numResolvedConstraints =
+          this.getNumberOfResolvedConstraints( true, null );// solver.getNumberOfResolvedConstraints();
+      double fractionResolved =
+          numberOfConstraints == 0 ? 0 : ( (double)numResolvedConstraints )
+                                         / numberOfConstraints;
+
+      boolean improved = numResolvedConstraints > mostResolvedConstraints
+                         || fractionResolved > highestFractionResolvedConstraint;
+
+      // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in
+      // order to
       // move it out of this class and into DurativeEvent since Events simulate.
       if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate
            && ( numLoops % loopsPerSnapshot == 0 ) ) {
         doSnapshotSimulation( improved );
       }
-      
-      if ( satisfied || improved || numberOfConstraints > mostConstraints) {
+
+      if ( satisfied || improved || numberOfConstraints > mostConstraints ) {
         numLoopsWithNoProgress = 0;
         mostResolvedConstraints = 0;
         highestFractionResolvedConstraint = 0.0;
-        //mostConstraints = 0;
+        // mostConstraints = 0;
       } else {
         ++numLoopsWithNoProgress;
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
-          System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
+          System.out.println( "\nPlateaued at " + mostResolvedConstraints
+                              + " constraints satisfied." );
           if ( Debug.isOn() ) {
-              System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+            System.out.println( solver.getUnsatisfiedConstraints().size()
+                                + " unresolved constraints = "
+                                + solver.getUnsatisfiedConstraints() );
           } else {
-              System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints." );
+            System.out.println( solver.getUnsatisfiedConstraints().size()
+                                + " unresolved constraints." );
           }
         }
       }
-      
+
       if ( numResolvedConstraints > mostResolvedConstraints ) {
         mostResolvedConstraints = numResolvedConstraints;
       }
@@ -585,7 +642,6 @@ public class ParameterListenerImpl extends HasIdImpl
         mostConstraints = numberOfConstraints;
       }
 
-      
       millisPassed = (long)( System.currentTimeMillis() - clockStart );
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
@@ -593,28 +649,28 @@ public class ParameterListenerImpl extends HasIdImpl
     return satisfied;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   *
    * @see gov.nasa.jpl.ae.solver.Satisfiable#satisfy(boolean, java.util.Set)
    */
-  //@Override
-  public boolean satisfy2(boolean deep, Set< Satisfiable > seen) {
+  // @Override
+  public boolean satisfy2( boolean deep, Set< Satisfiable > seen ) {
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    
-    if ( isSatisfied(deep, null) ) return true;
+
+    if ( isSatisfied( deep, null ) ) return true;
     double clockStart = System.currentTimeMillis();
     long numLoops = 0;
     long mostResolvedConstraints = 0;
     int numLoopsWithNoProgress = 0;
-    
+
     boolean satisfied = false;
     long millisPassed = (long)( System.currentTimeMillis() - clockStart );
-    double curTimeLeft =
-        ( timeoutSeconds * 1000.0 - ( millisPassed ) );
-    
-    while ( !satisfied
-            && numLoopsWithNoProgress < maxLoopsWithNoProgress
+    double curTimeLeft = ( timeoutSeconds * 1000.0 - ( millisPassed ) );
+
+    while ( !satisfied && numLoopsWithNoProgress < maxLoopsWithNoProgress
             && ( !usingTimeLimit || curTimeLeft > 0.0 )
             && ( !usingLoopLimit || numLoops < maxPassesAtConstraints ) ) {
       if ( Debug.isOn() || this.amTopEventToSimulate ) {
@@ -623,43 +679,46 @@ public class ParameterListenerImpl extends HasIdImpl
                               + Duration.toFormattedString( (long)curTimeLeft )
                               + " time left" );
         } else {
-          System.out.println( this.getClass().getName()
-                              + " satisfy loop after "
+          System.out.println( this.getClass().getName() + " satisfy loop after "
                               + Duration.toShortFormattedStringForIdentifier( millisPassed ) );
         }
         if ( Debug.isOn() || this.amTopEventToSimulate ) {
-          System.out.println( this.getClass().getName()
-                              + " satisfy loop round " + ( numLoops + 1 )
-                              + " out of " + maxPassesAtConstraints );
+          System.out.println( this.getClass().getName() + " satisfy loop round "
+                              + ( numLoops + 1 ) + " out of "
+                              + maxPassesAtConstraints );
         } else {
-          System.out.println( this.getClass().getName()
-                              + " satisfy loop round " + ( numLoops + 1 ) );
+          System.out.println( this.getClass().getName() + " satisfy loop round "
+                              + ( numLoops + 1 ) );
         }
       }
-      satisfied = tryToSatisfy(deep, seen);
+      satisfied = tryToSatisfy( deep, seen );
 
       long numResolvedConstraints = getNumberOfResolvedConstraints();
-      
-      boolean improved = numResolvedConstraints > mostResolvedConstraints; 
-      // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
+
+      boolean improved = numResolvedConstraints > mostResolvedConstraints;
+      // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in
+      // order to
       // move it out of this class and into DurativeEvent since Events simulate.
       if ( snapshotSimulationDuringSolve && this.amTopEventToSimulate
            && ( numLoops % loopsPerSnapshot == 0 ) ) {
         doSnapshotSimulation( improved );
       }
-      
+
       if ( !satisfied && !improved ) {
         ++numLoopsWithNoProgress;
         if ( numLoopsWithNoProgress >= maxLoopsWithNoProgress
              && ( Debug.isOn() || amTopEventToSimulate ) ) {
-          System.out.println( "\nPlateaued at " + mostResolvedConstraints + " constraints satisfied." );
-          System.out.println( solver.getUnsatisfiedConstraints().size() + " unresolved constraints = " + solver.getUnsatisfiedConstraints() );
+          System.out.println( "\nPlateaued at " + mostResolvedConstraints
+                              + " constraints satisfied." );
+          System.out.println( solver.getUnsatisfiedConstraints().size()
+                              + " unresolved constraints = "
+                              + solver.getUnsatisfiedConstraints() );
         }
       } else {
         mostResolvedConstraints = numResolvedConstraints;
         numLoopsWithNoProgress = 0;
       }
-      
+
       millisPassed = (long)( System.currentTimeMillis() - clockStart );
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
@@ -668,25 +727,30 @@ public class ParameterListenerImpl extends HasIdImpl
   }
 
   public long getNumberOfResolvedConstraints() {
-    
+
     return 0;
   }
+
   // TODO -- Move call to doSnapshotSimulation() into tryToSatisfy() in order to
   // move it out of this class and into DurativeEvent.
   public void doSnapshotSimulation() {
     doSnapshotSimulation( false );
   }
+
   public void doSnapshotSimulation( boolean improved ) {
     // override!
   }
-  protected boolean tryToSatisfy2(boolean deep, Set< Satisfiable > seen) {
-    ground(deep, null);
-    if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
+
+  protected boolean tryToSatisfy2( boolean deep, Set< Satisfiable > seen ) {
+    ground( deep, null );
+    if ( Debug.isOn() ) Debug.outln( this.getClass().getName()
+                                     + " satisfy loop called ground() " );
     boolean satisfied = true;
     if ( !Satisfiable.Helper.satisfy( getParameters(), deep, seen ) ) {
       satisfied = false;
     }
-    if ( !Satisfiable.Helper.satisfy( getConstraintExpressions(), false, seen ) ) {
+    if ( !Satisfiable.Helper.satisfy( getConstraintExpressions(), false,
+                                      seen ) ) {
       satisfied = false;
     }
     if ( !Satisfiable.Helper.satisfy( getDependencies(), false, seen ) ) {
@@ -694,12 +758,12 @@ public class ParameterListenerImpl extends HasIdImpl
     }
     return satisfied;
   }
-  
 
-  protected boolean tryToSatisfy(boolean deep, Set< Satisfiable > seen) {
-    ground(deep, null);
-    if ( Debug.isOn() ) Debug.outln( this.getClass().getName() + " satisfy loop called ground() " );
-    
+  protected boolean tryToSatisfy( boolean deep, Set< Satisfiable > seen ) {
+    ground( deep, null );
+    if ( Debug.isOn() ) Debug.outln( this.getClass().getName()
+                                     + " satisfy loop called ground() " );
+
     Collection< Constraint > allConstraints = getConstraints( deep, null );
     if ( Debug.isOn() || amTopEventToSimulate ) {
       System.out.println( this.getClass().getName() + " - " + getName()
@@ -707,57 +771,61 @@ public class ParameterListenerImpl extends HasIdImpl
                           + allConstraints.size() + " constraints" );
     }
     // REVIEW -- why not call satisfy() here and solve elsewhere??
-    
+
     // Restrict the domains of the variables using arc consistency on the
     // constraints.
     Consistency ac = null;
     if ( usingArcConsistency ) {
       ac = new Consistency();
       ac.constraints = allConstraints;
-      ac.arcConsistency( true );
-      
+      ac.arcConsistency( arcConsistencyQuiet );
+
       // restore domains of things that are not simple variables
       for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
-        if ( !isSimpleVar(e.getKey()) ) {
-          e.getKey().setDomain( (Domain)e.getValue() );
+        if ( isSimpleVar( e.getKey() ) == Boolean.FALSE ) {
+          e.getKey().setDomain( (Domain)e.getValue() );  
         }
       }
     }
-    
-    // Now assign values to variables within their domains to satisfy constraints.
+
+    // Now assign values to variables within their domains to satisfy
+    // constraints.
     boolean satisfied = solver.solve( allConstraints );
+    System.out.println( allConstraints );
     if ( usingArcConsistency ) {
       ac.restoreDomains();
     }
     if ( Debug.isOn() || amTopEventToSimulate ) {
-        Timer t = new Timer();
-        t.start();
+      Timer t = new Timer();
+      t.start();
 
       Collection< Constraint > unsat = solver.getUnsatisfiedConstraints();
       System.out.println( this.getClass().getName() + " - " + getName()
                           + ".tryToSatisfy() called solve(): satisfied "
-                          + ( allConstraints.size() -
-                              unsat.size() )
-                          + " constraints; failed to resolve "
-                          + unsat.size()
+                          + ( allConstraints.size() - unsat.size() )
+                          + " constraints; failed to resolve " + unsat.size()
                           + " constraints" );
       if ( unsat.size() <= 5 ) {
         for ( Constraint c : unsat ) {
-          System.out.println("unsatisfied --> " + c);
+          System.out.println( "unsatisfied --> " + c );
         }
       }
       t.stop();
-      if ( Debug.isOn() ) System.out.println( this.getClass().getName() + " - " + getName()
-      + ".tryToSatisfy() time taken to get unsatisfied constraints:\n" + t);
+      if ( Debug.isOn() ) System.out.println( this.getClass().getName() + " - "
+                                              + getName()
+                                              + ".tryToSatisfy() time taken to get unsatisfied constraints:\n"
+                                              + t );
     }
 
     Timer t = new Timer();
     t.start();
-    satisfied = isSatisfied(deep, null);
+    satisfied = isSatisfied( deep, null );
     t.stop();
-    if ( Debug.isOn() ) System.out.println( this.getClass().getName() + " - " + getName()
-    + ".tryToSatisfy() time taken to check if satisfied:\n" + t);
-    
+    if ( Debug.isOn() ) System.out.println( this.getClass().getName() + " - "
+                                            + getName()
+                                            + ".tryToSatisfy() time taken to check if satisfied:\n"
+                                            + t );
+
     if ( Debug.isOn() || amTopEventToSimulate ) {
       System.out.println( this.getClass().getName() + " - " + getName()
                           + ".tryToSatisfy() called solve(): satisfied = "
@@ -766,66 +834,86 @@ public class ParameterListenerImpl extends HasIdImpl
     return satisfied;
   }
 
-protected boolean isSimpleVar( Variable< ? > key ) {
-  Object v = key.getValue( false );
-  if ( v != null ) {
-    if ( ClassUtils.isPrimitive( v ) ) {
-      return true;
+  protected Boolean isSimpleVar( Variable< ? > key ) {
+    Object v = key.getValue( false );
+    if ( v != null ) {
+      if ( ClassUtils.isPrimitive( v ) ) {
+        return Boolean.TRUE;
+      }
+    } else {
+      v = key.getType();
+      if (v != null) {
+        if (ClassUtils.isPrimitive( v )) {
+          return Boolean.TRUE;
+        }
+      } else {
+        return null;
+      }
+      
     }
+    return Boolean.FALSE;
   }
-  return false;
-}
-//  @Override
-//  public Collection< Constraint > getConstraints() {
-//    return getConstraints( false, null );
-//  }
+  // @Override
+  // public Collection< Constraint > getConstraints() {
+  // return getConstraints( false, null );
+  // }
 
   @Override
   public Collection< Constraint > getConstraints( boolean deep,
-                                                  Set<HasConstraints> seen ) {
-    boolean mayHaveBeenPropagating = Parameter.mayPropagate; 
+                                                  Set< HasConstraints > seen ) {
+    boolean mayHaveBeenPropagating = Parameter.mayPropagate;
     Parameter.mayPropagate = false;
-    boolean mayHaveBeenChanging = Parameter.mayChange; 
+    boolean mayHaveBeenChanging = Parameter.mayChange;
     Parameter.mayChange = false;
-    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+    Pair< Boolean, Set< HasConstraints > > pair =
+        Utils.seen( this, deep, seen );
     if ( pair.first ) {
       Parameter.mayPropagate = mayHaveBeenPropagating;
       Parameter.mayChange = mayHaveBeenChanging;
       return Utils.getEmptySet();
     }
     seen = pair.second;
-    if ( usingCollectionTree  ) {
-      if ( seen != null ) seen.remove( this ); 
+    if ( usingCollectionTree ) {
+      if ( seen != null ) seen.remove( this );
       return getConstraintCollection( deep, seen );
     }
-    Set< Constraint > set = new HashSet< Constraint >();
-    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( getParameters( false, null ), deep, seen ) );
-    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( constraintExpressions, false, seen ) );
-    set = Utils.addAll( set, HasConstraints.Helper.getConstraints( dependencies, false, seen ) );
-//    for ( Parameter< ? > p : getParameters( false, null ) ) {
-//      set = Utils.addAll( set, p.getConstraints( deep, seen ) );
-//    }
-//    set = Utils.addAll( set, constraintExpressions );
-//    set = Utils.addAll( set, dependencies );
+    Set< Constraint > set = new LinkedHashSet< Constraint >();
+    set = Utils.addAll( set,
+                        HasConstraints.Helper.getConstraints( getParameters( false,
+                                                                             null ),
+                                                              deep, seen ) );
+    set = Utils.addAll( set,
+                        HasConstraints.Helper.getConstraints( constraintExpressions,
+                                                              false, seen ) );
+    set = Utils.addAll( set,
+                        HasConstraints.Helper.getConstraints( dependencies,
+                                                              false, seen ) );
+    // for ( Parameter< ? > p : getParameters( false, null ) ) {
+    // set = Utils.addAll( set, p.getConstraints( deep, seen ) );
+    // }
+    // set = Utils.addAll( set, constraintExpressions );
+    // set = Utils.addAll( set, dependencies );
     Parameter.mayPropagate = mayHaveBeenPropagating;
     Parameter.mayChange = mayHaveBeenChanging;
     return set;
   }
 
   @Override
-  public CollectionTree<Constraint> getConstraintCollection(boolean deep,
-                                                Set< HasConstraints > seen) {
-    Pair< Boolean, Set< HasConstraints > > pair = Utils.seen( this, deep, seen );
+  public CollectionTree< Constraint >
+         getConstraintCollection( boolean deep, Set< HasConstraints > seen ) {
+    Pair< Boolean, Set< HasConstraints > > pair =
+        Utils.seen( this, deep, seen );
     if ( pair.first ) {
       return null;
     }
     seen = pair.second;
     if ( constraintCollection == null ) {
-      ArrayList<Object> constraintSources = new ArrayList< Object >();
-      constraintSources.add(parameters);
-      constraintSources.add(dependencies);
-      constraintSources.add(constraintExpressions);
-      constraintCollection = new CollectionTree<Constraint>( constraintSources );
+      ArrayList< Object > constraintSources = new ArrayList< Object >();
+      constraintSources.add( parameters );
+      constraintSources.add( dependencies );
+      constraintSources.add( constraintExpressions );
+      constraintCollection =
+          new CollectionTree< Constraint >( constraintSources );
       constraintCollection.getTypes().add( Constraint.class );
     }
     constraintCollection.setSeen( seen );
@@ -833,32 +921,33 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     return constraintCollection;
   }
 
-  
-  
-  public Map< String, Object > getTimeVaryingObjectMap( boolean deep,
-                                                        Set<HasTimeVaryingObjects> seen ) {
+  public Map< String, Object >
+         getTimeVaryingObjectMap( boolean deep,
+                                  Set< HasTimeVaryingObjects > seen ) {
     Set< TimeVarying< ?, ? > > tvs = getTimeVaryingObjects( deep, false, seen );
-    Set<Parameter<?>> params = getParameters( deep, null );
-    Map<String, Object> paramsAndTvms = new LinkedHashMap<String,Object>();
-    for ( Parameter<?> p : params ) {
-        Object o = p.getValueNoPropagate();
-        if ( o instanceof TimeVarying ) {
-//          System.out.println( p );
-//          if ( p.getName() != null && p.getName().contains( "telecomPower" ) ) {
-//            System.out.println("here1ß");
-//          }
-          String qName = p.getQualifiedName(null);
-          if ( paramsAndTvms.containsKey( qName ) ) {
-            Debug.error( false, false, "Already have a parameter with name " + qName + "!");
-          } else {
-            paramsAndTvms.put(qName, p );
-            tvs.remove( o );
-          }
+    Set< Parameter< ? > > params = getParameters( deep, null );
+    Map< String, Object > paramsAndTvms = new LinkedHashMap< String, Object >();
+    for ( Parameter< ? > p : params ) {
+      Object o = p.getValueNoPropagate();
+      if ( o instanceof TimeVarying ) {
+        // System.out.println( p );
+        // if ( p.getName() != null && p.getName().contains( "telecomPower" ) )
+        // {
+        // System.out.println("here1ß");
+        // }
+        String qName = p.getQualifiedName( null );
+        if ( paramsAndTvms.containsKey( qName ) ) {
+          Debug.error( false, false,
+                       "Already have a parameter with name " + qName + "!" );
+        } else {
+          paramsAndTvms.put( qName, p );
+          tvs.remove( o );
         }
+      }
     }
     for ( TimeVarying< ?, ? > tv : tvs ) {
       if ( tv instanceof TimeVaryingMap ) {
-        String name = ((TimeVaryingMap<?>)tv).getQualifiedName(null);
+        String name = ( (TimeVaryingMap< ? >)tv ).getQualifiedName( null );
         if ( !paramsAndTvms.containsKey( name ) ) {
           paramsAndTvms.put( name, tv );
         }
@@ -866,33 +955,45 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     }
     return paramsAndTvms;
   }
-  
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * gov.nasa.jpl.ae.event.HasTimeVaryingObjects#getTimeVaryingObjects(boolean)
    */
   @Override
-  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
-                                                          Set<HasTimeVaryingObjects> seen ) {
+  public Set< TimeVarying< ?, ? > >
+         getTimeVaryingObjects( boolean deep,
+                                Set< HasTimeVaryingObjects > seen ) {
     return getTimeVaryingObjects( deep, true, seen );
   }
-  public Set< TimeVarying< ?, ? > > getTimeVaryingObjects( boolean deep,
-                                                        boolean includeDependencies,
-                                                        Set<HasTimeVaryingObjects> seen ) {
-    Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
+
+  public Set< TimeVarying< ?, ? > >
+         getTimeVaryingObjects( boolean deep, boolean includeDependencies,
+                                Set< HasTimeVaryingObjects > seen ) {
+    Pair< Boolean, Set< HasTimeVaryingObjects > > pair =
+        Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
+    // if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
     Set< TimeVarying< ?, ? > > s = new HashSet< TimeVarying< ?, ? > >();
     s.addAll( timeVaryingObjects );
-    s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( false,
-                                                                                 null ),
-                                                                             deep, seen ) );
+    s = Utils.addAll( s,
+                      HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getParameters( false,
+                                                                                         null ),
+                                                                          deep,
+                                                                          seen ) );
     if ( deep ) {
-      if (includeDependencies) {
-        s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
-                                                                                 false, seen ) );
-        s = Utils.addAll( s, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
-                                                                                 false, seen ) );
+      if ( includeDependencies ) {
+        s = Utils.addAll( s,
+                          HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getDependencies(),
+                                                                              false,
+                                                                              seen ) );
+        s = Utils.addAll( s,
+                          HasTimeVaryingObjects.Helper.getTimeVaryingObjects( getConstraintExpressions(),
+                                                                              false,
+                                                                              seen ) );
       }
     }
     if ( settingTimeVaryingMapOwners ) {
@@ -905,13 +1006,13 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     return s;
   }
 
-  public static HashSet<ParameterListenerImpl> getNonEventObjects( Object o,
-                                                                   boolean deep,
-                                                                   Set< HasParameters > seen) {
+  public static HashSet< ParameterListenerImpl >
+         getNonEventObjects( Object o, boolean deep,
+                             Set< HasParameters > seen ) {
     HashSet< ParameterListenerImpl > s = new HashSet< ParameterListenerImpl >();
     if ( o instanceof ParameterListenerImpl ) {
       ParameterListenerImpl pl = (ParameterListenerImpl)o;
-      if ( !(o instanceof Event) ) {
+      if ( !( o instanceof Event ) ) {
         s.add( pl );
       }
       if ( deep ) {
@@ -919,44 +1020,45 @@ protected boolean isSimpleVar( Variable< ? > key ) {
       }
     } else {
       for ( Parameter< ? > p : HasParameters.Helper.getParameters( o, false,
-                                                                   null, true ) ) {
+                                                                   null,
+                                                                   true ) ) {
         if ( deep ) {
           s.addAll( getNonEventObjects( p.getValueNoPropagate(), deep, seen ) );
-        } else if (p.getValueNoPropagate() instanceof ParameterListenerImpl) {
+        } else if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
           s.add( (ParameterListenerImpl)p.getValueNoPropagate() );
         }
       }
     }
     return s;
   }
-  
+
   /**
    * Get non-event ParameterListenerImpls, behavior classes.
+   *
    * @param deep
    * @param seen
    * @return
    */
-  public Collection<ParameterListenerImpl> getNonEventObjects( boolean deep,
-                                                               Set< HasParameters > seen ) {
+  public Collection< ParameterListenerImpl >
+         getNonEventObjects( boolean deep, Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
 
     Set< ParameterListenerImpl > s = new HashSet< ParameterListenerImpl >();
-    
-    for ( Parameter<?> p : getParameters( false, null ) ) {
-      s.addAll( getNonEventObjects(p.getValueNoPropagate(), deep, seen ) );
+
+    for ( Parameter< ? > p : getParameters( false, null ) ) {
+      s.addAll( getNonEventObjects( p.getValueNoPropagate(), deep, seen ) );
     }
-    for ( Dependency<?> d : getDependencies() ) {
-      s.addAll( getNonEventObjects(d, false, seen ) );
+    for ( Dependency< ? > d : getDependencies() ) {
+      s.addAll( getNonEventObjects( d, false, seen ) );
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
-      s.addAll( getNonEventObjects(c, false, seen ) );
+      s.addAll( getNonEventObjects( c, false, seen ) );
     }
     return s;
   }
 
-  
   public List< Parameter< ? > > getParameters() {
     return parameters;
   }
@@ -973,7 +1075,8 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   }
 
   /**
-   * @param solver the solver to set
+   * @param solver
+   *          the solver to set
    */
   public void setSolver( Solver solver ) {
     this.solver = solver;
@@ -983,7 +1086,8 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     return constraintExpressions;
   }
 
-  public void setConstraintExpressions( List< ConstraintExpression > constraints ) {
+  public void
+         setConstraintExpressions( List< ConstraintExpression > constraints ) {
     this.constraintExpressions = constraints;
   }
 
@@ -994,11 +1098,12 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   public void setDependencies( Collection< Dependency< ? > > dependencies ) {
     this.dependencies = new ArrayList< Dependency< ? > >( dependencies );
   }
-  
+
   @Override
   public int compareTo( ParameterListenerImpl o ) {
     return compareTo( o, true );
   }
+
   public int compareTo( ParameterListenerImpl o, boolean checkId ) {
     if ( this == o ) return 0;
     if ( o == null ) return -1;
@@ -1007,7 +1112,7 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     if ( compare != 0 ) return compare;
     compare = getName().compareTo( o.getName() );
     if ( compare != 0 ) return compare;
-    Debug.errln("ParameterListenerImpl.compareTo() potentially accessing value information");
+    Debug.errln( "ParameterListenerImpl.compareTo() potentially accessing value information" );
     compare = CompareUtils.compareCollections( parameters, o.getParameters(),
                                                true, checkId );
     if ( compare != 0 ) return compare;
@@ -1015,8 +1120,8 @@ protected boolean isSimpleVar( Variable< ? > key ) {
                                                true, checkId );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compareCollections( constraintExpressions,
-                                               o.constraintExpressions,
-                                               true, checkId );
+                                               o.constraintExpressions, true,
+                                               checkId );
     if ( compare != 0 ) return compare;
     compare = CompareUtils.compare( this, o, false, checkId );
     if ( compare != 0 ) return compare;
@@ -1031,23 +1136,23 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   // handleValueChangeEvent( parameter, newValue ) updates dependencies,
   // effects, and elaborations for the changed parameter.
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter,
+                                      Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
-    if (p.first) return;
+    if ( p.first ) return;
     seen = p.second;
-
 
     // REVIEW -- Should we be passing in a set of parameters? Find review/todo
     // note on staleness table.
-    
+
     // Alert affected dependencies.
-    for ( Dependency<?> d : getDependencies() ) {
+    for ( Dependency< ? > d : getDependencies() ) {
       d.handleValueChangeEvent( parameter, seen );
     }
     // Alert affected timelines.
-    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying< ?, ? > tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
-        ((ParameterListener)tv).handleValueChangeEvent( parameter, seen );
+        ( (ParameterListener)tv ).handleValueChangeEvent( parameter, seen );
       }
     }
     Collection< ParameterListenerImpl > pls = getNonEventObjects( true, null );
@@ -1061,9 +1166,10 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter,
+                                       Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
-    if (p.first) return;
+    if ( p.first ) return;
     seen = p.second;
     // TODO -- What are we supposed to do? call satisfy()??? Not caching
     // constraint violations as of 2012-08-03.
@@ -1074,37 +1180,37 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     if ( name != null ) return name;
     return getClass().getSimpleName();
   }
-  
+
   @Override
-  public String getQualifiedName(java.util.Set<Object> seen) {
+  public String getQualifiedName( java.util.Set< Object > seen ) {
     String n = HasOwner.Helper.getQualifiedName( this, seen );
     return n;
   };
-  
+
   @Override
-  public String getQualifiedId(java.util.Set<Object> seen) {
+  public String getQualifiedId( java.util.Set< Object > seen ) {
     String i = HasOwner.Helper.getQualifiedId( this, seen );
     return i;
   };
-  
+
   public String getQualifiedName() {
     return getQualifiedName( null );
   }
-  
+
   public String getQualifiedId() {
     return getQualifiedId( null );
   }
 
   public void setName( String newName ) {
     if ( newName == null || newName.isEmpty() ) {
-      newName = getClass().getSimpleName() 
+      newName = getClass().getSimpleName()
                 + Utils.numberWithLeadingZeroes( counter++, 6 );
     }
     this.name = newName;
   }
-  
-  
+
   protected boolean simpleDeconstruct = true;
+
   /**
    * Try to remove others' references to this, possibly because it is being
    * deleted.
@@ -1113,7 +1219,7 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   public void deconstruct() {
     if ( isDeconstructed() ) {
       if ( Debug.isOn() ) Debug.outln( "Attempted to deconstruct a deconstructed ParameterListener: "
-                   + this.toString( true, true, null ) );
+                                       + this.toString( true, true, null ) );
       return;
     }
     if ( Debug.isOn() ) {
@@ -1121,37 +1227,38 @@ protected boolean isSimpleVar( Variable< ? > key ) {
                    + this.toString( true, true, null ) );
     }
     if ( !simpleDeconstruct ) {
-    for ( Dependency< ? > d : dependencies ) {
-      d.deconstruct();
-    }
-    for ( Dependency< ? > d : externalDependencies ) {
-      Parameter<?> p = d.parameter;
-      if ( p != null && p.getOwner() != null && p.getOwner() instanceof ParameterListenerImpl ) {
-        ((ParameterListenerImpl)p.getOwner()).removeDependenciesForParameter( p );
-        // TODO -- Should we add back default dependencies for startTime,
-        // duration, & endTime in DurativeEvent?
+      for ( Dependency< ? > d : dependencies ) {
+        d.deconstruct();
       }
-      d.deconstruct();
-    }
-    for ( ConstraintExpression ce : constraintExpressions ) {
-      ce.deconstruct();
-    }
-    for ( TimeVarying< ?, ? > tv : timeVaryingObjects ) {
-      if ( tv instanceof Deconstructable ) {
-        ( (Deconstructable)tv ).deconstruct();
+      for ( Dependency< ? > d : externalDependencies ) {
+        Parameter< ? > p = d.parameter;
+        if ( p != null && p.getOwner() != null
+             && p.getOwner() instanceof ParameterListenerImpl ) {
+          ( (ParameterListenerImpl)p.getOwner() ).removeDependenciesForParameter( p );
+          // TODO -- Should we add back default dependencies for startTime,
+          // duration, & endTime in DurativeEvent?
+        }
+        d.deconstruct();
       }
-    }
-    for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.getOwner() != null ) {
-        p.getOwner().detach( p ); // REVIEW -- this seems complicated!
+      for ( ConstraintExpression ce : constraintExpressions ) {
+        ce.deconstruct();
       }
-      if ( p.getOwner() == this || p.getOwner() == null ) {
-        p.deconstruct();
+      for ( TimeVarying< ?, ? > tv : timeVaryingObjects ) {
+        if ( tv instanceof Deconstructable ) {
+          ( (Deconstructable)tv ).deconstruct();
+        }
       }
-    }
+      for ( Parameter< ? > p : getParameters( false, null ) ) {
+        if ( p.getOwner() != null ) {
+          p.getOwner().detach( p ); // REVIEW -- this seems complicated!
+        }
+        if ( p.getOwner() == this || p.getOwner() == null ) {
+          p.deconstruct();
+        }
+      }
     }
     name = "DECONSTRUCTED_" + name;
-    
+
     dependencies.clear();
     externalDependencies.clear();
     constraintExpressions.clear();
@@ -1163,9 +1270,12 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     }
 
   }
-  
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.ParameterListener#detach(gov.nasa.jpl.ae.event.Parameter)
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see gov.nasa.jpl.ae.event.ParameterListener#detach(gov.nasa.jpl.ae.event.
+   * Parameter)
    */
   @Override
   public void detach( Parameter< ? > parameter ) {
@@ -1174,7 +1284,7 @@ protected boolean isSimpleVar( Variable< ? > key ) {
         new ArrayList< Dependency< ? > >( getDependencies() );
     Collections.reverse( dependenciesCopy );
     int i = dependenciesCopy.size() - 1;
-    for ( Dependency<?> d : dependenciesCopy ) {
+    for ( Dependency< ? > d : dependenciesCopy ) {
       boolean hasParam = d.hasParameter( parameter, false, null );
       if ( hasParam ) {
         d.detach( parameter );
@@ -1194,9 +1304,9 @@ protected boolean isSimpleVar( Variable< ? > key ) {
       --i;
     }
     // Detach from timelines.
-    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( true, null ) ) {
+    for ( TimeVarying< ?, ? > tv : getTimeVaryingObjects( true, null ) ) {
       if ( tv instanceof ParameterListener ) {
-        ((ParameterListener)tv).detach( parameter );
+        ( (ParameterListener)tv ).detach( parameter );
       }
     }
   }
@@ -1212,8 +1322,9 @@ protected boolean isSimpleVar( Variable< ? > key ) {
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.error(true, false,  "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
-                     + toShortString() );
+    Debug.error( true, false,
+                 "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale("
+                              + staleness + "): " + toShortString() );
     // TODO -- REVIEW -- Need anything here?
     assert false;
   }
@@ -1221,10 +1332,10 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   @Override
   public boolean refresh( Parameter< ? > parameter ) {
     boolean didRefresh = false;
-    
+
     boolean triedRefreshing = false;
     // Alert affected dependencies.
-    for ( Dependency<?> d : getDependencies() ) {
+    for ( Dependency< ? > d : getDependencies() ) {
       if ( d.parameter == parameter ) {
         triedRefreshing = true;
         if ( d.refresh( parameter ) ) didRefresh = true;
@@ -1234,26 +1345,32 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     // TODO -- Need to keep a collection of ParameterListeners (just as
     // DurativeEvent has getEvents())
     if ( triedRefreshing && didRefresh ) parameter.setStale( false );
-    
+
     return didRefresh;
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.jpl.ae.event.Parameter)
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * gov.nasa.jpl.ae.event.ParameterListener#setStaleAnyReferencesTo(gov.nasa.
+   * jpl.ae.event.Parameter)
    */
   @Override
-  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter, Set< HasParameters > seen ) {
+  public void setStaleAnyReferencesTo( Parameter< ? > changedParameter,
+                                       Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
-    if (p.first) return;
+    if ( p.first ) return;
     seen = p.second;
 
     // Alert affected dependencies.
-    for ( Dependency<?> d : getDependencies() ) {
+    for ( Dependency< ? > d : getDependencies() ) {
       d.setStaleAnyReferencesTo( changedParameter, seen );
     }
-    for ( TimeVarying<?,?> tv : getTimeVaryingObjects( false, null ) ) {
+    for ( TimeVarying< ?, ? > tv : getTimeVaryingObjects( false, null ) ) {
       if ( tv instanceof ParameterListener ) {
-        ((ParameterListener)tv).setStaleAnyReferencesTo( changedParameter, seen );
+        ( (ParameterListener)tv ).setStaleAnyReferencesTo( changedParameter,
+                                                           seen );
       }
     }
     seen.remove( this );
@@ -1265,54 +1382,57 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     for ( ConstraintExpression c : getConstraintExpressions() ) {
       c.setStaleAnyReferencesTo( changedParameter, seen );
     }
-    
+
     // Pass message up the chain if necessary.
     Object o = getOwner();
     if ( o instanceof Parameter ) {
-      o = ((Parameter<?>)o).getOwner();
+      o = ( (Parameter< ? >)o ).getOwner();
     }
     if ( o instanceof ParameterListener ) {
-      ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
+      ( (ParameterListener)o ).setStaleAnyReferencesTo( changedParameter,
+                                                        seen );
     }
-    
+
   }
 
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
-                               Set<HasParameters> seen ) {
+                               Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return false;
-    if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
-    
-    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    // if ( Utils.seen( this, deep, seen ) ) return false;
+    if ( seen != null ) seen.remove( this ); // because getParameters checks
+                                             // seen set, too.
+
+    boolean has =
+        HasParameters.Helper.hasParameter( this, parameter, deep, seen );
     return has;
   }
 
   @Override
   public boolean isFreeParameter( Parameter< ? > p, boolean deep,
-                                  Set<HasParameters> seen ) {
+                                  Set< HasParameters > seen ) {
     Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return false;
     seen = pair.second;
-    //if ( Utils.seen( this, deep, seen ) ) return false;
+    // if ( Utils.seen( this, deep, seen ) ) return false;
 
     return !getDependentParameters( deep, seen ).contains( p );
   }
 
   @Override
-  public <T> boolean pickParameterValue( Variable< T > variable ) {
-    for ( Dependency<?> d : getDependencies() ) {
+  public < T > boolean pickParameterValue( Variable< T > variable ) {
+    for ( Dependency< ? > d : getDependencies() ) {
       if ( d.pickParameterValue( variable ) ) return true;
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
       if ( c.pickParameterValue( variable ) ) return true;
     }
     if ( variable instanceof Parameter
-         && ( (Parameter<?>)variable ).getOwner() != this
+         && ( (Parameter< ? >)variable ).getOwner() != this
          && Random.global.nextBoolean() ) {
-      return ((Parameter<?>)variable).ownerPickValue();
+      return ( (Parameter< ? >)variable ).ownerPickValue();
     }
     T value = null;
     try {
@@ -1326,233 +1446,267 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     }
     return false;
   }
-  
+
   // TODO -- add this to Deconstructable interface.
   public boolean isDeconstructed() {
-    if ( name.startsWith( "DECONSTRUCTED_" ) || 
-        ( Utils.isNullOrEmpty( parameters ) &&
-          Utils.isNullOrEmpty( dependencies ) &&
-          Utils.isNullOrEmpty( timeVaryingObjects ) &&
-          Utils.isNullOrEmpty( constraintExpressions ) ) ) {
-     return true;
-   }
-   return false;
+    if ( name.startsWith( "DECONSTRUCTED_" )
+         || ( Utils.isNullOrEmpty( parameters )
+              && Utils.isNullOrEmpty( dependencies )
+              && Utils.isNullOrEmpty( timeVaryingObjects )
+              && Utils.isNullOrEmpty( constraintExpressions ) ) ) {
+      return true;
+    }
+    return false;
   }
-  
-	/**
-	 * @return the timeoutSeconds
-	 */
-	public double getTimeoutSeconds() {
-		return timeoutSeconds;
-	}
 
-	/**
-	 * @param timeoutSeconds
-	 *            the timeoutSeconds to set
-	 */
-	public void setTimeoutSeconds(double timeoutSeconds) {
-		this.timeoutSeconds = timeoutSeconds;
-	}
+  /**
+   * @return the timeoutSeconds
+   */
+  public double getTimeoutSeconds() {
+    return timeoutSeconds;
+  }
 
-	/**
-	 * @return the maxLoopsWithNoProgress
-	 */
-	public int getMaxLoopsWithNoProgress() {
-		return maxLoopsWithNoProgress;
-	}
+  /**
+   * @param timeoutSeconds
+   *          the timeoutSeconds to set
+   */
+  public void setTimeoutSeconds( double timeoutSeconds ) {
+    this.timeoutSeconds = timeoutSeconds;
+  }
 
-	/**
-	 * @param maxLoopsWithNoProgress
-	 *            the maxLoopsWithNoProgress to set
-	 */
-	public void setMaxLoopsWithNoProgress(int maxLoopsWithNoProgress) {
-		this.maxLoopsWithNoProgress = maxLoopsWithNoProgress;
-	}
+  /**
+   * @return the maxLoopsWithNoProgress
+   */
+  public int getMaxLoopsWithNoProgress() {
+    return maxLoopsWithNoProgress;
+  }
 
-	/**
-	 * @return the maxPassesAtConstraints
-	 */
-	public long getMaxPassesAtConstraints() {
-		return maxPassesAtConstraints;
-	}
+  /**
+   * @param maxLoopsWithNoProgress
+   *          the maxLoopsWithNoProgress to set
+   */
+  public void setMaxLoopsWithNoProgress( int maxLoopsWithNoProgress ) {
+    this.maxLoopsWithNoProgress = maxLoopsWithNoProgress;
+  }
 
-	/**
-	 * @param maxPassesAtConstraints
-	 *            the maxPassesAtConstraints to set
-	 */
-	public void setMaxPassesAtConstraints(long maxPassesAtConstraints) {
-		this.maxPassesAtConstraints = maxPassesAtConstraints;
-	}
+  /**
+   * @return the maxPassesAtConstraints
+   */
+  public long getMaxPassesAtConstraints() {
+    return maxPassesAtConstraints;
+  }
 
-	/**
-	 * @return the usingTimeLimit
-	 */
-	public boolean isUsingTimeLimit() {
-		return usingTimeLimit;
-	}
+  /**
+   * @param maxPassesAtConstraints
+   *          the maxPassesAtConstraints to set
+   */
+  public void setMaxPassesAtConstraints( long maxPassesAtConstraints ) {
+    this.maxPassesAtConstraints = maxPassesAtConstraints;
+  }
 
-	/**
-	 * @param usingTimeLimit
-	 *            the usingTimeLimit to set
-	 */
-	public void setUsingTimeLimit(boolean usingTimeLimit) {
-		this.usingTimeLimit = usingTimeLimit;
-	}
+  /**
+   * @return the usingTimeLimit
+   */
+  public boolean isUsingTimeLimit() {
+    return usingTimeLimit;
+  }
 
-	/**
-	 * @return the usingLoopLimit
-	 */
-	public boolean isUsingLoopLimit() {
-		return usingLoopLimit;
-	}
+  /**
+   * @param usingTimeLimit
+   *          the usingTimeLimit to set
+   */
+  public void setUsingTimeLimit( boolean usingTimeLimit ) {
+    this.usingTimeLimit = usingTimeLimit;
+  }
 
-	/**
-	 * @param usingLoopLimit
-	 *            the usingLoopLimit to set
-	 */
-	public void setUsingLoopLimit(boolean usingLoopLimit) {
-		this.usingLoopLimit = usingLoopLimit;
-	}
+  /**
+   * @return the usingLoopLimit
+   */
+  public boolean isUsingLoopLimit() {
+    return usingLoopLimit;
+  }
 
-	/**
-	 * @return the snapshotSimulationDuringSolve
-	 */
-	public boolean isSnapshotSimulationDuringSolve() {
-		return snapshotSimulationDuringSolve;
-	}
+  /**
+   * @param usingLoopLimit
+   *          the usingLoopLimit to set
+   */
+  public void setUsingLoopLimit( boolean usingLoopLimit ) {
+    this.usingLoopLimit = usingLoopLimit;
+  }
 
-	/**
-	 * @param snapshotSimulationDuringSolve
-	 *            the snapshotSimulationDuringSolve to set
-	 */
-	public void setSnapshotSimulationDuringSolve(
-			boolean snapshotSimulationDuringSolve) {
-		this.snapshotSimulationDuringSolve = snapshotSimulationDuringSolve;
-	}
+  /**
+   * @return the snapshotSimulationDuringSolve
+   */
+  public boolean isSnapshotSimulationDuringSolve() {
+    return snapshotSimulationDuringSolve;
+  }
 
-	/**
-	 * @return the snapshotToSameFile
-	 */
-	public boolean isSnapshotToSameFile() {
-		return snapshotToSameFile;
-	}
+  /**
+   * @param snapshotSimulationDuringSolve
+   *          the snapshotSimulationDuringSolve to set
+   */
+  public void
+         setSnapshotSimulationDuringSolve( boolean snapshotSimulationDuringSolve ) {
+    this.snapshotSimulationDuringSolve = snapshotSimulationDuringSolve;
+  }
 
-	/**
-	 * @param snapshotToSameFile
-	 *            the snapshotToSameFile to set
-	 */
-	public void setSnapshotToSameFile(boolean snapshotToSameFile) {
-		this.snapshotToSameFile = snapshotToSameFile;
-	}
+  /**
+   * @return the snapshotToSameFile
+   */
+  public boolean isSnapshotToSameFile() {
+    return snapshotToSameFile;
+  }
 
-	/**
-	 * @return the loopsPerSnapshot
-	 */
-	public int getLoopsPerSnapshot() {
-		return loopsPerSnapshot;
-	}
+  /**
+   * @param snapshotToSameFile
+   *          the snapshotToSameFile to set
+   */
+  public void setSnapshotToSameFile( boolean snapshotToSameFile ) {
+    this.snapshotToSameFile = snapshotToSameFile;
+  }
 
-	/**
-	 * @param loopsPerSnapshot
-	 *            the loopsPerSnapshot to set
-	 */
-	public void setLoopsPerSnapshot(int loopsPerSnapshot) {
-		this.loopsPerSnapshot = loopsPerSnapshot;
-	}
+  /**
+   * @return the loopsPerSnapshot
+   */
+  public int getLoopsPerSnapshot() {
+    return loopsPerSnapshot;
+  }
 
-	/**
-	 * @return the baseSnapshotFileName
-	 */
-	public String getBaseSnapshotFileName() {
-		return baseSnapshotFileName;
-	}
+  /**
+   * @param loopsPerSnapshot
+   *          the loopsPerSnapshot to set
+   */
+  public void setLoopsPerSnapshot( int loopsPerSnapshot ) {
+    this.loopsPerSnapshot = loopsPerSnapshot;
+  }
 
-	/**
-	 * @param baseSnapshotFileName
-	 *            the baseSnapshotFileName to set
-	 */
-	public void setBaseSnapshotFileName(String baseSnapshotFileName) {
-		this.baseSnapshotFileName = baseSnapshotFileName;
-	}
+  /**
+   * @return the baseSnapshotFileName
+   */
+  public String getBaseSnapshotFileName() {
+    return baseSnapshotFileName;
+  }
 
-	/**
-	 * @return the amTopEventToSimulate
-	 */
-	public boolean isAmTopEventToSimulate() {
-		return amTopEventToSimulate;
-	}
+  /**
+   * @param baseSnapshotFileName
+   *          the baseSnapshotFileName to set
+   */
+  public void setBaseSnapshotFileName( String baseSnapshotFileName ) {
+    this.baseSnapshotFileName = baseSnapshotFileName;
+  }
 
-	/**
-	 * @param amTopEventToSimulate
-	 *            the amTopEventToSimulate to set
-	 */
-	public void setAmTopEventToSimulate(boolean amTopEventToSimulate) {
-		this.amTopEventToSimulate = amTopEventToSimulate;
-	}
+  /**
+   * @return the amTopEventToSimulate
+   */
+  public boolean isAmTopEventToSimulate() {
+    return amTopEventToSimulate;
+  }
 
-	/**
-	 * @return the settingTimeVaryingMapOwners
-	 */
-	public static boolean isSettingTimeVaryingMapOwners() {
-		return settingTimeVaryingMapOwners;
-	}
+  /**
+   * @param amTopEventToSimulate
+   *          the amTopEventToSimulate to set
+   */
+  public void setAmTopEventToSimulate( boolean amTopEventToSimulate ) {
+    this.amTopEventToSimulate = amTopEventToSimulate;
+  }
 
-	/**
-	 * @param settingTimeVaryingMapOwners
-	 *            the settingTimeVaryingMapOwners to set
-	 */
-	public static void setSettingTimeVaryingMapOwners(
-			boolean settingTimeVaryingMapOwners) {
-		ParameterListenerImpl.settingTimeVaryingMapOwners = settingTimeVaryingMapOwners;
-	}
+  /**
+   * @return the settingTimeVaryingMapOwners
+   */
+  public static boolean isSettingTimeVaryingMapOwners() {
+    return settingTimeVaryingMapOwners;
+  }
 
-	/* (non-Javadoc)
-	 * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfResolvedConstraints(boolean, java.util.Set)
-	 */
-	@Override
+  /**
+   * @param settingTimeVaryingMapOwners
+   *          the settingTimeVaryingMapOwners to set
+   */
+  public static void
+         setSettingTimeVaryingMapOwners( boolean settingTimeVaryingMapOwners ) {
+    ParameterListenerImpl.settingTimeVaryingMapOwners =
+        settingTimeVaryingMapOwners;
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfResolvedConstraints(boolean,
+   * java.util.Set)
+   */
+  @Override
   public long getNumberOfResolvedConstraints( boolean deep,
                                               Set< HasConstraints > seen ) {
     long num = 0;
-    num += HasConstraints.Helper.getNumberOfResolvedConstraints( getParameters(), deep, seen );
-    num += HasConstraints.Helper.getNumberOfResolvedConstraints( getConstraintExpressions(), false, seen );
-    num += HasConstraints.Helper.getNumberOfResolvedConstraints( getDependencies(), false, seen );
+    num +=
+        HasConstraints.Helper.getNumberOfResolvedConstraints( getParameters(),
+                                                              deep, seen );
+    num +=
+        HasConstraints.Helper.getNumberOfResolvedConstraints( getConstraintExpressions(),
+                                                              false, seen );
+    num +=
+        HasConstraints.Helper.getNumberOfResolvedConstraints( getDependencies(),
+                                                              false, seen );
     return num;
   }
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfUnresolvedConstraints(boolean, java.util.Set)
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfUnresolvedConstraints(
+   * boolean, java.util.Set)
    */
   @Override
   public long getNumberOfUnresolvedConstraints( boolean deep,
                                                 Set< HasConstraints > seen ) {
     long num = 0;
-    num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( getParameters(), deep, seen );
-    num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( getConstraintExpressions(), false, seen );
-    num += HasConstraints.Helper.getNumberOfUnresolvedConstraints( getDependencies(), false, seen );
+    num +=
+        HasConstraints.Helper.getNumberOfUnresolvedConstraints( getParameters(),
+                                                                deep, seen );
+    num +=
+        HasConstraints.Helper.getNumberOfUnresolvedConstraints( getConstraintExpressions(),
+                                                                false, seen );
+    num +=
+        HasConstraints.Helper.getNumberOfUnresolvedConstraints( getDependencies(),
+                                                                false, seen );
     return num;
   }
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfConstraints(boolean, java.util.Set)
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see gov.nasa.jpl.ae.solver.Satisfiable#getNumberOfConstraints(boolean,
+   * java.util.Set)
    */
   @Override
-  public long getNumberOfConstraints( boolean deep, Set< HasConstraints > seen ) {
+  public long getNumberOfConstraints( boolean deep,
+                                      Set< HasConstraints > seen ) {
     long num = 0;
-    num += HasConstraints.Helper.getNumberOfConstraints( getParameters(), deep, seen );
-    num += HasConstraints.Helper.getNumberOfConstraints( getConstraintExpressions(), false, seen );
-    num += HasConstraints.Helper.getNumberOfConstraints( getDependencies(), false, seen );
+    num += HasConstraints.Helper.getNumberOfConstraints( getParameters(), deep,
+                                                         seen );
+    num +=
+        HasConstraints.Helper.getNumberOfConstraints( getConstraintExpressions(),
+                                                      false, seen );
+    num += HasConstraints.Helper.getNumberOfConstraints( getDependencies(),
+                                                         false, seen );
     return num;
   }
-  
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.event.ParameterListener#translate(gov.nasa.jpl.ae.solver.Variable, java.lang.Object, java.lang.Class)
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * gov.nasa.jpl.ae.event.ParameterListener#translate(gov.nasa.jpl.ae.solver.
+   * Variable, java.lang.Object, java.lang.Class)
    */
   @Override
-  public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+  public < T > T translate( Variable< T > p, Object o, Class< ? > type ) {
     return null;
   }
-  
+
   @Override
   public Object getOwner() {
-    return owner ;
+    return owner;
   }
 
   @Override
@@ -1563,17 +1717,17 @@ protected boolean isSimpleVar( Variable< ? > key ) {
   @Override
   public List< Variable< ? > >
          getVariablesOnWhichDepends( Variable< ? > variable ) {
-    ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >();
-    Set<Variable<?>> varSet = new LinkedHashSet< Variable<?> >();
+    ArrayList< Variable< ? > > varList = new ArrayList< Variable< ? > >();
+    Set< Variable< ? > > varSet = new LinkedHashSet< Variable< ? > >();
     for ( ConstraintExpression c : getConstraintExpressions() ) {
-      List<Variable<?>>  vars = c.getVariablesOnWhichDepends( variable );
-      if ( !Utils.isNullOrEmpty( vars )) {
+      List< Variable< ? > > vars = c.getVariablesOnWhichDepends( variable );
+      if ( !Utils.isNullOrEmpty( vars ) ) {
         varSet.addAll( vars );
       }
     }
     for ( Dependency d : getDependencies() ) {
-      List<Variable<?>>  vars = d.getVariablesOnWhichDepends( variable );
-      if ( !Utils.isNullOrEmpty( vars )) {
+      List< Variable< ? > > vars = d.getVariablesOnWhichDepends( variable );
+      if ( !Utils.isNullOrEmpty( vars ) ) {
         varSet.addAll( vars );
       }
     }
@@ -1582,6 +1736,4 @@ protected boolean isSimpleVar( Variable< ? > key ) {
     return varList;
   }
 
-  
-  
 }

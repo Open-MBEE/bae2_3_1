@@ -21,7 +21,7 @@
         <constraints>
           <constraint>
             <expression>
-              i &lt; 5
+              i == 5
             </expression>
           </constraint>
         </constraints>
