@@ -38,6 +38,9 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * A class that manages Parameters, Dependencies, and Constraints.
  *
@@ -269,13 +272,103 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   }
 
   public String kSolutionString() {
-    return "";
+    Boolean sat = isSatisfied(true, null);
+    StringBuffer sb = new StringBuffer();
+    sb.append((sat? "Satisfied" : "Unsatisfied") + "\n");
+    sb.append( "Solution:\n" );
+    sb.append(kSolutionString(0));
+    sb.append( "Requirements:\n" );
+    sb.append( solutionRequirements() );
+        
+    if (!sat) {
+      sb.append( "Unsatisfied Constraints: "  + getUnsatisfiedConstraints());
+    }
+    
+    return sb.toString();
+  }
+
+
+  public String solutionRequirements() {
+    List<String> reqs = JSONArrToReqs(kSolutionJSONArr());
+    StringBuffer sb = new StringBuffer();
+    for (String s : reqs) {
+      sb.append( "req " + s + "\n" );
+    }
+    return sb.toString();
+  }
+
+  public JSONArray kSolutionJSONArr() {
+    JSONArray value = new JSONArray();
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter< ? > p : allParams ) {
+      JSONObject param = new JSONObject();
+      if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pLI =
+            ( (ParameterListenerImpl)p.getValueNoPropagate() );
+        param.put( "name", p.getName() );
+        param.put( "type", "class" );
+        JSONArray val = pLI.kSolutionJSONArr();
+        param.put( "value", val );
+        
+      } else {
+        param.put( "name", p.getName() );
+        param.put( "type", "primitive" );
+        param.put( "value", p.getValue().toString()) ;
+      }
+      value.put( param );
+    }
+    return value;
+    
+  }
+
+
+  public static List<String> JSONArrToReqs(JSONArray JSONArr) {
+    List<String> strings = new ArrayList<String>();
+    int length = JSONArr.length();
+    for (int i = 0; i < length; i++ ) {
+      JSONObject obj = JSONArr.getJSONObject( i );
+      if (obj.get( "type" ).equals("primitive")) {
+        strings.add( obj.get("name") + " = " + obj.get( "value" )) ;
+      } else {
+        List<String> paramStrings = JSONArrToReqs((JSONArray)obj.get("value"));
+        String name = obj.getString( "name" );
+        for (String s : paramStrings) {
+          strings.add( name + "." + s );
+        }
+      }
+    }
+    return strings;
+  }
+
+  public String kSolutionString( int indent ) {
+
+    String indentString = "";
+    for (int i = 0 ; i < indent; i++) {
+      indentString += "   ";
+    }
+    StringBuffer sb = new StringBuffer();
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter< ? > p : allParams ) {
+        if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+          ParameterListenerImpl pLI =
+              ( (ParameterListenerImpl)p.getValueNoPropagate() );
+          sb.append( indentString + p.getName() + " = " + pLI.getClass().getSimpleName()
+                     + " {\n" );
+          sb.append(  pLI.kSolutionString( indent + 1 ) );
+          sb.append( indentString + "}\n" );
+        } else {
+          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\r\n" );
+        }
+      
+    }
+
+    return sb.toString();
   }
 
   public String simpleString() {
     StringBuffer sb = new StringBuffer();
-    Boolean sat = isSatisfied(true, null);
-    if ( sat) {
+    Boolean sat = isSatisfied( true, null );
+    if ( sat ) {
       sb.append( "Satisfied:\n " );
     } else {
       sb.append( "Unsatisfied: \n" );
@@ -285,9 +378,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
       sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
     }
-    if (!sat) {
+    if ( !sat ) {
       sb.append( "Unsatisfied Constraints:\n" + getUnsatisfiedConstraints() );
-      
+
     }
 
     return sb.toString();
