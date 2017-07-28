@@ -1354,8 +1354,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     
   }
 
-
-
   /*
    * (non-Javadoc)
    *
@@ -1423,6 +1421,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     return sb.toString();
   }
 
+
   //
   // public String simpleString( boolean withHash, boolean deep, Set< Object >
   // seen,
@@ -1465,6 +1464,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
   // sb.append( ")" );
   // return sb.toString();
   // }
+
 
   public void executeAndSimulate() {
     executeAndSimulate( 1.0e12 );
