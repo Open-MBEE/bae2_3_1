@@ -38,6 +38,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TimeZone;
@@ -1219,6 +1223,65 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   @Override
   public Object clone() {
     return new DurativeEvent( this );
+  }
+  
+  
+  public String kSolutionString( int indent ) {
+
+    String indentString = "";
+    for (int i = 0 ; i < indent; i++) {
+      indentString += "   ";
+    }
+    StringBuffer sb = new StringBuffer();
+    
+    
+    Parameter<?> dontNeedParams[] = { startTime, duration, endTime };  
+
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    allParams.removeAll( Arrays.asList( dontNeedParams ) );
+    for ( Parameter< ? > p : allParams ) {
+        if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+          ParameterListenerImpl pLI =
+              ( (ParameterListenerImpl)p.getValueNoPropagate() );
+          sb.append( indentString + p.getName() + " = " + pLI.getClass().getSimpleName()
+                     + " {\n" );
+          sb.append(  pLI.kSolutionString( indent + 1 ) );
+          sb.append( indentString + "}\n" );
+        } else {
+          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\r\n" );
+        }
+      
+    }
+
+    return sb.toString();
+  }
+  
+
+  public JSONArray kSolutionJSONArr() {
+    JSONArray value = new JSONArray();
+    Parameter<?> dontNeedParams[] = { startTime, duration, endTime }; 
+
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    allParams.removeAll( Arrays.asList( dontNeedParams ) );
+    for ( Parameter< ? > p : allParams ) {
+      JSONObject param = new JSONObject();
+      if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pLI =
+            ( (ParameterListenerImpl)p.getValueNoPropagate() );
+        param.put( "name", p.getName() );
+        param.put( "type", "class" );
+        JSONArray val = pLI.kSolutionJSONArr();
+        param.put( "value", val );
+        
+      } else {
+        param.put( "name", p.getName() );
+        param.put( "type", "primitive" );
+        param.put( "value", p.getValue().toString()) ;
+      }
+      value.put( param );
+    }
+    return value;
+    
   }
   
   
