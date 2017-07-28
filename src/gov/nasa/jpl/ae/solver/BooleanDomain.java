@@ -95,7 +95,14 @@ public class BooleanDomain extends AbstractFiniteRangeDomain<Boolean> {
   @Override
   public Boolean getNthValue( long n ) {
     // TODO Auto-generated method stub
+    if (n == 0) {
+      return getLowerBound();
+    } 
+    if (n== 1) {
+      return getUpperBound();
+    }
     return null;
+     
   }
 
   @Override

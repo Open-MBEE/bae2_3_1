@@ -75,6 +75,7 @@ public class ConstraintLoopSolver implements Solver {
         //Debug.turnOn();
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
+          System.out.println( "try to satisfy constraint " + i + ": " + c );
           thisSatisfied = c.satisfy( deep, null );
           if ( thisSatisfied ) {
             thisSatisfied = c.isSatisfied( deep, null );

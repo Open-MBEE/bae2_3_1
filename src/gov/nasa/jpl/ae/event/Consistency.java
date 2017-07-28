@@ -190,12 +190,12 @@ public class Consistency {
         if ( c instanceof ConstraintExpression ) {
           ConstraintExpression cx = (ConstraintExpression)c;
           Pair<Domain<Boolean>,Boolean> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
-          if ( !quiet && p.second == Boolean.TRUE ) {
+          if ( p!= null && !quiet && p.second == Boolean.TRUE ) {
             System.out.println( "Restricted constraint " + MoreToString.Helper.toLongString( cx ) + " to domain " + p.first );
           }
-          cct += (p.second == Boolean.TRUE) ? 1 : 0;
+          cct += (p !=null && p.second == Boolean.TRUE) ? 1 : 0;
 
-          restrictedSomething = restrictedSomething || (p.second == Boolean.TRUE); 
+          restrictedSomething = restrictedSomething || (p!=null && p.second == Boolean.TRUE); 
         } else {
           Set< Variable< ? > > vars = c.getVariables();
           for ( Variable< ? > v : vars ) {
@@ -221,9 +221,9 @@ public class Consistency {
     
     System.out.println();
     if ( succeeded ) {
-      System.out.println( "Arc consistency completed after " + ct + " passes at the constraints:" );
+      System.out.println( "Arc consistency completed after " + (ct+1) + " passes at the constraints:" );
     } else {
-      System.out.println( "Arc consistency failed to complete after " + ct + " passes at the constraints:" );
+      System.out.println( "Arc consistency failed to complete after " + (ct+1) + " passes at the constraints:" );
     }
     System.out.println();
     if ( !quiet ) {

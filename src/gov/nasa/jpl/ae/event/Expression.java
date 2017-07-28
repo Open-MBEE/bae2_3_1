@@ -786,7 +786,8 @@ public class Expression< ResultType > extends HasIdImpl
 
   @Override
   public void setStale( boolean staleness ) {
-    Debug.errln( "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
+    
+    Debug.error(true, false, "BAD!!!!!!!!!!!!!!   THIS SHOULD NOT BE GETTING CALLED!  setStale(" + staleness + "): "
                    + toShortString() );
     if ( Debug.isOn() ) Debug.outln( "setStale(" + staleness + ") to " + this );
     // TODO -- REVIEW -- Do nothing?
@@ -885,7 +886,7 @@ public class Expression< ResultType > extends HasIdImpl
       Throwable throwable = null;
       try {
         if ( !domain.contains( (T)evaluate(expression, domain.getType(), true ) ) ) {
-          expression = null; // REVIEW -- Do we really want to set it to null?
+          //expression = null; // REVIEW -- Do we really want to set it to null?
           return null;
         }
       } catch (ClassCastException e) {
@@ -900,7 +901,7 @@ public class Expression< ResultType > extends HasIdImpl
         if ( throwable != null ) {
           T t = domain.getValue( true );
           if ( !valuesEqual( t, expression ) ) {
-            expression = null; // REVIEW -- Do we really want to set it to null?
+            //expression = null; // REVIEW -- Do we really want to set it to null?
             return null;
           }
         }

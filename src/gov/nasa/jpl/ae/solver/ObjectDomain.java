@@ -3,14 +3,18 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Functions;
+import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Random;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Vector;
 
 /**
  * A Domain as a discrete set of unordered objects
@@ -21,12 +25,19 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
   protected HasIdImpl hasId = new HasIdImpl();
   protected Class<T> type;
   protected boolean nullInDomain = false;
+  protected Object enclosingObject = null;
 
   /**
    * Create a domain for objects of the specified type. 
    */
   public ObjectDomain( Class<T> type ) {
     this.type = type;
+  }
+  
+  
+  public ObjectDomain( Class<T> type, Object o ) {
+    this.type = type;
+    this.enclosingObject = o;
   }
 
   public ObjectDomain( ObjectDomain< T > objectDomain ) {
@@ -117,6 +128,15 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     ObjectDomain<T> d = new ObjectDomain< T >( this );
     return d;
   }
+  
+  
+  @Override
+  public boolean contains(Object t) {
+    if (isEmpty()) {
+      return isNullInDomain();
+    }
+    return super.contains( t );
+  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#size()
@@ -155,9 +175,38 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    */
   @Override
   public T pickRandomValue() {
+    if (isEmpty()) {
+      return null;
+    }
     T t = Functions.get( this, Random.global.nextInt( size() ) );
     return t;
   }
+  
+  
+  
+  public T constructObject() {
+    if (getType() == null) {
+      return null;
+    }
+    try {
+      ConstructorCall cc = new ConstructorCall( enclosingObject, getType(),
+                                                new Vector<Object>(),
+                                                getType() );
+      Object o = cc.evaluate(true);
+      if (o instanceof Groundable) {
+        ( (Groundable)o ).ground( true, null );
+      }
+      return (T)o;
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#pickRandomValueNotEqual(java.lang.Object)

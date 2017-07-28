@@ -318,7 +318,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         functionClasses = new ArrayList< Class< ? extends FunctionCall > >();
         Class< ? >[] classes = Functions.class.getClasses();
         for ( Class< ? > cls : classes ) {
-            System.out.println("cls = " + cls );
+//            System.out.println("cls = " + cls );
             if ( cls != null && FunctionCall.class.isAssignableFrom( cls ) ) {
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends FunctionCall > fcls =
@@ -1783,16 +1783,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     } else {
       aeString = parentString + "." + fieldAccessExpr.getField();
     }
-    if ( getParameterValue ) {
-      if ( wrapInFunction ) {
-        // nesting function calls
-        aeString =
-            "new FunctionCall(null, Parameter.class, \"getValue\", "
-                + "new Object[]{ true }, " + aeString + ")";
-      } else {
-        aeString += ".getValue(" + propagate + ")";
-      }
-    }
+    //MAYBE UNCOMMENT THIS IDK WHAT IT'S DOING
+//    if ( getParameterValue ) {
+//      if ( wrapInFunction ) {
+//        // nesting function calls
+//        aeString =
+//            "new FunctionCall(null, Parameter.class, \"getValue\", "
+//                + "new Object[]{ true }, " + aeString + ")";
+//      } else {
+//        aeString += ".getValue(" + propagate + ")";
+//      }
+//    }
     if ( wrapInFunction && evaluateCall ) {
       aeString = "(" + aeString + ").evaluate(" + propagate + ")";
     }
@@ -2116,10 +2117,19 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     return expr;
   }
+  
+  public String getDomainString(String type) {
+    if (!type.equals( "Integer" ) && !type.equals("Boolean") &&!type.equals( "Double" ) && !type.equals( "String" )) {
+      return "new ObjectDomain<" + type + ">(" + type + ".class, " + getClassData().getEnclosingClassName(type) + ".this)";
+    }
+    return "null";
+  }
+  
 
   public String[] convertToEventParameterTypeAndConstructorArgs( ClassData.Param p ) {
     return convertToEventParameterTypeAndConstructorArgs( p, getCurrentClass() );
   }
+  
 
   /**
    * Determines the AE translated parameter type, generic parameter types, and arguments.  
@@ -2152,12 +2162,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     // do not include p.value?
     String valueArg = javaToAeExpr( p.value, p.type, false, true );
     String typePlaceholder = "!TYPE!";
+    String domain = getDomainString(p.type);
     // if ( valueArg.equals( "null" )
     // || ( valueArg.startsWith( "new Expression" ) &&
     // valueArg.endsWith( "(null)" ) ) ) {
     valueArg = "(" + typePlaceholder + ")" + valueArg; // replacing !TYPE! later
     // }
-    String args = "\"" + p.name + "\", null, " + valueArg + ", this";
+    String args = "\"" + p.name + "\"," + domain + ", " + valueArg + ", this";
     String parameterClass =
         ClassData.typeToParameterType( p.type );
     if ( Utils.isNullOrEmpty( p.type ) ) {
