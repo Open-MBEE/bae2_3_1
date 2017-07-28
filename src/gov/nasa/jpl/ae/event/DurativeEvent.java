@@ -1285,16 +1285,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
   
   
-  
-//  public String simpleString() {
-//    StringBuffer sb = new StringBuffer();
-//    for (Parameter p: parameters) {
-//      if (p.getValue() instanceof ParameterListenerImpl) {
-//        sb.append( ((ParamaterListnerImpl)(p.getValue())).simpleString() );
-//      }
-//    }
-//    return sb.toString();
-//  }
+
 
   /*
    * (non-Javadoc)
@@ -1356,45 +1347,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event, Clone
   }
   
   
-  
-//  
-//  public String simpleString( boolean withHash, boolean deep, Set< Object > seen,
-//                              Map< String, Object > otherOptions ) {
-//        Pair< Boolean, Set< Object > > pair = Utils.seen( this, deep, seen );
-//        if ( pair.first ) deep = false;
-//        seen = pair.second;
-//        StringBuffer sb = new StringBuffer();
-//        sb.append( getName() + ":");
-//
-//        if ( withHash ) sb.append( "@" + hashCode() );
-//        sb.append( "(" );
-//        boolean first = true;
-//        
-//
-//        
-//        Parameter<?> firstParams[] = { startTime, duration, endTime };  // Could use Arrays.sort() .search()
-//        List< Parameter< ? > > allParams =
-//            new ArrayList< Parameter< ? > >(Arrays.asList( firstParams ));
-//        Set< Parameter< ? > > restParams = getParameters( false, null );
-//        restParams.removeAll( allParams );
-//        for ( Object p : restParams ) {
-//          if ( first ) first = false;
-//          else sb.append( ", " );
-//          if ( p instanceof Parameter ) {
-//            if (( (Parameter)p ).getValue() instanceof ParameterListenerImpl) {
-//              sb.append( ((ParameterListenerImpl)(( (Parameter)p ).getValue())).simpleString(withHash, deep, seen, otherOptions));
-//            } else {
-//              sb.append( ((Parameter<?>)p).toString( false, withHash, deep, seen, otherOptions ) );
-//
-//            }
-//          } else {
-//            sb.append( p.toString() );
-//          }
-//          sb.append( "\n" );
-//        }
-//        sb.append( ")" );
-//        return sb.toString();
-//      }
+
 
   public void executeAndSimulate() {
     executeAndSimulate( 1.0e12 );
