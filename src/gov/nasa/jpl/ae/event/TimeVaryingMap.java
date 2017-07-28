@@ -175,7 +175,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   protected final int id = HasIdImpl.getNext();
 
   protected Object owner = null;
-
+ 
   protected Domain<V> domain = null;
   
 
@@ -537,8 +537,20 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( obj instanceof Parameter ) {
       Parameter<?> p = (Parameter< ? >)obj;
       Object val = p.getValueNoPropagate();
-      if ( val == null || val instanceof Long ) {
+      if ( val instanceof Long ) {
         return (Parameter< Long >)obj;
+      } else if (val instanceof Integer) {
+        try {
+          Long l = Expression.evaluate( val, Long.class, false );
+          return new SimpleTimepoint( l );
+        } catch ( ClassCastException e ) {
+        } catch ( IllegalAccessException e ) {
+
+        } catch ( InvocationTargetException e ) {
+
+        } catch ( InstantiationException e ) {
+
+        }
       }
     }
     return null;
@@ -1596,7 +1608,24 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public Parameter< Long> keyForValueAt( V value, Parameter< Long> tp ) {
     if ( tp == null ) return null;
     if ( containsKey(tp) && Utils.valuesEqual( get( tp ), value ) ) return tp;
-    return keyForValueAt( value, tp.getValueNoPropagate() );
+    Object tpVal = tp.getValueNoPropagate();
+    
+    Long l = null;
+    try {
+      l = Expression.evaluate( tpVal, Long.class, false );
+    } catch ( ClassCastException e ) {
+
+    } catch ( IllegalAccessException e ) {
+
+    } catch ( InvocationTargetException e ) {
+
+    } catch ( InstantiationException e ) {
+
+    }
+    if (l == null) {
+      return null;
+    }
+    return keyForValueAt( value, l);
   }
 
   /**
@@ -1731,7 +1760,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       }
     }
     if ( tp != t ) {
-      oldValue = put( t, value );
+      Parameter<Long> tt = tryCastTimepoint( t );
+      if (tt == null) {
+        Debug.error( false, "Could not cast input time to Long" );
+        return null;
+      }
+      oldValue = put( tt, value );
       if ( value != null &&
            ( type == null || value.getClass().isAssignableFrom( type ) ) ) {
         setType( value.getClass() );
