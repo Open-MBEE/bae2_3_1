@@ -271,7 +271,6 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
-  
   public String kSolutionString() {
     Boolean sat = isSatisfied(true, null);
     StringBuffer sb = new StringBuffer();
@@ -287,8 +286,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     
     return sb.toString();
   }
-  
-  
+
+
   public String solutionRequirements() {
     List<String> reqs = JSONArrToReqs(kSolutionJSONArr());
     StringBuffer sb = new StringBuffer();
@@ -297,7 +296,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     }
     return sb.toString();
   }
-  
+
   public JSONArray kSolutionJSONArr() {
     JSONArray value = new JSONArray();
     Set< Parameter< ? > > allParams = getParameters( false, null );
@@ -321,8 +320,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return value;
     
   }
-  
-  
+
+
   public static List<String> JSONArrToReqs(JSONArray JSONArr) {
     List<String> strings = new ArrayList<String>();
     int length = JSONArr.length();
@@ -340,7 +339,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     }
     return strings;
   }
-  
+
   public String kSolutionString( int indent ) {
 
     String indentString = "";

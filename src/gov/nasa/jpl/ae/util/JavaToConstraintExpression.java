@@ -318,7 +318,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         functionClasses = new ArrayList< Class< ? extends FunctionCall > >();
         Class< ? >[] classes = Functions.class.getClasses();
         for ( Class< ? > cls : classes ) {
-            //System.out.println("cls = " + cls );
+//            System.out.println("cls = " + cls );
             if ( cls != null && FunctionCall.class.isAssignableFrom( cls ) ) {
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends FunctionCall > fcls =
