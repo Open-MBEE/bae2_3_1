@@ -23,3 +23,6 @@ bin
 target
 /output/
 /.DS_Store
+/.idea
+*.iml
+*.log
