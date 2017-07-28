@@ -4684,14 +4684,31 @@ public class Functions {
     Pair< Object, TimeVaryingMap< ? > > p2 = objectOrTimeline( r2 );
     TimeVaryingMap< ? > tvm1 = p1 == null ? null : p1.second;
     TimeVaryingMap< ? > tvm2 = p2 == null ? null : p2.second;
+    TimeVaryingMap<Boolean> tvmResult = null;
+    BooleanDomain domain = null;
+    Boolean tvm = false;
     if ( tvm1 != null ) {
+      tvm = true;
       if ( tvm2 != null ) {
-        return TimeVaryingMap.compare( tvm1, tvm2, Inequality.EQ );
+        tvmResult = TimeVaryingMap.compare( tvm1, tvm2, Inequality.EQ );
+      } else {
+        tvmResult = compare( tvm1, r2, Inequality.EQ );
+
       }
-      return compare( tvm1, r2, Inequality.EQ );
     } else if ( tvm2 != null ) {
-      return compare( r1, tvm2, Inequality.EQ );
+      tvm = true;
+      tvmResult = compare( r1, tvm2, Inequality.EQ );
     }
+    if (tvm) {
+      domain = ((BooleanDomain)tvmResult.getDomain( true, null ));
+      if (domain != null && domain.size() == 1) {
+        return domain.getValue( true );
+      } else {
+        return tvmResult;
+      }
+    }
+    
+    
     return eq( r1, r2 );
   }
 

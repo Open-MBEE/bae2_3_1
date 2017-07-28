@@ -1765,7 +1765,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         Debug.error( false, "Could not cast input time to Long" );
         return null;
       }
-      oldValue = put( tt, value );
+      oldValue = put( t, value );
       if ( value != null &&
            ( type == null || value.getClass().isAssignableFrom( type ) ) ) {
         setType( value.getClass() );
@@ -2445,6 +2445,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return false;
   }
   
+  
+  public boolean allValuesSame() {
+    return true; //to do 
+  }
+   
   /**
    * Return the result of applying a binary operation to this map and another.
    * This achieves for all {@code t} in {@code this.keySet()} and
