@@ -290,7 +290,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   public JSONObject kSolutionJson() {
     JSONObject json = new JSONObject();
     Boolean sat = isSatisfied(true, null);
-    json.put("satisfied", sat.booleanValue());
+    json.put("satisfied", "" + sat.booleanValue());
     String partialSolution = kSolutionString(0);
     json.put("solution", partialSolution);
 
