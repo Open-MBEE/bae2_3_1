@@ -482,7 +482,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
 
       } catch (Exception e) {
-        System.out.println( "something went wrong with evaluating " + this );
+        e.printStackTrace();
+        System.err.println( "something went wrong with evaluating " + this );
       }
 
       // No longer stale after invoked with updated arguments and result is cached.

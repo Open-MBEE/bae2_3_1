@@ -2120,7 +2120,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   
   public String getDomainString(String type) {
     if (!type.equals( "Integer" ) && !type.equals("Boolean") &&!type.equals( "Double" ) && !type.equals( "String" )) {
-      return "new ObjectDomain<" + type + ">(" + type + ".class, " + getClassData().getEnclosingClassName(type) + ".this)";
+      String enclosing = getClassData().getEnclosingClassName(type);
+      if (enclosing != null) {
+        return "new ObjectDomain<" + type + ">(" + type + ".class, " + enclosing + ".this)";
+
+      }
     }
     return "null";
   }

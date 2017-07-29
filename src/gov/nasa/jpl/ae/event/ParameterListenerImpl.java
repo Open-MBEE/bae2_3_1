@@ -389,27 +389,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
-  public String simpleString() {
-    StringBuffer sb = new StringBuffer();
-    Boolean sat = isSatisfied( true, null );
-    if ( sat ) {
-      sb.append( "Satisfied:\n " );
-    } else {
-      sb.append( "Unsatisfied: \n" );
 
-    }
-    sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
-    for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
-    }
-    if ( !sat ) {
-      sb.append( "Unsatisfied Constraints:\n" + getUnsatisfiedConstraints() );
-
-    }
-
-    return sb.toString();
-
-  }
 
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
