@@ -287,15 +287,39 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return sb.toString();
   }
 
+  public JSONObject kSolutionJson() {
+    JSONObject json = new JSONObject();
+    Boolean sat = isSatisfied(true, null);
+    json.put("satisfied", sat.booleanValue());
+    String partialSolution = kSolutionString(0);
+    json.put("solution", partialSolution);
 
-  public String solutionRequirements() {
-    List<String> reqs = JSONArrToReqs(kSolutionJSONArr());
-    StringBuffer sb = new StringBuffer();
-    for (String s : reqs) {
-      sb.append( "req " + s + "\n" );
+    JSONArray jarr = solutionRequirements();
+    json.put("constraints", jarr);
+
+    if (!sat) {
+      json.put("violatedConstraints", getUnsatisfiedConstraints());
     }
-    return sb.toString();
+
+    return json;
   }
+
+  public JSONArray solutionRequirements() {
+    List<String> reqs = solutionRequirementList();
+    JSONArray jarr = new JSONArray(reqs);
+    return jarr;
+  }
+
+
+  public List<String> solutionRequirementList() {
+    List<String> reqs = JSONArrToReqs(kSolutionJSONArr());
+    ArrayList<String> arr = new ArrayList<String>();
+    for (String s : reqs) {
+      arr.add( "req " + s );
+    }
+    return arr;
+  }
+
 
   public JSONArray kSolutionJSONArr() {
     JSONArray value = new JSONArray();
@@ -357,7 +381,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
           sb.append(  pLI.kSolutionString( indent + 1 ) );
           sb.append( indentString + "}\n" );
         } else {
-          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\r\n" );
+          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\n" );
         }
       
     }
