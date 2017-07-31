@@ -298,7 +298,12 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     json.put("constraints", jarr);
 
     if (!sat) {
-      json.put("violatedConstraints", getUnsatisfiedConstraints());
+      List<String> list = new ArrayList<String>();
+      List<ConstraintExpression> unsatisfiedConstraints = getUnsatisfiedConstraints();
+      for (ConstraintExpression c : unsatisfiedConstraints) {
+        list.add("" + c);
+      }
+      json.put("violatedConstraints", list);
     }
 
     return json;
