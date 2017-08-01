@@ -52,6 +52,7 @@ import org.json.JSONObject;
 
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Field;
 
 
 
@@ -1722,6 +1723,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     //TODO
     ObjectReference object = (ObjectReference)this;
     ReferenceType type = object.referenceType();
+    List<Field> lst = type.fields();
     Object enclosingInstance = null;
     addElaborationRule( condition, enclosingInstance, eventClass, "", arguments, fromTimeVarying );
     return true;
