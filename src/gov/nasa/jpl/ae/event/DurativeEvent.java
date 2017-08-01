@@ -1324,7 +1324,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
           sb.append(  pLI.kSolutionString( indent + 1 ) );
           sb.append( indentString + "}\n" );
         } else {
-          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\r\n" );
+          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\n" );
         }
       
     }
@@ -1359,8 +1359,6 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     return value;
     
   }
-  
-
 
   /*
    * (non-Javadoc)
