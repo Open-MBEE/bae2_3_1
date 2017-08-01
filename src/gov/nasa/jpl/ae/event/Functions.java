@@ -4700,11 +4700,21 @@ public class Functions {
       tvmResult = compare( r1, tvm2, Inequality.EQ );
     }
     if (tvm) {
-      domain = ((BooleanDomain)tvmResult.getDomain( true, null ));
-      if (domain != null && domain.size() == 1) {
-        return domain.getValue( true );
+      boolean allSame = tvmResult.allValuesSame();
+      if (allSame) {
+        if (!tvmResult.isEmpty()) {
+          if (tvmResult.getValue( (long )0) != null) {
+            if (tvmResult.getValue( (long)0).equals( true )) {
+              return true;
+            }
+          }
+          
+          return false;
+        } else {
+          return true;
+        }
       } else {
-        return tvmResult;
+        return false;
       }
     }
     

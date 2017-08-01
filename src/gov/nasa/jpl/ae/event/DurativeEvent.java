@@ -50,6 +50,7 @@ import java.util.Vector;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 import junit.framework.Assert;
 
 /**
@@ -1708,6 +1709,19 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     w.println( "execution:\n" + executionToString() + "\n" );
     simulate( 1e15, os, false );
     return true;
+  }
+  
+  public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                             Expression< TimeVaryingMap< ? > > fromTimeVarying,
+                             Expression< ? >... arguments
+                             ) {
+    
+//    ObjectReference object = (ObjectReference)this;
+//    ReferenceType type = object.referenceType();
+//    Object enclosingInstance = null;
+//    addElaborationRule( condition, enclosingInstance, eventClass, "", arguments, fromTimeVarying );
+    return true;
+    
   }
 
   // Create an ElaborationRule for constructing an eventClass with

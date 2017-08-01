@@ -2447,7 +2447,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   
   
   public boolean allValuesSame() {
-    return true; //to do 
+    if (this.isEmpty()) {
+      return true;
+    }
+    boolean first = false;
+    Object firstVal = null;
+    for ( Map.Entry< Parameter< Long >, ? > e : this.entrySet() ) {
+      Object mapVal = this.getValue( e.getKey() );
+      if (! first) {
+        first = true;
+        firstVal = mapVal;
+      } else if (!firstVal.equals(mapVal)) {
+        return false;
+      }
+    }
+    return true;
+
   }
    
   /**
