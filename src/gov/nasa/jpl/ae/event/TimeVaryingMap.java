@@ -395,10 +395,14 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   /**
    *
    */
-  public TimeVaryingMap( String name ) {
+  public TimeVaryingMap( String fileName ) {
     this();
-    this.name = name;
+    fromCsvFile( fileName, type );
+    if ( domain == null && type != null ) {
+      domain = DomainHelper.getDomainForClass( type );
+    }
   }
+  
   public TimeVaryingMap( String name, String fileName ) {
     this(name);
     fromCsvFile( fileName, type );
