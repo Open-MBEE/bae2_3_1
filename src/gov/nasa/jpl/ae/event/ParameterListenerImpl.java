@@ -342,7 +342,11 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       } else {
         param.put( "name", p.getName() );
         param.put( "type", "primitive" );
-        param.put( "value", p.getValue().toString()) ;
+        if (p.getValue() == null) {
+          param.put("value", JSONObject.NULL);
+        } else {
+          param.put("value", "" + p.getValue());
+        }
       }
       value.put( param );
     }
@@ -386,7 +390,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
           sb.append(  pLI.kSolutionString( indent + 1 ) );
           sb.append( indentString + "}\n" );
         } else {
-          sb.append(indentString + p.getName() + " = " + p.getValue().toString() + "\n" );
+          sb.append(indentString + p.getName() + " = " + p.getValue() + "\n" );
         }
       
     }
