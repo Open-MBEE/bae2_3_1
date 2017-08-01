@@ -50,6 +50,10 @@ import java.util.Vector;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.sun.jdi.ObjectReference;
+import com.sun.jdi.ReferenceType;
+
+
 
 import junit.framework.Assert;
 
@@ -1715,11 +1719,11 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
                              Expression< TimeVaryingMap< ? > > fromTimeVarying,
                              Expression< ? >... arguments
                              ) {
-    
-//    ObjectReference object = (ObjectReference)this;
-//    ReferenceType type = object.referenceType();
-//    Object enclosingInstance = null;
-//    addElaborationRule( condition, enclosingInstance, eventClass, "", arguments, fromTimeVarying );
+    //TODO
+    ObjectReference object = (ObjectReference)this;
+    ReferenceType type = object.referenceType();
+    Object enclosingInstance = null;
+    addElaborationRule( condition, enclosingInstance, eventClass, "", arguments, fromTimeVarying );
     return true;
     
   }
