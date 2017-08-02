@@ -96,7 +96,15 @@ public class DistributionHelper {
         return d;
     }
 
-    public static void main(String args[]) {
+    public static Double test() {
+        BinomialDistribution o1 = new BinomialDistribution(5, .5);
+        BinomialDistribution o2 = new BinomialDistribution(8, .3);
+//        System.out.println(equals(o1, o2).getProbabilityOfSuccess());
+//        return equals(o1, o2).getProbabilityOfSuccess();
+        return 9.2;
+    }
 
+    public static void main(String args[]) {
+        test();
     }
 }
