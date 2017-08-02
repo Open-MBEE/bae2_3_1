@@ -101,7 +101,7 @@ public class DistributionHelper {
         BinomialDistribution o2 = new BinomialDistribution(8, .3);
 //        System.out.println(equals(o1, o2).getProbabilityOfSuccess());
 //        return equals(o1, o2).getProbabilityOfSuccess();
-        return 9.2;
+        return equals(o1,o2).getProbabilityOfSuccess();
     }
 
     public static void main(String args[]) {
