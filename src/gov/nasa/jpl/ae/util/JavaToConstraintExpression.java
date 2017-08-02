@@ -318,7 +318,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         functionClasses = new ArrayList< Class< ? extends FunctionCall > >();
         Class< ? >[] classes = Functions.class.getClasses();
         for ( Class< ? > cls : classes ) {
-            System.out.println("cls = " + cls );
+//            System.out.println("cls = " + cls );
             if ( cls != null && FunctionCall.class.isAssignableFrom( cls ) ) {
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends FunctionCall > fcls =
@@ -2120,7 +2120,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   
   public String getDomainString(String type) {
     if (!type.equals( "Integer" ) && !type.equals("Boolean") &&!type.equals( "Double" ) && !type.equals( "String" )) {
-      return "new ObjectDomain<" + type + ">(" + type + ".class, " + getClassData().getEnclosingClassName(type) + ".this)";
+      String enclosing = getClassData().getEnclosingClassName(type);
+      if (enclosing != null) {
+        return "new ObjectDomain<" + type + ">(" + type + ".class, " + enclosing + ".this)";
+
+      }
     }
     return "null";
   }

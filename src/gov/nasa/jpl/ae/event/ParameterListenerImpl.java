@@ -38,6 +38,9 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * A class that manages Parameters, Dependencies, and Constraints.
  *
@@ -269,30 +272,133 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   }
 
   public String kSolutionString() {
-    return "";
+    Boolean sat = isSatisfied(true, null);
+    StringBuffer sb = new StringBuffer();
+    sb.append((sat? "Satisfied" : "Unsatisfied") + "\n");
+    sb.append( "Solution:\n" );
+    sb.append(kSolutionString(0));
+    sb.append( "Requirements:\n" );
+    sb.append( solutionRequirements() );
+        
+    if (!sat) {
+      sb.append( "Unsatisfied Constraints: "  + getUnsatisfiedConstraints());
+    }
+    
+    return sb.toString();
   }
 
-  public String simpleString() {
-    StringBuffer sb = new StringBuffer();
+  public JSONObject kSolutionJson() {
+    JSONObject json = new JSONObject();
     Boolean sat = isSatisfied(true, null);
-    if ( sat) {
-      sb.append( "Satisfied:\n " );
-    } else {
-      sb.append( "Unsatisfied: \n" );
+    json.put("satisfied", "" + sat.booleanValue());
+    String partialSolution = kSolutionString(0);
+    json.put("solution", partialSolution);
 
-    }
-    sb.append( MoreToString.Helper.toString( this, true, false, null ) + "\n" );
-    for ( ParameterListenerImpl pl : getNonEventObjects( true, null ) ) {
-      sb.append( MoreToString.Helper.toString( pl, true, false, null ) + "\n" );
-    }
+    JSONArray jarr = solutionRequirements();
+    json.put("constraints", jarr);
+
     if (!sat) {
-      sb.append( "Unsatisfied Constraints:\n" + getUnsatisfiedConstraints() );
+      List<String> list = new ArrayList<String>();
+      List<ConstraintExpression> unsatisfiedConstraints = getUnsatisfiedConstraints();
+      for (ConstraintExpression c : unsatisfiedConstraints) {
+        list.add("" + c);
+      }
+      json.put("violatedConstraints", list);
+    }
+
+    return json;
+  }
+
+  public JSONArray solutionRequirements() {
+    List<String> reqs = solutionRequirementList();
+    JSONArray jarr = new JSONArray(reqs);
+    return jarr;
+  }
+
+
+  public List<String> solutionRequirementList() {
+    List<String> reqs = JSONArrToReqs(kSolutionJSONArr());
+    ArrayList<String> arr = new ArrayList<String>();
+    for (String s : reqs) {
+      arr.add( "req " + s );
+    }
+    return arr;
+  }
+
+
+  public JSONArray kSolutionJSONArr() {
+    JSONArray value = new JSONArray();
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter< ? > p : allParams ) {
+      JSONObject param = new JSONObject();
+      if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+        ParameterListenerImpl pLI =
+            ( (ParameterListenerImpl)p.getValueNoPropagate() );
+        param.put( "name", p.getName() );
+        param.put( "type", "class" );
+        JSONArray val = pLI.kSolutionJSONArr();
+        param.put( "value", val );
+        
+      } else {
+        param.put( "name", p.getName() );
+        param.put( "type", "primitive" );
+        if (p.getValue() == null) {
+          param.put("value", JSONObject.NULL);
+        } else {
+          param.put("value", "" + p.getValue());
+        }
+      }
+      value.put( param );
+    }
+    return value;
+    
+  }
+
+
+  public static List<String> JSONArrToReqs(JSONArray JSONArr) {
+    List<String> strings = new ArrayList<String>();
+    int length = JSONArr.length();
+    for (int i = 0; i < length; i++ ) {
+      JSONObject obj = JSONArr.getJSONObject( i );
+      if (obj.get( "type" ).equals("primitive")) {
+        strings.add( obj.get("name") + " = " + obj.get( "value" )) ;
+      } else {
+        List<String> paramStrings = JSONArrToReqs((JSONArray)obj.get("value"));
+        String name = obj.getString( "name" );
+        for (String s : paramStrings) {
+          strings.add( name + "." + s );
+        }
+      }
+    }
+    return strings;
+  }
+
+  public String kSolutionString( int indent ) {
+
+    String indentString = "";
+    for (int i = 0 ; i < indent; i++) {
+      indentString += "   ";
+    }
+    StringBuffer sb = new StringBuffer();
+    Set< Parameter< ? > > allParams = getParameters( false, null );
+    for ( Parameter< ? > p : allParams ) {
+        if ( p.getValueNoPropagate() instanceof ParameterListenerImpl ) {
+          ParameterListenerImpl pLI =
+              ( (ParameterListenerImpl)p.getValueNoPropagate() );
+          sb.append( indentString + p.getName() + " = " + pLI.getClass().getSimpleName()
+                     + " {\n" );
+          sb.append(  pLI.kSolutionString( indent + 1 ) );
+          sb.append( indentString + "}\n" );
+        } else {
+          sb.append(indentString + p.getName() + " = " + p.getValue() + "\n" );
+        }
       
     }
 
     return sb.toString();
-
   }
+
+
 
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen ) {
