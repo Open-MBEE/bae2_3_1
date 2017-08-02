@@ -356,15 +356,18 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
 
 
   public static List<String> JSONArrToReqs(JSONArray JSONArr) {
+    if ( JSONArr == null ) {
+      return new ArrayList<String>();
+    }
     List<String> strings = new ArrayList<String>();
     int length = JSONArr.length();
     for (int i = 0; i < length; i++ ) {
       JSONObject obj = JSONArr.getJSONObject( i );
-      if (obj.get( "type" ).equals("primitive")) {
-        strings.add( obj.get("name") + " = " + obj.get( "value" )) ;
+      if (obj.opt( "type" ) != null && obj.opt( "type" ).equals("primitive")) {
+        strings.add( obj.opt("name") + " = " + obj.opt( "value" )) ;
       } else {
-        List<String> paramStrings = JSONArrToReqs((JSONArray)obj.get("value"));
-        String name = obj.getString( "name" );
+        List<String> paramStrings = JSONArrToReqs(obj.optJSONArray("value"));
+        String name = obj.optString( "name" );
         for (String s : paramStrings) {
           strings.add( name + "." + s );
         }
@@ -1519,6 +1522,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       pl.setStaleAnyReferencesTo( changedParameter, seen );
     }
     for ( ConstraintExpression c : getConstraintExpressions() ) {
+      if ( c == null ) {
+        continue;
+      }
       c.setStaleAnyReferencesTo( changedParameter, seen );
     }
 
