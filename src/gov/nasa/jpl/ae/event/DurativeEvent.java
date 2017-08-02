@@ -1714,14 +1714,16 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     return true;
   }
   
+  
   public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
                              Expression< TimeVaryingMap< ? > > fromTimeVarying,
                              Expression< ? >... arguments
                              ) {
     //TODO
-    ObjectReference object = (ObjectReference)this;
-    ReferenceType type = object.referenceType();
-    List<Field> lst = type.fields();
+    if (condition == null) {
+      condition = new Expression<Boolean>(true);
+    }
+
     Object enclosingInstance = null;
     addElaborationRule( condition, enclosingInstance, eventClass, "", arguments, fromTimeVarying );
     return true;
