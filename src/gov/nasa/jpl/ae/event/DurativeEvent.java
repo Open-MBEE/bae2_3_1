@@ -1724,8 +1724,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
       condition = new Expression<Boolean>(true);
     }
 
-    Object enclosingInstance = null;
-    addElaborationRule( condition, enclosingInstance, eventClass, "", arguments, fromTimeVarying );
+    addElaborationRule( condition, enclosingInstance, eventClass, "HELLO", arguments, fromTimeVarying );
     return true;
     
   }

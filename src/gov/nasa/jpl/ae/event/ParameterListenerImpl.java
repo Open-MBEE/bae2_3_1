@@ -96,6 +96,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       new HashSet< TimeVarying< ?, ? > >();
   protected boolean usingCollectionTree = false;
   protected Object owner = null;
+  protected Object enclosingInstance = null;
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
