@@ -572,8 +572,21 @@ public class Functions {
       Object o3 = this.arguments.get( 2 );
 
       Domain< ? > d1 = o1 == null ? null : DomainHelper.getDomain( o1 );
-      Domain< ? > d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
-      Domain< ? > d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
+      Domain< ? > d2 = null;
+      Domain< ? > d3 = null;
+      if (d1 != null) {
+        if (d1.magnitude() == 2) {
+          d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
+          d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
+        } else if (d1.magnitude() == 1) {
+          if (Utils.isTrue( d1.getValue( true ) )) {
+            d2 = o2 == null ? null : DomainHelper.getDomain( o2 );
+          } else {
+            d3 = o3 == null ? null : DomainHelper.getDomain( o3 );
+          }
+        }
+      }
+      
       AbstractRangeDomain< T > ard2 =
           d2 instanceof AbstractRangeDomain ? (AbstractRangeDomain< T >)d2
                                             : null;
