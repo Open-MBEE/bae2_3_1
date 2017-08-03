@@ -733,7 +733,6 @@ public class JavaForFunctionCall {
   public Method getMatchingMethod() {
     Debug.out("getMatchingMethod()");
     if ( matchingMethod == null ) {
-      Debug.turnOn();
       // Try using reflection to find the method, but class may not exist.
       Method m1 = ClassUtils.getMethodForArgTypes(getClassName(),
                                                  getPreferredPackageName(),
