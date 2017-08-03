@@ -459,8 +459,11 @@ public class FunctionCall extends Call {
         } catch ( InstantiationException e ) {
         }
         if ( evaluationSucceeded ) {
-            Domain<?> d = new SingleValueDomain< Object >( v );
-            return d;
+          Domain<?> d = DomainHelper.getDomain(v);
+          if ( d == null ) {
+            d = new SingleValueDomain<Object>(v);
+          }
+          return d;
         }
     }
     if ( this.isMonotonic() ) {
