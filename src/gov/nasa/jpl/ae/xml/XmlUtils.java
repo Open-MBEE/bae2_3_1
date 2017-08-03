@@ -189,7 +189,7 @@ public class XmlUtils {
     
     // Try to find a schema file reference in the XML.
     NodeList nodeList = xmlDoc.getElementsByTagName( "scenario" );
-    Assert.assertTrue( nodeList.getLength() < 2 );
+    //Assert.assertTrue( nodeList.getLength() < 2 );
     if ( nodeList.getLength() == 1 ) {
       NamedNodeMap map = nodeList.item( 0 ).getAttributes();
       if ( map != null ) {

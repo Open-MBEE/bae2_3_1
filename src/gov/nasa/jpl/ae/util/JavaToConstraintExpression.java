@@ -199,9 +199,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                               Class<?> returnType,
                                               Vector<Object> arguments,
                                               Class<?>... argTypes) {
-    
-    Class< ? > cls = null;
+
     String[] packages = new String[]{"gov.nasa.jpl.view_repo.sysml"};
+    return javaCallToCall(packages, fName, returnType, arguments, argTypes );
+  }
+
+  public static Call javaCallToCall( String[] packages,
+                                     String fName,
+                                     Class<?> returnType,
+                                     Vector<Object> arguments,
+                                     Class<?>[] argTypes) {
+    Class<?> cls = null;
     Method method = null;
     Call call = null;
     Constructor<?> constructor = null;

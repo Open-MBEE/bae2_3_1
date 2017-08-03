@@ -68,9 +68,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
 
-  protected boolean redirectStdOut = false;
-  protected PrintStream oldOut = System.out;
-  protected PrintStream oldErr = System.err;
+//  protected boolean redirectStdOut = false;
+//  protected PrintStream oldOut = System.out;
+//  protected PrintStream oldErr = System.err;
 
   // Static members
 
@@ -683,12 +683,12 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
    */
   @Override
   public boolean satisfy( boolean deep, Set< Satisfiable > seen ) {
-    if ( redirectStdOut ) {
-      ByteArrayOutputStream baosOut = new ByteArrayOutputStream();
-      ByteArrayOutputStream baosErr = new ByteArrayOutputStream();
-      System.setOut( new PrintStream( baosOut ) );
-      System.setErr( new PrintStream( baosErr ) );
-    }
+//    if ( redirectStdOut ) {
+//      ByteArrayOutputStream baosOut = new ByteArrayOutputStream();
+//      ByteArrayOutputStream baosErr = new ByteArrayOutputStream();
+//      System.setOut( new PrintStream( baosOut ) );
+//      System.setErr( new PrintStream( baosErr ) );
+//    }
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -786,8 +786,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
     }
-    System.setErr( oldErr );
-    System.setOut( oldOut );
+//    System.setErr( oldErr );
+//    System.setOut( oldOut );
     return satisfied;
   }
 

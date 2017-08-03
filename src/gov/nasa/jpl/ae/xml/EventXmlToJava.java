@@ -253,7 +253,7 @@ public class EventXmlToJava {
     xmlFileToJsonFile( xmlFileName, jsonFileName );
     
     scenarioNode = XmlUtils.findNode( xmlDocDOM, "scenario" );
-    Assert.assertNotNull( scenarioNode );
+    //Assert.assertNotNull( scenarioNode );
     
     // get units
     String timeUnits = XmlUtils.getChildElementText( scenarioNode, "timeUnits" );
@@ -309,7 +309,7 @@ public class EventXmlToJava {
 
     // process event to be executed
     NodeList nodeList = xmlDocDOM.getElementsByTagName( "eventToBeExecuted" );
-    Assert.assertTrue( nodeList.getLength() < 2 );
+    //Assert.assertTrue( nodeList.getLength() < 2 );
     if ( nodeList.getLength() == 1 ) {
       Node node = nodeList.item( 0 );
       processExecutionEvent( node );
