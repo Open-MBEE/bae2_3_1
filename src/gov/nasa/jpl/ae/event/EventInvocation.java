@@ -179,7 +179,6 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
         }
         return event;
     }
-
     if ( Debug.isOn() ) Debug.outln("About to call newInstance on constructor=" + constructor + " with arguments=" + Utils.toString(arguments) );
     try {
       return constructor.newInstance( (Object[])ctorAndArgs.second );

@@ -395,7 +395,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public TimeVaryingMap( String name ) {
     this();
     this.name = name;
+
   }
+  
   public TimeVaryingMap( String name, String fileName ) {
     this(name);
     fromCsvFile( fileName, type );
@@ -1761,7 +1763,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         Debug.error( false, "Could not cast input time to Long" );
         return null;
       }
-      oldValue = put( tt, value );
+      oldValue = put( t, value );
       if ( value != null &&
            ( type == null || value.getClass().isAssignableFrom( type ) ) ) {
         setType( value.getClass() );
@@ -2442,6 +2444,26 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return false;
   }
   
+  
+  public boolean allValuesSame() {
+    if (this.isEmpty()) {
+      return true;
+    }
+    boolean first = false;
+    Object firstVal = null;
+    for ( Map.Entry< Parameter< Long >, ? > e : this.entrySet() ) {
+      Object mapVal = this.getValue( e.getKey() );
+      if (! first) {
+        first = true;
+        firstVal = mapVal;
+      } else if (!firstVal.equals(mapVal)) {
+        return false;
+      }
+    }
+    return true;
+
+  }
+   
   /**
    * Return the result of applying a binary operation to this map and another.
    * This achieves for all {@code t} in {@code this.keySet()} and

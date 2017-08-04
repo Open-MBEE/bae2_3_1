@@ -50,6 +50,12 @@ import java.util.Vector;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.sun.jdi.ObjectReference;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Field;
+
+
+
 import junit.framework.Assert;
 
 /**
@@ -1706,6 +1712,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     w.println( "execution:\n" + executionToString() + "\n" );
     simulate( 1e15, os, false );
     return true;
+  }
+  
+  
+  public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                             Expression< TimeVaryingMap< ? > > fromTimeVarying,
+                             Expression< ? >... arguments
+                             ) {
+    //TODO
+    if (condition == null) {
+      condition = new Expression<Boolean>(true);
+    }
+
+    addElaborationRule( condition, enclosingInstance, eventClass, "HELLO", arguments, fromTimeVarying );
+    return true;
+    
   }
 
   // Create an ElaborationRule for constructing an eventClass with

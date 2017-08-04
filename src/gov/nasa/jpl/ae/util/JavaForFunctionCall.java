@@ -470,6 +470,19 @@ public class JavaForFunctionCall {
     return s;
 
   }
+  
+  public String fullClassName( String entityName ) {
+    String className = entityName;
+    entityName = exprXlator.getClassData().getNestedToEnclosingClassNames()
+                           .get( entityName );
+    while ( entityName != null ) {
+      className = entityName + "." + className;
+      entityName = exprXlator.getClassData().getNestedToEnclosingClassNames()
+                             .get( entityName );
+    }
+    return className;
+
+}
 
   /**
    * @return the object
@@ -944,9 +957,9 @@ public class JavaForFunctionCall {
           if ( classNameString == null ) {
             classNameString = "null";
           } else if (classNameString.equals("this")) {
-            classNameString = "\"" + getClassName() + "\"";
+            classNameString = "\"" + fullClassName(getClassName()) + "\"";
           } else {
-            classNameString = "\"" + classNameString + "\"";
+            classNameString = "\"" + fullClassName(classNameString) + "\"";
           }
         }
         String preferredPackageNameString;
