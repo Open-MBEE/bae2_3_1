@@ -19,12 +19,50 @@ public class DistributionHelper {
                         || distribution instanceof EnumeratedDistribution;
     }
 
+    /**
+     * This compares the distributions as discrete distributions by finding the probability of success for every
+     * k for each distributions and sums their probabilities. It will return a boolean distribution with the summed
+     * probability.
+     * @param o1
+     * @param o2
+     * @return
+     */
     public static BooleanDistribution equals(Object o1, Object o2) {
+        /*
+        TODO: Given a pseudo fixed rate, go through the variables and calculate the rate
+        Delay until next fault will be variables in K
+
+        Fixed size array, not worrying about more than 100 faults
+
+        Need to program a function called:
+            - plus
+            - minus
+            - integrate
+        (df1) Duration from fault is the sample
+
+        tf1 = 0 + df1
+        tf2 = tf1 + df2
+         */
 
         BooleanDistribution d = null;
         if (o1 instanceof IntegerDistribution) {
-
             if (o2 instanceof IntegerDistribution) {
+
+                BinomialDistribution bd1 = (BinomialDistribution)o1;
+                BinomialDistribution bd2 = (BinomialDistribution)o2;
+
+                int trial1 = bd1.getNumberOfTrials();
+                int trial2 = bd2.getNumberOfTrials();
+
+                int maxTrial = Math.max(trial1, trial2);
+                int sum = 0;
+
+                for(int i = 0; i < maxTrial; ++i){
+                    sum += bd1.probability(i) * bd2.probability(i);
+                }
+
+                d = new BooleanDistribution(sum);
+
             } else if (o2 instanceof RealDistribution) {
             } else if (o2 instanceof MultivariateRealDistribution) {
             } else if (o2 instanceof EnumeratedDistribution) {
@@ -57,7 +95,7 @@ public class DistributionHelper {
                 //  that are passed into the constructor.
                 Pair<Boolean, Integer> result = ClassUtils.coerce(o2, Integer.class, false);
                 if (result.first) {
-//                    d = new BooleanDistribution(((MultivariateRealDistribution) o1).density(result.second));
+                    //                    d = new BooleanDistribution(((MultivariateRealDistribution) o1).density(result.second));
                 }
             }
         } else if (o1 instanceof EnumeratedDistribution) {
@@ -90,7 +128,7 @@ public class DistributionHelper {
             } else if (o2 instanceof EnumeratedDistribution) {
             } else {
                 // o2 is an integer
-                return new BooleanDistribution(o1.equals(o2)? 1.0 : 0.0);
+                return new BooleanDistribution(o1.equals(o2) ? 1.0 : 0.0);
             }
         }
         return d;
@@ -99,9 +137,9 @@ public class DistributionHelper {
     public static Double test() {
         BinomialDistribution o1 = new BinomialDistribution(5, .5);
         BinomialDistribution o2 = new BinomialDistribution(8, .3);
-//        System.out.println(equals(o1, o2).getProbabilityOfSuccess());
-//        return equals(o1, o2).getProbabilityOfSuccess();
-        return equals(o1,o2).getProbabilityOfSuccess();
+        //        System.out.println(equals(o1, o2).getProbabilityOfSuccess());
+        return equals(o1, o2).getProbabilityOfSuccess();
+        //        return 1.2;
     }
 
     public static void main(String args[]) {
