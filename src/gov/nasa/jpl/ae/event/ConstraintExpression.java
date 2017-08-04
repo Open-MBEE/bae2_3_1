@@ -4,12 +4,7 @@ import gov.nasa.jpl.ae.event.Functions.SuggestiveFunctionCall;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
-import gov.nasa.jpl.mbee.util.ClassUtils;
-import gov.nasa.jpl.mbee.util.CompareUtils;
-import gov.nasa.jpl.mbee.util.Debug;
-import gov.nasa.jpl.mbee.util.Evaluatable;
-import gov.nasa.jpl.mbee.util.Random;
-import gov.nasa.jpl.mbee.util.Utils;
+import gov.nasa.jpl.mbee.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -76,8 +71,14 @@ public class ConstraintExpression extends Expression< Boolean >
   public boolean isSatisfied(boolean deep, Set< Satisfiable > seen) {
     Boolean sat = null;
     try {
-      sat = (Boolean)evaluate( this, Boolean.class, false );
-      //sat = (Boolean)evaluate(false);
+      Object o = evaluate( this, Boolean.class, false );
+      sat = Utils.isTrue( o, false );
+      if (sat != Boolean.TRUE ) {
+        if ( o instanceof Wraps ) {
+          Object oo = ((Wraps)o).getValue(false);
+          sat = Utils.isTrue(oo, false);
+        }
+      }
     } catch ( IllegalAccessException e ) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -88,7 +89,7 @@ public class ConstraintExpression extends Expression< Boolean >
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    if ( sat == null ) sat = new Boolean( false );
+    if ( sat == null ) sat = Boolean.FALSE;
     if ( false && deep & sat ) {
       sat = HasParameters.Helper.isSatisfied( this, false, null );
     }

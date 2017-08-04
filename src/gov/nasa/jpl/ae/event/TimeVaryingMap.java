@@ -4370,9 +4370,11 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     for ( Parameter< Long> t : keys ) {
       Object v1 = map1.getValue(t);
       Object v2 = map2.getValue(t);
-      Boolean value = null;
+      Boolean value = false;
       if ( v1 != null && v2 != null ) {
         value = doesInequalityHold( v1, v2, i );
+      } else if ( v1 == v2 ) {
+        value = true;
       }
       result.setValue( t, value );
     }
@@ -6257,8 +6259,21 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     V value = firstValue();
     if ( size() > 1 ) {
       Debug.error(true, false, "Warning! Getting value " + value  + " for multi-valued TimeVaryingMap: " + this );
+      if (!this.allValuesEqual()) {
+        return null;
+      }
     }
     return value;
+  }
+
+  public boolean allValuesEqual() {
+    V value = firstValue();
+    for ( V v : values() ) {
+      if ( !Expression.valuesEqual(value, v) ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
