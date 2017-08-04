@@ -921,7 +921,7 @@ public class JavaForFunctionCall {
       Debug.out("getMethodJava()" );
 
       // call getMatchingMethod() to make find out if it's a TimeVaryingFunctionCall
-      getMatchingMethod();
+      Method m = getMatchingMethod();
       getMatchingConstructor();
 
       StringBuffer methodJavaSb = new StringBuffer();
@@ -931,11 +931,19 @@ public class JavaForFunctionCall {
           classNameString = "null";
         } else {
           if ( getTimeVaryingCall() == Boolean.TRUE ) {
-            classNameString = getWrappedType().getSimpleName();
+            if ( m != null ) {
+              classNameString = m.getDeclaringClass().getCanonicalName();
+            } else if ( getWrappedType() != null ) {
+              classNameString = getWrappedType().getSimpleName();
+            } else {
+              classNameString = null;
+            }
           } else {
             classNameString = findClassNameWithMatchingMethod();
           }
-          if (classNameString.equals("this")) {
+          if ( classNameString == null ) {
+            classNameString = "null";
+          } else if (classNameString.equals("this")) {
             classNameString = "\"" + getClassName() + "\"";
           } else {
             classNameString = "\"" + classNameString + "\"";
@@ -1377,7 +1385,7 @@ public class JavaForFunctionCall {
 
     // Make the FunctionCall if it was not a ConstructorCall:
     if ( method != null ) {
-      call = new FunctionCall( object, method, argumentss, null );
+      call = new FunctionCall( object, method, argumentss != null ? argumentss : new Vector<Object>(), null );
     }
 
     return call;

@@ -302,6 +302,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Class< ? >[] paramTypes = getParameterTypes();
     if ( !isVarArgs() ) {
       //Assert.assertEquals( arguments.size(), paramTypes.length );
+      if ( arguments == null || paramTypes == null ) {
+        Debug.error("Error!  arguments or paramTypes is null in " + this);
+      }
       if ( arguments.size() != paramTypes.length ) {
         return true;
       }
@@ -1195,7 +1198,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //    return arguments;
 //  }
   /**
-   * @param i
+   * @param n
    * @return the nth argument
    */
   public Object getArgument(int n) {
@@ -1523,7 +1526,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   /**
    * Compute a transitive closure of a map using this MethodCall to specify for each key in the map a set of items that should have a superset of related items in the map.
-   * @param initialSet the Set of initial items to be substituted for an argument or the object of this MethodCall
+   * @param relationMapToClose the Set of initial items to be substituted for an argument or the object of this MethodCall
    * @param indexOfObjectArgument
    *            where in the list of arguments an object from the set
    *            is substituted (1 to total number of args or 0 to indicate

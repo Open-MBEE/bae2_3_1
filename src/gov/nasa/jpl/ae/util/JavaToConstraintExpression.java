@@ -684,7 +684,14 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         type = classlessType;
       }
     }
-    
+
+    // TimeVaryingFunctionCalls may have TimeVaryingMap args where the method
+    // expects another type, so we don't specify the type of expression to avoid
+    // compile errors.
+    if ( classlessType.contains("TimeVarying") ) {
+      classlessType = null;
+    }
+
     final String prefix =
         "new Expression" + ( Utils.isNullOrEmpty( classlessType ) ? "" : "<" + classlessType + ">" ) + "( ";
     final String suffix = " )";
