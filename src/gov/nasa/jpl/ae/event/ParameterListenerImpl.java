@@ -919,14 +919,21 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // constraints.
     Consistency ac = null;
     if ( usingArcConsistency ) {
-      ac = new Consistency();
-      ac.constraints = allConstraints;
-      ac.arcConsistency( arcConsistencyQuiet );
+      try {
+        ac = new Consistency();
+        ac.constraints = allConstraints;
+        ac.arcConsistency(arcConsistencyQuiet);
+      } catch (Throwable t) {
+        Debug.error(true, false, "Error! Arc consistency failed.");
+        t.printStackTrace();
+      }
 
       // restore domains of things that are not simple variables
-      for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
-        if ( isSimpleVar( e.getKey() ) == Boolean.FALSE ) {
-          e.getKey().setDomain( (Domain)e.getValue() );
+      if ( ac != null ) {
+        for (Entry<Variable<?>, Domain<?>> e : ac.savedDomains.entrySet()) {
+          if (isSimpleVar(e.getKey()) == Boolean.FALSE) {
+            e.getKey().setDomain((Domain) e.getValue());
+          }
         }
       }
     }

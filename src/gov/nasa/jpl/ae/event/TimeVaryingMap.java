@@ -7676,7 +7676,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
   public List< Variable< ? > >
          getVariablesOnWhichDepends( Variable< ? > variable ) {
     // TODO?!
-    Debug.error( "This function is not yet implemented and should not be called." );
+    Debug.error(true, false,  "Warning!  The TimeVaryingMap.getVariablesOnWhichDepends() function is not yet implemented and should not be called." );
     return null;
   }
   

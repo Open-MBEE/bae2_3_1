@@ -1028,7 +1028,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
                                            boolean propagate,
                                            Set< HasDomain > seen ) {
     Domain<?> d = this.domain == null ? null : this.domain.clone();
-    boolean changed = this.domain.restrictTo( domain );
+    boolean changed = this.domain == null ? false : this.domain.restrictTo( domain );
     if ( changed ) {
       if ( owner != null ) {
         owner.handleDomainChangeEvent( this, null );
@@ -1064,9 +1064,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     ArrayList<Variable<?>> independentVars = new ArrayList< Variable<?> >();
     if ( getOwner() == null ) return null;
     List<Variable<?>> vars = getOwner().getVariablesOnWhichDepends(this);
-    for ( Variable<?> v : vars ) {
-      if (v instanceof Parameter && !((Parameter<?>)v).isDependent() ) {
-        independentVars.add( (Parameter<?>)v );
+    if ( vars != null ) {
+      for (Variable<?> v : vars) {
+        if (v instanceof Parameter && !((Parameter<?>) v).isDependent()) {
+          independentVars.add((Parameter<?>) v);
+        }
       }
     }
     return independentVars;
