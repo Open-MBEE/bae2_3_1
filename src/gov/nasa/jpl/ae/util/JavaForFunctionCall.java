@@ -763,6 +763,7 @@ public class JavaForFunctionCall {
           clsName = cls.getName();
         }
         System.out.println("WWWWWWWWWWWWWWWWWWWW    Wrapped Type = " + clsName + "   WWWWWWWWWWWWWWWWWWWW");
+        
         Call call = searchForCall(getCallName(), null, (List<Class<?>>) Utils.arrayAsList(getArgTypes()));
         Member m2 = call == null ? null : call.getMember();
 //                ClassUtils.getMethodForArgTypes(clsName,
@@ -904,7 +905,7 @@ public class JavaForFunctionCall {
                                           ClassUtils.toString( argTypes[ i ] ),
                                           null,
                                           isConvertingArgumentsToExpressions(),
-                                          true, true, isEvaluateCall() );
+                                          true, false, true, isEvaluateCall() );
         if ( isConvertingArgumentsToExpressions()
              && !( arg instanceof gov.nasa.jpl.ae.event.Expression ) ) {
           arg = new gov.nasa.jpl.ae.event.Expression( arg );
@@ -1361,7 +1362,7 @@ public class JavaForFunctionCall {
                   argTypeArray);
         } else {
           method = ClassUtils.getJavaMethodForCommonFunction(operationName.toString(),
-                  argumentss.toArray());
+                                                             argumentss == null ? new Object[]{} : argumentss.toArray());
         }
 
         // 5.

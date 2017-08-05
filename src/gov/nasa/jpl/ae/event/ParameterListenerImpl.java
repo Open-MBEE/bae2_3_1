@@ -941,7 +941,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // Now assign values to variables within their domains to satisfy
     // constraints.
     boolean satisfied = solver.solve( allConstraints );
-    System.out.println( allConstraints );
+    //System.out.println( MoreToString.Helper.toShortString( allConstraints ) );
     if ( usingArcConsistency ) {
       ac.restoreDomains();
     }
