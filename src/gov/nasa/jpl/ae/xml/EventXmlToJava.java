@@ -107,7 +107,7 @@ public class EventXmlToJava {
 //  protected Map< String, Set< ConstructorDeclaration> > constructorDeclarations =
 //      new TreeMap< String, Set< ConstructorDeclaration > >();
   
-  protected Map< String, Boolean > isEventMap = new TreeMap< String, Boolean >();
+  protected static Map< String, Boolean > isEventMap = new TreeMap< String, Boolean >();
   
   String xmlFileName = "exampleDRScenario.xml";
   
@@ -318,10 +318,13 @@ public class EventXmlToJava {
   }
 
   public boolean isEvent( String className ) {
+    return isEvent(className, getClassData() );
+  }
+  public static boolean isEvent( String className, ClassData classData ) {
     if ( Utils.isNullOrEmpty( className ) ) return false;
     Boolean s = isEventMap.get( className );
     if ( s != null && s ) return true;
-    String scopedName = getClassData().getClassNameWithScope( className );
+    String scopedName = classData.getClassNameWithScope( className );
     if ( scopedName == null ) return false;
     s = isEventMap.get( scopedName );
     return ( s != null && s );
@@ -462,8 +465,14 @@ public class EventXmlToJava {
     Collection< ConstructorDeclaration > constructors =
         getConstructorDeclarations( this.xmlDocDOM );
     constructors.addAll( createConstructors( this.xmlDocDOM, constructors ) );
+    addConstructors( constructors, getClassData() );
+  }
+  
+  public static void addConstructors(Collection< ConstructorDeclaration > constructors,
+                                     ClassData classData) {
+
     for ( ConstructorDeclaration c : constructors ) {
-      TypeDeclaration type = getTypeDeclaration( c.getName() );
+      TypeDeclaration type = getTypeDeclaration( c.getName(), classData );
       boolean alreadyAdded = false;
       if ( type == null ) {
         Debug.error( "No type found for constructor! " + c );
@@ -497,8 +506,8 @@ public class EventXmlToJava {
 
   // REVIEW -- TODO -- Wouldn't it be better to just have a Map<name, TypeDeclaration>?
   // Recursively look for a type declaration with the given name.
-  protected TypeDeclaration getTypeDeclarationFrom( String name,
-                                                    TypeDeclaration typeDecl ) {
+  public static TypeDeclaration getTypeDeclarationFrom( String name,
+                                                        TypeDeclaration typeDecl ) {
     String simpleName = ClassUtils.simpleName( name );
     if ( typeDecl.getName().equals( simpleName ) ) {
       return typeDecl;
@@ -512,13 +521,18 @@ public class EventXmlToJava {
     return null;
   }
   
-  
   // Look in the compilation units in the map, classes, to find the class
   // declaration of name.
   protected TypeDeclaration getTypeDeclaration( String name ) {
+    return getTypeDeclaration( name, getClassData() );
+  }
+  
+  // Look in the compilation units in the map, classes, to find the class
+  // declaration of name.
+  public static TypeDeclaration getTypeDeclaration( String name, ClassData classData ) {
     String simpleName = ClassUtils.simpleName( name );
     if ( name == null ) return null;
-    CompilationUnit cu = getClassData().getClasses().get( simpleName );
+    CompilationUnit cu = classData.getClasses().get( simpleName );
     if ( cu != null ) {
       for ( TypeDeclaration type : cu.getTypes() ) {
         if ( type.getName().equals( simpleName ) ) {
@@ -526,7 +540,7 @@ public class EventXmlToJava {
         }
       }
     } else {
-      for ( CompilationUnit c : getClassData().getClasses().values() ) {
+      for ( CompilationUnit c : classData.getClasses().values() ) {
         for ( TypeDeclaration t : c.getTypes() ) {
           TypeDeclaration td = getTypeDeclarationFrom( simpleName, t );
           if ( td != null ) {
@@ -738,7 +752,8 @@ public class EventXmlToJava {
                                                                    ModifierSet.PUBLIC ) );
           }
           addStatementsToConstructor( constructorDecl,
-                                      Utils.getEmptyList(ClassData.Param.class) );
+                                      Utils.getEmptyList(ClassData.Param.class),
+                                      expressionTranslator );
           Debug.outln( "found constructor:\n" + constructorDecl.getName() + constructorDecl.getParameters() );
           ctors.add( constructorDecl );
         }
@@ -762,12 +777,9 @@ public class EventXmlToJava {
     for ( Node invocationNode : invocations ) {
       //String name = XmlUtils.getChildElementText( invocationNode, "eventName" );
       if ( invocationNode != null ) {
+        ConstructorDeclaration ctor = null;
         String eventType = fixName( XmlUtils.getChildElementText( invocationNode,
                                                                   "eventType" ) );
-        ConstructorDeclaration ctor =
-            new ConstructorDeclaration( ModifierSet.PUBLIC,
-                                        ClassUtils.simpleName(eventType) );
-        if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< ClassData.Param > arguments = new ArrayList< ClassData.Param >();
         // If instantiating from a timeline, add start time and durection to parameters.
@@ -783,58 +795,7 @@ public class EventXmlToJava {
               arguments.add( makeParam( argNode ) );
             }
           }
-          if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
-            ClassData.Param p = new ClassData.Param( "startTime", "Long", null );
-            arguments.add( p );
-            p = new ClassData.Param( "duration", "Long", null );
-            arguments.add( p );
-          }
-          List< japa.parser.ast.body.Parameter > parameters =
-              new ArrayList< japa.parser.ast.body.Parameter >();
-          for ( ClassData.Param p : arguments ) {
-            if ( p.type == null ) {
-              ClassData.Param memberDecl = 
-                  getClassData().lookupMemberByName( eventType,
-                                                                     p.name,
-                                                                     true, false );
-              if ( !Debug.errorOnNull( "Error! Can't find member " + p.name
-                                           + " for event class " + eventType
-                                           + "!",
-                                       memberDecl ) ) {
-               p.type = memberDecl.type;
-              } else {
-                // delete 1 line below -- just for debug
-                memberDecl = 
-                    getClassData().lookupMemberByName( eventType,
-                                                                       p.name,
-                                                                       true, false );
-              }
-            }
-            japa.parser.ast.body.Parameter param =
-                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<"
-                                                                     + ClassUtils.getNonPrimitiveClassName( p.type )
-                                                                     + ">" ),
-                                           p.name );
-            parameters.add( param );
-          }
-//          // If instantiating from a timeline, add start time and durection to parameters.
-//          String fromTimeVarying =
-//              fixName( XmlUtils.getChildElementText( invocationNode,
-//                                                     "fromTimeVarying" ) );
-//          if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
-//            japa.parser.ast.body.Parameter param =
-//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Long>" ),
-//                                           "startTime" );
-//            parameters.add( param );
-//            param =
-//                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<Long>" ),
-//                                           "duration" );
-//            parameters.add( param );
-//          }
-          
-          ctor.setParameters( parameters );
-
-          addStatementsToConstructor( ctor, arguments );
+          ctor = getConstructorDeclaration(eventType, fromTimeVarying, arguments, getExpressionTranslator());
         }
 
         // Check and see if we've already added this one.
@@ -858,6 +819,69 @@ public class EventXmlToJava {
     }
     return ctors;
   }
+
+  public static  ConstructorDeclaration getConstructorDeclaration(String eventType,
+                                                                  String fromTimeVarying,
+                                                                  List< ClassData.Param > arguments,
+                                                                  JavaToConstraintExpression expressionTranslator) {
+    if ( expressionTranslator == null ) {
+      Debug.error("Missing expressionTranslator!");
+      return null;
+    }
+    ClassData classData = expressionTranslator.getClassData();
+    if ( classData == null ) {
+      Debug.error("Missing ClassData!");
+      return null;
+    }
+    ConstructorDeclaration ctor =
+            new ConstructorDeclaration( ModifierSet.PUBLIC,
+                                        ClassUtils.simpleName(eventType) );
+    if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
+
+    // If instantiating from a timeline, add start time and durection to parameters.
+    if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
+      ClassData.Param p = new ClassData.Param("startTime", "Long", null);
+      arguments.add(p);
+      p = new ClassData.Param("duration", "Long", null);
+      arguments.add(p);
+    }
+    List< japa.parser.ast.body.Parameter > parameters =
+            new ArrayList< japa.parser.ast.body.Parameter >();
+    for ( ClassData.Param p : arguments ) {
+      if ( p.type == null ) {
+        ClassData.Param memberDecl =
+                classData.lookupMemberByName( eventType,
+                                              p.name,
+                                             true, false );
+        if ( !Debug.errorOnNull( "Error! Can't find member " + p.name
+                                 + " for event class " + eventType
+                                 + "!",
+                                 memberDecl ) ) {
+          p.type = memberDecl.type;
+        } else {
+          // delete 1 line below -- just for debug
+          memberDecl =
+                  classData.lookupMemberByName( eventType,
+                                                p.name,
+                                               true, false );
+        }
+      }
+      japa.parser.ast.body.Parameter param =
+              ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<"
+                                                                   + ClassUtils.getNonPrimitiveClassName( p.type )
+                                                                   + ">" ),
+                                         p.name );
+      parameters.add( param );
+    }
+
+    ctor.setParameters( parameters );
+
+    addStatementsToConstructor( ctor, arguments, expressionTranslator );
+
+    return ctor;
+  }
+
+
 
   public static boolean equals( ConstructorDeclaration c1,
                                 ConstructorDeclaration c2 ) {
@@ -904,8 +928,8 @@ public class EventXmlToJava {
     return equals;
   }
 
-  protected boolean hasStatementOfType( ConstructorDeclaration ctorDecl,
-                                        Class<?> statementType ) {
+  protected static boolean hasStatementOfType( ConstructorDeclaration ctorDecl,
+                                               Class<?> statementType ) {
     BlockStmt blockStmt = ctorDecl.getBlock();
     if ( blockStmt == null || blockStmt.getStmts() == null ) return false;
     for ( Statement stmt : blockStmt.getStmts() ) {
@@ -914,9 +938,10 @@ public class EventXmlToJava {
     return false;
   }
   
-  protected void
+  protected static void
       addStatementsToConstructor( ConstructorDeclaration ctor,
-                                  List< ClassData.Param > arguments ) {
+                                  List< ClassData.Param > arguments,
+                                  JavaToConstraintExpression expressionTranslator ) {
     StringBuffer stmtList = new StringBuffer();
     BlockStmt block = ctor.getBlock();
     if ( block == null ) {
@@ -951,7 +976,7 @@ public class EventXmlToJava {
       stmtList.append( "addDependency( this." + p.name + ", " + p.name
                        + " );\n" );
     }
-    if ( isEvent( ctor.getName() ) ) {
+    if ( isEvent( ctor.getName(), expressionTranslator.getClassData() ) ) {
       String initElaborationsString = "init" + ctor.getName() + "Elaborations()";
       if ( !blockString.contains( initElaborationsString ) ) {
         stmtList.append( initElaborationsString + ";\n" );
