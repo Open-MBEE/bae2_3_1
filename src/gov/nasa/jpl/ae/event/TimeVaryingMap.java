@@ -6280,8 +6280,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( isEmpty() ) return null;
     V value = firstValue();
     if ( size() > 1 ) {
-      Debug.error(true, false, "Warning! Getting value " + value  + " for multi-valued TimeVaryingMap: " + this );
       if (!this.allValuesEqual()) {
+        Debug.error(true, false, "Warning! Getting value " + value  + " for multi-valued TimeVaryingMap: " + this );
         return null;
       }
     }

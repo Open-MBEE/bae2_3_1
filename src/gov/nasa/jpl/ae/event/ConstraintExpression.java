@@ -73,7 +73,7 @@ public class ConstraintExpression extends Expression< Boolean >
     try {
       Object o = evaluate( this, Boolean.class, false );
       sat = Utils.isTrue( o, false );
-      if (!sat.equals(Boolean.TRUE) ) {
+      if (!Boolean.TRUE.equals(sat)) {
         if ( o instanceof Wraps ) {
           Object oo = ((Wraps)o).getValue(false);
           sat = Utils.isTrue(oo, false);
