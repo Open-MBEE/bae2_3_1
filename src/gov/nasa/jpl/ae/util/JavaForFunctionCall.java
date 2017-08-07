@@ -900,12 +900,29 @@ public class JavaForFunctionCall {
     if ( argExprs != null ) {
       argTypes = new Class< ? >[ argExprs.size() ];
       for ( int i = 0; i < argExprs.size(); ++i ) {
-        argTypes[ i ] =
-            ClassUtils.getClassForName( exprXlator.astToAeExprType( argExprs.get( i ),
-                                                                    null, true,
-                                                                    true ),
-                                        null, getPreferredPackageName(),
-                                        false );
+        String argClassName = exprXlator.astToAeExprType( argExprs.get( i ), null, true, true); 
+        List< Class<?>> classList = ClassUtils.getClassesForName( argClassName, false);
+        if (classList != null && classList.size() > 1) {
+          boolean containsJavaPrimitive = false;
+          boolean restScala = true;
+          Class<?> javaPrimitiveClass = null;
+          for (Class<?> c : classList) {
+            if (ClassUtils.isPrimitive( c ) && c.toString().contains( "java" )) {
+              containsJavaPrimitive = true;
+              javaPrimitiveClass = c;
+            } else if (!(c.toString().toLowerCase().contains( "scala" ))) {
+              restScala = false;
+            }
+          }
+          if (containsJavaPrimitive && restScala) {
+            argTypes[i] = javaPrimitiveClass;
+          }
+        } else {
+          argTypes[ i ] =
+              ClassUtils.getClassForName( argClassName,
+                                          null, getPreferredPackageName(),
+                                          false );
+        }
         Object arg =
             exprXlator.astToAeExpression( argExprs.get( i ),
                                           ClassUtils.toString( argTypes[ i ] ),
