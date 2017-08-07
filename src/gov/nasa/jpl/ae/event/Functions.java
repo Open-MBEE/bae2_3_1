@@ -358,7 +358,7 @@ public class Functions {
         Domain d1 = inverseDomain( domain, o1 );
         Pair< Domain< ? >, Boolean > p =
             hd1.restrictDomain( d1, propagate, seen );
-        if ( p != null && p.second == Boolean.TRUE ) changed = true;
+        if ( p != null && Boolean.TRUE.equals(p.second) ) changed = true;
         if ( p != null && p.first != null && p.first.isEmpty() ) {
           if ( this.domain != null ) {
             this.domain.clearValues();
@@ -367,7 +367,7 @@ public class Functions {
         } else {
           Domain d2 = inverseDomain( domain, o2 );
           p = hd2.restrictDomain( d2, propagate, seen );
-          if ( p != null && p.second == Boolean.TRUE ) {
+          if ( p != null && Boolean.TRUE.equals(p.second) ) {
             changed = true;
           }
         }
@@ -421,7 +421,7 @@ public class Functions {
     // } else if ( domain.magnitude() == 1 ) {
     // Object v = domain.getValue( propagate );
     // if ( v instanceof Boolean ) {
-    // changed = restrictDomains(((Boolean)v) == Boolean.TRUE);
+    // changed = restrictDomains(Boolean.TRUE.equals((Boolean)v);
     // }
     // }
     //// Domain oldDomain = this.domain.clone();
@@ -2682,7 +2682,7 @@ public class Functions {
     @Override
     public FunctionCall inverse( Object returnValue, Object arg ) {
       FunctionCall f =
-          invert( Utils.isTrue( returnValue ) == Boolean.TRUE, arg );
+          invert( Boolean.TRUE.equals(Utils.isTrue( returnValue )), arg );
       f.arguments = new Vector< Object >( Utils.newList( Boolean.FALSE ) ); // this
                                                                             // argument
                                                                             // is
@@ -2945,8 +2945,8 @@ public class Functions {
            && d2 instanceof AbstractRangeDomain ) {
         AbstractRangeDomain< Object > rd1 = (AbstractRangeDomain< Object >)d1;
         AbstractRangeDomain< Object > rd2 = (AbstractRangeDomain< Object >)d2;
-        if ( rd1.less( rd2 ) == Boolean.TRUE ) return BooleanDomain.trueDomain;
-        if ( rd1.greaterEquals( rd2 ) == Boolean.TRUE ) return BooleanDomain.falseDomain;
+        if ( Boolean.TRUE.equals(rd1.less( rd2 )) ) return BooleanDomain.trueDomain;
+        if ( Boolean.TRUE.equals(rd1.greaterEquals( rd2 )) ) return BooleanDomain.falseDomain;
         // Object lb1 = rd1.getLowerBound();
         // Object ub1 = rd1.getUpperBound();
         // Object lb2 = rd2.getLowerBound();
@@ -3024,7 +3024,7 @@ public class Functions {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
           String oldDom = this.getDomain( propagate, null ).toString();
-          changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          changed = restrictDomains( Boolean.TRUE.equals( (Boolean)v ) );
           if ( changed ) {
             System.out.println( "Restricted " + getName() + " from " + oldDom
                                 + " to " + getDomain( propagate, null ) );
@@ -3068,7 +3068,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e1.restrictDomain( ard1, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
           if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
@@ -3080,7 +3080,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e2.restrictDomain( ard2, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
         } else {
@@ -3098,7 +3098,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e1.restrictDomain( ard1, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
           if ( ard2.greaterEquals( ard2.getUpperBound(),
@@ -3111,7 +3111,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e2.restrictDomain( ard2, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
         }
@@ -3181,8 +3181,8 @@ public class Functions {
            && d2 instanceof AbstractRangeDomain ) {
         AbstractRangeDomain< Object > rd1 = (AbstractRangeDomain< Object >)d1;
         AbstractRangeDomain< Object > rd2 = (AbstractRangeDomain< Object >)d2;
-        if ( rd1.lessEquals( rd2 ) == Boolean.TRUE ) return BooleanDomain.trueDomain;
-        if ( rd1.greater( rd2 ) == Boolean.TRUE ) return BooleanDomain.falseDomain;
+        if ( Boolean.TRUE.equals(rd1.lessEquals( rd2 )) ) return BooleanDomain.trueDomain;
+        if ( Boolean.TRUE.equals(rd1.greater( rd2 )) ) return BooleanDomain.falseDomain;
       }
       // TODO -- There are many possibilities here. Instead, define less(),
       // alwaysLess(), etc. methods for domains that take a variety of
@@ -3246,7 +3246,7 @@ public class Functions {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
           String oldDom = this.getDomain( propagate, null ).toString();
-          changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          changed = restrictDomains( Boolean.TRUE.equals( (Boolean)v ) );
           if ( changed ) {
             System.out.println( "Restricted " + getName() + " from " + oldDom
                                 + " to " + getDomain( propagate, null ) );
@@ -3445,8 +3445,8 @@ public class Functions {
            && d2 instanceof AbstractRangeDomain ) {
         AbstractRangeDomain< Object > rd1 = (AbstractRangeDomain< Object >)d1;
         AbstractRangeDomain< Object > rd2 = (AbstractRangeDomain< Object >)d2;
-        if ( rd1.greater( rd2 ) == Boolean.TRUE ) return BooleanDomain.trueDomain;
-        if ( rd1.lessEquals( rd2 ) == Boolean.TRUE ) return BooleanDomain.falseDomain;
+        if ( Boolean.TRUE.equals(rd1.greater( rd2 )) ) return BooleanDomain.trueDomain;
+        if ( Boolean.TRUE.equals(rd1.lessEquals( rd2 )) ) return BooleanDomain.falseDomain;
       }
       // TODO -- There are many possibilities here. Instead, define less(),
       // alwaysLess(), etc. methods for domains that take a variety of
@@ -3473,7 +3473,7 @@ public class Functions {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
           String oldDom = this.getDomain( propagate, null ).toString();
-          changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          changed = restrictDomains( Boolean.TRUE.equals( (Boolean)v ) );
           if ( changed ) {
             System.out.println( "Restricted " + getName() + " from " + oldDom
                                 + " to " + getDomain( propagate, null ) );
@@ -3666,8 +3666,8 @@ public class Functions {
            && d2 instanceof AbstractRangeDomain ) {
         AbstractRangeDomain< Object > rd1 = (AbstractRangeDomain< Object >)d1;
         AbstractRangeDomain< Object > rd2 = (AbstractRangeDomain< Object >)d2;
-        if ( rd1.greaterEquals( rd2 ) == Boolean.TRUE ) return BooleanDomain.trueDomain;
-        if ( rd1.less( rd2 ) == Boolean.TRUE ) return BooleanDomain.falseDomain;
+        if ( Boolean.TRUE.equals(rd1.greaterEquals( rd2 )) ) return BooleanDomain.trueDomain;
+        if ( Boolean.TRUE.equals(rd1.less( rd2 )) ) return BooleanDomain.falseDomain;
       }
       // TODO -- There are many possibilities here. Instead, define less(),
       // alwaysLess(), etc. methods for domains that take a variety of
@@ -3694,7 +3694,7 @@ public class Functions {
         Object v = domain.getValue( propagate );
         if ( v instanceof Boolean ) {
           String oldDom = this.getDomain( propagate, null ).toString();
-          changed = restrictDomains( ( (Boolean)v ) == Boolean.TRUE );
+          changed = restrictDomains( Boolean.TRUE.equals( (Boolean)v ) );
           if ( changed ) {
             System.out.println( "Restricted " + getName() + " from " + oldDom
                                 + " to " + getDomain( propagate, null ) );
@@ -3731,7 +3731,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e1.restrictDomain( ard1, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second ) );
             }
           }
           if ( ard2.greaterEquals( ard2.getUpperBound(),
@@ -3744,7 +3744,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e2.restrictDomain( ard2, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
         } else {
@@ -3763,7 +3763,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e1.restrictDomain( ard1, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
           if ( ard2.lessEquals( ard2.getLowerBound(), ard1.getLowerBound() ) ) {
@@ -3775,7 +3775,7 @@ public class Functions {
             if ( c ) {
               Pair< Domain< T >, Boolean > p =
                   e2.restrictDomain( ard2, true, null );
-              changed = changed || ( p != null && p.second == Boolean.TRUE );
+              changed = changed || ( p != null && Boolean.TRUE.equals(p.second) );
             }
           }
         }

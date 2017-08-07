@@ -60,7 +60,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import junit.framework.Assert;
 // import javax.xml.xpath.XPathExpression;
 
 
@@ -1570,15 +1569,10 @@ public class EventXmlToJava {
     StringBuffer stmtsString = new StringBuffer();
     stmtsString.append( "if ( " + name + " == null ) " );
     stmtsString.append( name + " = " );
-    if ( constructorArgs == null ) {
-      stmtsString.append( "null;" );
-    } else {
-      stmtsString.append( "new " + typeName );
-      if ( !Utils.isNullOrEmpty( parameterTypeName ) ) {
-        stmtsString.append( "< " + ClassUtils.getNonPrimitiveClassName( parameterTypeName ) + " >" );
-      }
-      stmtsString.append( "( " + constructorArgs + " );" );
-    }
+    String ctorString = JavaToConstraintExpression.constructorStringOfGenericType(name, typeName,
+                                                                                  parameterTypeName,
+                                                                                  constructorArgs);
+    stmtsString.append( ctorString );
 
     if ( Debug.isOn() ) Debug.outln( "Trying to parse assignment with ASTParser.BlockStatement(): \""
                         + stmtsString.toString() + "\"" );
@@ -1607,6 +1601,7 @@ public class EventXmlToJava {
                                      null,//args[ 1 ],
                                      args[ 2 ] );
   }
+
 
   public FieldDeclaration createParameterField( ClassData.Param p,
                                                 MethodDeclaration initMembers ) {

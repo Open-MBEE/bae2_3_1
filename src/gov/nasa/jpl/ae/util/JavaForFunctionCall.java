@@ -185,6 +185,10 @@ public class JavaForFunctionCall {
     } else if ( isMethodOrConstructor() == false
                 && getObjectCreationExpr() != null ) {
       return getObjectCreationExpr().getScope();
+    } else if ( getMethodCallExpr() != null ) {
+      return getMethodCallExpr().getScope();
+    } else if ( getObjectCreationExpr() != null ) {
+      return getObjectCreationExpr().getScope();
     }
     return null;
   }
@@ -230,12 +234,17 @@ public class JavaForFunctionCall {
   }
 
   public String getCallTypeName() {
-    getMatchingMethod();
-    getMatchingConstructor();
-    String prefix = ((getTimeVaryingCall() == Boolean.TRUE) ? "TimeVarying" : "");
-    if ( getMethodCallExpr() == null ) return prefix + "ConstructorCall";
+    // call getMatchingMethod() to make find out if it's a TimeVaryingFunctionCall
+    Method m = getMatchingMethod();
+    Constructor c = getMatchingConstructor();
+
+    if ( m == null && c != null ) setMethodOrConstructor( false );
+    else if ( c == null && m != null ) setMethodOrConstructor( true );
+
+    String prefix = (Boolean.TRUE.equals((getTimeVaryingCall())) ? "TimeVarying" : "");
+    if ( !isMethodOrConstructor() ) return prefix + "ConstructorCall";
     if ( isEffectFunction() ) {
-      if ( timeVaryingCall == Boolean.TRUE ) {
+      if ( Boolean.TRUE.equals(timeVaryingCall) ) {
         Debug.error("TimeVarying EffectFunction not supported!!!");
       }
       return "EffectFunction";
@@ -506,7 +515,7 @@ public class JavaForFunctionCall {
           }
           
 
-        } else if ( isMethodOrConstructor()
+        } else if ( getMethodCallExpr() != null
                     || exprXlator.getClassData() //need to fix this whole stuff 
                                  .isInnerClass( getObjectCreationExpr().getType() 
                                                                        .toString() )
@@ -653,9 +662,9 @@ public class JavaForFunctionCall {
    */
   public String getCallName() {
     if ( callName == null ) {
-      setCallName( isMethodOrConstructor() ? getMethodCallExpr().getName()
-                                           : getObjectCreationExpr().getType()
-                                                                    .toString() );
+      setCallName( getMethodCallExpr() != null ? getMethodCallExpr().getName()
+                                               : getObjectCreationExpr().getType()
+                                                                        .toString() );
     }
     return callName;
   }
@@ -868,7 +877,9 @@ public class JavaForFunctionCall {
 
   public List< Expression > getArgExpressions() {
     List< Expression > argExprs = null;
-    if ( isMethodOrConstructor() ) {
+    // Can't use isMethodOrConstructor() here because sometimes a constructor is
+    // parsed as a method (when there is no new).
+    if ( this.expression instanceof MethodCallExpr ) {
       argExprs = getMethodCallExpr().getArgs();
     } else {
       argExprs = getObjectCreationExpr().getArgs();
@@ -886,11 +897,6 @@ public class JavaForFunctionCall {
     setArgs( new Vector< Object >() );
 
     List< Expression > argExprs = getArgExpressions();
-    if ( isMethodOrConstructor() ) {
-      argExprs = getMethodCallExpr().getArgs();
-    } else {
-      argExprs = getObjectCreationExpr().getArgs();
-    }
     if ( argExprs != null ) {
       argTypes = new Class< ? >[ argExprs.size() ];
       for ( int i = 0; i < argExprs.size(); ++i ) {
@@ -936,7 +942,10 @@ public class JavaForFunctionCall {
 
       // call getMatchingMethod() to make find out if it's a TimeVaryingFunctionCall
       Method m = getMatchingMethod();
-      getMatchingConstructor();
+      Constructor c = getMatchingConstructor();
+
+      if ( m == null && c != null ) setMethodOrConstructor( false );
+      else if ( c == null && m != null ) setMethodOrConstructor( true );
 
       StringBuffer methodJavaSb = new StringBuffer();
       if ( isMethodOrConstructor() ) {
@@ -944,7 +953,7 @@ public class JavaForFunctionCall {
         if ( Utils.isNullOrEmpty( getClassName() ) ) {
           classNameString = "null";
         } else {
-          if ( getTimeVaryingCall() == Boolean.TRUE ) {
+          if ( Boolean.TRUE.equals(getTimeVaryingCall()) ) {
             if ( m != null ) {
               classNameString = m.getDeclaringClass().getCanonicalName();
             } else if ( getWrappedType() != null ) {
@@ -1214,7 +1223,7 @@ public class JavaForFunctionCall {
         if ( getMatchingConstructor() == null ) {
           Debug.error( true, "Cannot create constructor! " + this );
         } else {
-          setCall( new ConstructorCall( getObjectExpr(),
+          setCall( new ConstructorCall( expression,
                                         getMatchingConstructor(),
                                         // (Constructor< ?
                                         // >)methodExpr.evaluate( true ),
@@ -1231,13 +1240,13 @@ public class JavaForFunctionCall {
             setCall( scall );
           }
         } else if ( isEffectFunction() ) {
-          setCall( new EffectFunction( getObjectExpr(), getMatchingMethod(),
+          setCall( new EffectFunction( expression, getMatchingMethod(),
                                        // (Method)methodExpr.evaluate( true ),
                                        // (Object[])argumentArrayExpr.evaluate(
                                        // true ) );
                                        getArgs(), this.returnType ) );
         } else {
-          setCall( new FunctionCall( getObjectExpr(), getMatchingMethod(),
+          setCall( new FunctionCall( expression, getMatchingMethod(),
                                      // (Method)methodExpr.evaluate( true ),
                                      // (Object[])argumentArrayExpr.evaluate(
                                      // true ) );

@@ -931,7 +931,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       // restore domains of things that are not simple variables
       if ( ac != null ) {
         for (Entry<Variable<?>, Domain<?>> e : ac.savedDomains.entrySet()) {
-          if (isSimpleVar(e.getKey()) == Boolean.FALSE) {
+          if (Boolean.FALSE.equals(isSimpleVar(e.getKey()))) {
             e.getKey().setDomain((Domain) e.getValue());
           }
         }
@@ -1296,20 +1296,25 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // note on staleness table.
 
     // Alert affected dependencies.
-    for ( Dependency< ? > d : getDependencies() ) {
+    List<Dependency<?>> deps = Utils.scramble(getDependencies());
+    for ( Dependency< ? > d : deps ) {
       d.handleValueChangeEvent( parameter, seen );
     }
     // Alert affected timelines.
-    for ( TimeVarying< ?, ? > tv : getTimeVaryingObjects( true, null ) ) {
+    List<TimeVarying<?, ?>> tvos =
+            Utils.scramble(getTimeVaryingObjects(true, null));
+    for ( TimeVarying< ?, ? > tv : tvos ) {
       if ( tv instanceof ParameterListener ) {
         ( (ParameterListener)tv ).handleValueChangeEvent( parameter, seen );
       }
     }
-    Collection< ParameterListenerImpl > pls = getNonEventObjects( true, null );
+    List< ParameterListenerImpl > pls = Utils.scramble( getNonEventObjects( true, null ) );
     for ( ParameterListenerImpl pl : pls ) {
       pl.handleValueChangeEvent( parameter, seen );
     }
-    for ( ConstraintExpression c : getConstraintExpressions() ) {
+    List<ConstraintExpression> cstrs =
+            Utils.scramble(getConstraintExpressions());
+    for ( ConstraintExpression c : cstrs ) {
       c.handleValueChangeEvent( parameter, seen );
     }
 
