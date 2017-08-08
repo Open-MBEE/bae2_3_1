@@ -1010,20 +1010,33 @@ public class JavaForFunctionCall {
                                  + ".class" );
           }
 
-        } else { // if ( !classMethods.isEmpty() ) {
-          if ( getMatchingMethod() != null
-               && getMatchingMethod().getParameterTypes() != null ) {
-            for ( Class< ? > type : getMatchingMethod().getParameterTypes() ) {
-              methodJavaSb.append( ", " + ClassUtils.toString( type ) );
-              // methodJavaSb.append( ", " );
-              // String typeName = type.getName();
-              // if ( typeName != null ) typeName = typeName.replace( '$', '.'
-              // );
-              // methodJavaSb.append( ClassUtils.noParameterName( typeName )
-              // + ".class" );
+        } else // if ( !classMethods.isEmpty() ) {
+        if ( getMatchingMethod() != null
+             && getMatchingMethod().getParameterTypes() != null ) {
+          for ( Class< ? > type : getMatchingMethod().getParameterTypes() ) {
+            methodJavaSb.append( ", " + ClassUtils.toString( type ) );
+            // methodJavaSb.append( ", " );
+            // String typeName = type.getName();
+            // if ( typeName != null ) typeName = typeName.replace( '$', '.'
+            // );
+            // methodJavaSb.append( ClassUtils.noParameterName( typeName )
+            // + ".class" );
+          }
+        } else {
+          Class< ? >[] args = getArgTypes();
+          if ( args != null ) {
+            for ( Class< ? > a : args ) {
+              methodJavaSb.append( ", " );
+              if (a == null) {
+                methodJavaSb.append( "Object.class" );
+              } else {
+                methodJavaSb.append( ClassUtils.noParameterName(a.getCanonicalName()) + ".class" );
+
+              }
             }
           }
         }
+        
       } else {
         methodJavaSb.append( "ClassUtils.getConstructorForArgTypes("
                              + ClassUtils.noParameterName( getCallName() )
