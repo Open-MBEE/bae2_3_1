@@ -843,7 +843,7 @@ public class Expression< ResultType > extends HasIdImpl
       return ((Parameter<ResultType>)expression).getDomain( propagate, seen );
     case Function:
     case Constructor:
-      return (Domain< ResultType >)((FunctionCall)expression).getDomain( propagate, seen );
+      return (Domain< ResultType >)((Call)expression).getDomain( propagate, seen );
     case None:
     default:
       Debug.error(true, false, "Error! getDomain(): Expression has invalid type: " + form );

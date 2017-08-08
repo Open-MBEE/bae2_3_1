@@ -403,11 +403,11 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
             }
           }
         }
-        if (val instanceof TimeVaryingMap && ((TimeVaryingMap)val).getOwner() instanceof Parameter && "dataRateAboveThreshold".equals(((Parameter)((TimeVaryingMap)val).getOwner()).getName())) {
-          //CompareUtils.XXXX = true;
-          CompareUtils.compare( value, val );
-          //CompareUtils.XXXX = false;
-        }
+//        if (val instanceof TimeVaryingMap && ((TimeVaryingMap)val).getOwner() instanceof Parameter && "dataRateAboveThreshold".equals(((Parameter)((TimeVaryingMap)val).getOwner()).getName())) {
+//          //CompareUtils.XXXX = true;
+//          CompareUtils.compare( value, val );
+//          //CompareUtils.XXXX = false;
+//        }
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
@@ -421,7 +421,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       if ( Debug.isOn() ) {
         //Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
       }
-//      System.out.println(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
+      System.out.println(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
@@ -913,6 +913,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     stale = staleness;
   }
+
+
 
   public Collection< Constraint > getConstraints( boolean deep,
                                                   Set<HasConstraints> seen ) {
