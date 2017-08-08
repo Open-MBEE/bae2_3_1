@@ -54,7 +54,17 @@ public class TimeVaryingPlottableMap< V > extends TimeVaryingMap< V > implements
 //    category.owner = this;
 //    getParameters().add(category);
   }
-  
+
+  @Override
+  public int compareTo(TimeVarying<Long, V> o) {
+    return super.compareTo(o);
+  }
+
+  @Override
+  public int compare(V v1, V v2) {
+    return super.compare(v1, v2);
+  }
+
   @Override
   public Set< Parameter< ? > > getParameters() {
     // TODO Auto-generated method stub

@@ -68,9 +68,9 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
   protected String baseSnapshotFileName = "simulationSnapshot.txt";
   protected boolean amTopEventToSimulate = false;
 
-  protected boolean redirectStdOut = false;
-  protected PrintStream oldOut = System.out;
-  protected PrintStream oldErr = System.err;
+//  protected boolean redirectStdOut = false;
+//  protected PrintStream oldOut = System.out;
+//  protected PrintStream oldErr = System.err;
 
   // Static members
 
@@ -96,6 +96,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       new HashSet< TimeVarying< ?, ? > >();
   protected boolean usingCollectionTree = false;
   protected Object owner = null;
+  protected Object enclosingInstance = null;
 
   // TODO -- Need to keep a collection of ParameterListeners (just as
   // DurativeEvent has getEvents())
@@ -683,12 +684,12 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
    */
   @Override
   public boolean satisfy( boolean deep, Set< Satisfiable > seen ) {
-    if ( redirectStdOut ) {
-      ByteArrayOutputStream baosOut = new ByteArrayOutputStream();
-      ByteArrayOutputStream baosErr = new ByteArrayOutputStream();
-      System.setOut( new PrintStream( baosOut ) );
-      System.setErr( new PrintStream( baosErr ) );
-    }
+//    if ( redirectStdOut ) {
+//      ByteArrayOutputStream baosOut = new ByteArrayOutputStream();
+//      ByteArrayOutputStream baosErr = new ByteArrayOutputStream();
+//      System.setOut( new PrintStream( baosOut ) );
+//      System.setErr( new PrintStream( baosErr ) );
+//    }
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
@@ -786,8 +787,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
       curTimeLeft = ( timeoutSeconds * 1000.0 - millisPassed );
       ++numLoops;
     }
-    System.setErr( oldErr );
-    System.setOut( oldOut );
+//    System.setErr( oldErr );
+//    System.setOut( oldOut );
     return satisfied;
   }
 
@@ -918,14 +919,21 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // constraints.
     Consistency ac = null;
     if ( usingArcConsistency ) {
-      ac = new Consistency();
-      ac.constraints = allConstraints;
-      ac.arcConsistency( arcConsistencyQuiet );
+      try {
+        ac = new Consistency();
+        ac.constraints = allConstraints;
+        ac.arcConsistency(arcConsistencyQuiet);
+      } catch (Throwable t) {
+        Debug.error(true, false, "Error! Arc consistency failed.");
+        t.printStackTrace();
+      }
 
       // restore domains of things that are not simple variables
-      for ( Entry< Variable< ? >, Domain< ? > > e : ac.savedDomains.entrySet() ) {
-        if ( isSimpleVar( e.getKey() ) == Boolean.FALSE ) {
-          e.getKey().setDomain( (Domain)e.getValue() );
+      if ( ac != null ) {
+        for (Entry<Variable<?>, Domain<?>> e : ac.savedDomains.entrySet()) {
+          if (Boolean.FALSE.equals(isSimpleVar(e.getKey()))) {
+            e.getKey().setDomain((Domain) e.getValue());
+          }
         }
       }
     }
@@ -933,7 +941,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // Now assign values to variables within their domains to satisfy
     // constraints.
     boolean satisfied = solver.solve( allConstraints );
-    System.out.println( allConstraints );
+    //System.out.println( MoreToString.Helper.toShortString( allConstraints ) );
     if ( usingArcConsistency ) {
       ac.restoreDomains();
     }
@@ -1288,20 +1296,25 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     // note on staleness table.
 
     // Alert affected dependencies.
-    for ( Dependency< ? > d : getDependencies() ) {
+    List<Dependency<?>> deps = Utils.scramble(getDependencies());
+    for ( Dependency< ? > d : deps ) {
       d.handleValueChangeEvent( parameter, seen );
     }
     // Alert affected timelines.
-    for ( TimeVarying< ?, ? > tv : getTimeVaryingObjects( true, null ) ) {
+    List<TimeVarying<?, ?>> tvos =
+            Utils.scramble(getTimeVaryingObjects(true, null));
+    for ( TimeVarying< ?, ? > tv : tvos ) {
       if ( tv instanceof ParameterListener ) {
         ( (ParameterListener)tv ).handleValueChangeEvent( parameter, seen );
       }
     }
-    Collection< ParameterListenerImpl > pls = getNonEventObjects( true, null );
+    List< ParameterListenerImpl > pls = Utils.scramble( getNonEventObjects( true, null ) );
     for ( ParameterListenerImpl pl : pls ) {
       pl.handleValueChangeEvent( parameter, seen );
     }
-    for ( ConstraintExpression c : getConstraintExpressions() ) {
+    List<ConstraintExpression> cstrs =
+            Utils.scramble(getConstraintExpressions());
+    for ( ConstraintExpression c : cstrs ) {
       c.handleValueChangeEvent( parameter, seen );
     }
 

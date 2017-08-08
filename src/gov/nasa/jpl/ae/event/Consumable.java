@@ -191,7 +191,15 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public void addDeltaMap( TimeVaryingMap< Double > deltaMap ) {
     if ( deltaMap == null ) return;
     for ( java.util.Map.Entry< Parameter< Long>, Double > e : deltaMap.entrySet() ) {
+      Parameter<Long> firstKey = null;
+      if ( e.getKey().getValueNoPropagate().equals( 0L ) && firstKey().getValueNoPropagate().equals(0L) ) {
+         firstKey = firstKey();
+        
+      }
       add( e.getKey(), e.getValue() );
+      if (firstKey != null) {
+        remove(firstKey);
+      }
     }
   } 
   

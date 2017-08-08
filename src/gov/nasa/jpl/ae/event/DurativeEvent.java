@@ -50,6 +50,12 @@ import java.util.Vector;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.sun.jdi.ObjectReference;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Field;
+
+
+
 import junit.framework.Assert;
 
 /**
@@ -1707,6 +1713,21 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     simulate( 1e15, os, false );
     return true;
   }
+  
+  
+  public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                             Expression< TimeVaryingMap< ? > > fromTimeVarying,
+                             Expression< ? >... arguments
+                             ) {
+    //TODO
+    if (condition == null) {
+      condition = new Expression<Boolean>(true);
+    }
+
+    addElaborationRule( condition, enclosingInstance, eventClass, "HELLO", arguments, fromTimeVarying );
+    return true;
+    
+  }
 
   // Create an ElaborationRule for constructing an eventClass with
   // constructorParamTypes.
@@ -2260,6 +2281,26 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
               Utils.addAll( set, ( (HasEvents)event ).getEvents( deep, seen ) );
         }
       }
+    }
+
+    // Get Events in parameters, too.
+    for ( Parameter p: getParameters() ) {
+        Object o = p.getValueNoPropagate();
+        Object deo = null;
+        try {
+            deo = Expression.evaluate(o, Event.class, false);
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        } catch (InstantiationException e) {
+        }
+        if ( deo instanceof Event ) {
+            set.add((Event) deo );
+        }
+        if ( deep ) {
+            if ( o instanceof HasEvents ) {
+                set = Utils.addAll( set, ( (HasEvents)o ).getEvents( deep, seen ) );
+            }
+        }
     }
     return set;
   }

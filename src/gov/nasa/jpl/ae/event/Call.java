@@ -302,6 +302,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     Class< ? >[] paramTypes = getParameterTypes();
     if ( !isVarArgs() ) {
       //Assert.assertEquals( arguments.size(), paramTypes.length );
+      if ( arguments == null || paramTypes == null ) {
+        Debug.error("Error!  arguments or paramTypes is null in " + this);
+      }
       if ( arguments.size() != paramTypes.length ) {
         return true;
       }
@@ -831,6 +834,26 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     return subbed;
   }
+  
+  
+  public Set< Parameter< ? > >
+         getMemberParameters( Object o, boolean deep,
+                              Set< HasParameters > seen ) {
+    // Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen
+    // );
+    // if ( pair.first ) return Utils.getEmptySet();
+    // seen = pair.second;
+    Set< Parameter< ? > > set;
+    if ( deep || o instanceof Expression || o instanceof Call ) {
+      set = HasParameters.Helper.getParameters( o, deep, seen, true );
+    } else {
+      set = new HashSet< Parameter< ? > >();
+    }
+    if ( o instanceof Parameter ) set.add( (Parameter<?> )o);
+
+    return set;
+  }
+  
 
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
@@ -840,10 +863,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     seen = pair.second;
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
     if ( object instanceof Parameter ) set.add( (Parameter<?> )object );
-    //if ( deep ) {
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
-    //}
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
+    set = Utils.addAll( set, getMemberParameters( object, deep, seen) );
+    
+    for (Object o : arguments) {
+      set = Utils.addAll( set, getMemberParameters( o, deep, seen));
+    }
+   
     //if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
     set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen, true ) );
@@ -1195,7 +1220,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //    return arguments;
 //  }
   /**
-   * @param i
+   * @param n
    * @return the nth argument
    */
   public Object getArgument(int n) {
@@ -1523,7 +1548,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   /**
    * Compute a transitive closure of a map using this MethodCall to specify for each key in the map a set of items that should have a superset of related items in the map.
-   * @param initialSet the Set of initial items to be substituted for an argument or the object of this MethodCall
+   * @param relationMapToClose the Set of initial items to be substituted for an argument or the object of this MethodCall
    * @param indexOfObjectArgument
    *            where in the list of arguments an object from the set
    *            is substituted (1 to total number of args or 0 to indicate

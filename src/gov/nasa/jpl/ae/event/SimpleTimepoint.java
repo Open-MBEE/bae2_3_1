@@ -3,6 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +13,7 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Utils;
 
 public class SimpleTimepoint extends Timepoint {
@@ -88,5 +90,43 @@ public class SimpleTimepoint extends Timepoint {
                                                   Set<HasConstraints> seen ) {
     return Utils.getEmptyList();
   }
+  
+  
+  
+  /* (non-Javadoc)
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
+  @Override
+  public int compareTo( Parameter< ? > o ) {
+    return compareTo( o, false, false );
+  }
+  public int compareTo( Parameter< ? > o, boolean propagate, boolean checkId ) {
+    if ( this == o ) return 0;
+    if ( o == null ) return 1; // REVIEW -- okay for o to be null? complain?
+    int compare = 0;
+    if ( o instanceof SimpleTimepoint ) {
+      Long v1 = null;
+      Long v2 = null;
+      try {
+        v1 = Expression.evaluate( this, Long.class, propagate );
+      } catch ( ClassCastException e ) {
+      } catch ( IllegalAccessException e ) {
+      } catch ( InvocationTargetException e ) {
+      } catch ( InstantiationException e ) {
+      }
+      try {
+        v2 = Expression.evaluate( o, Long.class, propagate );
+      } catch ( ClassCastException e ) {
+      } catch ( IllegalAccessException e ) {
+      } catch ( InvocationTargetException e ) {
+      } catch ( InstantiationException e ) {
+      }
+      compare = CompareUtils.compare( v1, v2, true );
+      return compare;
+//      if ( compare != 0 ) return compare;
+    }
+    return super.compareTo( o, checkId );
+  }
+  
   
 }

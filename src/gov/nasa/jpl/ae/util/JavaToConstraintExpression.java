@@ -199,9 +199,17 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                               Class<?> returnType,
                                               Vector<Object> arguments,
                                               Class<?>... argTypes) {
-    
-    Class< ? > cls = null;
+
     String[] packages = new String[]{"gov.nasa.jpl.view_repo.sysml"};
+    return javaCallToCall(packages, fName, returnType, arguments, argTypes );
+  }
+
+  public static Call javaCallToCall( String[] packages,
+                                     String fName,
+                                     Class<?> returnType,
+                                     Vector<Object> arguments,
+                                     Class<?>[] argTypes) {
+    Class<?> cls = null;
     Method method = null;
     Call call = null;
     Constructor<?> constructor = null;
@@ -472,18 +480,25 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             Class< ? extends T > foo = (Class< ? extends T >)
                                           ClassUtils.getClassForName( fName, null, 
                                                                       packages, false );
+
+          if ( foo != null && ( type == null || type.isAssignableFrom( foo ) ) &&
+               foo.getSimpleName().equalsIgnoreCase( fName ) ) {
             cls = foo;
-            
+          }
+
             // If class was not found yet, then search some more:
             if ( cls == null) {
               
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends T > foo2 = (Class< ? extends T >)
-                                              ClassUtils.getClassForName( "Functions." + fName, 
+                                              ClassUtils.getClassForName( "Functions." + fName,
                                                                           null,
                                                                           "gov.nasa.jpl.ae.event",
                                                                            false );
+              if ( foo2 != null && ( type == null || type.isAssignableFrom( foo2 ) ) &&
+                   foo2.getSimpleName().equalsIgnoreCase( fName ) ) {
                 cls = foo2;
+              }
             }
           } catch ( ClassCastException e ) {
             e.printStackTrace();
@@ -634,6 +649,31 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     return type;
   }
 
+  public static String constructorStringOfGenericType(String name, String typeName,
+                                                      String parameterTypeName,
+                                                      String constructorArgs ) {
+    StringBuffer ctorString = new StringBuffer();
+    if (constructorArgs == null) {
+      ctorString.append("null;");
+    } else {
+      ctorString.append("new " + typeName);
+      if (!Utils.isNullOrEmpty(parameterTypeName)) {
+        ctorString.append(
+                "< " + ClassUtils.getNonPrimitiveClassName(parameterTypeName) +
+                " >");
+      }
+      ctorString.append("( " + constructorArgs + " );");
+    }
+    return ctorString.toString();
+  }
+
+  public String getConstructorString( ClassData.Param p ) {
+    String args[] = convertToEventParameterTypeAndConstructorArgs( p );
+    String s = constructorStringOfGenericType(p.name, args[ 0 ],
+                                              args[ 1 ], args[ 2 ] );
+    return s;
+  }
+
   public String astToAeExpr( Expression expr,
                              boolean convertFcnCallArgsToExprs,
                              boolean lookOutsideClassDataForTypes,
@@ -647,12 +687,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                              boolean lookOutsideClassDataForTypes,
                              boolean complainIfDeclNotFound ) {
     return astToAeExpr( expr, type, convertFcnCallArgsToExprs,
-                        lookOutsideClassDataForTypes, complainIfDeclNotFound, false );
+                        lookOutsideClassDataForTypes, false, complainIfDeclNotFound, false );
   }
 
   public String astToAeExpr( Expression expr, String type,
                              boolean convertFcnCallArgsToExprs,
                              boolean lookOutsideClassDataForTypes,
+                             boolean getParameterValue,
                              boolean complainIfDeclNotFound,
                              boolean evaluateCall ) {
     
@@ -676,9 +717,14 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         type = classlessType;
       }
     }
-    
+
+    // TimeVaryingFunctionCalls may have TimeVaryingMap args where the method
+    // expects another type, so we don't specify the type of expression to avoid
+    // compile errors.
+    boolean isTimeVarying = classlessType != null && classlessType.contains("TimeVarying");
+
     final String prefix =
-        "new Expression" + ( Utils.isNullOrEmpty( classlessType ) ? "" : "<" + classlessType + ">" ) + "( ";
+        "new Expression" + ( isTimeVarying || Utils.isNullOrEmpty( classlessType ) ? "" : "<" + classlessType + ">" ) + "( ";
     final String suffix = " )";
     String middle = null;
     /*** BinaryExpr ***/
@@ -742,7 +788,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                  complainIfDeclNotFound);
     /*** NameExpr ***/
     } else if ( expr.getClass() == NameExpr.class ) {
-      middle = nameExprToAe( (NameExpr)expr, true, evaluateCall, false, true );
+      middle = nameExprToAe( (NameExpr)expr, true, evaluateCall, getParameterValue, true );
     /*** ThisExpr ***/
     } else if ( expr.getClass() == ThisExpr.class ) {
       middle = expr.toString(); // just "this", right?
@@ -751,7 +797,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       FieldAccessExpr fieldAccessExpr = (FieldAccessExpr)expr;
       middle = fieldExprToAe( fieldAccessExpr, lookOutsideClassDataForTypes,
                               complainIfDeclNotFound, true, evaluateCall,
-                              false, true );
+                              getParameterValue, true );
     /*** AssignExpr ***/
     } else if ( expr.getClass() == AssignExpr.class ) {
         AssignExpr ae = (AssignExpr)expr;
@@ -877,6 +923,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                          boolean complainIfDeclNotFound ) {
     return astToAeExpression( expr, type, null,
                               convertFcnCallArgsToExprs, lookOutsideClassDataForTypes,
+                              false,
                               complainIfDeclNotFound, false );
   }
 
@@ -897,6 +944,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                    String specifier, // TODO -- this is never used!!!!
                                    boolean convertFcnCallArgsToExprs,
                                    boolean lookOutsideClassDataForTypes,
+                                   boolean getParameterValue,
                                    boolean complainIfDeclNotFound,
                                    boolean evaluateCall ) {
       if ( expr == null ) return null;
@@ -1056,7 +1104,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
                                                  : new gov.nasa.jpl.ae.event.Expression( o ) );
       /*** NameExpr ***/
       } else if ( expr.getClass() == NameExpr.class ) {
-        aeExpr = nameExprToAeExpression( (NameExpr)expr, true, evaluateCall, false, true, false );
+        aeExpr = nameExprToAeExpression( (NameExpr)expr, true, evaluateCall, false, getParameterValue, true, false );
         //return aeExpr;
       /*** ThisExpr ***/
       } else if ( expr.getClass() == ThisExpr.class ) {
@@ -1604,12 +1652,13 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       parentExpr =
           nameExprToAeExpression( (NameExpr)fieldAccessExpr.getScope(),
                                   wrapInFunction, evaluateCall,
-                                  addIfNotFound, propagate, complainIfDeclNotFound );
+                                  addIfNotFound, false, propagate, complainIfDeclNotFound );
     } else {
       Object o =
           astToAeExpression( fieldAccessExpr.getScope(), null,
                              null,
                              convertFcnCallArgsToExprs, lookOutsideClassDataForTypes,
+                             false,
                              complainIfDeclNotFound, evaluateCall );
       if ( o instanceof gov.nasa.jpl.ae.event.Expression ) {
         parentExpr = (gov.nasa.jpl.ae.event.Expression< ? >)o;
@@ -1651,7 +1700,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       NameExpr nameExpr = new NameExpr( fieldAccessExpr.getField() );
       aeExpr =
           nameExprToAeExpression( nameExpr, wrapInFunction, evaluateCall,
-                                  wrapInFunction, propagate, complainIfDeclNotFound );
+                                  wrapInFunction, false, propagate, complainIfDeclNotFound );
     } else {
       parentExpr =
           fieldExprScopeToAeExpression( fieldAccessExpr,
@@ -2007,7 +2056,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       gov.nasa.jpl.ae.event.Expression< ? > expr = null;
       //Expression astExpr = parseExpression( exprStr );
       Expression astExpr = parseExpression( exprString );
-      Object o = astToAeExpression( astExpr, type, null, convertFcnCallArgsToExprs, true, true, true );
+      Object o = astToAeExpression( astExpr, type, null, convertFcnCallArgsToExprs, true, false, true, true );
       expr = (gov.nasa.jpl.ae.event.Expression< ? >)( o instanceof gov.nasa.jpl.ae.event.Expression
                ? o
                : new gov.nasa.jpl.ae.event.Expression( o ) );
@@ -2022,14 +2071,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     public String javaToAeExpr( String exprString, String type, 
                                 boolean convertFcnCallArgsToExprs,
                                 boolean evaluateCall ) {
+      return javaToAeExpr( exprString, type, convertFcnCallArgsToExprs, false , evaluateCall );
+    }
+    public String javaToAeExpr( String exprString, String type, 
+                                boolean convertFcnCallArgsToExprs,
+                                boolean getParameterValue,
+                                boolean evaluateCall ) {
       Expression expr = parseExpression( exprString );
-      return astToAeExpr( expr, type, convertFcnCallArgsToExprs, true, true,
+      return astToAeExpr( expr, type, convertFcnCallArgsToExprs, true, getParameterValue, true,
                           evaluateCall );
     }
 
   public < T > gov.nasa.jpl.ae.event.Expression< T >
       nameExprToAeExpression( NameExpr nameExpr, boolean wrapInFunction,
                               boolean evaluateCall, boolean addIfNotFound,
+                              boolean getParameterValue,
                               boolean propagate, boolean complainIfNotFound ) {
       
       String aeString = nameExpr.getName();
@@ -2058,7 +2114,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         (gov.nasa.jpl.ae.event.Expression< T >)packageExpression( parameter,
                                                                   wrapInFunction,
                                                                   evaluateCall,
-                                                                  false,
+                                                                  getParameterValue,
                                                                   propagate );
 //      gov.nasa.jpl.ae.event.Expression< T > aeExpression = null;
 //      
@@ -2144,15 +2200,25 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   public String[]
       convertToEventParameterTypeAndConstructorArgs( ClassData.Param p,
                                                      String classOfParameterName ) {
-    String ret[] = new String[ 3 ];
-    if ( p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase( "null" ) ) {
+    if (p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase("null")) {
       ClassData.Param pDef =
-          getClassData().lookupMemberByName( classOfParameterName, p.name, true,
-                                        true );
-      if ( pDef != null ) {
+              getClassData().lookupMemberByName(classOfParameterName, p.name,
+                                                true,
+                                                true);
+      if (pDef != null) {
         p.type = pDef.type;
       }
     }
+    return convertToTypeAndConstructorArgs( p );
+  }
+
+  /**
+   * Determines the AE translated parameter type, generic parameter types, and arguments.
+   * @param p
+   * @return
+   */
+  public String[] convertToTypeAndConstructorArgs( ClassData.Param p ) {
+    String ret[] = new String[ 3 ];
     String type = "Parameter";
     String parameterTypes = p.type;
 
@@ -2164,7 +2230,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     // TODO -- REVIEW -- Why is p.value in args by default, but recognized types
     // do not include p.value?
-    String valueArg = javaToAeExpr( p.value, p.type, false, true );
+    String valueArg = javaToAeExpr( p.value, p.type, false, true, true );
     String typePlaceholder = "!TYPE!";
     String domain = getDomainString(p.type);
     // if ( valueArg.equals( "null" )

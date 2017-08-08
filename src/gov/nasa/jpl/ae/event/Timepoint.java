@@ -118,7 +118,7 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
    */
   @Override
   public int compareTo( Parameter< ? > o ) {
-    return compareTo( o, false, true );
+    return compareTo( o, false, false );
   }
   public int compareTo( Parameter< ? > o, boolean propagate, boolean checkId ) {
     if ( this == o ) return 0;
@@ -142,6 +142,7 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
       } catch ( InstantiationException e ) {
       }
       compare = CompareUtils.compare( v1, v2, true );
+//      return compare;
       if ( compare != 0 ) return compare;
     }
     return super.compareTo( o, checkId );
@@ -331,13 +332,14 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
   /**
    * @param epoch the epoch to set
    */
-  public synchronized static void setEpoch( Date epoch ) {
+  public synchronized static boolean setEpoch( Date epoch ) {
     Timepoint.epoch = epoch;
     System.out.println("Epoch set to " + epoch );
+    return true;
   }
 
-  public static void setEpoch( String epochString ) {
-    setEpoch( TimeUtils.dateFromTimestamp( epochString, TimeZone.getTimeZone( "GMT" ) ) );
+  public static boolean setEpoch( String epochString ) {
+    return setEpoch( TimeUtils.dateFromTimestamp( epochString, TimeZone.getTimeZone( "GMT" ) ) );
   }
 
   /**
@@ -350,28 +352,30 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
   /**
    * @param units the units to set
    */
-  public static void setUnits( TimeUtils.Units units ) {
+  public static boolean setUnits( TimeUtils.Units units ) {
     System.out.println("Units set to " + units );
     Timepoint.units = units;
+    return true;
   }
 
   /**
    * @param timeUnits
    */
-  public static void setUnits( String timeUnits ) {
+  public static boolean setUnits( String timeUnits ) {
     setUnits( TimeUtils.Units.fromString( timeUnits ) );
-    
+    return true;
   }
 
   /**
-   * @param durationString the horizon duration to set 
+   * @param duration the horizon duration to set
    */
-  public static void setHorizonDuration( long duration ) {
+  public static boolean setHorizonDuration( long duration ) {
     horizonDuration = duration;
     System.out.println("Horizon duration set to " + horizonDuration + " " + units );
     TimeDomain.horizonDomain.setUpperBound( horizonDuration );
     horizon = null;
     if ( horizonTimepoint != null ) horizonTimepoint.value = null;
+    return true;
   }
 
   /**
