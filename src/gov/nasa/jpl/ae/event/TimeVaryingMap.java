@@ -938,6 +938,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       }      
       
     }
+    
+    removeDuplicates();
   
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
