@@ -142,6 +142,7 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
       } catch ( InstantiationException e ) {
       }
       compare = CompareUtils.compare( v1, v2, true );
+//      return compare;
       if ( compare != 0 ) return compare;
     }
     return super.compareTo( o, checkId );
