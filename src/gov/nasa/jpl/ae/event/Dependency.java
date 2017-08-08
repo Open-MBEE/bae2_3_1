@@ -493,7 +493,7 @@ public class Dependency< T > extends HasIdImpl
       }
       if ( d != null ) {
         Pair< ?, Boolean > p = parameter.restrictDomain( d, true, null );
-        restricted = p != null && p.second == Boolean.TRUE;
+        restricted = p != null && Boolean.TRUE.equals(p.second);
       }
     } else {
       boolean skip = false;
@@ -505,7 +505,7 @@ public class Dependency< T > extends HasIdImpl
       // Warning!  This ignores the variable.
       if ( !skip ) {
         Pair< ?, Boolean > p = expression.restrictDomain( parameter.getDomain(), true, null );
-        restricted = p != null && p.second == Boolean.TRUE;
+        restricted = p != null && Boolean.TRUE.equals(p.second);
       }
     }
     return restricted;//v.getDomain() != null && v.getDomain().magnitude() > 0; 

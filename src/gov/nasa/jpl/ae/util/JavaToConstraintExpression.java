@@ -480,18 +480,25 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
             Class< ? extends T > foo = (Class< ? extends T >)
                                           ClassUtils.getClassForName( fName, null, 
                                                                       packages, false );
+
+          if ( foo != null && ( type == null || type.isAssignableFrom( foo ) ) &&
+               foo.getSimpleName().equalsIgnoreCase( fName ) ) {
             cls = foo;
-            
+          }
+
             // If class was not found yet, then search some more:
             if ( cls == null) {
               
                 @SuppressWarnings( "unchecked" )
                 Class< ? extends T > foo2 = (Class< ? extends T >)
-                                              ClassUtils.getClassForName( "Functions." + fName, 
+                                              ClassUtils.getClassForName( "Functions." + fName,
                                                                           null,
                                                                           "gov.nasa.jpl.ae.event",
                                                                            false );
+              if ( foo2 != null && ( type == null || type.isAssignableFrom( foo2 ) ) &&
+                   foo2.getSimpleName().equalsIgnoreCase( fName ) ) {
                 cls = foo2;
+              }
             }
           } catch ( ClassCastException e ) {
             e.printStackTrace();
@@ -640,6 +647,31 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       return "char";
     }
     return type;
+  }
+
+  public static String constructorStringOfGenericType(String name, String typeName,
+                                                      String parameterTypeName,
+                                                      String constructorArgs ) {
+    StringBuffer ctorString = new StringBuffer();
+    if (constructorArgs == null) {
+      ctorString.append("null;");
+    } else {
+      ctorString.append("new " + typeName);
+      if (!Utils.isNullOrEmpty(parameterTypeName)) {
+        ctorString.append(
+                "< " + ClassUtils.getNonPrimitiveClassName(parameterTypeName) +
+                " >");
+      }
+      ctorString.append("( " + constructorArgs + " );");
+    }
+    return ctorString.toString();
+  }
+
+  public String getConstructorString( ClassData.Param p ) {
+    String args[] = convertToEventParameterTypeAndConstructorArgs( p );
+    String s = constructorStringOfGenericType(p.name, args[ 0 ],
+                                              args[ 1 ], args[ 2 ] );
+    return s;
   }
 
   public String astToAeExpr( Expression expr,
@@ -2174,15 +2206,25 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   public String[]
       convertToEventParameterTypeAndConstructorArgs( ClassData.Param p,
                                                      String classOfParameterName ) {
-    String ret[] = new String[ 3 ];
-    if ( p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase( "null" ) ) {
+    if (p.type == null || p.type.isEmpty() || p.type.equalsIgnoreCase("null")) {
       ClassData.Param pDef =
-          getClassData().lookupMemberByName( classOfParameterName, p.name, true,
-                                        true );
-      if ( pDef != null ) {
+              getClassData().lookupMemberByName(classOfParameterName, p.name,
+                                                true,
+                                                true);
+      if (pDef != null) {
         p.type = pDef.type;
       }
     }
+    return convertToTypeAndConstructorArgs( p );
+  }
+
+  /**
+   * Determines the AE translated parameter type, generic parameter types, and arguments.
+   * @param p
+   * @return
+   */
+  public String[] convertToTypeAndConstructorArgs( ClassData.Param p ) {
+    String ret[] = new String[ 3 ];
     String type = "Parameter";
     String parameterTypes = p.type;
 

@@ -834,6 +834,26 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     return subbed;
   }
+  
+  
+  public Set< Parameter< ? > >
+         getMemberParameters( Object o, boolean deep,
+                              Set< HasParameters > seen ) {
+    // Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen
+    // );
+    // if ( pair.first ) return Utils.getEmptySet();
+    // seen = pair.second;
+    Set< Parameter< ? > > set;
+    if ( deep || o instanceof Expression || o instanceof Call ) {
+      set = HasParameters.Helper.getParameters( o, deep, seen, true );
+    } else {
+      set = new HashSet< Parameter< ? > >();
+    }
+    if ( o instanceof Parameter ) set.add( (Parameter<?> )o);
+
+    return set;
+  }
+  
 
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
@@ -843,10 +863,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     seen = pair.second;
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
     if ( object instanceof Parameter ) set.add( (Parameter<?> )object );
-    //if ( deep ) {
-      set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
-    //}
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
+    set = Utils.addAll( set, getMemberParameters( object, deep, seen) );
+    
+    for (Object o : arguments) {
+      set = Utils.addAll( set, getMemberParameters( o, deep, seen));
+    }
+   
     //if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
     set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen, true ) );

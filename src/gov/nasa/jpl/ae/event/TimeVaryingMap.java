@@ -4599,7 +4599,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     for ( Parameter< Long> k : keys ) {
       Object v3 = null;
       V v1 = this.getValue( k );
-      if ( Utils.isTrue( v1 ) == Boolean.TRUE ) {
+      if ( Boolean.TRUE.equals(Utils.isTrue( v1 )) ) {
         v3 = getValueAtTime(thenObj, k);
       } else {
         v3 = getValueAtTime(elseObj, k);
@@ -6067,7 +6067,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( fName == null ) fName = backupFileName;
     try {
       File f = findFile( fName, backupFileName );
-      if (f != null ) System.out.println(f.toString());
+      if (f != null ) System.out.println("Loading timeline from csv file, " + f.toString() + ".");
       ArrayList< ArrayList< String > > lines = FileUtils.fromCsvFile( f );
       //String s = FileUtils.fileToString( f );
       Map<String,String> map = new TreeMap<String,String>();
@@ -6280,8 +6280,8 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( isEmpty() ) return null;
     V value = firstValue();
     if ( size() > 1 ) {
-      Debug.error(true, false, "Warning! Getting value " + value  + " for multi-valued TimeVaryingMap: " + this );
       if (!this.allValuesEqual()) {
+        Debug.error(true, false, "Warning! Getting value " + value  + " for   TimeVaryingMap: " + this );
         return null;
       }
     }
@@ -7309,9 +7309,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         Long tpt = timepointDomain.getValue( true );
         Long td = tDomain.getValue( true );
         try {
-          if ( Functions.lessThan( td, tpt ) == Boolean.TRUE ) {
+          if ( Boolean.TRUE.equals(Functions.lessThan( td, tpt )) ) {
             mustBeBefore.add( tp );
-          } else if (Functions.greaterThan( td, tpt ) == Boolean.FALSE ) {
+          } else if (Boolean.FALSE.equals(Functions.greaterThan( td, tpt )) ) {
             mayBeBefore.add( tp );
           }
         } catch ( IllegalAccessException e1 ) {

@@ -118,7 +118,7 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
    */
   @Override
   public int compareTo( Parameter< ? > o ) {
-    return compareTo( o, false, true );
+    return compareTo( o, false, false );
   }
   public int compareTo( Parameter< ? > o, boolean propagate, boolean checkId ) {
     if ( this == o ) return 0;
@@ -142,6 +142,7 @@ public class Timepoint extends LongParameter implements TimeVariable {//FIXME --
       } catch ( InstantiationException e ) {
       }
       compare = CompareUtils.compare( v1, v2, true );
+//      return compare;
       if ( compare != 0 ) return compare;
     }
     return super.compareTo( o, checkId );

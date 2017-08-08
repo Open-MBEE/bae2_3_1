@@ -190,12 +190,12 @@ public class Consistency {
         if ( c instanceof ConstraintExpression ) {
           ConstraintExpression cx = (ConstraintExpression)c;
           Pair<Domain<Boolean>,Boolean> p = cx.restrictDomain( BooleanDomain.trueDomain, true, null );
-          if ( p!= null && !quiet && p.second == Boolean.TRUE ) {
+          if ( p!= null && !quiet && Boolean.TRUE.equals(p.second) ) {
             System.out.println( "Restricted constraint " + MoreToString.Helper.toLongString( cx ) + " to domain " + p.first );
           }
-          cct += (p !=null && p.second == Boolean.TRUE) ? 1 : 0;
+          cct += (p !=null && Boolean.TRUE.equals(p.second)) ? 1 : 0;
 
-          restrictedSomething = restrictedSomething || (p!=null && p.second == Boolean.TRUE); 
+          restrictedSomething = restrictedSomething || (p!=null && Boolean.TRUE.equals(p.second));
         } else {
           Set< Variable< ? > > vars = c.getVariables();
           for ( Variable< ? > v : vars ) {

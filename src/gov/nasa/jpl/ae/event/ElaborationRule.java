@@ -383,7 +383,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     } catch ( InstantiationException e ) {
     }
     for ( EventInvocation i : eventInvocations ) {
-      if ( b == Boolean.TRUE ) {
+      if ( Boolean.TRUE.equals(b) ) {
         if ( i.isStale() ) {
           setStale( true );
           return true;
