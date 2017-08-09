@@ -543,6 +543,9 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
             while ( true ) {
               long simTimeToSleepUntil =
                   (long)Math.min( nextEventSimTime, nextSampleSimTime );
+              if (simulatingHorizon) {
+                simTimeToSleepUntil = (long)Math.min( simTimer.timeToHorizon(), simTimeToSleepUntil );
+              }
               if (Debug.isOn()) Debug.out("nextEventSimTime="+ nextEventSimTime);
               if (Debug.isOn()) Debug.out("nextSampleSimTime="+ nextSampleSimTime);
               if (Debug.isOn()) Debug.out("simTimeToSleepUntil="+ simTimeToSleepUntil);
@@ -569,9 +572,9 @@ public class EventSimulation extends java.util.TreeMap< Long, Set< Pair< Object,
               
               if ( nextSampleSimTime > nextEventSimTime ) break;
 //              if ( nextEventSimTime <= simTime) break;
-//              if ( simulatingHorizon && simTimer.passedHorizon() ) {
-//                break;
-//              }
+              if ( simulatingHorizon && simTimer.passedHorizon() ) {
+                break;
+              }
             }
           } catch ( InterruptedException e ) {
             System.err.println("Simulation sleep interrupted unexpectedly.");

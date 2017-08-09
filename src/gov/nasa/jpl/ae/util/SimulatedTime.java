@@ -119,4 +119,8 @@ public class SimulatedTime {
       return actualMillisPassed;
     }
     
+    public double timeToHorizon() {
+      return Timepoint.getHorizonDuration() - getSimTimePassed(); 
+    }
+    
   }
