@@ -194,6 +194,15 @@ public class JavaForFunctionCall {
   }
 
   public boolean isStatic() {
+    // HACK!  seems to think it knows whether it's static when it doesn't; just added additional code to try and cover up mistake instead of really fixing it.
+    Constructor c = getMatchingConstructor();
+    if ( c != null ) {
+      return ClassUtils.isStatic(c);
+    }
+    Method m = getMatchingMethod();
+    if ( m != null ) {
+      return ClassUtils.isStatic(m);
+    }
     if ( isMethodOrConstructor() ) {
       if ( exprXlator.getClassData().knowIfStatic( getCallName() ) ) {
         return exprXlator.getClassData().isStatic( getCallName() );
@@ -207,6 +216,7 @@ public class JavaForFunctionCall {
         return true;
       }
     } else {
+      // FIXME -- seems to think it knows whether it's static when it doesn't for a constructor
       if ( exprXlator.getClassData().knowIfClassIsStatic( getCallName() ) ) {
         return exprXlator.getClassData().isClassStatic( getCallName() );
       }
