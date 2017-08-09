@@ -27,25 +27,11 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.NavigableMap;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.Vector;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1713,16 +1699,121 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     simulate( 1e15, os, false );
     return true;
   }
-  
-  
-  public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+
+    /**
+     * Elaborate for the specified class an event (or events from a TimeVaryingMap) requiring no arguments.
+     * @param condition
+     * @param eventClass
+     * @param fromTimeVarying
+     * @param <T>
+     * @return
+     */
+    public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                                                      Expression< TimeVaryingMap< ? > > fromTimeVarying
+                                                 ) {
+        LinkedHashMap<String, Expression<?>> map = new LinkedHashMap<String, Expression<?>>();
+        boolean retVal = elaborates(condition, eventClass, fromTimeVarying, map);
+        return retVal;
+    }
+
+    /**
+     * Elaborate for the specified class an event (or events from a TimeVaryingMap) passing a simgle argument.
+     * @param condition
+     * @param eventClass
+     * @param fromTimeVarying
+     * @param paramName
+     * @param argument
+     * @param <T>
+     * @return
+     */
+    public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                                                   Expression< TimeVaryingMap< ? > > fromTimeVarying,
+                                                   String paramName, Expression<?> argument
+    ) {
+        LinkedHashMap<String, Expression<?>> map = new LinkedHashMap<String, Expression<?>>();
+        map.put(paramName, argument);
+        boolean retVal = elaborates(condition, eventClass, fromTimeVarying, map);
+        return retVal;
+    }
+
+    /**
+     * Elaborate for the specified class an event (or events from a TimeVaryingMap) passing two arguments.
+     * @param condition
+     * @param eventClass
+     * @param fromTimeVarying
+     * @param paramName1
+     * @param argument1
+     * @param paramName2
+     * @param argument2
+     * @param <T>
+     * @return
+     */
+    public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                                                   Expression< TimeVaryingMap< ? > > fromTimeVarying,
+                                                   String paramName1, Expression<?> argument1,
+                                                   String paramName2, Expression<?> argument2
+    ) {
+        LinkedHashMap<String, Expression<?>> map = new LinkedHashMap<String, Expression<?>>();
+        map.put(paramName1, argument1);
+        map.put(paramName2, argument2);
+        boolean retVal = elaborates(condition, eventClass, fromTimeVarying, map);
+        return retVal;
+    }
+
+    /**
+     * Elaborate for the specified class an event (or events from a TimeVaryingMap) passing three or more arguments.
+     * @param condition
+     * @param eventClass
+     * @param fromTimeVarying
+     * @param paramName1
+     * @param argument1
+     * @param paramName2
+     * @param argument2
+     * @param paramName3
+     * @param argument3
+     * @param moreArgs
+     * @param <T>
+     * @return
+     */
+    public < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
+                                                   Expression< TimeVaryingMap< ? > > fromTimeVarying,
+                                                   String paramName1, Expression<?> argument1,
+                                                   String paramName2, Expression<?> argument2,
+                                                   String paramName3, Expression<?> argument3,
+                                                   Object... moreArgs
+    ) {
+        LinkedHashMap<String, Expression<?>> map = new LinkedHashMap<String, Expression<?>>();
+        map.put(paramName1, argument1);
+        map.put(paramName2, argument2);
+        map.put(paramName3, argument3);
+        for ( int i=0; i < moreArgs.length-1; i += 2 ) {
+            Object paramNameArg = moreArgs[i];
+            Object argumentArg = moreArgs[i+1];
+            if ( paramNameArg instanceof String ) {
+                if (argumentArg instanceof Expression ) {
+                    map.put((String)paramNameArg, (Expression<?>)argumentArg);
+                } else {
+                    Debug.error(true, false, "Bad arguments (" + paramNameArg+ ", " + argumentArg + ") passed to elaborate " + eventClass.getCanonicalName() + "!  Expected (String, Expression).");
+                }
+            } else {
+                Debug.error(true, false, "Bad arguments (" + paramNameArg+ ", " + argumentArg + ") passed to elaborate " + eventClass.getCanonicalName() + "!  Expected (String, Expression)");
+            }
+        }
+        boolean retVal = elaborates(condition, eventClass, fromTimeVarying, map);
+        return retVal;
+    }
+
+    protected < T extends Event > boolean elaborates( Expression< Boolean > condition, Class< T > eventClass,
                              Expression< TimeVaryingMap< ? > > fromTimeVarying,
-                             Expression< ? >... arguments
+                             Map<String, Expression<?>> argumentMap
+                             //Expression< ? >... arguments
                              ) {
     //TODO
     if (condition == null) {
       condition = new Expression<Boolean>(true);
     }
+
+    Expression<?>[] arguments = Utils.toArrayOfType(argumentMap.values(), Expression.class);
 
     addElaborationRule( condition, enclosingInstance, eventClass, "HELLO", arguments, fromTimeVarying );
     return true;

@@ -1848,11 +1848,15 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     return aeString;
   }
-  
 
-    protected Expression fixExpression( Expression expr ) {
+
+  protected Expression fixExpression( Expression expr ) {
+    return fixExpression(expr, this);
+
+  }
+    protected static Expression fixExpression( Expression expr, JavaToConstraintExpression j2ce ) {
       if ( expr == null ) return null;
-      String newExprString = astToAeExpr( expr, false, true, false );
+      String newExprString = j2ce.astToAeExpr( expr, false, true, false );
       Expression newExpr = parseExpression( newExprString );
       return newExpr;
     }
@@ -1873,11 +1877,14 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
        * expressions with astToAeExpr().
        * @param stmt the statement to fix
        */
-      public void fixStatement( Statement stmt ) {
+    public void fixStatement( Statement stmt ) {
+      fixStatement(stmt, this);
+    }
+    public static void fixStatement( Statement stmt, JavaToConstraintExpression j2ce ) {
         if ( stmt == null ) return;
         if ( stmt instanceof ExpressionStmt ) {
           ExpressionStmt exprStmt = (ExpressionStmt)stmt;
-          Expression expr = fixExpression( exprStmt.getExpression() );
+          Expression expr = j2ce.fixExpression( exprStmt.getExpression() );
           exprStmt.setExpression( expr );
     //      if ( exprStmt.getExpression() instanceof AssignExpr ) {
     //        AssignExpr assignExpr = (AssignExpr)exprStmt.getExpression();
@@ -1888,75 +1895,75 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     //      }
         } else if ( stmt instanceof BlockStmt ) {
           BlockStmt bs = (BlockStmt)stmt;
-          fixStatements( bs.getStmts() );
+          j2ce.fixStatements( bs.getStmts() );
         } else if ( stmt instanceof AssertStmt ) {
           AssertStmt assertStmt = (AssertStmt)stmt;
-          Expression expr = fixExpression( assertStmt.getCheck() );
+          Expression expr = j2ce.fixExpression( assertStmt.getCheck() );
           if ( expr != null ) assertStmt.setCheck( expr );
         } else if ( stmt instanceof DoStmt ) {
           DoStmt doStmt = (DoStmt)stmt;
           //List<Statement> stmtList = new ArrayList<Statement>();
-          fixStatement( doStmt.getBody() );
-          Expression expr = fixExpression( doStmt.getCondition() );
+          j2ce.fixStatement( doStmt.getBody() );
+          Expression expr = j2ce.fixExpression( doStmt.getCondition() );
           if ( expr != null ) doStmt.setCondition( expr );
           //doStmt.setBody( stmtList.get( 0 ) );
         } else if ( stmt instanceof ExplicitConstructorInvocationStmt ) {
           ExplicitConstructorInvocationStmt ecis = (ExplicitConstructorInvocationStmt)stmt;
-          List< Expression > exprs = fixExpressions( ecis.getArgs() );
+          List< Expression > exprs = j2ce.fixExpressions( ecis.getArgs() );
           if ( exprs != null ) ecis.setArgs( exprs );
-          Expression expr = fixExpression( ecis.getExpr() );
+          Expression expr = j2ce.fixExpression( ecis.getExpr() );
           if ( expr != null ) ecis.setExpr( expr );
         } else if ( stmt instanceof ForeachStmt ) {
           ForeachStmt foreachStmt = (ForeachStmt)stmt;
-          fixStatement( foreachStmt.getBody() );
-          Expression expr = fixExpression( foreachStmt.getIterable() );
+          j2ce.fixStatement( foreachStmt.getBody() );
+          Expression expr = j2ce.fixExpression( foreachStmt.getIterable() );
           if ( expr != null ) foreachStmt.setIterable(expr);
-          expr = fixExpression( foreachStmt.getVariable() );
+          expr = j2ce.fixExpression( foreachStmt.getVariable() );
           if ( expr != null && expr instanceof VariableDeclarationExpr ) {
             foreachStmt.setVariable( (VariableDeclarationExpr)expr );
           }
         } else if ( stmt instanceof ForStmt ) {
           ForStmt forStmt = (ForStmt)stmt;
-          fixStatement( forStmt.getBody() );
-          List< Expression > exprs = fixExpressions( forStmt.getInit() );
+          j2ce.fixStatement( forStmt.getBody() );
+          List< Expression > exprs = j2ce.fixExpressions( forStmt.getInit() );
           if ( exprs != null ) forStmt.setInit( exprs );
-          Expression expr = fixExpression( forStmt.getCompare() );
+          Expression expr = j2ce.fixExpression( forStmt.getCompare() );
           if ( expr != null ) forStmt.setCompare( expr );
-          exprs = fixExpressions( forStmt.getUpdate() );
+          exprs = j2ce.fixExpressions( forStmt.getUpdate() );
           if ( exprs != null ) forStmt.setUpdate( exprs );        
         } else if ( stmt instanceof IfStmt ) {
           IfStmt ifStmt = (IfStmt)stmt;
           List<Statement> stmtList = new ArrayList<Statement>();
           stmtList.add( ifStmt.getThenStmt() );
           stmtList.add( ifStmt.getElseStmt() );
-          fixStatements( stmtList );
-          Expression expr = fixExpression( ifStmt.getCondition() );
+          j2ce.fixStatements( stmtList );
+          Expression expr = j2ce.fixExpression( ifStmt.getCondition() );
           if ( expr != null ) ifStmt.setCondition( expr );
         } else if ( stmt instanceof LabeledStmt ) {
           LabeledStmt labeledStmt = (LabeledStmt)stmt;
-          fixStatement( labeledStmt.getStmt() );
+          j2ce.fixStatement( labeledStmt.getStmt() );
         } else if ( stmt instanceof ReturnStmt ) {
           ReturnStmt returnStmt = (ReturnStmt)stmt;
-          Expression expr = fixExpression( returnStmt.getExpr() );
+          Expression expr = j2ce.fixExpression( returnStmt.getExpr() );
           if ( expr != null ) returnStmt.setExpr( expr );
         } else if ( stmt instanceof SwitchEntryStmt ) {
           SwitchEntryStmt switchStmt = (SwitchEntryStmt)stmt;
-          fixStatements( switchStmt.getStmts() );
-          Expression expr = fixExpression( switchStmt.getLabel() );
+          j2ce.fixStatements( switchStmt.getStmts() );
+          Expression expr = j2ce.fixExpression( switchStmt.getLabel() );
           if ( expr != null ) switchStmt.setLabel( expr );
         } else if ( stmt instanceof SwitchStmt ) {
           SwitchStmt switchStmt = (SwitchStmt)stmt;
-          fixStatements( switchStmt.getEntries() );
-          Expression expr = fixExpression( switchStmt.getSelector() );
+          j2ce.fixStatements( switchStmt.getEntries() );
+          Expression expr = j2ce.fixExpression( switchStmt.getSelector() );
           if ( expr != null ) switchStmt.setSelector( expr );
         } else if ( stmt instanceof SynchronizedStmt ) {
           SynchronizedStmt synchStmt = (SynchronizedStmt)stmt;
-          fixStatement( synchStmt.getBlock() );
-          Expression expr = fixExpression( synchStmt.getExpr() );
+          j2ce.fixStatement( synchStmt.getBlock() );
+          Expression expr = j2ce.fixExpression( synchStmt.getExpr() );
           if ( expr != null ) synchStmt.setExpr( expr );
         } else if ( stmt instanceof ThrowStmt ) {
           ThrowStmt throwStmt = (ThrowStmt)stmt;
-          Expression expr = fixExpression( throwStmt.getExpr() );
+          Expression expr = j2ce.fixExpression( throwStmt.getExpr() );
           if ( expr != null ) throwStmt.setExpr( expr );
         } else if ( stmt instanceof TryStmt ) {
           TryStmt tryStmt = (TryStmt)stmt;
@@ -1966,7 +1973,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           for ( CatchClause cc : tryStmt.getCatchs() ) {
             stmtList.add( cc.getCatchBlock() );
           }
-          fixStatements( stmtList );
+          j2ce.fixStatements( stmtList );
         } else if ( stmt instanceof TypeDeclarationStmt ) {
           // TODO
 //          TypeDeclarationStmt typeDeclStmt = (TypeDeclarationStmt)stmt;
@@ -1975,8 +1982,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
 //          }
         } else if ( stmt instanceof WhileStmt ) {
           WhileStmt whileStmt = (WhileStmt)stmt;
-          fixStatement( whileStmt.getBody() );
-          Expression expr = fixExpression( whileStmt.getCondition() );
+          j2ce.fixStatement( whileStmt.getBody() );
+          Expression expr = j2ce.fixExpression( whileStmt.getCondition() );
           if ( expr != null ) whileStmt.setCondition( expr );
         } else {
           System.err.println( "fixStatement(): got unhandled Statement type: "
@@ -1987,7 +1994,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     /**
      * Converts Java statements into AE Java statements by converting expressions
      * with astToAeExpr().
-     * @param className
      * @param stmts
      */
     protected void fixStatements( List<? extends Statement> stmts ) {
