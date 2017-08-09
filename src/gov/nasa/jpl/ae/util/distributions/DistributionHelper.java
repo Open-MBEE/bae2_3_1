@@ -2,6 +2,7 @@ package gov.nasa.jpl.ae.util.distributions;
 
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Pair;
+import org.apache.commons.math3.analysis.function.Gaussian;
 import org.apache.commons.math3.distribution.*;
 
 /**

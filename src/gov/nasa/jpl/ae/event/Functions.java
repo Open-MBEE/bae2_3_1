@@ -4740,8 +4740,6 @@ public class Functions {
         return false;
       }
     }
-    
-    
     return eq( r1, r2 );
   }
 
