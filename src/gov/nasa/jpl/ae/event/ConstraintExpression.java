@@ -202,7 +202,9 @@ public class ConstraintExpression extends Expression< Boolean >
         //if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
         System.out.println( "////////////////////   picking " + newValue + " for " + v + " in " + this );
        // Debug.turnOff();
-        setValue( v, newValue );
+        if ( getType() == null || getType().isInstance(v) ) {
+          setValue(v, newValue);
+        }
         return true;
       }
     }
