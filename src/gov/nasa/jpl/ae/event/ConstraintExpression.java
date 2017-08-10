@@ -192,7 +192,7 @@ public class ConstraintExpression extends Expression< Boolean >
     // Currently do not support picking values for non-primitives (like TimeVaryingMap).
     boolean isPrimitive = variableHasPrimitiveValue( v );
     boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
-    if ( expression instanceof Suggester && isPrimitive && hasChoices && (!(expression instanceof Call) || ((Call)expression).arguments.contains(v))) {
+    if ( expression instanceof Suggester && isPrimitive && hasChoices && (!(v instanceof Parameter) || !(expression instanceof Call) || ((Call)expression).hasParameter((Parameter<?>)v, true, null))) {
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
