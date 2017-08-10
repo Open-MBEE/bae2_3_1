@@ -944,7 +944,6 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
-  
 
   public TimeVaryingMap( String name, TimeVaryingMap<V> tvm ) {
     this( name, null, null, tvm.type );
@@ -3872,14 +3871,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       if ( Utils.valuesEqual( lastKey, key ) ) {
         dups.add( lastKey );
       } else if ( Utils.valuesEqual( lastValue, value ) ) {
-        if ( ct > 0 ) {
-          dups.add( key );
-          key = lastKey;
-        }
-        ++ct;
-      } else {
-        ct = 0;
+//        if ( ct > 0 ) {
+//          dups.add( key );
+//          key = lastKey;
+//        }
+//        ++ct;
+        dups.add( key );
+        key = lastKey;
       }
+//      } else {
+//        ct = 0;
+//      }
       lastKey = key;
       lastValue = value;
     }
