@@ -35,6 +35,7 @@ import gov.nasa.jpl.mbee.util.Zero;
 import gov.nasa.jpl.mbee.util.Wraps;
 import org.apache.commons.math3.distribution.*;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -1325,6 +1326,124 @@ public class Functions {
       return new Pow< T, R >( this );
     }
   }
+
+
+  public static class GetMember< T, R > extends Binary< T, R > {
+    public GetMember( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "getMember", "pickValueForward", "pickValueReverse" );
+      setMonotonic( false );
+    }
+
+    public GetMember( Object o1, Object c ) {
+      super( o1, c, "getMember", "pickValueForward", "pickValueReverse" );
+      setMonotonic( false );
+    }
+
+    public GetMember( Functions.GetMember< T, R > m ) {
+      super( m );
+    }
+
+    public GetMember< T, R > clone() {
+      return new GetMember< T, R >( this );
+    }
+
+
+
+    @Override
+    public < TT > Pair< Domain< TT >, Boolean >
+    restrictDomain( Domain< TT > domain, boolean propagate,
+                    Set< HasDomain > seen ) {
+      //boolean changed = false;
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      try {
+        Object obj = o1;
+        Object memberName = Expression.evaluate(o2, String.class, propagate);
+        if ( memberName instanceof String ) {
+          if ( o1 instanceof Expression ) {
+            obj = ((Expression) o1).evaluate(propagate);
+          }
+          Object member = Functions.getMember(obj, (String) memberName);
+          if ( member instanceof HasDomain ) {
+            Pair<Domain<TT>, Boolean> p =
+                    ((HasDomain) member).restrictDomain(domain, propagate,
+                                                        seen);
+            if ( p != null ) {
+              Domain<TT> newDomain = p.first;
+              this.domain = newDomain;
+            }
+            return p;
+          }
+        }
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (InstantiationException e) {
+      }
+      return null;
+    }
+
+    // TODO
+    public Domain< ? > inverseDomain( Domain< ? > returnValue,
+                                      Object argument ) {
+      Domain<?> d = null;
+      if (arguments == null || arguments.size() != 2) return null;
+      boolean first = argument == arguments.get(1);
+      Object otherArg = (first ? arguments.get(0) : arguments.get(1));
+      if (otherArg == null) return null; // arg can be null!
+      if (first) {
+
+        // TODO -- search all objects (from top-level Event and maybe all static members of all classes in all packages everywhere forever, 1000 years.
+      } else {
+        // TODO -- return a member of the other arg whose value equals the returnValue
+        // create a function call to getMatchingMembers(otherArg, returnValue) defined below.
+      }
+      return d;
+    }
+
+      @Override
+      // TODO
+    public // < T1 extends Comparable< ? super T1 > >
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if (arguments == null || arguments.size() != 2) return null;
+      boolean first = arg == arguments.get(1);
+      Object otherArg = (first ? arguments.get(0) : arguments.get(1));
+      if (returnValue == null || otherArg == null) return null; // arg can be
+      // null!
+      if (first) {
+        // TODO -- search all objects (from top-level Event and maybe all static members of all classes in all packages everywhere forever, 1000 years.
+      } else {
+        // TODO -- return a member of the other arg whose value equals the returnValue
+        // create a function call to getMatchingMembers(otherArg, returnValue) defined below.
+      }
+      return new Minus<T, T>(returnValue, otherArg);
+    }
+
+    // TODO -- need to test
+    protected Set<Object> getMatchingMembers(Object object, Object value) {
+      if ( object == null ) {
+        return null;
+      }
+      LinkedHashSet<Object> set = new LinkedHashSet<Object>();
+      Field[] fs = ClassUtils.getAllFields(object.getClass());
+      for (Field f : fs) {
+        try {
+          Object o = f.get(object);
+          if (Expression.valuesEqual(o, value)) {
+            set.add(o);
+          }
+        } catch (IllegalAccessException e) {
+        }
+      }
+      return set;
+    }
+  }
+
+
+  public static <V1, V2> V2 getMember( V1 object, String memberName ) {
+    V2 v2 = (V2)ClassUtils.getFieldValue(object, memberName, true);
+    return v2;
+  }
+
 
   // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
   // print "inf"
