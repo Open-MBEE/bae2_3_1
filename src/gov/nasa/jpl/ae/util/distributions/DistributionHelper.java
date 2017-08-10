@@ -24,6 +24,7 @@ public class DistributionHelper {
      * This compares the distributions as discrete distributions by finding the probability of success for every
      * k for each distributions and sums their probabilities. It will return a boolean distribution with the summed
      * probability.
+     *
      * @param o1
      * @param o2
      * @return
@@ -49,8 +50,8 @@ public class DistributionHelper {
         if (o1 instanceof IntegerDistribution) {
             if (o2 instanceof IntegerDistribution) {
 
-                BinomialDistribution bd1 = (BinomialDistribution)o1;
-                BinomialDistribution bd2 = (BinomialDistribution)o2;
+                BinomialDistribution bd1 = (BinomialDistribution) o1;
+                BinomialDistribution bd2 = (BinomialDistribution) o2;
 
                 int trial1 = bd1.getNumberOfTrials();
                 int trial2 = bd2.getNumberOfTrials();
@@ -58,7 +59,7 @@ public class DistributionHelper {
                 int maxTrial = Math.max(trial1, trial2);
                 int sum = 0;
 
-                for(int i = 0; i < maxTrial; ++i){
+                for (int i = 0; i < maxTrial; ++i) {
                     sum += bd1.probability(i) * bd2.probability(i);
                 }
 
@@ -116,8 +117,10 @@ public class DistributionHelper {
                     }
                 }*/
             }
+        } else if (o1 == null) {
+
         } else {
-            // o1 is an integer
+            // o1 is an integer o
             if (o2 instanceof IntegerDistribution) {
                 // o2 is an integer
                 Pair<Boolean, Integer> result = ClassUtils.coerce(o1, Integer.class, false);
