@@ -1348,6 +1348,27 @@ public class Functions {
     }
 
 
+    @Override
+    public <T1> T1 pickValue(Variable<T1> variable) {
+      return super.pickValue(variable);
+    }
+
+    @Override
+    public <T> boolean pickParameterValue(Variable<T> variable) {
+      return super.pickParameterValue(variable);
+    }
+
+    @Override
+    public Domain<?> calculateDomain(boolean propagate, Set<HasDomain> seen) {
+      Object result = null;
+      try {
+        result = evaluate(false);
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (InstantiationException e) {
+      }
+      return DomainHelper.getDomain(result);
+    }
 
     @Override
     public < TT > Pair< Domain< TT >, Boolean >
@@ -1440,7 +1461,26 @@ public class Functions {
 
 
   public static <V1, V2> V2 getMember( V1 object, String memberName ) {
+    if ( Utils.isNullOrEmpty(memberName) || object == null ) return null;
+    if ( object instanceof  Parameter ) {
+      ((Parameter)object).getMember(memberName, true);
+    }
     V2 v2 = (V2)ClassUtils.getFieldValue(object, memberName, true);
+    return v2;
+  }
+
+  public static <V1, V2> V2 getMember( Expression<?> object, Expression<?> memberName ) {
+    Object o = null;
+    String name = null;
+    try {
+      o = object.evaluate(false);
+      name = memberName.evaluate(String.class, false);
+    } catch (IllegalAccessException e) {
+    } catch (InvocationTargetException e) {
+    } catch (InstantiationException e) {
+    } catch (ClassCastException e) {
+    }
+    V2 v2 = (V2)getMember(o, name);
     return v2;
   }
 
