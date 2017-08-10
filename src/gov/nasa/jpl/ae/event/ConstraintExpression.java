@@ -190,9 +190,11 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public < T > boolean pickParameterValue( Variable< T > v ) {
     // Currently do not support picking values for non-primitives (like TimeVaryingMap).
-    boolean isPrimitive = variableHasPrimitiveValue( v );
-    boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
-    if ( expression instanceof Suggester && isPrimitive && hasChoices && (!(v instanceof Parameter) || !(expression instanceof Call) || ((Call)expression).hasParameter((Parameter<?>)v, true, null))) {
+//    boolean isPrimitive = variableHasPrimitiveValue( v );
+//    boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
+    if ( expression instanceof Suggester &&
+         //isPrimitive && hasChoices &&
+         (!(v instanceof Parameter) || !(expression instanceof Call) || ((Call)expression).hasParameter((Parameter<?>)v, true, null))) {
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
@@ -205,15 +207,15 @@ public class ConstraintExpression extends Expression< Boolean >
       }
     }
     // TODO
-    //Debug.turnOn();
+      //Debug.turnOn();
     //if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
-    if ( !isPrimitive ) {
-      System.out.println( "////////////////////   not picking value for nonPrimitive " + v + " in " + this );
-    } else if ( !hasChoices ) {
-      System.out.println( "////////////////////   not picking value for empty domain for " + v + " in " + this );
-    } else {
+//    if ( !isPrimitive ) {
+//      System.out.println( "////////////////////   not picking value for nonPrimitive " + v + " in " + this );
+//    } else if ( !hasChoices ) {
+//      System.out.println( "////////////////////   not picking value for empty domain for " + v + " in " + this );
+//    } else {
       System.out.println( "////////////////////   not picking value for " + v + " in " + this );
-    }
+//    }
     //Debug.turnOff();
     return false;
   }
