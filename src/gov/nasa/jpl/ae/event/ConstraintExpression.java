@@ -200,12 +200,27 @@ public class ConstraintExpression extends Expression< Boolean >
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
         //Debug.turnOn();
         //if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
-        System.out.println( "////////////////////   picking " + newValue + " for " + v + " in " + this );
        // Debug.turnOff();
-        if ( getType() == null || getType().isInstance(v) ) {
-          setValue(v, newValue);
+        if ( v.getType() != null ) {
+          try {
+            Object ooo =
+                    Expression.evaluate(newValue, v.getType(), true, false);
+            newValue = (T)ooo;
+          } catch (IllegalAccessException e) {
+            e.printStackTrace();
+          } catch (InvocationTargetException e) {
+            e.printStackTrace();
+          } catch (InstantiationException e) {
+            e.printStackTrace();
+          }
         }
-        return true;
+        if ( v.getType() == null || v.getType().isInstance(newValue) ) {
+          System.out.println(
+                  "////////////////////   picking " + newValue + " for " + v +
+                  " in " + this);
+          setValue(v, newValue);
+          return true;
+        }
       }
     }
     // TODO
