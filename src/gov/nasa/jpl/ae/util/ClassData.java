@@ -28,7 +28,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class ClassData {
+public class
+ClassData {
 
   /**
    * A struct for packaging a name, type, and value as Strings.

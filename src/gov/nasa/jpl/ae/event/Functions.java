@@ -15,6 +15,9 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.MultiDomain;
 import gov.nasa.jpl.ae.solver.ObjectDomain;
+import gov.nasa.jpl.ae.util.distributions.BooleanDistribution;
+import gov.nasa.jpl.ae.util.distributions.Distribution;
+import gov.nasa.jpl.ae.util.distributions.DistributionHelper;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -30,6 +33,7 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Zero;
 import gov.nasa.jpl.mbee.util.Wraps;
+import org.apache.commons.math3.distribution.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -4715,6 +4719,8 @@ public class Functions {
     } else if ( tvm2 != null ) {
       tvm = true;
       tvmResult = compare( r1, tvm2, Inequality.EQ );
+    } else if (DistributionHelper.isDistribution(r1) || DistributionHelper.isDistribution(r2)) {
+      return eqDistribution(o1, o2);
     }
     if (tvm) {
       boolean allSame = tvmResult.allValuesSame();
@@ -4734,13 +4740,21 @@ public class Functions {
         return false;
       }
     }
-    
-    
     return eq( r1, r2 );
   }
 
-  protected static < T > Boolean eq( T r1, T r2 ) {
-    if ( Expression.valuesEqual( r1, r2, null, true, true ) ) return true;
+  protected static BooleanDistribution eqDistribution(Object o1, Object o2){
+    boolean isDist1 = DistributionHelper.isDistribution(o1);
+    boolean isDist2 = DistributionHelper.isDistribution(o2);
+    BooleanDistribution b = null;
+    if (isDist1 || isDist2) {
+      b = DistributionHelper.equals(o1,o2);
+    }
+    return b;
+  }
+
+  protected static <T> Boolean eq( T r1, T r2 ) {
+    if ( Expression.valuesEqual( r1, r2, null, true, true )) return true;
     if ( Utils.valuesLooselyEqual( r1, r2, true ) ) return true;
     if ( r1 == null || r2 == null ) return false;
     boolean b = false;
@@ -5901,9 +5915,9 @@ public class Functions {
   }
 
   // delete this function
-  private static < T, T1 > T1 pickValueBB( BooleanBinary< T > booleanBinary,
-                                           Variable< T1 > variable ) {
-    T1 newValue = pickValueBF( booleanBinary, // .functionCall,
+  private static <T, T1> T1 pickValueBB( BooleanBinary< T > booleanBinary,
+                                         Variable< T1 > variable ) {
+    T1 newValue = pickValueBF( booleanBinary,//.functionCall,
                                variable );
     return newValue;
   }
@@ -6086,7 +6100,5 @@ public class Functions {
     }
 
     // TODO -- Add tests for overflow!!
-
   }
-
 }

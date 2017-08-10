@@ -266,8 +266,14 @@ public class JavaForFunctionCall {
     String fcnCallStr = null;
     String callTypeName = getCallTypeName();
     String instance = getObject();
-    if ( isStatic() ) {
-      instance = "null";
+    try {
+      if (isStatic()) {
+        instance = "null";
+      } else if (instance != null && Package.getPackage(instance) != null) {
+        instance = "null";
+      }
+    } catch(Exception e){
+      if(Debug.isOn() ) Debug.outln(e.getMessage());
     }
     fcnCallStr =
         "new " + callTypeName + "( " + instance + ", " + getMethodJava() + ", "
