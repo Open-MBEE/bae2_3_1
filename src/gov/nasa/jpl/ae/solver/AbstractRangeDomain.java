@@ -48,7 +48,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
    * values less than the upper bound (that are within the lower bound).
    */
   protected boolean upperIncluded;
-  protected boolean nullInDomain = false;
+  public boolean nullInDomain = false;
   
   //protected DomainListener owner;  // REVIEW ??
   //protected static Object typeMinValue;
@@ -1174,8 +1174,9 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean isNullInDomain() {
     return nullInDomain;
   }
-  public void setNullInDomain( boolean b ) {
+  public boolean setNullInDomain( boolean b ) {
     nullInDomain = b;
+    return true;
   }
 
   @Override

@@ -56,7 +56,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public static boolean mayChange = true;
 
   protected String name = null;
-  private Domain< T > domain = null;
+  public Domain< T > domain = null;
   protected T value = null;
   protected ParameterListener owner = null; // REVIEW -- Only one listener!
   protected boolean stale;

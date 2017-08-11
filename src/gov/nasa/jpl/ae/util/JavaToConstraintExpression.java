@@ -1734,9 +1734,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           // treat as a member
           if ( parentExpr.expression instanceof Parameter ) {
             functionCall =
-                new FunctionCall( parentExpr.expression, Parameter.class,
-                                  "getMember",
-                                  new Object[] { "" + fieldAccessExpr.getField(), true }, (Class<?>)null );
+                new Functions.GetMember<>(parentExpr.expression, "" + fieldAccessExpr.getField() );
+//                new FunctionCall( parentExpr.expression, Parameter.class,
+//                                  "getMember",
+//                                  new Object[] { "" + fieldAccessExpr.getField(), true }, (Class<?>)null );
           } else if ( parentExpr.expression instanceof Class ) {
             functionCall =
                 new FunctionCall( null, ClassUtils.class,
@@ -1826,9 +1827,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     String aeString;
     if ( wrapInFunction ) {
       aeString =
-          "new FunctionCall(" + parentString
-              + ", Parameter.class, \"getMember\", " + "new Object[]{\""
-              + fieldAccessExpr.getField() + "\"})";
+              "new Functions.GetMember(" + parentString + ", \""
+              + fieldAccessExpr.getField() + "\")";
+//          "new FunctionCall(" + parentString
+//              + ", Parameter.class, \"getMember\", " + "new Object[]{\""
+//              + fieldAccessExpr.getField() + "\"})";
     } else {
       aeString = parentString + "." + fieldAccessExpr.getField();
     }
