@@ -1711,6 +1711,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         Debug.error( true, "Warning: trying to insert a value with a null owner into the map--may be detached!" );
       }
     }
+
+    // Sometimes the time value is a
+    t = fixTimepoint(t);
+
     V oldValue = null;
     Parameter< Long> tp = keyForValueAt( value, t );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -1774,6 +1778,26 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( Debug.isOn() ) Debug.outln( getName() + "setValue(" + t + ", " + value
                                      + ") returning oldValue=" + oldValue );
     return oldValue;
+  }
+
+  // Change non-Long timepoint value to Long
+  public static Parameter<Long> fixTimepoint( Object tp ) {
+    if ( tp instanceof Parameter ) {
+      Object val = ((Parameter<?>) tp).getValueNoPropagate();
+      if ( val instanceof Long ) {
+        return (Parameter< Long >)tp;
+      } else if (val instanceof Integer) {
+        try {
+          Long l = Expression.evaluate( val, Long.class, false );
+          ((Parameter) tp).setValue(l);
+        } catch ( ClassCastException e ) {
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+      }
+    }
+    return (Parameter< Long >)tp;
   }
 
   /**
