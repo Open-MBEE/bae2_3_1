@@ -398,7 +398,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
           for ( Constraint c : constraintList ) {
             if ( c instanceof ConstraintExpression
                  && ( (ConstraintExpression)c ).expression instanceof Call ) {
-              ((Call)((ConstraintExpression)c).expression).setStale(true);
+              ((Call)((ConstraintExpression)c).expression).setStaleAnyReferencesTo(this, null);
             //.setStale( true );
             }
           }
