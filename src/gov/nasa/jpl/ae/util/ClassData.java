@@ -18,15 +18,11 @@ import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ConstructorDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.body.TypeDeclaration;
+import japa.parser.ast.type.ClassOrInterfaceType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 public class
 ClassData {
@@ -719,6 +715,23 @@ ClassData {
         }
       }
     }
+
+    if ( p == null ) {
+      ClassOrInterfaceDeclaration clsDecl = this.getClassDeclaration(className);
+      if ( clsDecl != null ) {
+        List<ClassOrInterfaceType> superclasses =
+                clsDecl.getExtends();
+        if ( superclasses != null ) {
+          for (ClassOrInterfaceType ciType : superclasses) {
+            String superclassName = ciType.toString();
+            p = lookupMemberByName( superclassName, paramName, lookOutsideClassData,
+                                        complainIfNotFound && lookOutsideClassData );
+            if ( p != null ) break;
+          }
+        }
+      }
+    }
+
     if ( Debug.isOn() ) Debug.outln( "lookupMemberByName( className="
                                      + className + ", paramName=" + paramName
                                      + ") returning " + p );
