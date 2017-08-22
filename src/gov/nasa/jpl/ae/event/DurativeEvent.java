@@ -75,7 +75,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
   protected List< Pair< Parameter< ? >, Set< Effect > > > effects =
       new ArrayList< Pair< Parameter< ? >, Set< Effect > > >();
   protected Map< ElaborationRule, Vector< Event > > elaborations =
-      new HashMap< ElaborationRule, Vector< Event > >();
+      new TreeMap<>();
 
   protected Dependency startTimeDependency = null;
 
@@ -95,6 +95,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
               Utils.seen( this, deep, seen );
           if ( pair.first ) return true;
           seen = pair.second;
+          System.out.println(getName() + ".elaborationsConstraint.satisfy()");
+          System.out.println(getName() + ".elaborations.size() = " + elaborations.size());
+          //System.out.println(getName() + ".elaborations = " + elaborations);
           boolean satisfied = true;
           if ( !DurativeEvent.this.startTime.isGrounded( deep,
                                                          null ) ) return false;
@@ -1808,17 +1811,23 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
                              Map<String, Expression<?>> argumentMap
                              //Expression< ? >... arguments
                              ) {
-    //TODO
-    if (condition == null) {
-      condition = new Expression<Boolean>(true);
+        System.out.println(
+                "VVVVVVVVVVVVVVVVVVVVVVVV   " + name + ".elaborates(" + eventClass.getSimpleName() + ", " +
+                (fromTimeVarying == null ? "null" :
+                 ClassUtils.getName(fromTimeVarying)) + ", " +
+                argumentMap.toString() + ")");
+        if (condition == null) {
+            condition = new Expression<Boolean>(true);
+        }
+
+        Expression<?>[] arguments = Utils.toArrayOfType(argumentMap.values(), Expression.class);
+
+        addElaborationRule(condition, enclosingInstance, eventClass,
+                           eventClass == null ? "event" :
+                           eventClass.getSimpleName(), arguments,
+                           fromTimeVarying);
+        return true;
     }
-
-    Expression<?>[] arguments = Utils.toArrayOfType(argumentMap.values(), Expression.class);
-
-    addElaborationRule( condition, enclosingInstance, eventClass, "HELLO", arguments, fromTimeVarying );
-    return true;
-    
-  }
 
   // Create an ElaborationRule for constructing an eventClass with
   // constructorParamTypes.
@@ -1842,6 +1851,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     Vector< Event > eventVector = new Vector< Event >();
     ElaborationRule elaborationRule =
         new ElaborationRule( condition, invocation );
+
+    if ( elaborations.keySet().contains(elaborationRule) ) {
+        System.out.println("Tried to add same elaboration (" + elaborationRule.toString() + ") rule to elaborations for " + getName());
+        return null;
+    }
+
     elaborations.put( elaborationRule, eventVector );
     return elaborationRule;
   }

@@ -350,9 +350,12 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   
   public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-    if ( returnValue != null && !isStale() ) {// && isGrounded( propagate, null ) ) {
-      evaluationSucceeded = true;
-      return returnValue;
+    if ( returnValue != null && !isStale() ) {
+//      double r = Random.global.nextDouble();
+//      if ( false && r < 0.5 ) {// && isGrounded( propagate, null ) ) {
+        evaluationSucceeded = true;
+        return returnValue;
+//      }
     }
     returnValue = null;
 

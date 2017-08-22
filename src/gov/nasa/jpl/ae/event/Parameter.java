@@ -344,6 +344,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   // setValue( value, false ) is lazy/passive updating
   // setValue( value, true ) is proactive updating
   protected void setValue( T val, boolean propagateChange ) {
+    // FIXME -- delete debug code!
+    if ( this instanceof HasId && (((HasId) this).getId().equals( 281227 ) ) ) {//Expression.valuesEqual((Long)692811800L, val ) && "endTime".equals(name)) {
+      System.out.println(name + ".setValue( " + value + ") : " + this);
+    }
     String valString = null;
     //Debug.turnOn();
     if ( Debug.isOn() ) {
@@ -386,6 +390,10 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                      + "): changing = " + changing );
     if ( changing ) {
+      // FIXME -- delete debug code!
+      if ( this instanceof HasId && (((HasId) this).getId().equals(281227)) ) {//Expression.valuesEqual((Long)0L, val ) && "startTime".equals(name)) {
+        System.out.println("DO STUFF 0");
+      }
       if ( owner != null ) {// && propagateChange ) {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): setStaleAnyReferencesTo("
@@ -393,35 +401,48 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
         setValueOwner(val);
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this, null );
+
+        // FIXME -- delete debug code!
+        if ( Expression.valuesEqual((Long)0L, val ) && "startTime".equals(name)) {
+          System.out.println("DO STUFF 1");
+        }
+
         // set isGrounded constraint stale
-        if ( constraintList != null ) {
-          for ( Constraint c : constraintList ) {
+        Collection<Constraint> constraints = getConstraints(true, null);
+        if ( constraints != null ) {
+          for ( Constraint c : constraints ) {
+            // FIXME -- delete debug code!
+            if ( this instanceof HasId && (((HasId) this).getId().equals( 281227 ) ) ) {//Expression.valuesEqual((Long)0L, val ) && "startTime".equals(name)) {
+              System.out.println("DO STUFF " + c);
+            }
+
             if ( c instanceof ConstraintExpression
                  && ( (ConstraintExpression)c ).expression instanceof Call ) {
               ((Call)((ConstraintExpression)c).expression).setStaleAnyReferencesTo(this, null);
             //.setStale( true );
+            } else if ( c instanceof ParameterListener ) {
+              ((ParameterListener)c).setStaleAnyReferencesTo( this, null );
             }
           }
         }
-//        if (val instanceof TimeVaryingMap && ((TimeVaryingMap)val).getOwner() instanceof Parameter && "dataRateAboveThreshold".equals(((Parameter)((TimeVaryingMap)val).getOwner()).getName())) {
-//          //CompareUtils.XXXX = true;
-//          CompareUtils.compare( value, val );
-//          //CompareUtils.XXXX = false;
-//        }
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
       }
-      if ( Debug.isOn() ) {
+      //if ( Debug.isOn() ) {
         //if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
             //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
             //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
         //}
-      }
-      if ( Debug.isOn() ) {
+      //}
+      //if ( Debug.isOn() ) {
         //Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
-      }
+      //}
       System.out.println(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
+      // FIXME -- delete debug code!
+      if ( this instanceof HasId && (((HasId) this).getId().equals( 281227 ) ) ) {//Expression.valuesEqual((Long)0L, val ) && "startTime".equals(name)) {
+        System.out.println("setting " + val + " to " + this);
+      }
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );

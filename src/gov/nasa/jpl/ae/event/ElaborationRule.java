@@ -236,10 +236,18 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     return false;
   }
   
+  @Override
+  public boolean equals( Object o ) {
+    if ( o instanceof ElaborationRule ) {
+      int comp = compareTo((ElaborationRule)o, false);
+      return comp == 0;
+    }
+    return false;
+  }
 
   @Override
   public int compareTo( ElaborationRule o ) {
-    return compareTo( o, true );
+    return compareTo( o, false );
   }
   public int compareTo( ElaborationRule o, boolean checkId ) {
     if ( this == o ) return 0;

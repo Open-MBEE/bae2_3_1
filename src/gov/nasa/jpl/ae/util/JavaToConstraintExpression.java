@@ -1304,11 +1304,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           result =
               JavaToConstraintExpression.operatorResultType( ue.getOperator(),
                                   astToAeExprType( ue.getExpr(), specifier, lookOutsideClassData, complainIfNotFound ) );
-      } else if ( expr.getClass() == ConditionalExpr.class ) {
-        ConditionalExpr be = ( (ConditionalExpr)expr );
-        result =
-            ClassUtils.dominantType( astToAeExprType( be.getThenExpr(), specifier, lookOutsideClassData, complainIfNotFound ),
-                          astToAeExprType( be.getElseExpr(), specifier, lookOutsideClassData, complainIfNotFound ) );
       } else if ( expr.getClass() == EnclosedExpr.class ) {
           result = astToAeExprType( ( (EnclosedExpr)expr ).getInner(), specifier, lookOutsideClassData, complainIfNotFound );
       } else if ( expr.getClass() == MethodCallExpr.class ) {

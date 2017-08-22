@@ -2414,13 +2414,25 @@ public class EventXmlToJava {
   
   public File[] getJavaFiles( String javaPath, boolean sourceOrClass,
                               boolean justCurrentClasses ) {
+      return getJavaFiles(javaPath, sourceOrClass, getPackageName(), justCurrentClasses, getClassData());
+  }
+  public static File[] getJavaFiles( String javaPath, boolean sourceOrClass,
+                                     String packageName,
+                                     boolean justCurrentClasses,
+                                     ClassData classData ) {
     File[] fileArr = null;
-    File path = new File(javaPath);
-    if ( javaPath == null ) {
-      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + this.packageName;
+    File path = null;
+    try {
+      if ( javaPath != null ) {
+        path = new File(javaPath);
+      }
+    } catch (Throwable t) {
+    }
+    if ( javaPath == null || path == null || !path.exists()) {
+      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + packageName;
       File path2 = new File(javaPath);
       if ( !path2.exists() && !sourceOrClass ) {
-        javaPath = "src" + File.separator + this.packageName;
+        javaPath = "src" + File.separator + packageName;
         path2 = new File(javaPath);
       }
       if ( path2.exists() ) {
@@ -2446,10 +2458,10 @@ public class EventXmlToJava {
       return fileArr;
     }
 
-    fileArr = new File[ getClassData().getClasses().size() ];
-    if ( !getClassData().getClasses().isEmpty() ) {
+    fileArr = new File[ classData.getClasses().size() ];
+    if ( !classData.getClasses().isEmpty() ) {
       int ctr = 0;
-      for ( String clsName : getClassData().getClasses().keySet() ) {
+      for ( String clsName : classData.getClasses().keySet() ) {
         String filePathName =
             javaPath.trim() + File.separator + clsName
                 + ( sourceOrClass ? ".java" : ".class" );
@@ -2460,8 +2472,16 @@ public class EventXmlToJava {
   }
   
   public boolean compileJavaFiles( String javaPath ) {
-    File[] fileArr = getJavaFiles( javaPath, true, true );//path.listFiles();
-    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true, false );
+    return compileJavaFiles(javaPath, getPackageName(), getClassData(), getFileManager());
+  }
+  public static boolean compileJavaFiles( String javaPath,
+                                          String packageName,
+                                          ClassData classData,
+                                          StandardJavaFileManager fileManager ) {
+    File[] fileArr = getJavaFiles( javaPath, true, packageName, true, classData);//path.listFiles();
+    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true,
+                                                       packageName, false,
+                                                       classData );
     System.out.println( "java.home = " + System.getProperty( "java.home" ) );
     //System.setProperty( "java.home", "C:\\Program Files\\Java\\jdk1.6.0_35");
     //System.out.println( "java.home = " + System.getProperty( "java.home" ) );
@@ -2469,7 +2489,7 @@ public class EventXmlToJava {
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): about to get compilationUnits/java file objects for: "
                         + Utils.toString(fileArr) );
-    if ( getFileManager() == null ) {
+    if ( fileManager == null ) {
       System.err.println( "No StandardJavaFileManager to compile Java classes." );
       return false;
     }
@@ -2487,21 +2507,29 @@ public class EventXmlToJava {
                         "): compilation success=" + succ );
     return succ;
   }
-  
+
   public boolean loadClasses( String javaPath, String packageName ) {
+    return loadClasses(javaPath, packageName, mainClass, getClassData(), getLoader());
+
+  }
+  public static boolean loadClasses( String javaPath, String packageName,
+                                     Class<?> mainClass, ClassData classData,
+                                     ClassLoader classLoader ) {
     boolean succ = true;
     File path = new File(javaPath);
     assert path.exists();
     File[] fileArr = null;
-    fileArr = getJavaFiles( javaPath, false, true );//path.listFiles();
-    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, false, false );
+    fileArr = getJavaFiles( javaPath, false, packageName, true, classData );//path.listFiles();
+    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, false,
+                                                       packageName, false,
+                                                       classData );
     //loader = getClass().getClassLoader();//fileManager.getClassLoader(null);
     for ( File f : fileArr ) {
       int pos = f.getName().lastIndexOf( '.' );
       if ( pos == -1 ) pos = f.getName().length();
       String className = packageName + '.' + f.getName().substring( 0, pos );
       try {
-        Class<?> cls = getLoader().loadClass( className );
+        Class<?> cls = classLoader.loadClass( className );
         System.out.println( "loadClasses(" + javaPath + ", " + packageName +
                             "): loaded class: " + cls.getName() );
         try {
@@ -2524,14 +2552,17 @@ public class EventXmlToJava {
     return succ;
   }
 
-  
+
   public String getPackageSourcePath( String projectPath ) {
+    return getPackageSourcePath(projectPath, getPackageName());
+  }
+  public static String getPackageSourcePath( String projectPath, String packageName ) {
     if ( projectPath == null ) {
       projectPath = "";
     } else {
       projectPath += File.separator;
     }
-    String packagePath = getPackageName().replace( '.', File.separatorChar );
+    String packagePath = packageName.replace( '.', File.separatorChar );
     String srcPath = projectPath + "src" + File.separator + packagePath;
     return srcPath;
   }
@@ -2546,28 +2577,58 @@ public class EventXmlToJava {
     String binPath = projectPath + "bin" + File.separator + packagePath;
     return binPath;
   }
-  
+
   public boolean compileAndLoad( String projectPath ) {
-    boolean succCompile = compile( projectPath );
-    boolean succLoad = load( projectPath );
+    return compileAndLoad( projectPath, getPackageName(), mainClass,
+                           getClassData(), getLoader(), getFileManager() );
+  }
+  public static boolean compileAndLoad( String projectPath,
+                                        String packageName,
+                                        Class<?> mainClass,
+                                        ClassData classData,
+                                        ClassLoader loader,
+                                        StandardJavaFileManager fileManager ) {
+    boolean succCompile = compile( projectPath, packageName, classData, fileManager );
+    boolean succLoad = load( projectPath, packageName, mainClass, classData, loader );
     return succCompile && succLoad;
   }
 
   public boolean compile( String projectPath ) {
-    boolean succ = compileJavaFiles( getPackageSourcePath( projectPath ) );
+    return compile( projectPath, getPackageName(), getClassData(), getFileManager() );
+  }
+  public static boolean compile( String projectPath,
+                                 String packageName, ClassData classData,
+                                 StandardJavaFileManager fileManager ) {
+    boolean succ = compileJavaFiles( projectPath, packageName, classData, fileManager );
     return succ;
   }
-  
+
   public boolean load( String projectPath ) {
     boolean succLoad = loadClasses( getPackageBinPath( projectPath ),
                                     getPackageName() );
     return succLoad;
   }
-  
+  public static boolean load( String path, String packageName,
+                              Class<?> mainClass, ClassData classData,
+                              ClassLoader classLoader ) {
+    boolean succLoad = loadClasses( path, packageName, mainClass, classData,
+                                    classLoader );
+    return succLoad;
+  }
+
   public boolean compileLoadAndRun( String projectPath ) {
     boolean succ = compileAndLoad( projectPath );
     if ( !succ ) return false;
-    return runMain(); 
+    return runMain();
+  }
+  public static boolean compileLoadAndRun( String projectPath, String packageName,
+                                           Class<?> mainClass, ClassData classData,
+                                           ClassLoader loader,
+                                           StandardJavaFileManager fileManager) {
+    boolean succ = compileAndLoad(projectPath, packageName, mainClass, classData,
+                                  loader, fileManager);
+    if ( !succ ) return false;
+    return runMain(loader, mainClass);
   }
 
   public Class<?> getMainClass() {
@@ -2606,6 +2667,10 @@ public class EventXmlToJava {
    * @return whether the invocation was successful.
    */
   public boolean runMain() {
+    return runMain( getLoader(), getMainClass() );
+  }
+
+  public static boolean runMain(ClassLoader loader, Class<?> mainClass) {
     boolean succ = false;
 //        //Class<?> cls = Utils.getClassForName( "Main", getPackageName(), true );
 //        Class< ? > cls;
@@ -2620,9 +2685,9 @@ public class EventXmlToJava {
 //          }
 //        }
     String args[] = new String[] { null };
-    Utils.loader = getLoader();
+    Utils.loader = loader;
     Pair< Boolean, Object > p =
-        ClassUtils.runMethod( false, getMainClass(), "main", (Object[])args );
+        ClassUtils.runMethod( false, mainClass, "main", (Object[])args );
     return p.first;
   }
 
