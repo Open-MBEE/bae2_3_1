@@ -769,7 +769,13 @@ ClassData {
    */
   public String getEnclosingClassName( String className ) {
       if ( className == null ) return null;
-      String enclosingClassName = nestedToEnclosingClassNames.get( className ); 
+      String[] parsedNames;
+      String enclosingClassName;
+//      if (className.contains(".")) {
+//        parsedNames = className.split("[.]");
+//        className = parsedNames.length > 0 ? parsedNames[parsedNames.length - 1] : parsedNames[0];
+//      }
+      enclosingClassName = nestedToEnclosingClassNames.get( className );
       if ( !Utils.isNullOrEmpty( enclosingClassName ) ) {
         if ( Debug.isOn() ) Debug.outln( "getEnclosingClassName(" + className + ") = "
                      + enclosingClassName );

@@ -8,6 +8,21 @@ import org.apache.commons.math3.distribution.*;
 /**
  * Created by dank on 6/29/17.
  */
+/*
+TODO: Given a pseudo fixed rate, go through the variables and calculate the rate
+Delay until next fault will be variables in K
+
+Fixed size array, not worrying about more than 100 faults
+
+Need to program a function called:
+    - plus
+    - minus
+    - integrate
+(df1) Duration from fault is the sample
+
+tf1 = 0 + df1
+tf2 = tf1 + df2
+ */
 public class DistributionHelper {
     // Anonymous class
 
@@ -30,21 +45,6 @@ public class DistributionHelper {
      * @return
      */
     public static BooleanDistribution equals(Object o1, Object o2) {
-        /*
-        TODO: Given a pseudo fixed rate, go through the variables and calculate the rate
-        Delay until next fault will be variables in K
-
-        Fixed size array, not worrying about more than 100 faults
-
-        Need to program a function called:
-            - plus
-            - minus
-            - integrate
-        (df1) Duration from fault is the sample
-
-        tf1 = 0 + df1
-        tf2 = tf1 + df2
-         */
 
         BooleanDistribution d = null;
         if (o1 instanceof IntegerDistribution) {
@@ -145,6 +145,18 @@ public class DistributionHelper {
         return equals(o1, o2).getProbabilityOfSuccess();
         //        return 1.2;
     }
+
+
+    public static Distribution negative(Distribution d ) {
+        if(d == null) return null;
+        if(d instanceof NormalDistribution){
+            double mu = ((NormalDistribution) d).getMean();
+            double sigma = ((NormalDistribution) d).getStandardDeviation();
+            return new Normal(-mu,sigma);
+        }
+        return null;
+    }
+
 
     public static void main(String args[]) {
         test();
