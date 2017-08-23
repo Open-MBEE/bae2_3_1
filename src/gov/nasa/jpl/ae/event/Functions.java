@@ -2668,6 +2668,7 @@ public class Functions {
     } catch ( ClassCastException e ) {
       e.printStackTrace();
     }
+
     if ( r instanceof Parameter ) {
       r = ( (Parameter< T >)r ).getValue( true );
     }
@@ -2678,7 +2679,14 @@ public class Functions {
       return ( (TimeVaryingMap< T >)r ).negative();
       // return negative( (TimeVaryingMap<T>)r );
     }
+//    if ( r instanceof Distribution ) {
+//      return negative((Distribution)r);
+//    }
     return null;
+  }
+
+  public static Distribution negative ( Distribution d ) {
+    return DistributionHelper.negative(d);
   }
 
   public static class Neg< T > extends Unary< T, T > {
