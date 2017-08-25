@@ -38,16 +38,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.Math;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -2292,6 +2284,22 @@ public class EventXmlToJava {
     return packageName;
   }
 
+  public static String[] getPackagesFromJava( ClassData classData ) {
+    LinkedHashSet<String> list = new LinkedHashSet<String>();
+    Map<String, CompilationUnit> classes = classData.getClasses();
+    for ( Entry< String, CompilationUnit > e : classes.entrySet() ) {
+      CompilationUnit cu = e.getValue();
+      if ( cu == null ) continue;
+      if ( cu.getPackage() == null ) continue;
+      String pkgName = cu.getPackage().getName().toString();
+      if ( Utils.isNullOrEmpty( pkgName ) ) continue;
+      list.add( pkgName );
+    }
+    String[] arr = new String[ list.size() ];
+    list.toArray( arr );
+    return arr;
+  }
+
   /**
    * @param packageName the packageName to set
    */
@@ -2301,22 +2309,225 @@ public class EventXmlToJava {
   }
 
   public void writeJavaFile( String fileName ) throws IOException {
+    writeJavaFile( fileName, getClassData() );
+
+  }
+  public static void writeJavaFile( String fileName, ClassData classData ) throws IOException {
     File f = new File( fileName );
     FileWriter w = new FileWriter( f );
-    w.write( getClassData().getCurrentCompilationUnit().toString() );
+    w.write( classData.getCurrentCompilationUnit().toString() );
     w.close();
   }
 
-  public void writeJavaFiles( String javaPath ) throws IOException {
-    for ( Entry< String, CompilationUnit > e : getClassData().getClasses().entrySet() ) {
-      getClassData().setCurrentClass( e.getKey() );
-      getClassData().setCurrentCompilationUnit( e.getValue() );
+  public ArrayList<String> writeJavaFiles( String javaPath ) throws IOException {
+    return writeJavaFiles( javaPath, getClassData() );
+  }
+  public static ArrayList<String> writeJavaFiles( String javaPath, ClassData classData ) throws IOException {
+    ArrayList<String> javaFiles = new ArrayList<String>();
+    Map<String, CompilationUnit> classes = classData.getClasses();
+    for ( Entry< String, CompilationUnit > e : classes.entrySet() ) {
+      classData.setCurrentClass( e.getKey() );
+      CompilationUnit cu = e.getValue();
+      if ( cu == null ) {
+        Debug.error("No compilation unit to write out! " + e.getKey() );
+        continue;
+      }
+      classData.setCurrentCompilationUnit( cu );
+      String newJavaPath = javaPath;
+      if ( cu.getPackage() != null ) {
+        String pkgName = cu.getPackage().getName().toString();
+        if ( !Utils.isNullOrEmpty( pkgName ) ) {
+          newJavaPath = convertPathToPackage( javaPath.trim(), pkgName.trim() );
+        }
+      }
+      File f = new File(newJavaPath.trim());
+      if ( !f.exists() ) {
+        try {
+          f.mkdirs();
+        } catch (Throwable t) {
+          t.printStackTrace();
+        }
+      }
       String fileName =
-          ( javaPath.trim() + File.separator + e.getKey() + ".java" );
-      writeJavaFile( fileName );
-      if ( Debug.isOn() ) Debug.outln( "wrote compilation unit to file " + fileName );
+              ( newJavaPath.trim() + File.separator + e.getKey() + ".java" );
+      writeJavaFile( fileName, classData );
+      javaFiles.add(fileName);
+      if ( Debug.isOn() ) Debug.outln( "wrote compilation unit to file "
+                                       + fileName );
+      System.out.println( "wrote compilation unit to file " + fileName );
+    }
+    return javaFiles;
+  }
+
+  public static String convertPathToPackage( String filePath, String packageName ) {
+    String newPath = filePath;
+    if (filePath.startsWith("src")) {
+      newPath = "src";
+    } else {
+      newPath = filePath.replaceFirst(
+              "([^A-Za-z_0-9-])src[^A-Za-z_0-9-]?.*", "$1src");
+    }
+    newPath = newPath + File.separatorChar + packageName.replaceAll("[.]", File.separator);
+    return newPath;
+  }
+
+  public static String packagePath( String pathName, String packageName ) {
+    return packagePath( pathName, packageName, true );
+  }
+  public static String packagePath( String pathString, String packageName, boolean srcOrBin ) {
+    String pathName = pathString;
+    File path = null;
+    if ( !Utils.isNullOrEmpty(pathName) ) {
+      path = new File(pathName);
+    }
+    String srcOrBinStr = srcOrBin ? "src" : "bin";
+    if ( path == null || !path.exists() ) {
+      if ( pathName == null ) {
+        pathName = srcOrBinStr;
+      }
+      if ( pathName.contains(srcOrBinStr) ) {
+        if (!pathName.endsWith("src")) {
+          if (pathName.startsWith("src")) {
+            pathName = "src";
+          } else {
+            pathName =
+                    pathName.replaceFirst(File.separator + srcOrBinStr + ".*",
+                                          File.separator + srcOrBinStr);
+          }
+        }
+      } else {
+        // Can't find an alternative for missing file.
+      }
+      if ( pathName == null ) {
+        pathName = "";
+      }
+      path = new File(pathName);
+    }
+
+    String packageSubpathName = packageName.replaceAll("[.]", File.separator);
+    String pathPrefix = Utils.isNullOrEmpty( pathName ) ? "" : pathName + File.separatorChar;
+    String packagePathName = pathPrefix + packageSubpathName;
+    File packagePath = new File( packagePathName );
+    if ( packagePath.exists() ) {
+      return packagePathName;
+    }
+
+    String pathPrefix2 = Utils.isNullOrEmpty( pathString ) ? "" : pathString + File.separatorChar;
+    String packagePathName2 = pathPrefix2 + packageSubpathName;
+    File packagePath2 = new File( packagePathName2 );
+    if ( packagePath2.exists() ) {
+      return packagePathName2;
+    }
+    return packagePathName;
+  }
+
+  public static void deleteOldFiles( String pathString, String packageName, ClassData classData ) {
+    // Delete old Java and class files.
+    String pathName = pathString == null ? "" : pathString;
+    pathName = packagePath(pathName, "", true);
+    String packagePathName = packagePath(pathName, packageName);
+    //File path = new File(pathName);
+    File packageFile = new File( packagePathName );
+    File[] files = EventXmlToJava.getJavaFileList(packageFile);
+    Debug.outln("Deleting old .java files in "
+                + packageFile.getAbsolutePath() + ": "
+                + Utils.toString(files));
+    EventXmlToJava.deleteFiles(files);
+    files = getJavaFiles(packagePathName, false, packageName, false, classData);
+    Debug.outln("Deleting old .class files in " + packagePathName + ": " + Utils.toString(files));
+    EventXmlToJava.deleteFiles(files);
+    String binDir = packagePath(pathString, "", false);
+            //packagePath(pathName, packageName, false);
+//            targetDirectoryFile.getAbsolutePath()
+//                    .replaceFirst("([^a-zA-Z])src([^a-zA-Z])",
+//                                  "\\1bin\\2");
+    files = getJavaFiles(binDir, false, packageName, false, classData);
+    Debug.outln("Deleting old .class files in "
+                + binDir + ": " + Utils.toString(files));
+    EventXmlToJava.deleteFiles(files);
+  }
+
+
+  public static void mkdirs( String targetDirectory ) {
+    File targetDirectoryFile = new File( targetDirectory );
+    if ( !targetDirectoryFile.exists() ) {
+      if ( !targetDirectoryFile.mkdirs() ) {
+        System.err.println( "Error! Unable to make package directory: "
+                            + targetDirectoryFile.getAbsolutePath() );
+      }
+    } else {
+      assert targetDirectoryFile.isDirectory();
     }
   }
+
+  // TODO -- move to Utils
+  public static String longestCommonPrefix( String[] strings ) {
+    if ( strings == null || strings.length == 0 ) return null;
+    String s = strings[0];
+    for ( int i = 1; i < strings.length; ++i ) {
+      int j = 0;
+      String s2 = strings[i];
+      if ( s2 == null ) continue;
+      while ( j < s.length() && j < s2.length() && s2.charAt(j) == s.charAt(j) ) ++j;
+      if ( j == 0 ) return "";
+      s = s.substring(0, j);
+    }
+    return s;
+  }
+
+  public ArrayList<String> writeFiles(String directory, String packageName) {
+    return writeFiles(getClassData(), directory, packageName );
+  }
+  public static ArrayList<String> writeFiles(ClassData classData,//   EventXmlToJava translator,
+                                             String directory, String packageName) {
+    if ( classData == null ) return null;
+    // Figure out where to write the files
+    String targetDirectory = EventXmlToJava.getPackageSourcePath( null, packageName );
+    if ( targetDirectory == null ) {
+      if ( directory == null ) {
+        targetDirectory = packageName;
+      } else {
+        targetDirectory = directory + File.separator + packageName;
+      }
+    }
+
+    // Create the directory for the package where the files will be written
+    // and see if the directory exists.
+    mkdirs(targetDirectory);
+
+    // Delete old Java and class files.
+    deleteOldFiles(targetDirectory, packageName, classData);
+
+    // Now make dirs and delete files for packages specified in input Java.
+    String[] packages = EventXmlToJava.getPackagesFromJava(classData);
+    if ( packages != null ) {
+      for (String pkg : packages) {
+        String target = packagePath(directory, pkg);
+        mkdirs(target);
+        deleteOldFiles(directory, pkg, classData);
+      }
+
+      // Choose a different place to write the files based on the packages.
+      String commonDir = longestCommonPrefix(packages);
+      if ( !Utils.isNullOrEmpty(commonDir) && !commonDir.equals(File.separator) ) {
+        String newTarget = packagePath(directory, commonDir);
+        if ( Utils.isNullOrEmpty(targetDirectory) || !FileUtils.exists(targetDirectory) || FileUtils.exists(newTarget) ) {
+          targetDirectory = newTarget;
+        }
+      }
+    }
+
+    ArrayList<String> files = null;
+    // Now write the files.
+    try {
+      files = EventXmlToJava.writeJavaFiles( targetDirectory, classData );
+    } catch ( IOException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return files;
+  }
+
 
   public static List< String > getClassNamesFromJARFile( String jar,
                                                          String packageName ) {
@@ -2422,23 +2633,26 @@ public class EventXmlToJava {
                                      ClassData classData ) {
     File[] fileArr = null;
     File path = null;
-    try {
-      if ( javaPath != null ) {
-        path = new File(javaPath);
-      }
-    } catch (Throwable t) {
-    }
-    if ( javaPath == null || path == null || !path.exists()) {
-      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + packageName;
-      File path2 = new File(javaPath);
-      if ( !path2.exists() && !sourceOrClass ) {
-        javaPath = "src" + File.separator + packageName;
-        path2 = new File(javaPath);
-      }
-      if ( path2.exists() ) {
-        path = path2;
-      }
-    }
+//    try {
+//      if ( javaPath != null ) {
+//        path = new File(javaPath);
+//      }
+//    } catch (Throwable t) {
+//    }
+//    if ( javaPath == null || path == null || !path.exists()) {
+//      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + packageName;
+//      File path2 = new File(javaPath);
+//      if ( !path2.exists() && !sourceOrClass ) {
+//        javaPath = "src" + File.separator + packageName;
+//        path2 = new File(javaPath);
+//      }
+//      if ( path2.exists() ) {
+//        path = path2;
+//      }
+//    }
+    String pathName = packagePath(javaPath, packageName, sourceOrClass);
+    if ( pathName == null ) return null;
+    path = new File( pathName );
     assert path.exists();
     if ( !justCurrentClasses ) {
       fileArr = getJavaFileList( path );
@@ -2463,7 +2677,7 @@ public class EventXmlToJava {
       int ctr = 0;
       for ( String clsName : classData.getClasses().keySet() ) {
         String filePathName =
-            javaPath.trim() + File.separator + clsName
+            pathName.trim() + File.separator + clsName
                 + ( sourceOrClass ? ".java" : ".class" );
         fileArr[ ctr++ ] = new File( filePathName );
       }
@@ -2472,9 +2686,10 @@ public class EventXmlToJava {
   }
   
   public boolean compileJavaFiles( String javaPath ) {
-    return compileJavaFiles(javaPath, getPackageName(), getClassData(), getFileManager());
+    return compileJavaFiles(null, javaPath, getPackageName(), getClassData(), getFileManager());
   }
-  public static boolean compileJavaFiles( String javaPath,
+  public static boolean compileJavaFiles( ArrayList<String> javaFiles,
+                                          String javaPath,
                                           String packageName,
                                           ClassData classData,
                                           StandardJavaFileManager fileManager ) {
@@ -2493,8 +2708,23 @@ public class EventXmlToJava {
       System.err.println( "No StandardJavaFileManager to compile Java classes." );
       return false;
     }
+
+    ArrayList<File> files = new ArrayList<File>();
+    for ( String fs : javaFiles ) {
+      File ff = new File( fs );
+      if ( ff.exists() ) {
+        files.add( ff );
+      }
+    }
+    if ( fileArr != null ) {
+      for ( File ff : fileArr ) {
+        if ( ff.exists() ) {
+          files.add( ff );
+        }
+      }
+    }
     Iterable<? extends JavaFileObject> compilationUnits =
-        fileManager.getJavaFileObjectsFromFiles(Arrays.asList(fileArr));
+        fileManager.getJavaFileObjectsFromFiles(files);
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): got compilationUnits as java file objects: "
                         + compilationUnits );
@@ -2509,13 +2739,18 @@ public class EventXmlToJava {
   }
 
   public boolean loadClasses( String javaPath, String packageName ) {
-    return loadClasses(javaPath, packageName, mainClass, getClassData(), getLoader());
+    return loadClasses(null, javaPath, packageName, mainClass, getClassData(), getLoader());
 
   }
-  public static boolean loadClasses( String javaPath, String packageName,
-                                     Class<?> mainClass, ClassData classData,
-                                     ClassLoader classLoader ) {
+  public static boolean loadClasses(
+          ArrayList<String> javaFiles, String javaPath,
+          String packageName,
+          Class<?> mainClass, ClassData classData,
+          ClassLoader classLoader) {
     boolean succ = true;
+    if ( javaPath == null ) {
+      javaPath = "";
+    }
     File path = new File(javaPath);
     assert path.exists();
     File[] fileArr = null;
@@ -2523,8 +2758,24 @@ public class EventXmlToJava {
     if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, false,
                                                        packageName, false,
                                                        classData );
+    ArrayList<File> files = new ArrayList<File>();
+    for ( String fs : javaFiles ) {
+      fs = fs.endsWith(".java") ? fs.substring(0, fs.length() - ".java".length() ) + ".class" : fs;
+      File ff = new File( fs );
+      if ( ff.exists() ) {
+        files.add( ff );
+      }
+    }
+    if ( fileArr != null ) {
+      for ( File ff : fileArr ) {
+        if ( ff.exists() ) {
+          files.add( ff );
+        }
+      }
+    }
+
     //loader = getClass().getClassLoader();//fileManager.getClassLoader(null);
-    for ( File f : fileArr ) {
+    for ( File f : files ) {
       int pos = f.getName().lastIndexOf( '.' );
       if ( pos == -1 ) pos = f.getName().length();
       String className = packageName + '.' + f.getName().substring( 0, pos );
@@ -2557,49 +2808,52 @@ public class EventXmlToJava {
     return getPackageSourcePath(projectPath, getPackageName());
   }
   public static String getPackageSourcePath( String projectPath, String packageName ) {
-    if ( projectPath == null ) {
-      projectPath = "";
-    } else {
-      projectPath += File.separator;
-    }
-    String packagePath = packageName.replace( '.', File.separatorChar );
-    String srcPath = projectPath + "src" + File.separator + packagePath;
-    return srcPath;
+    return packagePath(projectPath, packageName);
+//    if ( projectPath == null ) {
+//      projectPath = "";
+//    } else {
+//      projectPath += File.separator;
+//    }
+//    String packagePath = packageName.replace( '.', File.separatorChar );
+//    String srcPath = projectPath + "src" + File.separator + packagePath;
+//    return srcPath;
   }
   
   public String getPackageBinPath( String projectPath ) {
-    if ( projectPath == null ) {
-      projectPath = "";
-    } else {
-      projectPath += File.separator;
-    }
-    String packagePath = getPackageName().replace( '.', File.separatorChar );
-    String binPath = projectPath + "bin" + File.separator + packagePath;
-    return binPath;
+    return packagePath(projectPath, getPackageName(), false);
+//    if ( projectPath == null ) {
+//      projectPath = "";
+//    } else {
+//      projectPath += File.separator;
+//    }
+//    String packagePath = getPackageName().replace( '.', File.separatorChar );
+//    String binPath = projectPath + "bin" + File.separator + packagePath;
+//    return binPath;
   }
 
   public boolean compileAndLoad( String projectPath ) {
-    return compileAndLoad( projectPath, getPackageName(), mainClass,
+    return compileAndLoad( null, projectPath, getPackageName(), mainClass,
                            getClassData(), getLoader(), getFileManager() );
   }
-  public static boolean compileAndLoad( String projectPath,
+  public static boolean compileAndLoad( ArrayList<String> javaFiles,
+                                        String projectPath,
                                         String packageName,
                                         Class<?> mainClass,
                                         ClassData classData,
                                         ClassLoader loader,
                                         StandardJavaFileManager fileManager ) {
-    boolean succCompile = compile( projectPath, packageName, classData, fileManager );
-    boolean succLoad = load( projectPath, packageName, mainClass, classData, loader );
+    boolean succCompile = compile( javaFiles, projectPath, packageName, classData, fileManager );
+    boolean succLoad = load( javaFiles, projectPath, packageName, mainClass, classData, loader );
     return succCompile && succLoad;
   }
 
   public boolean compile( String projectPath ) {
-    return compile( projectPath, getPackageName(), getClassData(), getFileManager() );
+    return compile( null, projectPath, getPackageName(), getClassData(), getFileManager() );
   }
-  public static boolean compile( String projectPath,
+  public static boolean compile( ArrayList<String> javaFiles, String projectPath,
                                  String packageName, ClassData classData,
                                  StandardJavaFileManager fileManager ) {
-    boolean succ = compileJavaFiles( projectPath, packageName, classData, fileManager );
+    boolean succ = compileJavaFiles( javaFiles, projectPath, packageName, classData, fileManager );
     return succ;
   }
 
@@ -2608,10 +2862,11 @@ public class EventXmlToJava {
                                     getPackageName() );
     return succLoad;
   }
-  public static boolean load( String path, String packageName,
-                              Class<?> mainClass, ClassData classData,
-                              ClassLoader classLoader ) {
-    boolean succLoad = loadClasses( path, packageName, mainClass, classData,
+  public static boolean load(ArrayList<String> javaFiles,
+                             String path, String packageName,
+                             Class<?> mainClass, ClassData classData,
+                             ClassLoader classLoader) {
+    boolean succLoad = loadClasses( javaFiles, path, packageName, mainClass, classData,
                                     classLoader );
     return succLoad;
   }
@@ -2625,7 +2880,14 @@ public class EventXmlToJava {
                                            Class<?> mainClass, ClassData classData,
                                            ClassLoader loader,
                                            StandardJavaFileManager fileManager) {
-    boolean succ = compileAndLoad(projectPath, packageName, mainClass, classData,
+    ArrayList<String> javaFiles = null;
+    return compileLoadAndRun(javaFiles, projectPath, packageName, mainClass, classData, loader, fileManager);
+  }
+  public static boolean compileLoadAndRun( ArrayList<String> javaFiles, String projectPath, String packageName,
+                                           Class<?> mainClass, ClassData classData,
+                                           ClassLoader loader,
+                                           StandardJavaFileManager fileManager) {
+    boolean succ = compileAndLoad(javaFiles, projectPath, packageName, mainClass, classData,
                                   loader, fileManager);
     if ( !succ ) return false;
     return runMain(loader, mainClass);
