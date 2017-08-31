@@ -57,8 +57,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.python.google.common.primitives.Bytes;
-
 //import com.panayotis.gnuplot.JavaPlot;
 
 /**
@@ -7796,7 +7794,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
           if ( equals(prevVal, value ) && equals(val, value) ) {
             totalSoFar += tp.getValue() - prevTime;
-          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Byte.class ) {
             long prevValLong = ((Number)prevVal).longValue();
             long valLong = ((Number)val).longValue();
             if ( prevValLong == valLong ) {
@@ -7859,7 +7857,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
           if ( equals(prevVal, value ) && equals(val, value) ) {
             total += tp.getValue() - prevTime;
-          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Byte.class ) {
             long prevValLong = ((Number)prevVal).longValue();
             long valLong = ((Number)val).longValue();
             if ( prevValLong == valLong ) {
