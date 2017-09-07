@@ -636,9 +636,9 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
     // Map< ElaborationRule, Vector< Event > > newElaborations =
     // new LinkedHashMap< ElaborationRule, Vector<Event> >();
 
-    ++debugCt;
-    debugToCsvFile( tvm, "dataRateAboveThreshold" + debugCt + ".csv" );
-    debugElaborationsToCsvFile();
+//    ++debugCt;
+//    debugToCsvFile( tvm, "dataRateAboveThreshold" + debugCt + ".csv" );
+//    debugElaborationsToCsvFile();
 
     ArrayList< ElaborationRule > rules;
     boolean didChange =

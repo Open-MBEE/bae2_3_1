@@ -1686,7 +1686,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     
     boolean hasParam = false;
     hasParam = HasParameters.Helper.hasParameter( getArguments(), parameter, true, null, true );
-    hasParam = hasParam || HasParameters.Helper.hasParameter( object, parameter, true, null, true );
+    hasParam = hasParam || (!isStatic() && HasParameters.Helper.hasParameter( object, parameter, true, null, true ));
     hasParam = hasParam || HasParameters.Helper.hasParameter( nestedCall, parameter, true, null, true );
     if ( hasParam || hasParameter( parameter, true, null ) ) {
       setStale(true);

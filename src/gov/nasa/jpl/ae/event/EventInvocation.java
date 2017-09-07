@@ -524,7 +524,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 
   @Override
   public int compareTo( EventInvocation o ) {
-    return compareTo( o, true );
+    return compareTo( o, false );
   }
   public int compareTo( EventInvocation o, boolean checkId ) {
     if ( this == o ) return 0;

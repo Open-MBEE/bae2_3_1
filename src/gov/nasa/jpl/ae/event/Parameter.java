@@ -577,7 +577,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     
     
-    if (domain instanceof ObjectDomain) {
+    if (value == null && domain instanceof ObjectDomain) {
      Object o = ((ObjectDomain)domain).constructObject();
      if (o != null) {
        setValue((T)o);
