@@ -6384,15 +6384,18 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return getMinOrMaxValue( isMin, null, null );
   }
   public Number getMinOrMaxValue( boolean isMin, Parameter<Long> start, Parameter<Long> end ) {
-    if ( !ClassUtils.isNumber( getType() ) ) return null;
+    if ( isEmpty() ||
+         !ClassUtils.isNumber( getType() ) ) {
+      return null;
+    }
     boolean isInt = ClassUtils.isLong( getType() );
     Long minInt = Long.MAX_VALUE;
     Double minDouble = Double.MAX_VALUE;
     long mul = isMin ? 1 : -1;
-    if ( start == null ) {
+    if ( start == null || start.getValueNoPropagate() == null) {
       start = firstKey();
     }
-    if ( end == null ) {
+    if ( end == null || end.getValueNoPropagate() == null ) {
       end = lastKey();
     }
     NavigableMap< Parameter< Long >, V > map = subMap( start, true, end, true );

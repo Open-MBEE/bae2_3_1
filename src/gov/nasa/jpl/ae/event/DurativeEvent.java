@@ -133,6 +133,10 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
             }
             elaborations.put( r, events );
           }
+//          // Mark fromTimeVarying expressions as not stale.
+//          if ( satisfied ) {
+//              if ( fromT)
+//          }
           return satisfied;
         }
 

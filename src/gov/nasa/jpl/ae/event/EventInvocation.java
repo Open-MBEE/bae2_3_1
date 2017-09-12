@@ -503,6 +503,14 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( !stale && staleness ) {
       System.out.println( "event invocation stale: " + this );
     }
+    if ( staleness == false ) {
+      // Mark fromTimeVarying expressions as not stale.
+      if ( fromTimeVarying != null ) {
+        if ( fromTimeVarying.expression instanceof Call ) {
+          ((Call) fromTimeVarying.expression).setStale(false);
+        }
+      }
+    }
     stale = staleness;
   }
 

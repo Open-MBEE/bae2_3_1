@@ -847,7 +847,16 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // if ( pair.first ) return Utils.getEmptySet();
     // seen = pair.second;
     Set< Parameter< ? > > set;
-    if ( deep || o instanceof Expression || o instanceof Call ) {
+    if ( o instanceof Expression ) {
+       Object exp = ((Expression) o).getExpression();
+       if ( exp instanceof HasParameters ) {
+         Pair<Boolean, Set<HasParameters>> pair = Utils.seen((HasParameters)exp, deep, seen);
+         if (pair.first) return Utils.getEmptySet();
+         seen = pair.second;
+       }
+       set = getMemberParameters( exp, deep, seen );
+    }
+    if ( deep || o instanceof Call ) {
       set = HasParameters.Helper.getParameters( o, deep, seen, true );
     } else {
       set = new HashSet< Parameter< ? > >();
@@ -1104,7 +1113,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   @Override
   public boolean isStale() {
-    if ( stale ) return true;
+    if ( stale ) {
+//      try {
+//        if ( Random.global.nextDouble() < 0.3 ) {
+//          evaluate(false);
+//        }
+//        return stale;
+//      } catch (IllegalAccessException e) {
+//      } catch (InvocationTargetException e) {
+//      } catch (InstantiationException e) {
+//      }
+      return true;
+    }
     if ( evaluatedArguments != null ) {
       for ( Object arg : evaluatedArguments ) {
         if ( arg instanceof LazyUpdate )  {

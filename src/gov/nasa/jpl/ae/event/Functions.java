@@ -2957,12 +2957,12 @@ public class Functions {
           AbstractRangeDomain rd1 = (AbstractRangeDomain)d1;
           AbstractRangeDomain rd2 = (AbstractRangeDomain)d2;
           if ( rd1.size() == 1 && rd2.size() == 1 && rd1.equals( rd2 ) ) {
-            System.out.println( "true" );
+            //System.out.println( "true" );
             return new BooleanDomain( true, true );
           } else if ( rd1.intersects( rd1 ) ) {// greaterEquals(rd1.getUpperBound(),
                                                // rd2.getLowerBound()) &&
             // rd1.lessEquals(rd1.getLowerBound(), rd2.getUpperBound()) ){
-            System.out.println( "true or false" );
+            //System.out.println( "true or false" );
             return new BooleanDomain( false, true );
           } else System.out.println( "false" );
           return new BooleanDomain( false, false );
