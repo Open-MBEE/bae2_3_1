@@ -1078,21 +1078,45 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
     }
     if ( object != null && !isStatic() ) {
-      if ( object instanceof DurativeEvent ) {
-        sb.append( ((DurativeEvent)object).getName() + "." );
-      } else if ( object instanceof Class ) {
-          sb.append( ClassUtils.toString( (Class<?>)object ) + "." );
+      TimeVaryingMap tvm = Functions.tryToGetTimelineQuick( object );
+      if ( tvm != null ) {
+        sb.append(MoreToString.Helper.toString(object, withHash, false, seen, otherOptions));
       } else {
-        sb.append( object.toString() + "." );
+        if ( object instanceof DurativeEvent ) {
+          sb.append( ((DurativeEvent)object).getName() + "." );
+        } else if ( object instanceof Class ) {
+            sb.append( ClassUtils.toString( (Class<?>)object ) + "." );
+        } else {
+          sb.append( object.toString() + "." );
+        }
       }
     }
     if ( getMember() == null ) {
       sb.append( "null" );
     } else {
       sb.append( getMember().getName() );
-      sb.append( MoreToString.Helper.toString( arguments, withHash, deep, seen,
-                                               otherOptions,
-                                               MoreToString.PARENTHESES, true ) );
+      if ( deep ) {
+        sb.append("(");
+        boolean first = true;
+        for ( Object arg : arguments ) {
+          if ( first ) {
+            first = false;
+          } else {
+            sb.append(", ");
+          }
+          //TimeVaryingMap tvm = Functions.tryToGetTimelineQuick( arg );
+          //if ( tvm != null ) {
+            sb.append(MoreToString.Helper.toString(arg, withHash, false, seen, otherOptions));
+          //} else {
+          //  sb.append(MoreToString.Helper.toString(arg, withHash, false, seen, otherOptions));
+          //}
+        }
+        sb.append(")");
+      } else {
+        sb.append(MoreToString.Helper.toString(arguments, withHash, deep, seen,
+                otherOptions,
+                MoreToString.PARENTHESES, true));
+      }
       if ( !Utils.isNullOrEmpty( evaluatedArguments ) ) {
         sb.append( " = " );
         sb.append( getMember().getName() );
@@ -1100,7 +1124,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                  deep, seen, otherOptions ) );
       }
       if ( returnValue != null ) {
-        sb.append( " = " + returnValue );
+        sb.append( " = " + MoreToString.Helper.toString(returnValue, withHash, false, seen, otherOptions));
       }
     }
     return sb.toString();

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package gov.nasa.jpl.ae.event;
 
@@ -22,7 +22,7 @@ import junit.framework.Assert;
 
 /**
  * @author bclement
- * 
+ *
  */
 public class ElaborationRule extends HasIdImpl implements Comparable<ElaborationRule>, HasParameters { //, ParameterListener {
   protected Expression< Boolean > condition = null;
@@ -31,7 +31,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   private boolean tryToSatisfyOnElaboration = false;
   protected boolean satisfyDeepOnElaboration = false;
   protected boolean stale = false;
-  
+
   public ElaborationRule() {}
 
   public ElaborationRule( Expression< Boolean > condition,
@@ -49,7 +49,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 //  }
 
   boolean simpleDeconstruct = true;
-  
+
   @Override
   public void deconstruct() {
     if (!simpleDeconstruct) {
@@ -68,7 +68,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       //eventInvocations = null;
     }
   }
-  
+
   public boolean isConditionSatisfied() {
     Expression< Boolean > c = condition;
     boolean isNull = ( c == null );
@@ -90,7 +90,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     if ( Debug.isOn() ) Debug.outln( "isConditionSatisfied() = " + r  + " for " + this.getEventInvocations() );
     return r;//( condition == null || condition.evaluate(true) );
   }
-  
+
   public boolean attemptElaboration( Event parent,
                                      Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan ) {
@@ -99,7 +99,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
                                tryToSatisfyOnElaboration,
                                satisfyDeepOnElaboration );
   }
-  
+
   public Map<EventInvocation, Expression<TimeVaryingMap<?>> > getTimeVaryingElaborationInvocations() {
     LinkedHashMap< EventInvocation, Expression<TimeVaryingMap<?>> > timeVaryingElaborationInvocations =
         new LinkedHashMap< EventInvocation, Expression<TimeVaryingMap<?>> >();
@@ -110,20 +110,20 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     }
     return timeVaryingElaborationInvocations;
   }
-  
+
   // Fix elaboration and return whether it is elaborated.
   public boolean attemptElaboration( Event parent,
                                      Vector< Event > elaboratedEvents,
                                      boolean elaborateIfCan,
                                      boolean satisfyOnElaboration,
                                      boolean satisfyDeep ) {
-    
+
     if ( Debug.isOn() ) Debug.outln( "attemptElaboration(): " + this );
     // Find out if the rule is satisfied and elaborated.
     boolean conditionSatisfied = isConditionSatisfied();
     boolean elaborated = !elaboratedEvents.isEmpty();
     boolean deconstructed = false;
-    
+
     // Deal with change in the elaboration.
     // Don't deconstruct because of staleness without a careful check; we get
     // that by resetting stale to false.
@@ -150,7 +150,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
       elaboratedEvents.clear();
       elaborated = false;
     }
-    
+
     if ( !conditionSatisfied && !elaborated && !condition.isStale() ) {
       setStale( false );
     }
@@ -176,7 +176,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 
     return !elaboratedEvents.isEmpty();
   }
-  
+
   public boolean doElaboration(Event parent,
                                Vector< Event > elaboratedEvents,
                                boolean elaborateIfCan,
@@ -235,7 +235,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     }
     return false;
   }
-  
+
   @Override
   public boolean equals( Object o ) {
     if ( o instanceof ElaborationRule ) {
@@ -306,7 +306,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
                                  Set< HasParameters > seen ) {
     Assert.assertTrue( "This method is not supported!", false );
   }
-  
+
   @Override
   public boolean substitute( Parameter< ? > p1, Parameter< ? > p2, boolean deep,
                              Set< HasParameters > seen) {
@@ -430,7 +430,7 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
     }
     return becameStale;
   }
-  
+
   @Override
   public void setStale( boolean staleness ) {
     stale = staleness;
@@ -467,14 +467,12 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
 
   @Override
   public String toShortString() {
-    return MoreToString.Helper.toShortString( getEventInvocations() ) + " if "
-    + MoreToString.Helper.toShortString( getCondition() );
+    return toString( false, false, null, null );
   }
 
   @Override
   public String toString() {
-    return "ElaborationRule: " + this.getEventInvocations() + " if "
-           + getCondition();
+    return toString( true, true, null, null );
   }
 
   @Override
@@ -485,8 +483,13 @@ public class ElaborationRule extends HasIdImpl implements Comparable<Elaboration
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen,
                           Map< String, Object > otherOptions ) {
-    return "ElaborationRule: " + MoreToString.Helper.toString( getEventInvocations(), withHash, deep, seen, otherOptions, true ) + " if "
-        + MoreToString.Helper.toString( getCondition(), withHash, deep, seen, otherOptions );
+    return "ElaborationRule"
+           + ( withHash ? "@" + hashCode() : "" )
+           + ": if "
+           + MoreToString.Helper.toString( getCondition(), withHash, deep, seen, otherOptions )
+           + " then, "
+           + MoreToString.Helper.toString( getEventInvocations(), withHash, deep, seen, otherOptions, true )
+        ;
   }
-  
+
 }

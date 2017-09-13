@@ -286,25 +286,19 @@ public class ConstraintExpression extends Expression< Boolean >
           }
         }
         if ( v.getType() == null || v.getType().isInstance(newValue) ) {
-          System.out.println(
-                  "////////////////////   picking " + newValue + " for " + v +
-                  " in " + this);
+          if ( Debug.isOn() ) {
+            Debug.outln( "////////////////////   picking " + newValue + " for " + v +
+                            " in " + this );
+          }
           setValue(v, newValue);
           return true;
         }
       }
     }
     // TODO
-      //Debug.turnOn();
-    //if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
-//    if ( !isPrimitive ) {
-//      System.out.println( "////////////////////   not picking value for nonPrimitive " + v + " in " + this );
-//    } else if ( !hasChoices ) {
-//      System.out.println( "////////////////////   not picking value for empty domain for " + v + " in " + this );
-//    } else {
-      System.out.println( "////////////////////   not picking value for " + v + " in " + this );
-//    }
-    //Debug.turnOff();
+    if ( Debug.isOn() ) {
+      Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
+    }
     return false;
   }
 

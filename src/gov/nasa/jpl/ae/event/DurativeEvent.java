@@ -972,7 +972,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
    * event. Assume that a row has the following fields:
    * <ul>
    * <li>start time as a date (in supported formats for
-   * {@link TimeUtils.dateFromTimestamp()}) or integer offset
+   * {@link TimeUtils#dateFromTimestamp(String, TimeZone)}) or integer offset
    * <li>duration as an integer offset (optional)
    * <li>end time as a date or integer offset (optional and only if no duration)
    * <li>name as a string (optional)
@@ -1815,11 +1815,12 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
                              Map<String, Expression<?>> argumentMap
                              //Expression< ? >... arguments
                              ) {
-        System.out.println(
-                "VVVVVVVVVVVVVVVVVVVVVVVV   " + name + ".elaborates(" + eventClass.getSimpleName() + ", " +
-                (fromTimeVarying == null ? "null" :
-                 ClassUtils.getName(fromTimeVarying)) + ", " +
-                argumentMap.toString() + ")");
+        if ( Debug.isOn() ) {
+            Debug.outln( "VVVVVVVVVVVVVVVVVVVVVVVV   " + name + ".elaborates(" + eventClass.getSimpleName() + ", " +
+                            (fromTimeVarying == null ? "null" :
+                                    ClassUtils.getName(fromTimeVarying)) + ", " +
+                            argumentMap.toString() + ")" );
+        }
         if (condition == null) {
             condition = new Expression<Boolean>(true);
         }

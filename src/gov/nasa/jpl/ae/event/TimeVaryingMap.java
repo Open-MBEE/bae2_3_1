@@ -6181,6 +6181,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return getName();
   }
 
+  public String toShortString( boolean withHash) {
+    return getName() + ( withHash ? "@" + hashCode() : "" );
+  }
+
   @Override
   public String toString() {
     return toString( Debug.isOn(), false, null );
@@ -6198,10 +6202,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     sb.append( interpolation + " " );
     sb.append( this.getName() );
     if ( withHash ) sb.append( "@" + hashCode() );
-    //if ( deep ) {
+    if ( deep ) {
       sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
-                                               otherOptions, CURLY_BRACES, false ) );
-    //}
+              otherOptions, CURLY_BRACES, false ) );
+    } else {
+      sb.append("( ... " + size() + " entries  ... )");
+    }
     return sb.toString();
   }
 
