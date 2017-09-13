@@ -342,8 +342,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( Debug.isOn() ) Debug.errln( "Call.compareTo comparing value information." );
     compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compare( object, o.object, true );
-    if ( compare != 0 ) return compare;
+    if (!isStatic()) {
+      compare = CompareUtils.compare(object, o.object, true);
+      if (compare != 0) return compare;
+    }
     compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
     return compare;
@@ -528,6 +530,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                     IllegalAccessException,
                                                     InvocationTargetException,
                                                     InstantiationException {
+    if ( isStatic() ) {
+      return null;
+    }
     // evaluate the object, whose method will be invoked from a nested call
     if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
       // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
@@ -795,12 +800,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
     // TODO -- use HasParameters.Helper!!
     boolean subbed = false;
-    if ( p1 == object ) {
-      object = p2;
-      subbed = true;
-    }
-    if ( !subbed && HasParameters.Helper.substitute( object, p1, p2, deep, seen, true )) {
-      subbed = true;
+    if ( !isStatic() ) {
+      if (p1 == object) {
+        object = p2;
+        subbed = true;
+      }
+      if (!subbed && HasParameters.Helper.substitute(object, p1, p2, deep, seen, true)) {
+        subbed = true;
+      }
     }
     if ( HasParameters.Helper.substitute( arguments, p1, p2, deep, seen, true )) {
       subbed = true;
@@ -846,7 +853,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     // );
     // if ( pair.first ) return Utils.getEmptySet();
     // seen = pair.second;
-    Set< Parameter< ? > > set;
+    Set< Parameter< ? > > set = null;
     if ( o instanceof Expression ) {
        Object exp = ((Expression) o).getExpression();
        if ( exp instanceof HasParameters ) {
@@ -858,7 +865,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     if ( deep || o instanceof Call ) {
       set = HasParameters.Helper.getParameters( o, deep, seen, true );
-    } else {
+    } else if ( set == null ) {
       set = new HashSet< Parameter< ? > >();
     }
     if ( o instanceof Parameter ) set.add( (Parameter<?> )o);
@@ -874,9 +881,11 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
-    if ( object instanceof Parameter ) set.add( (Parameter<?> )object );
-    set = Utils.addAll( set, getMemberParameters( object, deep, seen) );
-    
+    if ( !isStatic() ) {
+      if (object instanceof Parameter) set.add((Parameter<?>) object);
+      set = Utils.addAll( set, getMemberParameters( object, deep, seen) );
+    }
+
     for (Object o : arguments) {
       set = Utils.addAll( set, getMemberParameters( o, deep, seen));
     }
@@ -991,7 +1000,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       if ( !nestedCall.ground( deep, seen ) ) {
         grounded = false;
       } else if ( object == null ) {
-        if ( nestedCall.getValue(true) == null ) {
+        if ( nestedCall.getValue(true) == null && !isStatic() ) {
           grounded = false;
         } else {
           try {
@@ -1068,7 +1077,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         sb.append( "." );
       }
     }
-    if ( object != null ) {
+    if ( object != null && !isStatic() ) {
       if ( object instanceof DurativeEvent ) {
         sb.append( ((DurativeEvent)object).getName() + "." );
       } else if ( object instanceof Class ) {
@@ -1135,18 +1144,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         }
       }
     }
-    if ( arguments != null ) {
-      for ( Object arg : arguments ) {
-        if ( arg instanceof LazyUpdate )  {
-          if ( ( (LazyUpdate)arg ).isStale() ) {
-            setStale( true );
-            return true;
-          }
-        }
-      }
+
+    boolean argsStale = areArgsStale();
+    if ( argsStale ) {
+      return true;
     }
+
     for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.isStale() ) {
+      if ( p.isStale() && ( !( p.getValueNoPropagate() instanceof ParameterListenerImpl ) || !isGetMember() ) ) {
         setStale( true );
         return true;
       }
@@ -1157,7 +1162,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         return true;
       }
     }
-    if ( object instanceof LazyUpdate )  {
+    if ( object instanceof LazyUpdate && !isStatic() )  {
       if ( ( (LazyUpdate)object ).isStale() ) {
         setStale( true );
         return true;
@@ -1166,6 +1171,43 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( possiblyStale( returnValue ) )
       return true;
     return false;
+  }
+
+  public boolean areArgsStale() {
+    if ( Utils.isNullOrEmpty(arguments ) ) {
+      return false;
+    }
+    Boolean isGetMember = null;
+    for ( Object arg : arguments ) {
+      if ( arg instanceof LazyUpdate )  {
+        if ( ( (LazyUpdate)arg ).isStale() ) {
+          // HACK -- isn't there a better way?
+          // Check if we're just getting a member of a ParameterListenerImpl,
+          // in which case, the evaluated arguments will determine whether
+          // it's really stale.
+          if (isGetMember == null) {
+            isGetMember = isGetMember();
+          }
+          if ( Boolean.TRUE.equals( isGetMember ) ) {
+            ParameterListenerImpl pli = null;
+            try {
+              pli = Expression.evaluate(arg, ParameterListenerImpl.class, false);
+            } catch (Throwable e) {
+            }
+            if (pli != null) {
+              continue;
+            }
+          }
+          setStale( true );
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public boolean isGetMember() {
+    return getMember() != null && getMember().getName() != null && getMember().getName().contains("getMember");
   }
 
   protected void clearCache() {
@@ -1450,7 +1492,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       else if ( indexOfArg == 0 ) {
         if ( call.object != obj ) {
           call.object = obj;
-          call.setStale( true );
+          if ( !call.isStatic() ) {
+            call.setStale(true);
+          }
         }
       }
       else {
@@ -1501,7 +1545,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
     else if ( indexOfArg == 0 ) {
       call.object = obj;
-      call.setStale( true );
+      if ( !call.isStatic() ) {
+        call.setStale(true);
+      }
     }
     else if ( arguments == null ) return;
     else if ( indexOfArg > arguments.length ) Debug.error( "bad index "
@@ -1687,7 +1733,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
       }
     }
-    if ( object instanceof ParameterListener ) {
+    if ( object instanceof ParameterListener && !isStatic() ) {
       ((ParameterListener)object).handleValueChangeEvent( parameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
@@ -1766,7 +1812,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
-    if ( object instanceof ParameterListener ) {
+    if ( object instanceof ParameterListener && !isStatic() ) {
       ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
@@ -1800,7 +1846,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).detach( parameter );
       }
     }
-    if ( object instanceof ParameterListener ) {
+    if ( object instanceof ParameterListener && !isStatic() ) {
       ( (ParameterListener)object ).detach( parameter );
     }
     if ( nestedCall instanceof ParameterListener ) {

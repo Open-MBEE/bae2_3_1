@@ -245,6 +245,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   }
   public void setDomain( Domain< T > domain, boolean propagate ) {
     this.domain = domain;
+    this.constraintList.clear();
     if ( propagate && owner != null ) {
       //owner.setStaleAnyReferencesTo( this );
       owner.handleDomainChangeEvent( this, null );
@@ -442,7 +443,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       // FIXME -- delete debug code!
       if ( this instanceof HasId && (((HasId) this).getId().equals( 281227 ) ) ) {//Expression.valuesEqual((Long)0L, val ) && "startTime".equals(name)) {
         System.out.println("setting " + val + " to " + this);
-      }
+      } //if ( name != null && name.equals("duration") && owner != null && "Main000001".equals(owner.getName()) && owner instanceof DurativeEvent && ((DurativeEvent)owner).startTime.getValue() == 0L && ((DurativeEvent)owner).endTime.getValue() == 10928118000L ) System.out.println("WOOHOO!!!!!!!");
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
@@ -456,7 +457,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
 //      }
 //      System.out.println( "Parameter " + getName() + "@" + getId() + " setValue(" + vvv
 //                          + "): value set!" );
-      constraintList.clear();
+      //constraintList.clear();
       if ( owner != null ) {// && propagateChange ) {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): handleValueChangeEvent("
@@ -1053,6 +1054,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Domain<?> d = this.domain == null ? null : this.domain.clone();
     boolean changed = this.domain == null ? false : this.domain.restrictTo( domain );
     if ( changed ) {
+      this.constraintList.clear();
       if ( owner != null ) {
         owner.handleDomainChangeEvent( this, null );
       }
