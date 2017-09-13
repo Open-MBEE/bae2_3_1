@@ -6398,6 +6398,9 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( end == null || end.getValueNoPropagate() == null ) {
       end = lastKey();
     }
+    if ( start == null || end == null || start.getValueNoPropagate() > end.getValueNoPropagate() ) {
+      return null;
+    }
     NavigableMap< Parameter< Long >, V > map = subMap( start, true, end, true );
     Collection< V > vals = map.values();
     for ( V v : vals ) {
