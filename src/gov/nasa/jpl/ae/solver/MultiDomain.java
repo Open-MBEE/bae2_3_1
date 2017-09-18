@@ -20,6 +20,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
+import org.junit.Test;
 
 /**
  * A {@link Domain} that is a union of an "include" set of Domains and a
@@ -533,6 +534,7 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
   /**
    * @param args
    */
+  @Test
   public static void main( String[] args ) {
     Domain<Integer> id1 = new IntegerDomain( 3, 8 );
     Domain<Integer> id2 = new IntegerDomain( 6, 9 );
