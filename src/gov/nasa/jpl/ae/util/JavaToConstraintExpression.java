@@ -2222,6 +2222,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
    * @return
    */
   public String[] convertToTypeAndConstructorArgs( ClassData.Param p ) {
+    boolean evaluateForType = true;
+
     String ret[] = new String[ 3 ];
     String type = "Parameter";
     String parameterTypes = p.type;
@@ -2237,11 +2239,16 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     String valueArg = javaToAeExpr( p.value, p.type, false, true, true );
     String typePlaceholder = "!TYPE!";
     String domain = getDomainString(p.type);
-    // if ( valueArg.equals( "null" )
-    // || ( valueArg.startsWith( "new Expression" ) &&
-    // valueArg.endsWith( "(null)" ) ) ) {
-    valueArg = "(" + typePlaceholder + ")" + valueArg; // replacing !TYPE! later
-    // }
+//    // if ( valueArg.equals( "null" )
+//    // || ( valueArg.startsWith( "new Expression" ) &&
+//    // valueArg.endsWith( "(null)" ) ) ) {
+    if ( evaluateForType ) {
+      valueArg = "Expression.evaluate(" + valueArg + ", " + typePlaceholder +
+                 ".class, true)"; // replacing !TYPE! later
+    } else {
+      valueArg = "(" + typePlaceholder + ")" + valueArg; // replacing !TYPE! later
+    }
+//    // }
     String args = "\"" + p.name + "\"," + domain + ", " + valueArg + ", this";
     String parameterClass =
         ClassData.typeToParameterType( p.type );
@@ -2324,10 +2331,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       }
     }
     if ( Utils.isNullOrEmpty( castType ) ) {
-      typePlaceholder = "(" + typePlaceholder + ")";
-      args = args.replace( typePlaceholder, "" );
+      if ( evaluateForType ) {
+        String typePlaceholder2 = typePlaceholder + ".class";
+        args = args.replace(typePlaceholder2, "null");
+      } else {
+        String typePlaceholder1 = "(" + typePlaceholder + ")";
+        args = args.replace(typePlaceholder1, "");
+      }
     } else {
-      args = args.replace( typePlaceholder, castType );
+      String castTypeNoParams;
+      if ( evaluateForType ) {
+        castTypeNoParams = castType.replaceFirst("<.*>", "");
+      } else {
+        castTypeNoParams = castType;
+      }
+      args = args.replace( typePlaceholder, castTypeNoParams );
     }
 
     // HACK -- TODO

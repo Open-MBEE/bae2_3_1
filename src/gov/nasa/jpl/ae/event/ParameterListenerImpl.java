@@ -42,8 +42,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
                                    HasOwner,
                                    Comparable< ParameterListenerImpl > {
 
-  public static boolean arcConsistencyQuiet = true;
   public static boolean usingArcConsistency = true;
+  public static boolean arcConsistencyQuiet = true;
 
   // Constants
 
@@ -1362,6 +1362,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     List<ConstraintExpression> cstrs =
             Utils.scramble(getConstraintExpressions());
     for ( ConstraintExpression c : cstrs ) {
+      if ( c == null ) continue;
       c.handleValueChangeEvent( parameter, seen );
     }
 
@@ -1925,6 +1926,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     ArrayList< Variable< ? > > varList = new ArrayList< Variable< ? > >();
     Set< Variable< ? > > varSet = new LinkedHashSet< Variable< ? > >();
     for ( ConstraintExpression c : getConstraintExpressions() ) {
+      if ( c == null ) continue;
       List< Variable< ? > > vars = c.getVariablesOnWhichDepends( variable );
       if ( !Utils.isNullOrEmpty( vars ) ) {
         varSet.addAll( vars );

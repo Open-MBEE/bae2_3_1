@@ -2396,6 +2396,7 @@ public class DurativeEvent extends ParameterListenerImpl implements Event,
 
     // Get Events in parameters, too.
     for ( Parameter p: getParameters() ) {
+        if ( p == null ) continue;
         Object o = p.getValueNoPropagate();
         Object deo = null;
         try {
