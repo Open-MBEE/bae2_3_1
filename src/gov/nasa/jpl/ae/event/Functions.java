@@ -35,6 +35,7 @@ import gov.nasa.jpl.mbee.util.Zero;
 import gov.nasa.jpl.mbee.util.Wraps;
 import org.apache.commons.math3.distribution.*;
 
+import java.lang.Math;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -305,7 +306,7 @@ public class Functions {
           }
         } else {
           // not monotonic, such as Equals
-          if ( !returnValue.isInfinite() ) {
+          if ( !returnValue.isInfinite() || returnValue.magnitude() == 1 ) {
             for ( long i = 0; i < returnValue.magnitude(); ++i ) {
               Object rv = ( (AbstractRangeDomain)returnValue ).getNthValue( i );
               if (rv != null) {
@@ -3109,7 +3110,7 @@ public class Functions {
       Domain< ? > d1 = DomainHelper.getDomain( a1 );
       Domain< ? > d2 = DomainHelper.getDomain( a2 );
       if ( d1 == null || d2 == null || d1.magnitude() <= 0
-           || d2.magnitude() <= 0 ) {
+           || d2.magnitude() <= 0 || gov.nasa.jpl.ae.util.Math.isInfinity(d1.magnitude()) || gov.nasa.jpl.ae.util.Math.isInfinity(d2.magnitude()) ) {
         return BooleanDomain.defaultDomain;
       }
       if ( d1 instanceof AbstractRangeDomain
@@ -3344,8 +3345,8 @@ public class Functions {
       Object a2 = getArgument( 1 );
       Domain< ? > d1 = DomainHelper.getDomain( a1 );
       Domain< ? > d2 = DomainHelper.getDomain( a2 );
-      if ( d1 == null || d2 == null || d1.magnitude() <= 0
-           || d2.magnitude() <= 0 ) {
+      if (d1 == null || d2 == null || d1.magnitude() <= 0
+              || d2.magnitude() <= 0 || gov.nasa.jpl.ae.util.Math.isInfinity(d1.magnitude()) || gov.nasa.jpl.ae.util.Math.isInfinity(d2.magnitude()) ) {
         return BooleanDomain.defaultDomain;
       }
       if ( d1 instanceof AbstractRangeDomain
@@ -3830,7 +3831,7 @@ public class Functions {
       Domain< ? > d1 = DomainHelper.getDomain( a1 );
       Domain< ? > d2 = DomainHelper.getDomain( a2 );
       if ( d1 == null || d2 == null || d1.magnitude() <= 0
-           || d2.magnitude() <= 0 ) {
+           || d2.magnitude() <= 0 || gov.nasa.jpl.ae.util.Math.isInfinity(d1.magnitude()) || gov.nasa.jpl.ae.util.Math.isInfinity(d2.magnitude()) ) {
         return BooleanDomain.defaultDomain;
       }
       if ( d1 instanceof AbstractRangeDomain

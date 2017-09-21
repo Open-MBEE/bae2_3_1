@@ -68,19 +68,32 @@ public class DoubleDomain extends AbstractRangeDomain< Double > {
     return true;
   }
 
+  @Override
+  public long magnitude() {
+    if ( lowerBound == null || upperBound == null ) return 0;
+    if ( lowerBound.equals( upperBound ) ) {
+      if ( isLowerBoundIncluded() || isUpperBoundIncluded() ) return 1;
+      return 0;
+    }
+    return Long.MAX_VALUE;
+  }
+
   /* (non-Javadoc)
    * @see solver.AbstractRangeDomain#size()
    */
   @Override
   public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
-    if ( lowerBound.equals( upperBound ) ) return 1;
-    return -1;
+    if ( lowerBound.equals( upperBound ) ) return 0;
+    Double diff = upperBound - lowerBound;
+    // TODO -- HACK -- FIXME -- we should be returning a double, not a long!
+    long lval = diff.longValue();
+    return lval;
   }
 
   /* (non-Javadoc)
-   * @see solver.AbstractRangeDomain#getNthValue(long)
-   */
+     * @see solver.AbstractRangeDomain#getNthValue(long)
+     */
   @Override
   public Double getNthValue( long n ) {
     return null;

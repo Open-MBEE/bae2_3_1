@@ -443,7 +443,7 @@ public class FunctionCall extends Call {
         Domain<?> d = DomainHelper.getDomain( arg );
       if ( d != null
            && ( d.magnitude() > 1
-                || ( d.magnitude() < 0 && !d.isEmpty() && d.isInfinite() )
+                || ( ( d.magnitude() < 0 || d.magnitude() >= Long.MAX_VALUE )&& !d.isEmpty() && d.isInfinite() )
                 || ( d instanceof RangeDomain
                      && ( (RangeDomain< ? >)d ).size() > 1 ) ) ) {
           areAllArgsSingleValueDomains = false;
