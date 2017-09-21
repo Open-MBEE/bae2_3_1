@@ -66,11 +66,8 @@ import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Vector;
+import java.lang.reflect.TypeVariable;
+import java.util.*;
 
 import junit.framework.Assert;
 
@@ -1317,10 +1314,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           Class<?> type = mm.getReturnType(); 
           Class<?> cls = mm.getDeclaringClass();
           boolean typeWasObject = type == Object.class;
-          // TODO -- REVIEW -- Should below be something like Utils.replaceSuffix(ClassUtils.toString( expression.getType() ), ".class", "" );
           if ( type != null && !typeWasObject ) {
             result = ( type.isArray() ? type.getSimpleName() : type.getName() );
           }
+          // handle return value with generic type for Wraps.getValue() and Parameter.getValue*()
           if ( ( type == null || typeWasObject ) && cls != null
               && mm.getName().startsWith( "getValue" )
               //&& mm.getName().equals( "getValue" )
@@ -1341,7 +1338,27 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
               }
               type = ( (Wraps< ? >)n ).getType();
             }
+          } else if ( ( type == null || typeWasObject ) && cls != null
+                  && mm.getName().equals( "get" ) && Collection.class.isAssignableFrom(cls) ) {
+            // TODO -- Remove this case if the case below handles this properly. (It should!)
+            // handle return value with generic type for Collections.get(int)
+            String oTypeName = javaForFunctionCall.getObjectTypeName();
+            result = getGenericParameters(oTypeName);  // There should only be one.
+          } else {
+            // handle the generic return type with Method.getGenericReturnType() and getObjectTypeName() similar to Collection.get() above.
+            ArrayList<String> paramNames = new ArrayList<String>();
+            for ( TypeVariable<? extends Class<?>> ttt : cls.getTypeParameters() ) {
+              paramNames.add( ttt.getName() );
+            }
+            int pos = paramNames.indexOf( mm.getGenericReturnType().getTypeName() );
+            if ( pos >= 0 ) {
+              String oTypeName = javaForFunctionCall.getObjectTypeName();
+              String callingClassParameters = getGenericParameters(oTypeName);
+              result = parseNthGenericArg(pos, callingClassParameters);
+            }
+            // TODO -- This case does not handle returning Set<String> from a function, public Set<T> getSet(), called from a Foo<String> where String is substituted for T in Foo<T>.
           }
+
           if ( type == null ) {
             if ( result == null ) {
               result = ClassUtils.parameterPartOfName( javaForFunctionCall.getClassName(), false );
@@ -1351,7 +1368,9 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   //          }
   //          //type = ClassUtils.getClassForName( javaForFunctionCall.className, null, false );
           } else {
-            result = ( type.isArray() ? type.getSimpleName() : type.getName() );
+            if ( result == null ) {
+              result = (type.isArray() ? type.getSimpleName() : type.getName());
+            }
           }
           if ( result != null && result.endsWith( "Object" ) && typeWasObject ) {
             result = null;
@@ -1468,6 +1487,59 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       if ( Debug.isOn() ) Debug.outln( "astToAeExprType(" + expr + ") = " + result );
       // Nested type cannot be referenced by its binary name.
       if ( result != null ) result = result.replace( '$', '.' );
+      return result;
+    }
+
+
+    public static String getGenericParameters( String classWithParams ) {
+      int pos1 = classWithParams.indexOf('<');
+      int pos2 = classWithParams.lastIndexOf('>');
+      String callingClassParameters = null;
+      if ( pos1 > 0 && pos2 > pos1 ) {
+        String result = classWithParams.substring(pos1+1, pos2);
+        return result;
+      }
+      return null;
+    }
+
+  /**
+   * Get the nth argument in a comma-separated list of generic parameters, counting from 0.<br>
+   * For example, the 3rd argument (n = 2) in "X, Y<A<B>>, Z" is "Z".<br>
+   * If n is greater than or equal to the number of arguments, then null is returned.<br>
+   * The return value is unspecified for malformed input.
+   *
+   * @param n index of argument in argList counting from 0
+   * @param argList the comma-separated list of arguments to parse
+   * @return a substring representing the nth argument or null if there are not that many arguments
+   */
+    public static String parseNthGenericArg(int n, String argList) {
+      if ( argList == null ) return null;
+      int ct = 0;
+      int depth = 0; // depth of nested < . . . >
+      int p = 0;
+      int pos1 = 0;
+      int pos2 = 0;
+      while ( ct <= n && p < argList.length() ) {
+        char c = argList.charAt(p);
+        if ( c == '<' ) {
+          ++depth;
+        } else if ( depth == 0 && c == ',' ) {
+          ++ct;
+          if ( ct == n ) {
+            pos1 = p + 1;
+          } else if ( ct > n ) {
+            pos2 = p;
+          }
+        } else if ( depth > 0 && c == '>' ) {
+          --depth;
+        }
+        ++p;
+      }
+      // check if never reached argument;
+      if ( ct < n ) return null;
+      // set pos2 in case the nth arg is the last arg
+      if ( pos2 == 0 ) pos2 = p;
+      String result = argList.substring(pos1, pos2).trim();
       return result;
     }
 
