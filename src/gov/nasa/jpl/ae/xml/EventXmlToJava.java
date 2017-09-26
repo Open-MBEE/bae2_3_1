@@ -2710,10 +2710,12 @@ public class EventXmlToJava {
     }
 
     ArrayList<File> files = new ArrayList<File>();
-    for ( String fs : javaFiles ) {
-      File ff = new File( fs );
-      if ( ff.exists() ) {
-        files.add( ff );
+    if ( javaFiles != null ) {
+      for (String fs : javaFiles) {
+        File ff = new File(fs);
+        if (ff.exists()) {
+          files.add(ff);
+        }
       }
     }
     if ( fileArr != null ) {

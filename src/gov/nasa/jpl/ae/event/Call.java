@@ -294,7 +294,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         gotErrors = true;
       }
     }
-    return gotErrors;
+    return (Boolean) gotErrors;
   }
   
   public synchronized Boolean hasTypeErrors() {
