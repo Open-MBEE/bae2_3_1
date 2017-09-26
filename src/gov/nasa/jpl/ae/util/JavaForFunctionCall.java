@@ -1,11 +1,6 @@
 package gov.nasa.jpl.ae.util;
 
-import gov.nasa.jpl.ae.event.Affectable;
-import gov.nasa.jpl.ae.event.Call;
-import gov.nasa.jpl.ae.event.ConstructorCall;
-import gov.nasa.jpl.ae.event.EffectFunction;
-import gov.nasa.jpl.ae.event.FunctionCall;
-import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove!!
+import gov.nasa.jpl.ae.event.*;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -264,7 +259,6 @@ public class JavaForFunctionCall {
 
   public String toNewFunctionCallString() {
     String fcnCallStr = null;
-    String callTypeName = getCallTypeName();
     String instance = getObject();
     try {
       if (isStatic()) {
@@ -275,8 +269,11 @@ public class JavaForFunctionCall {
     } catch(Exception e){
       if(Debug.isOn() ) Debug.outln(e.getMessage());
     }
+    String mJava = getMethodJava();
+    String callTypeName = getCallTypeName();
+
     fcnCallStr =
-        "new " + callTypeName + "( " + instance + ", " + getMethodJava() + ", "
+        "new " + callTypeName + "( " + instance + ", " + mJava + ", "
                  + getArgumentArrayJava() + ", " + getReturnTypeString() + " )";
     // }
     if ( isEvaluateCall() && !Utils.isNullOrEmpty( fcnCallStr ) ) {
@@ -383,8 +380,36 @@ public class JavaForFunctionCall {
               ( getObjectTypeName() != null &&
                 getObjectTypeName().contains("TimeVarying") &&
                 !getObjectTypeName().contains("Call") );
+      if ( !isTimeVarying ) {
+        isTimeVarying = hasUnexpectedTimeVaryingArgs();
+      }
     }
     return isTimeVarying;
+  }
+
+  public Boolean hasUnexpectedTimeVaryingArgs() {
+    Class<?>[] types = getArgTypes();
+    if ( call == null ) {
+      return null;
+    }
+    Class<?>[] paramTypes = call.getParameterTypes();
+    int i = 0, j = 0;
+    if ( types == null || paramTypes == null ) {
+      return false;
+    }
+    while ( i < types.length ) {
+      Class<?> type = types[i];
+      Class<?> pType = paramTypes[j];
+      if ( type != null && pType != null &&
+           TimeVarying.class.isAssignableFrom( type ) &&
+           !TimeVarying.class.isAssignableFrom( pType ) ) {
+        return true;
+      }
+      ++i;
+      if ( j < paramTypes.length - 1 ) ++j;
+    }
+    return false;
+
   }
 
   public void setTimeVarying(Boolean timeVarying) {
@@ -429,7 +454,7 @@ public class JavaForFunctionCall {
         this.exprXlator.getClassData().getClassMethodsWithName( getCallName(),
                                                                 className );
     // Find alternative classes that have these methods.
-    if ( getIsTimeVarying() ) {
+    if ( getIsTimeVarying() != null && getIsTimeVarying() ) {
       Class<?> cls = getWrappedType();
       if ( cls != null ) {
         String clsName = cls.getCanonicalName();
@@ -649,7 +674,7 @@ public class JavaForFunctionCall {
    */
   public String getClassName() {
     if ( Utils.isNullOrEmpty( className ) ) {
-      if ( getObjectTypeName() != null ) {
+      if ( !Utils.isNullOrEmpty( getObjectTypeName() ) ) {
         setClassName( getObjectTypeName() );
       } else {
         setClassName( this.exprXlator.getCurrentClass() );
@@ -781,7 +806,7 @@ public class JavaForFunctionCall {
       Member mm = m1;
 
       // Compare
-      if ( getIsTimeVarying() ) {
+      if ( getIsTimeVarying() != null && getIsTimeVarying() ) {
         Class<?> cls = getWrappedType();
         String clsName = cls == null ? null : cls.getCanonicalName();
         if ( clsName == null  && cls != null ) {

@@ -250,7 +250,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         // Could also check if they are not equal and deal with it more
         // intelligently
         int numConstructorArgs = constructor.getParameterTypes().length;
-        if (arguments.size() == 0 && numConstructorArgs > 0) {
+        if ( (arguments == null || arguments.size() == 0) && numConstructorArgs > 0) {
           
           Vector<Object> emptyArgs = new Vector<Object>();
           for(int i = 0; i < numConstructorArgs; ++i) {

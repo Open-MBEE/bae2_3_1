@@ -300,15 +300,17 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public synchronized Boolean hasTypeErrors() {
     if ( getMember() == null ) return true;
     Class< ? >[] paramTypes = getParameterTypes();
+    int az = arguments == null ? 0 : arguments.size();
+    int pz = paramTypes == null ? 0 : paramTypes.length;
     if ( !isVarArgs() ) {
       //Assert.assertEquals( arguments.size(), paramTypes.length );
       if ( arguments == null || paramTypes == null ) {
         Debug.error("Error!  arguments or paramTypes is null in " + this);
       }
-      if ( arguments.size() != paramTypes.length ) {
+      if ( az != pz ) {
         return true;
       }
-    } else if ( arguments.size() < paramTypes.length - 1 ) {
+    } else if ( az < pz - 1 ) {
       //this.compareTo( this );  // why was this here? to see if any exceptions would be raised?
       return true;
     }

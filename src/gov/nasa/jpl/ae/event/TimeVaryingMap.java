@@ -863,6 +863,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       Object a = arg;
       if ( i < paramTypes.length ) {  // helps with variable arguments
         pType = paramTypes[i];
+        pType = ClassUtils.getNonPrimitiveClass( pType );
       }
       if ( call instanceof TimeVaryingFunctionCall ) {
         Object oo = null;
