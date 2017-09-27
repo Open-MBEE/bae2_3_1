@@ -2074,7 +2074,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    */
   public <VV> TimeVaryingMap< VV > times( Number n, Parameter< Long > fromKey,
                                      Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
+    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );
     //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_times_" + n, this, cls); 
     TimeVaryingMap< VV > newTvm = clone(cls);
     newTvm.setName( getName() + "_times_" + n );
@@ -6232,7 +6232,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    */
   @Override
   public Class<V> getType() {
-    if ( type == null ) {
+    if ( type == null || Object.class.equals(type) ) {
       for ( V t : values() ) {
         if ( t != null ) {
           setType( t.getClass() );
