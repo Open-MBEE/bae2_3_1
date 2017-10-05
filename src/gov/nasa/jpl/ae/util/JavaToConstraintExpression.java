@@ -68,6 +68,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
@@ -582,8 +584,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   public static String typeToClass( String type ) {
     
     if ( Utils.isNullOrEmpty( type ) ) {
-      //type = "null";
-    } else if ( type.toLowerCase().equals( "time" ) 
+      return type;
+    }
+    // check for generic parameters
+    Pattern p = Pattern.compile("([A-Za-z_][A-Za-z0-9._]*\\s*)<(.*)>(\\s*)");
+    Matcher m = p.matcher(type);
+    if ( m.matches() && m.groupCount() > 1 ) {
+      String t1 = typeToClass(m.group(1));
+      String t2 = typeToClass(m.group(2));
+      String t3 = m.groupCount() > 2 && m.group(3) != null ? m.group(3) : "";
+      return t1 + "<" + t2 + ">" + t3;
+    }
+
+    // convert types to Class equivalents
+    // TODO -- REVIEW -- other than "time", shouldn't this be in ClassUtils?
+    if ( type.toLowerCase().equals( "time" )
         || type.toLowerCase().startsWith( "long" ) ) {
       type = "Long";
     } else if ( type.toLowerCase().startsWith( "int" )
