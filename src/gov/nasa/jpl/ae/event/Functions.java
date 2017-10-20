@@ -15,6 +15,9 @@ import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.IntegerDomain;
 import gov.nasa.jpl.ae.solver.MultiDomain;
 import gov.nasa.jpl.ae.solver.ObjectDomain;
+import gov.nasa.jpl.ae.util.distributions.BooleanDistribution;
+import gov.nasa.jpl.ae.util.distributions.Distribution;
+import gov.nasa.jpl.ae.util.distributions.DistributionHelper;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 import gov.nasa.jpl.ae.solver.Variable;
@@ -30,7 +33,10 @@ import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Zero;
 import gov.nasa.jpl.mbee.util.Wraps;
+import org.apache.commons.math3.distribution.*;
 
+import java.lang.Math;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -300,7 +306,7 @@ public class Functions {
           }
         } else {
           // not monotonic, such as Equals
-          if ( !returnValue.isInfinite() ) {
+          if ( !returnValue.isInfinite() || returnValue.magnitude() == 1 ) {
             for ( long i = 0; i < returnValue.magnitude(); ++i ) {
               Object rv = ( (AbstractRangeDomain)returnValue ).getNthValue( i );
               if (rv != null) {
@@ -1321,6 +1327,164 @@ public class Functions {
       return new Pow< T, R >( this );
     }
   }
+
+
+  public static class GetMember< T, R > extends Binary< T, R > {
+    public GetMember( Expression< T > o1, Expression< T > o2 ) {
+      super( o1, o2, "getMember", "pickValueForward", "pickValueReverse" );
+      setMonotonic( false );
+    }
+
+    public GetMember( Object o1, Object c ) {
+      super( o1, c, "getMember", "pickValueForward", "pickValueReverse" );
+      setMonotonic( false );
+    }
+
+    public GetMember( Functions.GetMember< T, R > m ) {
+      super( m );
+    }
+
+    public GetMember< T, R > clone() {
+      return new GetMember< T, R >( this );
+    }
+
+
+    @Override
+    public <T1> T1 pickValue(Variable<T1> variable) {
+      return super.pickValue(variable);
+    }
+
+    @Override
+    public <T> boolean pickParameterValue(Variable<T> variable) {
+      return super.pickParameterValue(variable);
+    }
+
+    @Override
+    public Domain<?> calculateDomain(boolean propagate, Set<HasDomain> seen) {
+      Object result = null;
+      try {
+        result = evaluate(false);
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (InstantiationException e) {
+      }
+      return DomainHelper.getDomain(result);
+    }
+
+    @Override
+    public < TT > Pair< Domain< TT >, Boolean >
+    restrictDomain( Domain< TT > domain, boolean propagate,
+                    Set< HasDomain > seen ) {
+      //boolean changed = false;
+      Object o1 = this.arguments.get( 0 );
+      Object o2 = this.arguments.get( 1 );
+      try {
+        Object obj = o1;
+        Object memberName = Expression.evaluate(o2, String.class, propagate);
+        if ( memberName instanceof String ) {
+          if ( o1 instanceof Expression ) {
+            obj = ((Expression) o1).evaluate(propagate);
+          }
+          Object member = Functions.getMember(obj, (String) memberName);
+          if ( member instanceof HasDomain ) {
+            Pair<Domain<TT>, Boolean> p =
+                    ((HasDomain) member).restrictDomain(domain, propagate,
+                                                        seen);
+            if ( p != null ) {
+              Domain<TT> newDomain = p.first;
+              this.domain = newDomain;
+            }
+            return p;
+          }
+        }
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (InstantiationException e) {
+      }
+      return null;
+    }
+
+    // TODO
+    public Domain< ? > inverseDomain( Domain< ? > returnValue,
+                                      Object argument ) {
+      Domain<?> d = null;
+      if (arguments == null || arguments.size() != 2) return null;
+      boolean first = argument == arguments.get(1);
+      Object otherArg = (first ? arguments.get(0) : arguments.get(1));
+      if (otherArg == null) return null; // arg can be null!
+      if (first) {
+
+        // TODO -- search all objects (from top-level Event and maybe all static members of all classes in all packages everywhere forever, 1000 years.
+      } else {
+        // TODO -- return a member of the other arg whose value equals the returnValue
+        // create a function call to getMatchingMembers(otherArg, returnValue) defined below.
+      }
+      return d;
+    }
+
+      @Override
+      // TODO
+    public // < T1 extends Comparable< ? super T1 > >
+    FunctionCall inverseSingleValue( Object returnValue, Object arg ) {
+      if (arguments == null || arguments.size() != 2) return null;
+      boolean first = arg == arguments.get(1);
+      Object otherArg = (first ? arguments.get(0) : arguments.get(1));
+      if (returnValue == null || otherArg == null) return null; // arg can be
+      // null!
+      if (first) {
+        // TODO -- search all objects (from top-level Event and maybe all static members of all classes in all packages everywhere forever, 1000 years.
+      } else {
+        // TODO -- return a member of the other arg whose value equals the returnValue
+        // create a function call to getMatchingMembers(otherArg, returnValue) defined below.
+      }
+      return new Minus<T, T>(returnValue, otherArg);
+    }
+
+    // TODO -- need to test
+    protected Set<Object> getMatchingMembers(Object object, Object value) {
+      if ( object == null ) {
+        return null;
+      }
+      LinkedHashSet<Object> set = new LinkedHashSet<Object>();
+      Field[] fs = ClassUtils.getAllFields(object.getClass());
+      for (Field f : fs) {
+        try {
+          Object o = f.get(object);
+          if (Expression.valuesEqual(o, value)) {
+            set.add(o);
+          }
+        } catch (IllegalAccessException e) {
+        }
+      }
+      return set;
+    }
+  }
+
+
+  public static <V1, V2> V2 getMember( V1 object, String memberName ) {
+    if ( Utils.isNullOrEmpty(memberName) || object == null ) return null;
+    if ( object instanceof  Parameter ) {
+      ((Parameter)object).getMember(memberName, true);
+    }
+    V2 v2 = (V2)ClassUtils.getFieldValue(object, memberName, true);
+    return v2;
+  }
+
+  public static <V1, V2> V2 getMember( Expression<?> object, Expression<?> memberName ) {
+    Object o = null;
+    String name = null;
+    try {
+      o = object.evaluate(false);
+      name = memberName.evaluate(String.class, false);
+    } catch (IllegalAccessException e) {
+    } catch (InvocationTargetException e) {
+    } catch (InstantiationException e) {
+    } catch (ClassCastException e) {
+    }
+    V2 v2 = (V2)getMember(o, name);
+    return v2;
+  }
+
 
   // TODO -- If MAX_VALUE is passed in, should treat as infinity; should also
   // print "inf"
@@ -2505,6 +2669,7 @@ public class Functions {
     } catch ( ClassCastException e ) {
       e.printStackTrace();
     }
+
     if ( r instanceof Parameter ) {
       r = ( (Parameter< T >)r ).getValue( true );
     }
@@ -2515,7 +2680,14 @@ public class Functions {
       return ( (TimeVaryingMap< T >)r ).negative();
       // return negative( (TimeVaryingMap<T>)r );
     }
+//    if ( r instanceof Distribution ) {
+//      return negative((Distribution)r);
+//    }
     return null;
+  }
+
+  public static Distribution negative ( Distribution d ) {
+    return DistributionHelper.negative(d);
   }
 
   public static class Neg< T > extends Unary< T, T > {
@@ -2786,12 +2958,12 @@ public class Functions {
           AbstractRangeDomain rd1 = (AbstractRangeDomain)d1;
           AbstractRangeDomain rd2 = (AbstractRangeDomain)d2;
           if ( rd1.size() == 1 && rd2.size() == 1 && rd1.equals( rd2 ) ) {
-            System.out.println( "true" );
+            //System.out.println( "true" );
             return new BooleanDomain( true, true );
           } else if ( rd1.intersects( rd1 ) ) {// greaterEquals(rd1.getUpperBound(),
                                                // rd2.getLowerBound()) &&
             // rd1.lessEquals(rd1.getLowerBound(), rd2.getUpperBound()) ){
-            System.out.println( "true or false" );
+            //System.out.println( "true or false" );
             return new BooleanDomain( false, true );
           } else System.out.println( "false" );
           return new BooleanDomain( false, false );
@@ -2938,7 +3110,7 @@ public class Functions {
       Domain< ? > d1 = DomainHelper.getDomain( a1 );
       Domain< ? > d2 = DomainHelper.getDomain( a2 );
       if ( d1 == null || d2 == null || d1.magnitude() <= 0
-           || d2.magnitude() <= 0 ) {
+           || d2.magnitude() <= 0 || gov.nasa.jpl.ae.util.Math.isInfinity(d1.magnitude()) || gov.nasa.jpl.ae.util.Math.isInfinity(d2.magnitude()) ) {
         return BooleanDomain.defaultDomain;
       }
       if ( d1 instanceof AbstractRangeDomain
@@ -3173,8 +3345,8 @@ public class Functions {
       Object a2 = getArgument( 1 );
       Domain< ? > d1 = DomainHelper.getDomain( a1 );
       Domain< ? > d2 = DomainHelper.getDomain( a2 );
-      if ( d1 == null || d2 == null || d1.magnitude() <= 0
-           || d2.magnitude() <= 0 ) {
+      if (d1 == null || d2 == null || d1.magnitude() <= 0
+              || d2.magnitude() <= 0 || gov.nasa.jpl.ae.util.Math.isInfinity(d1.magnitude()) || gov.nasa.jpl.ae.util.Math.isInfinity(d2.magnitude()) ) {
         return BooleanDomain.defaultDomain;
       }
       if ( d1 instanceof AbstractRangeDomain
@@ -3659,7 +3831,7 @@ public class Functions {
       Domain< ? > d1 = DomainHelper.getDomain( a1 );
       Domain< ? > d2 = DomainHelper.getDomain( a2 );
       if ( d1 == null || d2 == null || d1.magnitude() <= 0
-           || d2.magnitude() <= 0 ) {
+           || d2.magnitude() <= 0 || gov.nasa.jpl.ae.util.Math.isInfinity(d1.magnitude()) || gov.nasa.jpl.ae.util.Math.isInfinity(d2.magnitude()) ) {
         return BooleanDomain.defaultDomain;
       }
       if ( d1 instanceof AbstractRangeDomain
@@ -4715,6 +4887,8 @@ public class Functions {
     } else if ( tvm2 != null ) {
       tvm = true;
       tvmResult = compare( r1, tvm2, Inequality.EQ );
+    } else if (DistributionHelper.isDistribution(r1) || DistributionHelper.isDistribution(r2)) {
+      return eqDistribution(o1, o2);
     }
     if (tvm) {
       boolean allSame = tvmResult.allValuesSame();
@@ -4734,13 +4908,21 @@ public class Functions {
         return false;
       }
     }
-    
-    
     return eq( r1, r2 );
   }
 
-  protected static < T > Boolean eq( T r1, T r2 ) {
-    if ( Expression.valuesEqual( r1, r2, null, true, true ) ) return true;
+  protected static BooleanDistribution eqDistribution(Object o1, Object o2){
+    boolean isDist1 = DistributionHelper.isDistribution(o1);
+    boolean isDist2 = DistributionHelper.isDistribution(o2);
+    BooleanDistribution b = null;
+    if (isDist1 || isDist2) {
+      b = DistributionHelper.equals(o1,o2);
+    }
+    return b;
+  }
+
+  protected static <T> Boolean eq( T r1, T r2 ) {
+    if ( Expression.valuesEqual( r1, r2, null, true, true )) return true;
     if ( Utils.valuesLooselyEqual( r1, r2, true ) ) return true;
     if ( r1 == null || r2 == null ) return false;
     boolean b = false;
@@ -5901,9 +6083,9 @@ public class Functions {
   }
 
   // delete this function
-  private static < T, T1 > T1 pickValueBB( BooleanBinary< T > booleanBinary,
-                                           Variable< T1 > variable ) {
-    T1 newValue = pickValueBF( booleanBinary, // .functionCall,
+  private static <T, T1> T1 pickValueBB( BooleanBinary< T > booleanBinary,
+                                         Variable< T1 > variable ) {
+    T1 newValue = pickValueBF( booleanBinary,//.functionCall,
                                variable );
     return newValue;
   }
@@ -6086,7 +6268,5 @@ public class Functions {
     }
 
     // TODO -- Add tests for overflow!!
-
   }
-
 }

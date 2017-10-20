@@ -5,12 +5,10 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
 import gov.nasa.jpl.mbee.util.*;
+import gov.nasa.jpl.mbee.util.Random;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -97,6 +95,75 @@ public class ConstraintExpression extends Expression< Boolean >
     return sat;
   }
 
+
+  public <T> boolean applyAsIfDependency() {
+    Pair<Parameter<?>, Object> p = valueToSetLikeDependency();
+    if ( p == null ) return false;
+    Parameter<T> dependentVar = (Parameter<T>) p.first;
+    if ( dependentVar == null ) return false;
+    T oldVal = dependentVar.getValueNoPropagate();
+    dependentVar.setValue((T)p.second, true);
+    T newVal = dependentVar.getValueNoPropagate();
+    if ( oldVal == newVal ) return false;
+    return true;
+  }
+
+  public Pair<Parameter<?>, Object> valueToSetLikeDependency() {
+    Pair<Parameter<?>, Object> p = dependencyLikeVar();
+    if ( p == null ) return p;
+    if ( p.first == null ) return null;
+    Parameter<?> dependentVar = p.first;
+    Object value = null;
+    boolean succ = false;
+    try {
+      value = Expression.evaluateDeep(p.second, dependentVar.getType(), true, false);
+      succ = true;
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+    }
+    if ( !succ ) return null;
+    return new Pair<Parameter<?>, Object>(dependentVar, value);
+  }
+
+  public Pair<Parameter<?>, Object> dependencyLikeVar() {
+    ConstraintExpression ce = this;
+    if ( !( ce.expression instanceof Functions.EQ ) ) {
+      return null;
+    }
+    Vector<Object> args = ((Functions.EQ) ce.expression).getArguments();
+    if ( args == null || args.size() < 2 ) {  // It should always be 2, but . . .
+      return null;
+    }
+    for ( int i = 0; i < args.size(); ++i ) {
+      try {
+        Parameter<?> p = Expression.evaluate(args.get(i), Parameter.class, false);
+        if ( p == null ) continue;//&& !set.contains(p) ) {
+        for ( int j = 0; j < args.size(); ++j ) {
+          if ( j == i ) continue;
+          Object otherArg = args.get( j );
+//          if ( otherArg instanceof HasParameters ) {
+//            if ( !HasParameters.Helper.hasFreeParameter(otherArg, false, null) ) {
+//              return new Pair<Parameter<?>, Object>(p, otherArg);
+//            }
+//          } else {
+            return new Pair<Parameter<?>, Object>(p, otherArg);
+//          }
+        }
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      } catch (InstantiationException e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
+  }
+
   private static boolean pickDeep = true;
   /**
    * (non-Javadoc)
@@ -114,7 +181,11 @@ public class ConstraintExpression extends Expression< Boolean >
     // Try satisfying the contained Parameters individually to make sure they
     // have valid values.
     HasParameters.Helper.satisfy( this, true, null );
-    
+
+    if ( Random.global.nextDouble() < 0.7 && !isSatisfied(deep, seen) )  {
+      applyAsIfDependency();
+    }
+
     // Now try choosing new values for the variables to meet this constraint.
     if ( Parameter.allowPickValue && !isSatisfied(deep, seen) ) {
       Set< Variable< ? > > vars = new LinkedHashSet<Variable<?>>(getVariables());
@@ -190,31 +261,44 @@ public class ConstraintExpression extends Expression< Boolean >
   @Override
   public < T > boolean pickParameterValue( Variable< T > v ) {
     // Currently do not support picking values for non-primitives (like TimeVaryingMap).
-    boolean isPrimitive = variableHasPrimitiveValue( v );
-    boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
-    if ( expression instanceof Suggester && isPrimitive && hasChoices && (!(expression instanceof Call) || ((Call)expression).arguments.contains(v))) {
+//    boolean isPrimitive = variableHasPrimitiveValue( v );
+//    boolean hasChoices = v.getDomain() != null && !v.getDomain().isEmpty();
+    if ( expression instanceof Suggester &&
+         //isPrimitive && hasChoices &&
+         (!(v instanceof Parameter) || !(expression instanceof Call) || ((Call)expression).hasParameter((Parameter<?>)v, true, null))) {
       T newValue = ((Suggester)expression).pickValue( v );
       if ( newValue != null ) {
         //Debug.getInstance().logForce( "////////////////////   picking " + newValue + " for " + v + " in " + this );
         //Debug.turnOn();
         //if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + newValue + " for " + v + " in " + this );
-        System.out.println( "////////////////////   picking " + newValue + " for " + v + " in " + this );
        // Debug.turnOff();
-        setValue( v, newValue );
-        return true;
+        if ( v.getType() != null ) {
+          try {
+            Object ooo =
+                    Expression.evaluate(newValue, v.getType(), true, false);
+            newValue = (T)ooo;
+          } catch (IllegalAccessException e) {
+            e.printStackTrace();
+          } catch (InvocationTargetException e) {
+            e.printStackTrace();
+          } catch (InstantiationException e) {
+            e.printStackTrace();
+          }
+        }
+        if ( v.getType() == null || v.getType().isInstance(newValue) ) {
+          if ( Debug.isOn() ) {
+            Debug.outln( "////////////////////   picking " + newValue + " for " + v +
+                            " in " + this );
+          }
+          setValue(v, newValue);
+          return true;
+        }
       }
     }
     // TODO
-    //Debug.turnOn();
-    //if ( Debug.isOn() ) Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
-    if ( !isPrimitive ) {
-      System.out.println( "////////////////////   not picking value for nonPrimitive " + v + " in " + this );
-    } else if ( !hasChoices ) {
-      System.out.println( "////////////////////   not picking value for empty domain for " + v + " in " + this );
-    } else {
-      System.out.println( "////////////////////   not picking value for " + v + " in " + this );
+    if ( Debug.isOn() ) {
+      Debug.outln( "////////////////////   not picking value for " + v + " in " + this );
     }
-    //Debug.turnOff();
     return false;
   }
 

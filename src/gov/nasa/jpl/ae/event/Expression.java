@@ -803,8 +803,10 @@ public class Expression< ResultType > extends HasIdImpl
   @Override
   public boolean isFreeParameter( Parameter< ? > p, boolean deep,
                                   Set<HasParameters> seen ) {
+    //return HasParameters.Helper.isFreeParameter(this, p, deep, seen );
     // REVIEW -- Should Expressions know which are free? Should it just be the
     // owner's job, in which case the Parameter can determine it itself?
+    Debug.error("Expression.isFreeParameter() is not supported!");
     return false;
   }
 

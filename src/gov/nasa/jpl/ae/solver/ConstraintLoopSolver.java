@@ -75,7 +75,7 @@ public class ConstraintLoopSolver implements Solver {
         //Debug.turnOn();
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
-          System.out.println( "try to satisfy constraint " + i + ": " + c );
+          if ( Debug.isOn() ) Debug.outln("try to satisfy constraint " + i + ": " + c);
           thisSatisfied = c.satisfy( deep, null );
           if ( thisSatisfied ) {
             thisSatisfied = c.isSatisfied( deep, null );
@@ -108,26 +108,9 @@ public class ConstraintLoopSolver implements Solver {
     if ( Debug.isOn() ) Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
     if ( Utils.isNullOrEmpty( vars ) ) return constraint.isSatisfied( deep, null );
-//    Variable<?>[] a = new Variable<?>[vars.size()];
-//    boolean[] b = new boolean[vars.size()];
-//    vars.toArray( a );
-//    for ( int i=0; i < vars.size(); ++i ) {
-//      b[i] = false;
-//    }
-//    for ( int i=0; i < vars.size(); ++i ) {
-////    for ( Variable<?> v : vars ) {
-//      int j = Random.global.nextInt( vars.size() - i );
-//      int k = 0;
-//      while ( j >= 0 ) {
-//        if ( !b[k] ) --j;
-//        ++k;
-//      }
-//      Variable<?> v = a[--k];
-//      b[k] = true;
     Variable<?>[] a = new Variable<?>[vars.size()];
     vars.toArray( a );
     for ( Variable< ? > v : Utils.scramble(a) ) {
-//    for ( Variable<?> v : Utils.scramble( vars ) ) {
       if ( Debug.isOn() ) Debug.outln( "try to change variable " + v );
       if ( change( v ) ) {
         if ( constraint.isSatisfied( deep, null ) ) {

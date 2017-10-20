@@ -18,17 +18,14 @@ import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ConstructorDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.body.TypeDeclaration;
+import japa.parser.ast.type.ClassOrInterfaceType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
-public class ClassData {
+public class
+ClassData {
 
   /**
    * A struct for packaging a name, type, and value as Strings.
@@ -718,6 +715,23 @@ public class ClassData {
         }
       }
     }
+
+    if ( p == null ) {
+      ClassOrInterfaceDeclaration clsDecl = this.getClassDeclaration(className);
+      if ( clsDecl != null ) {
+        List<ClassOrInterfaceType> superclasses =
+                clsDecl.getExtends();
+        if ( superclasses != null ) {
+          for (ClassOrInterfaceType ciType : superclasses) {
+            String superclassName = ciType.toString();
+            p = lookupMemberByName( superclassName, paramName, lookOutsideClassData,
+                                        complainIfNotFound && lookOutsideClassData );
+            if ( p != null ) break;
+          }
+        }
+      }
+    }
+
     if ( Debug.isOn() ) Debug.outln( "lookupMemberByName( className="
                                      + className + ", paramName=" + paramName
                                      + ") returning " + p );
@@ -755,7 +769,13 @@ public class ClassData {
    */
   public String getEnclosingClassName( String className ) {
       if ( className == null ) return null;
-      String enclosingClassName = nestedToEnclosingClassNames.get( className ); 
+      String[] parsedNames;
+      String enclosingClassName;
+//      if (className.contains(".")) {
+//        parsedNames = className.split("[.]");
+//        className = parsedNames.length > 0 ? parsedNames[parsedNames.length - 1] : parsedNames[0];
+//      }
+      enclosingClassName = nestedToEnclosingClassNames.get( className );
       if ( !Utils.isNullOrEmpty( enclosingClassName ) ) {
         if ( Debug.isOn() ) Debug.outln( "getEnclosingClassName(" + className + ") = "
                      + enclosingClassName );

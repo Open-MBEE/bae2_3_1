@@ -45,7 +45,8 @@ public class ConstructorCall extends Call {
   }
   public static boolean isStatic( Class<?> cls ) {
     if ( cls == null ) return false;
-    return Modifier.isStatic( cls.getModifiers() );
+    boolean s = ClassUtils.isStatic(cls);
+    return s;
   }
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Call#isStatic()

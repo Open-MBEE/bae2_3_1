@@ -113,8 +113,10 @@ public class TestEventXmlToJava {
 
     return translator;
   }
-  
+
   public void writeFiles() {
+    //EventXmlToJava.writeFiles(translator, directory, packageName);
+
     if ( translator != null ) {
       // Figure out where to write the files
       String targetDirectory = translator.getPackageSourcePath( null );

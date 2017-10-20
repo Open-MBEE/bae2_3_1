@@ -20,6 +20,7 @@ import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.mbee.util.Utils;
 import gov.nasa.jpl.mbee.util.Wraps;
+import org.junit.Test;
 
 /**
  * A {@link Domain} that is a union of an "include" set of Domains and a
@@ -108,8 +109,8 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
    * from the included set and trying to eliminate overlap among the domains in
    * the included set. Warning! This class does not update the flattened set
    * when the included and excluded sets change, but it is computed by
-   * {@link MultiDomain.getFlattenedSet()} when it is null by calling
-   * {@link MultiDomain.computeFlattenedSet()}.
+   * {@link MultiDomain#getFlattenedSet()} when it is null by calling
+   * {@link MultiDomain#computeFlattenedSet()}.
    */
   public Set< Domain< T > > getFlattenedSet() {
     if ( flattenedSet == null ) {
@@ -122,7 +123,68 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     computeFlattenedSetWithMagnitude(false);
     return flattenedSet;
   }
-  
+
+  /**
+   * Modify the input list of Domains to merge overlaps,
+   * @param domainList
+   * @param <T>
+   */
+  protected static <T> void mergeOverlaps( List< Domain< T > > domainList ) {
+    boolean removed[] = new boolean[ domainList.size() ];
+    for ( int i = 0; i < domainList.size(); ++i ) {
+      removed[ i ] = false;
+    }
+    for ( int i = 0; i < domainList.size(); ++i ) {
+      if ( removed[ i ] ) continue;
+      Domain< T > d1 = domainList.get( i );
+      if ( !( d1 instanceof AbstractRangeDomain ) ) continue;
+      AbstractRangeDomain< T > rd1 = (AbstractRangeDomain< T >)d1;
+
+      for ( int j = 0; j < domainList.size(); ++j ) {
+        if ( i == j ) continue;
+        if ( removed[ j ] ) continue;
+        Domain< T > d2 = domainList.get( j );
+        if ( !( d2 instanceof AbstractRangeDomain ) ) continue;
+        AbstractRangeDomain< T > rd2 = (AbstractRangeDomain< T >)d2;
+        if ( rd1.union( rd2 ) ) {
+          removed[ j ] = true;
+        }
+      }
+    }
+    for ( int i = removed.length - 1; i >= 0; --i ) {
+      if ( removed[ i ] ) {
+        domainList.remove( i );
+      }
+    }
+
+    // Subtract overlap with preceding (or following?) domains in the list.
+    // There may still be overlap for domains that are not AbstractRangeDomains.
+    removed = new boolean[ domainList.size() ];
+    for ( int i = 0; i < domainList.size(); ++i ) {
+      removed[ i ] = false;
+    }
+    for ( int i = 0; i < domainList.size(); ++i ) {
+      if ( removed[ i ] ) continue;
+      Domain< T > d1 = domainList.get( i );
+      for ( int j = i + 1; j < domainList.size(); ++j ) {
+        Domain< T > d2 = domainList.get( j );
+        d2 = d2.subtract( d1 );
+        if ( d2.isEmpty() ) {
+          removed[j] = true;
+        } else {
+          domainList.set( j, d2 );
+        }
+      }
+    }
+
+    for ( int i = removed.length - 1; i >= 0; --i ) {
+      if ( removed[ i ] ) {
+        domainList.remove( i );
+      }
+    }
+
+  }
+
   public long computeFlattenedSetWithMagnitude(boolean bailIfNotEmpty) {
 
     long mag = 0;
@@ -138,12 +200,18 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
 //    }
     
     // Subtract excluded domains
-    for ( Domain< T > d : flattenedList ) {
+    for ( int i = 0; i < flattenedList.size(); ++i ) {
+    //for ( Domain< T > d : flattenedList ) {
+      Domain<T> d = flattenedList.get( i );
       if ( excludeSet != null ) {
         for ( Domain< T > ed : excludeSet ) {
-          d.subtract( ed );
+          d = d.subtract( ed );
           //flattenedList.add( c );
+          if ( d instanceof MultiDomain ) {
+            ((MultiDomain) d).fixToIncludeBounds();
+          }
         }
+        flattenedList.set( i, d );
       }
       if ( bailIfNotEmpty && d.magnitude() > 0 ) {
         return 1;
@@ -151,52 +219,44 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     }
 
     // merge domains that overlap.
-    boolean removed[] = new boolean[ flattenedList.size() ];
-    for ( int i = 0; i < flattenedList.size(); ++i ) {
-      removed[ i ] = false;
-    }
-    for ( int i = 0; i < flattenedList.size(); ++i ) {
-      if ( removed[ i ] ) continue;
-      Domain< T > d1 = flattenedList.get( i );
-      if ( !( d1 instanceof AbstractRangeDomain ) ) continue;
-      AbstractRangeDomain< T > rd1 = (AbstractRangeDomain< T >)d1;
+    mergeOverlaps( flattenedList );
 
-      for ( int j = 0; j < flattenedList.size(); ++j ) {
-        if ( i == j ) continue;
-        if ( removed[ j ] ) continue;
-        Domain< T > d2 = flattenedList.get( j );
-        if ( !( d2 instanceof AbstractRangeDomain ) ) continue;
-        AbstractRangeDomain< T > rd2 = (AbstractRangeDomain< T >)d2;
-        if ( rd1.union( rd2 ) ) {
-          removed[ j ] = true;
-        }
+    for ( int i = 0; i < flattenedList.size(); ++i ) {
+      //for ( Domain< T > d : flattenedList ) {
+      Domain<T> d = flattenedList.get(i);
+      long d1mag = d.magnitude();
+      if ( d1mag > 0 ) {
+        mag = Math.plus(mag, d1mag);
       }
     }
-    for ( int i = removed.length - 1; i >= 0; --i ) {
-      if ( removed[ i ] ) {
-        flattenedList.remove( i );
-      }
-    }
-    
-    // Subtract overlap with preceding domains in the list.  There may still be
-    // overlap for domains that are not AbstractRangeDomains.
-    Iterator<Domain<T>> iter = flattenedList.iterator();
-    // clear before we modify the elements
-    while ( iter.hasNext() ) {
-      Domain< T > d1 = iter.next();
-      Iterator< Domain< T > > j = iter;
-      while ( j.hasNext() ) {
-        Domain< T > d2 = j.next();
-        d2.subtract( d1 );
-        if ( d2.isEmpty() ) j.remove();
-      }
-      long d1mag = d1.magnitude(); 
-      mag = Math.plus( mag, d1mag );
-    }
-    
+
     flattenedSet = new LinkedHashSet< Domain< T > >( flattenedList );
 
     return mag;
+  }
+
+  /**
+   * Clean up finite ranges to include the bounds in the include/exclude sets.
+   * This just calls {@link AbstractFiniteRangeDomain#fixToIncludeBounds()} where it can.
+   * @return whether any domain was fixed
+   */
+  public boolean fixToIncludeBounds() {
+    boolean changed = false;
+    List< Set< Domain< T > > > sets = Utils.newList(includeSet, excludeSet);
+    for ( Set< Domain< T > > set : sets ) {
+      if ( set == null ) continue;
+      for ( Domain< T > d : set ) {
+        if ( d == null ) continue;
+        if (d instanceof AbstractFiniteRangeDomain) {
+          boolean didFix = ((AbstractFiniteRangeDomain) d).fixToIncludeBounds();
+          changed = changed || didFix;
+        } else if ( d instanceof MultiDomain ) {
+          boolean didFix = ((MultiDomain) d).fixToIncludeBounds();
+          changed = changed || didFix;
+        }
+      }
+    }
+    return changed;
   }
 
   @Override
@@ -283,14 +343,18 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     computeFlattenedSet();
     long m = 0;
     for ( Domain<T> d : flattenedSet ) {
-      m += d.magnitude();
+      long mm = d.magnitude();
+      if ( mm >= Long.MAX_VALUE ) return mm;
+      if ( mm > 0 ) {
+        m += mm;
+      }
     }
     return m;
   }
 
   @Override
   public boolean isEmpty() {
-    return magnitude() <= 0;
+    return magnitude() == 0;
   }
 
   @Override
@@ -332,17 +396,21 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
   public T pickRandomValue() {
     long mag = magnitude();
     if ( mag <= 0 ) return null;
-    if ( Math.isInfinity( mag ) ) {
-      // Dunno?  Maybe it doesn't matter since domains must overlap?
-    }
     double r = Random.global.nextDouble();
     double rMag = r * mag;
-    
+    if ( Math.isInfinity( mag ) ) {
+       // TODO -- use size()
+    }
+
     long magSoFar = 0;
     
     for ( Domain<T> d : flattenedSet ) {
       long thisMag = d.magnitude();
-      magSoFar += thisMag;
+      if ( Math.isInfinity( thisMag ) ) {
+        magSoFar = Long.MAX_VALUE;
+      } else if ( thisMag > 0 ) {
+        magSoFar += thisMag;
+      }
       if ( magSoFar >= rMag ) {
         return d.pickRandomValue();
       }
@@ -493,7 +561,9 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
     LinkedHashSet<Domain<T>> newInclude = new LinkedHashSet<Domain<T>>();
     for ( Domain< T > d : clone.includeSet ) {
         Domain<TT> dd = d.subtract( domain );
-        newInclude.add( (Domain<T>)dd );
+        if ( dd != null && !dd.isEmpty() ) {
+          newInclude.add((Domain<T>) dd);
+        }
     }
     clone.includeSet = newInclude;
     return (Domain< TT >)clone;
@@ -533,6 +603,7 @@ public class MultiDomain< T >  extends HasIdImpl implements Domain< T > {
   /**
    * @param args
    */
+  @Test
   public static void main( String[] args ) {
     Domain<Integer> id1 = new IntegerDomain( 3, 8 );
     Domain<Integer> id2 = new IntegerDomain( 6, 9 );

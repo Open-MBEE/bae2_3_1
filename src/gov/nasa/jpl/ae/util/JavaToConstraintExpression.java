@@ -66,11 +66,10 @@ import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Vector;
+import java.lang.reflect.TypeVariable;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
@@ -253,7 +252,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
         // Could also check if they are not equal and deal with it more
         // intelligently
         int numConstructorArgs = constructor.getParameterTypes().length;
-        if (arguments.size() == 0 && numConstructorArgs > 0) {
+        if ( (arguments == null || arguments.size() == 0) && numConstructorArgs > 0) {
           
           Vector<Object> emptyArgs = new Vector<Object>();
           for(int i = 0; i < numConstructorArgs; ++i) {
@@ -585,8 +584,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   public static String typeToClass( String type ) {
     
     if ( Utils.isNullOrEmpty( type ) ) {
-      //type = "null";
-    } else if ( type.toLowerCase().equals( "time" ) 
+      return type;
+    }
+    // check for generic parameters
+    Pattern p = Pattern.compile("([A-Za-z_][A-Za-z0-9._]*\\s*)<(.*)>(\\s*)");
+    Matcher m = p.matcher(type);
+    if ( m.matches() && m.groupCount() > 1 ) {
+      String t1 = typeToClass(m.group(1));
+      String t2 = typeToClass(m.group(2));
+      String t3 = m.groupCount() > 2 && m.group(3) != null ? m.group(3) : "";
+      return t1 + "<" + t2 + ">" + t3;
+    }
+
+    // convert types to Class equivalents
+    // TODO -- REVIEW -- other than "time", shouldn't this be in ClassUtils?
+    if ( type.toLowerCase().equals( "time" )
         || type.toLowerCase().startsWith( "long" ) ) {
       type = "Long";
     } else if ( type.toLowerCase().startsWith( "int" )
@@ -1304,11 +1316,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           result =
               JavaToConstraintExpression.operatorResultType( ue.getOperator(),
                                   astToAeExprType( ue.getExpr(), specifier, lookOutsideClassData, complainIfNotFound ) );
-      } else if ( expr.getClass() == ConditionalExpr.class ) {
-        ConditionalExpr be = ( (ConditionalExpr)expr );
-        result =
-            ClassUtils.dominantType( astToAeExprType( be.getThenExpr(), specifier, lookOutsideClassData, complainIfNotFound ),
-                          astToAeExprType( be.getElseExpr(), specifier, lookOutsideClassData, complainIfNotFound ) );
       } else if ( expr.getClass() == EnclosedExpr.class ) {
           result = astToAeExprType( ( (EnclosedExpr)expr ).getInner(), specifier, lookOutsideClassData, complainIfNotFound );
       } else if ( expr.getClass() == MethodCallExpr.class ) {
@@ -1322,10 +1329,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           Class<?> type = mm.getReturnType(); 
           Class<?> cls = mm.getDeclaringClass();
           boolean typeWasObject = type == Object.class;
-          // TODO -- REVIEW -- Should below be something like Utils.replaceSuffix(ClassUtils.toString( expression.getType() ), ".class", "" );
           if ( type != null && !typeWasObject ) {
             result = ( type.isArray() ? type.getSimpleName() : type.getName() );
           }
+          // handle return value with generic type for Wraps.getValue() and Parameter.getValue*()
           if ( ( type == null || typeWasObject ) && cls != null
               && mm.getName().startsWith( "getValue" )
               //&& mm.getName().equals( "getValue" )
@@ -1346,7 +1353,27 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
               }
               type = ( (Wraps< ? >)n ).getType();
             }
+          } else if ( ( type == null || typeWasObject ) && cls != null
+                  && mm.getName().equals( "get" ) && Collection.class.isAssignableFrom(cls) ) {
+            // TODO -- Remove this case if the case below handles this properly. (It should!)
+            // handle return value with generic type for Collections.get(int)
+            String oTypeName = javaForFunctionCall.getObjectTypeName();
+            result = getGenericParameters(oTypeName);  // There should only be one.
+          } else {
+            // handle the generic return type with Method.getGenericReturnType() and getObjectTypeName() similar to Collection.get() above.
+            ArrayList<String> paramNames = new ArrayList<String>();
+            for ( TypeVariable<? extends Class<?>> ttt : cls.getTypeParameters() ) {
+              paramNames.add( ttt.getName() );
+            }
+            int pos = paramNames.indexOf( mm.getGenericReturnType().getTypeName() );
+            if ( pos >= 0 ) {
+              String oTypeName = javaForFunctionCall.getObjectTypeName();
+              String callingClassParameters = getGenericParameters(oTypeName);
+              result = parseNthGenericArg(pos, callingClassParameters);
+            }
+            // TODO -- This case does not handle returning Set<String> from a function, public Set<T> getSet(), called from a Foo<String> where String is substituted for T in Foo<T>.
           }
+
           if ( type == null ) {
             if ( result == null ) {
               result = ClassUtils.parameterPartOfName( javaForFunctionCall.getClassName(), false );
@@ -1356,7 +1383,9 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
   //          }
   //          //type = ClassUtils.getClassForName( javaForFunctionCall.className, null, false );
           } else {
-            result = ( type.isArray() ? type.getSimpleName() : type.getName() );
+            if ( result == null ) {
+              result = (type.isArray() ? type.getSimpleName() : type.getName());
+            }
           }
           if ( result != null && result.endsWith( "Object" ) && typeWasObject ) {
             result = null;
@@ -1473,6 +1502,59 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       if ( Debug.isOn() ) Debug.outln( "astToAeExprType(" + expr + ") = " + result );
       // Nested type cannot be referenced by its binary name.
       if ( result != null ) result = result.replace( '$', '.' );
+      return result;
+    }
+
+
+    public static String getGenericParameters( String classWithParams ) {
+      int pos1 = classWithParams.indexOf('<');
+      int pos2 = classWithParams.lastIndexOf('>');
+      String callingClassParameters = null;
+      if ( pos1 > 0 && pos2 > pos1 ) {
+        String result = classWithParams.substring(pos1+1, pos2);
+        return result;
+      }
+      return null;
+    }
+
+  /**
+   * Get the nth argument in a comma-separated list of generic parameters, counting from 0.<br>
+   * For example, the 3rd argument (n = 2) in "X, Y<A<B>>, Z" is "Z".<br>
+   * If n is greater than or equal to the number of arguments, then null is returned.<br>
+   * The return value is unspecified for malformed input.
+   *
+   * @param n index of argument in argList counting from 0
+   * @param argList the comma-separated list of arguments to parse
+   * @return a substring representing the nth argument or null if there are not that many arguments
+   */
+    public static String parseNthGenericArg(int n, String argList) {
+      if ( argList == null ) return null;
+      int ct = 0;
+      int depth = 0; // depth of nested < . . . >
+      int p = 0;
+      int pos1 = 0;
+      int pos2 = 0;
+      while ( ct <= n && p < argList.length() ) {
+        char c = argList.charAt(p);
+        if ( c == '<' ) {
+          ++depth;
+        } else if ( depth == 0 && c == ',' ) {
+          ++ct;
+          if ( ct == n ) {
+            pos1 = p + 1;
+          } else if ( ct > n ) {
+            pos2 = p;
+          }
+        } else if ( depth > 0 && c == '>' ) {
+          --depth;
+        }
+        ++p;
+      }
+      // check if never reached argument;
+      if ( ct < n ) return null;
+      // set pos2 in case the nth arg is the last arg
+      if ( pos2 == 0 ) pos2 = p;
+      String result = argList.substring(pos1, pos2).trim();
       return result;
     }
 
@@ -1734,9 +1816,10 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           // treat as a member
           if ( parentExpr.expression instanceof Parameter ) {
             functionCall =
-                new FunctionCall( parentExpr.expression, Parameter.class,
-                                  "getMember",
-                                  new Object[] { "" + fieldAccessExpr.getField(), true }, (Class<?>)null );
+                new Functions.GetMember<>(parentExpr.expression, "" + fieldAccessExpr.getField() );
+//                new FunctionCall( parentExpr.expression, Parameter.class,
+//                                  "getMember",
+//                                  new Object[] { "" + fieldAccessExpr.getField(), true }, (Class<?>)null );
           } else if ( parentExpr.expression instanceof Class ) {
             functionCall =
                 new FunctionCall( null, ClassUtils.class,
@@ -1826,9 +1909,11 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     String aeString;
     if ( wrapInFunction ) {
       aeString =
-          "new FunctionCall(" + parentString
-              + ", Parameter.class, \"getMember\", " + "new Object[]{\""
-              + fieldAccessExpr.getField() + "\"})";
+              "new Functions.GetMember(" + parentString + ", \""
+              + fieldAccessExpr.getField() + "\")";
+//          "new FunctionCall(" + parentString
+//              + ", Parameter.class, \"getMember\", " + "new Object[]{\""
+//              + fieldAccessExpr.getField() + "\"})";
     } else {
       aeString = parentString + "." + fieldAccessExpr.getField();
     }
@@ -1848,11 +1933,15 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     }
     return aeString;
   }
-  
 
-    protected Expression fixExpression( Expression expr ) {
+
+  protected Expression fixExpression( Expression expr ) {
+    return fixExpression(expr, this);
+
+  }
+    protected static Expression fixExpression( Expression expr, JavaToConstraintExpression j2ce ) {
       if ( expr == null ) return null;
-      String newExprString = astToAeExpr( expr, false, true, false );
+      String newExprString = j2ce.astToAeExpr( expr, false, true, false );
       Expression newExpr = parseExpression( newExprString );
       return newExpr;
     }
@@ -1873,11 +1962,14 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
        * expressions with astToAeExpr().
        * @param stmt the statement to fix
        */
-      public void fixStatement( Statement stmt ) {
+    public void fixStatement( Statement stmt ) {
+      fixStatement(stmt, this);
+    }
+    public static void fixStatement( Statement stmt, JavaToConstraintExpression j2ce ) {
         if ( stmt == null ) return;
         if ( stmt instanceof ExpressionStmt ) {
           ExpressionStmt exprStmt = (ExpressionStmt)stmt;
-          Expression expr = fixExpression( exprStmt.getExpression() );
+          Expression expr = j2ce.fixExpression( exprStmt.getExpression() );
           exprStmt.setExpression( expr );
     //      if ( exprStmt.getExpression() instanceof AssignExpr ) {
     //        AssignExpr assignExpr = (AssignExpr)exprStmt.getExpression();
@@ -1888,75 +1980,75 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     //      }
         } else if ( stmt instanceof BlockStmt ) {
           BlockStmt bs = (BlockStmt)stmt;
-          fixStatements( bs.getStmts() );
+          j2ce.fixStatements( bs.getStmts() );
         } else if ( stmt instanceof AssertStmt ) {
           AssertStmt assertStmt = (AssertStmt)stmt;
-          Expression expr = fixExpression( assertStmt.getCheck() );
+          Expression expr = j2ce.fixExpression( assertStmt.getCheck() );
           if ( expr != null ) assertStmt.setCheck( expr );
         } else if ( stmt instanceof DoStmt ) {
           DoStmt doStmt = (DoStmt)stmt;
           //List<Statement> stmtList = new ArrayList<Statement>();
-          fixStatement( doStmt.getBody() );
-          Expression expr = fixExpression( doStmt.getCondition() );
+          j2ce.fixStatement( doStmt.getBody() );
+          Expression expr = j2ce.fixExpression( doStmt.getCondition() );
           if ( expr != null ) doStmt.setCondition( expr );
           //doStmt.setBody( stmtList.get( 0 ) );
         } else if ( stmt instanceof ExplicitConstructorInvocationStmt ) {
           ExplicitConstructorInvocationStmt ecis = (ExplicitConstructorInvocationStmt)stmt;
-          List< Expression > exprs = fixExpressions( ecis.getArgs() );
+          List< Expression > exprs = j2ce.fixExpressions( ecis.getArgs() );
           if ( exprs != null ) ecis.setArgs( exprs );
-          Expression expr = fixExpression( ecis.getExpr() );
+          Expression expr = j2ce.fixExpression( ecis.getExpr() );
           if ( expr != null ) ecis.setExpr( expr );
         } else if ( stmt instanceof ForeachStmt ) {
           ForeachStmt foreachStmt = (ForeachStmt)stmt;
-          fixStatement( foreachStmt.getBody() );
-          Expression expr = fixExpression( foreachStmt.getIterable() );
+          j2ce.fixStatement( foreachStmt.getBody() );
+          Expression expr = j2ce.fixExpression( foreachStmt.getIterable() );
           if ( expr != null ) foreachStmt.setIterable(expr);
-          expr = fixExpression( foreachStmt.getVariable() );
+          expr = j2ce.fixExpression( foreachStmt.getVariable() );
           if ( expr != null && expr instanceof VariableDeclarationExpr ) {
             foreachStmt.setVariable( (VariableDeclarationExpr)expr );
           }
         } else if ( stmt instanceof ForStmt ) {
           ForStmt forStmt = (ForStmt)stmt;
-          fixStatement( forStmt.getBody() );
-          List< Expression > exprs = fixExpressions( forStmt.getInit() );
+          j2ce.fixStatement( forStmt.getBody() );
+          List< Expression > exprs = j2ce.fixExpressions( forStmt.getInit() );
           if ( exprs != null ) forStmt.setInit( exprs );
-          Expression expr = fixExpression( forStmt.getCompare() );
+          Expression expr = j2ce.fixExpression( forStmt.getCompare() );
           if ( expr != null ) forStmt.setCompare( expr );
-          exprs = fixExpressions( forStmt.getUpdate() );
+          exprs = j2ce.fixExpressions( forStmt.getUpdate() );
           if ( exprs != null ) forStmt.setUpdate( exprs );        
         } else if ( stmt instanceof IfStmt ) {
           IfStmt ifStmt = (IfStmt)stmt;
           List<Statement> stmtList = new ArrayList<Statement>();
           stmtList.add( ifStmt.getThenStmt() );
           stmtList.add( ifStmt.getElseStmt() );
-          fixStatements( stmtList );
-          Expression expr = fixExpression( ifStmt.getCondition() );
+          j2ce.fixStatements( stmtList );
+          Expression expr = j2ce.fixExpression( ifStmt.getCondition() );
           if ( expr != null ) ifStmt.setCondition( expr );
         } else if ( stmt instanceof LabeledStmt ) {
           LabeledStmt labeledStmt = (LabeledStmt)stmt;
-          fixStatement( labeledStmt.getStmt() );
+          j2ce.fixStatement( labeledStmt.getStmt() );
         } else if ( stmt instanceof ReturnStmt ) {
           ReturnStmt returnStmt = (ReturnStmt)stmt;
-          Expression expr = fixExpression( returnStmt.getExpr() );
+          Expression expr = j2ce.fixExpression( returnStmt.getExpr() );
           if ( expr != null ) returnStmt.setExpr( expr );
         } else if ( stmt instanceof SwitchEntryStmt ) {
           SwitchEntryStmt switchStmt = (SwitchEntryStmt)stmt;
-          fixStatements( switchStmt.getStmts() );
-          Expression expr = fixExpression( switchStmt.getLabel() );
+          j2ce.fixStatements( switchStmt.getStmts() );
+          Expression expr = j2ce.fixExpression( switchStmt.getLabel() );
           if ( expr != null ) switchStmt.setLabel( expr );
         } else if ( stmt instanceof SwitchStmt ) {
           SwitchStmt switchStmt = (SwitchStmt)stmt;
-          fixStatements( switchStmt.getEntries() );
-          Expression expr = fixExpression( switchStmt.getSelector() );
+          j2ce.fixStatements( switchStmt.getEntries() );
+          Expression expr = j2ce.fixExpression( switchStmt.getSelector() );
           if ( expr != null ) switchStmt.setSelector( expr );
         } else if ( stmt instanceof SynchronizedStmt ) {
           SynchronizedStmt synchStmt = (SynchronizedStmt)stmt;
-          fixStatement( synchStmt.getBlock() );
-          Expression expr = fixExpression( synchStmt.getExpr() );
+          j2ce.fixStatement( synchStmt.getBlock() );
+          Expression expr = j2ce.fixExpression( synchStmt.getExpr() );
           if ( expr != null ) synchStmt.setExpr( expr );
         } else if ( stmt instanceof ThrowStmt ) {
           ThrowStmt throwStmt = (ThrowStmt)stmt;
-          Expression expr = fixExpression( throwStmt.getExpr() );
+          Expression expr = j2ce.fixExpression( throwStmt.getExpr() );
           if ( expr != null ) throwStmt.setExpr( expr );
         } else if ( stmt instanceof TryStmt ) {
           TryStmt tryStmt = (TryStmt)stmt;
@@ -1966,7 +2058,7 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
           for ( CatchClause cc : tryStmt.getCatchs() ) {
             stmtList.add( cc.getCatchBlock() );
           }
-          fixStatements( stmtList );
+          j2ce.fixStatements( stmtList );
         } else if ( stmt instanceof TypeDeclarationStmt ) {
           // TODO
 //          TypeDeclarationStmt typeDeclStmt = (TypeDeclarationStmt)stmt;
@@ -1975,8 +2067,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
 //          }
         } else if ( stmt instanceof WhileStmt ) {
           WhileStmt whileStmt = (WhileStmt)stmt;
-          fixStatement( whileStmt.getBody() );
-          Expression expr = fixExpression( whileStmt.getCondition() );
+          j2ce.fixStatement( whileStmt.getBody() );
+          Expression expr = j2ce.fixExpression( whileStmt.getCondition() );
           if ( expr != null ) whileStmt.setCondition( expr );
         } else {
           System.err.println( "fixStatement(): got unhandled Statement type: "
@@ -1987,7 +2079,6 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     /**
      * Converts Java statements into AE Java statements by converting expressions
      * with astToAeExpr().
-     * @param className
      * @param stmts
      */
     protected void fixStatements( List<? extends Statement> stmts ) {
@@ -2218,6 +2309,8 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
    * @return
    */
   public String[] convertToTypeAndConstructorArgs( ClassData.Param p ) {
+    boolean evaluateForType = true;
+
     String ret[] = new String[ 3 ];
     String type = "Parameter";
     String parameterTypes = p.type;
@@ -2233,11 +2326,16 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
     String valueArg = javaToAeExpr( p.value, p.type, false, true, true );
     String typePlaceholder = "!TYPE!";
     String domain = getDomainString(p.type);
-    // if ( valueArg.equals( "null" )
-    // || ( valueArg.startsWith( "new Expression" ) &&
-    // valueArg.endsWith( "(null)" ) ) ) {
-    valueArg = "(" + typePlaceholder + ")" + valueArg; // replacing !TYPE! later
-    // }
+//    // if ( valueArg.equals( "null" )
+//    // || ( valueArg.startsWith( "new Expression" ) &&
+//    // valueArg.endsWith( "(null)" ) ) ) {
+    if ( evaluateForType ) {
+      valueArg = "Expression.evaluate(" + valueArg + ", " + typePlaceholder +
+                 ".class, true)"; // replacing !TYPE! later
+    } else {
+      valueArg = "(" + typePlaceholder + ")" + valueArg; // replacing !TYPE! later
+    }
+//    // }
     String args = "\"" + p.name + "\"," + domain + ", " + valueArg + ", this";
     String parameterClass =
         ClassData.typeToParameterType( p.type );
@@ -2320,10 +2418,21 @@ public class JavaToConstraintExpression { // REVIEW -- Maybe inherit from ClassD
       }
     }
     if ( Utils.isNullOrEmpty( castType ) ) {
-      typePlaceholder = "(" + typePlaceholder + ")";
-      args = args.replace( typePlaceholder, "" );
+      if ( evaluateForType ) {
+        String typePlaceholder2 = typePlaceholder + ".class";
+        args = args.replace(typePlaceholder2, "null");
+      } else {
+        String typePlaceholder1 = "(" + typePlaceholder + ")";
+        args = args.replace(typePlaceholder1, "");
+      }
     } else {
-      args = args.replace( typePlaceholder, castType );
+      String castTypeNoParams;
+      if ( evaluateForType ) {
+        castTypeNoParams = castType.replaceFirst("<.*>", "");
+      } else {
+        castTypeNoParams = castType;
+      }
+      args = args.replace( typePlaceholder, castTypeNoParams );
     }
 
     // HACK -- TODO

@@ -48,7 +48,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
    * values less than the upper bound (that are within the lower bound).
    */
   protected boolean upperIncluded;
-  protected boolean nullInDomain = false;
+  public boolean nullInDomain = false;
   
   //protected DomainListener owner;  // REVIEW ??
   //protected static Object typeMinValue;
@@ -142,7 +142,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     }
     return ( less( getUpperBound(), getLowerBound() ) ||
              ( equals( getUpperBound(), getLowerBound() ) &&
-               (!lowerIncluded || !upperIncluded) ) );
+               !lowerIncluded && !upperIncluded ) );
   }
 
 
@@ -891,36 +891,55 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   @Override
   public < TT > Domain<TT> subtract( Domain< TT > domain ) {
     if ( domain == null ) return null;  // REVIEW -- return this.clone() instead of null?
+    Domain< T > tsd = clone();
     if ( domain instanceof AbstractRangeDomain ) {
       Set< AbstractRangeDomain< TT > > arDomains = AbstractRangeDomain.subtract( (AbstractRangeDomain< TT >)this, (AbstractRangeDomain< TT >)domain );
       Domain<TT> d = domainFromSet(arDomains,  (Class< Domain< TT > >)domain.getClass() );
       if ( d == null ) {
+        tsd.clearValues();
         // TODO
+      } else {
+        return d;
       }
-      return d;
       //changed = subtract( (AbstractRangeDomain< T >)domain );
     } else if ( domain instanceof SingleValueDomain ) {
       SingleValueDomain< T > svd = (SingleValueDomain< T >)domain;
       Domain<T> d = clone();
       d.restrictToValue( svd.value );
-      Domain< T > tsd = this.subtract( d );
-      if ( tsd instanceof AbstractRangeDomain ) {
-        return (Domain< TT >)tsd;
-      }
-       // arDomains;
-      if ( tsd instanceof MultiDomain ) {
-        MultiDomain<T> md = (MultiDomain<T>)tsd;
-        Set< ? extends AbstractRangeDomain > arDomains = Utils.asSet( md.includeSet, this.getClass() );
-        Domain<TT> dd = domainFromSet( (Set< AbstractRangeDomain< T > >)arDomains, (Class< Domain< TT > >)domain.getClass()  );
-        return dd;
-      } else {
-        // TODO ???
-        Debug.error("Unexpected return value, " + tsd + " from subtracting " + d + " from " + this);
+      tsd = this.subtract( d );
+    } else if ( domain instanceof MultiDomain ) {
+      Set<Domain<T>> s = ((MultiDomain) domain).getFlattenedSet();
+      //Domain< T > tsd = clone();
+      for ( Domain<T> d : s ) {
+        tsd = tsd.subtract( d );
       }
     } else {
-      // TODO???
-      Debug.error("Cannot restrict " + this +" to domain " + domain + " of type " + domain.getClass().getCanonicalName() );
+      if ( !isInfinite() && magnitude() <= 1e6 ) {
+        for ( long i = magnitude() - 1; i >= 0; --i ) {
+          T val = getNthValue(i);
+          if ( domain.getType() == null || (domain.getType().isInstance(val) && domain.contains((TT) val)) ) {
+            tsd = tsd.subtract( new SingleValueDomain<T>(val));
+          }
+        }
+      } else {
+        // TODO???
+        Debug.error("Cannot restrict " + this + " to domain " + domain + " of type " + domain.getClass().getCanonicalName());
+      }
     }
+    if ( tsd instanceof AbstractRangeDomain ) {
+      return (Domain< TT >)tsd;
+    }
+    // arDomains;
+    if ( tsd instanceof MultiDomain ) {
+      MultiDomain<T> md = (MultiDomain<T>)tsd;
+      Set< ? extends AbstractRangeDomain > arDomains = Utils.asSet( md.includeSet, this.getClass() );
+      Domain<TT> dd = domainFromSet( (Set< AbstractRangeDomain< T > >)arDomains, (Class< Domain< TT > >)domain.getClass()  );
+      return dd;
+    } else {
+      // TODO ???
+      Debug.error("Unexpected return value, " + tsd + " from subtracting " + domain + " from " + this);
+    }
+
     return null;
   }
   
@@ -993,9 +1012,9 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     boolean d1ContainsD2 = d1.lessEquals( d1.lowerBound, d2.lowerBound )
                            && d1.lessEquals( d2.upperBound, d1.upperBound )
                            && ( !d1.lowerBound.equals( d2.lowerBound )
-                                || !d1.isLowerBoundIncluded() || d2.isLowerBoundIncluded() )
+                                || (!d1.isLowerBoundIncluded() && d2.isLowerBoundIncluded() ) )
                            && ( !d1.upperBound.equals( d2.upperBound )
-                                || !d1.isUpperBoundIncluded() || d2.isUpperBoundIncluded() );
+                                || ( !d1.isUpperBoundIncluded() && d2.isUpperBoundIncluded() ) );
 
     AbstractRangeDomain< T1 > r;
 
@@ -1009,14 +1028,18 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     // Get first piece
     r = d1.clone();
     r.upperBound = d2.lowerBound;
-    r.upperIncluded = !d2.lowerIncluded; 
-    result.add( r );
+    r.upperIncluded = !d2.lowerIncluded;
+    if ( !r.isEmpty() ) {
+      result.add(r);
+    }
     
     // Get second piece
     r = d1.clone();
     r.lowerBound = d2.upperBound;
     r.lowerIncluded = !d2.upperIncluded;
-    result.add( r );
+    if ( !r.isEmpty() ) {
+      result.add(r);
+    }
 
     return result;
   }
@@ -1174,8 +1197,9 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
   public boolean isNullInDomain() {
     return nullInDomain;
   }
-  public void setNullInDomain( boolean b ) {
+  public boolean setNullInDomain( boolean b ) {
     nullInDomain = b;
+    return true;
   }
 
   @Override

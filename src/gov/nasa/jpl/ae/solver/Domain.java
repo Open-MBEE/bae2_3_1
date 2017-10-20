@@ -10,7 +10,7 @@ public interface Domain< T > extends Cloneable, HasId<Integer>, Wraps< T >, Eval
 
   /**
    * @return the number of elements in the domain. If the domain is infinite,
-   *         Integer.MAX_VALUE (which is to be interpreted as infinity).<p>
+   *         Long.MAX_VALUE (which is to be interpreted as infinity).<p>
    *         TODO -- Make the return value type long or Number.
    */
   public long magnitude();

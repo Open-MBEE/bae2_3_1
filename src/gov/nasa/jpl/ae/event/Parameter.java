@@ -56,7 +56,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   public static boolean mayChange = true;
 
   protected String name = null;
-  private Domain< T > domain = null;
+  public Domain< T > domain = null;
   protected T value = null;
   protected ParameterListener owner = null; // REVIEW -- Only one listener!
   protected boolean stale;
@@ -245,6 +245,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
   }
   public void setDomain( Domain< T > domain, boolean propagate ) {
     this.domain = domain;
+    this.constraintList.clear();
     if ( propagate && owner != null ) {
       //owner.setStaleAnyReferencesTo( this );
       owner.handleDomainChangeEvent( this, null );
@@ -356,15 +357,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     try {
       try {
         castVal = (T)Expression.evaluate( val, getType(), propagateChange, false);
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        //e.printStackTrace();
+      } catch ( Throwable t ) {
       }
       val = castVal;
       if ( Debug.isOn() ) valString = MoreToString.Helper.toLongString( val );
@@ -374,69 +367,51 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     if ( val != null && owner != null ) {
       Object newVal = owner.translate(this, val, getType());
       if ( Debug.isOn() ) {
-        //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
+        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ translate(" + val + ", type=" + getType() + ") = " + newVal + " $$$$$$$$$$$$$ $$$$$$$$$$$");
       }
       if ( newVal != null ) val = (T)newVal;
     } else {
       if ( Debug.isOn() ) {
-        //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
+        Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ DID NOT CALL TRANSLATE FOR " + this + "  $$$$$$$$$$$$$ $$$$$$$$$$$");
       }
     }
     boolean changing = !valueEquals( val );
     if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                      + "): changing = " + changing );
     if ( changing ) {
-      if ( owner != null ) {// && propagateChange ) {
+      if ( owner != null ) {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): setStaleAnyReferencesTo("
                                          + this.toString( true, false, null ) + ")" );
         setValueOwner(val);
         // lazy/passive updating
         owner.setStaleAnyReferencesTo( this, null );
+
         // set isGrounded constraint stale
-        if ( constraintList != null ) {
-          for ( Constraint c : constraintList ) {
+        Collection<Constraint> constraints = getConstraints(true, null);
+        if ( constraints != null ) {
+          for ( Constraint c : constraints ) {
             if ( c instanceof ConstraintExpression
                  && ( (ConstraintExpression)c ).expression instanceof Call ) {
-              ((Call)((ConstraintExpression)c).expression).setStale(true);
+              ((Call)((ConstraintExpression)c).expression).setStaleAnyReferencesTo(this, null);
             //.setStale( true );
+            } else if ( c instanceof ParameterListener ) {
+              ((ParameterListener)c).setStaleAnyReferencesTo( this, null );
             }
           }
         }
-//        if (val instanceof TimeVaryingMap && ((TimeVaryingMap)val).getOwner() instanceof Parameter && "dataRateAboveThreshold".equals(((Parameter)((TimeVaryingMap)val).getOwner()).getName())) {
-//          //CompareUtils.XXXX = true;
-//          CompareUtils.compare( value, val );
-//          //CompareUtils.XXXX = false;
-//        }
       } else {
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): owner is null" );
       }
       if ( Debug.isOn() ) {
-        //if ( val != null && val.getClass().getSimpleName().contains("EmsScriptNode")) {
-            //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ " + val + " $$$$$$$$$$$$$ $$$$$$$$$$$");
-            //Debug.outln(" $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$ owner = " + owner + " $$$$$$$$$$$$$ $$$$$$$$$$$");
-        //}
+        Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
       }
-      if ( Debug.isOn() ) {
-        //Debug.outln(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this + "   $$$$$$$$$$$$$");
-      }
-      System.out.println(" $$$$$$$$$$$$$$   setValue(" + val + "): " + this.toString( true, false, null ) + "   $$$$$$$$$$$$$");
       this.value = val;
       if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                        + "): value set!" );
-//      String vvv = null;
-//      if ( val instanceof HasId ) {
-//        vvv = "@" + ( (HasId)val ).getId();
-//      } else if ( ClassUtils.isPrimitive( val ) ) {
-//        vvv = "" + val;
-//      } else if ( val != null ) {
-//        vvv = "@" + val.hashCode();
-//      }
-//      System.out.println( "Parameter " + getName() + "@" + getId() + " setValue(" + vvv
-//                          + "): value set!" );
-      constraintList.clear();
-      if ( owner != null ) {// && propagateChange ) {
+      //constraintList.clear();
+      if ( owner != null ) {// && propagateChange ) {  // TODO -- add propagateChange back in?
         if ( Debug.isOn() ) Debug.outln( "Parameter.setValue(" + valString
                                          + "): handleValueChangeEvent("
                                          + this.toString( true, false, null ) + ")" );
@@ -508,7 +483,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     T value = pickRandomValue();
     if ( value != null ) {
       if ( !valueEquals( value ) ) {
-        System.out.println( "////////////////////   picking " + value + " for " + this );
+        if ( Debug.isOn() ) Debug.outln( "////////////////////   picking " + value + " for " + this );
         setValue( value );
         return true;
       }
@@ -556,7 +531,7 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     }
     
     
-    if (domain instanceof ObjectDomain) {
+    if (value == null && domain instanceof ObjectDomain) {
      Object o = ((ObjectDomain)domain).constructObject();
      if (o != null) {
        setValue((T)o);
@@ -797,6 +772,8 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
       Object o = otherOptions.get( "withOwner" );
       if ( o instanceof Boolean ) {
         withOwner = ((Boolean)o).booleanValue();
+      } else if ( Utils.isFalse( o, false ) ) {
+        withOwner = false;
       }
     }
     return toString( withOwner, withHash, deep, seen, otherOptions );
@@ -1032,13 +1009,14 @@ public class Parameter< T > extends HasIdImpl implements Cloneable, Groundable,
     Domain<?> d = this.domain == null ? null : this.domain.clone();
     boolean changed = this.domain == null ? false : this.domain.restrictTo( domain );
     if ( changed ) {
+      this.constraintList.clear();
       if ( owner != null ) {
         owner.handleDomainChangeEvent( this, null );
       }
       if ( Debug.isOn() ) {
-        System.out.println( "Changed domain of "
-                            + MoreToString.Helper.toLongString( this )
-                            + " from " + d + " to " + this.domain );
+        if ( Debug.isOn() ) Debug.outln( "Changed domain of "
+                                         + MoreToString.Helper.toLongString( this )
+                                         + " from " + d + " to " + this.domain );
       }
     }
     return new Pair(this.domain, changed);

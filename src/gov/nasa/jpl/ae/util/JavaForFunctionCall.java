@@ -1,11 +1,6 @@
 package gov.nasa.jpl.ae.util;
 
-import gov.nasa.jpl.ae.event.Affectable;
-import gov.nasa.jpl.ae.event.Call;
-import gov.nasa.jpl.ae.event.ConstructorCall;
-import gov.nasa.jpl.ae.event.EffectFunction;
-import gov.nasa.jpl.ae.event.FunctionCall;
-import gov.nasa.jpl.ae.event.TimeVaryingMap; // don't remove!!
+import gov.nasa.jpl.ae.event.*;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -194,6 +189,15 @@ public class JavaForFunctionCall {
   }
 
   public boolean isStatic() {
+    // HACK!  seems to think it knows whether it's static when it doesn't; just added additional code to try and cover up mistake instead of really fixing it.
+    Constructor c = getMatchingConstructor();
+    if ( c != null ) {
+      return ClassUtils.isStatic(c);
+    }
+    Method m = getMatchingMethod();
+    if ( m != null ) {
+      return ClassUtils.isStatic(m);
+    }
     if ( isMethodOrConstructor() ) {
       if ( exprXlator.getClassData().knowIfStatic( getCallName() ) ) {
         return exprXlator.getClassData().isStatic( getCallName() );
@@ -207,6 +211,7 @@ public class JavaForFunctionCall {
         return true;
       }
     } else {
+      // FIXME -- seems to think it knows whether it's static when it doesn't for a constructor
       if ( exprXlator.getClassData().knowIfClassIsStatic( getCallName() ) ) {
         return exprXlator.getClassData().isClassStatic( getCallName() );
       }
@@ -233,6 +238,19 @@ public class JavaForFunctionCall {
     return s;
   }
 
+  public boolean isATimeVaryingCall() {
+    if ( hasUnexpectedTimeVaryingObject() ) {
+      System.out.println("WWWWWWWWWWWWWWWWWWWW    IS TIMEVARYING CALL: " + expression + "   WWWWWWWWWWWWWWWWWWWW");
+      return true;
+    }
+    if ( hasUnexpectedTimeVaryingArgs() ) {
+      System.out.println("WWWWWWWWWWWWWWWWWWWW    IS TIMEVARYING CALL: " + expression + "   WWWWWWWWWWWWWWWWWWWW");
+      return true;
+    }
+    System.out.println("WWWWWWWWWWWWWWWWWWWW    IS NOT TIMEVARYING CALL: " + expression + "   WWWWWWWWWWWWWWWWWWWW");
+    return false;
+  }
+
   public String getCallTypeName() {
     // call getMatchingMethod() to make find out if it's a TimeVaryingFunctionCall
     Method m = getMatchingMethod();
@@ -241,11 +259,12 @@ public class JavaForFunctionCall {
     if ( m == null && c != null ) setMethodOrConstructor( false );
     else if ( c == null && m != null ) setMethodOrConstructor( true );
 
-    String prefix = (Boolean.TRUE.equals((getTimeVaryingCall())) ? "TimeVarying" : "");
+    //String prefix = (Boolean.TRUE.equals((getTimeVaryingCall())) ? "TimeVarying" : "");
+    String prefix = (isATimeVaryingCall() ? "TimeVarying" : "");
     if ( !isMethodOrConstructor() ) return prefix + "ConstructorCall";
     if ( isEffectFunction() ) {
       if ( Boolean.TRUE.equals(timeVaryingCall) ) {
-        Debug.error("TimeVarying EffectFunction not supported!!!");
+        Debug.error("TimeVarying EffectFunction not supported!!! " + expression);
       }
       return "EffectFunction";
     }
@@ -254,13 +273,21 @@ public class JavaForFunctionCall {
 
   public String toNewFunctionCallString() {
     String fcnCallStr = null;
-    String callTypeName = getCallTypeName();
     String instance = getObject();
-    if ( isStatic() ) {
-      instance = "null";
+    try {
+      if (isStatic()) {
+        instance = "null";
+      } else if (instance != null && Package.getPackage(instance) != null) {
+        instance = "null";
+      }
+    } catch(Exception e){
+      if(Debug.isOn() ) Debug.outln(e.getMessage());
     }
+    String mJava = getMethodJava();
+    String callTypeName = getCallTypeName();
+
     fcnCallStr =
-        "new " + callTypeName + "( " + instance + ", " + getMethodJava() + ", "
+        "new " + callTypeName + "( " + instance + ", " + mJava + ", "
                  + getArgumentArrayJava() + ", " + getReturnTypeString() + " )";
     // }
     if ( isEvaluateCall() && !Utils.isNullOrEmpty( fcnCallStr ) ) {
@@ -359,21 +386,81 @@ public class JavaForFunctionCall {
     }
   }
 
-  public Boolean getIsTimeVarying() {
-    if ( isTimeVarying == null ) {
-      isTimeVarying =
-              ( getObjectType() != null &&
-                TimeVaryingMap.class.isAssignableFrom(getObjectType()) ) ||
-              ( getObjectTypeName() != null &&
-                getObjectTypeName().contains("TimeVarying") &&
-                !getObjectTypeName().contains("Call") );
+
+//  public Boolean getIsTimeVarying() {
+//    if ( has)
+//    if ( isTimeVarying == null ) {
+//      isTimeVarying =
+//              ( getObjectType() != null &&
+//                TimeVaryingMap.class.isAssignableFrom(getObjectType()) ) ||
+//              ( getObjectTypeName() != null &&
+//                getObjectTypeName().contains("TimeVarying") &&
+//                !getObjectTypeName().contains("Call") );
+//      if ( !isTimeVarying ) {
+//        isTimeVarying = hasUnexpectedTimeVaryingArgs();
+//      }
+//    }
+//    return isTimeVarying;
+//  }
+
+  public boolean hasUnexpectedTimeVaryingObject() {
+    boolean mOrC = isMethodOrConstructor();
+    Member member = mOrC ? getMatchingMethod() : getMatchingConstructor();
+    // TODO -- This only works on pre-existing classes.  Need to make this work for classes being parsed in getExprXlator().getClassData().
+    if ( member == null ) {
+      return false;
     }
-    return isTimeVarying;
+    if ( isStatic() ) {
+      return false;
+    }
+    Class<?> t = getObjectType();
+    if ( t == null || !TimeVarying.class.isAssignableFrom( t ) ) {
+      return false;
+    }
+    if ( mOrC ) {
+      if ( !TimeVarying.class.isAssignableFrom( member.getDeclaringClass() ) ) {
+        return true;
+      }
+    } else {
+      Class<?> cls = getMatchingConstructor().getDeclaringClass();
+      Class<?> enclosingClass = cls.getEnclosingClass();
+      if ( !TimeVarying.class.isAssignableFrom(enclosingClass) ) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  public void setTimeVarying(Boolean timeVarying) {
-    isTimeVarying = timeVarying;
+  public boolean hasUnexpectedTimeVaryingArgs() {
+    Class<?>[] types = getArgTypes();
+    boolean mOrC = isMethodOrConstructor();
+    Member member = mOrC ? getMatchingMethod() : getMatchingConstructor();
+    if ( member == null ) {
+      return false;
+    }
+    Class<?>[] paramTypes = mOrC ? ((Method)member).getParameterTypes() : ((Constructor)member).getParameterTypes();
+    int i = 0, j = 0;
+    if ( types == null || paramTypes == null ) {
+      return false;
+    }
+    while ( i < types.length ) {
+      Class<?> type = types[i];
+      Class<?> pType = paramTypes[j];
+      if ( type != null && pType != null &&
+           TimeVarying.class.isAssignableFrom( type ) &&
+           !TimeVarying.class.isAssignableFrom( pType ) ) {
+        return true;
+      }
+      ++i;
+      if ( j < paramTypes.length - 1 ) ++j;
+    }
+    return false;
+
   }
+
+//  public void setTimeVarying(Boolean timeVarying) {
+//    isTimeVarying = timeVarying;
+//  }
 
   public Class<?> getWrappedType() {
     if ( getObjectType() != null ) {
@@ -385,12 +472,12 @@ public class JavaForFunctionCall {
     return null;
   }
 
-  public Boolean getTimeVaryingCall() {
-    return this.timeVaryingCall;
-  }
-  public void setTimeVaryingCall(Boolean timeVaryingCall) {
-    this.timeVaryingCall = timeVaryingCall;
-  }
+//  public Boolean getTimeVaryingCall() {
+//    return this.timeVaryingCall;
+//  }
+//  public void setTimeVaryingCall(Boolean timeVaryingCall) {
+//    this.timeVaryingCall = timeVaryingCall;
+//  }
 
   /**
    * @return the methodOrConstructor
@@ -413,7 +500,8 @@ public class JavaForFunctionCall {
         this.exprXlator.getClassData().getClassMethodsWithName( getCallName(),
                                                                 className );
     // Find alternative classes that have these methods.
-    if ( getIsTimeVarying() ) {
+    if ( isATimeVaryingCall() ) {
+    //if ( getIsTimeVarying() != null && getIsTimeVarying() ) {
       Class<?> cls = getWrappedType();
       if ( cls != null ) {
         String clsName = cls.getCanonicalName();
@@ -633,7 +721,7 @@ public class JavaForFunctionCall {
    */
   public String getClassName() {
     if ( Utils.isNullOrEmpty( className ) ) {
-      if ( getObjectTypeName() != null ) {
+      if ( !Utils.isNullOrEmpty( getObjectTypeName() ) ) {
         setClassName( getObjectTypeName() );
       } else {
         setClassName( this.exprXlator.getCurrentClass() );
@@ -690,9 +778,9 @@ public class JavaForFunctionCall {
   public Constructor< ? > getMatchingConstructor() {
     if ( matchingConstructor == null ) {
       // Try using reflection to find the method, but class may not exist.
-      matchingConstructor =
-          ClassUtils.getConstructorForArgTypes( getCallName(), getArgTypes(),
-                                                getPreferredPackageName() );
+      Constructor<?> c = ClassUtils.getConstructorForArgTypes(getCallName(), getArgTypes(),
+              getPreferredPackageName());
+      setMatchingConstructor( c );
     }
     return matchingConstructor;
   }
@@ -754,64 +842,70 @@ public class JavaForFunctionCall {
    */
   public Method getMatchingMethod() {
     Debug.out("getMatchingMethod()");
-    if ( matchingMethod == null ) {
-      // Try using reflection to find the method, but class may not exist.
-      Method m1 = ClassUtils.getMethodForArgTypes(getClassName(),
-                                                 getPreferredPackageName(),
-                                                 getCallName(),
-                                                 getArgTypes(),
-                                                 false);
-      Debug.out("getMatchingMethod(): m1 = " + m1);
-      Member mm = m1;
+    if ( matchingMethod != null ) {
+      Debug.out("getMatchingMethod(): returning " + matchingMethod);
+      return matchingMethod;
+    }
+    // Try using reflection to find the method, but class may not exist.
+    Method m1 = ClassUtils.getMethodForArgTypes(getClassName(),
+                                               getPreferredPackageName(),
+                                               getCallName(),
+                                               getArgTypes(),
+                                               false);
+    Debug.out("getMatchingMethod(): m1 = " + m1);
+    Member mm = m1;
 
-      // Compare
-      if ( getIsTimeVarying() ) {
-        Class<?> cls = getWrappedType();
-        String clsName = cls == null ? null : cls.getCanonicalName();
-        if ( clsName == null  && cls != null ) {
-          clsName = cls.getName();
-        }
-        System.out.println("WWWWWWWWWWWWWWWWWWWW    Wrapped Type = " + clsName + "   WWWWWWWWWWWWWWWWWWWW");
-        
-        Call call = searchForCall(getCallName(), null, (List<Class<?>>) Utils.arrayAsList(getArgTypes()));
-        Member m2 = call == null ? null : call.getMember();
+    // Compare
+//      if ( getIsTimeVarying() != null && getIsTimeVarying() ) {
+      Class<?> cls = getWrappedType();
+      String clsName = cls == null ? null : cls.getCanonicalName();
+      if ( clsName == null  && cls != null ) {
+        clsName = cls.getName();
+      }
+      System.out.println("WWWWWWWWWWWWWWWWWWWW    Wrapped Type = " + clsName + "   WWWWWWWWWWWWWWWWWWWW");
+
+      Collection<Class<?>> types = Utils.arrayAsList(getArgTypes());
+      Call call = searchForCall(getCallName(), null, types);
+      Member m2 = call == null ? null : call.getMember();
 //                ClassUtils.getMethodForArgTypes(clsName,
 //                getPreferredPackageName(),
 //                getCallName(),
 //                getArgTypes(),
 //                false);
-        Debug.out("getMatchingMethod(): m2 = " + m2);
-        Member[] methods = new Member[]{m1, m2};
-        ClassUtils.ArgTypeCompare atc = new ClassUtils.ArgTypeCompare(null, null, getArgTypes());
-        if (methods != null) {
-          for (Member m : methods) {
-            if (m != null && m.getName() != null ) {
-              if ( m.getName().equals(callName) ) {
-                Class<?>[] params = m instanceof Method ? ((Method)m).getParameterTypes() : ((Constructor<?>)m).getParameterTypes();
-                boolean isVarArgs = m instanceof Method ? ((Method)m).isVarArgs() : ((Constructor<?>)m).isVarArgs();
-                atc.compare(m, params, isVarArgs);
-              }
-            } else {
-              System.out.println("WWWWWWWWWWWWWWWWWWWW    method has no name!!! " + m + "    WWWWWWWWWWWWWWWWWWWW");
+      Debug.out("getMatchingMethod(): m2 = " + m2);
+      Member[] methods = new Member[]{m1, m2};
+      ClassUtils.ArgTypeCompare atc = new ClassUtils.ArgTypeCompare(null, null, getArgTypes());
+      if (methods != null) {
+        for (Member m : methods) {
+          if (m != null && m.getName() != null ) {
+            if ( m.getName().equals(callName) ) {
+              Class<?>[] params = m instanceof Method ? ((Method)m).getParameterTypes() : ((Constructor<?>)m).getParameterTypes();
+              boolean isVarArgs = m instanceof Method ? ((Method)m).isVarArgs() : ((Constructor<?>)m).isVarArgs();
+              atc.compare(m, params, isVarArgs);
             }
+          } else {
+            System.out.println("WWWWWWWWWWWWWWWWWWWW    method has no name!!! " + m + "    WWWWWWWWWWWWWWWWWWWW");
           }
         }
-        if ( atc.best != null ) {
-          mm = (Member) atc.best;
-        }
-        if ( mm != m1 && mm == m2 ) {
-          System.out.println("WWWWWWWWWWWWWWWWWWWW    IS TIMEVARYING CALL   WWWWWWWWWWWWWWWWWWWW");
-          setTimeVaryingCall(true);
-        } else {
-          System.out.println("WWWWWWWWWWWWWWWWWWWW    IS NOT TIMEVARYING CALL   WWWWWWWWWWWWWWWWWWWW");
-        }
       }
+      if ( atc.best != null ) {
+        mm = (Member) atc.best;
+      }
+//      if ( mm != m1 && mm == m2 ) {
+//        System.out.println("WWWWWWWWWWWWWWWWWWWW    IS TIMEVARYING CALL: " + expression + "   WWWWWWWWWWWWWWWWWWWW");
+//        setTimeVaryingCall(true);
+//      } else {
+//        System.out.println("WWWWWWWWWWWWWWWWWWWW    IS NOT TIMEVARYING CALL: " + expression + "   WWWWWWWWWWWWWWWWWWWW");
+//      }
+//      if ( getIsTimeVarying() != null && getIsTimeVarying() ) {
+//        setTimeVaryingCall(true);
+//      }
+    //}
 
-      if ( mm instanceof Method ) {
-        setMatchingMethod((Method)mm);
-      } else {
-        setMatchingConstructor((Constructor<?>)mm);
-      }
+    if ( mm instanceof Method ) {
+      setMatchingMethod((Method)mm);
+    } else {
+      setMatchingConstructor((Constructor<?>)mm);
     }
     Debug.out("getMatchingMethod(): returning " + matchingMethod);
 
@@ -970,7 +1064,8 @@ public class JavaForFunctionCall {
         if ( Utils.isNullOrEmpty( getClassName() ) ) {
           classNameString = "null";
         } else {
-          if ( Boolean.TRUE.equals(getTimeVaryingCall()) ) {
+          if ( isATimeVaryingCall() ) {
+          //if ( Boolean.TRUE.equals(getTimeVaryingCall()) ) {
             if ( m != null ) {
               classNameString = m.getDeclaringClass().getCanonicalName();
             } else if ( getWrappedType() != null ) {
@@ -1010,20 +1105,33 @@ public class JavaForFunctionCall {
                                  + ".class" );
           }
 
-        } else { // if ( !classMethods.isEmpty() ) {
-          if ( getMatchingMethod() != null
-               && getMatchingMethod().getParameterTypes() != null ) {
-            for ( Class< ? > type : getMatchingMethod().getParameterTypes() ) {
-              methodJavaSb.append( ", " + ClassUtils.toString( type ) );
-              // methodJavaSb.append( ", " );
-              // String typeName = type.getName();
-              // if ( typeName != null ) typeName = typeName.replace( '$', '.'
-              // );
-              // methodJavaSb.append( ClassUtils.noParameterName( typeName )
-              // + ".class" );
+        } else // if ( !classMethods.isEmpty() ) {
+        if ( getMatchingMethod() != null
+             && getMatchingMethod().getParameterTypes() != null ) {
+          for ( Class< ? > type : getMatchingMethod().getParameterTypes() ) {
+            methodJavaSb.append( ", " + ClassUtils.toString( type ) );
+            // methodJavaSb.append( ", " );
+            // String typeName = type.getName();
+            // if ( typeName != null ) typeName = typeName.replace( '$', '.'
+            // );
+            // methodJavaSb.append( ClassUtils.noParameterName( typeName )
+            // + ".class" );
+          }
+        } else {
+          Class< ? >[] args = getArgTypes();
+          if ( args != null ) {
+            for ( Class< ? > a : args ) {
+              methodJavaSb.append( ", " );
+              if (a == null) {
+                methodJavaSb.append( "Object.class" );
+              } else {
+                methodJavaSb.append( ClassUtils.noParameterName(a.getCanonicalName()) + ".class" );
+
+              }
             }
           }
         }
+        
       } else {
         methodJavaSb.append( "ClassUtils.getConstructorForArgTypes("
                              + ClassUtils.noParameterName( getCallName() )
@@ -1250,7 +1358,8 @@ public class JavaForFunctionCall {
         }
       } else {
         if ( getMatchingMethod() == null ) {
-          Call scall = searchForCall( getCallName(), getArgs(), Utils.arrayAsList(getArgTypes()) );
+          Collection<Class<?>> types = Utils.arrayAsList(getArgTypes());
+          Call scall = searchForCall( getCallName(), getArgs(), types );
           if ( scall == null ) {
             Debug.error( true, "Cannot create method! " + this );
           } else {

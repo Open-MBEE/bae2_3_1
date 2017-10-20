@@ -38,6 +38,14 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
   public boolean substitute( Parameter< ? > p1, Object exp,
                              boolean deep, Set< HasParameters > seen );
 
+//  /**
+//   *
+//   * @param b
+//   * @param o
+//   * @return true iff there are no free variables
+//   */
+//  boolean isIndependent(boolean b, Object o);
+
   /**
    * This helper class provides static methods for making calls on Objects and
    * Collections (from other objects) that may or may not implement HasParameter
@@ -562,7 +570,23 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       }
       return false;
     }
-    
+
+    public static boolean hasFreeParameter(Object o, boolean deep, Set< HasParameters > seen) {
+      if ( o instanceof HasParameters ) {
+        Set<Parameter<?>> params = ((HasParameters)o).getParameters(deep, seen);
+        if ( params == null ) return false;
+        for ( Parameter<?> p : params ) {
+          if ( ((HasParameters) o).isFreeParameter(p, deep, seen ) ) {
+          //if ( !p.isDependent() ) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return false;
+    }
+
+
     public static boolean subParamsEqual( Object o, Parameter<?> p1 ) {
       if ( o == p1 ) return true;
       if ( o == null || p1 == null ) return false;

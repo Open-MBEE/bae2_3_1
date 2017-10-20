@@ -278,7 +278,36 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   
   @Override
   public String toString() {
-    return "EventInvocation:" + eventName + Utils.toString(arguments); // + memberAssignments;
+//    return toString( false, false, null, null );
+////    return "EventInvocation"
+////            + ( withHash ? "@" + hashCode() : "" )
+////            + ":" + eventName + MoreToString.Helper.toShortString(arguments); // + memberAssignments;
+    String part1 = "EventInvocation"
+            //+ ( withHash ? "@" + hashCode() : "" )
+            + ":" + eventName
+            + "(";
+    StringBuffer sb = new StringBuffer();
+    boolean first = true;
+    for ( Object arg : arguments ) {
+      if ( first ) {
+        first = false;
+      } else {
+        sb.append(", ");
+      }
+      TimeVaryingMap tvm = Functions.tryToGetTimelineQuick( arg );
+      if ( tvm != null ) {
+        sb.append(tvm.toShortString());
+      } else {
+        sb.append(MoreToString.Helper.toString(arg, false, false, null, null));
+      }
+    }
+    String part2 = sb.toString();
+
+            //+ MoreToString.Helper.toString( arguments, false, false, null,
+                                            //null, MoreToString.SQUARE_BRACES ); // +
+    // memberAssignments;
+            String part3 =  ")";
+    return part1 + part2 + part3;
   }
 
   @Override
@@ -289,11 +318,32 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
   @Override
   public String toString( boolean withHash, boolean deep, Set< Object > seen,
                           Map< String, Object > otherOptions ) {
-    return "EventInvocation:" + eventName
-           + MoreToString.Helper.toString( arguments, withHash, deep, seen,
-                                           otherOptions,
-                                           MoreToString.SQUARE_BRACES ); // +
-                                                                         // memberAssignments;
+    StringBuffer sb = new StringBuffer();
+    sb.append("EventInvocation"
+              + ( withHash ? "@" + hashCode() : "" )
+              + ":" + eventName);
+    sb.append("(");
+    boolean first = true;
+    for ( Object arg : arguments ) {
+      if ( first ) {
+        first = false;
+      } else {
+        sb.append(", ");
+      }
+      TimeVaryingMap tvm = Functions.tryToGetTimelineQuick( arg );
+      if ( tvm != null ) {
+        sb.append(tvm.toShortString());
+      } else {
+        sb.append(MoreToString.Helper.toString(arg, withHash, deep, seen, otherOptions));
+      }
+    }
+    sb.append(")");
+
+    return sb.toString();
+//           + MoreToString.Helper.toString( arguments, withHash, deep, seen,
+//                                           otherOptions,
+//                                           MoreToString.SQUARE_BRACES ); // +
+//                                                                         // memberAssignments;
   }
   
   // This is done by the event's constructor.
@@ -503,6 +553,14 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
     if ( !stale && staleness ) {
       System.out.println( "event invocation stale: " + this );
     }
+    if ( staleness == false ) {
+      // Mark fromTimeVarying expressions as not stale.
+      if ( fromTimeVarying != null ) {
+        if ( fromTimeVarying.expression instanceof Call ) {
+          ((Call) fromTimeVarying.expression).setStale(false);
+        }
+      }
+    }
     stale = staleness;
   }
 
@@ -524,7 +582,7 @@ public class EventInvocation extends HasIdImpl implements HasParameters, Compara
 
   @Override
   public int compareTo( EventInvocation o ) {
-    return compareTo( o, true );
+    return compareTo( o, false );
   }
   public int compareTo( EventInvocation o, boolean checkId ) {
     if ( this == o ) return 0;

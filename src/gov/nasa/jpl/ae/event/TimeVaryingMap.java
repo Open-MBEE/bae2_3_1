@@ -57,8 +57,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.python.google.common.primitives.Bytes;
-
 //import com.panayotis.gnuplot.JavaPlot;
 
 /**
@@ -865,6 +863,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       Object a = arg;
       if ( i < paramTypes.length ) {  // helps with variable arguments
         pType = paramTypes[i];
+        pType = ClassUtils.getNonPrimitiveClass( pType );
       }
       if ( call instanceof TimeVaryingFunctionCall ) {
         Object oo = null;
@@ -938,11 +937,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       }      
       
     }
+    
+    removeDuplicates();
   
     if ( Debug.isOn() || checkConsistency ) isConsistent();
   }
 
-  
 
   public TimeVaryingMap( String name, TimeVaryingMap<V> tvm ) {
     this( name, null, null, tvm.type );
@@ -1710,6 +1710,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         Debug.error( true, "Warning: trying to insert a value with a null owner into the map--may be detached!" );
       }
     }
+
+    // Sometimes the time value is a
+    t = fixTimepoint(t);
+
     V oldValue = null;
     Parameter< Long> tp = keyForValueAt( value, t );
     if ( Debug.isOn() || checkConsistency ) isConsistent();
@@ -1773,6 +1777,26 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     if ( Debug.isOn() ) Debug.outln( getName() + "setValue(" + t + ", " + value
                                      + ") returning oldValue=" + oldValue );
     return oldValue;
+  }
+
+  // Change non-Long timepoint value to Long
+  public static Parameter<Long> fixTimepoint( Object tp ) {
+    if ( tp instanceof Parameter ) {
+      Object val = ((Parameter<?>) tp).getValueNoPropagate();
+      if ( val instanceof Long ) {
+        return (Parameter< Long >)tp;
+      } else if (val instanceof Integer) {
+        try {
+          Long l = Expression.evaluate( val, Long.class, false );
+          ((Parameter) tp).setValue(l);
+        } catch ( ClassCastException e ) {
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+      }
+    }
+    return (Parameter< Long >)tp;
   }
 
   /**
@@ -2050,7 +2074,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    */
   public <VV> TimeVaryingMap< VV > times( Number n, Parameter< Long > fromKey,
                                      Parameter< Long > toKey ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );    
+    Class<VV> cls = (Class<VV>)ClassUtils.dominantTypeClass( getType(), n.getClass() );
     //TimeVaryingMap< VV > newTvm = new TimeVaryingMap< VV >(getName() + "_times_" + n, this, cls); 
     TimeVaryingMap< VV > newTvm = clone(cls);
     newTvm.setName( getName() + "_times_" + n );
@@ -3870,14 +3894,17 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
       if ( Utils.valuesEqual( lastKey, key ) ) {
         dups.add( lastKey );
       } else if ( Utils.valuesEqual( lastValue, value ) ) {
-        if ( ct > 0 ) {
-          dups.add( key );
-          key = lastKey;
-        }
-        ++ct;
-      } else {
-        ct = 0;
+//        if ( ct > 0 ) {
+//          dups.add( key );
+//          key = lastKey;
+//        }
+//        ++ct;
+        dups.add( key );
+        key = lastKey;
       }
+//      } else {
+//        ct = 0;
+//      }
       lastKey = key;
       lastValue = value;
     }
@@ -6155,6 +6182,10 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return getName();
   }
 
+  public String toShortString( boolean withHash) {
+    return getName() + ( withHash ? "@" + hashCode() : "" );
+  }
+
   @Override
   public String toString() {
     return toString( Debug.isOn(), false, null );
@@ -6172,10 +6203,12 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     sb.append( interpolation + " " );
     sb.append( this.getName() );
     if ( withHash ) sb.append( "@" + hashCode() );
-    //if ( deep ) {
+    if ( deep ) {
       sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
-                                               otherOptions, CURLY_BRACES, false ) );
-    //}
+              otherOptions, CURLY_BRACES, false ) );
+    } else {
+      sb.append("( ... " + size() + " entries  ... )");
+    }
     return sb.toString();
   }
 
@@ -6199,7 +6232,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
    */
   @Override
   public Class<V> getType() {
-    if ( type == null ) {
+    if ( type == null || Object.class.equals(type) ) {
       for ( V t : values() ) {
         if ( t != null ) {
           setType( t.getClass() );
@@ -6358,16 +6391,22 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     return getMinOrMaxValue( isMin, null, null );
   }
   public Number getMinOrMaxValue( boolean isMin, Parameter<Long> start, Parameter<Long> end ) {
-    if ( !ClassUtils.isNumber( getType() ) ) return null;
+    if ( isEmpty() ||
+         !ClassUtils.isNumber( getType() ) ) {
+      return null;
+    }
     boolean isInt = ClassUtils.isLong( getType() );
     Long minInt = Long.MAX_VALUE;
     Double minDouble = Double.MAX_VALUE;
     long mul = isMin ? 1 : -1;
-    if ( start == null ) {
+    if ( start == null || start.getValueNoPropagate() == null) {
       start = firstKey();
     }
-    if ( end == null ) {
+    if ( end == null || end.getValueNoPropagate() == null ) {
       end = lastKey();
+    }
+    if ( start == null || end == null || start.getValueNoPropagate() > end.getValueNoPropagate() ) {
+      return null;
     }
     NavigableMap< Parameter< Long >, V > map = subMap( start, true, end, true );
     Collection< V > vals = map.values();
@@ -7768,7 +7807,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
           if ( equals(prevVal, value ) && equals(val, value) ) {
             totalSoFar += tp.getValue() - prevTime;
-          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Byte.class ) {
             long prevValLong = ((Number)prevVal).longValue();
             long valLong = ((Number)val).longValue();
             if ( prevValLong == valLong ) {
@@ -7831,7 +7870,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
         if ( ( lessEquals(prevVal, value ) && greaterEquals(val, value) ) || ( greaterEquals(prevVal, value ) && lessEquals(val, value) ) ) {
           if ( equals(prevVal, value ) && equals(val, value) ) {
             total += tp.getValue() - prevTime;
-          } else if (getType() == Integer.class || getType() == Short.class || getType() == Bytes.class ) {
+          } else if (getType() == Integer.class || getType() == Short.class || getType() == Byte.class ) {
             long prevValLong = ((Number)prevVal).longValue();
             long valLong = ((Number)val).longValue();
             if ( prevValLong == valLong ) {

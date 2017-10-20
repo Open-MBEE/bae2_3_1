@@ -166,8 +166,8 @@ public class FunctionCall extends Call {
   /**
    * @param object
    * @param method
-   * @param returnType
    * @param arguments
+   * @param returnType
    */
   public FunctionCall( Object object , Method method , Object argumentsA[] , Class< ? > returnType  ) {
     this(object, method, returnType);
@@ -443,7 +443,7 @@ public class FunctionCall extends Call {
         Domain<?> d = DomainHelper.getDomain( arg );
       if ( d != null
            && ( d.magnitude() > 1
-                || ( d.magnitude() < 0 && !d.isEmpty() && d.isInfinite() )
+                || ( ( d.magnitude() < 0 || d.magnitude() >= Long.MAX_VALUE )&& !d.isEmpty() && d.isInfinite() )
                 || ( d instanceof RangeDomain
                      && ( (RangeDomain< ? >)d ).size() > 1 ) ) ) {
           areAllArgsSingleValueDomains = false;
@@ -693,7 +693,7 @@ public class FunctionCall extends Call {
    * @param comparator
    *            specifies precedence relation on a pair of MethodCall return
    *            values; null defaults to {@link CompareUtils.GenericComparator}.
-   * @param indexOfElementArgument
+   * @param indexOfObjectArgument
    *            where in the list of arguments an Object from the collection
    *            is substituted (1 to total number of args or 0 to indicate
    *            that the Objects are each substituted for

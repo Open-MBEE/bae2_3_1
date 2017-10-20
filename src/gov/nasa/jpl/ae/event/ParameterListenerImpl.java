@@ -3,18 +3,9 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -51,8 +42,8 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
                                    HasOwner,
                                    Comparable< ParameterListenerImpl > {
 
-  public static boolean arcConsistencyQuiet = true;
   public static boolean usingArcConsistency = true;
+  public static boolean arcConsistencyQuiet = true;
 
   // Constants
 
@@ -574,12 +565,68 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     return list;
   }
 
-  // TODO -- This is not finished. Need to get deep dependents.
   public Set< Parameter< ? > >
          getDependentParameters( boolean deep, Set< HasParameters > seen ) {
     Set< Parameter< ? > > set = new HashSet< Parameter< ? > >();
-    for ( Dependency< ? > d : dependencies ) {
-      set.add( d.parameter );
+
+    Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen );
+    if ( pair.first ) return set;
+    seen = pair.second;
+
+    // All parameters that have domains with single values are dependent.
+    Set<Parameter<?>> params = getParameters(deep, seen);
+    for ( Parameter<?> p : params ) {
+      if ( p.getDomain() != null && p.getDomain().magnitude() == 1 ) {
+        set.add( p );
+      }
+      // TODO -- check if domain is { null }
+    }
+
+    if ( false )
+    for ( Constraint c : getConstraints(deep, null) ) {
+      // Add the dependent variable in a dependency.
+      if ( c instanceof Dependency ) {
+        Dependency<?> d = (Dependency<?>) c;
+        set.add(d.parameter);
+      } else
+      // A single parameter on one side of an equals constraint with no free
+      // variables on the other side is dependent.
+      if ( c instanceof ConstraintExpression ) {
+        ConstraintExpression ce = (ConstraintExpression)c;
+        if ( ce.expression instanceof Functions.EQ ) {
+          Vector<Object> args = ((Functions.EQ) ce.expression).getArguments();
+          if ( args != null && args.size() >= 2 ) {  // It should always be 2, but . . .
+            for ( int i = 0; i < args.size(); ++i ) {
+              try {
+                Parameter<?> p = Expression.evaluate(args.get(i), Parameter.class, false);
+                if ( p != null && !set.contains(p) ) {
+                  for ( int j = 0; j < args.size(); ++j ) {
+                    if ( j != i ) {
+                      Object otherArg = args.get( j );
+                      if ( otherArg instanceof HasParameters ) {
+                        if ( !HasParameters.Helper.hasFreeParameter(otherArg, deep, seen) ) {
+                          set.add( p );
+                        }
+                      } else {
+                        set.add( p );
+                      }
+                    }
+                  }
+                }
+              } catch (IllegalAccessException e) {
+                e.printStackTrace();
+              } catch (InvocationTargetException e) {
+                e.printStackTrace();
+              } catch (InstantiationException e) {
+                e.printStackTrace();
+              }
+            }
+          }
+        }
+//        if ( ((ConstraintExpression) c).form == Expression.Form.Function ) {
+//        } else if (((ConstraintExpression) c).form == Expression.Form.Constructor ) {
+//        }
+      }
     }
     return set;
   }
@@ -1315,6 +1362,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     List<ConstraintExpression> cstrs =
             Utils.scramble(getConstraintExpressions());
     for ( ConstraintExpression c : cstrs ) {
+      if ( c == null ) continue;
       c.handleValueChangeEvent( parameter, seen );
     }
 
@@ -1878,6 +1926,7 @@ public class ParameterListenerImpl extends HasIdImpl implements Cloneable,
     ArrayList< Variable< ? > > varList = new ArrayList< Variable< ? > >();
     Set< Variable< ? > > varSet = new LinkedHashSet< Variable< ? > >();
     for ( ConstraintExpression c : getConstraintExpressions() ) {
+      if ( c == null ) continue;
       List< Variable< ? > > vars = c.getVariablesOnWhichDepends( variable );
       if ( !Utils.isNullOrEmpty( vars ) ) {
         varSet.addAll( vars );
