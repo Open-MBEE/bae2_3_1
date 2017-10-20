@@ -1158,15 +1158,6 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
         call = new Functions.Greater<TT>(t, getLowerBound());
       }
       cList.add( new ConstraintExpression( call ) );
-
-//      args = new Object[] { getLowerBound(), t.getValue( propagate ) };
-//      method = ClassUtils.getMethodForArgs( getClass(), "lessEquals", args );
-//      Expression< T > expr =
-//          new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-//                                                 new Object[]{ propagate }, (Class<?>)null ) );
-//      args = new Object[] { getLowerBound(), expr };
-//      cList.add( new ConstraintExpression( new FunctionCall( this, method,
-//                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // upper bound constraint
@@ -1178,16 +1169,6 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
         call = new Functions.Less<TT>(t, getUpperBound());
       }
       cList.add( new ConstraintExpression( call ) );
-
-//      args = new Object[] { getUpperBound(), t.getValue( propagate ) };
-//      method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
-//      Expression< T > expr =
-//        new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-//                                               new Object[]{ propagate }, (Class<?>)null ) );
-//      args = new Object[] { getUpperBound(), expr };
-//
-//      cList.add( new ConstraintExpression( new FunctionCall( this, method,
-//                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // grounded constraint
@@ -1198,7 +1179,6 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
       if ( method != null ) {
         cList.add( new ConstraintExpression( new FunctionCall( g, method, args, (Class<?>)null ) ) );
       }
-      //Utils.getMethodForArgs( Groundable.class, "isGrounded", args );
     }
     return cList;
   }
