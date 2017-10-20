@@ -6203,7 +6203,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     sb.append( interpolation + " " );
     sb.append( this.getName() );
     if ( withHash ) sb.append( "@" + hashCode() );
-    if ( deep ) {
+    if ( deep || size() <= 10 ) {
       sb.append( MoreToString.Helper.toString( this, withHash, deep, seen,
               otherOptions, CURLY_BRACES, false ) );
     } else {
@@ -7718,7 +7718,7 @@ public class TimeVaryingMap< V > extends TreeMap< Parameter< Long >, V >
     Debug.error(true, false,  "Warning!  The TimeVaryingMap.getVariablesOnWhichDepends() function is not yet implemented and should not be called." );
     return null;
   }
-  
+
   @Override
   public Domain< V > getDomain( boolean propagate, Set< HasDomain > seen ) {
     return domain;

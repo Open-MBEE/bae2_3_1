@@ -1143,7 +1143,7 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     return isGroundedMethod;
   }
   
-  public Collection< Constraint > getConstraints( Variable< T > t ) {
+  public <TT extends Comparable<? super TT>> Collection< Constraint > getConstraints( Variable< T > t ) {
     List< Constraint > cList= new ArrayList< Constraint >();
     Object args[] = null;
     Method method = null;
@@ -1151,33 +1151,43 @@ public abstract class AbstractRangeDomain< T > extends HasIdImpl
     boolean propagate = false; // setting this to true can cause sets/maps of parameters/constraints to have problems
     // lower bound constraint
     if ( greater( getLowerBound(), getTypeMinValue() ) ) {
-      args = new Object[] { getLowerBound(), t.getValue( propagate ) };
-      method = ClassUtils.getMethodForArgs( getClass(), "lessEquals", args );
-        //getClass().getMethod( "lessEquals", Class< ? >[]{} );
-      Expression< T > expr = 
-          new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                                 new Object[]{ propagate }, (Class<?>)null ) );
-//      if ( t.getValue() instanceof Variable ) {
-//        expr = 
-//            new Expression< T >( new FunctionCall( null, Variable.class, "getValue",
-//                                                   new Object[]{ propagate }, (FunctionCall)expr.expression ) );
-//      }
-      args = new Object[] { getLowerBound(), expr };
-      cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                             args, (Class<?>)null ) ) );
+      FunctionCall call = null;
+      if ( isLowerBoundIncluded() ) {
+        call = new Functions.GreaterEquals<TT>(t, getLowerBound());
+      } else {
+        call = new Functions.Greater<TT>(t, getLowerBound());
+      }
+      cList.add( new ConstraintExpression( call ) );
+
+//      args = new Object[] { getLowerBound(), t.getValue( propagate ) };
+//      method = ClassUtils.getMethodForArgs( getClass(), "lessEquals", args );
+//      Expression< T > expr =
+//          new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
+//                                                 new Object[]{ propagate }, (Class<?>)null ) );
+//      args = new Object[] { getLowerBound(), expr };
+//      cList.add( new ConstraintExpression( new FunctionCall( this, method,
+//                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // upper bound constraint
     if ( less( getUpperBound(), getTypeMaxValue() ) ) {
-      args = new Object[] { getUpperBound(), t.getValue( propagate ) };
-      method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
-      Expression< T > expr = 
-        new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
-                                               new Object[]{ propagate }, (Class<?>)null ) );
-      args = new Object[] { getUpperBound(), expr };
+      FunctionCall call = null;
+      if ( isUpperBoundIncluded() ) {
+        call = new Functions.LessEquals<TT>(t, getUpperBound());
+      } else {
+        call = new Functions.Less<TT>(t, getUpperBound());
+      }
+      cList.add( new ConstraintExpression( call ) );
 
-      cList.add( new ConstraintExpression( new FunctionCall( this, method,
-                                                             args, (Class<?>)null ) ) );
+//      args = new Object[] { getUpperBound(), t.getValue( propagate ) };
+//      method = ClassUtils.getMethodForArgs( getClass(), "greaterEquals", args );
+//      Expression< T > expr =
+//        new Expression< T >( new FunctionCall( t, Variable.class, "getValue",
+//                                               new Object[]{ propagate }, (Class<?>)null ) );
+//      args = new Object[] { getUpperBound(), expr };
+//
+//      cList.add( new ConstraintExpression( new FunctionCall( this, method,
+//                                                             args, (Class<?>)null ) ) );
       gotBoundConstraint = true;
     }
     // grounded constraint
