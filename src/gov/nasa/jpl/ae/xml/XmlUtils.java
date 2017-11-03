@@ -111,12 +111,12 @@ public class XmlUtils {
 
 */
 
-  public static int getDurationInSeconds( String durStr ) {
+  public static long getDurationInSeconds( String durStr ) {
     if ( Utils.isNullOrEmpty( durStr ) ) return -1;
     if ( durStr.charAt( 0 ) != 'P' ) {
       gov.nasa.jpl.ae.event.Duration duration =
           gov.nasa.jpl.ae.event.Duration.fromString(durStr);
-      return (int)(duration.toMillis() / 1000);
+      return (long)(duration.toMillis() / 1000);
     }
     DatatypeFactory f;
     try {
@@ -124,7 +124,7 @@ public class XmlUtils {
       //String fullDurationString = buildFullDurationString(durStr);
       javax.xml.datatype.Duration d = f.newDuration( durStr );//fullDurationString );
       if ( d != null ) {
-        return (int)(d.getTimeInMillis( Timepoint.getEpoch() ) / 1000);
+        return (long)(d.getTimeInMillis( Timepoint.getEpoch() ) / 1000);
       }
     } catch ( DatatypeConfigurationException e ) {
       // TODO Auto-generated catch block
@@ -189,7 +189,7 @@ public class XmlUtils {
     
     // Try to find a schema file reference in the XML.
     NodeList nodeList = xmlDoc.getElementsByTagName( "scenario" );
-    Assert.assertTrue( nodeList.getLength() < 2 );
+    //Assert.assertTrue( nodeList.getLength() < 2 );
     if ( nodeList.getLength() == 1 ) {
       NamedNodeMap map = nodeList.item( 0 ).getAttributes();
       if ( map != null ) {

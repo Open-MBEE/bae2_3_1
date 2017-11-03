@@ -3,11 +3,18 @@
  */
 package gov.nasa.jpl.ae.solver;
 
+import gov.nasa.jpl.ae.event.ConstructorCall;
 import gov.nasa.jpl.ae.event.Functions;
+import gov.nasa.jpl.ae.event.Groundable;
 import gov.nasa.jpl.mbee.util.ClassUtils;
+import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Random;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Vector;
 
 /**
  * A Domain as a discrete set of unordered objects
@@ -18,12 +25,19 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
   protected HasIdImpl hasId = new HasIdImpl();
   protected Class<T> type;
   protected boolean nullInDomain = false;
+  protected Object enclosingObject = null;
 
   /**
-   * 
+   * Create a domain for objects of the specified type. 
    */
   public ObjectDomain( Class<T> type ) {
     this.type = type;
+  }
+  
+  
+  public ObjectDomain( Class<T> type, Object o ) {
+    this.type = type;
+    this.enclosingObject = o;
   }
 
   public ObjectDomain( ObjectDomain< T > objectDomain ) {
@@ -31,6 +45,15 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     addAll( objectDomain );
   }
 
+  public ObjectDomain( Collection< T > objects ) {
+    this( objects, (Class< T >)ClassUtils.mostSpecificCommonSuperclass( objects ) );
+  }
+  
+  public ObjectDomain( Collection< T > objects, Class<T> cls ) {
+    addAll( objects );
+    this.type = cls;
+  }
+  
   @Override
   public boolean add( T e ) {
     if ( e == null ) nullInDomain = true;
@@ -93,7 +116,7 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    */
   @Override
   public void setValue( T value ) {
-    clear();
+    clearValues();
     add( value );
   }
 
@@ -101,9 +124,18 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    * @see gov.nasa.jpl.ae.solver.Domain#clone()
    */
   @Override
-  public Domain< T > clone() {
-    Domain<T> d = new ObjectDomain< T >( this );
+  public ObjectDomain< T > clone() {
+    ObjectDomain<T> d = new ObjectDomain< T >( this );
     return d;
+  }
+  
+  
+  @Override
+  public boolean contains(Object t) {
+    if (isEmpty()) {
+      return isNullInDomain();
+    }
+    return super.contains( t );
   }
 
   /* (non-Javadoc)
@@ -114,6 +146,12 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     return super.size();
   }
 
+  @Override
+  public long magnitude() {
+    return size();
+  }
+
+  
 //  /* (non-Javadoc)
 //   * @see gov.nasa.jpl.ae.solver.Domain#isEmpty()
 //   */
@@ -137,9 +175,38 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
    */
   @Override
   public T pickRandomValue() {
+    if (isEmpty()) {
+      return null;
+    }
     T t = Functions.get( this, Random.global.nextInt( size() ) );
     return t;
   }
+  
+  
+  
+  public T constructObject() {
+    if (getType() == null) {
+      return null;
+    }
+    try {
+      ConstructorCall cc = new ConstructorCall( enclosingObject, getType(),
+                                                new Vector<Object>(),
+                                                getType() );
+      Object o = cc.evaluate(true);
+      if (o instanceof Groundable) {
+        ( (Groundable)o ).ground( true, null );
+      }
+      return (T)o;
+    } catch ( InstantiationException e ) {
+      e.printStackTrace();
+    } catch ( IllegalAccessException e ) {
+      e.printStackTrace();
+    } catch ( InvocationTargetException e ) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#pickRandomValueNotEqual(java.lang.Object)
@@ -184,22 +251,76 @@ public class ObjectDomain< T > extends LinkedHashSet<T> implements Domain< T > {
     return new ObjectDomain< T >( type );
   }
 
-  /* (non-Javadoc)
-   * @see gov.nasa.jpl.ae.solver.Domain#setDefaultDomain(gov.nasa.jpl.ae.solver.Domain)
-   */
-  @Override
-  public void setDefaultDomain( Domain< T > domain ) {
-    // TODO Auto-generated method stub
-
-  }
 
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.Domain#restrictToValue(java.lang.Object)
    */
   @Override
-  public void restrictToValue( T v ) {
-    clear();
-    add( v );
+  public boolean restrictToValue( T v ) {
+    boolean changed = false;
+    if ( clearValues() ) changed = true;
+    if ( add( v ) ) changed = true;
+    return changed;
   }
+
+  @Override
+  public < TT > boolean restrictTo( Domain< TT > domain ) {
+    if ( domain instanceof SingleValueDomain ) {
+      return this.restrictToValue( ((SingleValueDomain< T >)domain).value );
+    } else {
+      // TODO???
+      Debug.error("");
+    }
+    return false;
+  }
+
+  @Override
+  public boolean clearValues() {
+    if ( !isEmpty() ) {
+      clear();
+      return true;
+    }
+    return false;
+  }
+  
+  @Override
+  public < V > V evaluate( Class< V > cls, boolean propagate ) {
+    V v = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( v != null ) return v;
+    
+    if ( size() == 1 ) {
+      T t = null;
+      if ( cls == null || getType() == null || cls.isAssignableFrom( getType() ) ) {
+        t = getValue( propagate );
+        if ( cls == null || cls.isInstance( t ) ) {
+          return (V)t;
+        }
+      }
+      v = Evaluatable.Helper.evaluate( t, cls, true, propagate, true, null );
+      if (v != null) {
+        return v;
+      }
+    }
+    if ( cls == null || cls.equals( Object.class ) ) {
+      return (V)this;
+    }
+    return null;
+  }
+
+  @Override
+  public < TT > Domain< TT > subtract( Domain< TT > domain ) {
+    ObjectDomain<T> clone = clone();
+    java.util.Iterator<T> i = clone.iterator();
+    while ( i.hasNext() ) {
+      T t = i.next();
+      try {
+        if ( domain.contains( (TT)t ) ) {
+          i.remove();
+        }
+      } catch (ClassCastException e) {}
+    }
+    return (Domain< TT >)clone;
+  }
+
 
 }

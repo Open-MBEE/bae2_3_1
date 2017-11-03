@@ -53,8 +53,8 @@ public class DRObject extends DurativeEvent {
   } 
   
   protected ApplianceType applianceType = ApplianceType.PCT;
-  protected int DRStart = 5400;
-  protected int DRDuration = 14400;
+  protected long DRStart = 5400;
+  protected long DRDuration = 14400;
   protected int rampDuration = 3600;
   protected int timeOffset = Random.global.nextInt(rampDuration);
   
@@ -63,33 +63,33 @@ public class DRObject extends DurativeEvent {
 	 */
 	public DRObject() {
 		super();
-		startTime.setValue( (int)( DRStart / Timepoint.conversionFactor( TimeUtils.Units.seconds ) ) + timeOffset ); // FIXME -- HACK -- assumes seconds and not wrt epoch
-		duration.setValue( (int)( DRDuration / Timepoint.conversionFactor( TimeUtils.Units.seconds ) )  + timeOffset );
+		startTime.setValue( (long)( DRStart / Timepoint.conversionFactor( TimeUtils.Units.seconds ) ) + timeOffset ); // FIXME -- HACK -- assumes seconds and not wrt epoch
+		duration.setValue( (long)( DRDuration / Timepoint.conversionFactor( TimeUtils.Units.seconds ) )  + timeOffset );
 		this.satisfy( true, null );
 	}
 
   public DRObject( boolean b ) {
     this();
     timeOffset = rampDuration;
-    duration.setValue( (int)( DRDuration / Timepoint.conversionFactor( TimeUtils.Units.seconds ) ) );
+    duration.setValue( (long)( DRDuration / Timepoint.conversionFactor( TimeUtils.Units.seconds ) ) );
   }
 
   public double predictedLoadReduction( double t ) {
-    return predictedLoadReduction( new Timepoint( "", (int)t, this ) );
+    return predictedLoadReduction( new Timepoint( "", (long)t, this ) );
   }
 	public double predictedLoadReduction( Timepoint t ) {
 	  if ( !t.isGrounded(false, null) || !isGrounded(false, null) ) return 0.0;
 	  if ( t.getValue(false) < startTime.getValue(false) || t.getValue(false) > endTime.getValue(false) ) {
 	    return 0.0;
 	  }
-	  int offsetTimeFromMax = applianceType.timeOfDayAtMaxPercent.getValue(false) - t.timeSinceMidnight();
+	  long offsetTimeFromMax = applianceType.timeOfDayAtMaxPercent.getValue(false) - t.timeSinceMidnight();
 	  boolean on = true;
-	  int change = applianceType.durationAtMax.getValue(false) / 2;
-	  int timeFromMax = change;
-    final int lengthOfDay = Duration.lengthOfOne(TimeUtils.Units.days);
+	  long change = applianceType.durationAtMax.getValue(false) / 2;
+	  long timeFromMax = change;
+    final long lengthOfDay = Duration.lengthOfOne(TimeUtils.Units.days);
 	  while (offsetTimeFromMax > timeFromMax ) {
 	    on = !on;
-      change = (int)(((long)applianceType.durationAtMax.getValue(false)) * ( ( (double)(lengthOfDay - timeFromMax ) ) / lengthOfDay ) );
+      change = (long)(((long)applianceType.durationAtMax.getValue(false)) * ( ( (double)(lengthOfDay - timeFromMax ) ) / lengthOfDay ) );
 	    timeFromMax += change;
 	  }
 	  if ( on ) return applianceType.maxPower;

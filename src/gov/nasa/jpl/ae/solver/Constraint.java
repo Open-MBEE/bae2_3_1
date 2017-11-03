@@ -1,12 +1,13 @@
 package gov.nasa.jpl.ae.solver;
 
 import gov.nasa.jpl.ae.event.LazyUpdate;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.HasId;
 
 import java.util.Set;
 
 public interface Constraint extends Satisfiable, Comparable< Constraint >,
-                                    LazyUpdate, HasId<Integer> {
+                                    LazyUpdate, HasId<Integer>, Evaluatable {
   public Set< Variable< ? > > getVariables();
 
   public < T > boolean pickParameterValue( Variable< T > v ); // not implemented

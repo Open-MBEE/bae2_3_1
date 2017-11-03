@@ -127,7 +127,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
      */
     public <X> X evaluateExpression( Object expressionElement, Class< ? > expectedType ) throws IllegalAccessException, InvocationTargetException, InstantiationException {
       Expression<X> expression = toAeExpression( expressionElement, expectedType );
-      return expression.evaluate( true );
+      return (X)expression.evaluate( true );
     }
 
     public enum CallCase {UNKNOWN, FAIL, EmsSystemModel, sysml, ae, common};
@@ -649,7 +649,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       Object argValProp = null;
       String type = model.getTypeString((C)argValueNode, (Object) null);
       Object v = null;
-      if ( type.equals("Property") ) {
+      if ( type != null && type.equals("Property") ) {
         // TODO -- deal with collections and arrays instead of just getting one
         v = model.getValue((C)argValueNode, null);
         int ct = 0;
@@ -781,7 +781,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                          null );
       Collection< P > valueOfElemNodes = null; 
               //model.getProperty(model.asContext( operandProp ), "element");
-      if ( type.equals( "ElementValue" ) ) {
+      if ( type != null && type.equals( "ElementValue" ) ) {
         Object o = model.getValue(model.asContext( operandProp ), null );
         if ( o instanceof Collection ) {
           valueOfElemNodes = Utils.asList( (Collection< P >)o, model.getPropertyClass(), false );
@@ -852,107 +852,86 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                                               "expression" );
                 Collection<P> opParamProps = model.getProperty( (C)valueOfElementNode, 
                                                                "parameters" );
+                P postcond = getPostconditionFromOperation( valueOfElementNode );
                 
-                // If the Operation has no expression then 
-                // make a Call for it:
-                //if (Utils.isNullOrEmpty( opExpProps )) {
+                Vector<Object> opEmptyArgs = new Vector<Object>();
+
+                // If it has parameter make a empty arg
+                // for each parameter:
+                if (!Utils.isNullOrEmpty( opParamProps )) {
+                  //for (int i = 0; i < opParamProps.size(); ++i) {
+                  for ( P p : opParamProps ) {
+                    N name = model.getName( (C)p );
+                    // Make sure not to add the result parameter of the postcondition. 
                     
-                    Vector<Object> opEmptyArgs = new Vector<Object>();
-    
-                    // If it has parameter make a empty arg
-                    // for each parameter:
-                    if (!Utils.isNullOrEmpty( opParamProps )) {
-                        
-                        for (int i = 0; i < opParamProps.size(); ++i) {
-                            opEmptyArgs.add( new Expression< Object >( (Object)null ) );//new Object() ) );
-                        }
+                    if ( postcond == null || !"result".equals( name ) ) { 
+                      opEmptyArgs.add( new Expression< Object >( (Object)null ) );//new Object() ) );
+                    } else {
+                      
+                      // p should be the result parameter. Use it to set the return type
+                      // if it's null.
+                      if ( returnType == null ) {
+                        Collection< P > c = model.getProperty((C)p, "parameterType");
+                        if ( !Utils.isNullOrEmpty( c ) ) {
+                          P pType = c.iterator().next();
+                          if ( pType instanceof String ) {
+                            Class<?> cls = null;
+                            try {
+                              cls = ClassUtils.classForName( (String)pType );
+                            } catch ( ClassNotFoundException e ) {
+                            }
+                            if ( cls != null ) {
+                              returnType = cls;
+                            }
+                          }
+                        } 
+                      }
+                      
                     }
+                  }
+                }
 
 //                    opEmptyArgs.add( returnType );
                     
-                    // The object from which the operation is invoked.
-                    Object object = null;
-                    
-                    // 
-                    Call argCall;
-                    
-                    // If an expression is defined for the operation, we wrap the invocation
-                    // of the operation in a Java method call, that we later wrap as a
-                    // FunctionCall.
-                    if (!Utils.isNullOrEmpty( opExpProps )) {
-                      EvaluateOperation evo =
-                          new EvaluateOperation( valueOfElementNode, returnType );
-                      object = this;
-                      operationName = (N)"evaluate";
-                      Vector<Object> newArgs = new Vector< Object >();
-                      newArgs.add( evo );
-                      newArgs.add( opEmptyArgs );//.toArray() );
-                      newArgs.add( returnType );
-                      opEmptyArgs = newArgs;
-                      //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
-                      //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
-                      ////call = new OperationFunctionCall( object, arguments );
-                      argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs, returnType);//OperationFunctionCall.class );  // TODO not sure about returnType here
+                // The object from which the operation is invoked.
+                Object object = null;
+                
+                Call argCall;
+                
+                // If an expression is defined for the operation, we wrap the invocation
+                // of the operation in a Java method call, that we later wrap as a
+                // FunctionCall.
+                if (!Utils.isNullOrEmpty( opExpProps ) || postcond != null) {
+                  EvaluateOperation evo =
+                      new EvaluateOperation( valueOfElementNode, returnType );
+                  object = this;
+                  operationName = (N)"evaluate";
+                  Vector<Object> newArgs = new Vector< Object >();
+                  newArgs.add( evo );
+                  newArgs.add( opEmptyArgs );//.toArray() );
+                  newArgs.add( returnType );
+                  opEmptyArgs = newArgs;
+                  //////call = new ConstructorCall( this, OperationFunctionCall.class, argTypes.toArray(new Class[argTypes.size()]) );
+                  //call = new ConstructorCall( this, OperationFunctionCall.class, new Object[] { object, arguments } );
+                  ////call = new OperationFunctionCall( object, arguments );
+                  argCall = new OperationFunctionCallConstructorCall( object, opEmptyArgs, returnType);//OperationFunctionCall.class );  // TODO not sure about returnType here
 
-                    } else {
-                      // Create a Call for the argument 
-                      argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs, returnType);
-                                            
-                    }
-                    //System.out.println("*******************************************");
-                    //System.out.println("args for call=" + opEmptyArgs);
-                    //System.out.println("*******************************************");
-                    
-                    if ( argCall != null ) {
-                       
-                      // Add to the argument list:
-                      arguments.add(new Expression<Object>(argCall));
-            
-                    } // Ends if argCall != null
+                } else {
+                  // Create a Call for the argument 
+                  argCall = createCall(object, operationName, opEmptyArgs, opEmptyArgs, returnType);
+                                        
+                }
+                //System.out.println("*******************************************");
+                //System.out.println("args for call=" + opEmptyArgs);
+                //System.out.println("*******************************************");
+                
+                if ( argCall != null ) {
+                   
+                  // Add to the argument list:
+                  arguments.add(new Expression<Object>(argCall));
+        
+                } // Ends if argCall != null
                       
-//                }
-//                
-//                // TODO FIXME this is no longer correct below:
-//                // If the Operation has a expression then
-//                // use operationToAeExpression to process
-//                else {
-//                  
-//                  // Create a function call for 
-//                  //   operationToAeExpression( valueOfElementNode, opParamOps ).evaluate()
-//                  //      
-//                  EvaluateOperation evo = new EvaluateOperation< P >( valueOfElementNode );
-//                  // Create a Call for the argument 
-//                  Call argCall = createCall(null, operationName, opEmptyArgs);
-//                  
-//                  
-//                  
-//                  Debug.error("Error: dont know how to process a Operation arg with a expression!");
-//
-//                  System.out.println("This is weird!");
-////                    List<Object> parameterValues = new ArrayList<Object>();
-////                    
-////                    // If it has parameters then pass in the
-////                    // parameter values:
-////                    if (!Utils.isNullOrEmpty( opParamProps )) {
-////                        // If the argument is a Parameter (wrapped in an expression),
-////                        // then get its value:
-////                        for (Object arg : arguments) {
-////                            if (arg instanceof Expression) {
-////                                Expression<?> expr = (Expression<?>)arg;
-////                                
-////                                if (expr.form.equals(Expression.Form.Parameter)) {
-////                                    Parameter<?> param = (Parameter<?>)expr.expression;
-////                                    parameterValues.add( param.getValue() );
-////                                }
-////                            }
-////                        }
-////                    }
-////                    
-////                    arguments.add( operationToAeExpression(valueOfElementNode,
-////                                                           parameterValues));
-////                
-//                }
-            
             } // ends if operand arg
          
         }
@@ -1110,6 +1089,56 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       return null;
     }
 
+    /**
+     * Converts an opaque expression as a String to an AE Expression that
+     * evaluates to the specified type.  The string expression may refer to
+     * Properties/variables by name, in which case, the names must be resolved,
+     * and appropriate AE Parameters are created, linked to the appropriate Properties. 
+     * 
+     * @param opaqueExpression
+     * @param expectedType the type of object to which the expression evaluates
+     * @return
+     */
+    public <X> Expression<X> opaqueToAeExpression( C opaqueExpression,
+                                                   Class< ? > expectedType ) {
+      // Create a value from the opaque expression, and translate that to
+      // an AE expression.
+      
+      // Try to create a value from the body of the expression.
+      Collection< U > bodies =
+          model.getValue( opaqueExpression, "expressionBody" );
+      if ( bodies == null ) return null;
+      ArrayList< Expression< ? > > arr = new ArrayList< Expression< ? > >();
+      for ( U body : bodies ) {
+        if ( body != null ) {
+  
+          Object value = null;
+          // If a string, try to parse as text expression, which can be parsed and
+          // converted into a value specification element.
+          if ( body instanceof String ) {
+            value = model.createElement( model.asContext( body ) ); // Should we
+                                                                    // call this
+          }
+          Expression< ? > x = toAeExpression( value, expectedType );
+          if ( x != null ) {
+            arr.add( x );
+          }
+        }
+      }
+      if ( arr.size() == 0 ) {
+        return null;
+      } else if ( arr.size() == 1
+                  && ( expectedType == null
+                       || !expectedType.isAssignableFrom( arr.getClass() ) ) ) {
+
+        Expression< X > expr = (Expression< X >)arr.get( 0 );
+        System.out.println("opaqueToAeExpression("+ bodies + ") --> " + expr);
+        return expr;
+      }
+    
+      return new Expression< X >( arr ); // TODO -- REVIEW -- Do we handle
+                                         // collections in expressions properly?
+    }
     
     /**
      * Converts the passed sysml expression to an AE expression.
@@ -1131,14 +1160,20 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
 
       // If it is not an Expression than we cannot process it:
       String expressionType = model.getTypeString((C)expressionElement, null);
-      if (!expressionType.equals("Expression")) {
+      System.out.println("expressionType = " + expressionType);
+      if (!expressionType.endsWith("Expression")) {
         Debug.error( "The passed expression is not an Expression type, got type "
                      + expressionType + "; expressionsElement="
                      + expressionElement + "; expectedType="
-                     + expectedType.getSimpleName() );
+                     + expectedType == null ? "null" : expectedType.getSimpleName() );
         return null;
       }
 
+      if ( expressionType.equals("OpaqueExpression") ) {
+        System.out.println( "Found an opaque expression!" );
+        return opaqueToAeExpression( model.asContext( expressionElement ), expectedType );
+      }
+      
       // Pull out the operation, and recursively process the arguments. 
       
       Collection< P > operands = model.getProperty( (C)expressionElement, "operand");
@@ -1178,6 +1213,47 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
                                           expectedType );
     }
 
+    protected P getExpressionFromPostcondition( P postCond ) {
+      P sysmlExpr = null;
+      Collection< P > coll = model.getProperty((C)postCond, "expression");
+      if ( !Utils.isNullOrEmpty( coll ) ) {
+        P constrExp = coll.iterator().next();
+
+        coll = model.getProperty((C)constrExp, "operand");
+        Iterator<P> iter = coll == null ? null : coll.iterator();
+        if ( iter != null && coll.size() == 3 ) {
+          P function = iter.next();
+          P arg1 = iter.next();
+          P arg2 = iter.next();
+          N name = arg1 == null ? null : model.getName( (C)arg1 );
+          if ("result".equals( name ) ) {
+            sysmlExpr = arg2;
+          } else {
+            name = arg2 == null ? null : model.getName( (C)arg2 );
+            if ("result".equals( name ) ) {
+              sysmlExpr = arg1;
+            }
+          }
+        }
+      }
+      return sysmlExpr;
+    }
+    
+    protected P getPostconditionFromOperation( Object operation ) {
+      Collection< P > opPostConds =
+          model.getProperty( (C)operation, "postconditions" );
+      if ( !Utils.isNullOrEmpty( opPostConds ) ) {
+        if ( opPostConds.size() > 1 ) {
+          Debug.error(true, false, "WARNING! Operation has "
+                      + opPostConds.size() 
+                      + " postconditions!  Ignoring all but the first." );
+        }
+        P postCond = opPostConds.iterator().next();
+        return postCond;
+      }
+      return null;
+    }
+    
     protected <X> Expression<X> operationToAeExpressionImpl( Object operation,
                                                              Vector< Object > aeArgs,
                                                              Vector< Object > rawArgs,
@@ -1191,12 +1267,37 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       if ( operationType != null && operationType.equals( "Operation" ) ) {
         Collection< P > opExpProps =
             model.getProperty( (C)operation, "expression" );
+//        Collection< P > opPostConds =
+//            model.getProperty( (C)operation, "postconditions" );
         Collection< P > opParamProps =
             model.getProperty( (C)operation, "parameters" );
 
+        // Try to dig the expression out of the postcondition constraint.
+        P sysmlExpr = null;
+        P maybeSysmlExpr = null;
+        P postCond = getPostconditionFromOperation( operation );
+        if ( postCond != null ) {
+          // if ( !Utils.isNullOrEmpty( opPostConds ) ) {
+          // P postCond = opPostConds.iterator().next();
+          Collection< P > coll = model.getProperty((C)postCond, "expression");
+          if ( !Utils.isNullOrEmpty( coll ) ) {
+            sysmlExpr = getExpressionFromPostcondition( postCond );
+            if ( sysmlExpr == null ) {
+              P constrExp = coll.iterator().next();
+              maybeSysmlExpr = constrExp;
+            }
+          }
+        }
+        
         // Replace the parameters with the arguments.
-        if ( !Utils.isNullOrEmpty( opExpProps ) ) {
-          Expression< X > opExpression = toAeExpression( opExpProps.iterator().next(), returnType );
+        if ( sysmlExpr == null &&!Utils.isNullOrEmpty( opExpProps ) ) {
+          sysmlExpr = opExpProps.iterator().next();
+        }
+        if ( sysmlExpr == null ) {
+          sysmlExpr = maybeSysmlExpr;
+        }
+        if ( sysmlExpr != null ) {
+          Expression< X > opExpression = toAeExpression( sysmlExpr, returnType );
           if ( !Utils.isNullOrEmpty( opParamProps ) ) {
             Iterator< Object > it = aeArgs.iterator();
             // TODO -- Check to see if last Parameter is for a variable number of arguments!
@@ -1233,7 +1334,7 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
       if ( expression == null || ( expression.expression == null && expression.form != Form.Value ) ) {
         N operationName = getOperationName( operation );
         Call call = createCall(null, operationName, aeArgs, rawArgs, returnType );
-        expression = new Expression( call ); // FIXME what to do if call is null?
+        expression = new Expression< X >( call ); // FIXME what to do if call is null?
         //expression = new Expression( call.evaluate( false ) ); // This breaks test case 22
       }
       
@@ -1299,48 +1400,95 @@ public class SystemModelToAeExpression< C, T, P, N, U, SM extends SystemModel< ?
         return toAeExpression(arg, expectedType);
       }
                   
+      else if (typeString.equals("OpaqueExpression")) {
+        String k = null;
+        //Collection< P > bodies = model.getProperty((C)arg, "body");
+        
+        Collection< U > bodies = model.getValue((C)arg, "expressionBody");
+        if ( !Utils.isNullOrEmpty( bodies ) ) {
+          U body = bodies.iterator().next();
+          if ( body instanceof String ) {
+            k = (String)body;
+          }
+        }
+        Object sysmlExpr = null;
+        if ( !Utils.isNullOrEmpty( k ) ) {
+          sysmlExpr = model.createConstraint(model.asContext( k ));
+        }
+        if ( sysmlExpr == null ) {
+          return unclassifiedElementToAeExpression(arg, typeString, maySetValue);
+        }
+        return toAeExpression(sysmlExpr, expectedType);
+      }
+      else if (false && (typeString.equals("Connector") || typeString.equals("BindingConnector")) ) {
+        // TODO -- create a constraint that the two elements are equal.
+        // REVIEW -- Does it make sense to do this here?
+        // Set the ends of the property paths equal to each other. TODO -- create an instance?
+        Collection< P > sourcePath = model.getProperty((C)arg, "sourcePath");
+        Collection< P > targetPath = model.getProperty((C)arg, "targetPath");
+        // assume that the connected ends are the last of the paths
+        P source = Utils.isNullOrEmpty( sourcePath ) ? null : last(sourcePath);
+        P target = Utils.isNullOrEmpty( targetPath ) ? null : last(targetPath);
+        if ( source != null && target != null ) {
+          Object c = model.createConstraint( model.asContext( model.getIdentifier( model.asContext( source ) ) + " = " + model.getIdentifier( model.asContext( target ) ) ) );
+          return toAeExpression( c, Boolean.class );
+        }
+      }
       // All other cases failed, then just create a Parameter for
       // it, ie it is a Property, Parameter, Element, a LiteralInt, etc:
       else {  //if (typeString.equals("Property")) {
-                
-        // Get the argument Node:
-        Collection<U > argValueNodes = model.getValue((C)arg, null);
-
-        // Get the name of the argument Node:
-//        Collection<N > argValueNames = model.getName(arg);
-//        String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
-//                                                                 argValueNames.iterator().next().toString();
-        // This needs to be unique, so we'll use the identifier.
-        String argValName = "" + model.getIdentifier( (C)arg );
-        
-        // TODO can we assume this will always be size one?
-        Object argValueNode = Utils.isNullOrEmpty(argValueNodes) ? arg : argValueNodes.iterator().next();
-        if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
-
-        String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
-
-        // Create a Parameter for the argument and add to arguments:
-        //System.out.println( "\nelementArgumentToAeExpression(" + arg + " = elementValueToAeExpression(" + argValueNode + ", " + argName + ")" );
-        if ( !model.getElementClass().isInstance( argValueNode ) ) {
-          argValueNode = arg;
-        }
-        return (Expression< T >)elementValueToAeExpression( argValueNode,
-                                                            argName, typeString,
-                                                            maySetValue );
-
-//      } else {
-//        // Get the argument Node:
-//        Collection<U > argValueNodes = model.getValue((C)arg, null);
-//        
-//        if ( Utils.isNullOrEmpty(argValueNodes) ) {
-//          return new Expression< Object >( (Object) arg );
-//        }
-//
-//        return new Expression< Object >( (Object) argValueNodes );
+        return unclassifiedElementToAeExpression(arg, typeString, maySetValue);
       }  // ends else
       
       return null;
       
+    }
+    
+    protected <T> T last( Collection<T> tt ) {
+      T t = null;
+      Iterator<T> i = tt.iterator();
+      while ( i.hasNext() ) {
+        t = i.next();
+      }
+      return t;
+    }
+    
+    protected <T> Expression<T> unclassifiedElementToAeExpression(P arg, String typeString, boolean maySetValue) {
+      // Get the argument Node:
+      Collection<U > argValueNodes = model.getValue((C)arg, null);
+
+      // Get the name of the argument Node:
+//      Collection<N > argValueNames = model.getName(arg);
+//      String argValName = Utils.isNullOrEmpty(argValueNames) ? null : 
+//                                                               argValueNames.iterator().next().toString();
+      // This needs to be unique, so we'll use the identifier.
+      String argValName = "" + model.getIdentifier( (C)arg );
+      
+      // TODO can we assume this will always be size one?
+      Object argValueNode = !Utils.isNullOrEmpty(argValueNodes) && argValueNodes.size() == 1 ? argValueNodes.iterator().next() : argValueNodes;
+      if ( Debug.isOn() ) Debug.outln( "\nargValueNode = " + argValueNode );
+
+      String argName = Utils.isNullOrEmpty(argValName) ?  argValueNode.toString() : argValName;
+
+      // Create a Parameter for the argument and add to arguments:
+      //System.out.println( "\nelementArgumentToAeExpression(" + arg + " = elementValueToAeExpression(" + argValueNode + ", " + argName + ")" );
+      if ( !model.getElementClass().isInstance( argValueNode ) ) {
+        argValueNode = arg;
+      }
+      return (Expression< T >)elementValueToAeExpression( argValueNode,
+                                                          argName, typeString,
+                                                          maySetValue );
+
+//    } else {
+//      // Get the argument Node:
+//      Collection<U > argValueNodes = model.getValue((C)arg, null);
+//      
+//      if ( Utils.isNullOrEmpty(argValueNodes) ) {
+//        return new Expression< Object >( (Object) arg );
+//      }
+//
+//      return new Expression< Object >( (Object) argValueNodes );
+
     }
     
     /**

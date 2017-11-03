@@ -1,26 +1,31 @@
 
 package gov.nasa.jpl.ae.event;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import junit.framework.Assert;
 import gov.nasa.jpl.ae.event.Expression.Form;
 import gov.nasa.jpl.ae.event.Functions.Equals;
 import gov.nasa.jpl.ae.solver.CollectionTree;
 import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.Domain;
 import gov.nasa.jpl.ae.solver.HasConstraints;
+import gov.nasa.jpl.ae.solver.HasDomain;
 import gov.nasa.jpl.ae.solver.HasIdImpl;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -42,19 +47,22 @@ import gov.nasa.jpl.mbee.util.Utils;
 // TODO -- REVIEW -- Should this class be removed and have dependencies captured
 // as time-invariant effects? Or should effects be TimeVarying Dependencies?
 
-// TODO -- REVIEW -- How about constructing a constraint from a dependency
-// ( parameter == expression )
-
 // TODO -- REVIEW -- Should dependencies be applicable to a time period, like
 // constraints (& effects)?
 public class Dependency< T > extends HasIdImpl
              implements HasParameters, ParameterListener, Constraint,
                         LazyUpdate, HasConstraints, HasTimeVaryingObjects {
 
+  public boolean debug = false;
   protected Parameter< T > parameter;
   protected Expression< ? > expression;
   private ConstraintExpression constraint = null;
-  protected boolean refreshing = false; // to prevent propagation cycles
+  /**
+   * Should the dependency recompute the value of the target parameter when a
+   * variable in the expression changes (handleChangeEvent())
+   */
+  public boolean propagate = true;
+  protected boolean refreshing = false; // to prevent propagation cycles in refresh()
 
   public <T2> Dependency( Parameter< T > p, Expression< T2 > e ) {
     parameter = p;
@@ -165,6 +173,11 @@ public class Dependency< T > extends HasIdImpl
     }
     if ( parameter.isStale() || value != parameter.getValueNoPropagate() ) {
       if ( Debug.isOn() ) Debug.outln( "Setting the dependent parameter to the evaluation of expression = " + value );
+      if ( debug ) {
+        System.out.println("****");
+        System.out.println("setting dependency on " + parameter + " to value " + value );
+        System.out.println("****");
+      }
       parameter.setValue( value, propagate );
       return true;
     }
@@ -180,7 +193,7 @@ public class Dependency< T > extends HasIdImpl
     Pair< Boolean, Set< Satisfiable > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return true;
     seen = pair.second;
-    boolean sat;
+    boolean sat = false;
     // REVIEW -- The criteria for being satisfied should be reviewed since some
     // of these are short-circuited with false.
     if ( constraint != null ) {
@@ -207,7 +220,16 @@ public class Dependency< T > extends HasIdImpl
       sat = false;
       if ( Debug.isOn() ) Debug.outln( "Dependency.isSatisfied(): expression not satisfied: " );// + this );
     } else {
-      sat = Expression.valuesEqual( parameter, expression, getType() );
+      // Check to see if values are equal. In this case of a constructor, just
+      // make sure that the value is an instance of the constructed type. Actually,
+      // since the constructor could be constructing another ConstructorCall, just
+      // make sure the value is non-null.
+      if ( expression != null && expression.form == Form.Constructor ) {
+        sat = parameter.getValueNoPropagate() != null;
+      } else {
+        // Check for equality.
+        sat = Expression.valuesEqual( parameter, expression, getType() );
+      }
       if ( !sat ) {
         parameter.setStale( true );
         if ( Debug.isOn() && parameter != null && expression != null) {
@@ -313,6 +335,9 @@ public class Dependency< T > extends HasIdImpl
     if ( expression.substitute( t1, t2, deep, seen ) ) {
       subbed = true;
     }
+    if ( constraint != null && constraint.substitute( t1, t2, deep, seen ) ) {
+      subbed = true;
+    }
     return subbed;
   }
 
@@ -357,7 +382,7 @@ public class Dependency< T > extends HasIdImpl
   @Override
   public void setFreeParameters( Set< Parameter< ? >> freeParams, boolean deep,
                                  Set< HasParameters > seen ) {
-    Assert.assertTrue( "This method is not supported!", false );
+    Debug.error( true, false, "This method is not supported!" );
     // TODO Auto-generated method stub
   }
   
@@ -373,6 +398,9 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean pickParameterValue( Variable< T1 > variable ) {
+    boolean wasOn = Debug.isOn();
+    try{
+      //Debug.turnOn();
     if ( variable == null || !Parameter.allowPickValue) return false;
     if ( Debug.isOn() ) Debug.outln( "Dependency.pickValue(" + variable + ") begin" );
     if ( variable == this.parameter ) {
@@ -409,6 +437,10 @@ public class Dependency< T > extends HasIdImpl
     }
     // TODO Auto-generated method stub
     return false;
+    } finally {
+      if (!wasOn) Debug.turnOff();
+    }
+
   }
 
   protected Variable< ? > pickRandomVariable() {
@@ -436,31 +468,47 @@ public class Dependency< T > extends HasIdImpl
    */
   @Override
   public < T1 > boolean restrictDomain( Variable< T1 > v ) {
+    if ( v == null ) return false;
     if ( expression == null ) return false;
     if ( parameter == null ) return false;
+    boolean restricted = false;
     if ( v == parameter ) {
-      Object ov = null;
-      try {
-        ov = expression.evaluate(true);
-        T val = Expression.evaluate( ov, getType(), false, true );
-        Domain<T1> d = v.getDomain().clone();
-        d.restrictToValue( (T1)val );
-        v.setDomain( d );
-      } catch ( IllegalAccessException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InvocationTargetException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch ( InstantiationException e ) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+      if ( this.expression == null ) return false;
+      Domain< ? > d = expression.getDomain( true, null );
+      if ( d == null ) {
+        try {
+          Object ov = expression.evaluate(true);
+          d = DomainHelper.getDomain( ov );
+          if ( d == null ) {
+            T val = Expression.evaluate( ov, getType(), false, true );
+            d = DomainHelper.getDomain( val );
+            if ( d == null && val != null ) {
+              d = new SingleValueDomain<T>( val );
+            }
+          }
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+      }
+      if ( d != null ) {
+        Pair< ?, Boolean > p = parameter.restrictDomain( d, true, null );
+        restricted = p != null && Boolean.TRUE.equals(p.second);
       }
     } else {
-      if ( getConstraintExpression() == null) return false;
-      getConstraintExpression().restrictDomain( v );
+      boolean skip = false;
+      if ( v instanceof Parameter ) {
+        if ( !expression.hasParameter( (Parameter<T1>)v, false, null ) ) {
+          skip = true;
+        }
+      }
+      // Warning!  This ignores the variable.
+      if ( !skip ) {
+        Pair< ?, Boolean > p = expression.restrictDomain( parameter.getDomain(), true, null );
+        restricted = p != null && Boolean.TRUE.equals(p.second);
+      }
     }
-    return v.getDomain() != null && v.getDomain().size() > 0; 
+    return restricted;//v.getDomain() != null && v.getDomain().magnitude() > 0; 
   }
 
   /* (non-Javadoc)
@@ -486,8 +534,11 @@ public class Dependency< T > extends HasIdImpl
   public Set< Variable< ? > > getFreeVariables() {
     if ( getConstraintExpression() == null ) return Utils.getEmptySet();
     Set< Variable< ? > > set = getConstraintExpression().getFreeVariables();
-    set.remove( parameter ); 
-    return set;
+    if (set != null ) {
+      set.remove( parameter ); 
+      return set;
+    }
+    return Utils.getEmptySet();
   }
 
   @Override
@@ -526,15 +577,22 @@ public class Dependency< T > extends HasIdImpl
   }
 
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
-    if ( hasParameter( parameter, true, null )
-         && this.parameter != parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
+    if ( propagate && this.parameter != parameter && hasParameter( parameter, false, null ) ) {
       apply( true );
     }
   }
 
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+
     // TODO -- REVIEW -- Anything to do?
   }
 
@@ -636,9 +694,12 @@ public class Dependency< T > extends HasIdImpl
     if (p.first) return;
     seen = p.second;
     
-    if ( expression.hasParameter( changedParameter, true, null ) ) {
+    if ( expression.hasParameter( changedParameter, false, null ) ) {
       expression.setStaleAnyReferencesTo( changedParameter, seen );
       parameter.setStale( true );
+    }
+    if ( constraint != null && constraint.hasParameter( changedParameter, false, null ) ) {
+      constraint.setStaleAnyReferencesTo( changedParameter, seen );
     }
   }
 
@@ -650,7 +711,9 @@ public class Dependency< T > extends HasIdImpl
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
-    return getParameters( deep, seen ).contains( parameter );
+    
+    boolean has = HasParameters.Helper.hasParameter( this, parameter, deep, seen );
+    return has;
   }
 
   @Override
@@ -701,13 +764,13 @@ public class Dependency< T > extends HasIdImpl
   }
       
   @Override
-  public Set< TimeVarying< ? > >
+  public Set< TimeVarying< ?, ? > >
       getTimeVaryingObjects( boolean deep, Set< HasTimeVaryingObjects > seen ) {
     Pair< Boolean, Set< HasTimeVaryingObjects > > pair = Utils.seen( this, deep, seen );
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     //if ( Utils.seen( this, deep, seen ) ) return Utils.getEmptySet();
-    Set< TimeVarying< ? > > set = new HashSet< TimeVarying< ? > >();
+    Set< TimeVarying< ?, ? > > set = new HashSet< TimeVarying< ?, ? > >();
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( parameter, deep, seen ) );
     set = Utils.addAll( set, HasTimeVaryingObjects.Helper.getTimeVaryingObjects( expression, deep, seen ) );
     return set;
@@ -734,6 +797,28 @@ public class Dependency< T > extends HasIdImpl
 
   @Override
   public < T > T translate( Variable< T > p , Object o , Class< ? > type  ) {
+    return null;
+  }
+
+  @Override
+  public < TT > TT evaluate( Class< TT > cls, boolean propagate ) {
+    TT tt = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( tt != null ) return tt;
+    tt = Evaluatable.Helper.evaluate( parameter, cls, true, propagate, true, null );
+    if ( tt != null ) return tt;
+    tt = Evaluatable.Helper.evaluate( expression, cls, true, propagate, true, null );
+    return tt;
+  }
+  
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Set< Variable< ? > > vars = getVariables();
+    if ( vars.contains( variable ) ) {
+      ArrayList<Variable<?>> varList = new ArrayList< Variable<?> >( vars );
+      varList.remove( variable );
+      return varList;
+    }
     return null;
   }
 

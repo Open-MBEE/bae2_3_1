@@ -341,6 +341,11 @@
           <xs:documentation>the assignment of values to members/parameters to the instantiated event</xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element name="fromTimeVarying" type="xs:string" minOccurs="0"  maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>A timeline from which the event will be instantiated for each non-null, non-zero, non-empty time interval.  Each event instance will start and end with the start and end of the associated timeline interval.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="timePeriod">

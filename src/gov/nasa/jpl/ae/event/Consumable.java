@@ -3,8 +3,10 @@
  */
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.event.TimeVaryingMap.TimeValue;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -49,9 +51,30 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     super( name, null, defaultValue, Double.class, projected );
   }
 
+  public Consumable( String name, Double defaultValue, boolean projected,
+                     Double minCap, Double maxCap, Interpolation interpolation  ) {
+    this( name, defaultValue, projected, minCap, maxCap );
+    this.interpolation = interpolation;
+  }
+  
+  public Consumable( String name, Double initialValue,
+                     TimeVaryingMap< Double > deltaMap, Double minCap,
+                     Double maxCap, Interpolation interpolation ) {
+    this( name, initialValue, false, minCap, maxCap, interpolation );
+    //System.out.println("deltaMap = " + deltaMap);
+    addDeltaMap( deltaMap );
+  }
+  
+  public Consumable( String name, Double defaultValue, boolean projected,
+                     Double minCap, Double maxCap ) {
+    this( name, defaultValue, projected );
+    //super( name, null, initialValue, Double.class, projected );
+    this.minCap = minCap;
+    this.maxCap = maxCap;
+  }
   public Consumable( String name, Double initialValue,
                      Method deltaValueFunction, Object o,
-                     int samplePeriod, int horizonDuration,
+                     long samplePeriod, long horizonDuration,
                      Double minCap, Double maxCap ) {
 //  super( name, initialValueFunction, o, samplePeriod, horizonDuration );
     super( name, null, initialValue, Double.class, false );
@@ -60,10 +83,10 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     samplePeriod =
         TimeVaryingMap.correctSamplePeriod( samplePeriod, horizonDuration );
     try {
-      int lastT = 0;
+      long lastT = 0;
       double lastValue = initialValue; 
       if ( Debug.isOn() ) Debug.errln("minCap=" + minCap + "; maxCap=" + maxCap );
-      for ( int t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
+      for ( long t = samplePeriod; t < horizonDuration; t += samplePeriod ) {
       double value =
           (Double)ClassUtils.runMethod( false, o, deltaValueFunction, lastT,
                                         lastValue, t ).second;
@@ -84,21 +107,65 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   public Consumable( String name, Double initialValue,
                      Method deltaValueFunction, Object o,
-                     int samplePeriod, int horizonDuration) {
+                     long samplePeriod, long horizonDuration) {
     this(name, initialValue, deltaValueFunction, o, samplePeriod, horizonDuration,
          Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
   }
   
-  public double add( Parameter<Integer> t, Double delta ) {
+  public Consumable( String name, TimeVaryingPlottableMap<Double> timeVaryingMap ) {
+    super( name, timeVaryingMap );
+  }
+  
+  public Consumable( String name, Consumable consumable ) {
+    this( name, (TimeVaryingPlottableMap<Double>)consumable );
+    this.minCap = consumable.minCap;
+    this.maxCap = consumable.maxCap;
+  }
+  
+  public Consumable( Consumable consumable ) {
+    super(consumable);
+    minCap = consumable.minCap;
+    maxCap = consumable.maxCap;
+  }
+
+
+  @Override
+  public Consumable clone() {
+    return new Consumable(this);
+  }
+  
+  @Override
+  public <VV> TimeVaryingPlottableMap< VV > clone(Class<VV> cls) {
+    return (TimeVaryingPlottableMap< VV >)clone();
+  };
+  
+  @Override
+  public Consumable emptyClone() {
+    Consumable consumable = new Consumable( getName(), null, isProjection(), getMinCap(), getMaxCap(), getInterpolation() );
+    return consumable;
+  }
+  @Override
+  public <VV> TimeVaryingPlottableMap<VV> emptyClone(Class<VV> cls) {
+    return (TimeVaryingPlottableMap< VV >)emptyClone();
+  };
+
+  public double add( Parameter< Long> t, Double delta ) {
+    
     Double valBefore = getValueBefore( t );
     setValue( t, valBefore );  // we're going to add delta to this below.
-    SortedMap< Parameter<Integer>, Double > tail = this.tailMap( t );
+    SortedMap< Parameter< Long>, Double > tail = this.tailMap( t );
     // Had trouble changing the value while iterating through the tail map, so
     // keys are copied to a list, and setValue() is called while walking the list.
     // So, this is nlogn when it should be n.
-    List< Parameter<Integer> > laterTimes = new ArrayList< Parameter<Integer> >( tail.keySet() );
-    for ( Parameter<Integer> tt : laterTimes ) {
-      setValue( tt, getValue( tt ) + delta );
+    if ( delta != null ) {
+      List< Parameter< Long> > laterTimes = new ArrayList< Parameter< Long> >( tail.keySet() );
+      for ( Parameter< Long> tt : laterTimes ) {
+        Double v = getValue( tt );
+        if ( v != null ) {
+          v = v + delta;
+          setValue( tt, v );
+        }
+      }
     }
     double valueSet = getValue( t );
     return valueSet;
@@ -112,44 +179,32 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    * any Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
    * change the entries in c.
    * 
+   * TODO -- REVIEW -- Is this the same as TimeVaryingMap.integrate()?
+   * 
    * @param deltaMap
    */
   public void initializeFromDeltaMap( TimeVaryingMap< Double > deltaMap ) {
     clear();
-//    double summedValue = 0.0;
-    for ( java.util.Map.Entry< Parameter<Integer>, Double > e : deltaMap.entrySet() ) {
-//      if ( e.getValue() != null && e.getValue() != 0 ) {
-//        summedValue += e.getValue();
-//      }
-      add( e.getKey(), e.getValue() ); //summedValue );
-    }
+    addDeltaMap( deltaMap );
   }
   
-  /**
-   * @return a generated map of the changes in values from the previous point.
-   *         <p>
-   *         For example, the deltaMap of { 0=0.0, 3=4.4, 7=10.0 } is { 0=0.0,
-   *         3=4.4, 7=5.6 }. The map is fully computed on each call. For any
-   *         Consumable c, c.initializeFromDeltaMap(c.getDeltaMap()) should not
-   *         change the entries in c.
-   */
- public TimeVaryingMap< Double > getDeltaMap() {
-    TimeVaryingPlottableMap< Double > deltaMap =
-      new TimeVaryingPlottableMap< Double >( "delta_" + name );
-    Double lastValue = 0.0;
-    for ( Entry< Parameter<Integer>, Double > e : entrySet() ) {
-      Double thisValue = 0.0; // null value is interpreted as 0.0
-      if ( e.getValue() != null ) {
-        thisValue = e.getValue();
+  public void addDeltaMap( TimeVaryingMap< Double > deltaMap ) {
+    if ( deltaMap == null ) return;
+    for ( java.util.Map.Entry< Parameter< Long>, Double > e : deltaMap.entrySet() ) {
+      Parameter<Long> firstKey = null;
+      if ( e.getKey().getValueNoPropagate().equals( 0L ) && firstKey().getValueNoPropagate().equals(0L) ) {
+         firstKey = firstKey();
+        
       }
-      deltaMap.put( e.getKey(), thisValue - lastValue );
-      lastValue = thisValue;
+      add( e.getKey(), e.getValue() );
+      if (firstKey != null) {
+        remove(firstKey);
+      }
     }
-    return deltaMap;
-  }
+  } 
   
-  public Double getValueBefore( Parameter<Integer> t ) {
-    Parameter<Integer> justBeforeTime = getTimepointBefore( t );
+  public Double getValueBefore( Parameter< Long> t ) {
+    Parameter< Long> justBeforeTime = getTimepointBefore( t );
     Double valBefore = new Double(0);
     if ( justBeforeTime != null ) {
       valBefore = get( justBeforeTime );
@@ -166,7 +221,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   public static TimeVaryingMap< Double >
       deltaMapPlusEquals( TimeVaryingMap< Double > deltaMap,
                           TimeVaryingMap< Double > otherDeltaMap ) {
-    for ( Entry< Parameter<Integer>, Double > e : otherDeltaMap.entrySet() ) {
+    for ( Entry< Parameter< Long>, Double > e : otherDeltaMap.entrySet() ) {
       Double v = deltaMap.get( e.getKey() );
       if ( v == null ) v = 0.0;
       if ( e.getValue() != null ) v += e.getValue();
@@ -212,9 +267,10 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
    */
   public static Method getAddMethod() {
     if ( addMethod  == null ) {
-      for ( Method m : TimeVaryingMap.class.getMethods() ) {
-        if ( m.getName().equals("setValue") ) {
+      for ( Method m : Consumable.class.getDeclaredMethods() ) {
+        if ( m.getName().equals("add") ) {
           addMethod = m;
+          break;
         }
       }
     }
@@ -245,17 +301,28 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
     if ( super.isApplied( effect ) ) return true;
     EffectFunction effectFunction = (EffectFunction)effect;
     if ( effectFunction.method.equals( getAddMethod() ) ) {
+      if ( appliedSet.contains( effect ) ) return true;
       if ( effectFunction.arguments != null && effectFunction.arguments.size() >= 2 ) {
-        Timepoint t = (Timepoint)effectFunction.arguments.get( 0 );
-        Object o = effectFunction.arguments.get( 1 );
-        Double value = null;
-        try {
-          value = (Double)o;
-        } catch( Exception e ) {
-          e.printStackTrace();
+        
+        Pair< Parameter< Long>, ? > p = getTimeAndValueOfEffect( effect );//, method1, method2 ); //, timeArgFirst );
+        if ( p == null ) return false;
+        Object o = p.first;
+        Object value = p.second;
+        Parameter< Long> t = null;
+        if ( o instanceof Parameter
+            && ( ( (Parameter<?>)o ).getValueNoPropagate() == null || ( (Parameter<?>)o ).getValueNoPropagate() instanceof Long ) ) {
+          t = (Parameter< Long>)o;
         }
+//        Timepoint t = (Timepoint)effectFunction.arguments.get( 0 );
+//        Object o = effectFunction.arguments.get( 1 );
+//        Double value = null;
+//        try {
+//          value = (Double)o;
+//        } catch( Exception e ) {
+//          e.printStackTrace();
+//        }
         if ( value != null ) {
-          Parameter<Integer> justBeforeTime = this.lowerKey( t );
+          Parameter< Long> justBeforeTime = this.lowerKey( t );
           Double valBefore = new Double(0);
           if ( justBeforeTime != null ) {
             valBefore = get( justBeforeTime );
@@ -270,7 +337,7 @@ public class Consumable extends TimeVaryingPlottableMap< Double > {
   // As is, setValue() effectively is an add of the difference with the prior
   // map value.  It might be smart to somehow disallow the use of this in effects.
   @Override
-  public Double setValue( Parameter< Integer > t, Double value ) {
+  public Double setValue( Parameter< Long > t, Double value ) {
     if ( value == null ) return null;
     if ( minCap != null && maxCap != null ) {
       assert minCap <= maxCap;

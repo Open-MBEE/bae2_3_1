@@ -10,12 +10,9 @@ import java.util.Random;
 import gov.nasa.jpl.ae.event.Consumable;
 import gov.nasa.jpl.ae.event.Parameter;
 import gov.nasa.jpl.ae.event.ParameterListenerImpl;
-import gov.nasa.jpl.ae.event.TimeVaryingMap;
 import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 import gov.nasa.jpl.ae.event.Timepoint;
-import gov.nasa.jpl.mbee.util.Debug;
 import gov.nasa.jpl.mbee.util.TimeUtils;
-import gov.nasa.jpl.mbee.util.TimeUtils.Units;
 
 /**
  * 
@@ -25,14 +22,14 @@ public class Customer extends ParameterListenerImpl {
   public enum CustomerType { summer, summerProfile };
   
   public boolean additive = false;
-  public int offsetSecondsFromMidnight = 0;
-  public int loadHorizon = Timepoint.getHorizonDuration(); 
+  public long offsetSecondsFromMidnight = 0;
+  public long loadHorizon = Timepoint.getHorizonDuration(); 
   public double maxLoad = 3.5;  // kW
   public double minLoadFraction = 0.4;
   public double varianceFactor = 0.7;  // this is not Gaussian variance
   public double chanceOfChange = 0.8;
   public double correctionFactor = 0.1;
-  public int samplePeriod = 900; // may only support seconds!
+  public long samplePeriod = 900; // may only support seconds!
   public long seed = 3;//System.currentTimeMillis();
   public Random numGen = gov.nasa.jpl.mbee.util.Random.global;
   
@@ -100,7 +97,7 @@ public class Customer extends ParameterListenerImpl {
    * @param minLoadFraction
    * @param seed
    */
-  public Customer( int offsetSecondsFromMidnight, int loadHorizon,
+  public Customer( long offsetSecondsFromMidnight, long loadHorizon,
                    double maxLoad, double minLoadFraction, 
                    double varianceFactor, long seed ) {
     super();
@@ -113,11 +110,11 @@ public class Customer extends ParameterListenerImpl {
     init();
   }
 
-  public Customer( Date start, int loadHorizon,
+  public Customer( Date start, long loadHorizon,
                    double maxLoad, double minLoadFraction, 
                    double varianceFactor, long seed ) {
     super();
-    this.offsetSecondsFromMidnight = (int)(Timepoint.timeSinceMidnight(start) * Timepoint.conversionFactor( TimeUtils.Units.seconds ));
+    this.offsetSecondsFromMidnight = (long)(Timepoint.timeSinceMidnight(start) * Timepoint.conversionFactor( TimeUtils.Units.seconds ));
     this.loadHorizon = loadHorizon;
     this.maxLoad = maxLoad;
     this.minLoadFraction = minLoadFraction;
@@ -146,8 +143,8 @@ public class Customer extends ParameterListenerImpl {
     return maxLoad - reduction;
   }
   
-  public double summerLoadProfile( int timeSecs, boolean includeAnyDrEvent ) {
-    int t = offsetSecondsFromMidnight + timeSecs;
+  public double summerLoadProfile( long timeSecs, boolean includeAnyDrEvent ) {
+    long t = offsetSecondsFromMidnight + timeSecs;
     double kWatts = (  minLoadFraction * maxLoad
                        + getMaxLoad(timeSecs,includeAnyDrEvent) * ( 1 - minLoadFraction )
                          * ( 0.5 + 0.5 * Math.sin( 2 * Math.PI 
@@ -156,7 +153,7 @@ public class Customer extends ParameterListenerImpl {
     return kWatts;
   }
   
-  public double summerLoad( int timeSecs ) {
+  public double summerLoad( long timeSecs ) {
     double g = numGen.nextGaussian();
     double d = numGen.nextDouble();
     double kWatts =
@@ -167,8 +164,8 @@ public class Customer extends ParameterListenerImpl {
     return kWatts;
   }
   
-  public double summerLoadDelta( int timeSecsBefore, Double kWattsBefore,
-                                 int timeSecsNext ) {
+  public double summerLoadDelta( long timeSecsBefore, Double kWattsBefore,
+                                 long timeSecsNext ) {
     double kWattsDelta = 0;
     double kWattsPredictedBefore = summerLoadProfile( timeSecsBefore, true );
     double kWattsPredictedNext = summerLoadProfile( timeSecsNext, true );
@@ -202,7 +199,7 @@ public class Customer extends ParameterListenerImpl {
     if ( summerLoadMethod == null ) {
       summerLoadMethod = null;
       try {
-        summerLoadMethod = Customer.class.getMethod( "summerLoad", int.class );
+        summerLoadMethod = Customer.class.getMethod( "summerLoad", long.class );
       } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -219,8 +216,8 @@ public class Customer extends ParameterListenerImpl {
       summerLoadDeltaMethod = null;
       try {
         summerLoadDeltaMethod =
-            Customer.class.getMethod( "summerLoadDelta", int.class,
-                                      Double.class, int.class );
+            Customer.class.getMethod( "summerLoadDelta", long.class,
+                                      Double.class, long.class );
       } catch ( NoSuchMethodException e ) {
         // TODO Auto-generated catch block
         e.printStackTrace();

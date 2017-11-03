@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<script
-	id="LADWP_AE"
-	name="LADWP_AE Plugin"
-	version="1.0"
-	provider-name="No Magic"
-	script-file="main.py"
-	requiresApi="1.0">
-</script>

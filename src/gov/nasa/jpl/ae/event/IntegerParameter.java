@@ -17,7 +17,7 @@ public class IntegerParameter extends Parameter<Integer> {
 	 * @param o 
 	 */
 	public IntegerParameter(String n, ParameterListener o) {
-		super(n, IntegerDomain.domain, o);
+		super(n, IntegerDomain.defaultDomain, o);
 	}
 
 	/**
@@ -35,7 +35,7 @@ public class IntegerParameter extends Parameter<Integer> {
 	 * @param o 
 	 */
 	public IntegerParameter(String n, Integer v, ParameterListener o) {
-		super(n, IntegerDomain.domain, v, o);
+		super(n, IntegerDomain.defaultDomain, v, o);
 	}
 
 	/**

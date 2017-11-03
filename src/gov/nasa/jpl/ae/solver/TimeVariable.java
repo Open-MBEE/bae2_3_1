@@ -7,5 +7,5 @@ package gov.nasa.jpl.ae.solver;
  * @author bclement
  *
  */
-public interface TimeVariable extends Variable< Integer > {
+public interface TimeVariable extends Variable< Long > {
 }

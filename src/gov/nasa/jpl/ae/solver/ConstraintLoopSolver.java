@@ -8,7 +8,10 @@ import gov.nasa.jpl.mbee.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author bclement
@@ -49,29 +52,43 @@ public class ConstraintLoopSolver implements Solver {
       if ( Debug.isOn() ) Debug.outln( numConstrs + " remaining constraints to satisfy: " + unsatisfiedConstraints );
       if ( Debug.isOn() ) Debug.outln(""); 
       //Debug.turnOff();
+      //unsatisfiedConstraints = Utils.scramble( unsatisfiedConstraints );
+      List<Integer> intList = new ArrayList<Integer>();
       for ( int i = 0; i < unsatisfiedConstraints.size(); ++i ) {
+        intList.add( i );
+      }
+      
+      // Need to keep track of what we've satisfied and can remove
+      TreeSet<Integer> deleteList = new TreeSet<Integer>(new Comparator< Integer >() {
+        @Override
+        public int compare( Integer o1, Integer o2 ) {
+          return Integer.compare( o2,  o1 );
+        }
+      });
+      
+      // Scramble the list to avoid getting stuck in search space.
+      intList = Utils.scramble( intList );
+      for ( int j = 0; j < intList.size(); ++j ) {
+        int i = intList.get( j );
         Constraint c = unsatisfiedConstraints.get( i );
         if ( Debug.isOn() ) Debug.outln( "checking constraint " + i + ": " + c );
-//        String cstr = c.toString();
-//        if ( cstr.endsWith( "onstraint" ) ) {
-//          Debug.breakpoint();
-//        }
         //Debug.turnOn();
         boolean thisSatisfied = c.isSatisfied( deep, null );
         if ( !thisSatisfied ) {
+          if ( Debug.isOn() ) Debug.outln("try to satisfy constraint " + i + ": " + c);
           thisSatisfied = c.satisfy( deep, null );
           if ( thisSatisfied ) {
             thisSatisfied = c.isSatisfied( deep, null );
           }
         }
-        //Debug.turnOff();
-//        if ( !thisSatisfied ) {
-//          thisSatisfied = satisfy( c, deep, null );
-//        }
         if ( thisSatisfied ) {
-          unsatisfiedConstraints.remove( i );
-          --i;
+          deleteList.add( i );
+//          unsatisfiedConstraints.remove( i );
+//          --i;
         }
+      }
+      for ( Integer j : deleteList ) {
+        unsatisfiedConstraints.remove( j.intValue() );
       }
       numConstrs = unsatisfiedConstraints.size();
       boolean progress = numConstrs < lastSize;
@@ -91,26 +108,9 @@ public class ConstraintLoopSolver implements Solver {
     if ( Debug.isOn() ) Debug.outln( "satisfy(" + constraint + "): variables " + vars );
     boolean satisfied = false;
     if ( Utils.isNullOrEmpty( vars ) ) return constraint.isSatisfied( deep, null );
-//    Variable<?>[] a = new Variable<?>[vars.size()];
-//    boolean[] b = new boolean[vars.size()];
-//    vars.toArray( a );
-//    for ( int i=0; i < vars.size(); ++i ) {
-//      b[i] = false;
-//    }
-//    for ( int i=0; i < vars.size(); ++i ) {
-////    for ( Variable<?> v : vars ) {
-//      int j = Random.global.nextInt( vars.size() - i );
-//      int k = 0;
-//      while ( j >= 0 ) {
-//        if ( !b[k] ) --j;
-//        ++k;
-//      }
-//      Variable<?> v = a[--k];
-//      b[k] = true;
     Variable<?>[] a = new Variable<?>[vars.size()];
     vars.toArray( a );
     for ( Variable< ? > v : Utils.scramble(a) ) {
-//    for ( Variable<?> v : Utils.scramble( vars ) ) {
       if ( Debug.isOn() ) Debug.outln( "try to change variable " + v );
       if ( change( v ) ) {
         if ( constraint.isSatisfied( deep, null ) ) {
@@ -127,9 +127,9 @@ public class ConstraintLoopSolver implements Solver {
     T value = v.getValue(true);
     Domain<T> d = v.getDomain();
     boolean gotNewValue = false;
-    if ( d != null && d.size() > 1 ) {
+    if ( d != null && d.magnitude() > 1 ) {
       T newValue = null;
-      for ( int i=0; i < Math.max( d.size(), 10 ); ++i ) {
+      for ( long i=0; i < Math.max( d.magnitude(), 10 ); ++i ) {
         newValue = d.pickRandomValue();
         if ( Debug.isOn() ) Debug.outln("Picked new value for " + v + ": " + newValue );
         if ( !newValue.equals( value ) ) {

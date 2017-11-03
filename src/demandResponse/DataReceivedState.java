@@ -4,6 +4,7 @@
 package demandResponse;
 
 import gov.nasa.jpl.ae.event.TimeVaryingMap;
+import gov.nasa.jpl.ae.event.TimeVaryingPlottableMap;
 
 /**
  * @author bclement
@@ -26,6 +27,22 @@ public class DataReceivedState extends TimeVaryingMap<DataSet> {
   public DataReceivedState( String name ) {
     super( name );
   }
+  public DataReceivedState( DataReceivedState s ) {
+    super( s );
+  }
   
+  @Override
+  public DataReceivedState clone() {
+    DataReceivedState tvm = new DataReceivedState( this );
+    return tvm;
+  }
+
+  @Override
+  public DataReceivedState emptyClone() {
+    DataReceivedState tvm = new DataReceivedState( this.getName() );
+    return tvm;
+  }
+
+
   
 }

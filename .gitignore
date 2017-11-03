@@ -21,3 +21,8 @@ bin
 *~
 /AE.jar
 target
+/output/
+/.DS_Store
+/.idea
+*.iml
+*.log

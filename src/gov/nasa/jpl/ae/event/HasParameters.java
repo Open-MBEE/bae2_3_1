@@ -38,6 +38,14 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
   public boolean substitute( Parameter< ? > p1, Object exp,
                              boolean deep, Set< HasParameters > seen );
 
+//  /**
+//   *
+//   * @param b
+//   * @param o
+//   * @return true iff there are no free variables
+//   */
+//  boolean isIndependent(boolean b, Object o);
+
   /**
    * This helper class provides static methods for making calls on Objects and
    * Collections (from other objects) that may or may not implement HasParameter
@@ -98,11 +106,16 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
     public static boolean hasParameter( Object o, Parameter< ? > p,
                                         boolean deep, Set< HasParameters > seen,
                                         boolean checkIfHasParameters ) {
-      if ( o == p ) return true;
       if ( o == null ) return false;
-      if ( checkIfHasParameters && o instanceof HasParameters ) {
-        //if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
-        if ( ((HasParameters)o).hasParameter( p, deep, seen ) ) {
+      if ( p == null ) return false;
+      if ( isParameter( o, p ) ) return true;
+      if ( o instanceof HasParameters ) {
+        if ( checkIfHasParameters ) {
+          //if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
+          if ( ((HasParameters)o).hasParameter( p, deep, seen ) ) {
+            return true;
+          }
+        } else if ( hasParameter( (HasParameters)o, p, deep, seen ) ) {
           return true;
         }
       } else {
@@ -118,6 +131,47 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       }
       return false;
     }
+    
+    public static boolean hasParameter( HasParameters o, Parameter< ? > parameter,
+                                        boolean deep,
+                                        Set<HasParameters> seen ) {
+      //return o.getParameters( deep, seen ).contains( p );
+      if ( parameter == null ) return false;
+      Object val = parameter.getValueNoPropagate();
+      Set< Parameter< ? > > parameters = o.getParameters( deep, seen );
+      if ( val instanceof HasOwner ) {
+        for ( Parameter<?> p : parameters ) {
+          if ( parameter.equals( p ) ) {
+            return true;
+          }
+          if ( val.equals( p.getValueNoPropagate() ) ) {
+            return true;
+          }
+        }
+        return false;
+      }
+      boolean b = parameters.contains( parameter );
+      return b;
+    }
+    
+    public static boolean isParameter( Object o, Parameter<?> parameter ) {
+      if ( o == null ) return false;
+      if ( parameter == null ) return false;
+      if ( o == parameter ) return true;
+
+      if ( parameter.equals( o ) ) {
+        return true;
+      }
+      Object val = parameter.getValueNoPropagate();
+      if ( o instanceof Parameter && val instanceof HasOwner ) {
+        if ( val.equals( ((Parameter<?>)o).getValueNoPropagate() ) ) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
+
 
     static int dbgCt = 0;
 
@@ -516,7 +570,23 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       }
       return false;
     }
-    
+
+    public static boolean hasFreeParameter(Object o, boolean deep, Set< HasParameters > seen) {
+      if ( o instanceof HasParameters ) {
+        Set<Parameter<?>> params = ((HasParameters)o).getParameters(deep, seen);
+        if ( params == null ) return false;
+        for ( Parameter<?> p : params ) {
+          if ( ((HasParameters) o).isFreeParameter(p, deep, seen ) ) {
+          //if ( !p.isDependent() ) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return false;
+    }
+
+
     public static boolean subParamsEqual( Object o, Parameter<?> p1 ) {
       if ( o == p1 ) return true;
       if ( o == null || p1 == null ) return false;

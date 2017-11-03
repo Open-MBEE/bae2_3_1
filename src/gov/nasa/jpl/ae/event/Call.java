@@ -1,3 +1,4 @@
+
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Domain;
@@ -23,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -42,6 +44,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   /**
    * A function call on the result of this function call.
    */
+  protected Domain<?> domain = null;
   protected Parameter<Call> nestedCall = null;
   protected Object object = null; // object from which constructor is invoked
   protected Class<?> returnType = null;
@@ -98,6 +101,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return getMember().getDeclaringClass();
   }
   
+  static boolean simpleDeconstruct = true;
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.event.Deconstructable#deconstruct()
    */
@@ -112,6 +116,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       //nestedCall = null;
     }
     if ( this.arguments != null ) {
+      if ( !simpleDeconstruct ) {
       for ( Object a : arguments ) {
         if ( a instanceof Expression ) {
           ((Expression<?>)a).deconstruct();
@@ -120,6 +125,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
             ( (Parameter<?>)a ).deconstruct();
           }
         }
+      }
       }
       this.arguments.clear();
       //arguments = null;
@@ -288,18 +294,23 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         gotErrors = true;
       }
     }
-    return gotErrors;
+    return (Boolean) gotErrors;
   }
   
   public synchronized Boolean hasTypeErrors() {
     if ( getMember() == null ) return true;
     Class< ? >[] paramTypes = getParameterTypes();
+    int az = arguments == null ? 0 : arguments.size();
+    int pz = paramTypes == null ? 0 : paramTypes.length;
     if ( !isVarArgs() ) {
       //Assert.assertEquals( arguments.size(), paramTypes.length );
-      if ( arguments.size() != paramTypes.length ) {
+      if ( arguments == null || paramTypes == null ) {
+        Debug.error("Error!  arguments or paramTypes is null in " + this);
+      }
+      if ( az != pz ) {
         return true;
       }
-    } else if ( arguments.size() < paramTypes.length - 1 ) {
+    } else if ( az < pz - 1 ) {
       //this.compareTo( this );  // why was this here? to see if any exceptions would be raised?
       return true;
     }
@@ -333,17 +344,22 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( Debug.isOn() ) Debug.errln( "Call.compareTo comparing value information." );
     compare = CompareUtils.compare( arguments, o.arguments, true );
     if ( compare != 0 ) return compare;
-    compare = CompareUtils.compare( object, o.object, true );
-    if ( compare != 0 ) return compare;
+    if (!isStatic()) {
+      compare = CompareUtils.compare(object, o.object, true);
+      if (compare != 0) return compare;
+    }
     compare = CompareUtils.compare( this, o );
     if ( compare != 0 ) return compare;
     return compare;
   }
   
   public Object evaluate( boolean propagate ) throws IllegalAccessException, InvocationTargetException, InstantiationException { // throws IllegalArgumentException,
-    if ( returnValue != null && !isStale() ) {// && isGrounded( propagate, null ) ) {
-      evaluationSucceeded = true;
-      return returnValue;
+    if ( returnValue != null && !isStale() ) {
+//      double r = Random.global.nextDouble();
+//      if ( false && r < 0.5 ) {// && isGrounded( propagate, null ) ) {
+        evaluationSucceeded = true;
+        return returnValue;
+//      }
     }
     returnValue = null;
 
@@ -441,11 +457,10 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       return null;
     }
 
-    if ( propagate ) {
-      if ( !ground( propagate, null ) ) {
-        //return null;
-      }
-    } 
+//    if ( propagate ) {
+//      if ( !ground( propagate, null ) ) {
+//      }
+//    } 
     //else {
     //  if ( !isGrounded( false, null ) ) {
       //  return null;
@@ -466,32 +481,28 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     
     evaluatedArgs = Arrays.copyOf( evaluatedArguments, evaluatedArguments.length );
-    // evaluate the object, whose method will be invoked from a nested call
-    if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
-      // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
-      // making this a dependency.  Cached newObject of constructor is similar.
-//    if ( propagate || object == null ) {
-      object = Expression.evaluate( nestedCall.getValue( propagate ), null,
-                                    propagate, false );
-      //      }
-    }
-    Object evaluatedObj = object;
+    
     try {
-      if ( Debug.isOn() ) Debug.outln( "About to invoke a "
-                                       + getClass().getSimpleName() + ": "
-                                       + this );
-      // Make sure we have the right object from which to invoke the member.
-      Member m = getMember();
-      Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
-      evaluatedObj = Expression.evaluate( object, cls, propagate, true );
       
+      Object evaluatedObj = evaluateObject(propagate);
+
       evaluatedArgs = fixArgsForVarArgs( evaluatedArgs, false );
       
-      returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
+      try {
+        returnValue = invoke( evaluatedObj, evaluatedArgs );// arguments.toArray() );
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println( "something went wrong with evaluating " + this );
+      }
 
       // No longer stale after invoked with updated arguments and result is cached.
       if ( evaluationSucceeded ) setStale( false );
       
+    } catch ( ClassCastException e ) {
+      evaluationSucceeded = false;
+      //e.printStackTrace();
+      throw e;
     } catch ( IllegalAccessException e ) {
       evaluationSucceeded = false;
       //e.printStackTrace();
@@ -517,6 +528,34 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     return returnValue;
   }
 
+  public Object evaluateObject( boolean propagate ) throws ClassCastException,
+                                                    IllegalAccessException,
+                                                    InvocationTargetException,
+                                                    InstantiationException {
+    if ( isStatic() ) {
+      return null;
+    }
+    // evaluate the object, whose method will be invoked from a nested call
+    if ( nestedCall != null && nestedCall.getValue( propagate ) != null ) {
+      // REVIEW -- if this is buggy, consider wrapping object in a Parameter and
+      // making this a dependency.  Cached newObject of constructor is similar.
+//    if ( propagate || object == null ) {
+      object = Expression.evaluate( nestedCall.getValue( propagate ), null,
+                                    propagate, false );
+      //      }
+    }
+    if ( Debug.isOn() ) Debug.outln( "About to invoke a "
+        + getClass().getSimpleName() + ": "
+        + this );
+    // Make sure we have the right object from which to invoke the member.
+    Member m = getMember();
+    Class<?> cls = ( m == null ? null : m.getDeclaringClass() );
+    Object evaluatedObj = Expression.evaluate( object, cls, propagate, true );
+
+    return evaluatedObj;
+  }
+
+  
   /**
    * Wrap the variable args in an array as a single arg to the vararg.
    * 
@@ -605,16 +644,30 @@ public abstract class Call extends HasIdImpl implements HasParameters,
          && unevaluatedArg instanceof Wraps ) {
       c = ((Wraps)unevaluatedArg).getType();
     }
-    Object result = Expression.evaluate( unevaluatedArg, c, propagate, true );
+    //Object result = Expression.evaluate( unevaluatedArg, c, propagate, true );
+    Object result = evaluateArg( unevaluatedArg, c, propagate);
     if ( complainIfError && !( result == null || c == null || c.isInstance( result ) )) {
       Debug.error( true, "\nArgument " + result +
                          ( result == null ?
                            "" : " of type " + result.getClass().getCanonicalName() )
-                         + " is not an instance of " + c.getSimpleName() );
+                         + " is not an instance of " + c.getSimpleName() + " for call to " + this.getMember() );
     }
     return result;
   }
 
+  public Object evaluateArg( Object unevaluatedArg, Class< ? > c,
+                             boolean propagate ) throws ClassCastException,
+                                                 IllegalAccessException,
+                                                 InvocationTargetException,
+                                                 InstantiationException {
+    if ( c == Object.class ) {
+      c = null;
+    }
+    return Expression.evaluate( unevaluatedArg, c, propagate, true );
+  }
+  //public Object evaluate( unevaluatedArg, c, propagate, true ) {
+    
+  //}
   
   // Try to match arguments to parameters by evaluating or creating expressions.
   public Object[] evaluateArgs( boolean propagate,
@@ -646,9 +699,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       boolean isVarArg = i >= paramTypes.length-1 && isVarArgs;
       argObjects[i] = evaluateArg(propagate, c, unevaluatedArg, isVarArg, complainIfError);
       //Expression.evaluate( unevaluatedArg, c, propagate, true );
-      if ( complainIfError && Debug.isOn() &&
-          !( argObjects[i] == null || c == null || c.isInstance( argObjects[i] ) )) {
-        Debug.error( false, "\nArgument " +argObjects[ i ] +
+      if ( complainIfError && Debug.isOn()
+           && !( argObjects[ i ] == null
+                 || c == null
+                 || c.isInstance( argObjects[ i ] )
+                 || ( isVarArg && c.isArray()
+                      && c.getComponentType()
+                          .isInstance( argObjects[ i ] ) ) ) ) {
+        Debug.error( true, false, "\nArgument " +argObjects[ i ] +
                            ( argObjects[ i ] == null ?
                              "" : " of type " + argObjects[ i ].getClass().getCanonicalName() )
                            + " is not an instance of " + c.getSimpleName() +
@@ -744,12 +802,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 
     // TODO -- use HasParameters.Helper!!
     boolean subbed = false;
-    if ( p1 == object ) {
-      object = p2;
-      subbed = true;
-    }
-    if ( !subbed && HasParameters.Helper.substitute( object, p1, p2, deep, seen, true )) {
-      subbed = true;
+    if ( !isStatic() ) {
+      if (p1 == object) {
+        object = p2;
+        subbed = true;
+      }
+      if (!subbed && HasParameters.Helper.substitute(object, p1, p2, deep, seen, true)) {
+        subbed = true;
+      }
     }
     if ( HasParameters.Helper.substitute( arguments, p1, p2, deep, seen, true )) {
       subbed = true;
@@ -786,6 +846,35 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
     return subbed;
   }
+  
+  
+  public Set< Parameter< ? > >
+         getMemberParameters( Object o, boolean deep,
+                              Set< HasParameters > seen ) {
+    // Pair< Boolean, Set< HasParameters > > pair = Utils.seen( this, deep, seen
+    // );
+    // if ( pair.first ) return Utils.getEmptySet();
+    // seen = pair.second;
+    Set< Parameter< ? > > set = null;
+    if ( o instanceof Expression ) {
+       Object exp = ((Expression) o).getExpression();
+       if ( exp instanceof HasParameters ) {
+         Pair<Boolean, Set<HasParameters>> pair = Utils.seen((HasParameters)exp, deep, seen);
+         if (pair.first) return Utils.getEmptySet();
+         seen = pair.second;
+       }
+       set = getMemberParameters( exp, deep, seen );
+    }
+    if ( deep || o instanceof Call ) {
+      set = HasParameters.Helper.getParameters( o, deep, seen, true );
+    } else if ( set == null ) {
+      set = new HashSet< Parameter< ? > >();
+    }
+    if ( o instanceof Parameter ) set.add( (Parameter<?> )o);
+
+    return set;
+  }
+  
 
   @Override
   public Set< Parameter< ? > > getParameters( boolean deep,
@@ -794,8 +883,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( pair.first ) return Utils.getEmptySet();
     seen = pair.second;
     Set< Parameter< ? > > set = new HashSet< Parameter< ? >>();
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( object, deep, seen, true ) );
-    set = Utils.addAll( set, HasParameters.Helper.getParameters( arguments, deep, seen, true ) );
+    if ( !isStatic() ) {
+      if (object instanceof Parameter) set.add((Parameter<?>) object);
+      set = Utils.addAll( set, getMemberParameters( object, deep, seen) );
+    }
+
+    for (Object o : arguments) {
+      set = Utils.addAll( set, getMemberParameters( o, deep, seen));
+    }
+   
     //if ( nestedCall != null ) {//&& nestedCall.getValue() != null ) {
       // REVIEW -- bother with adding nestedCall as a parameter?
     set = Utils.addAll( set, HasParameters.Helper.getParameters( nestedCall, deep, seen, true ) );
@@ -856,7 +952,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       }
     }
     if ( paramTypes.length > ecLength 
-         && ( arguments == null || arguments.size() - ecLength != paramTypes.length ) ) {
+         && ( arguments == null || (!isVarArgs() && arguments.size() - ecLength != paramTypes.length ) ) ) {
       
       return false;
     }
@@ -906,7 +1002,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       if ( !nestedCall.ground( deep, seen ) ) {
         grounded = false;
       } else if ( object == null ) {
-        if ( nestedCall.getValue(true) == null ) {
+        if ( nestedCall.getValue(true) == null && !isStatic() ) {
           grounded = false;
         } else {
           try {
@@ -983,20 +1079,46 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         sb.append( "." );
       }
     }
-    if ( object != null ) {
-      if ( object instanceof DurativeEvent ) {
-        sb.append( ((DurativeEvent)object).getName() + "." );
+    if ( object != null && !isStatic() ) {
+      TimeVaryingMap tvm = Functions.tryToGetTimelineQuick( object );
+      if ( tvm != null ) {
+        sb.append(MoreToString.Helper.toString(object, withHash, false, seen, otherOptions));
       } else {
-        sb.append( object.toString() + "." );
+        if ( object instanceof DurativeEvent ) {
+          sb.append( ((DurativeEvent)object).getName() + "." );
+        } else if ( object instanceof Class ) {
+            sb.append( ClassUtils.toString( (Class<?>)object ) + "." );
+        } else {
+          sb.append( object.toString() + "." );
+        }
       }
     }
     if ( getMember() == null ) {
       sb.append( "null" );
     } else {
       sb.append( getMember().getName() );
-      sb.append( MoreToString.Helper.toString( arguments, withHash, deep, seen,
-                                               otherOptions,
-                                               MoreToString.PARENTHESES, true ) );
+      if ( deep ) {
+        sb.append("(");
+        boolean first = true;
+        for ( Object arg : arguments ) {
+          if ( first ) {
+            first = false;
+          } else {
+            sb.append(", ");
+          }
+          //TimeVaryingMap tvm = Functions.tryToGetTimelineQuick( arg );
+          //if ( tvm != null ) {
+            sb.append(MoreToString.Helper.toString(arg, withHash, false, seen, otherOptions));
+          //} else {
+          //  sb.append(MoreToString.Helper.toString(arg, withHash, false, seen, otherOptions));
+          //}
+        }
+        sb.append(")");
+      } else {
+        sb.append(MoreToString.Helper.toString(arguments, withHash, deep, seen,
+                otherOptions,
+                MoreToString.PARENTHESES, true));
+      }
       if ( !Utils.isNullOrEmpty( evaluatedArguments ) ) {
         sb.append( " = " );
         sb.append( getMember().getName() );
@@ -1004,14 +1126,15 @@ public abstract class Call extends HasIdImpl implements HasParameters,
                                                  deep, seen, otherOptions ) );
       }
       if ( returnValue != null ) {
-        sb.append( " = " + returnValue );
+        sb.append( " = " + MoreToString.Helper.toString(returnValue, withHash, false, seen, otherOptions));
       }
     }
     return sb.toString();
   }
 
   protected static boolean possiblyStale( Object obj ) {
-    if ( obj == null || obj instanceof TimeVarying ) return true;
+    //if ( obj == null || obj instanceof TimeVarying ) return true;
+    if ( obj == null ) return true;
     if ( obj instanceof LazyUpdate && ((LazyUpdate)obj).isStale() ) return true;
     if ( obj instanceof Variable ) {
       Object v = ((Variable<?>)obj).getValue( false );
@@ -1025,7 +1148,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   }
   @Override
   public boolean isStale() {
-    if ( stale ) return true;
+    if ( stale ) {
+//      try {
+//        if ( Random.global.nextDouble() < 0.3 ) {
+//          evaluate(false);
+//        }
+//        return stale;
+//      } catch (IllegalAccessException e) {
+//      } catch (InvocationTargetException e) {
+//      } catch (InstantiationException e) {
+//      }
+      return true;
+    }
     if ( evaluatedArguments != null ) {
       for ( Object arg : evaluatedArguments ) {
         if ( arg instanceof LazyUpdate )  {
@@ -1036,18 +1170,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         }
       }
     }
-    if ( arguments != null ) {
-      for ( Object arg : arguments ) {
-        if ( arg instanceof LazyUpdate )  {
-          if ( ( (LazyUpdate)arg ).isStale() ) {
-            setStale( true );
-            return true;
-          }
-        }
-      }
+
+    boolean argsStale = areArgsStale();
+    if ( argsStale ) {
+      return true;
     }
+
     for ( Parameter< ? > p : getParameters( false, null ) ) {
-      if ( p.isStale() ) {
+      if ( p.isStale() && ( !( p.getValueNoPropagate() instanceof ParameterListenerImpl ) || !isGetMember() ) ) {
         setStale( true );
         return true;
       }
@@ -1058,14 +1188,52 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         return true;
       }
     }
-    if ( object instanceof LazyUpdate )  {
+    if ( object instanceof LazyUpdate && !isStatic() )  {
       if ( ( (LazyUpdate)object ).isStale() ) {
         setStale( true );
         return true;
       }
     }
-    if ( possiblyStale( returnValue ) ) return true;
+    if ( possiblyStale( returnValue ) )
+      return true;
     return false;
+  }
+
+  public boolean areArgsStale() {
+    if ( Utils.isNullOrEmpty(arguments ) ) {
+      return false;
+    }
+    Boolean isGetMember = null;
+    for ( Object arg : arguments ) {
+      if ( arg instanceof LazyUpdate )  {
+        if ( ( (LazyUpdate)arg ).isStale() ) {
+          // HACK -- isn't there a better way?
+          // Check if we're just getting a member of a ParameterListenerImpl,
+          // in which case, the evaluated arguments will determine whether
+          // it's really stale.
+          if (isGetMember == null) {
+            isGetMember = isGetMember();
+          }
+          if ( Boolean.TRUE.equals( isGetMember ) ) {
+            ParameterListenerImpl pli = null;
+            try {
+              pli = Expression.evaluate(arg, ParameterListenerImpl.class, false);
+            } catch (Throwable e) {
+            }
+            if (pli != null) {
+              continue;
+            }
+          }
+          setStale( true );
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public boolean isGetMember() {
+    return getMember() != null && getMember().getName() != null && getMember().getName().contains("getMember");
   }
 
   protected void clearCache() {
@@ -1087,7 +1255,18 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   @Override
   public boolean hasParameter( Parameter< ? > parameter, boolean deep,
                                Set<HasParameters> seen ) {
-    return getParameters( deep, seen ).contains( parameter );
+    if ( parameter == null ) return false;
+    Object val = parameter.getValueNoPropagate();
+    Set< Parameter< ? > > parameters = getParameters( deep, seen );
+    if ( val instanceof HasOwner ) {
+      for ( Parameter<?> p : parameters ) {
+        if ( val.equals( p.getValueNoPropagate() ) ) {
+          return true;
+        }
+      }
+    }
+    boolean b = parameters.contains( parameter );
+    return b;
   }
 
   @Override
@@ -1132,7 +1311,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
 //    return arguments;
 //  }
   /**
-   * @param i
+   * @param n
    * @return the nth argument
    */
   public Object getArgument(int n) {
@@ -1238,16 +1417,38 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     }
   }
 
-  
+
+  abstract public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen );
+
   /* (non-Javadoc)
    * @see gov.nasa.jpl.ae.solver.HasDomain#getDomain(boolean, java.util.Set)
    */
   @Override
   public Domain< ? > getDomain( boolean propagate, Set< HasDomain > seen ) {
-    // TODO Auto-generated method stub
-    return null;
+//    if ( domain == null || domainIsStale() ) {
+      domain = calculateDomain(propagate, seen);
+//    }
+    return domain;
   }
   
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.solver.HasDomain#restrictDomain(gov.nasa.jpl.ae.solver.Domain, boolean, java.util.Set)
+   */
+  @Override
+  public <T> Pair< Domain< T >, Boolean > restrictDomain( Domain< T > domain, boolean propagate,
+                                         Set< HasDomain > seen ) {
+    // This should be overridden
+    boolean changed = false;
+    Domain< ? > thisDomain = this.getDomain(propagate, seen);
+    // Commenting out below since the domain is not really changed, and the
+    // restriction is not passed on to the arguments.
+//    if ( thisDomain != null ) {
+//      changed = thisDomain.restrictTo(domain);
+//    }
+//    thisDomain = this.getDomain(propagate, seen);
+    return new Pair<Domain<T>, Boolean>((Domain<T>)thisDomain, changed);
+  }
+
   // The following code was re-factored from MethodCall:
   /**
    * @param objects
@@ -1317,7 +1518,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
       else if ( indexOfArg == 0 ) {
         if ( call.object != obj ) {
           call.object = obj;
-          call.setStale( true );
+          if ( !call.isStatic() ) {
+            call.setStale(true);
+          }
         }
       }
       else {
@@ -1368,7 +1571,9 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if ( indexOfArg < 0 ) Debug.error("bad indexOfArg " + indexOfArg );
     else if ( indexOfArg == 0 ) {
       call.object = obj;
-      call.setStale( true );
+      if ( !call.isStatic() ) {
+        call.setStale(true);
+      }
     }
     else if ( arguments == null ) return;
     else if ( indexOfArg > arguments.length ) Debug.error( "bad index "
@@ -1438,7 +1643,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   
   /**
    * Compute a transitive closure of a map using this MethodCall to specify for each key in the map a set of items that should have a superset of related items in the map.
-   * @param initialSet the Set of initial items to be substituted for an argument or the object of this MethodCall
+   * @param relationMapToClose the Set of initial items to be substituted for an argument or the object of this MethodCall
    * @param indexOfObjectArgument
    *            where in the list of arguments an object from the set
    *            is substituted (1 to total number of args or 0 to indicate
@@ -1544,32 +1749,36 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#handleValueChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void handleValueChangeEvent( Parameter< ? > parameter ) {
+  public void handleValueChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).handleValueChangeEvent( parameter );
+        ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
       }
     }
-    if ( object instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+    if ( object instanceof ParameterListener && !isStatic() ) {
+      ((ParameterListener)object).handleValueChangeEvent( parameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
-      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter );
+      ((ParameterListener)nestedCall).handleValueChangeEvent( parameter, seen );
     }
     if ( evaluatedArguments != null ) {
       for ( Object o : evaluatedArguments ) {
         if ( o instanceof ParameterListener ) {
-          ((ParameterListener)o).handleValueChangeEvent( parameter );
+          ((ParameterListener)o).handleValueChangeEvent( parameter, seen );
         }
       }
     }
     if ( returnValue instanceof ParameterListener ) {
-      ((ParameterListener)returnValue).handleValueChangeEvent( parameter );
+      ((ParameterListener)returnValue).handleValueChangeEvent( parameter, seen );
     }
     
     boolean hasParam = false;
     hasParam = HasParameters.Helper.hasParameter( getArguments(), parameter, true, null, true );
-    hasParam = hasParam || HasParameters.Helper.hasParameter( object, parameter, true, null, true );
+    hasParam = hasParam || (!isStatic() && HasParameters.Helper.hasParameter( object, parameter, true, null, true ));
     hasParam = hasParam || HasParameters.Helper.hasParameter( nestedCall, parameter, true, null, true );
     if ( hasParam || hasParameter( parameter, true, null ) ) {
       setStale(true);
@@ -1594,10 +1803,14 @@ public abstract class Call extends HasIdImpl implements HasParameters,
    * @see gov.nasa.jpl.ae.event.ParameterListener#handleDomainChangeEvent(gov.nasa.jpl.ae.event.Parameter)
    */
   @Override
-  public void handleDomainChangeEvent( Parameter< ? > parameter ) {
+  public void handleDomainChangeEvent( Parameter< ? > parameter, Set< HasParameters > seen ) {
+    Pair< Boolean, Set< HasParameters > > p = Utils.seen( this, true, seen );
+    if (p.first) return;
+    seen = p.second;
+    
     for ( Object o : getArguments() ) {
       if ( o instanceof ParameterListener ) {
-        ((ParameterListener)o).handleDomainChangeEvent( parameter );
+        ((ParameterListener)o).handleDomainChangeEvent( parameter, seen );
       }
     }
     // TODO -- do for object, nestedCall, returnValue, and evaluatedArguments.
@@ -1614,7 +1827,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
     if (p.first) return;
     seen = p.second;
     if ( changedParameter == null ) return;
-    if ( hasParameter( changedParameter, true, null ) ) {
+    if ( hasParameter( changedParameter, false, null ) ) {
       setStale(true);
     }
     // TODO -- make a helper for ParameterListener since this should be applied
@@ -1625,7 +1838,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).setStaleAnyReferencesTo( changedParameter, seen );
       }
     }
-    if ( object instanceof ParameterListener ) {
+    if ( object instanceof ParameterListener && !isStatic() ) {
       ( (ParameterListener)object ).setStaleAnyReferencesTo( changedParameter, seen );
     }
     if ( nestedCall instanceof ParameterListener ) {
@@ -1659,7 +1872,7 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         ((ParameterListener)o).detach( parameter );
       }
     }
-    if ( object instanceof ParameterListener ) {
+    if ( object instanceof ParameterListener && !isStatic() ) {
       ( (ParameterListener)object ).detach( parameter );
     }
     if ( nestedCall instanceof ParameterListener ) {
@@ -1719,6 +1932,8 @@ public abstract class Call extends HasIdImpl implements HasParameters,
         variable.setValue( newValue );
         return true;
       }
+    } else {
+      // TODO -- be smart anyway!!!!!!!!!!!! coerce getMember to be suggestive
     }
     return false;
   }
@@ -1736,5 +1951,13 @@ public abstract class Call extends HasIdImpl implements HasParameters,
   public <T> T translate( Variable<T> v , Object o , Class< ? > type  ) {
     return null;
   }
+  
+  @Override
+  public List< Variable< ? > >
+         getVariablesOnWhichDepends( Variable< ? > variable ) {
+    Debug.error( "This function is not implemented and should not be called." );
+    return null;
+  }
+
 
 }

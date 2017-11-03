@@ -42,10 +42,10 @@ public interface ParameterConstraint extends Constraint, HasParameters {
       assert false;
     }
     
-    public static boolean hasParameter( HasParameters o, Parameter< ? > p,
+    public static boolean hasParameter( HasParameters o, Parameter< ? > parameter,
                                         boolean deep,
                                         Set<HasParameters> seen ) {
-      return o.getParameters( deep, seen ).contains( p );
+      return HasParameters.Helper.hasParameter( o, parameter, deep, seen );
     }
     
     public static boolean isFreeParameter( HasParameters o, Parameter< ? > p,

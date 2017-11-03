@@ -10,8 +10,8 @@
 </pydev_pathproperty>
 <pydev_variables_property name="org.python.pydev.PROJECT_VARIABLE_SUBSTITUTION">
 <key>mdJython</key>
-<value>${InstalledMagicDraw}/plugins/com.nomagic.magicdraw.jpython/jython2.5.1</value>
+<value>${InstalledMagicDraw}/plugins/com.nomagic.magicdraw.jpython/jython</value>
 <key>InstalledMagicDraw</key>
-<value>/opt/local/magicdraw</value>
+<value>/Users/bclement/Applications/MD</value>
 </pydev_variables_property>
 </pydev_project>

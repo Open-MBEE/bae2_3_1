@@ -68,7 +68,7 @@ public class TimeVaryingProjection< V > extends
 
   public TimeVaryingProjection( TimeVaryingProjection< V > timeVaryingProjection ) {
     super( timeVaryingProjection );
-    for ( java.util.Map.Entry< Parameter< Integer >, TimeVaryingMap< V > > e : entrySet() ) {
+    for ( java.util.Map.Entry< Parameter< Long >, TimeVaryingMap< V > > e : entrySet() ) {
       e.setValue( e.getValue().clone() );
     }
   }
@@ -102,7 +102,7 @@ public class TimeVaryingProjection< V > extends
    * @see gov.nasa.jpl.ae.event.TimeVaryingMap#getValue(java.lang.Integer)
    */
   @Override
-  public TimeVaryingMap< V > getValue( Integer t ) {
+  public TimeVaryingMap< V > getValue( Long t ) {
     return super.getValue( t );
   }
 

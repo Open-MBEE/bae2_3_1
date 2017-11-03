@@ -14,7 +14,7 @@ public class StringDomain extends AbstractRangeDomain<String> {
 	public static final int maxStringSize = 8;
 	public static final String typeMaxValue = String.format("%0" + maxStringSize + "d", 0).replace( "0", "" + (char)( '\0' + 255 ) ); 
 	public static final String typeMinValue = "";
-	public static StringDomain defaultDomain = new StringDomain();
+	public static final StringDomain defaultDomain = new StringDomain();
 	
   public StringDomain() {
     lowerBound = typeMinValue;
@@ -42,7 +42,7 @@ public class StringDomain extends AbstractRangeDomain<String> {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public int size() {
+	public long size() {
 	  // TODO?
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
@@ -135,14 +135,14 @@ public class StringDomain extends AbstractRangeDomain<String> {
     return defaultDomain;
   }
 
-  @Override
-  public void setDefaultDomain( Domain< String > domain ) {
-    if ( domain instanceof StringDomain ) {
-      defaultDomain = (StringDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new StringDomain((RangeDomain< String >)domain);
-    }
-  }
+//  @Override
+//  public void setDefaultDomain( Domain< String > domain ) {
+//    if ( domain instanceof StringDomain ) {
+//      defaultDomain = (StringDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new StringDomain((RangeDomain< String >)domain);
+//    }
+//  }
 
   @Override
   public Class< String > getType() {
@@ -153,5 +153,16 @@ public class StringDomain extends AbstractRangeDomain<String> {
   public Class< ? > getPrimitiveType() {
     return String.class;  // TODO -- REVIEW -- return null??
   }
+
+  @Override
+  public StringDomain make( String lowerBound, String upperBound ) {
+      return new StringDomain(lowerBound, upperBound);
+  }
+
+  @Override
+  public int compareTo( Domain< String > o ) {
+    return super.compare( o );
+  }
+
 
 }

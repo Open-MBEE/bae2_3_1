@@ -50,7 +50,16 @@ public class TestEventXmlToJava {
   
   public EventXmlToJava initialize( boolean translate ) {
     if ( Debug.isOn() ) Debug.outln( "initialize( ): 1" );
-    File file = FileUtils.findFile( xmlFileName );
+    // look in src directory first
+    String p = File.separator;
+    String srcFileName = "src" + p + "gov" + p + "nasa" + p + "jpl" + p + "ae" + p + "xml" + p + xmlFileName;
+    File file = FileUtils.findFile( srcFileName );
+//    if ( file == null ) {
+//      file = FileUtils.findFile( "src", xmlFileName );
+//    }
+    if ( file == null ) {
+      file = FileUtils.findFile( xmlFileName );
+    }
     if ( file != null && file.exists() ) {
       xmlFileName = file.getAbsolutePath();
     }
@@ -104,8 +113,10 @@ public class TestEventXmlToJava {
 
     return translator;
   }
-  
+
   public void writeFiles() {
+    //EventXmlToJava.writeFiles(translator, directory, packageName);
+
     if ( translator != null ) {
       // Figure out where to write the files
       String targetDirectory = translator.getPackageSourcePath( null );
@@ -163,10 +174,11 @@ public class TestEventXmlToJava {
    * @param args
    */
   public static void main( String[] args ) {
+    //Debug.turnOn();
     System.out.println("Started TestEventXmlToJava " + Utils.toString( args, false ) + ": starting timer");
     Timer timer = new Timer();
     // Try to find the XML file to read in.
-    String xmlFileName = "exampleDRScenario.xml";
+    String xmlFileName = "iLessThanFive.xml";
     
     if ( args.length >= 1 ) {
       xmlFileName = args[0];

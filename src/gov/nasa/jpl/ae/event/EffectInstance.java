@@ -30,7 +30,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     this.effect = effect;
   }
   
-  EffectInstance( Timepoint startTime, Integer duration, Effect effect ) {
+  EffectInstance( Timepoint startTime, Long duration, Effect effect ) {
     this.startTime = startTime;
     this.duration = new Duration( duration, null );
     this.effect = effect;
@@ -50,7 +50,7 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     effect = null;
   }
   
-  public void applyTo( TimeVarying< ? > tv, boolean propagate ) {
+  public void applyTo( TimeVarying< ?, ? > tv, boolean propagate ) {
     if ( effect != null ) {
       effect.applyTo( tv, propagate );//, startTime, duration );
     }
@@ -116,6 +116,8 @@ public class EffectInstance extends HasIdImpl implements HasParameters {
     //if ( Utils.seen( this, deep, seen ) ) return false;
     if ( startTime == parameter ) return true;
     if ( duration == parameter ) return true;
+    
+    if ( seen != null ) seen.remove( this ); // because getParameters checks seen set, too.
     return HasParameters.Helper.hasParameter( effect, parameter, deep, null, true );
   }
   @Override

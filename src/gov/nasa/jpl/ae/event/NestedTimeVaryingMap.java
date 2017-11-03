@@ -62,12 +62,32 @@ public class NestedTimeVaryingMap< V > extends
 //    this.dataProjected = true;
   }
 
+  public NestedTimeVaryingMap( NestedTimeVaryingMap<V> map ) {
+    super( map );
+//    this.dataProjected = true;
+  }
+
+  
+  @Override
+  public NestedTimeVaryingMap<V> clone() {
+    NestedTimeVaryingMap<V> tvm = new NestedTimeVaryingMap<V>(this);
+    return tvm;
+  }
+
+  @Override
+  public NestedTimeVaryingMap<V> emptyClone() {
+    NestedTimeVaryingMap<V> tvm = new NestedTimeVaryingMap<V>(this.getName());
+    return tvm;
+  }
+
+
+  
   public void setValue( Timepoint t1, Timepoint t2, V value ) {
     
     TimeVaryingMap< V > newMap = getValue( t1 );
     if ( newMap == null ) {
       Class<?> cls = ( value == null ? null : value.getClass() );
-      newMap = new TimeVaryingMap< V >( name, null, null, null );
+      newMap = new TimeVaryingMap< V >( name, (String)null, (V)null, (Class<V>)null );
     }
     newMap.setValue( t2, value );
     super.setValue( t1, newMap );

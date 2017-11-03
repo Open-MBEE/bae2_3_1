@@ -4,17 +4,12 @@
 package gov.nasa.jpl.ae.tests;
 
 import java.util.List;
-import java.util.Set;
-
 import gov.nasa.jpl.ae.event.ConstraintExpression;
 import gov.nasa.jpl.ae.event.DurativeEvent;
 import gov.nasa.jpl.ae.event.IntegerParameter;
 import gov.nasa.jpl.ae.event.Parameter;
-import gov.nasa.jpl.ae.event.ParameterListenerImpl;
-import gov.nasa.jpl.ae.solver.ConstraintLoopSolver;
 import gov.nasa.jpl.ae.event.Functions.*;
 import gov.nasa.jpl.ae.event.Expression;
-import gov.nasa.jpl.mbee.util.Debug;
 
 /**
  * @author bclement
@@ -29,10 +24,10 @@ public class TestSolver {
     //ConstraintLoopSolver s = new ConstraintLoopSolver();
     
     DurativeEvent cls = new DurativeEvent( "MyClass" );
-    cls.writeConstraintsOut = true;
-    cls.duration.assignValue( 10 );
-    cls.addDependency( cls.startTime, new Expression< Integer >( 0, Integer.class ) );
-    cls.addDependency( cls.duration, new Expression< Integer >( 20, Integer.class ) );
+    DurativeEvent.writeConstraintsOut = true;
+    cls.duration.assignValue( 10L );
+    cls.addDependency( cls.startTime, new Expression< Long >( 0, Long.class ) );
+    cls.addDependency( cls.duration, new Expression< Long >( 20, Long.class ) );
     IntegerParameter x = new IntegerParameter( "x", 1, cls );
     cls.addDependency( x, new Expression< Integer >( 1, Integer.class ) );
     IntegerParameter y = new IntegerParameter( "y", 2, cls );

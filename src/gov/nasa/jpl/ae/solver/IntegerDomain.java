@@ -15,19 +15,17 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   public static final int typeMaxValue = Integer.MAX_VALUE;
   public static final int typeMinValue = Integer.MIN_VALUE;
 
-  public static IntegerDomain domain = new IntegerDomain();  // REVIEW -- why is this not defaultDomain?
+  //public static IntegerDomain domain = new IntegerDomain();  // REVIEW -- why is this not defaultDomain?
 	public static IntegerDomain positiveDomain =
 			new IntegerDomain(0, typeMaxValue);
-  public static IntegerDomain defaultDomain = new IntegerDomain();  // REVIEW -- make this final?
+  public static final IntegerDomain defaultDomain = new IntegerDomain();  // REVIEW -- make this final?
 
 	public IntegerDomain() {
-	  lowerBound = typeMinValue;
-	  upperBound = typeMaxValue;
+    super(typeMinValue, typeMaxValue);
 	}
 	
 	public IntegerDomain(int minValue, int maxValue) {
-		this.lowerBound = minValue;
-		this.upperBound = maxValue;
+    super(minValue, maxValue);
 	}
 
 	public IntegerDomain( RangeDomain< Integer > domain ) {
@@ -46,7 +44,7 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
 	 * @see event.Domain#size()
 	 */
 	@Override
-	public int size() {
+	public long size() {
     if ( lowerBound == null || upperBound == null ) return 0;
     if ( lowerBound.equals( upperBound ) ) return 1;
     return Math.plus( (int)upperBound, (int)-lowerBound );
@@ -109,15 +107,12 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
   }
 
   @Override
-	public String toString() {
-		return "[" + getLowerBound() + " " + getUpperBound() + "]";
-	}
-
-  @Override
   public boolean contains( Integer t ) {
     if ( t == null && 
-         ( lowerBound != null  || upperBound != null ) ) return false;
-    return lowerBound <= t && upperBound >= t;
+        ( lowerBound != null  || upperBound != null ) ) return false;
+   if ( t == null ) return nullInDomain;
+   if ( lowerBound == null && upperBound == null ) return false;
+   return (lowerBound == null || lowerBound <= t) && (upperBound == null || upperBound >= t);
   }
 
   // counts from zero!!!
@@ -195,12 +190,35 @@ public class IntegerDomain extends AbstractFiniteRangeDomain< Integer > {
     return defaultDomain ;
   }
 
+//  @Override
+//  public void setDefaultDomain( Domain< Integer > domain ) {
+//    if ( domain instanceof IntegerDomain ) {
+//      defaultDomain = (IntegerDomain)domain;
+//    } else if ( domain instanceof RangeDomain ) {
+//      defaultDomain = new IntegerDomain((RangeDomain< Integer >)domain);
+//    }
+//  }
+  
   @Override
-  public void setDefaultDomain( Domain< Integer > domain ) {
-    if ( domain instanceof IntegerDomain ) {
-      defaultDomain = (IntegerDomain)domain;
-    } else if ( domain instanceof RangeDomain ) {
-      defaultDomain = new IntegerDomain((RangeDomain< Integer >)domain);
-    }
+  public IntegerDomain make( Integer lowerBound, Integer upperBound ) {
+    return new IntegerDomain(lowerBound, upperBound);
   }
+
+  @Override
+  public Integer getNextGreaterValue( Integer t ) {
+    if (t == null || equals(t, getTypeMaxValue()) ) return null;
+    return t + 1;
+  }
+
+  @Override
+  public Integer getPreviousLesserValue( Integer t ) {
+    if (t == null || equals(t, getTypeMinValue()) ) return null;
+    return t - 1;
+  }
+
+  @Override
+  public int compareTo( Domain< Integer > o ) {
+    return super.compare( o );
+  }
+
 }

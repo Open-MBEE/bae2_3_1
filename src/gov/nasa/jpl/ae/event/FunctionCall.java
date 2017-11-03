@@ -1,5 +1,10 @@
 package gov.nasa.jpl.ae.event;
 
+import gov.nasa.jpl.ae.solver.Domain;
+import gov.nasa.jpl.ae.solver.HasDomain;
+import gov.nasa.jpl.ae.solver.RangeDomain;
+import gov.nasa.jpl.ae.solver.SingleValueDomain;
+import gov.nasa.jpl.ae.util.DomainHelper;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
@@ -21,6 +26,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -160,8 +166,8 @@ public class FunctionCall extends Call {
   /**
    * @param object
    * @param method
-   * @param returnType
    * @param arguments
+   * @param returnType
    */
   public FunctionCall( Object object , Method method , Object argumentsA[] , Class< ? > returnType  ) {
     this(object, method, returnType);
@@ -174,6 +180,11 @@ public class FunctionCall extends Call {
     hasTypeErrors();
   }
 
+  public FunctionCall( Object object , Class<?> cls , String methodName ,
+                       Object argumentsA[]) {
+      this(object,cls, methodName, argumentsA, (Class<?>)null);
+  }
+  
   /**
    * @param object
    * @param cls
@@ -416,6 +427,62 @@ public class FunctionCall extends Call {
     return returnType;
   }
 
+  /* (non-Javadoc)
+   * @see gov.nasa.jpl.ae.event.Call#calculateDomain(boolean, java.util.Set)
+   */
+  @Override
+  public Domain< ? > calculateDomain( boolean propagate, Set< HasDomain > seen ) {
+    // Should be overridden
+
+    //Debug.error(true, false, "FunctionCall.calculateDomain() must be overridden by " + this.getClass().getName());
+    // Try to do something anyway.
+    // TODO
+    // See if arguments have a single-value domain.
+    boolean areAllArgsSingleValueDomains = true;
+    for ( Object arg : arguments ) {
+        Domain<?> d = DomainHelper.getDomain( arg );
+      if ( d != null
+           && ( d.magnitude() > 1
+                || ( ( d.magnitude() < 0 || d.magnitude() >= Long.MAX_VALUE )&& !d.isEmpty() && d.isInfinite() )
+                || ( d instanceof RangeDomain
+                     && ( (RangeDomain< ? >)d ).size() > 1 ) ) ) {
+          areAllArgsSingleValueDomains = false;
+          break;
+        }
+    }
+    if ( areAllArgsSingleValueDomains ) {
+        Object v = null;
+        try {
+          v = evaluate( propagate );
+        } catch ( IllegalAccessException e ) {
+        } catch ( InvocationTargetException e ) {
+        } catch ( InstantiationException e ) {
+        }
+        if ( evaluationSucceeded ) {
+          Domain<?> d = DomainHelper.getDomain(v);
+          if ( d == null ) {
+            d = new SingleValueDomain<Object>(v);
+          }
+          return d;
+        }
+    }
+    if ( this.isMonotonic() ) {
+      Domain<?> d = DomainHelper.combineDomains( arguments, this, true );
+      return d;
+    }
+    return null;
+    // TODO
+    // Add an interface where the object of the function could calculate the
+    // domain or give some methods that would enable the calculation. Maybe, like 
+    // TimeVaryingMap.calculateDomain(Method method, Object[] arguments)
+    // TimeVaryingMap.calculateDomain(Effect effect)
+    // TimeVaryingMap.restrictedDomainOfArguments(Method method, Object[] arguments)
+    // TimeVaryingMap.validIntervals(Effect effect)
+    // TimeVaryingMap.getValueDomain()
+    // TimeVaryingMap.getValueDomain(Effect effect)
+    //return null;
+  }
+  
   /**
    * A deep search looking for FunctionCalls
    */
@@ -426,7 +493,13 @@ public class FunctionCall extends Call {
       for ( Object arg : arguments ) {
         FunctionCall argCall = null;
         try {
-          argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+          if ( arg instanceof FunctionCall ) {
+            argCall = (FunctionCall)arg;
+          } else if ( arg instanceof Expression && ((Expression<?>)arg).expression instanceof FunctionCall ) {
+            argCall = (FunctionCall)((Expression<?>)arg).expression;
+          } else {
+            argCall = Expression.evaluate( arg, FunctionCall.class, false, false );
+          }
         } catch ( IllegalAccessException e ) {
           // TODO Auto-generated catch block
           //e.printStackTrace();
@@ -620,7 +693,7 @@ public class FunctionCall extends Call {
    * @param comparator
    *            specifies precedence relation on a pair of MethodCall return
    *            values; null defaults to {@link CompareUtils.GenericComparator}.
-   * @param indexOfElementArgument
+   * @param indexOfObjectArgument
    *            where in the list of arguments an Object from the collection
    *            is substituted (1 to total number of args or 0 to indicate
    *            that the Objects are each substituted for

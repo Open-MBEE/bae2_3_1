@@ -7,6 +7,7 @@ import gov.nasa.jpl.ae.solver.Constraint;
 import gov.nasa.jpl.ae.solver.HasConstraints;
 import gov.nasa.jpl.ae.solver.Satisfiable;
 import gov.nasa.jpl.ae.solver.Variable;
+import gov.nasa.jpl.mbee.util.Evaluatable;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 
@@ -234,6 +235,17 @@ public abstract class AbstractParameterConstraint implements ParameterConstraint
     Assert.assertTrue( "This method is not yet supported!", false );
     // TODO Auto-generated method stub
     return false;
+  }
+  
+  @Override
+  public < T > T evaluate( Class< T > cls, boolean propagate ) {
+    T t = Evaluatable.Helper.evaluate( this, cls, true, propagate, false, null );
+    if ( t != null ) return t;
+    if ( cls != null && cls.isAssignableFrom( Boolean.class ) ) {
+      Boolean b = isSatisfied( false, null );
+      return (T)b;
+    }
+    return null;
   }
   
 }

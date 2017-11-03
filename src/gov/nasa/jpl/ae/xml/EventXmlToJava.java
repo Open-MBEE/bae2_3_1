@@ -1,5 +1,8 @@
 package gov.nasa.jpl.ae.xml;
 
+import org.json.JSONObject;
+import org.json.XML;
+
 import japa.parser.ASTHelper;
 import japa.parser.ASTParser;
 import japa.parser.ParseException;
@@ -30,33 +33,22 @@ import japa.parser.ast.type.VoidType;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.Math;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import javax.tools.JavaCompiler;
+import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import junit.framework.Assert;
 // import javax.xml.xpath.XPathExpression;
 
 
@@ -75,6 +67,7 @@ import gov.nasa.jpl.ae.fuml.*;
 import gov.nasa.jpl.mbee.util.ClassUtils;
 import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.Debug;
+import gov.nasa.jpl.mbee.util.FileUtils;
 import gov.nasa.jpl.mbee.util.NameTranslator;
 import gov.nasa.jpl.mbee.util.TimeUtils;
 import gov.nasa.jpl.mbee.util.Timer;
@@ -102,7 +95,7 @@ public class EventXmlToJava {
 //  protected Map< String, Set< ConstructorDeclaration> > constructorDeclarations =
 //      new TreeMap< String, Set< ConstructorDeclaration > >();
   
-  protected Map< String, Boolean > isEventMap = new TreeMap< String, Boolean >();
+  protected static Map< String, Boolean > isEventMap = new TreeMap< String, Boolean >();
   
   String xmlFileName = "exampleDRScenario.xml";
   
@@ -179,6 +172,26 @@ public class EventXmlToJava {
     init();
     translate();
   }
+  
+  public static String xmlFileToJsonFile(String xmlFileName, String jsonFileName) {
+    String xml = null;
+    try {
+      xml = FileUtils.fileToString( xmlFileName );
+    } catch ( FileNotFoundException e ) {
+      e.printStackTrace();
+      return null;
+    }
+    JSONObject json = XML.toJSONObject(xml);
+    String jsonString = null;
+    if ( json == null ) {
+      return null;
+    } else {
+      jsonString = json.toString( 4 );
+      FileUtils.stringToFile( jsonString, jsonFileName );
+    }
+    return jsonString;
+  }
+  
   public void init() throws ParserConfigurationException, SAXException, IOException {
 
     if ( Debug.isOn() ) Debug.outln( "random double to test repeatability = "
@@ -189,6 +202,18 @@ public class EventXmlToJava {
     if ( Debug.isOn() ) Debug.outln("xml file name = " + this.xmlFileName );
     if ( Debug.isOn() ) Debug.outln("package name = " + this.packageName );
 
+    // Use path to the xml file as a place to hunt for other resources.
+    File f = FileUtils.findFile( xmlFileName );
+    int ct = 0; // just go two levels down
+    while ( ct < 2 && f != null && f.exists() ) {
+      f = f.getParentFile();
+      if ( f.exists() ) {
+        TimeVaryingMap.resourcePaths.add( f.getAbsolutePath() );
+      }
+      ++ct;
+    }
+    // now be sure that the generated code also adds these resourcePaths -- TODO
+    
     expressionTranslator = new JavaToConstraintExpression( //this.expressionTranslator, 
                                                            packageName );
     
@@ -207,8 +232,16 @@ public class EventXmlToJava {
                           + "Continuing anyway." );
     }
 
+    // output json
+    System.out.println("XML TO JSON");
+    String jsonFileName = xmlFileName.replaceAll( "[.][Xx][Mm][Ll]", ".json" );
+    if ( xmlFileName.equals( jsonFileName ) ) {
+      jsonFileName = jsonFileName + ".json";
+    }
+    xmlFileToJsonFile( xmlFileName, jsonFileName );
+    
     scenarioNode = XmlUtils.findNode( xmlDocDOM, "scenario" );
-    Assert.assertNotNull( scenarioNode );
+    //Assert.assertNotNull( scenarioNode );
     
     // get units
     String timeUnits = XmlUtils.getChildElementText( scenarioNode, "timeUnits" );
@@ -233,9 +266,9 @@ public class EventXmlToJava {
     if ( durationString == null || durationString.isEmpty() ) {
       if ( Debug.isOn() ) Debug.errln( "no duration specified; using default" );
     } else {
-      int secs = Math.max( 0, 1 );  // stupid class loader
+      long secs = Math.max( 0, 1 );  // stupid class loader
       secs = XmlUtils.getDurationInSeconds( durationString ) ;
-      Timepoint.setHorizonDuration( (int)(secs / Timepoint.conversionFactor( TimeUtils.Units.seconds )) );
+      Timepoint.setHorizonDuration( (long)(secs / Timepoint.conversionFactor( TimeUtils.Units.seconds )) );
     }
     System.out.println( "horizon duration = " + Timepoint.getHorizonDuration()
                         + Timepoint.getUnits() );
@@ -264,7 +297,7 @@ public class EventXmlToJava {
 
     // process event to be executed
     NodeList nodeList = xmlDocDOM.getElementsByTagName( "eventToBeExecuted" );
-    Assert.assertTrue( nodeList.getLength() < 2 );
+    //Assert.assertTrue( nodeList.getLength() < 2 );
     if ( nodeList.getLength() == 1 ) {
       Node node = nodeList.item( 0 );
       processExecutionEvent( node );
@@ -273,10 +306,13 @@ public class EventXmlToJava {
   }
 
   public boolean isEvent( String className ) {
+    return isEvent(className, getClassData() );
+  }
+  public static boolean isEvent( String className, ClassData classData ) {
     if ( Utils.isNullOrEmpty( className ) ) return false;
     Boolean s = isEventMap.get( className );
     if ( s != null && s ) return true;
-    String scopedName = getClassData().getClassNameWithScope( className );
+    String scopedName = classData.getClassNameWithScope( className );
     if ( scopedName == null ) return false;
     s = isEventMap.get( scopedName );
     return ( s != null && s );
@@ -305,7 +341,7 @@ public class EventXmlToJava {
       if ( !params.containsKey( p.getName() ) ) {
         String pType =
             ( p.getValueNoPropagate() == null 
-              ? "Integer" // TODO -- big assumption! Use p.getClass().
+              ? "Long" // TODO -- big assumption! Use p.getClass().
               : p.getValueNoPropagate().getClass().getSimpleName() );
         params.put( p.getName(),
                     new ClassData.Param( p.getName(), pType,
@@ -345,9 +381,16 @@ public class EventXmlToJava {
         if ( superClass != null && !superClass.isEmpty() ) {
           superParams = paramTable.get( superClass );
           if ( superParams == null ) {
-            continue;
+            superClass = expressionTranslator.getClassData().getClassNameWithScope( superClass );
+            if ( superClass != null && !superClass.isEmpty() ) {
+              superParams = paramTable.get( superClass );
+              if ( superParams == null ) {
+                continue;
+              }
+            }
           }
         }
+        
         // Make an entry in the table for this class.
         //Map< String, ClassData.Param > 
         params = paramTable.get( className );
@@ -363,7 +406,7 @@ public class EventXmlToJava {
             if ( !params.containsKey( p.getName() ) ) {
               String pType =
                   ( p.getValueNoPropagate() == null 
-                    ? "Integer" // TODO -- big assumption! Use p.getClass().
+                    ? "Long" // TODO -- big assumption! Use p.getClass().
                     : p.getValueNoPropagate().getClass().getSimpleName() );
               params.put( p.getName(),
                           new ClassData.Param( p.getName(), pType,
@@ -410,8 +453,14 @@ public class EventXmlToJava {
     Collection< ConstructorDeclaration > constructors =
         getConstructorDeclarations( this.xmlDocDOM );
     constructors.addAll( createConstructors( this.xmlDocDOM, constructors ) );
+    addConstructors( constructors, getClassData() );
+  }
+  
+  public static void addConstructors(Collection< ConstructorDeclaration > constructors,
+                                     ClassData classData) {
+
     for ( ConstructorDeclaration c : constructors ) {
-      TypeDeclaration type = getTypeDeclaration( c.getName() );
+      TypeDeclaration type = getTypeDeclaration( c.getName(), classData );
       boolean alreadyAdded = false;
       if ( type == null ) {
         Debug.error( "No type found for constructor! " + c );
@@ -445,8 +494,8 @@ public class EventXmlToJava {
 
   // REVIEW -- TODO -- Wouldn't it be better to just have a Map<name, TypeDeclaration>?
   // Recursively look for a type declaration with the given name.
-  protected TypeDeclaration getTypeDeclarationFrom( String name,
-                                                    TypeDeclaration typeDecl ) {
+  public static TypeDeclaration getTypeDeclarationFrom( String name,
+                                                        TypeDeclaration typeDecl ) {
     String simpleName = ClassUtils.simpleName( name );
     if ( typeDecl.getName().equals( simpleName ) ) {
       return typeDecl;
@@ -460,13 +509,18 @@ public class EventXmlToJava {
     return null;
   }
   
-  
   // Look in the compilation units in the map, classes, to find the class
   // declaration of name.
   protected TypeDeclaration getTypeDeclaration( String name ) {
+    return getTypeDeclaration( name, getClassData() );
+  }
+  
+  // Look in the compilation units in the map, classes, to find the class
+  // declaration of name.
+  public static TypeDeclaration getTypeDeclaration( String name, ClassData classData ) {
     String simpleName = ClassUtils.simpleName( name );
     if ( name == null ) return null;
-    CompilationUnit cu = getClassData().getClasses().get( simpleName );
+    CompilationUnit cu = classData.getClasses().get( simpleName );
     if ( cu != null ) {
       for ( TypeDeclaration type : cu.getTypes() ) {
         if ( type.getName().equals( simpleName ) ) {
@@ -474,7 +528,7 @@ public class EventXmlToJava {
         }
       }
     } else {
-      for ( CompilationUnit c : getClassData().getClasses().values() ) {
+      for ( CompilationUnit c : classData.getClasses().values() ) {
         for ( TypeDeclaration t : c.getTypes() ) {
           TypeDeclaration td = getTypeDeclarationFrom( simpleName, t );
           if ( td != null ) {
@@ -542,7 +596,10 @@ public class EventXmlToJava {
                    "Timepoint.setEpoch(\"" + Timepoint.getEpoch() + "\");\n" );
     addStatements( mainBody,
                    "Timepoint.setHorizonDuration("
-                   + Timepoint.getHorizonDuration() + ");\n" );
+                   + Timepoint.getHorizonDuration() + "L);\n" );
+    for ( String path : TimeVaryingMap.resourcePaths ) {
+      addStatements( mainBody,"TimeVaryingMap.resourcePaths.add(\"" + path + "\");\n" );
+    }
 
     // Create String args[].
     Type type = ASTHelper.createReferenceType( "String", 1 );
@@ -609,7 +666,7 @@ public class EventXmlToJava {
     
     // Create statements for executing & simulating the scenario event.
     //stmtsSB.append( instanceName + ".executeAndSimulate();\n" );
-    stmtsMain.append( "double animationDuration = 30.0;\n" );
+    stmtsMain.append( "double animationDuration = Timepoint.seconds(10.0);\n" );
     stmtsMain.append( "scenario.executeAndSimulate( Timepoint.getHorizonDuration() / animationDuration );\n" );
     
     // Put the statements in the constructor.
@@ -683,7 +740,8 @@ public class EventXmlToJava {
                                                                    ModifierSet.PUBLIC ) );
           }
           addStatementsToConstructor( constructorDecl,
-                                      Utils.getEmptyList(ClassData.Param.class) );
+                                      Utils.getEmptyList(ClassData.Param.class),
+                                      expressionTranslator );
           Debug.outln( "found constructor:\n" + constructorDecl.getName() + constructorDecl.getParameters() );
           ctors.add( constructorDecl );
         }
@@ -707,51 +765,25 @@ public class EventXmlToJava {
     for ( Node invocationNode : invocations ) {
       //String name = XmlUtils.getChildElementText( invocationNode, "eventName" );
       if ( invocationNode != null ) {
+        ConstructorDeclaration ctor = null;
         String eventType = fixName( XmlUtils.getChildElementText( invocationNode,
                                                                   "eventType" ) );
-        ConstructorDeclaration ctor =
-            new ConstructorDeclaration( ModifierSet.PUBLIC,
-                                        ClassUtils.simpleName(eventType) );
-        if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< ClassData.Param > arguments = new ArrayList< ClassData.Param >();
-        if ( argumentsNode != null ) {
-          List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode,
-                                                             "parameter" );
-          for ( int j = 0; j < argNodeList.size(); j++ ) {
-            Node argNode = argNodeList.get( j );
-            arguments.add( makeParam( argNode ) );
-          }
-          List< japa.parser.ast.body.Parameter > parameters =
-              new ArrayList< japa.parser.ast.body.Parameter >();
-          for ( ClassData.Param p : arguments ) {
-            if ( p.type == null ) {
-              ClassData.Param memberDecl = 
-                  getClassData().lookupMemberByName( eventType,
-                                                                     p.name,
-                                                                     true, false );
-              if ( !Debug.errorOnNull( "Error! Can't find member " + p.name
-                                           + " for event class " + eventType
-                                           + "!",
-                                       memberDecl ) ) {
-               p.type = memberDecl.type;
-              } else {
-                // delete 1 line below -- just for debug
-                memberDecl = 
-                    getClassData().lookupMemberByName( eventType,
-                                                                       p.name,
-                                                                       true, false );
-              }
+        // If instantiating from a timeline, add start time and durection to parameters.
+        String fromTimeVarying =
+            fixName( XmlUtils.getChildElementText( invocationNode,
+                                                   "fromTimeVarying" ) );
+        if ( argumentsNode != null || !Utils.isNullOrEmpty( fromTimeVarying ) ) {
+          if ( argumentsNode != null ) {
+            List< Node > argNodeList = XmlUtils.getChildNodes( argumentsNode,
+                                                               "parameter" );
+            for ( int j = 0; j < argNodeList.size(); j++ ) {
+              Node argNode = argNodeList.get( j );
+              arguments.add( makeParam( argNode ) );
             }
-            japa.parser.ast.body.Parameter param =
-                ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<"
-                                                                     + ClassUtils.getNonPrimitiveClassName( p.type )
-                                                                     + ">" ),
-                                           p.name );
-            parameters.add( param );
           }
-          ctor.setParameters( parameters );
-          addStatementsToConstructor( ctor, arguments );
+          ctor = getConstructorDeclaration(eventType, fromTimeVarying, arguments, getExpressionTranslator());
         }
 
         // Check and see if we've already added this one.
@@ -775,6 +807,69 @@ public class EventXmlToJava {
     }
     return ctors;
   }
+
+  public static  ConstructorDeclaration getConstructorDeclaration(String eventType,
+                                                                  String fromTimeVarying,
+                                                                  List< ClassData.Param > arguments,
+                                                                  JavaToConstraintExpression expressionTranslator) {
+    if ( expressionTranslator == null ) {
+      Debug.error("Missing expressionTranslator!");
+      return null;
+    }
+    ClassData classData = expressionTranslator.getClassData();
+    if ( classData == null ) {
+      Debug.error("Missing ClassData!");
+      return null;
+    }
+    ConstructorDeclaration ctor =
+            new ConstructorDeclaration( ModifierSet.PUBLIC,
+                                        ClassUtils.simpleName(eventType) );
+    if ( Debug.isOn() ) Debug.outln("ctor ctord as " + ctor.getName() );
+
+    // If instantiating from a timeline, add start time and durection to parameters.
+    if ( !Utils.isNullOrEmpty( fromTimeVarying ) ) {
+      ClassData.Param p = new ClassData.Param("startTime", "Long", null);
+      arguments.add(p);
+      p = new ClassData.Param("duration", "Long", null);
+      arguments.add(p);
+    }
+    List< japa.parser.ast.body.Parameter > parameters =
+            new ArrayList< japa.parser.ast.body.Parameter >();
+    for ( ClassData.Param p : arguments ) {
+      if ( p.type == null ) {
+        ClassData.Param memberDecl =
+                classData.lookupMemberByName( eventType,
+                                              p.name,
+                                             true, false );
+        if ( !Debug.errorOnNull( "Error! Can't find member " + p.name
+                                 + " for event class " + eventType
+                                 + "!",
+                                 memberDecl ) ) {
+          p.type = memberDecl.type;
+        } else {
+          // delete 1 line below -- just for debug
+          memberDecl =
+                  classData.lookupMemberByName( eventType,
+                                                p.name,
+                                               true, false );
+        }
+      }
+      japa.parser.ast.body.Parameter param =
+              ASTHelper.createParameter( new ClassOrInterfaceType( "Expression<"
+                                                                   + ClassUtils.getNonPrimitiveClassName( p.type )
+                                                                   + ">" ),
+                                         p.name );
+      parameters.add( param );
+    }
+
+    ctor.setParameters( parameters );
+
+    addStatementsToConstructor( ctor, arguments, expressionTranslator );
+
+    return ctor;
+  }
+
+
 
   public static boolean equals( ConstructorDeclaration c1,
                                 ConstructorDeclaration c2 ) {
@@ -821,8 +916,8 @@ public class EventXmlToJava {
     return equals;
   }
 
-  protected boolean hasStatementOfType( ConstructorDeclaration ctorDecl,
-                                        Class<?> statementType ) {
+  protected static boolean hasStatementOfType( ConstructorDeclaration ctorDecl,
+                                               Class<?> statementType ) {
     BlockStmt blockStmt = ctorDecl.getBlock();
     if ( blockStmt == null || blockStmt.getStmts() == null ) return false;
     for ( Statement stmt : blockStmt.getStmts() ) {
@@ -831,9 +926,10 @@ public class EventXmlToJava {
     return false;
   }
   
-  protected void
+  protected static void
       addStatementsToConstructor( ConstructorDeclaration ctor,
-                                  List< ClassData.Param > arguments ) {
+                                  List< ClassData.Param > arguments,
+                                  JavaToConstraintExpression expressionTranslator ) {
     StringBuffer stmtList = new StringBuffer();
     BlockStmt block = ctor.getBlock();
     if ( block == null ) {
@@ -868,7 +964,7 @@ public class EventXmlToJava {
       stmtList.append( "addDependency( this." + p.name + ", " + p.name
                        + " );\n" );
     }
-    if ( isEvent( ctor.getName() ) ) {
+    if ( isEvent( ctor.getName(), expressionTranslator.getClassData() ) ) {
       String initElaborationsString = "init" + ctor.getName() + "Elaborations()";
       if ( !blockString.contains( initElaborationsString ) ) {
         stmtList.append( initElaborationsString + ";\n" );
@@ -1128,28 +1224,32 @@ public class EventXmlToJava {
                                                               boolean isNested,
                                                               boolean justClassDeclarations ) {
     // Get class name.
-    getClassData().setCurrentClass( getClassName( clsNode ) );
+    String clsName = getClassName( clsNode );
+    getClassData().setCurrentClass( clsName );
     
     if ( justClassDeclarations ) if ( Debug.isOn() ) Debug.out( "pre-" );
-    if ( Debug.isOn() ) Debug.outln( "processing class " + getClassData().getCurrentClass() );
+    String currentClass = getClassData().getCurrentClass();
+    if ( Debug.isOn() ) Debug.outln( "processing class " + currentClass );
     if ( !isNested ) { 
       if ( justClassDeclarations ) {
-        getClassData().setCurrentCompilationUnit( initClassCompilationUnit( getClassData().getCurrentClass() ) );
+        getClassData().setCurrentCompilationUnit( initClassCompilationUnit( currentClass ) );
       } else {
-        getClassData().setCurrentCompilationUnit( getClassData().getClasses().get( getClassData().getCurrentClass() ) );
+        getClassData().setCurrentCompilationUnit( getClassData().getClasses().get( currentClass ) );
       }
       assert getClassData().getCurrentCompilationUnit() != null;
     }
     ClassOrInterfaceDeclaration newClassDecl = null;
+    currentClass = getClassData().getCurrentClass();
     if ( justClassDeclarations ) {
       newClassDecl =
           new ClassOrInterfaceDeclaration( ModifierSet.PUBLIC, false, 
-                                           ClassUtils.simpleName( getClassData().getCurrentClass() ) );
-      if ( getClassData().isClassStatic( getClassData().getCurrentClass() ) ) {
+                                           ClassUtils.simpleName( currentClass ) );
+      currentClass = getClassData().getCurrentClass();
+      if ( getClassData().isClassStatic( currentClass ) ) {
         makeStatic( newClassDecl );
       }
     } else {
-      newClassDecl = getClassData().getClassDeclaration( ClassUtils.simpleName( getClassData().getCurrentClass() ) );
+      newClassDecl = getClassData().getClassDeclaration( ClassUtils.simpleName( currentClass ) );
     }
     
     if ( justClassDeclarations ) {
@@ -1370,9 +1470,11 @@ public class EventXmlToJava {
     //addImport( "gov.nasa.jpl.ae.event.*" );
     addImport( "gov.nasa.jpl.ae.event.Parameter" );
     addImport( "gov.nasa.jpl.ae.event.IntegerParameter" );
+    addImport( "gov.nasa.jpl.ae.event.LongParameter" );
     addImport( "gov.nasa.jpl.ae.event.DoubleParameter" );
     addImport( "gov.nasa.jpl.ae.event.StringParameter" );
     addImport( "gov.nasa.jpl.ae.event.BooleanParameter" );
+    addImport( "gov.nasa.jpl.ae.event.StateVariable" );
     addImport( "gov.nasa.jpl.ae.event.Timepoint" );
     addImport( "gov.nasa.jpl.ae.event.Expression" );
     addImport( "gov.nasa.jpl.ae.event.ConstraintExpression" );
@@ -1381,6 +1483,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.ConstructorCall" );
     addImport( "gov.nasa.jpl.ae.event.Call" );
     addImport( "gov.nasa.jpl.ae.event.Effect" );
+    addImport( "gov.nasa.jpl.ae.event.EffectFunction" );
     addImport( "gov.nasa.jpl.ae.event.TimeDependentConstraintExpression" );
     addImport( "gov.nasa.jpl.ae.event.Dependency" );
     addImport( "gov.nasa.jpl.ae.event.ElaborationRule" );
@@ -1394,6 +1497,7 @@ public class EventXmlToJava {
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingPlottableMaps" );
     addImport( "gov.nasa.jpl.ae.event.TimeVaryingProjection" );
     addImport( "gov.nasa.jpl.mbee.util.Utils" );
+    addImport( "gov.nasa.jpl.mbee.util.Debug" );
     addImport( "gov.nasa.jpl.mbee.util.ClassUtils" );
     addImport( "java.util.Vector" );
     addImport( "java.util.Map" );
@@ -1479,15 +1583,10 @@ public class EventXmlToJava {
     StringBuffer stmtsString = new StringBuffer();
     stmtsString.append( "if ( " + name + " == null ) " );
     stmtsString.append( name + " = " );
-    if ( constructorArgs == null ) {
-      stmtsString.append( "null;" );
-    } else {
-      stmtsString.append( "new " + typeName );
-      if ( !Utils.isNullOrEmpty( parameterTypeName ) ) {
-        stmtsString.append( "< " + ClassUtils.getNonPrimitiveClassName( parameterTypeName ) + " >" );
-      }
-      stmtsString.append( "( " + constructorArgs + " );" );
-    }
+    String ctorString = JavaToConstraintExpression.constructorStringOfGenericType(name, typeName,
+                                                                                  parameterTypeName,
+                                                                                  constructorArgs);
+    stmtsString.append( ctorString );
 
     if ( Debug.isOn() ) Debug.outln( "Trying to parse assignment with ASTParser.BlockStatement(): \""
                         + stmtsString.toString() + "\"" );
@@ -1516,6 +1615,7 @@ public class EventXmlToJava {
                                      null,//args[ 1 ],
                                      args[ 2 ] );
   }
+
 
   public FieldDeclaration createParameterField( ClassData.Param p,
                                                 MethodDeclaration initMembers ) {
@@ -1675,7 +1775,7 @@ public class EventXmlToJava {
       return createConstraintField( name, expression, applicableStartTime,
                                     applicableEndTime );
     }
-    if ( name == null ) {
+    if ( name == null || name.trim().length() == 0 ) {
       name = new String( "constraint" + counter++ );
     }
     String constructorArgs = null;
@@ -1742,7 +1842,9 @@ public class EventXmlToJava {
 
     String addDepStmt = "addDependency( " + sink + ", " + source + " );";
     if ( scope != null ) {
-      addDepStmt = scope + "." + addDepStmt;
+      addDepStmt = "if ( ((Object)" + scope
+                   + ") instanceof ParameterListenerImpl) {\n((ParameterListenerImpl)((Object)"
+                   + scope + "))." + addDepStmt + "\n} else {\n" + addDepStmt + "\n}";
     }
 //    String constructorArgs = sink + ", " + source;
 //    Statement s =
@@ -1828,6 +1930,7 @@ public class EventXmlToJava {
       createElaborationField( String name, String enclosingInstance,
                               String eventType,
                               String eventName, List< ClassData.Param > arguments,
+                              String fromTimeVarying,
                               String conditionExpression,
                               String applicableStartTime,
                               String applicableEndTime,
@@ -1880,6 +1983,11 @@ public class EventXmlToJava {
                         + expressionTranslator.javaToAeExpr( conditionExpression,
                                                              "Boolean", true )
                         + ";\n" );
+    String timelineArg =
+        Utils.isNullOrEmpty( fromTimeVarying ) ? ""
+                                               : ", " + expressionTranslator.javaToAeExpr( fromTimeVarying,
+                                                                                           "TimeVaryingMap<?>",
+                                                                                           true );
 
     String scopeName = getClassData().getClassNameWithScope( eventType );
     stmtsString.append( name + " = addElaborationRule( " + conditionName + ", "
@@ -1888,7 +1996,7 @@ public class EventXmlToJava {
                         + ".class, "
                         + ( Utils.isNullOrEmpty( eventName ) ? "null" : "\"" 
                             + eventName + "\"" )
-                        + ", " + argumentsName + " );\n" );
+                        + ", " + argumentsName + timelineArg + " );\n" );
 
     addStatements( initMembers.getBody(), stmtsString.toString() );
 
@@ -2009,6 +2117,7 @@ public class EventXmlToJava {
         if ( enclosingInstance == null ) enclosingInstance = "null";
         String eventType = fixName( XmlUtils.getChildElementText( invocationNode, "eventType" ) );
         String eventName = fixName( XmlUtils.getChildElementText( invocationNode, "eventName" ) );
+        String fromTimeVarying = fixName( XmlUtils.getChildElementText( invocationNode, "fromTimeVarying" ) );
         Node argumentsNode = XmlUtils.getChildNode( invocationNode, "arguments" );
         List< ClassData.Param > arguments = new ArrayList< ClassData.Param >();
         if ( argumentsNode != null ) {
@@ -2033,7 +2142,7 @@ public class EventXmlToJava {
         }
         FieldDeclaration f =
             createElaborationField( null, enclosingInstance, eventType,
-                                    eventName, arguments,
+                                    eventName, arguments, fromTimeVarying,
                                     expression, applicableStartTime,
                                     applicableEndTime, initMembers );
         if ( f != null ) {
@@ -2172,6 +2281,22 @@ public class EventXmlToJava {
     return packageName;
   }
 
+  public static String[] getPackagesFromJava( ClassData classData ) {
+    LinkedHashSet<String> list = new LinkedHashSet<String>();
+    Map<String, CompilationUnit> classes = classData.getClasses();
+    for ( Entry< String, CompilationUnit > e : classes.entrySet() ) {
+      CompilationUnit cu = e.getValue();
+      if ( cu == null ) continue;
+      if ( cu.getPackage() == null ) continue;
+      String pkgName = cu.getPackage().getName().toString();
+      if ( Utils.isNullOrEmpty( pkgName ) ) continue;
+      list.add( pkgName );
+    }
+    String[] arr = new String[ list.size() ];
+    list.toArray( arr );
+    return arr;
+  }
+
   /**
    * @param packageName the packageName to set
    */
@@ -2181,22 +2306,225 @@ public class EventXmlToJava {
   }
 
   public void writeJavaFile( String fileName ) throws IOException {
+    writeJavaFile( fileName, getClassData() );
+
+  }
+  public static void writeJavaFile( String fileName, ClassData classData ) throws IOException {
     File f = new File( fileName );
     FileWriter w = new FileWriter( f );
-    w.write( getClassData().getCurrentCompilationUnit().toString() );
+    w.write( classData.getCurrentCompilationUnit().toString() );
     w.close();
   }
 
-  public void writeJavaFiles( String javaPath ) throws IOException {
-    for ( Entry< String, CompilationUnit > e : getClassData().getClasses().entrySet() ) {
-      getClassData().setCurrentClass( e.getKey() );
-      getClassData().setCurrentCompilationUnit( e.getValue() );
+  public ArrayList<String> writeJavaFiles( String javaPath ) throws IOException {
+    return writeJavaFiles( javaPath, getClassData() );
+  }
+  public static ArrayList<String> writeJavaFiles( String javaPath, ClassData classData ) throws IOException {
+    ArrayList<String> javaFiles = new ArrayList<String>();
+    Map<String, CompilationUnit> classes = classData.getClasses();
+    for ( Entry< String, CompilationUnit > e : classes.entrySet() ) {
+      classData.setCurrentClass( e.getKey() );
+      CompilationUnit cu = e.getValue();
+      if ( cu == null ) {
+        Debug.error("No compilation unit to write out! " + e.getKey() );
+        continue;
+      }
+      classData.setCurrentCompilationUnit( cu );
+      String newJavaPath = javaPath;
+      if ( cu.getPackage() != null ) {
+        String pkgName = cu.getPackage().getName().toString();
+        if ( !Utils.isNullOrEmpty( pkgName ) ) {
+          newJavaPath = convertPathToPackage( javaPath.trim(), pkgName.trim() );
+        }
+      }
+      File f = new File(newJavaPath.trim());
+      if ( !f.exists() ) {
+        try {
+          f.mkdirs();
+        } catch (Throwable t) {
+          t.printStackTrace();
+        }
+      }
       String fileName =
-          ( javaPath.trim() + File.separator + e.getKey() + ".java" );
-      writeJavaFile( fileName );
-      if ( Debug.isOn() ) Debug.outln( "wrote compilation unit to file " + fileName );
+              ( newJavaPath.trim() + File.separator + e.getKey() + ".java" );
+      writeJavaFile( fileName, classData );
+      javaFiles.add(fileName);
+      if ( Debug.isOn() ) Debug.outln( "wrote compilation unit to file "
+                                       + fileName );
+      System.out.println( "wrote compilation unit to file " + fileName );
+    }
+    return javaFiles;
+  }
+
+  public static String convertPathToPackage( String filePath, String packageName ) {
+    String newPath = filePath;
+    if (filePath.startsWith("src")) {
+      newPath = "src";
+    } else {
+      newPath = filePath.replaceFirst(
+              "([^A-Za-z_0-9-])src[^A-Za-z_0-9-]?.*", "$1src");
+    }
+    newPath = newPath + File.separatorChar + packageName.replaceAll("[.]", File.separator);
+    return newPath;
+  }
+
+  public static String packagePath( String pathName, String packageName ) {
+    return packagePath( pathName, packageName, true );
+  }
+  public static String packagePath( String pathString, String packageName, boolean srcOrBin ) {
+    String pathName = pathString;
+    File path = null;
+    if ( !Utils.isNullOrEmpty(pathName) ) {
+      path = new File(pathName);
+    }
+    String srcOrBinStr = srcOrBin ? "src" : "bin";
+    if ( path == null || !path.exists() ) {
+      if ( pathName == null ) {
+        pathName = srcOrBinStr;
+      }
+      if ( pathName.contains(srcOrBinStr) ) {
+        if (!pathName.endsWith("src")) {
+          if (pathName.startsWith("src")) {
+            pathName = "src";
+          } else {
+            pathName =
+                    pathName.replaceFirst(File.separator + srcOrBinStr + ".*",
+                                          File.separator + srcOrBinStr);
+          }
+        }
+      } else {
+        // Can't find an alternative for missing file.
+      }
+      if ( pathName == null ) {
+        pathName = "";
+      }
+      path = new File(pathName);
+    }
+
+    String packageSubpathName = packageName.replaceAll("[.]", File.separator);
+    String pathPrefix = Utils.isNullOrEmpty( pathName ) ? "" : pathName + File.separatorChar;
+    String packagePathName = pathPrefix + packageSubpathName;
+    File packagePath = new File( packagePathName );
+    if ( packagePath.exists() ) {
+      return packagePathName;
+    }
+
+    String pathPrefix2 = Utils.isNullOrEmpty( pathString ) ? "" : pathString + File.separatorChar;
+    String packagePathName2 = pathPrefix2 + packageSubpathName;
+    File packagePath2 = new File( packagePathName2 );
+    if ( packagePath2.exists() ) {
+      return packagePathName2;
+    }
+    return packagePathName;
+  }
+
+  public static void deleteOldFiles( String pathString, String packageName, ClassData classData ) {
+    // Delete old Java and class files.
+    String pathName = pathString == null ? "" : pathString;
+    pathName = packagePath(pathName, "", true);
+    String packagePathName = packagePath(pathName, packageName);
+    //File path = new File(pathName);
+    File packageFile = new File( packagePathName );
+    File[] files = EventXmlToJava.getJavaFileList(packageFile);
+    Debug.outln("Deleting old .java files in "
+                + packageFile.getAbsolutePath() + ": "
+                + Utils.toString(files));
+    EventXmlToJava.deleteFiles(files);
+    files = getJavaFiles(packagePathName, false, packageName, false, classData);
+    Debug.outln("Deleting old .class files in " + packagePathName + ": " + Utils.toString(files));
+    EventXmlToJava.deleteFiles(files);
+    String binDir = packagePath(pathString, "", false);
+            //packagePath(pathName, packageName, false);
+//            targetDirectoryFile.getAbsolutePath()
+//                    .replaceFirst("([^a-zA-Z])src([^a-zA-Z])",
+//                                  "\\1bin\\2");
+    files = getJavaFiles(binDir, false, packageName, false, classData);
+    Debug.outln("Deleting old .class files in "
+                + binDir + ": " + Utils.toString(files));
+    EventXmlToJava.deleteFiles(files);
+  }
+
+
+  public static void mkdirs( String targetDirectory ) {
+    File targetDirectoryFile = new File( targetDirectory );
+    if ( !targetDirectoryFile.exists() ) {
+      if ( !targetDirectoryFile.mkdirs() ) {
+        System.err.println( "Error! Unable to make package directory: "
+                            + targetDirectoryFile.getAbsolutePath() );
+      }
+    } else {
+      assert targetDirectoryFile.isDirectory();
     }
   }
+
+  // TODO -- move to Utils
+  public static String longestCommonPrefix( String[] strings ) {
+    if ( strings == null || strings.length == 0 ) return null;
+    String s = strings[0];
+    for ( int i = 1; i < strings.length; ++i ) {
+      int j = 0;
+      String s2 = strings[i];
+      if ( s2 == null ) continue;
+      while ( j < s.length() && j < s2.length() && s2.charAt(j) == s.charAt(j) ) ++j;
+      if ( j == 0 ) return "";
+      s = s.substring(0, j);
+    }
+    return s;
+  }
+
+  public ArrayList<String> writeFiles(String directory, String packageName) {
+    return writeFiles(getClassData(), directory, packageName );
+  }
+  public static ArrayList<String> writeFiles(ClassData classData,//   EventXmlToJava translator,
+                                             String directory, String packageName) {
+    if ( classData == null ) return null;
+    // Figure out where to write the files
+    String targetDirectory = EventXmlToJava.getPackageSourcePath( null, packageName );
+    if ( targetDirectory == null ) {
+      if ( directory == null ) {
+        targetDirectory = packageName;
+      } else {
+        targetDirectory = directory + File.separator + packageName;
+      }
+    }
+
+    // Create the directory for the package where the files will be written
+    // and see if the directory exists.
+    mkdirs(targetDirectory);
+
+    // Delete old Java and class files.
+    deleteOldFiles(targetDirectory, packageName, classData);
+
+    // Now make dirs and delete files for packages specified in input Java.
+    String[] packages = EventXmlToJava.getPackagesFromJava(classData);
+    if ( packages != null ) {
+      for (String pkg : packages) {
+        String target = packagePath(directory, pkg);
+        mkdirs(target);
+        deleteOldFiles(directory, pkg, classData);
+      }
+
+      // Choose a different place to write the files based on the packages.
+      String commonDir = longestCommonPrefix(packages);
+      if ( !Utils.isNullOrEmpty(commonDir) && !commonDir.equals(File.separator) ) {
+        String newTarget = packagePath(directory, commonDir);
+        if ( Utils.isNullOrEmpty(targetDirectory) || !FileUtils.exists(targetDirectory) || FileUtils.exists(newTarget) ) {
+          targetDirectory = newTarget;
+        }
+      }
+    }
+
+    ArrayList<String> files = null;
+    // Now write the files.
+    try {
+      files = EventXmlToJava.writeJavaFiles( targetDirectory, classData );
+    } catch ( IOException e ) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return files;
+  }
+
 
   public static List< String > getClassNamesFromJARFile( String jar,
                                                          String packageName ) {
@@ -2294,19 +2622,34 @@ public class EventXmlToJava {
   
   public File[] getJavaFiles( String javaPath, boolean sourceOrClass,
                               boolean justCurrentClasses ) {
+      return getJavaFiles(javaPath, sourceOrClass, getPackageName(), justCurrentClasses, getClassData());
+  }
+  public static File[] getJavaFiles( String javaPath, boolean sourceOrClass,
+                                     String packageName,
+                                     boolean justCurrentClasses,
+                                     ClassData classData ) {
     File[] fileArr = null;
-    File path = new File(javaPath);
-    if ( javaPath == null ) {
-      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + this.packageName;
-      File path2 = new File(javaPath);
-      if ( !path2.exists() && !sourceOrClass ) {
-        javaPath = "src" + File.separator + this.packageName;
-        path2 = new File(javaPath);
-      }
-      if ( path2.exists() ) {
-        path = path2;
-      }
-    }
+    File path = null;
+//    try {
+//      if ( javaPath != null ) {
+//        path = new File(javaPath);
+//      }
+//    } catch (Throwable t) {
+//    }
+//    if ( javaPath == null || path == null || !path.exists()) {
+//      javaPath = (sourceOrClass ? "src" : "bin") + File.separator + packageName;
+//      File path2 = new File(javaPath);
+//      if ( !path2.exists() && !sourceOrClass ) {
+//        javaPath = "src" + File.separator + packageName;
+//        path2 = new File(javaPath);
+//      }
+//      if ( path2.exists() ) {
+//        path = path2;
+//      }
+//    }
+    String pathName = packagePath(javaPath, packageName, sourceOrClass);
+    if ( pathName == null ) return null;
+    path = new File( pathName );
     assert path.exists();
     if ( !justCurrentClasses ) {
       fileArr = getJavaFileList( path );
@@ -2326,12 +2669,12 @@ public class EventXmlToJava {
       return fileArr;
     }
 
-    fileArr = new File[ getClassData().getClasses().size() ];
-    if ( !getClassData().getClasses().isEmpty() ) {
+    fileArr = new File[ classData.getClasses().size() ];
+    if ( !classData.getClasses().isEmpty() ) {
       int ctr = 0;
-      for ( String clsName : getClassData().getClasses().keySet() ) {
+      for ( String clsName : classData.getClasses().keySet() ) {
         String filePathName =
-            javaPath.trim() + File.separator + clsName
+            pathName.trim() + File.separator + clsName
                 + ( sourceOrClass ? ".java" : ".class" );
         fileArr[ ctr++ ] = new File( filePathName );
       }
@@ -2340,8 +2683,17 @@ public class EventXmlToJava {
   }
   
   public boolean compileJavaFiles( String javaPath ) {
-    File[] fileArr = getJavaFiles( javaPath, true, true );//path.listFiles();
-    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true, false );
+    return compileJavaFiles(null, javaPath, getPackageName(), getClassData(), getFileManager());
+  }
+  public static boolean compileJavaFiles( ArrayList<String> javaFiles,
+                                          String javaPath,
+                                          String packageName,
+                                          ClassData classData,
+                                          StandardJavaFileManager fileManager ) {
+    File[] fileArr = getJavaFiles( javaPath, true, packageName, true, classData);//path.listFiles();
+    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, true,
+                                                       packageName, false,
+                                                       classData );
     System.out.println( "java.home = " + System.getProperty( "java.home" ) );
     //System.setProperty( "java.home", "C:\\Program Files\\Java\\jdk1.6.0_35");
     //System.out.println( "java.home = " + System.getProperty( "java.home" ) );
@@ -2349,12 +2701,39 @@ public class EventXmlToJava {
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): about to get compilationUnits/java file objects for: "
                         + Utils.toString(fileArr) );
-    if ( getFileManager() == null ) {
+    if ( fileManager == null ) {
       System.err.println( "No StandardJavaFileManager to compile Java classes." );
       return false;
     }
+
+    ArrayList<File> files = new ArrayList<File>();
+    if ( javaFiles != null ) {
+      for (String fs : javaFiles) {
+        File ff = new File(fs);
+        if (ff.exists()) {
+          files.add(ff);
+        }
+      }
+    }
+    if ( fileArr != null ) {
+      for ( File ff : fileArr ) {
+        if ( ff.exists() ) {
+          files.add( ff );
+        }
+      }
+    }
+
+//    try {
+//      fileManager.setLocation(
+//              StandardLocation.CLASS_PATH,
+//              Arrays.asList( new File ( javaPath ) )
+//      );
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+
     Iterable<? extends JavaFileObject> compilationUnits =
-        fileManager.getJavaFileObjectsFromFiles(Arrays.asList(fileArr));
+        fileManager.getJavaFileObjectsFromFiles(files);
     System.out.println( "compileJavaFiles(" + javaPath
                         + "): got compilationUnits as java file objects: "
                         + compilationUnits );
@@ -2367,21 +2746,50 @@ public class EventXmlToJava {
                         "): compilation success=" + succ );
     return succ;
   }
-  
+
   public boolean loadClasses( String javaPath, String packageName ) {
+    return loadClasses(null, javaPath, packageName, mainClass, getClassData(), getLoader());
+
+  }
+  public static boolean loadClasses(
+          ArrayList<String> javaFiles, String javaPath,
+          String packageName,
+          Class<?> mainClass, ClassData classData,
+          ClassLoader classLoader) {
     boolean succ = true;
+    if ( javaPath == null ) {
+      javaPath = "";
+    }
     File path = new File(javaPath);
     assert path.exists();
     File[] fileArr = null;
-    fileArr = getJavaFiles( javaPath, false, true );//path.listFiles();
-    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, false, false );
+    fileArr = getJavaFiles( javaPath, false, packageName, true, classData );//path.listFiles();
+    if ( fileArr.length == 0 ) fileArr = getJavaFiles( javaPath, false,
+                                                       packageName, false,
+                                                       classData );
+    ArrayList<File> files = new ArrayList<File>();
+    for ( String fs : javaFiles ) {
+      fs = fs.endsWith(".java") ? fs.substring(0, fs.length() - ".java".length() ) + ".class" : fs;
+      File ff = new File( fs );
+      if ( ff.exists() ) {
+        files.add( ff );
+      }
+    }
+    if ( fileArr != null ) {
+      for ( File ff : fileArr ) {
+        if ( ff.exists() ) {
+          files.add( ff );
+        }
+      }
+    }
+
     //loader = getClass().getClassLoader();//fileManager.getClassLoader(null);
-    for ( File f : fileArr ) {
+    for ( File f : files ) {
       int pos = f.getName().lastIndexOf( '.' );
       if ( pos == -1 ) pos = f.getName().length();
       String className = packageName + '.' + f.getName().substring( 0, pos );
       try {
-        Class<?> cls = getLoader().loadClass( className );
+        Class<?> cls = classLoader.loadClass( className );
         System.out.println( "loadClasses(" + javaPath + ", " + packageName +
                             "): loaded class: " + cls.getName() );
         try {
@@ -2404,50 +2812,94 @@ public class EventXmlToJava {
     return succ;
   }
 
-  
+
   public String getPackageSourcePath( String projectPath ) {
-    if ( projectPath == null ) {
-      projectPath = "";
-    } else {
-      projectPath += File.separator;
-    }
-    String packagePath = getPackageName().replace( '.', File.separatorChar );
-    String srcPath = projectPath + "src" + File.separator + packagePath;
-    return srcPath;
+    return getPackageSourcePath(projectPath, getPackageName());
+  }
+  public static String getPackageSourcePath( String projectPath, String packageName ) {
+    return packagePath(projectPath, packageName);
+//    if ( projectPath == null ) {
+//      projectPath = "";
+//    } else {
+//      projectPath += File.separator;
+//    }
+//    String packagePath = packageName.replace( '.', File.separatorChar );
+//    String srcPath = projectPath + "src" + File.separator + packagePath;
+//    return srcPath;
   }
   
   public String getPackageBinPath( String projectPath ) {
-    if ( projectPath == null ) {
-      projectPath = "";
-    } else {
-      projectPath += File.separator;
-    }
-    String packagePath = getPackageName().replace( '.', File.separatorChar );
-    String binPath = projectPath + "bin" + File.separator + packagePath;
-    return binPath;
+    return packagePath(projectPath, getPackageName(), false);
+//    if ( projectPath == null ) {
+//      projectPath = "";
+//    } else {
+//      projectPath += File.separator;
+//    }
+//    String packagePath = getPackageName().replace( '.', File.separatorChar );
+//    String binPath = projectPath + "bin" + File.separator + packagePath;
+//    return binPath;
   }
-  
+
   public boolean compileAndLoad( String projectPath ) {
-    boolean succCompile = compile( projectPath );
-    boolean succLoad = load( projectPath );
+    return compileAndLoad( null, projectPath, getPackageName(), mainClass,
+                           getClassData(), getLoader(), getFileManager() );
+  }
+  public static boolean compileAndLoad( ArrayList<String> javaFiles,
+                                        String projectPath,
+                                        String packageName,
+                                        Class<?> mainClass,
+                                        ClassData classData,
+                                        ClassLoader loader,
+                                        StandardJavaFileManager fileManager ) {
+    boolean succCompile = compile( javaFiles, projectPath, packageName, classData, fileManager );
+    boolean succLoad = load( javaFiles, projectPath, packageName, mainClass, classData, loader );
     return succCompile && succLoad;
   }
 
   public boolean compile( String projectPath ) {
-    boolean succ = compileJavaFiles( getPackageSourcePath( projectPath ) );
+    return compile( null, projectPath, getPackageName(), getClassData(), getFileManager() );
+  }
+  public static boolean compile( ArrayList<String> javaFiles, String projectPath,
+                                 String packageName, ClassData classData,
+                                 StandardJavaFileManager fileManager ) {
+    boolean succ = compileJavaFiles( javaFiles, projectPath, packageName, classData, fileManager );
     return succ;
   }
-  
+
   public boolean load( String projectPath ) {
     boolean succLoad = loadClasses( getPackageBinPath( projectPath ),
                                     getPackageName() );
     return succLoad;
   }
-  
+  public static boolean load(ArrayList<String> javaFiles,
+                             String path, String packageName,
+                             Class<?> mainClass, ClassData classData,
+                             ClassLoader classLoader) {
+    boolean succLoad = loadClasses( javaFiles, path, packageName, mainClass, classData,
+                                    classLoader );
+    return succLoad;
+  }
+
   public boolean compileLoadAndRun( String projectPath ) {
     boolean succ = compileAndLoad( projectPath );
     if ( !succ ) return false;
-    return runMain(); 
+    return runMain();
+  }
+  public static boolean compileLoadAndRun( String projectPath, String packageName,
+                                           Class<?> mainClass, ClassData classData,
+                                           ClassLoader loader,
+                                           StandardJavaFileManager fileManager) {
+    ArrayList<String> javaFiles = null;
+    return compileLoadAndRun(javaFiles, projectPath, packageName, mainClass, classData, loader, fileManager);
+  }
+  public static boolean compileLoadAndRun( ArrayList<String> javaFiles, String projectPath, String packageName,
+                                           Class<?> mainClass, ClassData classData,
+                                           ClassLoader loader,
+                                           StandardJavaFileManager fileManager) {
+    boolean succ = compileAndLoad(javaFiles, projectPath, packageName, mainClass, classData,
+                                  loader, fileManager);
+    if ( !succ ) return false;
+    return runMain(loader, mainClass);
   }
 
   public Class<?> getMainClass() {
@@ -2486,6 +2938,10 @@ public class EventXmlToJava {
    * @return whether the invocation was successful.
    */
   public boolean runMain() {
+    return runMain( getLoader(), getMainClass() );
+  }
+
+  public static boolean runMain(ClassLoader loader, Class<?> mainClass) {
     boolean succ = false;
 //        //Class<?> cls = Utils.getClassForName( "Main", getPackageName(), true );
 //        Class< ? > cls;
@@ -2500,9 +2956,9 @@ public class EventXmlToJava {
 //          }
 //        }
     String args[] = new String[] { null };
-    Utils.loader = getLoader();
+    Utils.loader = loader;
     Pair< Boolean, Object > p =
-        ClassUtils.runMethod( false, getMainClass(), "main", (Object[])args );
+        ClassUtils.runMethod( false, mainClass, "main", (Object[])args );
     return p.first;
   }
 
