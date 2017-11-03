@@ -43,11 +43,8 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import javax.tools.JavaCompiler;
+import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -2725,6 +2722,16 @@ public class EventXmlToJava {
         }
       }
     }
+
+//    try {
+//      fileManager.setLocation(
+//              StandardLocation.CLASS_PATH,
+//              Arrays.asList( new File ( javaPath ) )
+//      );
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+
     Iterable<? extends JavaFileObject> compilationUnits =
         fileManager.getJavaFileObjectsFromFiles(files);
     System.out.println( "compileJavaFiles(" + javaPath
