@@ -28,13 +28,13 @@ public class MonitorLoadReductionEvent extends DurativeEvent {
 	/**
 	 * 
 	 */
-	public MonitorLoadReductionEvent( Expression<Integer> startTimeExpression,
+	public MonitorLoadReductionEvent( Expression< Long> startTimeExpression,
 	                                  Expression<Double> projectedLoadReductionExpression ) {
 		// TODO Auto-generated constructor stub
 	  super();
 //	  if ( startTimeExpression.type == Expression.Type.Parameter ) {
-//	    this.substitute( (Parameter<Integer>)startTime,
-//	                     (Parameter<Integer>)startTimeExpression.expression );
+//	    this.substitute( (Parameter< Long>)startTime,
+//	                     (Parameter< Long>)startTimeExpression.expression );
 //	    startTime = (event.Timepoint)startTimeExpression.expression;
 //	  } else {
 	    addDependency( startTime, startTimeExpression );

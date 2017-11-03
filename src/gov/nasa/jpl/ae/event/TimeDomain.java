@@ -3,7 +3,7 @@
  */
 package gov.nasa.jpl.ae.event;
 
-import gov.nasa.jpl.ae.solver.IntegerDomain;
+import gov.nasa.jpl.ae.solver.LongDomain;
 import gov.nasa.jpl.mbee.util.Random;
 import gov.nasa.jpl.ae.solver.RangeDomain;
 
@@ -11,10 +11,10 @@ import gov.nasa.jpl.ae.solver.RangeDomain;
  * @author bclement
  *
  */
-public class TimeDomain extends IntegerDomain {
+public class TimeDomain extends LongDomain {
 
-  public static IntegerDomain horizonDomain =
-      new IntegerDomain( 0, Timepoint.getHorizonDuration() );
+  public static LongDomain horizonDomain =
+      new LongDomain( 0, Timepoint.getHorizonDuration() );
   /**
    * 
    */
@@ -26,14 +26,14 @@ public class TimeDomain extends IntegerDomain {
    * @param minValue
    * @param maxValue
    */
-  public TimeDomain( int minValue, int maxValue ) {
+  public TimeDomain( long minValue, long maxValue ) {
     super( minValue, maxValue );
   }
 
   /**
    * @param domain
    */
-  public TimeDomain( RangeDomain< Integer > domain ) {
+  public TimeDomain( RangeDomain< Long > domain ) {
     super( domain );
   }
 
@@ -41,7 +41,7 @@ public class TimeDomain extends IntegerDomain {
    * @see gov.nasa.jpl.ae.solver.IntegerDomain#pickRandomValue()
    */
   @Override
-  public Integer pickRandomValue() {
+  public Long pickRandomValue() {
     if ( getLowerBound() < Timepoint.getHorizonDuration() &&
          getUpperBound() > Timepoint.getHorizonDuration() ) {
       double r1 = Random.global.nextDouble();

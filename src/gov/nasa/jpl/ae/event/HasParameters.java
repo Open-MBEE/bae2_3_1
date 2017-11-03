@@ -1,16 +1,20 @@
 package gov.nasa.jpl.ae.event;
 
 import gov.nasa.jpl.ae.solver.Satisfiable;
+import gov.nasa.jpl.mbee.util.CompareUtils;
 import gov.nasa.jpl.mbee.util.HasId;
 import gov.nasa.jpl.mbee.util.MoreToString;
 import gov.nasa.jpl.mbee.util.Pair;
 import gov.nasa.jpl.mbee.util.Utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 
 public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructable,
                                        MoreToString {
@@ -33,6 +37,14 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
                              boolean deep, Set< HasParameters > seen );
   public boolean substitute( Parameter< ? > p1, Object exp,
                              boolean deep, Set< HasParameters > seen );
+
+//  /**
+//   *
+//   * @param b
+//   * @param o
+//   * @return true iff there are no free variables
+//   */
+//  boolean isIndependent(boolean b, Object o);
 
   /**
    * This helper class provides static methods for making calls on Objects and
@@ -94,11 +106,16 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
     public static boolean hasParameter( Object o, Parameter< ? > p,
                                         boolean deep, Set< HasParameters > seen,
                                         boolean checkIfHasParameters ) {
-      if ( o == p ) return true;
       if ( o == null ) return false;
-      if ( checkIfHasParameters && o instanceof HasParameters ) {
-        //if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
-        if ( ((HasParameters)o).hasParameter( p, deep, seen ) ) {
+      if ( p == null ) return false;
+      if ( isParameter( o, p ) ) return true;
+      if ( o instanceof HasParameters ) {
+        if ( checkIfHasParameters ) {
+          //if ( Utils.seen( (HasParameters)o, deep, seen ) ) return false;
+          if ( ((HasParameters)o).hasParameter( p, deep, seen ) ) {
+            return true;
+          }
+        } else if ( hasParameter( (HasParameters)o, p, deep, seen ) ) {
           return true;
         }
       } else {
@@ -114,6 +131,47 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       }
       return false;
     }
+    
+    public static boolean hasParameter( HasParameters o, Parameter< ? > parameter,
+                                        boolean deep,
+                                        Set<HasParameters> seen ) {
+      //return o.getParameters( deep, seen ).contains( p );
+      if ( parameter == null ) return false;
+      Object val = parameter.getValueNoPropagate();
+      Set< Parameter< ? > > parameters = o.getParameters( deep, seen );
+      if ( val instanceof HasOwner ) {
+        for ( Parameter<?> p : parameters ) {
+          if ( parameter.equals( p ) ) {
+            return true;
+          }
+          if ( val.equals( p.getValueNoPropagate() ) ) {
+            return true;
+          }
+        }
+        return false;
+      }
+      boolean b = parameters.contains( parameter );
+      return b;
+    }
+    
+    public static boolean isParameter( Object o, Parameter<?> parameter ) {
+      if ( o == null ) return false;
+      if ( parameter == null ) return false;
+      if ( o == parameter ) return true;
+
+      if ( parameter.equals( o ) ) {
+        return true;
+      }
+      Object val = parameter.getValueNoPropagate();
+      if ( o instanceof Parameter && val instanceof HasOwner ) {
+        if ( val.equals( ((Parameter<?>)o).getValueNoPropagate() ) ) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
+
 
     static int dbgCt = 0;
 
@@ -348,8 +406,9 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       for ( Entry< K, V > e : map.entrySet() ) {
         if ( e.getValue() == p1 ) {
           e.setValue( (V)p2 );
+          subbed = true;
         } else {
-          if ( substitute( e.getValue(), p1, p2, deep, seen, true ) ) {
+          if ( deep && substitute( e.getValue(), p1, p2, deep, seen, true ) ) {
             subbed = true;
           }
         }
@@ -365,7 +424,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfLazyUpdate && c instanceof LazyUpdate ) {
         return ((LazyUpdate)c).isStale();  // potential infinite loop
       }
-      for ( T t : c ) {
+      for ( T t : new ArrayList<T>(c) ) {
         if ( isStale( t, deep, seen, true ) ) return true;
       }
       return false;
@@ -387,7 +446,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         return ((HasParameters)c ).hasParameter( parameter, deep, seen );
       }
-      for ( T t : c ) {
+      for ( T t : new ArrayList<T>(c) ) {
         if ( hasParameter( t, parameter, deep, seen, deep ) ) {
           return true;
         }
@@ -403,7 +462,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         set = Utils.addAll( set, ((HasParameters)c).getParameters( deep, seen ) );
       } else {
-        for ( T t : c ) {
+        for ( T t : new ArrayList<T>(c) ) {
           set = Utils.addAll( set, getParameters( t, deep, seen, true ) );
         }
       }
@@ -420,7 +479,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( checkIfHasParameters && c instanceof HasParameters ) {
         return ((HasParameters)c).isFreeParameter( parameter, deep, seen );
       }
-      for ( T t : c ) {
+      for ( T t : new ArrayList<T>(c) ) {
         if ( isFreeParameter( t, parameter, deep, seen, true ) ) {
           return true;
         }
@@ -444,7 +503,7 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( p1 == p2 ) return true;
       boolean subbed = false;
       for ( T t : c ) {
-        if ( substitute( t, p1, p2, deep, seen, true ) ) {
+        if ( deep && substitute( t, p1, p2, deep, seen, true ) ) {
           subbed = true;
         }
       }
@@ -512,6 +571,33 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       return false;
     }
 
+    public static boolean hasFreeParameter(Object o, boolean deep, Set< HasParameters > seen) {
+      if ( o instanceof HasParameters ) {
+        Set<Parameter<?>> params = ((HasParameters)o).getParameters(deep, seen);
+        if ( params == null ) return false;
+        for ( Parameter<?> p : params ) {
+          if ( ((HasParameters) o).isFreeParameter(p, deep, seen ) ) {
+          //if ( !p.isDependent() ) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return false;
+    }
+
+
+    public static boolean subParamsEqual( Object o, Parameter<?> p1 ) {
+      if ( o == p1 ) return true;
+      if ( o == null || p1 == null ) return false;
+      // return o.equals( p1 );  // Can't use Parameter.equals() since it compares values.
+      if ( o instanceof Parameter ) {
+        if ( CompareUtils.compare( ((Parameter<?>)o).name, p1.name ) == 0 ) return true;
+      }
+      return false;
+      //return Expression.valuesEqual( o, p1, Parameter.class, false, false );  // This is also too loose.
+    }
+
     public static boolean substitute( Object[] c, Parameter< ? > p1,
                                       Object p2,
                                       boolean deep,
@@ -519,33 +605,118 @@ public interface HasParameters extends LazyUpdate, HasId<Integer>, Deconstructab
       if ( p1 == null ) return false;
       if ( p1 == p2 ) return true;
       boolean subbed = false;
-      for ( Object t : c ) {
-        if ( substitute( t, p1, p2, deep, seen, true ) ) {
+      for ( int i = 0; i < c.length; ++i ) {
+        if ( subParamsEqual( c[i], p1 ) ) { //c[i] == p1 ) {
+          c[i] = p2;
           subbed = true;
+        } else {
+          if ( substitute( c[i], p1, p2, deep, seen, true ) ) {
+            subbed = true;
+          }
         }
       }
       return subbed;
     }
 
-    public static boolean substitute( Collection<?> o,
-                                      Parameter< ? > p1,
-                                      Object p2,
-                                      boolean deep,
-                                      Set< HasParameters > seen,
-                                      boolean checkIfHasParameters ) {
+    public static < V, VS extends V > boolean
+        substitute( List< V > o, Parameter< ? > p1, VS p2, boolean deep,
+                    Set< HasParameters > seen, boolean checkIfHasParameters ) {
+      if ( o == null ) return false;
+      if ( p1 == null ) return false;
+      if ( p1 == p2 ) return true;
 
+      if ( checkIfHasParameters && o instanceof HasParameters ) {
+        if ( p2 instanceof Parameter ) {
+          return ((HasParameters)o).substitute( p1, (Parameter<?>)p2, deep, seen );
+        }
+        return ((HasParameters)o).substitute( p1, p2, deep, seen );
+      }
+
+      boolean subbed = false;
+      for ( int i = 0; i < o.size(); ++i ) {
+        V v = o.get( i );
+        if ( subParamsEqual( v, p1 ) ) { //v == p1 ) {
+          o.set( i, p2 );
+          subbed = true;
+        } else {
+          if ( deep && v != null && substitute( v, p1, p2, deep, seen, true ) ) {
+            subbed = true;
+          }
+        }
+      }
+      return subbed;
+    }
+
+    public static < V, VS extends V > boolean
+      substitute( Set< V > o, Parameter< ? > p1, VS p2, boolean deep,
+                Set< HasParameters > seen, boolean checkIfHasParameters ) {
+      return substituteImpl( o, p1, p2, deep, seen, checkIfHasParameters );
+    }
+    
+    public static < V, VS extends V > boolean
+        substituteImpl( Collection< V > o, Parameter< ? > p1, VS p2, boolean deep,
+                        Set< HasParameters > seen, boolean checkIfHasParameters ) {
+      if ( o == null ) return false;
       if ( p1 == null ) return false;
       if ( p1 == p2 ) return true;
       boolean subbed = false;
-      for ( Object t : o ) {
-        if ( substitute( t, p1, p2, deep, seen, checkIfHasParameters ) ) {
-          subbed = true;
+      
+      if ( checkIfHasParameters && o instanceof HasParameters ) {
+        if ( p2 instanceof Parameter ) {
+          return ((HasParameters)o).substitute( p1, (Parameter<?>)p2, deep, seen );
+        }
+        return ((HasParameters)o).substitute( p1, p2, deep, seen );
+      }
+
+      // Try substituting members.
+      //boolean contains = false;
+      ArrayList< V > matches = new ArrayList< V >();
+      for ( V v : o ) {
+        if ( subParamsEqual( v, p1 ) ) {
+          matches.add( v );
+          //contains = true;
+//          break;
+        }
+      }
+      if ( !matches.isEmpty() ) {
+        subbed = true;
+        o.removeAll( matches );
+        o.add( p2 );
+      }
+//      if ( o.contains( p1 ) ) {
+//        o.remove( p1 );
+//        o.add( p2 );
+//        subbed = true;
+//      }
+
+      if ( deep ) {
+        // This is painful but necessary, at least for some Collections, like TreeSet.
+        for ( Object v : o.toArray() ) {
+          if ( v != null && ( !(p2 instanceof Parameter) ||
+                              !subParamsEqual( v, (Parameter<?>)p2 ) ) ) {
+            o.remove( v );
+            if ( substitute( v, p1, p2, deep, seen, true ) ) {
+              subbed = true;
+            }
+            o.add( (V)v );
+          }
         }
       }
       return subbed;
-
     }
 
+    public static < V, VS extends V > boolean
+    substitute( Collection< V > o, Parameter< ? > p1, VS p2, boolean deep,
+                    Set< HasParameters > seen, boolean checkIfHasParameters ) {
+      if ( o instanceof List ) {
+        return substitute( (List<?>)o, p1, p2, deep, seen, checkIfHasParameters );
+      }
+      if ( o instanceof Set ) {
+        return substitute( (Set<?>)o, p1, p2, deep, seen, checkIfHasParameters );
+      }
+      return substituteImpl( o, p1, p2, deep, seen, checkIfHasParameters );
+    }
+    
     // static implementations on Pair
 
     public static < T1, T2 > boolean isStale( Pair< T1, T2 > p, boolean deep,

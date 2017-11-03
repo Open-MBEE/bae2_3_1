@@ -20,4 +20,9 @@ bin
 *.pyc
 *~
 /AE.jar
-/target/
+target
+/output/
+/.DS_Store
+/.idea
+*.iml
+*.log
